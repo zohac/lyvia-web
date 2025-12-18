@@ -1,7 +1,7 @@
 <template>
   <AuthPageTemplate
-    title="Réinitialiser le mot de passe"
-    subtitle="Choisissez un nouveau mot de passe sécurisé."
+    title="Nouveau mot de passe"
+    subtitle="Sécurisez votre compte avec un mot de passe fort."
   >
   <template #alert>
     <SystemAlert
@@ -15,9 +15,11 @@
       v-if="isTokenInvalid"
       class="grid gap-6"
     >
-      <p class="text-center text-[color:var(--color-brand-secondary)]">
-        Ce lien de réinitialisation n’est plus valide. Vous pouvez en demander un nouveau.
-      </p>
+      <SystemAlert
+        variant="warning"
+        title="Lien expiré ou invalide"
+        description="Par mesure de sécurité, ce lien de réinitialisation n’est plus valide."
+      />
 
       <NuxtLink
         to="/forgot-password"
@@ -41,8 +43,13 @@
         autocomplete="new-password"
         :required="true"
         :disabled="isSubmitting"
-        :hint="passwordHint"
+        :described-by-ids="[criteriaId]"
         :error="passwordError"
+      />
+
+      <PasswordCriteriaList
+        :id="criteriaId"
+        :password="form.newPassword"
       />
 
       <PasswordInput
@@ -67,10 +74,11 @@
 
     <template #footer>
       <NuxtLink
-        to="/forgot-password"
+        v-if="!isTokenInvalid"
+        to="/login"
         class="font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
       >
-        Demander un nouveau lien
+        Retour à la connexion
       </NuxtLink>
     </template>
   </AuthPageTemplate>
@@ -84,8 +92,11 @@ definePageMeta({
 })
 
 import type { ResetPasswordResponse } from '../features/auth/api/auth.contract'
+import { isPasswordStrong } from '../features/auth/password/password-policy'
 import { apiFetch } from '../services/api/apiFetch'
 import { ApiFetchError, mapAuthErrorCodeToUserMessage } from '../services/api/api-error'
+
+const criteriaId = 'new-password-criteria'
 
 const route = useRoute()
 const token = computed(() => {
@@ -102,20 +113,22 @@ const isSubmitting = ref(false)
 const error = ref<string | null>(null)
 const isTokenInvalid = ref(false)
 
-const passwordHint =
-  'Au minimum 10 caractères, avec au moins une lettre, un chiffre et un caractère spécial.'
+const tokenIsWellFormed = computed(() => {
+  if (!token.value) return false
+  return /^[A-Za-z0-9_-]{30,}$/.test(token.value)
+})
 
-function isPasswordValid(password: string): boolean {
-  if (password.length < 10) return false
-  if (!/[A-Za-z]/.test(password)) return false
-  if (!/[0-9]/.test(password)) return false
-  if (!/[^A-Za-z0-9]/.test(password)) return false
-  return true
-}
+watchEffect(() => {
+  if (import.meta.server) return
+  if (!tokenIsWellFormed.value) {
+    error.value = 'Le lien de réinitialisation est invalide ou expiré.'
+    isTokenInvalid.value = true
+  }
+})
 
 const passwordError = computed(() => {
   if (!form.newPassword) return null
-  return isPasswordValid(form.newPassword) ? null : 'Mot de passe trop faible.'
+  return isPasswordStrong(form.newPassword) ? null : 'Mot de passe trop faible.'
 })
 
 const confirmError = computed(() => {
@@ -128,7 +141,7 @@ const confirmError = computed(() => {
 const canSubmit = computed(() => {
   if (isSubmitting.value) return false
   if (!token.value) return false
-  if (!isPasswordValid(form.newPassword)) return false
+  if (!isPasswordStrong(form.newPassword)) return false
   if (form.newPassword !== form.confirmPassword) return false
   return true
 })
@@ -137,7 +150,7 @@ async function onSubmit() {
   error.value = null
   isSubmitting.value = true
 
-  if (!token.value) {
+  if (!tokenIsWellFormed.value) {
     error.value = 'Le lien de réinitialisation est invalide ou expiré.'
     isTokenInvalid.value = true
     isSubmitting.value = false

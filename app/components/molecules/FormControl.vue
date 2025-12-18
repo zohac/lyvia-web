@@ -5,11 +5,13 @@ const props = withDefaults(
     label: string
     error?: string | null
     hint?: string
+    describedByIds?: string[]
     required?: boolean
   }>(),
   {
     error: null,
     hint: undefined,
+    describedByIds: undefined,
     required: false
   }
 )
@@ -18,9 +20,19 @@ const hintId = computed(() => `${props.id}-hint`)
 const errorId = computed(() => `${props.id}-error`)
 
 const describedBy = computed(() => {
-  const ids = []
+  const ids: string[] = []
   if (props.hint) ids.push(hintId.value)
   if (props.error) ids.push(errorId.value)
+
+  if (props.describedByIds?.length) {
+    for (const id of props.describedByIds) {
+      if (typeof id !== 'string') continue
+      if (!id.trim()) continue
+      if (ids.includes(id)) continue
+      ids.push(id)
+    }
+  }
+
   return ids.length ? ids.join(' ') : undefined
 })
 

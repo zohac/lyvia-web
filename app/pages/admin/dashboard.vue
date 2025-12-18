@@ -1,6 +1,6 @@
 <template>
   <main class="mx-auto w-full max-w-5xl px-6 py-16">
-    <h1 class="font-display text-3xl text-[color:var(--color-brand-primary)]">
+    <h1 class="font-serif text-3xl text-[color:var(--color-brand-primary)]">
       Administration
     </h1>
     <p class="mt-3 max-w-prose text-[color:var(--color-brand-secondary)]">

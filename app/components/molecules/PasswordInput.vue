@@ -10,6 +10,7 @@ const props = withDefaults(
     disabled?: boolean
     error?: string | null
     hint?: string
+    describedByIds?: string[]
     required?: boolean
   }>(),
   {
@@ -19,6 +20,7 @@ const props = withDefaults(
     disabled: false,
     error: null,
     hint: undefined,
+    describedByIds: undefined,
     required: false
   }
 )
@@ -51,6 +53,7 @@ const toggleAriaLabel = computed(() =>
     :label="label"
     :error="error"
     :hint="hint"
+    :described-by-ids="describedByIds"
     :required="required"
     v-slot="slotProps"
   >
