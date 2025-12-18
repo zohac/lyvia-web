@@ -7,54 +7,43 @@ useHead({
 </script>
 
 <template>
-  <div>
+  <div class="min-h-screen">
     <UHeader>
       <template #left>
-        <NuxtLink to="/">
-          <AppLogo class="h-6 w-auto shrink-0" />
+        <NuxtLink
+          to="/"
+          aria-label="Accueil"
+        >
+          <AppLogo class="h-6 w-auto shrink-0 text-[color:var(--color-brand-primary)]" />
         </NuxtLink>
-
-        <TemplateMenu />
       </template>
 
       <template #right>
-        <UColorModeButton />
-
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
+        <NuxtLink
+          to="/login"
+          class="rounded-[var(--radius-sm)] px-3 py-2 font-semibold text-[color:var(--color-brand-secondary)] hover:bg-[color:var(--color-surface-highlight)] hover:underline"
+        >
+          Connexion
+        </NuxtLink>
       </template>
     </UHeader>
 
-    <UMain>
+    <main class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
       <slot />
-    </UMain>
+    </main>
 
-    <USeparator icon="i-simple-icons-nuxtdotjs" />
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">
-          Built with Nuxt UI • © {{ new Date().getFullYear() }}
+    <footer class="border-t border-[color:var(--color-brand-subtle)]">
+      <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 text-sm text-[color:var(--color-brand-secondary)] sm:px-6">
+        <p>
+          © {{ new Date().getFullYear() }} Livia
         </p>
-      </template>
-
-      <template #right>
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
-      </template>
-    </UFooter>
+        <NuxtLink
+          to="/login"
+          class="font-semibold hover:underline"
+        >
+          Accéder à mon espace
+        </NuxtLink>
+      </div>
+    </footer>
   </div>
 </template>
-

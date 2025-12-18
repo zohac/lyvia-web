@@ -1,76 +1,66 @@
 <template>
-  <div>
-    <UPageHero
-      title="Nuxt Starter Template"
-      description="A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours."
-      :links="[{
-        label: 'Get started',
-        to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
-        target: '_blank',
-        trailingIcon: 'i-lucide-arrow-right',
-        size: 'xl'
-      }, {
-        label: 'Use this template',
-        to: 'https://github.com/nuxt-ui-templates/starter',
-        target: '_blank',
-        icon: 'i-simple-icons-github',
-        size: 'xl',
-        color: 'neutral',
-        variant: 'subtle'
-      }]"
-    />
+  <div class="grid gap-12">
+    <section class="grid gap-6">
+      <div class="grid gap-3">
+        <p class="text-sm font-semibold tracking-wide text-[color:var(--color-brand-secondary)]">
+          Coaching Platform — MVP V0
+        </p>
+        <h1 class="font-serif text-[2.25rem] font-bold leading-[var(--leading-tight)] tracking-[-0.01em] sm:text-[3rem]">
+          Un accompagnement clair, rassurant et orienté résultats.
+        </h1>
+        <p class="max-w-2xl text-[1.125rem] leading-[var(--leading-relaxed)] text-[color:var(--color-brand-secondary)]">
+          Réservez vos rendez-vous, payez en ligne en toute sécurité, et accédez à des contenus utiles — dans une interface apaisante pensée pour durer.
+        </p>
+      </div>
 
-    <UPageSection
-      id="features"
-      title="Everything you need to build modern Nuxt apps"
-      description="Start with a solid foundation. This template includes all the essentials for building production-ready applications with Nuxt UI's powerful component system."
-      :features="[{
-        icon: 'i-lucide-rocket',
-        title: 'Production-ready from day one',
-        description: 'Pre-configured with TypeScript, ESLint, Tailwind CSS, and all the best practices. Focus on building features, not setting up tooling.'
-      }, {
-        icon: 'i-lucide-palette',
-        title: 'Beautiful by default',
-        description: 'Leveraging Nuxt UI\'s design system with automatic dark mode, consistent spacing, and polished components that look great out of the box.'
-      }, {
-        icon: 'i-lucide-zap',
-        title: 'Lightning fast',
-        description: 'Optimized for performance with SSR/SSG support, automatic code splitting, and edge-ready deployment. Your users will love the speed.'
-      }, {
-        icon: 'i-lucide-blocks',
-        title: '100+ components included',
-        description: 'Access Nuxt UI\'s comprehensive component library. From forms to navigation, everything is accessible, responsive, and customizable.'
-      }, {
-        icon: 'i-lucide-code-2',
-        title: 'Developer experience first',
-        description: 'Auto-imports, hot module replacement, and TypeScript support. Write less boilerplate and ship more features.'
-      }, {
-        icon: 'i-lucide-shield-check',
-        title: 'Built for scale',
-        description: 'Enterprise-ready architecture with proper error handling, SEO optimization, and security best practices built-in.'
-      }]"
-    />
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <NuxtLink
+          to="/login"
+          class="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] bg-[color:var(--color-accent-main)] px-6 text-[19px] font-bold text-[color:var(--color-accent-contrast)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-accent-hover)]"
+        >
+          Se connecter
+        </NuxtLink>
 
-    <UPageSection>
-      <UPageCTA
-        title="Ready to build your next Nuxt app?"
-        description="Join thousands of developers building with Nuxt and Nuxt UI. Get this template and start shipping today."
-        variant="subtle"
-        :links="[{
-          label: 'Start building',
-          to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
-          target: '_blank',
-          trailingIcon: 'i-lucide-arrow-right',
-          color: 'neutral'
-        }, {
-          label: 'View on GitHub',
-          to: 'https://github.com/nuxt-ui-templates/starter',
-          target: '_blank',
-          icon: 'i-simple-icons-github',
-          color: 'neutral',
-          variant: 'outline'
-        }]"
-      />
-    </UPageSection>
+        <NuxtLink
+          to="/forgot-password"
+          class="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] border border-[color:var(--color-brand-primary)] px-6 font-semibold text-[color:var(--color-brand-primary)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-surface-highlight)]"
+        >
+          Mot de passe oublié
+        </NuxtLink>
+      </div>
+    </section>
+
+    <section class="grid gap-6">
+      <h2 class="font-serif text-[1.5rem] font-semibold leading-[var(--leading-normal)]">
+        Pourquoi c’est simple
+      </h2>
+
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+          <h3 class="font-serif text-[1.25rem] font-semibold">
+            Rendez-vous
+          </h3>
+          <p class="mt-2 text-[color:var(--color-brand-secondary)]">
+            Un parcours minimal, sans friction : réserver, confirmer, suivre.
+          </p>
+        </div>
+        <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+          <h3 class="font-serif text-[1.25rem] font-semibold">
+            Paiement sécurisé
+          </h3>
+          <p class="mt-2 text-[color:var(--color-brand-secondary)]">
+            Stripe Checkout comme référence : clair, transparent, fiable.
+          </p>
+        </div>
+        <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+          <h3 class="font-serif text-[1.25rem] font-semibold">
+            Contenus utiles
+          </h3>
+          <p class="mt-2 text-[color:var(--color-brand-secondary)]">
+            Articles, recettes, actualités — accessibles simplement.
+          </p>
+        </div>
+      </div>
+    </section>
   </div>
 </template>

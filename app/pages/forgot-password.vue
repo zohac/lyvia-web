@@ -1,21 +1,8 @@
 <template>
   <AuthPageTemplate
-    title="Connexion"
-    subtitle="Accéder à votre espace"
+    title="Mot de passe oublié ?"
+    subtitle="Saisissez votre adresse e-mail pour recevoir un lien de réinitialisation."
   >
-    <template #alert>
-      <SystemAlert
-        v-if="resetSuccess"
-        variant="success"
-        description="Votre mot de passe a été mis à jour. Vous pouvez vous connecter."
-      />
-      <SystemAlert
-        v-if="error"
-        variant="error"
-        :description="error"
-      />
-    </template>
-
     <form
       class="grid gap-6"
       novalidate
@@ -33,8 +20,9 @@
           name="email"
           type="email"
           inputmode="email"
-          autocomplete="username"
+          autocomplete="email"
           :disabled="isSubmitting"
+          placeholder="vous@exemple.com"
           class="h-12 w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
           :class="
             slotProps?.invalid
@@ -46,19 +34,10 @@
         >
       </FormControl>
 
-      <PasswordInput
-        id="password"
-        v-model="form.password"
-        label="Mot de passe"
-        autocomplete="current-password"
-        :required="true"
-        :disabled="isSubmitting"
-      />
-
       <PrimaryButton
         type="submit"
-        label="Se connecter"
-        loading-label="Connexion en cours…"
+        label="Envoyer le lien de réinitialisation"
+        loading-label="Envoi en cours…"
         :loading="isSubmitting"
         :disabled="!canSubmit"
       />
@@ -66,10 +45,10 @@
 
     <template #footer>
       <NuxtLink
-        to="/forgot-password"
+        to="/login"
         class="font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
       >
-        Mot de passe oublié ?
+        Retour à la connexion
       </NuxtLink>
     </template>
   </AuthPageTemplate>
@@ -80,46 +59,45 @@ definePageMeta({
   layout: 'auth'
 })
 
-const auth = useAuth()
-const route = useRoute()
+import type { ForgotPasswordResponse } from '../features/auth/api/auth.contract'
+import { apiFetch } from '../services/api/apiFetch'
 
 const form = reactive({
-  email: '',
-  password: ''
+  email: ''
 })
 
-const error = ref<string | null>(null)
 const isSubmitting = ref(false)
 const emailInputRef = ref<HTMLInputElement | null>(null)
 
-const resetSuccess = computed(() => route.query.reset === 'success')
-
 const canSubmit = computed(() => {
   if (isSubmitting.value) return false
-  return form.email.trim().length > 0 && form.password.length > 0
+  return form.email.trim().length > 0
 })
 
 onMounted(() => {
   if (import.meta.server) return
-
   const canFocus = window.matchMedia?.('(pointer: fine)').matches ?? false
   if (canFocus) emailInputRef.value?.focus()
 })
 
 async function onSubmit() {
-  error.value = null
   isSubmitting.value = true
 
   try {
-    await auth.login({
-      email: form.email,
-      password: form.password
+    await apiFetch<ForgotPasswordResponse>('/auth/forgot-password', {
+      method: 'POST',
+      withAuth: false,
+      body: { email: form.email }
     })
-  } catch (err: unknown) {
-    error.value =
-      auth.lastError.value || 'Une erreur est survenue. Veuillez réessayer.'
+  } catch {
+    // Anti user-enumeration: we always proceed to the confirmation page.
   } finally {
     isSubmitting.value = false
+    await navigateTo({
+      path: '/forgot-password/sent',
+      query: { email: form.email }
+    })
   }
 }
 </script>
+
