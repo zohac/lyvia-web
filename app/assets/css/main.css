@@ -2,17 +2,143 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-sans: 'Public Sans', sans-serif;
+  --font-family-heading: 'Playfair Display', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-family-body: 'Manrope', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 
-  --color-green-50: #EFFDF5;
-  --color-green-100: #D9FBE8;
-  --color-green-200: #B3F5D1;
-  --color-green-300: #75EDAE;
-  --color-green-400: #00DC82;
-  --color-green-500: #00C16A;
-  --color-green-600: #00A155;
-  --color-green-700: #007F45;
-  --color-green-800: #016538;
-  --color-green-900: #0A5331;
-  --color-green-950: #052E16;
+  --leading-tight: 1.1;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  --shadow-card: 0px 4px 20px -2px rgba(54, 33, 62, 0.08);
+  --shadow-floating: 0px 10px 40px -10px rgba(54, 33, 62, 0.15);
+
+  --color-brand-primary: #36213E;
+  --color-brand-secondary: #553B5E;
+  --color-brand-subtle: #E6DEEB;
+
+  --color-surface-page: #FDFBF7;
+  --color-surface-card: #FFFFFF;
+  --color-surface-highlight: #F3EBF5;
+
+  --color-accent-main: #C87964;
+  --color-accent-hover: #B0624D;
+  --color-accent-contrast: #FFFFFF;
+
+  --color-success: #4A7C59;
+  --color-error: #BA3F3F;
+  --color-warning: #D98C28;
+
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+
+  --font-sans: var(--font-family-body);
+  --font-serif: var(--font-family-heading);
+
+  --color-terracotta-50: #FDF3F0;
+  --color-terracotta-100: #FCECE8;
+  --color-terracotta-200: #F6D0C6;
+  --color-terracotta-300: #EFB4A4;
+  --color-terracotta-400: #D58E7B;
+  --color-terracotta-500: #C87964;
+  --color-terracotta-600: #B0624D;
+  --color-terracotta-700: #8F4B3B;
+  --color-terracotta-800: #6D352A;
+  --color-terracotta-900: #4B1F18;
+  --color-terracotta-950: #2C110D;
+
+  --color-velvet-50: #F6F2F7;
+  --color-velvet-100: #EDE6F0;
+  --color-velvet-200: #D9CCE0;
+  --color-velvet-300: #BCA7C9;
+  --color-velvet-400: #9B7AAE;
+  --color-velvet-500: #7A568E;
+  --color-velvet-600: #5E3F70;
+  --color-velvet-700: #553B5E;
+  --color-velvet-800: #402848;
+  --color-velvet-900: #36213E;
+  --color-velvet-950: #1E1023;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* Nuxt UI color bridge (force exact DS values) */
+    --ui-primary: var(--color-accent-main);
+    --ui-color-primary-50: var(--color-terracotta-50);
+    --ui-color-primary-100: var(--color-terracotta-100);
+    --ui-color-primary-200: var(--color-terracotta-200);
+    --ui-color-primary-300: var(--color-terracotta-300);
+    --ui-color-primary-400: var(--color-terracotta-400);
+    --ui-color-primary-500: var(--color-terracotta-500);
+    --ui-color-primary-600: var(--color-terracotta-600);
+    --ui-color-primary-700: var(--color-terracotta-700);
+    --ui-color-primary-800: var(--color-terracotta-800);
+    --ui-color-primary-900: var(--color-terracotta-900);
+    --ui-color-primary-950: var(--color-terracotta-950);
+
+    --ui-color-neutral-50: var(--color-velvet-50);
+    --ui-color-neutral-100: var(--color-velvet-100);
+    --ui-color-neutral-200: var(--color-velvet-200);
+    --ui-color-neutral-300: var(--color-velvet-300);
+    --ui-color-neutral-400: var(--color-velvet-400);
+    --ui-color-neutral-500: var(--color-velvet-500);
+    --ui-color-neutral-600: var(--color-velvet-600);
+    --ui-color-neutral-700: var(--color-velvet-700);
+    --ui-color-neutral-800: var(--color-velvet-800);
+    --ui-color-neutral-900: var(--color-velvet-900);
+    --ui-color-neutral-950: var(--color-velvet-950);
+  }
+
+  html {
+    font-family: var(--font-family-body);
+    text-rendering: geometricPrecision;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: var(--color-surface-page);
+    color: var(--color-brand-primary);
+    font-family: var(--font-family-body);
+    line-height: var(--leading-relaxed);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-family-heading);
+    color: var(--color-brand-primary);
+  }
+
+  a {
+    color: var(--color-brand-secondary);
+    text-underline-offset: 0.2em;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  ::selection {
+    background: rgba(200, 121, 100, 0.25);
+  }
+
+  :focus-visible {
+    outline: 3px solid rgba(200, 121, 100, 0.45);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .warm-filter {
+    filter: sepia(10%) contrast(95%) brightness(105%);
+  }
 }

@@ -1,122 +1,122 @@
 <template>
-  <UContainer class="py-10">
-    <UCard>
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h1 class="text-lg font-semibold">
-            Smoke Login
-          </h1>
-          <UButton
-            to="/"
-            variant="ghost"
-            size="sm"
-            label="Home"
-          />
-        </div>
-      </template>
+  <AuthPageTemplate
+    title="Connexion"
+    subtitle="Accéder à votre espace"
+  >
+    <template #alert>
+      <SystemAlert
+        v-if="error"
+        variant="error"
+        description="Identifiants invalides. Vérifiez votre email et votre mot de passe."
+      />
+    </template>
 
-      <UForm
-        :state="form"
-        @submit.prevent="onSubmit"
+    <form
+      class="grid gap-6"
+      novalidate
+      @submit.prevent="onSubmit"
+    >
+      <FormControl
+        id="email"
+        label="Adresse e-mail"
+        :required="true"
+        v-slot="slotProps"
       >
-        <div class="grid gap-4">
-          <UFormField label="Email">
-            <UInput
-              v-model="form.email"
-              type="email"
-              autocomplete="email"
-            />
-          </UFormField>
+        <input
+          ref="emailInputRef"
+          v-bind="slotProps?.inputAttrs ?? { id: 'email' }"
+          name="email"
+          type="email"
+          inputmode="email"
+          autocomplete="username"
+          :disabled="isSubmitting"
+          class="h-12 w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
+          :class="
+            slotProps?.invalid
+              ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
+              : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-accent-main)] focus:ring-[rgba(200,121,100,0.2)]'
+          "
+          :value="form.email"
+          @input="form.email = ($event.target as HTMLInputElement).value"
+        >
+      </FormControl>
 
-          <UFormField label="Password">
-            <UInput
-              v-model="form.password"
-              type="password"
-              autocomplete="current-password"
-            />
-          </UFormField>
+      <PasswordInput
+        id="password"
+        v-model="form.password"
+        label="Mot de passe"
+        autocomplete="current-password"
+        :required="true"
+        :disabled="isSubmitting"
+      />
 
-          <div class="flex gap-2">
-            <UButton
-              type="submit"
-              label="Login"
-            />
-            <UButton
-              variant="outline"
-              label="Call /auth/me"
-              @click="callMe"
-            />
-          </div>
+      <PrimaryButton
+        type="submit"
+        label="Se connecter"
+        loading-label="Connexion en cours…"
+        :loading="isSubmitting"
+        :disabled="!canSubmit"
+      />
+    </form>
 
-          <div
-            v-if="error"
-            class="text-sm text-red-600"
-          >
-            {{ error }}
-          </div>
-
-          <div
-            v-if="result"
-            class="text-sm"
-          >
-            <div class="font-semibold">
-              Login response
-            </div>
-            <pre class="mt-2 overflow-auto rounded bg-gray-950/5 p-3 text-xs">{{ result }}</pre>
-          </div>
-        </div>
-      </UForm>
-    </UCard>
-  </UContainer>
+    <template #footer>
+      <NuxtLink
+        to="/forgot-password"
+        class="font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
+      >
+        Mot de passe oublié ?
+      </NuxtLink>
+    </template>
+  </AuthPageTemplate>
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'auth'
+})
+
 const config = useRuntimeConfig()
 
 const form = reactive({
-  email: 'admin@example.com',
-  password: 'ChangeMe123!'
+  email: '',
+  password: ''
 })
 
 const accessToken = useCookie<string | null>('access_token')
-const result = ref<unknown>(null)
 const error = ref<string | null>(null)
+const isSubmitting = ref(false)
+const emailInputRef = ref<HTMLInputElement | null>(null)
+
+const canSubmit = computed(() => {
+  if (isSubmitting.value) return false
+  return form.email.trim().length > 0 && form.password.length > 0
+})
+
+onMounted(() => {
+  if (import.meta.server) return
+
+  const canFocus = window.matchMedia?.('(pointer: fine)').matches ?? false
+  if (canFocus) emailInputRef.value?.focus()
+})
 
 async function onSubmit() {
   error.value = null
-  result.value = null
+  isSubmitting.value = true
 
   try {
     const response = await $fetch<{ accessToken: string }>(`${config.public.apiBase}/auth/login`, {
       method: 'POST',
-      body: form
+      body: {
+        email: form.email,
+        password: form.password
+      }
     })
 
     accessToken.value = response.accessToken
-    result.value = response
   } catch (err: unknown) {
     error.value = err instanceof Error ? err.message : 'Login failed'
-  }
-}
-
-async function callMe() {
-  error.value = null
-  result.value = null
-
-  if (!accessToken.value) {
-    error.value = 'Missing access token. Login first.'
-    return
-  }
-
-  try {
-    const response = await $fetch(`${config.public.apiBase}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${accessToken.value}`
-      }
-    })
-    result.value = response
-  } catch (err: unknown) {
-    error.value = err instanceof Error ? err.message : 'Request failed'
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
