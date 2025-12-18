@@ -77,7 +77,8 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
+  middleware: 'guest-only'
 })
 
 const auth = useAuth()
@@ -111,9 +112,13 @@ async function onSubmit() {
   isSubmitting.value = true
 
   try {
+    const redirectPath =
+      typeof route.query.redirect === 'string' ? route.query.redirect : undefined
+
     await auth.login({
       email: form.email,
-      password: form.password
+      password: form.password,
+      redirectPath
     })
   } catch (err: unknown) {
     error.value =

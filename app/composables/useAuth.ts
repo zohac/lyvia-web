@@ -7,11 +7,14 @@ import type {
   RefreshResponse,
   UserRole
 } from '../features/auth/api/auth.contract'
+import { resolveDashboardPath, sanitizeInternalRedirectPath } from '../features/auth/routing/auth-routing'
 import { useAuthState } from '../features/auth/state/auth.state'
 import { apiFetch } from '../services/api/apiFetch'
 import { ApiFetchError, mapAuthErrorCodeToUserMessage } from '../services/api/api-error'
 
-type LoginInput = LoginRequest
+type LoginInput = LoginRequest & {
+  redirectPath?: string
+}
 
 function computeExpiresAt(expiresInSeconds: number): string {
   return new Date(Date.now() + expiresInSeconds * 1000).toISOString()
@@ -30,19 +33,6 @@ export function useAuth() {
   const bootstrapped = useState<boolean>('auth.bootstrapped', () => false)
 
   const role = computed<UserRole | null>(() => state.value.user?.role ?? null)
-
-  function resolveDashboardPath(userRole: UserRole): string {
-    switch (userRole) {
-      case 'CLIENT':
-        return '/client/dashboard'
-      case 'PROVIDER':
-        return '/provider/dashboard'
-      case 'ADMIN':
-        return '/admin/dashboard'
-      default:
-        return '/'
-    }
-  }
 
   function setAuthenticated(user: AuthUser, response: { accessToken: string; expiresInSeconds: number }) {
     state.value.accessToken = response.accessToken
@@ -63,14 +53,20 @@ export function useAuth() {
 
   async function login(input: LoginInput): Promise<void> {
     state.value.lastError = null
+    const redirectPath = sanitizeInternalRedirectPath(input.redirectPath)
     const response = await apiFetch<LoginResponse>('/auth/login', {
       method: 'POST',
       withAuth: false,
-      body: input
+      body: {
+        email: input.email,
+        password: input.password
+      }
     })
 
     setAuthenticated(response.user, response)
-    await navigateTo(response.redirect?.path || resolveDashboardPath(response.user.role))
+    await navigateTo(
+      response.redirect?.path || redirectPath || resolveDashboardPath(response.user.role)
+    )
   }
 
   async function refreshAccessToken(): Promise<void> {

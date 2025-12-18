@@ -56,7 +56,8 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
+  middleware: 'guest-only'
 })
 
 import type { ForgotPasswordResponse } from '../features/auth/api/auth.contract'
@@ -100,4 +101,3 @@ async function onSubmit() {
   }
 }
 </script>
-

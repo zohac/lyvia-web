@@ -35,7 +35,8 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'auth'
+  layout: 'auth',
+  middleware: 'guest-only'
 })
 
 const route = useRoute()
@@ -44,4 +45,3 @@ const email = computed(() => {
   return typeof value === 'string' ? value : ''
 })
 </script>
-
