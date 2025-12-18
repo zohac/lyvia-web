@@ -32,3 +32,6 @@ jobs:
 
       - name: Typecheck
         run: pnpm run typecheck
+
+      - name: Contract check (OpenAPI)
+        run: pnpm run contract:check

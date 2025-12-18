@@ -8,7 +8,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "contract:check": "node ./scripts/contract-check-openapi-auth.mjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.74",

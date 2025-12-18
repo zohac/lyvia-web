@@ -1,8 +1,9 @@
 /**
  * Auth API contracts (Feature F).
  *
- * Backend reference:
- * `repositories/lyvia-api/src/features/auth/presentation/auth.controller.ts`
+ * Sources of truth:
+ * - `repositories/lyvia-api/openapi.yaml`
+ * - `repositories/lyvia-api/src/features/auth/presentation/auth.controller.ts`
  *
  * Endpoints:
  * - `POST /auth/login`
@@ -11,6 +12,8 @@
  * - `GET /auth/me`
  * - `POST /auth/forgot-password`
  * - `POST /auth/reset-password`
+ * - `GET /auth/sessions`
+ * - `POST /auth/sessions/:id/revoke`
  */
 
 export type UserRole = 'CLIENT' | 'PROVIDER' | 'ADMIN'
@@ -62,6 +65,22 @@ export type ResetPasswordRequest = {
 }
 
 export type ResetPasswordResponse = {
-  reset: true
-  sessionsRevoked: true
+  reset: boolean
+  sessionsRevoked: boolean
+}
+
+export type Session = {
+  id: string
+  createdAt: string
+  expiresAt: string
+  ip: string | null
+  userAgent: string | null
+}
+
+export type ListSessionsResponse = {
+  sessions: Session[]
+}
+
+export type RevokeSessionResponse = {
+  revoked: boolean
 }
