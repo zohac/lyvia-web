@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 definePageMeta({
+  layout: 'provider',
   middleware: 'auth-provider'
 })
 </script>
-

@@ -56,8 +56,9 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'auth',
-  middleware: 'guest-only'
+  layout: 'public',
+  middleware: 'guest-only',
+  publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true }
 })
 
 import type { ForgotPasswordResponse } from '../features/auth/api/auth.contract'
