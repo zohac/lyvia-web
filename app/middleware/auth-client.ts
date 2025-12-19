@@ -18,4 +18,3 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return userRole ? navigateTo(resolveDashboardPath(userRole)) : navigateTo('/')
   }
 })
-

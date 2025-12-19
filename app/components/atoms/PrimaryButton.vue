@@ -24,7 +24,7 @@ withDefaults(
     class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-[var(--radius-sm)] px-6 py-2 text-center font-bold transition-colors duration-150 ease-in-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(200,121,100,0.2)]"
     :class="[
       // Correction Line-height pour les jambages (g, p, y)
-      'leading-tight', 
+      'leading-tight',
       // Gestion hauteur fluide
       'h-auto',
       disabled || loading

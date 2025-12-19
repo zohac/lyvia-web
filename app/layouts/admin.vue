@@ -61,4 +61,3 @@ async function onLogout() {
     </main>
   </div>
 </template>
-

@@ -43,8 +43,8 @@ const backAuthErrorsPath = path.resolve(
   'errors.ts'
 )
 
-const [openapiYaml, authContractTs, apiErrorTs, backAuthErrorsTs] =
-  await Promise.all([
+const [openapiYaml, authContractTs, apiErrorTs, backAuthErrorsTs]
+  = await Promise.all([
     fs.readFile(apiOpenApiPath, 'utf8'),
     fs.readFile(frontAuthContractPath, 'utf8'),
     fs.readFile(frontApiErrorPath, 'utf8'),
@@ -101,7 +101,7 @@ assertMatches(
 const backendAuthCodes = Array.from(
   new Set(
     Array.from(backAuthErrorsTs.matchAll(/:\s*'([A-Z0-9_]+)'\s*,/g)).map(
-      (match) => match[1]
+      match => match[1]
     )
   )
 )
@@ -123,4 +123,3 @@ if (process.exitCode === 1) {
     `Files checked:\n- ${apiOpenApiPath}\n- ${frontAuthContractPath}\n- ${frontApiErrorPath}\n- ${backAuthErrorsPath}\n`
   )
 }
-

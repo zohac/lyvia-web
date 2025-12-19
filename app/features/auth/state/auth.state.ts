@@ -21,4 +21,3 @@ export function useAuthState() {
     lastError: null
   }))
 }
-

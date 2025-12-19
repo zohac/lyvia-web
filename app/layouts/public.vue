@@ -72,4 +72,3 @@ const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
     </footer>
   </div>
 </template>
-

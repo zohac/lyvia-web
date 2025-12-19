@@ -3,13 +3,13 @@
     title="Nouveau mot de passe"
     subtitle="Sécurisez votre compte avec un mot de passe fort."
   >
-  <template #alert>
-    <SystemAlert
-      v-if="error"
-      variant="error"
-      :description="error"
-    />
-  </template>
+    <template #alert>
+      <SystemAlert
+        v-if="error"
+        variant="error"
+        :description="error"
+      />
+    </template>
 
     <div
       v-if="isTokenInvalid"
@@ -85,16 +85,15 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  layout: 'public',
-  middleware: 'guest-only',
-  publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true }
-})
-
 import type { ResetPasswordResponse } from '../features/auth/api/auth.contract'
 import { isPasswordStrong } from '../features/auth/password/password-policy'
 import { apiFetch } from '../services/api/apiFetch'
 import { ApiFetchError, mapAuthErrorCodeToUserMessage } from '../services/api/api-error'
+
+definePageMeta({
+  layout: 'public',
+  publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true }
+})
 
 const criteriaId = 'new-password-criteria'
 

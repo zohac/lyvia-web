@@ -37,10 +37,10 @@ const describedBy = computed(() => {
 })
 
 const inputAttrs = computed(() => ({
-  id: props.id,
+  'id': props.id,
   'aria-invalid': props.error ? 'true' : undefined,
   'aria-describedby': describedBy.value,
-  required: props.required || undefined,
+  'required': props.required || undefined,
   'aria-required': props.required ? 'true' : undefined
 }))
 </script>

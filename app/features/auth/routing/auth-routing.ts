@@ -20,4 +20,3 @@ export function sanitizeInternalRedirectPath(value: unknown): string | null {
   if (path.startsWith('//')) return null
   return path
 }
-

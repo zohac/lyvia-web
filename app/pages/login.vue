@@ -23,9 +23,9 @@
     >
       <FormControl
         id="email"
+        v-slot="slotProps"
         label="Adresse e-mail"
         :required="true"
-        v-slot="slotProps"
       >
         <input
           ref="emailInputRef"
@@ -113,17 +113,17 @@ async function onSubmit() {
   isSubmitting.value = true
 
   try {
-    const redirectPath =
-      typeof route.query.redirect === 'string' ? route.query.redirect : undefined
+    const redirectPath
+      = typeof route.query.redirect === 'string' ? route.query.redirect : undefined
 
     await auth.login({
       email: form.email,
       password: form.password,
       redirectPath
     })
-  } catch (err: unknown) {
-    error.value =
-      auth.lastError.value || 'Une erreur est survenue. Veuillez réessayer.'
+  } catch {
+    error.value
+      = auth.lastError.value || 'Une erreur est survenue. Veuillez réessayer.'
   } finally {
     isSubmitting.value = false
   }

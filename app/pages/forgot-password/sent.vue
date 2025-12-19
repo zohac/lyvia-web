@@ -59,7 +59,6 @@
 <script setup lang="ts">
 definePageMeta({
   layout: 'public',
-  middleware: 'guest-only',
   publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true },
   pageTransition: { name: 'fade', mode: 'out-in' }
 })

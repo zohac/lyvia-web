@@ -3,7 +3,7 @@ import { ApiFetchError, isErrorResponse } from './api-error'
 import type { RefreshResponse } from '../../features/auth/api/auth.contract'
 import { useAuthState } from '../../features/auth/state/auth.state'
 
-type ApiFetchOptions<T> = FetchOptions<'json'> & {
+type ApiFetchOptions = FetchOptions<'json'> & {
   /**
    * Whether to attach the `Authorization: Bearer ...` header when an access
    * token is available.
@@ -34,7 +34,11 @@ function getDefaultApiBase(): string {
   return normalizeBaseUrl(apiBase)
 }
 
-function resolveAccessToken(options: ApiFetchOptions<unknown>): string | null {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function resolveAccessToken(options: ApiFetchOptions): string | null {
   if (typeof options.accessToken !== 'undefined') return options.accessToken
   const authState = useAuthState()
   return authState.value.accessToken ?? null
@@ -43,9 +47,12 @@ function resolveAccessToken(options: ApiFetchOptions<unknown>): string | null {
 async function refreshAccessTokenOnce(baseURL: string): Promise<string | null> {
   if (import.meta.server) return null
 
-  const nuxtApp = useNuxtApp()
-  const key = '__lyvia_refresh_in_flight__' as const
-  const existing = (nuxtApp as any)[key] as Promise<string | null> | null | undefined
+  type NuxtAppWithRefreshInFlight = ReturnType<typeof useNuxtApp> & {
+    __lyvia_refresh_in_flight__?: Promise<string | null> | null
+  }
+
+  const nuxtApp = useNuxtApp() as NuxtAppWithRefreshInFlight
+  const existing = nuxtApp.__lyvia_refresh_in_flight__
   if (existing) return existing
 
   const promise = (async () => {
@@ -64,12 +71,39 @@ async function refreshAccessTokenOnce(baseURL: string): Promise<string | null> {
       authState.value.accessToken = null
       return null
     } finally {
-      ;(nuxtApp as any)[key] = null
+      nuxtApp.__lyvia_refresh_in_flight__ = null
     }
   })()
 
-  ;(nuxtApp as any)[key] = promise
+  nuxtApp.__lyvia_refresh_in_flight__ = promise
   return promise
+}
+
+function getFetchErrorStatusCode(err: unknown): number {
+  if (!isRecord(err)) return 0
+
+  const statusCode = err.statusCode
+  if (typeof statusCode === 'number') return statusCode
+  if (typeof statusCode === 'string') return Number(statusCode) || 0
+
+  const response = err.response
+  if (isRecord(response)) {
+    const status = response.status
+    if (typeof status === 'number') return status
+    if (typeof status === 'string') return Number(status) || 0
+  }
+
+  return 0
+}
+
+function getFetchErrorData(err: unknown): unknown {
+  if (!isRecord(err)) return undefined
+  if ('data' in err) return err.data
+
+  const response = err.response
+  if (isRecord(response) && '_data' in response) return response._data
+
+  return undefined
 }
 
 /**
@@ -79,7 +113,7 @@ async function refreshAccessTokenOnce(baseURL: string): Promise<string | null> {
  * - `credentials: 'include'` is always enabled (refresh token cookie)
  * - errors are normalized to `ApiFetchError` with `ErrorResponse` support
  */
-export async function apiFetch<T>(path: string, options: ApiFetchOptions<T> = {}): Promise<T> {
+export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const baseURL = getDefaultApiBase()
   const withAuth = options.withAuth ?? true
   const retryOn401 = options.retryOn401 ?? withAuth
@@ -96,9 +130,8 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions<T> = {}
       headers
     })
   } catch (err: unknown) {
-    const anyErr = err as Record<string, unknown>
-    const statusCode = Number(anyErr.statusCode ?? (anyErr as any)?.response?.status ?? 0) || 0
-    const data = (anyErr.data ?? (anyErr as any)?.response?._data) as unknown
+    const statusCode = getFetchErrorStatusCode(err)
+    const data = getFetchErrorData(err)
 
     if (statusCode === 401 && withAuth && retryOn401) {
       const refreshed = await refreshAccessTokenOnce(baseURL)

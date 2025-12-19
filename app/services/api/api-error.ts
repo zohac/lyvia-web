@@ -23,14 +23,14 @@ export function isErrorResponse(value: unknown): value is ErrorResponse {
   return typeof v.code === 'string' && typeof v.message === 'string'
 }
 
-export type AuthErrorCode =
-  | 'INVALID_CREDENTIALS'
-  | 'USER_INACTIVE'
-  | 'INVALID_REFRESH_TOKEN'
-  | 'REFRESH_REUSED_OR_REVOKED'
-  | 'PASSWORD_POLICY_FAILED'
-  | 'INVALID_PASSWORD_RESET_TOKEN'
-  | 'VALIDATION_ERROR'
+export type AuthErrorCode
+  = | 'INVALID_CREDENTIALS'
+    | 'USER_INACTIVE'
+    | 'INVALID_REFRESH_TOKEN'
+    | 'REFRESH_REUSED_OR_REVOKED'
+    | 'PASSWORD_POLICY_FAILED'
+    | 'INVALID_PASSWORD_RESET_TOKEN'
+    | 'VALIDATION_ERROR'
 
 export function mapAuthErrorCodeToUserMessage(code: string): string {
   switch (code as AuthErrorCode) {

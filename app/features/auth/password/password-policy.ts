@@ -1,11 +1,11 @@
-const COMMON_PASSWORDS = [
+const COMMON_PASSWORDS: readonly string[] = [
   'password',
   'motdepasse',
   '1234567890',
   'qwertyuiop',
   'azertyuiop',
   'welcome'
-] as const
+]
 
 export type PasswordCriteria = {
   minLength: boolean
@@ -23,7 +23,7 @@ export function getPasswordCriteria(password: string): PasswordCriteria {
     hasLetter: /[a-z]/i.test(password),
     hasDigit: /\d/.test(password),
     hasSpecial: /[^a-z0-9]/i.test(password),
-    notCommon: normalized.length > 0 && !COMMON_PASSWORDS.includes(normalized as any)
+    notCommon: normalized.length > 0 && !COMMON_PASSWORDS.includes(normalized)
   }
 }
 
@@ -31,4 +31,3 @@ export function isPasswordStrong(password: string): boolean {
   const criteria = getPasswordCriteria(password)
   return Object.values(criteria).every(Boolean)
 }
-

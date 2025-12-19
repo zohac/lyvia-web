@@ -18,9 +18,9 @@
     >
       <FormControl
         id="email"
+        v-slot="slotProps"
         label="Adresse e-mail"
         :required="true"
-        v-slot="slotProps"
       >
         <input
           ref="emailInputRef"
@@ -63,15 +63,14 @@
 </template>
 
 <script setup lang="ts">
+import type { ForgotPasswordResponse } from '../../features/auth/api/auth.contract'
+import { apiFetch } from '../../services/api/apiFetch'
+
 definePageMeta({
   layout: 'public',
-  middleware: 'guest-only',
   publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true },
   pageTransition: { name: 'fade', mode: 'out-in' }
 })
-
-import type { ForgotPasswordResponse } from '../../features/auth/api/auth.contract'
-import { apiFetch } from '../../services/api/apiFetch'
 
 const form = reactive({
   email: ''

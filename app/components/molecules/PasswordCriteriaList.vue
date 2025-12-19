@@ -59,4 +59,3 @@ const items = computed<Item[]>(() => [
     </li>
   </ul>
 </template>
-

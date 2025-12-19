@@ -34,7 +34,7 @@ export function useAuth() {
 
   const role = computed<UserRole | null>(() => state.value.user?.role ?? null)
 
-  function setAuthenticated(user: AuthUser, response: { accessToken: string; expiresInSeconds: number }) {
+  function setAuthenticated(user: AuthUser, response: { accessToken: string, expiresInSeconds: number }) {
     state.value.accessToken = response.accessToken
     state.value.expiresAt = computeExpiresAt(response.expiresInSeconds)
     state.value.user = user

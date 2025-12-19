@@ -9,4 +9,3 @@ export type ErrorResponse = {
   message: string
   details?: Record<string, unknown>
 }
-
