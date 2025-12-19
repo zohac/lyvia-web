@@ -118,6 +118,16 @@
     color: var(--color-brand-primary);
   }
 
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity var(--duration-normal) var(--ease-smooth);
+  }
+
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
+
   a {
     color: var(--color-brand-secondary);
     text-underline-offset: 0.2em;

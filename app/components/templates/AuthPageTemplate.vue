@@ -3,11 +3,25 @@ withDefaults(
   defineProps<{
     title: string
     subtitle?: string
+    autofocusTitle?: boolean
   }>(),
   {
-    subtitle: undefined
+    subtitle: undefined,
+    autofocusTitle: false
   }
 )
+
+const titleRef = ref<HTMLHeadingElement | null>(null)
+
+onMounted(() => {
+  if (import.meta.server) return
+  if (!titleRef.value) return
+  if (!titleRef.value.hasAttribute('tabindex')) return
+
+  requestAnimationFrame(() => {
+    titleRef.value?.focus()
+  })
+})
 </script>
 
 <template>
@@ -25,7 +39,11 @@ withDefaults(
         </slot>
 
         <div class="grid gap-2">
-          <h1 class="font-serif text-[1.75rem] font-bold leading-[var(--leading-tight)] tracking-[-0.01em] sm:text-[2.25rem]">
+          <h1
+            ref="titleRef"
+            :tabindex="autofocusTitle ? -1 : undefined"
+            class="font-serif text-[1.75rem] font-bold leading-[var(--leading-tight)] tracking-[-0.01em] sm:text-[2.25rem] focus:outline-none focus:ring-4 focus:ring-[rgba(200,121,100,0.2)]"
+          >
             {{ title }}
           </h1>
           <p

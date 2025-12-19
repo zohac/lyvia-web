@@ -3,6 +3,14 @@
     title="Mot de passe oublié ?"
     subtitle="Saisissez votre adresse e-mail pour recevoir un lien de réinitialisation."
   >
+    <template #alert>
+      <SystemAlert
+        v-if="isSubmitting"
+        variant="info"
+        description="Nous traitons votre demande. Vous allez être redirigé vers l’écran de confirmation."
+      />
+    </template>
+
     <form
       class="grid gap-6"
       novalidate
@@ -58,11 +66,12 @@
 definePageMeta({
   layout: 'public',
   middleware: 'guest-only',
-  publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true }
+  publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true },
+  pageTransition: { name: 'fade', mode: 'out-in' }
 })
 
-import type { ForgotPasswordResponse } from '../features/auth/api/auth.contract'
-import { apiFetch } from '../services/api/apiFetch'
+import type { ForgotPasswordResponse } from '../../features/auth/api/auth.contract'
+import { apiFetch } from '../../services/api/apiFetch'
 
 const form = reactive({
   email: ''
@@ -85,20 +94,22 @@ onMounted(() => {
 async function onSubmit() {
   isSubmitting.value = true
 
+  const email = form.email
+
+  // Anti user-enumeration: we always proceed to the confirmation page.
+  void apiFetch<ForgotPasswordResponse>('/auth/forgot-password', {
+    method: 'POST',
+    withAuth: false,
+    body: { email }
+  }).catch(() => {})
+
   try {
-    await apiFetch<ForgotPasswordResponse>('/auth/forgot-password', {
-      method: 'POST',
-      withAuth: false,
-      body: { email: form.email }
-    })
-  } catch {
-    // Anti user-enumeration: we always proceed to the confirmation page.
-  } finally {
-    isSubmitting.value = false
     await navigateTo({
       path: '/forgot-password/sent',
-      query: { email: form.email }
+      query: { email }
     })
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>
