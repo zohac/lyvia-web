@@ -33,7 +33,7 @@ const isRevealed = ref(false)
 
 const inputClasses = computed(() => {
   const base =
-    'h-12 w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 pr-12 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4'
+    'block h-12 w-full max-w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 pr-12 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4 focus:ring-inset'
 
   if (props.error) {
     return `${base} border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]`
