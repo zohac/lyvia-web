@@ -7,7 +7,7 @@ useHead({
 
 const navigation = [
   {
-    label: "Vue d'ensemble",
+    label: 'Vue d\'ensemble',
     to: '/provider/dashboard',
     icon: 'lucide:home',
     match: 'exact'

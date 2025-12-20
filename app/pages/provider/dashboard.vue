@@ -42,6 +42,6 @@
 definePageMeta({
   layout: 'provider',
   middleware: 'auth-provider',
-  pageTitle: "Vue d'ensemble"
+  pageTitle: 'Vue d\'ensemble'
 })
 </script>

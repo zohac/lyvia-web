@@ -1,9 +1,11 @@
-import type { FetchOptions } from 'ofetch'
 import { ApiFetchError, isErrorResponse } from './api-error'
 import type { RefreshResponse } from '../../features/auth/api/auth.contract'
 import { useAuthState } from '../../features/auth/state/auth.state'
 
-type ApiFetchOptions = FetchOptions<'json'> & {
+type NitroFetchOptions = NonNullable<Parameters<typeof $fetch>[1]>
+
+type ApiFetchOptions = Omit<NitroFetchOptions, 'baseURL' | 'credentials' | 'headers'> & {
+  headers?: HeadersInit
   /**
    * Whether to attach the `Authorization: Bearer ...` header when an access
    * token is available.
@@ -38,8 +40,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
-function resolveAccessToken(options: ApiFetchOptions): string | null {
-  if (typeof options.accessToken !== 'undefined') return options.accessToken
+function resolveAccessToken(accessTokenOverride: string | null | undefined): string | null {
+  if (typeof accessTokenOverride !== 'undefined') return accessTokenOverride
   const authState = useAuthState()
   return authState.value.accessToken ?? null
 }
@@ -115,16 +117,23 @@ function getFetchErrorData(err: unknown): unknown {
  */
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const baseURL = getDefaultApiBase()
-  const withAuth = options.withAuth ?? true
-  const retryOn401 = options.retryOn401 ?? withAuth
-  const accessToken = withAuth ? resolveAccessToken(options) : null
+  const {
+    withAuth = true,
+    accessToken: accessTokenOverride,
+    retryOn401: retryOn401Override,
+    headers: headersInit,
+    ...fetchOptions
+  } = options
 
-  const headers = new Headers(options.headers as HeadersInit | undefined)
+  const retryOn401 = retryOn401Override ?? withAuth
+  const accessToken = withAuth ? resolveAccessToken(accessTokenOverride) : null
+
+  const headers = new Headers(headersInit)
   if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
 
   try {
     return await $fetch<T>(path, {
-      ...options,
+      ...fetchOptions,
       baseURL,
       credentials: 'include',
       headers

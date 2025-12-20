@@ -18,4 +18,3 @@ definePageMeta({
   pageTitle: 'Paramètres'
 })
 </script>
-

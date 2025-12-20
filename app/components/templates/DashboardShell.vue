@@ -6,7 +6,7 @@ type NavItem = {
   match?: 'exact' | 'prefix'
 }
 
-const props = defineProps<{
+defineProps<{
   brandLabel: string
   brandTo: string
   navigation: NavItem[]
@@ -14,7 +14,7 @@ const props = defineProps<{
 }>()
 
 const slots = defineSlots<{
-  default: () => unknown
+  'default': () => unknown
   'header-actions'?: () => unknown
 }>()
 
@@ -44,8 +44,8 @@ function isItemActive(item: NavItem): boolean {
   return route.path === item.to
 }
 
-const contentWrapperClass =
-  'flex min-w-0 flex-1 flex-col overflow-hidden bg-[color:var(--color-surface-page)]'
+const contentWrapperClass
+  = 'flex min-w-0 flex-1 flex-col overflow-hidden bg-[color:var(--color-surface-page)]'
 
 async function onLogout() {
   if (isLoggingOut.value) return

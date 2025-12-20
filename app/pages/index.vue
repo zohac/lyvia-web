@@ -15,17 +15,17 @@
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <NuxtLink
-          to="/login"
+          to="/onboarding/discovery"
           class="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] bg-[color:var(--color-accent-main)] px-6 text-[19px] font-bold text-[color:var(--color-accent-contrast)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-accent-hover)]"
         >
-          Se connecter
+          Réserver un appel découverte (15 min)
         </NuxtLink>
 
         <NuxtLink
-          to="/forgot-password"
+          to="/login"
           class="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] border border-[color:var(--color-brand-primary)] px-6 font-semibold text-[color:var(--color-brand-primary)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-surface-highlight)]"
         >
-          Mot de passe oublié
+          Connexion
         </NuxtLink>
       </div>
     </section>

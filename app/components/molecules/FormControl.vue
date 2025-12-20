@@ -38,10 +38,10 @@ const describedBy = computed(() => {
 
 const inputAttrs = computed(() => ({
   'id': props.id,
-  'aria-invalid': props.error ? 'true' : undefined,
+  'aria-invalid': props.error ? true : undefined,
   'aria-describedby': describedBy.value,
   'required': props.required || undefined,
-  'aria-required': props.required ? 'true' : undefined
+  'aria-required': props.required ? true : undefined
 }))
 </script>
 
@@ -60,7 +60,7 @@ const inputAttrs = computed(() => ({
       >*</span>
     </label>
 
-    <slot v-bind="{ inputAttrs: inputAttrs.value, invalid: Boolean(error) }" />
+    <slot v-bind="{ inputAttrs, invalid: Boolean(error) }" />
 
     <p
       v-if="hint"
