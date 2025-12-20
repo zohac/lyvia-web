@@ -2,10 +2,10 @@
   <section class="grid gap-6">
     <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
       <h2 class="font-serif text-[1.25rem] font-semibold leading-[var(--leading-normal)]">
-        Administration
+        Paramètres de paiement
       </h2>
       <p class="mt-2 text-[color:var(--color-brand-secondary)]">
-        Tableau de bord admin en cours de structuration.
+        Page placeholder (V0) — configuration Stripe Connect à venir.
       </p>
     </div>
   </section>
@@ -13,8 +13,9 @@
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'admin',
-  middleware: 'auth-admin',
-  pageTitle: 'Dashboard'
+  layout: 'provider',
+  middleware: 'auth-provider',
+  pageTitle: 'Paramètres'
 })
 </script>
+
