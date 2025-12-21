@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type {
   AvailabilitySlot,
-  BookDiscoveryRequest,
   BookDiscoveryResponse,
+  BookDiscoveryForTenantRequest,
+  PublicTenantResponse,
   ProviderAvailabilityResponse
 } from '../../features/onboarding/api/onboarding.contract'
 import { mapOnboardingErrorCodeToUserMessage } from '../../features/onboarding/api/onboarding-error'
@@ -21,22 +22,30 @@ type WizardStep = 1 | 2 | 3
 
 type FormErrors = Partial<Record<'firstname' | 'lastname' | 'email' | 'phone' | 'legalAccepted', string>>
 
-const STORAGE_KEY = 'lyvia:onboarding:discovery:wizard:v1'
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Platform route: `/coach/:slug/onboarding/discovery`
+     * Custom domain route: `/onboarding/discovery` (slug resolved via host).
+     */
+    slug?: string
+  }>(),
+  {
+    slug: undefined
+  }
+)
 
-const route = useRoute()
-const runtimeConfig = useRuntimeConfig()
+const STORAGE_KEY_PREFIX = 'lyvia:onboarding:discovery:wizard:v2'
 
-const providerId = computed(() => {
-  const fromQuery = typeof route.query.providerId === 'string' ? route.query.providerId : undefined
-  const fromConfig = (runtimeConfig.public as { discoveryProviderId?: string }).discoveryProviderId
-  return (fromQuery ?? fromConfig ?? '').trim()
-})
+const slug = computed(() => (props.slug ?? '').trim())
 
 const timeZone = ref('Europe/Paris')
 const durationMinutes = ref(15)
 
 const step = ref<WizardStep>(1)
+const isLoadingTenant = ref(false)
 const isLoadingAvailability = ref(false)
+const tenant = ref<PublicTenantResponse | null>(null)
 const availability = ref<ProviderAvailabilityResponse | null>(null)
 const selectedDate = ref<string | null>(null)
 const selectedSlotStartAt = ref<string | null>(null)
@@ -66,6 +75,34 @@ function updateConsents(value: typeof consents.value) {
   consents.value = value
 }
 
+const coachName = computed(() => tenant.value?.brand.displayName ?? null)
+
+function getTenantStorageKey(): string {
+  if (import.meta.server) return STORAGE_KEY_PREFIX
+  const key = slug.value.length > 0 ? `slug:${slug.value}` : `host:${window.location.host}`
+  return `${STORAGE_KEY_PREFIX}:${key}`
+}
+
+function getPublicHeaders(): HeadersInit | undefined {
+  if (import.meta.server) {
+    const headers = useRequestHeaders(['host', 'x-forwarded-host', 'x-forwarded-proto'])
+    const forwardedHost = headers['x-forwarded-host']
+    const host = headers.host
+    const forwardedProto = headers['x-forwarded-proto']
+
+    return {
+      ...(forwardedHost ? { 'x-forwarded-host': forwardedHost } : {}),
+      ...(host ? { 'x-forwarded-host': host } : {}),
+      ...(forwardedProto ? { 'x-forwarded-proto': forwardedProto } : {})
+    }
+  }
+
+  return {
+    'x-forwarded-host': window.location.host,
+    'x-forwarded-proto': window.location.protocol.replace(':', '')
+  }
+}
+
 function getYmdInTimeZone(date: Date, tz: string): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: tz,
@@ -81,6 +118,11 @@ function getYmdInTimeZone(date: Date, tz: string): string {
 }
 
 const minDate = computed(() => getYmdInTimeZone(new Date(), timeZone.value))
+const maxDate = computed(() => {
+  const now = new Date()
+  const end = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
+  return getYmdInTimeZone(end, timeZone.value)
+})
 
 const slotsByDate = computed(() => {
   const map = new Map<string, AvailabilitySlot[]>()
@@ -126,21 +168,23 @@ function sanitizeStep(next: number): WizardStep {
 function getOrCreateIdempotencyKey(): string {
   if (import.meta.server) return ''
 
-  const existing = sessionStorage.getItem(`${STORAGE_KEY}:idempotency`)
+  const storageKey = getTenantStorageKey()
+  const existing = sessionStorage.getItem(`${storageKey}:idempotency`)
   if (existing && existing.trim().length > 0) return existing
 
   const created = crypto?.randomUUID?.() ?? `uuid_${Math.random().toString(16).slice(2)}_${Date.now()}`
-  sessionStorage.setItem(`${STORAGE_KEY}:idempotency`, created)
+  sessionStorage.setItem(`${storageKey}:idempotency`, created)
   return created
 }
 
 function clearIdempotencyKey() {
   if (import.meta.server) return
-  sessionStorage.removeItem(`${STORAGE_KEY}:idempotency`)
+  sessionStorage.removeItem(`${getTenantStorageKey()}:idempotency`)
 }
 
 function persistState() {
   if (import.meta.server) return
+  const storageKey = getTenantStorageKey()
   const state = {
     step: step.value,
     visibleMonth: visibleMonth.value.toISOString(),
@@ -149,12 +193,13 @@ function persistState() {
     identity: identity.value,
     consents: consents.value
   }
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  sessionStorage.setItem(storageKey, JSON.stringify(state))
 }
 
 function restoreState() {
   if (import.meta.server) return
-  const raw = sessionStorage.getItem(STORAGE_KEY)
+  const storageKey = getTenantStorageKey()
+  const raw = sessionStorage.getItem(storageKey)
   if (!raw) return
 
   try {
@@ -175,42 +220,46 @@ function restoreState() {
     if (parsed.identity) identity.value = { ...identity.value, ...parsed.identity }
     if (parsed.consents) consents.value = { ...consents.value, ...parsed.consents }
   } catch {
-    sessionStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(storageKey)
   }
 }
 
-function buildMonthRange(month: Date): { from: string, to: string } {
-  const year = month.getUTCFullYear()
-  const m = month.getUTCMonth()
-  const from = new Date(Date.UTC(year, m, 1, 0, 0, 0))
-  const to = new Date(Date.UTC(year, m + 1, 1, 0, 0, 0))
-  return { from: from.toISOString(), to: to.toISOString() }
+function buildDiscoveryWindow(): { from: string, to: string } {
+  const start = new Date()
+  const end = new Date(start.getTime() + 14 * 24 * 60 * 60 * 1000)
+  return { from: start.toISOString(), to: end.toISOString() }
 }
 
 async function loadAvailability() {
   systemError.value = null
-  if (!providerId.value) {
-    systemError.value
-      = 'Configuration manquante : aucun provider n’est défini. Ajoutez `NUXT_PUBLIC_DISCOVERY_PROVIDER_ID` côté front.'
-    return
-  }
+  if (!tenant.value) return
 
   isLoadingAvailability.value = true
 
   try {
-    const { from, to } = buildMonthRange(visibleMonth.value)
+    const { from, to } = buildDiscoveryWindow()
     const response = await apiFetch<ProviderAvailabilityResponse>(
-      `/providers/${providerId.value}/availability/discovery`,
+      '/public/availability/discovery',
       {
         method: 'GET',
         withAuth: false,
-        query: { from, to }
+        headers: getPublicHeaders(),
+        query: {
+          ...(slug.value.length > 0 ? { slug: slug.value } : {}),
+          from,
+          to
+        }
       }
     )
 
     availability.value = response
     timeZone.value = response.timezone || 'Europe/Paris'
     durationMinutes.value = response.durationMinutes || 15
+
+    if (selectedDate.value && (selectedDate.value < minDate.value || selectedDate.value > maxDate.value)) {
+      selectedDate.value = null
+      selectedSlotStartAt.value = null
+    }
 
     if (!selectedDate.value || !availableDates.value.has(selectedDate.value)) {
       const candidates = [...availableDates.value].sort()
@@ -219,6 +268,12 @@ async function loadAvailability() {
     }
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
+      if (err.apiError.code === 'VALIDATION_ERROR') {
+        const windowMessage = typeof err.apiError.details?.window === 'string' ? err.apiError.details.window : null
+        systemError.value = windowMessage ?? mapOnboardingErrorCodeToUserMessage(err.apiError.code).description
+        return
+      }
+
       systemError.value = mapOnboardingErrorCodeToUserMessage(err.apiError.code).description
       return
     }
@@ -229,9 +284,31 @@ async function loadAvailability() {
   }
 }
 
-watch(visibleMonth, () => {
-  loadAvailability()
-})
+async function loadTenant() {
+  systemError.value = null
+  isLoadingTenant.value = true
+
+  try {
+    const response = await apiFetch<PublicTenantResponse>('/public/tenant', {
+      method: 'GET',
+      withAuth: false,
+      headers: getPublicHeaders(),
+      query: slug.value.length > 0 ? { slug: slug.value } : undefined
+    })
+
+    tenant.value = response
+    timeZone.value = response.timezone || 'Europe/Paris'
+  } catch (err: unknown) {
+    if (err instanceof ApiFetchError) {
+      systemError.value = mapOnboardingErrorCodeToUserMessage(err.apiError.code).description
+      return
+    }
+
+    systemError.value = 'Impossible de charger les informations du coach.'
+  } finally {
+    isLoadingTenant.value = false
+  }
+}
 
 watch(selectedDate, () => {
   if (!selectedSlotStartAt.value || !selectedDate.value) return
@@ -249,7 +326,9 @@ watch(
 
 onMounted(() => {
   restoreState()
-  loadAvailability()
+  loadTenant().then(() => {
+    loadAvailability()
+  })
 })
 
 function goToStep(next: WizardStep) {
@@ -344,8 +423,7 @@ async function submitBooking() {
   isSubmitting.value = true
 
   try {
-    const payload: BookDiscoveryRequest = {
-      providerId: providerId.value,
+    const payload: BookDiscoveryForTenantRequest = {
       firstname: identity.value.firstname.trim(),
       lastname: identity.value.lastname.trim(),
       email: identity.value.email.trim().toLowerCase(),
@@ -359,16 +437,20 @@ async function submitBooking() {
       idempotencyKey
     }
 
-    const response = await apiFetch<BookDiscoveryResponse>('/onboarding/discovery', {
+    const response = await apiFetch<BookDiscoveryResponse>('/public/onboarding/discovery', {
       method: 'POST',
       withAuth: false,
-      headers: { 'Idempotency-Key': idempotencyKey },
+      headers: {
+        ...getPublicHeaders(),
+        'Idempotency-Key': idempotencyKey
+      },
+      query: slug.value.length > 0 ? { slug: slug.value } : undefined,
       body: payload
     })
 
     booking.value = response
     clearIdempotencyKey()
-    sessionStorage.removeItem(STORAGE_KEY)
+    sessionStorage.removeItem(getTenantStorageKey())
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
       const mapped = mapOnboardingErrorCodeToUserMessage(err.apiError.code)
@@ -412,8 +494,23 @@ async function submitBooking() {
       :description="systemError"
     />
 
+    <div
+      v-if="isLoadingTenant"
+      class="flex items-center gap-3 rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-secondary)]"
+      role="status"
+      aria-live="polite"
+    >
+      <Icon
+        name="lucide:loader-circle"
+        size="18"
+        class="animate-spin text-[color:var(--color-accent-main)]"
+        aria-hidden="true"
+      />
+      <span>Chargement du coach…</span>
+    </div>
+
     <section
-      v-if="step === 1"
+      v-if="step === 1 && tenant"
       class="grid gap-6"
       aria-label="Étape 1 : choix du créneau"
     >
@@ -422,6 +519,7 @@ async function submitBooking() {
           Choisissez votre moment
         </h2>
         <p class="text-sm text-[color:var(--color-brand-secondary)]">
+          <span v-if="coachName">Coach : {{ coachName }} • </span>
           Durée : {{ durationMinutes }} min • Fuseau : {{ timeZone }}
         </p>
       </div>
@@ -432,6 +530,7 @@ async function submitBooking() {
           v-model:visible-month="visibleMonth"
           :available-dates="availableDates"
           :min-date="minDate"
+          :max-date="maxDate"
           :timezone-label="timeZone"
           :is-loading="isLoadingAvailability"
         />
@@ -447,7 +546,7 @@ async function submitBooking() {
     </section>
 
     <section
-      v-else-if="step === 2"
+      v-else-if="step === 2 && tenant"
       class="grid gap-6"
       aria-label="Étape 2 : informations"
     >
@@ -499,7 +598,7 @@ async function submitBooking() {
     </section>
 
     <section
-      v-else
+      v-else-if="tenant"
       class="grid gap-6"
       aria-label="Étape 3 : confirmation"
     >

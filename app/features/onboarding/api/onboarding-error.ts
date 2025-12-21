@@ -1,5 +1,7 @@
 export type OnboardingErrorCode
-  = | 'LEGAL_CONSENT_REQUIRED'
+  = | 'TENANT_NOT_FOUND'
+    | 'SLUG_REQUIRED'
+    | 'LEGAL_CONSENT_REQUIRED'
     | 'EMAIL_ROLE_CONFLICT'
     | 'USER_INACTIVE'
     | 'DISCOVERY_ALREADY_EXISTS'
@@ -18,6 +20,16 @@ export type OnboardingUserMessage = {
 
 export function mapOnboardingErrorCodeToUserMessage(code: string): OnboardingUserMessage {
   switch (code as OnboardingErrorCode) {
+    case 'TENANT_NOT_FOUND':
+      return {
+        title: 'Coach introuvable',
+        description: 'Impossible de trouver ce coach. Vérifiez le lien ou réessayez plus tard.'
+      }
+    case 'SLUG_REQUIRED':
+      return {
+        title: 'Lien invalide',
+        description: 'Ce lien nécessite un identifiant coach. Retournez à la page du coach et réessayez.'
+      }
     case 'LEGAL_CONSENT_REQUIRED':
       return {
         title: 'Consentement requis',

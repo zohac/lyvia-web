@@ -15,7 +15,7 @@
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <NuxtLink
-          to="/onboarding/discovery"
+          to="/coach/sophie-jouan/onboarding/discovery"
           class="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] bg-[color:var(--color-accent-main)] px-6 text-[19px] font-bold text-[color:var(--color-accent-contrast)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-accent-hover)]"
         >
           Réserver un appel découverte (15 min)

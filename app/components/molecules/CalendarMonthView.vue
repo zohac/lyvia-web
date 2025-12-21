@@ -4,6 +4,7 @@ const props = defineProps<{
   visibleMonth: Date
   availableDates: Set<string>
   minDate: string
+  maxDate: string
   timezoneLabel: string
   isLoading?: boolean
 }>()
@@ -58,9 +59,10 @@ const days = computed(() => {
   for (let day = 1; day <= last.getUTCDate(); day += 1) {
     const d = new Date(Date.UTC(year, month, day))
     const ymd = getYmdInTimeZone(d, timeZone)
-    const isPast = ymd < props.minDate
+    const isBeforeWindow = ymd < props.minDate
+    const isAfterWindow = ymd > props.maxDate
     const hasAvailability = props.availableDates.has(ymd)
-    grid.push({ ymd, day, inMonth: true, disabled: isPast || !hasAvailability })
+    grid.push({ ymd, day, inMonth: true, disabled: isBeforeWindow || isAfterWindow || !hasAvailability })
   }
 
   while (grid.length % 7 !== 0) {
@@ -76,11 +78,11 @@ const days = computed(() => {
 const weekdayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
 const canGoPrev = computed(() => {
-  const prevYear = props.visibleMonth.getUTCFullYear()
-  const prevMonth = props.visibleMonth.getUTCMonth() - 1
-  const prev = new Date(Date.UTC(prevYear, prevMonth, 1))
-  const ymdPrevStart = getYmdInTimeZone(prev, timeZone)
-  return ymdPrevStart >= props.minDate
+  const year = props.visibleMonth.getUTCFullYear()
+  const month = props.visibleMonth.getUTCMonth() - 1
+  const prevEnd = new Date(Date.UTC(year, month + 1, 0))
+  const ymdPrevEnd = getYmdInTimeZone(prevEnd, timeZone)
+  return ymdPrevEnd >= props.minDate
 })
 
 function onPrevMonth() {
@@ -90,7 +92,16 @@ function onPrevMonth() {
   emit('update:visibleMonth', new Date(Date.UTC(year, month, 1)))
 }
 
+const canGoNext = computed(() => {
+  const year = props.visibleMonth.getUTCFullYear()
+  const month = props.visibleMonth.getUTCMonth() + 1
+  const nextStart = new Date(Date.UTC(year, month, 1))
+  const ymdNextStart = getYmdInTimeZone(nextStart, timeZone)
+  return ymdNextStart <= props.maxDate
+})
+
 function onNextMonth() {
+  if (!canGoNext.value) return
   const year = props.visibleMonth.getUTCFullYear()
   const month = props.visibleMonth.getUTCMonth() + 1
   emit('update:visibleMonth', new Date(Date.UTC(year, month, 1)))
@@ -145,7 +156,7 @@ function formatAriaDateLabel(ymd: string): string {
         <button
           type="button"
           class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] text-[color:var(--color-brand-secondary)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-surface-highlight)] disabled:cursor-not-allowed disabled:opacity-50"
-          :disabled="isLoading"
+          :disabled="!canGoNext || isLoading"
           aria-label="Mois suivant"
           @click="onNextMonth"
         >

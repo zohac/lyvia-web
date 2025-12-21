@@ -3,7 +3,7 @@
     title="Votre appel découverte gratuit"
     subtitle="15 minutes pour faire le point, sans engagement."
   >
-    <DiscoveryBookingWizard />
+    <DiscoveryBookingWizard :slug="slug" />
   </OnboardingPageTemplate>
 </template>
 
@@ -15,4 +15,7 @@ definePageMeta({
   layout: 'public',
   publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true }
 })
+
+const route = useRoute()
+const slug = computed(() => String(route.params.slug ?? '').trim())
 </script>
