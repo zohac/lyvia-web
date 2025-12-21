@@ -83,26 +83,6 @@ function getTenantStorageKey(): string {
   return `${STORAGE_KEY_PREFIX}:${key}`
 }
 
-function getPublicHeaders(): HeadersInit | undefined {
-  if (import.meta.server) {
-    const headers = useRequestHeaders(['host', 'x-forwarded-host', 'x-forwarded-proto'])
-    const forwardedHost = headers['x-forwarded-host']
-    const host = headers.host
-    const forwardedProto = headers['x-forwarded-proto']
-
-    return {
-      ...(forwardedHost ? { 'x-forwarded-host': forwardedHost } : {}),
-      ...(host ? { 'x-forwarded-host': host } : {}),
-      ...(forwardedProto ? { 'x-forwarded-proto': forwardedProto } : {})
-    }
-  }
-
-  return {
-    'x-forwarded-host': window.location.host,
-    'x-forwarded-proto': window.location.protocol.replace(':', '')
-  }
-}
-
 function getYmdInTimeZone(date: Date, tz: string): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: tz,
@@ -165,14 +145,40 @@ function sanitizeStep(next: number): WizardStep {
   return 1
 }
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+}
+
+function createUuidV4(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const bytes = new Uint8Array(16)
+    crypto.getRandomValues(bytes)
+
+    // Per RFC 4122 section 4.4 (random UUID).
+    bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40
+    bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80
+
+    const hex = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('')
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+  }
+
+  // Very last resort: pseudo-random, but still UUID-shaped for server validation.
+  const hex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20)}`
+}
+
 function getOrCreateIdempotencyKey(): string {
   if (import.meta.server) return ''
 
   const storageKey = getTenantStorageKey()
   const existing = sessionStorage.getItem(`${storageKey}:idempotency`)
-  if (existing && existing.trim().length > 0) return existing
+  if (existing && isUuid(existing)) return existing
 
-  const created = crypto?.randomUUID?.() ?? `uuid_${Math.random().toString(16).slice(2)}_${Date.now()}`
+  const created = createUuidV4()
   sessionStorage.setItem(`${storageKey}:idempotency`, created)
   return created
 }
@@ -243,7 +249,6 @@ async function loadAvailability() {
       {
         method: 'GET',
         withAuth: false,
-        headers: getPublicHeaders(),
         query: {
           ...(slug.value.length > 0 ? { slug: slug.value } : {}),
           from,
@@ -292,7 +297,6 @@ async function loadTenant() {
     const response = await apiFetch<PublicTenantResponse>('/public/tenant', {
       method: 'GET',
       withAuth: false,
-      headers: getPublicHeaders(),
       query: slug.value.length > 0 ? { slug: slug.value } : undefined
     })
 
@@ -441,7 +445,6 @@ async function submitBooking() {
       method: 'POST',
       withAuth: false,
       headers: {
-        ...getPublicHeaders(),
         'Idempotency-Key': idempotencyKey
       },
       query: slug.value.length > 0 ? { slug: slug.value } : undefined,

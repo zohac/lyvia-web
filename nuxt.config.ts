@@ -1,3 +1,4 @@
+/* eslint-disable nuxt/nuxt-config-keys-order */
 // https://nuxt.com/docs/api/configuration/nuxt-config
 declare const process: { env: Record<string, string | undefined> }
 
@@ -9,6 +10,14 @@ export default defineNuxtConfig({
 
   devtools: {
     enabled: true
+  },
+
+  vite: {
+    // Dev-only: allow accessing Nuxt via custom local domains (e.g. `*.test`)
+    // without Vite host-check returning 403.
+    server: {
+      allowedHosts: true
+    }
   },
 
   app: {
@@ -27,8 +36,11 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    // Server-only upstream for Nitro proxy `/api/**`.
+    // Never fall back to the public runtime config (can be relative like `/api`).
+    apiBase: process.env.NUXT_API_BASE_URL || 'http://localhost:3001',
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || '/api'
     }
   },
 

@@ -32,7 +32,7 @@ function normalizeBaseUrl(baseUrl: string): string {
 function getDefaultApiBase(): string {
   const config = useRuntimeConfig()
   const apiBase = (config.public as { apiBase?: string }).apiBase
-  if (!apiBase) return 'http://localhost:3001'
+  if (!apiBase) return '/api'
   return normalizeBaseUrl(apiBase)
 }
 
