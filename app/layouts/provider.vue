@@ -19,6 +19,12 @@ const navigation = [
     match: 'prefix'
   },
   {
+    label: 'Appels discovery',
+    to: '/provider/discovery',
+    icon: 'lucide:phone-call',
+    match: 'prefix'
+  },
+  {
     label: 'Mes clientes',
     to: '/provider/clients',
     icon: 'lucide:users',
