@@ -2,35 +2,46 @@
 @import "@nuxt/ui";
 
 @theme static {
-  --font-family-heading: 'Playfair Display', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-family-heading: 'Fraunces', ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-family-body: 'Manrope', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 
   --leading-tight: 1.1;
   --leading-normal: 1.5;
   --leading-relaxed: 1.6;
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  /* Kaora Organic radii */
+  --radius-sm: 1rem; /* inputs / buttons */
+  --radius-md: 1.5rem;
+  --radius-lg: 2rem; /* cards / panels */
+  --radius-input: 1rem;
+  --radius-organic: 2rem;
 
-  --shadow-card: 0px 4px 20px -2px rgba(54, 33, 62, 0.08);
-  --shadow-floating: 0px 10px 40px -10px rgba(54, 33, 62, 0.15);
+  /* Kaora shadows are tinted (no black admin shadows) */
+  --shadow-card: 0 10px 40px -10px rgba(212, 184, 160, 0.15);
+  --shadow-floating: 0 20px 50px -12px rgba(156, 130, 107, 0.15);
 
-  --color-brand-primary: #36213E;
-  --color-brand-secondary: #553B5E;
-  --color-brand-subtle: #E6DEEB;
+  /* Ink & brand */
+  --color-brand-primary: #1c1917; /* stone-900 */
+  --color-brand-secondary: #57534e; /* stone-600 */
+  --color-brand-muted: #78716c; /* stone-500 */
+  --color-brand-subtle: #e7e5e4; /* stone-200 */
+  --color-brand-accent: #9c826b; /* kaora-600 (text/link) */
+  --color-brand-solid: #d4b8a0; /* kaora-300 (surfaces/borders, not text) */
 
-  --color-surface-page: #FDFBF7;
-  --color-surface-card: #FFFFFF;
-  --color-surface-highlight: #F3EBF5;
+  /* Surfaces */
+  --color-surface-page: #fafaf9; /* stone-50 */
+  --color-surface-card: #ffffff; /* surface */
+  --color-surface-highlight: #f5f5f4; /* stone-100 */
 
-  --color-accent-main: #C87964;
-  --color-accent-hover: #B0624D;
+  /* Primary CTA (Kaora uses stone as primary action background) */
+  --color-accent-main: #1c1917; /* stone-900 */
+  --color-accent-hover: #292524; /* stone-800 */
   --color-accent-contrast: #FFFFFF;
 
-  --color-success: #4A7C59;
-  --color-error: #BA3F3F;
-  --color-warning: #D98C28;
+  /* Semantic */
+  --color-success: #b5c0a3; /* sage */
+  --color-error: #ef4444; /* red */
+  --color-warning: #d97706; /* amber */
 
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -40,29 +51,31 @@
   --font-sans: var(--font-family-body);
   --font-serif: var(--font-family-heading);
 
-  --color-terracotta-50: #FDF3F0;
-  --color-terracotta-100: #FCECE8;
-  --color-terracotta-200: #F6D0C6;
-  --color-terracotta-300: #EFB4A4;
-  --color-terracotta-400: #D58E7B;
-  --color-terracotta-500: #C87964;
-  --color-terracotta-600: #B0624D;
-  --color-terracotta-700: #8F4B3B;
-  --color-terracotta-800: #6D352A;
-  --color-terracotta-900: #4B1F18;
-  --color-terracotta-950: #2C110D;
+  /* Kaora palette (brand) */
+  --color-kaora-50: #fbf7f4;
+  --color-kaora-100: #f5ebe3;
+  --color-kaora-200: #ead6c6;
+  --color-kaora-300: #d4b8a0;
+  --color-kaora-400: #bf957a;
+  --color-kaora-500: #a87658;
+  --color-kaora-600: #9c826b;
+  --color-kaora-700: #7a6251;
+  --color-kaora-800: #655246;
+  --color-kaora-900: #52433b;
+  --color-kaora-950: #2b231f;
 
-  --color-velvet-50: #F6F2F7;
-  --color-velvet-100: #EDE6F0;
-  --color-velvet-200: #D9CCE0;
-  --color-velvet-300: #BCA7C9;
-  --color-velvet-400: #9B7AAE;
-  --color-velvet-500: #7A568E;
-  --color-velvet-600: #5E3F70;
-  --color-velvet-700: #553B5E;
-  --color-velvet-800: #402848;
-  --color-velvet-900: #36213E;
-  --color-velvet-950: #1E1023;
+  /* Stone palette (neutral) */
+  --color-stone-50: #fafaf9;
+  --color-stone-100: #f5f5f4;
+  --color-stone-200: #e7e5e4;
+  --color-stone-300: #d6d3d1;
+  --color-stone-400: #a8a29e;
+  --color-stone-500: #78716c;
+  --color-stone-600: #57534e;
+  --color-stone-700: #44403c;
+  --color-stone-800: #292524;
+  --color-stone-900: #1c1917;
+  --color-stone-950: #0c0a09;
 }
 
 @layer base {
@@ -70,30 +83,30 @@
     color-scheme: light;
 
     /* Nuxt UI color bridge (force exact DS values) */
-    --ui-primary: var(--color-accent-main);
-    --ui-color-primary-50: var(--color-terracotta-50);
-    --ui-color-primary-100: var(--color-terracotta-100);
-    --ui-color-primary-200: var(--color-terracotta-200);
-    --ui-color-primary-300: var(--color-terracotta-300);
-    --ui-color-primary-400: var(--color-terracotta-400);
-    --ui-color-primary-500: var(--color-terracotta-500);
-    --ui-color-primary-600: var(--color-terracotta-600);
-    --ui-color-primary-700: var(--color-terracotta-700);
-    --ui-color-primary-800: var(--color-terracotta-800);
-    --ui-color-primary-900: var(--color-terracotta-900);
-    --ui-color-primary-950: var(--color-terracotta-950);
+    --ui-primary: var(--color-kaora-600);
+    --ui-color-primary-50: var(--color-kaora-50);
+    --ui-color-primary-100: var(--color-kaora-100);
+    --ui-color-primary-200: var(--color-kaora-200);
+    --ui-color-primary-300: var(--color-kaora-300);
+    --ui-color-primary-400: var(--color-kaora-400);
+    --ui-color-primary-500: var(--color-kaora-500);
+    --ui-color-primary-600: var(--color-kaora-600);
+    --ui-color-primary-700: var(--color-kaora-700);
+    --ui-color-primary-800: var(--color-kaora-800);
+    --ui-color-primary-900: var(--color-kaora-900);
+    --ui-color-primary-950: var(--color-kaora-950);
 
-    --ui-color-neutral-50: var(--color-velvet-50);
-    --ui-color-neutral-100: var(--color-velvet-100);
-    --ui-color-neutral-200: var(--color-velvet-200);
-    --ui-color-neutral-300: var(--color-velvet-300);
-    --ui-color-neutral-400: var(--color-velvet-400);
-    --ui-color-neutral-500: var(--color-velvet-500);
-    --ui-color-neutral-600: var(--color-velvet-600);
-    --ui-color-neutral-700: var(--color-velvet-700);
-    --ui-color-neutral-800: var(--color-velvet-800);
-    --ui-color-neutral-900: var(--color-velvet-900);
-    --ui-color-neutral-950: var(--color-velvet-950);
+    --ui-color-neutral-50: var(--color-stone-50);
+    --ui-color-neutral-100: var(--color-stone-100);
+    --ui-color-neutral-200: var(--color-stone-200);
+    --ui-color-neutral-300: var(--color-stone-300);
+    --ui-color-neutral-400: var(--color-stone-400);
+    --ui-color-neutral-500: var(--color-stone-500);
+    --ui-color-neutral-600: var(--color-stone-600);
+    --ui-color-neutral-700: var(--color-stone-700);
+    --ui-color-neutral-800: var(--color-stone-800);
+    --ui-color-neutral-900: var(--color-stone-900);
+    --ui-color-neutral-950: var(--color-stone-950);
   }
 
   html {
@@ -129,7 +142,7 @@
   }
 
   a {
-    color: var(--color-brand-secondary);
+    color: var(--color-brand-accent);
     text-underline-offset: 0.2em;
   }
 
@@ -138,16 +151,27 @@
   }
 
   ::selection {
-    background: rgba(200, 121, 100, 0.25);
+    background: rgba(212, 184, 160, 0.35);
   }
 
   :focus-visible {
-    outline: 3px solid rgba(200, 121, 100, 0.45);
+    outline: 3px solid rgba(212, 184, 160, 0.9);
     outline-offset: 2px;
   }
 }
 
 @layer utilities {
+  .transition-base {
+    transition: all var(--duration-normal) var(--ease-smooth);
+  }
+
+  .glass-panel {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: var(--shadow-card);
+  }
+
   .warm-filter {
     filter: sepia(10%) contrast(95%) brightness(105%);
   }
