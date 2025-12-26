@@ -129,6 +129,11 @@
   h4 {
     font-family: var(--font-family-heading);
     color: var(--color-brand-primary);
+    font-variation-settings: "SOFT" 100, "WONK" 0;
+  }
+
+  .font-serif {
+    font-variation-settings: "SOFT" 100, "WONK" 0;
   }
 
   .fade-enter-active,
@@ -170,6 +175,30 @@
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: var(--shadow-card);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-floating {
+    box-shadow: var(--shadow-floating);
+  }
+
+  .rounded-blob-a {
+    border-radius: 2.5rem 2.5rem 2.5rem 0.5rem;
+  }
+
+  .rounded-blob-b {
+    border-radius: 0.5rem 2.5rem 2.5rem 2.5rem;
+  }
+
+  .rounded-blob-c {
+    border-radius: 2rem 0.5rem 2rem 0.5rem;
+  }
+
+  .rounded-blob-d {
+    border-radius: 2rem 0.5rem 2rem 2rem;
   }
 
   .warm-filter {

@@ -2,6 +2,7 @@
 import type { PublicTenantResponse } from '../../../features/onboarding/api/onboarding.contract'
 import { ApiFetchError } from '../../../services/api/api-error'
 import { apiFetch } from '../../../services/api/apiFetch'
+import { setPublicHeader } from '../../../features/public/state/public-header.state'
 import CoachPublicPageTemplate from '../../../components/templates/CoachPublicPageTemplate.vue'
 
 definePageMeta({
@@ -44,6 +45,20 @@ const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboard
 useSeoMeta({
   title: () => `${tenant.value?.brand.displayName ?? 'Coach'} — Appel découverte`,
   description: () => 'Réservez un appel découverte gratuit, sans engagement.'
+})
+
+watchEffect(() => {
+  setPublicHeader({
+    variant: 'coach',
+    brandLabel: 'Kaora',
+    brandTo: '/',
+    showBrandIcon: true,
+    navLinks: [],
+    loginLabel: 'Connexion',
+    loginTo: '/login',
+    ctaLabel: 'Réserver',
+    ctaTo: ctaTo.value
+  })
 })
 </script>
 

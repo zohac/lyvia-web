@@ -1,7 +1,3 @@
-<script setup lang="ts">
-const currentYear = new Date().getFullYear()
-</script>
-
 <template>
   <div class="min-h-[100svh] bg-[color:var(--color-surface-page)] text-[color:var(--color-brand-primary)]">
     <!-- Ambient background -->
@@ -13,67 +9,11 @@ const currentYear = new Date().getFullYear()
       <div class="absolute -bottom-[15%] -right-[10%] h-[55%] w-[55%] rounded-full bg-[radial-gradient(circle_at_center,rgba(181,192,163,0.18),transparent_60%)] blur-[90px]" />
     </div>
 
-    <!-- Header -->
-    <header class="sticky top-0 z-40 border-b border-[color:var(--color-brand-subtle)]">
-      <div class="glass-panel">
-        <div class="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-          <NuxtLink
-            to="/"
-            class="inline-flex items-center gap-3 transition-base"
-            aria-label="Kaora"
-          >
-            <div class="grid h-10 w-10 place-items-center rounded-full bg-[rgba(255,255,255,0.9)] shadow-[var(--shadow-card)]">
-              <Icon
-                name="lucide:sparkles"
-                size="18"
-                class="text-[color:var(--color-brand-accent)]"
-                aria-hidden="true"
-              />
-            </div>
-            <span class="font-serif text-2xl italic tracking-tight">
-              Kaora
-            </span>
-          </NuxtLink>
-
-          <nav class="hidden items-center gap-8 text-sm font-semibold text-[color:var(--color-brand-muted)] md:flex">
-            <a
-              href="#features"
-              class="hover:text-[color:var(--color-brand-primary)] transition-base"
-            >
-              Fonctionnalités
-            </a>
-            <a
-              href="#pour-qui"
-              class="hover:text-[color:var(--color-brand-primary)] transition-base"
-            >
-              Pour qui ?
-            </a>
-          </nav>
-
-          <div class="flex items-center gap-3">
-            <NuxtLink
-              to="/login"
-              class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)] md:inline-flex transition-base"
-            >
-              Se connecter
-            </NuxtLink>
-
-            <NuxtLink
-              to="/login"
-              class="inline-flex h-11 items-center justify-center rounded-full bg-[color:var(--color-accent-main)] px-6 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-[var(--shadow-floating)] transition-base hover:brightness-110 active:scale-[0.99]"
-            >
-              Essayer Kaora
-            </NuxtLink>
-          </div>
-        </div>
-      </div>
-    </header>
-
     <!-- Hero -->
     <section class="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
       <div class="mx-auto grid max-w-4xl gap-10 text-center">
         <div class="grid gap-6">
-          <h1 class="font-serif text-[2.75rem] italic leading-[1.03] tracking-[-0.02em] sm:text-[4rem]">
+          <h1 class="font-serif text-[2.75rem] italic leading-[1.08] tracking-[-0.02em] sm:text-[4rem]">
             L’écrin digital pour vos
             <span class="text-[color:var(--color-brand-accent)]">accompagnements</span>.
           </h1>
@@ -99,44 +39,18 @@ const currentYear = new Date().getFullYear()
         <div class="relative mx-auto w-full max-w-5xl">
           <div
             aria-hidden="true"
-            class="absolute -inset-6 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,rgba(213,184,160,0.35),transparent_60%)] blur-[45px]"
+            class="absolute -inset-6 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,rgba(212,184,160,0.32),transparent_60%)] blur-[55px]"
           />
 
-          <div class="rounded-[var(--radius-organic)] border border-[rgba(255,255,255,0.6)] bg-[color:var(--color-surface-card)] p-3 shadow-[var(--shadow-card)] sm:p-5">
-            <div class="grid gap-4 rounded-[calc(var(--radius-organic)-0.75rem)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-highlight)] p-6 text-left sm:grid-cols-3">
-              <div class="grid gap-2 rounded-[var(--radius-input)] bg-white p-5 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-bold uppercase tracking-widest text-[color:var(--color-brand-muted)]">
-                  Réservation
-                </p>
-                <p class="font-serif text-lg italic">
-                  Parcours apaisant
-                </p>
-                <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                  Conversion sans friction, mobile-first.
-                </p>
-              </div>
-              <div class="grid gap-2 rounded-[var(--radius-input)] bg-white p-5 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-bold uppercase tracking-widest text-[color:var(--color-brand-muted)]">
-                  Paiement
-                </p>
-                <p class="font-serif text-lg italic">
-                  Stripe intégré
-                </p>
-                <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                  Sécurisé, automatisé, transparent.
-                </p>
-              </div>
-              <div class="grid gap-2 rounded-[var(--radius-input)] bg-white p-5 shadow-[var(--shadow-card)]">
-                <p class="text-xs font-bold uppercase tracking-widest text-[color:var(--color-brand-muted)]">
-                  Suivi
-                </p>
-                <p class="font-serif text-lg italic">
-                  Contenus & ressources
-                </p>
-                <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                  Vos conseils accessibles au bon moment.
-                </p>
-              </div>
+          <div class="rounded-blob-a border border-[rgba(255,255,255,0.6)] bg-white p-2 shadow-floating transition-base sm:p-3">
+            <div class="rounded-[calc(2.5rem_-_0.75rem)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-highlight)] p-2 shadow-soft transition-base hover:shadow-floating hover:-translate-y-1 hover:rotate-0 sm:rotate-1">
+              <img
+                src="/images/marketing-dashboard-mockup.svg"
+                class="w-full rounded-[calc(2.5rem_-_1.25rem)] border border-[rgba(231,229,228,0.9)] bg-white object-cover"
+                alt="Interface Kaora (aperçu)"
+                loading="lazy"
+                decoding="async"
+              >
             </div>
           </div>
         </div>
@@ -159,11 +73,11 @@ const currentYear = new Date().getFullYear()
         </div>
 
         <div class="mt-12 grid gap-6 md:grid-cols-3">
-          <div class="rounded-[var(--radius-organic)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-8 shadow-[var(--shadow-card)] transition-base hover:shadow-[var(--shadow-floating)]">
-            <div class="mb-6 grid h-14 w-14 place-items-center rounded-[var(--radius-input)] bg-white shadow-[var(--shadow-card)]">
+          <div class="group rounded-blob-c border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-8 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--color-brand-solid)] hover:shadow-floating">
+            <div class="mb-6 grid h-14 w-14 place-items-center rounded-[var(--radius-input)] bg-white shadow-soft transition-transform duration-300 group-hover:scale-110">
               <Icon
                 name="lucide:calendar-days"
-                size="22"
+                size="26"
                 class="text-[color:var(--color-brand-accent)]"
                 aria-hidden="true"
               />
@@ -176,11 +90,11 @@ const currentYear = new Date().getFullYear()
             </p>
           </div>
 
-          <div class="rounded-[var(--radius-organic)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-8 shadow-[var(--shadow-card)] transition-base hover:shadow-[var(--shadow-floating)]">
-            <div class="mb-6 grid h-14 w-14 place-items-center rounded-[var(--radius-input)] bg-white shadow-[var(--shadow-card)]">
+          <div class="group rounded-[var(--radius-organic)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-8 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--color-brand-solid)] hover:shadow-floating">
+            <div class="mb-6 grid h-14 w-14 place-items-center rounded-[var(--radius-input)] bg-white shadow-soft transition-transform duration-300 group-hover:scale-110">
               <Icon
                 name="lucide:credit-card"
-                size="22"
+                size="26"
                 class="text-[color:var(--color-brand-accent)]"
                 aria-hidden="true"
               />
@@ -193,11 +107,11 @@ const currentYear = new Date().getFullYear()
             </p>
           </div>
 
-          <div class="rounded-[var(--radius-organic)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-8 shadow-[var(--shadow-card)] transition-base hover:shadow-[var(--shadow-floating)]">
-            <div class="mb-6 grid h-14 w-14 place-items-center rounded-[var(--radius-input)] bg-white shadow-[var(--shadow-card)]">
+          <div class="group rounded-blob-a border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-8 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--color-brand-solid)] hover:shadow-floating">
+            <div class="mb-6 grid h-14 w-14 place-items-center rounded-[var(--radius-input)] bg-white shadow-soft transition-transform duration-300 group-hover:scale-110">
               <Icon
                 name="lucide:book-open"
-                size="22"
+                size="26"
                 class="text-[color:var(--color-brand-accent)]"
                 aria-hidden="true"
               />
@@ -223,7 +137,7 @@ const currentYear = new Date().getFullYear()
           <h2 class="font-serif text-3xl italic tracking-tight">
             Conçu pour les métiers du soin et de l’écoute
           </h2>
-          <p class="text-[color:var(--color-brand-secondary)]">
+          <p class="text-base leading-[var(--leading-relaxed)] text-[color:var(--color-brand-secondary)]">
             Coachs, naturopathes, praticiens bien-être : offrez une expérience cliente premium, sans complexité technique.
           </p>
         </div>
@@ -259,17 +173,5 @@ const currentYear = new Date().getFullYear()
         </ul>
       </div>
     </section>
-
-    <!-- Footer -->
-    <footer class="border-t border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]">
-      <div class="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-10 text-center text-sm text-[color:var(--color-brand-muted)] sm:px-6">
-        <p class="font-semibold uppercase tracking-widest">
-          © {{ currentYear }} Kaora
-        </p>
-        <p>
-          Fait avec soin pour les pros du soin.
-        </p>
-      </div>
-    </footer>
   </div>
 </template>

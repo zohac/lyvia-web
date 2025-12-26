@@ -1,0 +1,94 @@
+<svg width="1600" height="960" viewBox="0 0 1600 960" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Aperçu d’interface Kaora</title>
+  <desc id="desc">Illustration stylisée d’un tableau de bord Kaora avec navigation latérale, cartes et aperçu d’agenda.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="960" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBF7F4"/>
+      <stop offset="1" stop-color="#FAFAF9"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FBF7F4"/>
+    </linearGradient>
+    <filter id="softShadow" x="-40" y="-40" width="1680" height="1040" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#9C826B" flood-opacity="0.16"/>
+    </filter>
+    <filter id="glow" x="-60" y="-60" width="1720" height="1080" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="36" result="blur"/>
+      <feColorMatrix
+        in="blur"
+        type="matrix"
+        values="0 0 0 0 0.831  0 0 0 0 0.722  0 0 0 0 0.627  0 0 0 0.38 0"
+      />
+    </filter>
+    <clipPath id="screenClip">
+      <rect x="90" y="110" width="1420" height="740" rx="42"/>
+    </clipPath>
+  </defs>
+
+  <!-- Screen background -->
+  <rect x="90" y="110" width="1420" height="740" rx="42" fill="url(#bg)" filter="url(#softShadow)"/>
+  <rect x="120" y="140" width="1360" height="680" rx="34" fill="#FFFFFF" opacity="0.78"/>
+
+  <!-- Ambient glow -->
+  <g clip-path="url(#screenClip)">
+    <circle cx="260" cy="160" r="220" fill="#D4B8A0" filter="url(#glow)"/>
+    <circle cx="1320" cy="760" r="260" fill="#B5C0A3" opacity="0.7" filter="url(#glow)"/>
+  </g>
+
+  <!-- Top bar -->
+  <rect x="120" y="140" width="1360" height="86" rx="34" fill="#FFFFFF"/>
+  <circle cx="190" cy="183" r="18" fill="#D4B8A0"/>
+  <rect x="222" y="169" width="130" height="28" rx="14" fill="#1C1917"/>
+  <rect x="1120" y="169" width="140" height="28" rx="14" fill="#F5F5F4"/>
+  <rect x="1280" y="169" width="170" height="28" rx="14" fill="#1C1917"/>
+
+  <!-- Sidebar -->
+  <rect x="120" y="242" width="270" height="578" rx="34" fill="#FAFAF9"/>
+  <rect x="152" y="288" width="206" height="18" rx="9" fill="#E7E5E4"/>
+  <rect x="152" y="330" width="170" height="18" rx="9" fill="#E7E5E4"/>
+  <rect x="152" y="372" width="192" height="18" rx="9" fill="#E7E5E4"/>
+  <rect x="152" y="440" width="206" height="44" rx="22" fill="#1C1917"/>
+  <rect x="168" y="454" width="120" height="16" rx="8" fill="#FFFFFF" opacity="0.88"/>
+
+  <!-- Main content area -->
+  <rect x="410" y="242" width="1070" height="578" rx="34" fill="#FAFAF9"/>
+
+  <!-- Header text blocks -->
+  <rect x="450" y="288" width="360" height="22" rx="11" fill="#1C1917" opacity="0.92"/>
+  <rect x="450" y="322" width="520" height="16" rx="8" fill="#78716C" opacity="0.55"/>
+
+  <!-- KPI cards -->
+  <rect x="450" y="372" width="330" height="168" rx="36" fill="url(#card)" stroke="#FFFFFF" stroke-opacity="0.65"/>
+  <rect x="490" y="410" width="160" height="18" rx="9" fill="#78716C" opacity="0.45"/>
+  <rect x="490" y="444" width="210" height="28" rx="14" fill="#1C1917" opacity="0.92"/>
+  <rect x="490" y="486" width="120" height="14" rx="7" fill="#9C826B" opacity="0.55"/>
+
+  <rect x="810" y="372" width="330" height="168" rx="36" fill="url(#card)" stroke="#FFFFFF" stroke-opacity="0.65"/>
+  <rect x="850" y="410" width="180" height="18" rx="9" fill="#78716C" opacity="0.45"/>
+  <rect x="850" y="444" width="230" height="28" rx="14" fill="#1C1917" opacity="0.92"/>
+  <rect x="850" y="486" width="170" height="14" rx="7" fill="#B5C0A3" opacity="0.55"/>
+
+  <rect x="1170" y="372" width="270" height="168" rx="36" fill="url(#card)" stroke="#FFFFFF" stroke-opacity="0.65"/>
+  <rect x="1210" y="410" width="140" height="18" rx="9" fill="#78716C" opacity="0.45"/>
+  <rect x="1210" y="444" width="190" height="28" rx="14" fill="#1C1917" opacity="0.92"/>
+  <rect x="1210" y="486" width="120" height="14" rx="7" fill="#D4B8A0" opacity="0.55"/>
+
+  <!-- Calendar preview -->
+  <rect x="450" y="568" width="610" height="220" rx="36" fill="#FFFFFF" opacity="0.84"/>
+  <rect x="490" y="608" width="220" height="18" rx="9" fill="#1C1917" opacity="0.92"/>
+  <rect x="490" y="640" width="360" height="14" rx="7" fill="#78716C" opacity="0.5"/>
+  <rect x="490" y="684" width="520" height="2" rx="1" fill="#E7E5E4"/>
+  <rect x="490" y="708" width="160" height="60" rx="20" fill="#F5F5F4"/>
+  <rect x="670" y="708" width="160" height="60" rx="20" fill="#F5F5F4"/>
+  <rect x="850" y="708" width="160" height="60" rx="20" fill="#1C1917"/>
+  <rect x="885" y="732" width="90" height="14" rx="7" fill="#FFFFFF" opacity="0.9"/>
+
+  <!-- Right panel -->
+  <rect x="1086" y="568" width="354" height="220" rx="36" fill="#FFFFFF" opacity="0.84"/>
+  <rect x="1126" y="608" width="210" height="18" rx="9" fill="#1C1917" opacity="0.92"/>
+  <rect x="1126" y="648" width="280" height="10" rx="5" fill="#E7E5E4"/>
+  <rect x="1126" y="672" width="260" height="10" rx="5" fill="#E7E5E4"/>
+  <rect x="1126" y="696" width="240" height="10" rx="5" fill="#E7E5E4"/>
+  <rect x="1126" y="730" width="160" height="40" rx="20" fill="#D4B8A0" opacity="0.9"/>
+</svg>
