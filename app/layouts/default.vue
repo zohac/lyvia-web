@@ -35,7 +35,7 @@ useHead({
     <footer class="border-t border-[color:var(--color-brand-subtle)]">
       <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-6 text-sm text-[color:var(--color-brand-secondary)] sm:px-6">
         <p>
-          © {{ new Date().getFullYear() }} Livia
+          © {{ new Date().getFullYear() }} Kaora
         </p>
         <NuxtLink
           to="/login"

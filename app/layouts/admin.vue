@@ -17,7 +17,7 @@ const navigation = [
 
 <template>
   <DashboardShell
-    brand-label="Lyvia"
+    brand-label="Kaora"
     brand-to="/admin/dashboard"
     sidebar-label="Admin"
     :navigation="navigation"

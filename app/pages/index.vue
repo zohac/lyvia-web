@@ -28,7 +28,7 @@ const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public
 }, { default: () => null })
 
 useSeoMeta({
-  title: () => tenant.value?.brand.displayName ? `${tenant.value.brand.displayName} — Appel découverte` : 'Livia — Coaching Platform',
+  title: () => tenant.value?.brand.displayName ? `${tenant.value.brand.displayName} — Appel découverte` : 'Kaora — Coaching Platform',
   description: () =>
     tenant.value
       ? 'Réservez un appel découverte gratuit, sans engagement.'

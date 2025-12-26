@@ -53,7 +53,7 @@ const navigation = [
 
 <template>
   <DashboardShell
-    brand-label="Lyvia"
+    brand-label="Kaora"
     brand-to="/provider/dashboard"
     sidebar-label="Coach"
     :navigation="navigation"
