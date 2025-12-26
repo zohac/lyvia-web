@@ -3,11 +3,14 @@ import type { PublicTenantResponse } from '../features/onboarding/api/onboarding
 import { ApiFetchError } from '../services/api/api-error'
 import { apiFetch } from '../services/api/apiFetch'
 import CoachPublicPageTemplate from '../components/templates/CoachPublicPageTemplate.vue'
+import MarketingLandingB2B from '../components/templates/MarketingLandingB2B.vue'
 
 definePageMeta({
   layout: 'public',
   publicLayout: {
-    fullBleed: true
+    fullBleed: true,
+    hideHeader: true,
+    hideFooter: true
   }
 })
 
@@ -32,82 +35,55 @@ useSeoMeta({
       ? 'Réservez un appel découverte gratuit, sans engagement.'
       : 'Réservez vos rendez-vous, payez en ligne en toute sécurité, et accédez à des contenus utiles — dans une interface apaisante pensée pour durer.'
 })
+
+const currentYear = new Date().getFullYear()
 </script>
 
 <template>
-  <CoachPublicPageTemplate
-    v-if="tenant"
-    :tenant="tenant"
-    cta-to="/onboarding/discovery"
-  />
-
-  <div
-    v-else
-    class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6"
-  >
-    <div class="grid gap-12">
-      <section class="grid gap-6">
-        <div class="grid gap-3">
-          <p class="text-sm font-semibold tracking-wide text-[color:var(--color-brand-secondary)]">
-            Coaching Platform — MVP V0
-          </p>
-          <h1 class="font-serif text-[2.25rem] font-bold leading-[var(--leading-tight)] tracking-[-0.01em] sm:text-[3rem]">
-            Un accompagnement clair, rassurant et orienté résultats.
-          </h1>
-          <p class="max-w-2xl text-[1.125rem] leading-[var(--leading-relaxed)] text-[color:var(--color-brand-secondary)]">
-            Réservez vos rendez-vous, payez en ligne en toute sécurité, et accédez à des contenus utiles — dans une interface apaisante pensée pour durer.
-          </p>
-        </div>
-
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+  <div v-if="tenant">
+    <header class="sticky top-0 z-40 border-b border-[color:var(--color-brand-subtle)]">
+      <div class="glass-panel">
+        <div class="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
           <NuxtLink
-            to="/coach/sophie-jouan/onboarding/discovery"
-            class="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] bg-[color:var(--color-accent-main)] px-6 text-[19px] font-bold text-[color:var(--color-accent-contrast)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-accent-hover)]"
+            to="/"
+            class="font-serif text-2xl italic tracking-tight transition-base"
+            aria-label="Accueil"
           >
-            Réserver un appel découverte (15 min)
+            {{ tenant.brand.displayName }}
           </NuxtLink>
 
-          <NuxtLink
-            to="/login"
-            class="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] border border-[color:var(--color-brand-primary)] px-6 font-semibold text-[color:var(--color-brand-primary)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-surface-highlight)]"
-          >
-            Connexion
-          </NuxtLink>
-        </div>
-      </section>
+          <div class="flex items-center gap-3">
+            <NuxtLink
+              to="/login"
+              class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)] md:inline-flex transition-base"
+            >
+              Espace cliente
+            </NuxtLink>
 
-      <section class="grid gap-6">
-        <h2 class="font-serif text-[1.5rem] font-semibold leading-[var(--leading-normal)]">
-          Pourquoi c’est simple
-        </h2>
-
-        <div class="grid gap-4 sm:grid-cols-3">
-          <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-            <h3 class="font-serif text-[1.25rem] font-semibold">
-              Rendez-vous
-            </h3>
-            <p class="mt-2 text-[color:var(--color-brand-secondary)]">
-              Un parcours minimal, sans friction : réserver, confirmer, suivre.
-            </p>
-          </div>
-          <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-            <h3 class="font-serif text-[1.25rem] font-semibold">
-              Paiement sécurisé
-            </h3>
-            <p class="mt-2 text-[color:var(--color-brand-secondary)]">
-              Stripe Checkout comme référence : clair, transparent, fiable.
-            </p>
-          </div>
-          <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-            <h3 class="font-serif text-[1.25rem] font-semibold">
-              Contenus utiles
-            </h3>
-            <p class="mt-2 text-[color:var(--color-brand-secondary)]">
-              Articles, recettes, actualités — accessibles simplement.
-            </p>
+            <NuxtLink
+              to="/onboarding/discovery"
+              class="inline-flex h-11 items-center justify-center rounded-full bg-[color:var(--color-accent-main)] px-6 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-[var(--shadow-floating)] transition-base hover:brightness-110 active:scale-[0.99]"
+            >
+              Prendre RDV
+            </NuxtLink>
           </div>
         </div>
-      </section>
-    </div>
+      </div>
+    </header>
+
+    <CoachPublicPageTemplate
+      :tenant="tenant"
+      cta-to="/onboarding/discovery"
+    />
+
+    <footer class="border-t border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]">
+      <div class="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-10 text-center text-sm text-[color:var(--color-brand-muted)] sm:px-6">
+        <p class="font-semibold uppercase tracking-widest">
+          © {{ currentYear }} {{ tenant.brand.displayName }}
+        </p>
+      </div>
+    </footer>
   </div>
+
+  <MarketingLandingB2B v-else />
 </template>
