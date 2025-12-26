@@ -1,20 +1,37 @@
 <template>
-  <AuthPageTemplate
-    title="Connexion"
-    subtitle="Accéder à votre espace"
-  >
-    <template #alert>
-      <SystemAlert
-        v-if="resetSuccess"
-        variant="success"
-        description="Votre mot de passe a été mis à jour. Vous pouvez vous connecter."
-      />
-      <SystemAlert
-        v-if="error"
-        variant="error"
-        :description="error"
-      />
-    </template>
+  <div class="grid gap-12">
+    <header class="grid gap-3">
+      <NuxtLink
+        to="/"
+        aria-label="Retour à l’accueil"
+        class="mb-12 inline-flex w-fit items-center justify-center"
+      >
+        <img
+          src="/images/kaora-logo.png"
+          alt="Kaora"
+          class="h-10 w-auto"
+          decoding="async"
+        >
+      </NuxtLink>
+
+      <h1 class="font-serif text-4xl font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
+        Bienvenue dans votre <span class="italic text-[color:var(--color-brand-accent)]">espace</span>
+      </h1>
+      <p class="text-base text-[color:var(--color-brand-secondary)]">
+        Connectez-vous pour accéder à Kaora.
+      </p>
+    </header>
+
+    <SystemAlert
+      v-if="resetSuccess"
+      variant="success"
+      description="Votre mot de passe a été mis à jour. Vous pouvez vous connecter."
+    />
+    <SystemAlert
+      v-if="error"
+      variant="error"
+      :description="error"
+    />
 
     <form
       class="grid gap-6"
@@ -35,11 +52,11 @@
           inputmode="email"
           autocomplete="username"
           :disabled="isSubmitting"
-          class="h-12 w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
+          class="h-12 w-full rounded-[var(--radius-sm)] border bg-white px-4 text-lg text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-muted)] shadow-soft transition-[border-color,box-shadow,transform] duration-150 ease-in-out focus:outline-none focus:ring-4"
           :class="
             slotProps?.invalid
               ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
-              : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-accent-main)] focus:ring-[rgba(200,121,100,0.2)]'
+              : 'border-[rgba(231,229,228,0.9)] focus:border-[color:var(--color-brand-solid)] focus:ring-[rgba(212,184,160,0.35)]'
           "
           :value="form.email"
           @input="form.email = ($event.target as HTMLInputElement).value"
@@ -53,7 +70,17 @@
         autocomplete="current-password"
         :required="true"
         :disabled="isSubmitting"
-      />
+        :elevated="true"
+      >
+        <template #label-aside>
+          <NuxtLink
+            to="/forgot-password"
+            class="text-xs font-bold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)]"
+          >
+            Mot de passe oublié
+          </NuxtLink>
+        </template>
+      </PasswordInput>
 
       <PrimaryButton
         type="submit"
@@ -61,25 +88,16 @@
         loading-label="Connexion en cours…"
         :loading="isSubmitting"
         :disabled="!canSubmit"
+        class="shadow-floating hover:-translate-y-0.5 hover:shadow-floating"
       />
     </form>
-
-    <template #footer>
-      <NuxtLink
-        to="/forgot-password"
-        class="font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
-      >
-        Mot de passe oublié ?
-      </NuxtLink>
-    </template>
-  </AuthPageTemplate>
+  </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'public',
-  middleware: 'guest-only',
-  publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true }
+  layout: 'auth',
+  middleware: 'guest-only'
 })
 
 const auth = useAuth()
@@ -100,6 +118,13 @@ const canSubmit = computed(() => {
   if (isSubmitting.value) return false
   return form.email.trim().length > 0 && form.password.length > 0
 })
+
+watch(
+  () => [form.email, form.password],
+  () => {
+    if (error.value) error.value = null
+  }
+)
 
 onMounted(() => {
   if (import.meta.server) return

@@ -1,19 +1,41 @@
 <template>
-  <AuthPageTemplate
-    title="Vérifiez votre boîte de réception"
-    subtitle="Nous venons de traiter votre demande."
-    :autofocus-title="true"
+  <div
+    class="grid gap-12"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
   >
-    <div
-      class="grid gap-4 text-center"
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-    >
-      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--color-surface-highlight)]">
+    <header class="grid gap-3 text-center">
+      <NuxtLink
+        to="/"
+        aria-label="Retour à l’accueil"
+        class="mx-auto mb-12 inline-flex w-fit items-center justify-center"
+      >
+        <img
+          src="/images/kaora-logo.png"
+          alt="Kaora"
+          class="h-10 w-auto"
+          decoding="async"
+        >
+      </NuxtLink>
+
+      <h1
+        ref="titleRef"
+        tabindex="-1"
+        class="font-serif text-4xl font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]"
+      >
+        Vérifiez votre boîte de réception
+      </h1>
+      <p class="text-base text-[color:var(--color-brand-secondary)]">
+        Si un compte est associé à cette adresse, un e-mail vous sera envoyé.
+      </p>
+    </header>
+
+    <div class="grid gap-4 text-center">
+      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(212,184,160,0.35)] text-[color:var(--color-brand-primary)]">
         <svg
           viewBox="0 0 24 24"
-          class="h-7 w-7 text-[color:var(--color-brand-secondary)]"
+          class="h-7 w-7"
           fill="none"
           stroke="currentColor"
           stroke-width="2"
@@ -27,16 +49,12 @@
         </svg>
       </div>
 
-      <p class="text-[color:var(--color-brand-secondary)]">
-        Si un compte est associé à l’adresse :
+      <p class="text-sm font-semibold text-[color:var(--color-brand-secondary)]">
+        Adresse saisie
       </p>
 
-      <p class="break-words rounded-[var(--radius-md)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-highlight)] px-3 py-2 font-mono font-semibold text-[color:var(--color-brand-primary)]">
+      <p class="break-words rounded-[var(--radius-md)] border border-[rgba(231,229,228,0.9)] bg-white px-4 py-3 font-mono text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft">
         {{ email || '—' }}
-      </p>
-
-      <p class="text-[color:var(--color-brand-secondary)]">
-        vous recevrez un e-mail contenant les instructions de réinitialisation.
       </p>
 
       <SystemAlert
@@ -45,27 +63,38 @@
       />
     </div>
 
-    <template #footer>
-      <NuxtLink
+    <div class="grid gap-4">
+      <PrimaryButton
         to="/login"
-        class="font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
+        label="Retour à la connexion"
+        class="shadow-floating hover:-translate-y-0.5 hover:shadow-floating"
+      />
+      <NuxtLink
+        to="/"
+        class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
       >
-        Retour à la connexion
+        Revenir à l’accueil
       </NuxtLink>
-    </template>
-  </AuthPageTemplate>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 definePageMeta({
-  layout: 'public',
-  publicLayout: { hideHeader: true, hideFooter: true, fullBleed: true },
-  pageTransition: { name: 'fade', mode: 'out-in' }
+  layout: 'auth',
+  middleware: 'guest-only'
 })
 
 const route = useRoute()
 const email = computed(() => {
   const value = route.query.email
   return typeof value === 'string' ? value : ''
+})
+
+const titleRef = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  if (import.meta.server) return
+  titleRef.value?.focus()
 })
 </script>

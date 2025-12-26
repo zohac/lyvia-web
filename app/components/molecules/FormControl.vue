@@ -47,18 +47,25 @@ const inputAttrs = computed(() => ({
 
 <template>
   <div class="grid min-w-0 gap-2">
-    <label
-      :for="id"
-      class="text-sm font-semibold leading-none"
-      :class="error ? 'text-[color:var(--color-error)]' : 'text-[color:var(--color-brand-primary)]'"
-    >
-      {{ label }}
-      <span
-        v-if="required"
-        aria-hidden="true"
-        class="text-[color:var(--color-error)]"
-      >*</span>
-    </label>
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <label
+        :for="id"
+        class="text-sm font-semibold leading-none"
+        :class="error ? 'text-[color:var(--color-error)]' : 'text-[color:var(--color-brand-primary)]'"
+      >
+        {{ label }}
+        <span
+          v-if="required"
+          aria-hidden="true"
+          class="text-[color:var(--color-error)]"
+        >*</span>
+      </label>
+
+      <slot
+        name="label-aside"
+        v-bind="{ invalid: Boolean(error) }"
+      />
+    </div>
 
     <slot v-bind="{ inputAttrs, invalid: Boolean(error) }" />
 
