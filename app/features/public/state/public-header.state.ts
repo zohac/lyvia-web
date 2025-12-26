@@ -1,4 +1,5 @@
 export type PublicHeaderVariant = 'marketing' | 'coach' | 'white-label'
+export type PublicHeaderLayoutStyle = 'bar' | 'dock'
 
 export type PublicHeaderLink = {
   label: string
@@ -7,6 +8,7 @@ export type PublicHeaderLink = {
 
 export type PublicHeaderState = {
   variant: PublicHeaderVariant
+  layoutStyle: PublicHeaderLayoutStyle
   brandLabel: string
   brandTo: string
   showBrandIcon: boolean
@@ -19,12 +21,14 @@ export type PublicHeaderState = {
 
 const DEFAULT_HEADER_STATE: PublicHeaderState = {
   variant: 'marketing',
+  layoutStyle: 'bar',
   brandLabel: 'Kaora',
   brandTo: '/',
   showBrandIcon: true,
   navLinks: [
-    { label: 'Fonctionnalités', href: '#features' },
-    { label: 'Pour qui ?', href: '#pour-qui' }
+    { label: 'L\'Essence', href: '#essence' },
+    { label: 'Atelier', href: '#atelier' },
+    { label: 'Parcours', href: '#parcours' }
   ],
   loginLabel: 'Se connecter',
   loginTo: '/login',
@@ -40,4 +44,3 @@ export function setPublicHeader(state: Partial<PublicHeaderState>) {
   const header = usePublicHeaderState()
   header.value = { ...header.value, ...state }
 }
-

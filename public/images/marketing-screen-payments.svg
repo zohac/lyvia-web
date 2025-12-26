@@ -1,0 +1,65 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Aperçu paiements Kaora</title>
+  <desc id="desc">Illustration stylisée d’un écran de paiement et de suivi des transactions.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="980" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FAFAF9"/>
+    </linearGradient>
+    <filter id="soft" x="-60" y="-60" width="1720" height="1100" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#9C826B" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect x="90" y="90" width="1420" height="800" rx="42" fill="url(#bg)" filter="url(#soft)"/>
+  <rect x="120" y="122" width="1360" height="736" rx="34" fill="#FAFAF9"/>
+
+  <!-- Header -->
+  <rect x="120" y="122" width="1360" height="86" rx="34" fill="#FFFFFF"/>
+  <rect x="160" y="154" width="220" height="22" rx="11" fill="#1C1917" opacity="0.9"/>
+  <rect x="1290" y="148" width="150" height="32" rx="16" fill="#1C1917"/>
+  <rect x="1320" y="158" width="90" height="12" rx="6" fill="#FFFFFF" opacity="0.9"/>
+
+  <!-- Left: invoice card -->
+  <rect x="160" y="236" width="560" height="622" rx="34" fill="#FFFFFF"/>
+  <rect x="200" y="278" width="220" height="18" rx="9" fill="#1C1917" opacity="0.92"/>
+  <rect x="200" y="308" width="340" height="12" rx="6" fill="#78716C" opacity="0.45"/>
+
+  <rect x="200" y="360" width="480" height="160" rx="28" fill="#FBF7F4"/>
+  <rect x="240" y="402" width="180" height="14" rx="7" fill="#78716C" opacity="0.5"/>
+  <rect x="240" y="430" width="260" height="26" rx="13" fill="#1C1917" opacity="0.92"/>
+  <rect x="240" y="472" width="140" height="12" rx="6" fill="#9C826B" opacity="0.55"/>
+
+  <rect x="200" y="548" width="480" height="2" rx="1" fill="#E7E5E4"/>
+  <rect x="200" y="582" width="220" height="16" rx="8" fill="#78716C" opacity="0.35"/>
+  <rect x="200" y="616" width="480" height="54" rx="20" fill="#F5F5F4"/>
+  <rect x="200" y="684" width="480" height="54" rx="20" fill="#F5F5F4"/>
+  <rect x="200" y="752" width="320" height="54" rx="27" fill="#1C1917"/>
+  <rect x="240" y="772" width="180" height="14" rx="7" fill="#FFFFFF" opacity="0.9"/>
+
+  <!-- Right: transactions -->
+  <rect x="760" y="236" width="680" height="622" rx="34" fill="#FFFFFF"/>
+  <rect x="800" y="278" width="240" height="18" rx="9" fill="#1C1917" opacity="0.92"/>
+  <rect x="800" y="308" width="340" height="12" rx="6" fill="#78716C" opacity="0.45"/>
+
+  <g>
+    <rect x="800" y="360" width="600" height="72" rx="24" fill="#F5F5F4"/>
+    <rect x="840" y="386" width="180" height="12" rx="6" fill="#78716C" opacity="0.45"/>
+    <rect x="1240" y="384" width="120" height="16" rx="8" fill="#1C1917" opacity="0.92"/>
+    <rect x="800" y="448" width="600" height="72" rx="24" fill="#F5F5F4"/>
+    <rect x="840" y="474" width="220" height="12" rx="6" fill="#78716C" opacity="0.45"/>
+    <rect x="1240" y="472" width="120" height="16" rx="8" fill="#1C1917" opacity="0.92"/>
+    <rect x="800" y="536" width="600" height="72" rx="24" fill="#FBF7F4"/>
+    <rect x="840" y="562" width="210" height="12" rx="6" fill="#78716C" opacity="0.45"/>
+    <rect x="1240" y="560" width="120" height="16" rx="8" fill="#9C826B" opacity="0.55"/>
+  </g>
+
+  <!-- Small chart -->
+  <rect x="800" y="640" width="600" height="180" rx="28" fill="#FAFAF9"/>
+  <rect x="840" y="688" width="80" height="92" rx="18" fill="#D4B8A0" opacity="0.75"/>
+  <rect x="940" y="712" width="80" height="68" rx="18" fill="#D4B8A0" opacity="0.55"/>
+  <rect x="1040" y="676" width="80" height="104" rx="18" fill="#D4B8A0" opacity="0.85"/>
+  <rect x="1140" y="724" width="80" height="56" rx="18" fill="#D4B8A0" opacity="0.45"/>
+  <rect x="1240" y="696" width="80" height="84" rx="18" fill="#D4B8A0" opacity="0.7"/>
+</svg>
+

@@ -1,0 +1,91 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Aperçu agenda Kaora</title>
+  <desc id="desc">Illustration stylisée d’un agenda avec sélection de créneaux et détails de rendez-vous.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="980" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FBF7F4"/>
+    </linearGradient>
+    <filter id="soft" x="-60" y="-60" width="1720" height="1100" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#9C826B" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <rect x="90" y="90" width="1420" height="800" rx="42" fill="url(#bg)" filter="url(#soft)"/>
+  <rect x="120" y="122" width="1360" height="736" rx="34" fill="#FAFAF9"/>
+
+  <!-- Header -->
+  <rect x="120" y="122" width="1360" height="86" rx="34" fill="#FFFFFF"/>
+  <rect x="160" y="154" width="170" height="22" rx="11" fill="#1C1917" opacity="0.9"/>
+  <rect x="1250" y="148" width="190" height="32" rx="16" fill="#1C1917"/>
+  <rect x="1278" y="158" width="110" height="12" rx="6" fill="#FFFFFF" opacity="0.9"/>
+
+  <!-- Calendar -->
+  <rect x="160" y="236" width="820" height="622" rx="34" fill="#FFFFFF"/>
+  <rect x="200" y="278" width="240" height="18" rx="9" fill="#1C1917" opacity="0.92"/>
+  <rect x="200" y="308" width="360" height="12" rx="6" fill="#78716C" opacity="0.45"/>
+
+  <!-- Weekday labels -->
+  <g opacity="0.55" fill="#78716C">
+    <rect x="200" y="354" width="46" height="10" rx="5"/>
+    <rect x="316" y="354" width="46" height="10" rx="5"/>
+    <rect x="432" y="354" width="46" height="10" rx="5"/>
+    <rect x="548" y="354" width="46" height="10" rx="5"/>
+    <rect x="664" y="354" width="46" height="10" rx="5"/>
+    <rect x="780" y="354" width="46" height="10" rx="5"/>
+    <rect x="896" y="354" width="46" height="10" rx="5"/>
+  </g>
+
+  <!-- Days grid -->
+  <g>
+    <g fill="#F5F5F4">
+      <rect x="200" y="388" width="88" height="68" rx="18"/>
+      <rect x="308" y="388" width="88" height="68" rx="18"/>
+      <rect x="416" y="388" width="88" height="68" rx="18"/>
+      <rect x="524" y="388" width="88" height="68" rx="18"/>
+      <rect x="632" y="388" width="88" height="68" rx="18"/>
+      <rect x="740" y="388" width="88" height="68" rx="18"/>
+      <rect x="848" y="388" width="88" height="68" rx="18"/>
+    </g>
+    <g fill="#F5F5F4">
+      <rect x="200" y="466" width="88" height="68" rx="18"/>
+      <rect x="308" y="466" width="88" height="68" rx="18"/>
+      <rect x="416" y="466" width="88" height="68" rx="18"/>
+      <rect x="524" y="466" width="88" height="68" rx="18"/>
+      <rect x="632" y="466" width="88" height="68" rx="18"/>
+      <rect x="740" y="466" width="88" height="68" rx="18"/>
+      <rect x="848" y="466" width="88" height="68" rx="18"/>
+    </g>
+    <g fill="#F5F5F4">
+      <rect x="200" y="544" width="88" height="68" rx="18"/>
+      <rect x="308" y="544" width="88" height="68" rx="18"/>
+      <rect x="416" y="544" width="88" height="68" rx="18"/>
+      <rect x="524" y="544" width="88" height="68" rx="18"/>
+      <rect x="632" y="544" width="88" height="68" rx="18"/>
+      <rect x="740" y="544" width="88" height="68" rx="18"/>
+      <rect x="848" y="544" width="88" height="68" rx="18"/>
+    </g>
+  </g>
+
+  <!-- Selected day -->
+  <rect x="632" y="466" width="88" height="68" rx="18" fill="#1C1917"/>
+  <rect x="660" y="496" width="32" height="10" rx="5" fill="#FFFFFF" opacity="0.9"/>
+
+  <!-- Right panel -->
+  <rect x="1010" y="236" width="430" height="622" rx="34" fill="#FFFFFF"/>
+  <rect x="1050" y="278" width="240" height="18" rx="9" fill="#1C1917" opacity="0.92"/>
+  <rect x="1050" y="308" width="300" height="12" rx="6" fill="#78716C" opacity="0.45"/>
+
+  <!-- Times -->
+  <g>
+    <rect x="1050" y="352" width="360" height="60" rx="20" fill="#F5F5F4"/>
+    <rect x="1050" y="424" width="360" height="60" rx="20" fill="#F5F5F4"/>
+    <rect x="1050" y="496" width="360" height="60" rx="20" fill="#1C1917"/>
+    <rect x="1080" y="520" width="120" height="14" rx="7" fill="#FFFFFF" opacity="0.9"/>
+    <rect x="1050" y="568" width="360" height="60" rx="20" fill="#F5F5F4"/>
+  </g>
+
+  <!-- Footer CTA -->
+  <rect x="1050" y="680" width="260" height="52" rx="26" fill="#D4B8A0" opacity="0.95"/>
+</svg>
+

@@ -50,11 +50,16 @@ useSeoMeta({
 watchEffect(() => {
   setPublicHeader({
     variant: 'coach',
+    layoutStyle: 'dock',
     brandLabel: 'Kaora',
     brandTo: '/',
     showBrandIcon: true,
-    navLinks: [],
-    loginLabel: 'Connexion',
+    navLinks: [
+      { label: 'L\'Essence', href: '#essence' },
+      { label: 'Guide', href: '#sophie' },
+      { label: 'Parcours', href: '#parcours' }
+    ],
+    loginLabel: 'Se connecter',
     loginTo: '/login',
     ctaLabel: 'Réserver',
     ctaTo: ctaTo.value

@@ -39,10 +39,15 @@ watchEffect(() => {
   if (tenant.value) {
     setPublicHeader({
       variant: 'white-label',
+      layoutStyle: 'dock',
       brandLabel: tenant.value.brand.displayName || 'Votre coach',
       brandTo: '/',
       showBrandIcon: false,
-      navLinks: [],
+      navLinks: [
+        { label: 'L\'Essence', href: '#essence' },
+        { label: 'Guide', href: '#sophie' },
+        { label: 'Parcours', href: '#parcours' }
+      ],
       loginLabel: 'Espace cliente',
       loginTo: '/login',
       ctaLabel: 'Prendre RDV',
@@ -53,12 +58,14 @@ watchEffect(() => {
 
   setPublicHeader({
     variant: 'marketing',
+    layoutStyle: 'dock',
     brandLabel: 'Kaora',
     brandTo: '/',
     showBrandIcon: true,
     navLinks: [
-      { label: 'Fonctionnalités', href: '#features' },
-      { label: 'Pour qui ?', href: '#pour-qui' }
+      { label: 'L\'Essence', href: '#essence' },
+      { label: 'Atelier', href: '#atelier' },
+      { label: 'Parcours', href: '#parcours' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',
