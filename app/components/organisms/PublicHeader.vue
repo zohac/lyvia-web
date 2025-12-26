@@ -26,14 +26,7 @@ const useKaoraLogoImage = computed(
             <img
               src="/images/kaora-logo.png"
               alt=""
-              class="h-7 w-auto opacity-90 dark:hidden sm:h-8"
-              aria-hidden="true"
-              decoding="async"
-            >
-            <img
-              src="/images/kaora-logo-light.png"
-              alt=""
-              class="hidden h-7 w-auto opacity-90 dark:block sm:h-8"
+              class="h-7 w-auto opacity-90 sm:h-8"
               aria-hidden="true"
               decoding="async"
             >

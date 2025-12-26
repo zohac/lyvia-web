@@ -14,7 +14,6 @@ import BookingSummary from '../molecules/BookingSummary.vue'
 import CalendarMonthView from '../molecules/CalendarMonthView.vue'
 import IdentityForm from '../molecules/IdentityForm.vue'
 import TimeSlotGrid from '../molecules/TimeSlotGrid.vue'
-import WizardStepper from '../molecules/WizardStepper.vue'
 import PrimaryButton from '../atoms/PrimaryButton.vue'
 import SystemAlert from '../atoms/SystemAlert.vue'
 
@@ -76,6 +75,18 @@ function updateConsents(value: typeof consents.value) {
 }
 
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
+const coachInitials = computed(() => {
+  const value = coachName.value
+  if (!value) return 'K'
+  const parts = value.trim().split(/\s+/).filter(Boolean)
+  const initials = parts.slice(0, 2).map(part => part[0]?.toUpperCase()).join('')
+  return initials || 'K'
+})
+
+const progressWidth = computed(() => {
+  const percent = (step.value / 3) * 100
+  return `${Math.min(100, Math.max(0, percent))}%`
+})
 
 function getTenantStorageKey(): string {
   if (import.meta.server) return STORAGE_KEY_PREFIX
@@ -197,7 +208,8 @@ function persistState() {
     selectedDate: selectedDate.value,
     selectedSlotStartAt: selectedSlotStartAt.value,
     identity: identity.value,
-    consents: consents.value
+    consents: consents.value,
+    booking: booking.value
   }
   sessionStorage.setItem(storageKey, JSON.stringify(state))
 }
@@ -216,8 +228,10 @@ function restoreState() {
       selectedSlotStartAt: string | null
       identity: typeof identity.value
       consents: typeof consents.value
+      booking: BookDiscoveryResponse | null
     }>
 
+    if (parsed.booking && typeof parsed.booking === 'object') booking.value = parsed.booking
     if (typeof parsed.step === 'number') step.value = sanitizeStep(parsed.step)
     if (typeof parsed.visibleMonth === 'string') visibleMonth.value = new Date(parsed.visibleMonth)
     if (typeof parsed.selectedDate === 'string' || parsed.selectedDate === null) selectedDate.value = parsed.selectedDate ?? null
@@ -225,6 +239,8 @@ function restoreState() {
       selectedSlotStartAt.value = parsed.selectedSlotStartAt ?? null
     if (parsed.identity) identity.value = { ...identity.value, ...parsed.identity }
     if (parsed.consents) consents.value = { ...consents.value, ...parsed.consents }
+
+    if (booking.value) step.value = 3
   } catch {
     sessionStorage.removeItem(storageKey)
   }
@@ -339,10 +355,24 @@ function goToStep(next: WizardStep) {
   systemError.value = null
   formErrors.value = {}
   step.value = next
+
+  if (import.meta.client) {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }
 }
 
 function onSelectSlot(slot: AvailabilitySlot) {
   selectedSlotStartAt.value = slot.startAt
+}
+
+function goToIdentityStep() {
+  systemError.value = null
+
+  if (!selectedSlotStartAt.value) {
+    systemError.value = 'Veuillez sélectionner un créneau.'
+    return
+  }
+
   goToStep(2)
 }
 
@@ -382,18 +412,6 @@ function applyBackendValidationErrors(details: Record<string, unknown> | undefin
   formErrors.value = errors
 }
 
-function goToConfirmation() {
-  systemError.value = null
-  if (!selectedSlotStartAt.value) {
-    systemError.value = 'Veuillez sélectionner un créneau.'
-    goToStep(1)
-    return
-  }
-
-  if (!validateIdentity()) return
-  goToStep(3)
-}
-
 function formatConfirmationDate(iso: string): string {
   return new Intl.DateTimeFormat('fr-FR', {
     timeZone: timeZone.value,
@@ -409,12 +427,10 @@ async function submitBooking() {
   if (isSubmitting.value) return
   systemError.value = null
 
-  if (!validateIdentity()) {
-    goToStep(2)
-    return
-  }
+  if (!validateIdentity()) return
   if (!selectedSlotStartAt.value) {
     goToStep(1)
+    systemError.value = 'Veuillez sélectionner un créneau.'
     return
   }
 
@@ -453,7 +469,7 @@ async function submitBooking() {
 
     booking.value = response
     clearIdempotencyKey()
-    sessionStorage.removeItem(getTenantStorageKey())
+    goToStep(3)
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
       const mapped = mapOnboardingErrorCodeToUserMessage(err.apiError.code)
@@ -481,237 +497,298 @@ async function submitBooking() {
 </script>
 
 <template>
-  <div class="grid gap-6">
-    <WizardStepper
-      :steps="[
-        { label: 'Créneau' },
-        { label: 'Infos' },
-        { label: 'Confirmation' }
-      ]"
-      :current-step="step"
-    />
-
-    <SystemAlert
-      v-if="systemError"
-      variant="error"
-      :description="systemError"
-    />
-
-    <div
-      v-if="isLoadingTenant"
-      class="flex items-center gap-3 rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-secondary)]"
-      role="status"
-      aria-live="polite"
-    >
-      <Icon
-        name="lucide:loader-circle"
-        size="18"
-        class="animate-spin text-[color:var(--color-accent-main)]"
-        aria-hidden="true"
-      />
-      <span>Chargement du coach…</span>
-    </div>
-
-    <section
-      v-if="step === 1 && tenant"
-      class="grid gap-6"
-      aria-label="Étape 1 : choix du créneau"
-    >
-      <div class="grid gap-1">
-        <h2 class="font-serif text-[1.5rem] font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
-          Choisissez votre moment
-        </h2>
-        <p class="text-sm text-[color:var(--color-brand-secondary)]">
-          <span v-if="coachName">Coach : {{ coachName }} • </span>
-          Durée : {{ durationMinutes }} min • Fuseau : {{ timeZone }}
-        </p>
-      </div>
-
-      <div class="grid gap-6 lg:grid-cols-[1fr,1fr] lg:items-start">
-        <CalendarMonthView
-          v-model="selectedDate"
-          v-model:visible-month="visibleMonth"
-          :available-dates="availableDates"
-          :min-date="minDate"
-          :max-date="maxDate"
-          :timezone-label="timeZone"
-          :is-loading="isLoadingAvailability"
-        />
-
-        <TimeSlotGrid
-          :title="selectedDateLabel ? `Disponibilités pour ${selectedDateLabel}` : 'Sélectionnez un jour'"
-          :slots="selectedDaySlots"
-          :selected-start-at="selectedSlotStartAt"
-          :time-zone="timeZone"
-          @select="onSelectSlot"
-        />
-      </div>
-    </section>
-
-    <section
-      v-else-if="step === 2 && tenant"
-      class="grid gap-6"
-      aria-label="Étape 2 : informations"
-    >
-      <div class="flex items-start justify-between gap-4">
-        <div class="grid gap-1">
-          <h2 class="font-serif text-[1.5rem] font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
-            Vos informations
-          </h2>
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
-            Gratuit et sans engagement.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          class="inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
-          @click="goToStep(1)"
-        >
-          <Icon
-            name="lucide:arrow-left"
-            size="16"
-            aria-hidden="true"
-          />
-          Retour
-        </button>
-      </div>
-
-      <BookingSummary
-        v-if="selectedSlotStartAt"
-        :scheduled-at="selectedSlotStartAt"
-        :time-zone="timeZone"
-        :duration-minutes="durationMinutes"
-        @edit="goToStep(1)"
-      />
-
-      <IdentityForm
-        v-model="identity"
-        :consents="consents"
-        :errors="formErrors"
-        @update:consents="updateConsents"
-      />
-
-      <PrimaryButton
-        type="button"
-        label="Continuer"
-        :disabled="isSubmitting"
-        @click="goToConfirmation"
-      />
-    </section>
-
-    <section
-      v-else-if="tenant"
-      class="grid gap-6"
-      aria-label="Étape 3 : confirmation"
-    >
-      <div class="flex items-start justify-between gap-4">
-        <div class="grid gap-1">
-          <h2 class="font-serif text-[1.5rem] font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
-            Confirmation
-          </h2>
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
-            Vérifiez le récapitulatif avant de confirmer.
-          </p>
-        </div>
-
-        <button
-          v-if="!booking"
-          type="button"
-          class="inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
-          @click="goToStep(2)"
-        >
-          <Icon
-            name="lucide:arrow-left"
-            size="16"
-            aria-hidden="true"
-          />
-          Retour
-        </button>
-      </div>
-
-      <div
-        v-if="booking"
-        class="grid gap-4"
-        role="status"
-        aria-live="polite"
-      >
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-surface-highlight)]">
-            <Icon
-              name="lucide:check"
-              size="18"
-              class="text-[color:var(--color-accent-main)]"
-              aria-hidden="true"
-            />
-          </div>
-          <div class="grid gap-0.5">
-            <p class="font-semibold text-[color:var(--color-brand-primary)]">
-              C’est noté, {{ identity.firstname || 'merci' }} !
-            </p>
-            <p class="text-sm text-[color:var(--color-brand-secondary)]">
-              Votre appel découverte est confirmé.
-            </p>
-          </div>
-        </div>
-
-        <div class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)] p-4">
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
-            Date :
-          </p>
-          <p class="text-base font-semibold text-[color:var(--color-brand-primary)]">
-            {{ formatConfirmationDate(booking.scheduledAt) }}
-          </p>
-          <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-            Une confirmation vient d’être envoyée à <span class="font-semibold">{{ identity.email }}</span>.
-          </p>
-        </div>
-
+  <div class="w-full">
+    <div class="mx-auto grid w-full max-w-5xl gap-8">
+      <header class="grid justify-items-center gap-5 text-center">
         <NuxtLink
           to="/"
-          class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
+          aria-label="Retour à l’accueil"
+          class="inline-flex items-center justify-center"
         >
-          Retour à l’accueil
+          <img
+            src="/images/kaora-logo.png"
+            alt="Kaora"
+            class="h-10 w-auto"
+            decoding="async"
+          >
         </NuxtLink>
-      </div>
 
-      <div
-        v-else
-        class="grid gap-4"
-      >
-        <BookingSummary
-          v-if="selectedSlotStartAt"
-          :scheduled-at="selectedSlotStartAt"
-          :time-zone="timeZone"
-          :duration-minutes="durationMinutes"
-          @edit="goToStep(1)"
-        />
-
-        <div class="rounded-[var(--radius-md)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-4">
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
-            Vos coordonnées
+        <div class="grid gap-2">
+          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--color-brand-muted)]">
+            Appel découverte
           </p>
-          <p class="mt-1 text-sm font-semibold text-[color:var(--color-brand-primary)]">
-            {{ identity.firstname }} {{ identity.lastname }}
-          </p>
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
-            {{ identity.email }} • {{ identity.phone }}
+          <h1 class="font-serif text-[2.2rem] font-bold leading-[var(--leading-tight)] tracking-[-0.01em] text-[color:var(--color-brand-primary)] sm:text-[2.75rem]">
+            Votre appel découverte gratuit
+          </h1>
+          <p class="text-base text-[color:var(--color-brand-secondary)]">
+            15 minutes pour faire le point, sans engagement.
           </p>
         </div>
 
-        <PrimaryButton
-          type="button"
-          label="Confirmer mon appel"
-          loading-label="Confirmation en cours…"
-          :loading="isSubmitting"
-          :disabled="isSubmitting"
-          @click="submitBooking"
-        />
+        <div
+          v-if="tenant"
+          class="inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/80 px-4 py-2 shadow-soft backdrop-blur"
+          aria-label="Coach sélectionné"
+        >
+          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--color-brand-solid)] text-sm font-bold text-[color:var(--color-brand-primary)]">
+            {{ coachInitials }}
+          </div>
+          <div class="grid gap-0.5 text-left">
+            <p class="text-sm font-semibold text-[color:var(--color-brand-primary)]">
+              {{ coachName }}
+            </p>
+            <p class="text-xs text-[color:var(--color-brand-secondary)]">
+              Fuseau : {{ timeZone }} • Durée : {{ durationMinutes }} min
+            </p>
+          </div>
+        </div>
+      </header>
 
-        <p class="text-center text-xs text-[color:var(--color-brand-secondary)]">
-          Gratuit et sans engagement.
-        </p>
+      <div class="relative w-full overflow-hidden rounded-none bg-[color:var(--color-surface-card)] shadow-none sm:rounded-[var(--radius-organic)] sm:border sm:border-white/60 sm:shadow-soft">
+        <div class="h-1 w-full bg-[color:var(--color-surface-highlight)]">
+          <div
+            class="h-full bg-[color:var(--color-brand-solid)] transition-base"
+            :style="{ width: progressWidth }"
+          />
+        </div>
+
+        <div class="p-6 sm:p-10">
+          <SystemAlert
+            v-if="systemError"
+            variant="error"
+            :description="systemError"
+          />
+
+          <div
+            v-if="isLoadingTenant"
+            class="mt-6 flex items-center gap-3 rounded-blob-d bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-secondary)]"
+            role="status"
+            aria-live="polite"
+          >
+            <Icon
+              name="lucide:loader-circle"
+              size="18"
+              class="animate-spin text-[color:var(--color-accent-main)]"
+              aria-hidden="true"
+            />
+            <span>Chargement du coach…</span>
+          </div>
+
+          <Transition
+            name="wizard-step"
+            mode="out-in"
+          >
+            <section
+              v-if="step === 1 && tenant"
+              key="step-1"
+              class="mt-8 grid gap-6 pb-24 sm:pb-0"
+              aria-label="Étape 1 : choix du créneau"
+            >
+              <div class="grid gap-1">
+                <h2 class="font-serif text-[1.6rem] font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
+                  Choisissez votre moment
+                </h2>
+                <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                  Sélectionnez une date puis un créneau disponible.
+                </p>
+              </div>
+
+              <div class="grid gap-6 lg:grid-cols-[3fr,2fr] lg:items-start">
+                <div class="rounded-blob-b border border-[rgba(28,25,23,0.10)] bg-white/75 p-5 shadow-soft backdrop-blur">
+                  <CalendarMonthView
+                    v-model="selectedDate"
+                    v-model:visible-month="visibleMonth"
+                    :available-dates="availableDates"
+                    :min-date="minDate"
+                    :max-date="maxDate"
+                    :timezone-label="timeZone"
+                    :is-loading="isLoadingAvailability"
+                  />
+                </div>
+
+                <div class="grid gap-6">
+                  <div class="rounded-blob-a border border-[rgba(28,25,23,0.10)] bg-white/75 p-5 shadow-soft backdrop-blur">
+                    <TimeSlotGrid
+                      :title="selectedDateLabel ? `Disponibilités pour ${selectedDateLabel}` : 'Sélectionnez un jour'"
+                      :slots="selectedDaySlots"
+                      :selected-start-at="selectedSlotStartAt"
+                      :time-zone="timeZone"
+                      @select="onSelectSlot"
+                    />
+                  </div>
+
+                  <div class="hidden sm:block">
+                    <PrimaryButton
+                      type="button"
+                      label="Continuer"
+                      :disabled="!selectedSlotStartAt || isLoadingAvailability"
+                      @click="goToIdentityStep"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="sm:hidden">
+                <div class="fixed inset-x-0 bottom-0 z-50 px-4 pb-[env(safe-area-inset-bottom)]">
+                  <div class="glass-panel rounded-blob-d p-4 shadow-floating">
+                    <PrimaryButton
+                      type="button"
+                      label="Continuer"
+                      :disabled="!selectedSlotStartAt || isLoadingAvailability"
+                      @click="goToIdentityStep"
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section
+              v-else-if="step === 2 && tenant"
+              key="step-2"
+              class="mt-8 grid gap-8"
+              aria-label="Étape 2 : informations"
+            >
+              <div class="mx-auto grid w-full max-w-lg gap-6">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="grid gap-1">
+                    <h2 class="font-serif text-[1.6rem] font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
+                      Vos informations
+                    </h2>
+                    <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                      Gratuit et sans engagement.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
+                    :disabled="isSubmitting"
+                    @click="goToStep(1)"
+                  >
+                    <Icon
+                      name="lucide:arrow-left"
+                      size="16"
+                      aria-hidden="true"
+                    />
+                    Retour
+                  </button>
+                </div>
+
+                <BookingSummary
+                  v-if="selectedSlotStartAt"
+                  :scheduled-at="selectedSlotStartAt"
+                  :time-zone="timeZone"
+                  :duration-minutes="durationMinutes"
+                  @edit="goToStep(1)"
+                />
+
+                <IdentityForm
+                  v-model="identity"
+                  :consents="consents"
+                  :errors="formErrors"
+                  :disabled="isSubmitting"
+                  @update:consents="updateConsents"
+                />
+
+                <PrimaryButton
+                  type="button"
+                  label="Confirmer mon appel"
+                  loading-label="Confirmation en cours…"
+                  :loading="isSubmitting"
+                  :disabled="isSubmitting"
+                  @click="submitBooking"
+                />
+
+                <p class="text-center text-xs text-[color:var(--color-brand-secondary)]">
+                  Une confirmation vous sera envoyée par email. Pensez à vérifier vos spams.
+                </p>
+              </div>
+            </section>
+
+            <section
+              v-else-if="step === 3 && tenant"
+              key="step-3"
+              class="mt-8 grid gap-8"
+              aria-label="Étape 3 : succès"
+            >
+              <div
+                v-if="booking"
+                class="mx-auto grid w-full max-w-lg gap-6"
+                role="status"
+                aria-live="polite"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(181,192,163,0.18)]">
+                    <Icon
+                      name="lucide:check"
+                      size="18"
+                      class="text-[color:var(--color-success)]"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div class="grid gap-0.5">
+                    <p class="font-semibold text-[color:var(--color-brand-primary)]">
+                      C’est noté, {{ identity.firstname || 'merci' }} !
+                    </p>
+                    <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                      Votre appel découverte est confirmé.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="rounded-blob-d bg-[color:var(--color-surface-highlight)] p-5">
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    Date
+                  </p>
+                  <p class="mt-1 text-base font-semibold text-[color:var(--color-brand-primary)]">
+                    {{ formatConfirmationDate(booking.scheduledAt) }}
+                  </p>
+                  <p class="mt-3 text-sm text-[color:var(--color-brand-secondary)]">
+                    Une confirmation vient d’être envoyée à <span class="font-semibold">{{ identity.email }}</span>.
+                    Pensez à vérifier votre dossier Spam si vous ne recevez rien dans les prochaines minutes.
+                  </p>
+                </div>
+
+                <NuxtLink
+                  to="/"
+                  class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
+                >
+                  Retour à l’accueil
+                </NuxtLink>
+              </div>
+
+              <div
+                v-else
+                class="mx-auto grid w-full max-w-lg gap-6"
+              >
+                <SystemAlert
+                  variant="error"
+                  description="Impossible d’afficher la confirmation pour le moment."
+                />
+
+                <PrimaryButton
+                  type="button"
+                  label="Revenir au début"
+                  @click="goToStep(1)"
+                />
+              </div>
+            </section>
+          </Transition>
+        </div>
       </div>
-    </section>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.wizard-step-enter-active,
+.wizard-step-leave-active {
+  transition: opacity var(--duration-normal) var(--ease-smooth), transform var(--duration-normal) var(--ease-smooth);
+}
+
+.wizard-step-enter-from,
+.wizard-step-leave-to {
+  opacity: 0;
+  transform: translateX(10px);
+}
+</style>
