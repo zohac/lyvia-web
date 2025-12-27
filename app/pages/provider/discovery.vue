@@ -10,6 +10,8 @@ import { ApiFetchError } from '../../services/api/api-error'
 import { apiFetch } from '../../services/api/apiFetch'
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
 import CalendarMonthView from '../../components/molecules/CalendarMonthView.vue'
+import ConfirmActionModal from '../../components/molecules/ConfirmActionModal.vue'
+import CallConclusionModal from '../../components/organisms/CallConclusionModal.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -17,13 +19,36 @@ definePageMeta({
   pageTitle: 'Appels discovery'
 })
 
-type ActionKind = 'complete' | 'cancel'
 type RangeFilter = 'all' | 'today' | 'next14' | 'past7'
 
 const systemError = ref<string | null>(null)
 const conversionNotice = ref<string | null>(null)
 const updatingId = ref<string | null>(null)
-const convertingId = ref<string | null>(null)
+const conclusionModalOpen = ref(false)
+const conclusionError = ref<string | null>(null)
+const conclusionTarget = ref<DiscoveryAppointmentListItem | null>(null)
+
+const cancelModalOpen = ref(false)
+const cancelError = ref<string | null>(null)
+const cancelTarget = ref<DiscoveryAppointmentListItem | null>(null)
+
+watch(
+  () => conclusionModalOpen.value,
+  (isOpen) => {
+    if (isOpen) return
+    conclusionTarget.value = null
+    conclusionError.value = null
+  }
+)
+
+watch(
+  () => cancelModalOpen.value,
+  (isOpen) => {
+    if (isOpen) return
+    cancelTarget.value = null
+    cancelError.value = null
+  }
+)
 
 const { data, pending, refresh } = await useAsyncData<ListDiscoveryAppointmentsResponse>('provider-discovery-appointments', async () => {
   try {
@@ -331,87 +356,187 @@ function stageClass(stage: DiscoveryAppointmentListItem['client']['stage']): str
   return 'bg-[rgba(212,184,160,0.20)] text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(212,184,160,0.45)]'
 }
 
-async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) {
-  systemError.value = null
-  conversionNotice.value = null
-  if (updatingId.value) return
-  updatingId.value = appointmentId
+async function requestUpdateAppointmentStatus(
+  appointmentId: string,
+  status: 'completed' | 'cancelled'
+): Promise<{ ok: true } | { ok: false, message: string }> {
+  const body
+    = status === 'completed'
+      ? { status: 'completed' as const }
+      : { status: 'cancelled' as const, cancelledByRole: 'PROVIDER' as const }
 
   try {
-    if (kind === 'cancel') {
-      const confirmed = confirm('Annuler cet appel découverte ?')
-      if (!confirmed) return
-    }
-
-    const body
-      = kind === 'complete'
-        ? { status: 'completed' as const }
-        : { status: 'cancelled' as const, cancelledByRole: 'PROVIDER' as const }
-
     await apiFetch<UpdateAppointmentStatusResponse>(`/appointments/${appointmentId}/status`, {
       method: 'PATCH',
       body
     })
-
-    await refresh()
+    return { ok: true }
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
       if (err.apiError.code === 'INVALID_STATUS_TRANSITION') {
         await refresh()
         const updatedStatus = data.value?.appointments?.find(a => a.id === appointmentId)?.status
-        if (
-          (kind === 'complete' && updatedStatus === 'completed')
-          || (kind === 'cancel' && updatedStatus === 'cancelled')
-        ) {
-          return
-        }
+        if (updatedStatus === status) return { ok: true }
       }
 
-      systemError.value = mapAppointmentErrorCodeToUserMessage(err.apiError.code)
-      return
+      return {
+        ok: false,
+        message: mapAppointmentErrorCodeToUserMessage(err.apiError.code)
+      }
     }
-    systemError.value = 'Une erreur est survenue. Veuillez réessayer.'
+    return { ok: false, message: 'Une erreur est survenue. Veuillez réessayer.' }
+  }
+}
+
+async function requestConvertDiscoveryLead(
+  appointmentId: string,
+  conversionNote?: string
+): Promise<
+  | { ok: true, data: ConvertDiscoveryToActiveClientResponse }
+  | { ok: false, message: string }
+> {
+  try {
+    const response = await apiFetch<ConvertDiscoveryToActiveClientResponse>(
+      `/appointments/${appointmentId}/convert`,
+      {
+        method: 'POST',
+        body: conversionNote ? { conversionNote } : {}
+      }
+    )
+    return { ok: true, data: response }
+  } catch (err: unknown) {
+    if (err instanceof ApiFetchError) {
+      return { ok: false, message: mapAppointmentErrorCodeToUserMessage(err.apiError.code) }
+    }
+    return { ok: false, message: 'Une erreur est survenue. Veuillez réessayer.' }
+  }
+}
+
+function openConclusionModal(item: DiscoveryAppointmentListItem) {
+  conclusionError.value = null
+  conclusionTarget.value = item
+  conclusionModalOpen.value = true
+}
+
+function openCancelModal(item: DiscoveryAppointmentListItem) {
+  cancelError.value = null
+  cancelTarget.value = item
+  cancelModalOpen.value = true
+}
+
+const conclusionClientName = computed(() => {
+  const item = conclusionTarget.value
+  if (!item) return ''
+  return formatClientName(item)
+})
+
+const conclusionDefaultConvertToClient = computed(() => {
+  return conclusionTarget.value?.client.stage === 'lead'
+})
+
+const conclusionLoading = computed(() => {
+  const targetId = conclusionTarget.value?.id
+  return !!targetId && updatingId.value === targetId
+})
+
+const cancelLoading = computed(() => {
+  const targetId = cancelTarget.value?.id
+  return !!targetId && updatingId.value === targetId
+})
+
+async function submitConclusion(payload: { convertToClient: boolean, conversionNote?: string }) {
+  const appointment = conclusionTarget.value
+  if (!appointment) return
+
+  conversionNotice.value = null
+  systemError.value = null
+  conclusionError.value = null
+
+  if (updatingId.value) return
+  updatingId.value = appointment.id
+
+  try {
+    if (appointment.status !== 'completed') {
+      const statusResult = await requestUpdateAppointmentStatus(appointment.id, 'completed')
+      if (!statusResult.ok) {
+        conclusionError.value = statusResult.message
+        return
+      }
+    }
+
+    if (payload.convertToClient && appointment.client.stage === 'lead') {
+      const convertResult = await requestConvertDiscoveryLead(
+        appointment.id,
+        payload.conversionNote
+      )
+
+      if (!convertResult.ok) {
+        conclusionError.value = convertResult.message
+        return
+      }
+
+      conversionNotice.value = convertResult.data.alreadyActive
+        ? 'Cette cliente était déjà active.'
+        : 'Cliente activée avec succès.'
+    } else {
+      conversionNotice.value = 'Appel clôturé.'
+    }
+
+    await refresh()
+    conclusionModalOpen.value = false
+    conclusionTarget.value = null
   } finally {
     updatingId.value = null
   }
 }
 
-async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
-  systemError.value = null
+async function confirmCancel() {
+  const appointment = cancelTarget.value
+  if (!appointment) return
+
   conversionNotice.value = null
-  if (convertingId.value) return
-  convertingId.value = appointmentId
+  systemError.value = null
+  cancelError.value = null
+
+  if (updatingId.value) return
+  updatingId.value = appointment.id
 
   try {
-    const confirmed = confirm(
-      'Convertir ce prospect en cliente active ? Cette action est irréversible.'
-    )
-    if (!confirmed) return
-
-    const response = await apiFetch<ConvertDiscoveryToActiveClientResponse>(
-      `/appointments/${appointmentId}/convert`,
-      { method: 'POST', body: {} }
-    )
-
-    conversionNotice.value = response.alreadyActive
-      ? 'Cette cliente était déjà active.'
-      : 'Prospect converti en cliente active.'
-
-    await refresh()
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError) {
-      systemError.value = mapAppointmentErrorCodeToUserMessage(err.apiError.code)
+    const statusResult = await requestUpdateAppointmentStatus(appointment.id, 'cancelled')
+    if (!statusResult.ok) {
+      cancelError.value = statusResult.message
       return
     }
-    systemError.value = 'Une erreur est survenue. Veuillez réessayer.'
+
+    await refresh()
+    cancelModalOpen.value = false
+    cancelTarget.value = null
   } finally {
-    convertingId.value = null
+    updatingId.value = null
   }
 }
 </script>
 
 <template>
   <div class="grid gap-10">
+    <CallConclusionModal
+      v-model:open="conclusionModalOpen"
+      :client-name="conclusionClientName"
+      :default-convert-to-client="conclusionDefaultConvertToClient"
+      :loading="conclusionLoading"
+      :error="conclusionError"
+      @submit="submitConclusion"
+    />
+    <ConfirmActionModal
+      v-model:open="cancelModalOpen"
+      title="Annuler l’appel découverte ?"
+      description="Cette action met fin au rendez-vous et libère le créneau."
+      confirm-label="Annuler l’appel"
+      :loading="cancelLoading"
+      :error="cancelError"
+      @confirm="confirmCancel"
+    />
+
     <SystemAlert
       v-if="conversionNotice"
       variant="success"
@@ -602,24 +727,37 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
               >
             </label>
           </div>
+        </div>
+
+        <div class="px-6 py-6">
+          <div class="flex items-start justify-between gap-4">
+            <div class="grid gap-1">
+              <h2 class="font-serif text-xl italic text-[color:var(--color-brand-primary)]">
+                Appels filtrés
+              </h2>
+              <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                Retrouvez les appels planifiés, terminés et annulés.
+              </p>
+            </div>
+          </div>
 
           <div
             v-if="pending"
-            class="px-6 py-10 text-sm text-[color:var(--color-brand-secondary)]"
+            class="pt-8 text-sm text-[color:var(--color-brand-secondary)]"
           >
             Chargement…
           </div>
 
           <div
             v-else-if="baseFilteredAppointments.length === 0"
-            class="px-6 py-12 text-sm text-[color:var(--color-brand-secondary)]"
+            class="pt-8 text-sm text-[color:var(--color-brand-secondary)]"
           >
             Aucun appel discovery ne correspond à ces filtres.
           </div>
 
           <div
             v-else
-            class="space-y-10 px-6 pb-8"
+            class="space-y-10 pt-8"
           >
             <section
               v-if="scheduledAppointments.length"
@@ -639,7 +777,7 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
                 <article
                   v-for="item in scheduledAppointments"
                   :key="item.id"
-                  class="group grid gap-5 rounded-blob-a border border-white/60 border-l-4 bg-white/70 p-5 shadow-soft transition-base hover:shadow-floating md:grid-cols-[88px_minmax(0,1fr)_auto] md:items-center"
+                  class="group grid gap-5 rounded-blob-d border border-white/60 border-l-4 bg-white/60 p-5 shadow-soft transition-base hover:shadow-floating md:grid-cols-[88px_minmax(0,1fr)_auto] md:items-center"
                   :class="[appointmentBorderClass(item), isPastScheduledAppointment(item) ? 'bg-[rgba(217,119,6,0.04)]' : '']"
                 >
                   <div class="flex items-center justify-center">
@@ -677,8 +815,10 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
                         {{ item.client.phone }}
                       </a>
                     </div>
+                  </div>
 
-                    <div class="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+                  <div class="grid justify-items-end gap-3 text-right">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
                       <span
                         class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold normal-case tracking-normal"
                         :class="appointmentStatusClass(item)"
@@ -691,7 +831,7 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
                       >
                         {{ stageLabel(item.client.stage) }}
                       </span>
-                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-[color:var(--color-brand-primary)] shadow-soft">
+                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft">
                         <Icon
                           name="lucide:clock"
                           size="14"
@@ -699,7 +839,7 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
                         />
                         {{ formatShortTime(item.scheduledAt) }}
                       </span>
-                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-[color:var(--color-brand-primary)] shadow-soft">
+                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft">
                         <Icon
                           name="lucide:timer"
                           size="14"
@@ -708,36 +848,36 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
                         15 min
                       </span>
                     </div>
-                  </div>
 
-                  <div class="flex flex-wrap items-center gap-3 md:justify-end">
-                    <button
-                      type="button"
-                      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-                      :disabled="updatingId === item.id"
-                      @click="updateAppointmentStatus(item.id, 'complete')"
-                    >
-                      <Icon
-                        name="lucide:check-circle"
-                        size="18"
-                        aria-hidden="true"
-                      />
-                      Terminer
-                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
+                        :disabled="updatingId === item.id"
+                        @click="openConclusionModal(item)"
+                      >
+                        <Icon
+                          name="lucide:check-circle"
+                          size="18"
+                          aria-hidden="true"
+                        />
+                        Conclure l’appel
+                      </button>
 
-                    <button
-                      type="button"
-                      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                      :disabled="updatingId === item.id"
-                      @click="updateAppointmentStatus(item.id, 'cancel')"
-                    >
-                      <Icon
-                        name="lucide:x-circle"
-                        size="18"
-                        aria-hidden="true"
-                      />
-                      Annuler
-                    </button>
+                      <button
+                        type="button"
+                        class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                        :disabled="updatingId === item.id"
+                        @click="openCancelModal(item)"
+                      >
+                        <Icon
+                          name="lucide:x-circle"
+                          size="18"
+                          aria-hidden="true"
+                        />
+                        Annuler
+                      </button>
+                    </div>
                   </div>
                 </article>
               </div>
@@ -765,7 +905,7 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
                   :class="appointmentBorderClass(item)"
                 >
                   <div class="flex items-center justify-center">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl rounded-bl-lg bg-[rgba(181,192,163,0.35)] text-lg font-bold text-[color:var(--color-brand-primary)] shadow-soft">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl rounded-bl-xs bg-[rgba(181,192,163,0.35)] text-lg font-bold text-[color:var(--color-brand-primary)] shadow-soft">
                       {{ clientInitials(item) }}
                     </div>
                   </div>
@@ -834,8 +974,8 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
                       v-if="item.client.stage === 'lead'"
                       type="button"
                       class="mt-2 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                      :disabled="convertingId === item.id"
-                      @click="convertDiscoveryLeadToActiveClient(item.id)"
+                      :disabled="updatingId === item.id"
+                      @click="openConclusionModal(item)"
                     >
                       <Icon
                         name="lucide:sparkles"
@@ -867,11 +1007,11 @@ async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
                 <article
                   v-for="item in cancelledAppointments"
                   :key="item.id"
-                  class="grid gap-5 rounded-blob-b border border-white/60 border-l-4 bg-white/50 p-5 shadow-soft md:grid-cols-[88px_minmax(0,1fr)_auto] md:items-center"
+                  class="grid gap-5 rounded-blob-d border border-white/60 border-l-4 bg-white/55 p-5 shadow-soft md:grid-cols-[88px_minmax(0,1fr)_auto] md:items-center"
                   :class="appointmentBorderClass(item)"
                 >
                   <div class="flex items-center justify-center">
-                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl rounded-bl-lg bg-[rgba(239,68,68,0.08)] text-lg font-bold text-[color:var(--color-brand-primary)] shadow-soft">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl rounded-bl-xs bg-[rgba(239,68,68,0.08)] text-lg font-bold text-[color:var(--color-brand-primary)] shadow-soft">
                       {{ clientInitials(item) }}
                     </div>
                   </div>
