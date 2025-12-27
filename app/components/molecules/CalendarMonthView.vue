@@ -7,6 +7,7 @@ const props = defineProps<{
   maxDate: string
   timezoneLabel: string
   isLoading?: boolean
+  allowUnavailableSelection?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -62,7 +63,12 @@ const days = computed(() => {
     const isBeforeWindow = ymd < props.minDate
     const isAfterWindow = ymd > props.maxDate
     const hasAvailability = props.availableDates.has(ymd)
-    grid.push({ ymd, day, inMonth: true, disabled: isBeforeWindow || isAfterWindow || !hasAvailability })
+    grid.push({
+      ymd,
+      day,
+      inMonth: true,
+      disabled: isBeforeWindow || isAfterWindow || (!hasAvailability && !props.allowUnavailableSelection)
+    })
   }
 
   while (grid.length % 7 !== 0) {
@@ -197,7 +203,9 @@ function formatAriaDateLabel(ymd: string): string {
               ? 'cursor-not-allowed bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-secondary)] opacity-40'
               : modelValue === d.ymd
                 ? 'bg-[color:var(--color-accent-main)] text-[color:var(--color-accent-contrast)]'
-                : 'bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-primary)] hover:bg-[color:var(--color-surface-highlight)]'
+                : availableDates.has(d.ymd)
+                  ? 'bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-primary)] hover:bg-[color:var(--color-surface-highlight)]'
+                  : 'bg-white/60 text-[color:var(--color-brand-muted)] hover:bg-[color:var(--color-surface-highlight)]'
         "
         :disabled="d.disabled || isLoading"
         role="gridcell"

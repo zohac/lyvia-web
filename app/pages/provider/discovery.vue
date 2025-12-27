@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type {
+  ConvertDiscoveryToActiveClientResponse,
   DiscoveryAppointmentListItem,
   ListDiscoveryAppointmentsResponse,
   UpdateAppointmentStatusResponse
@@ -17,12 +18,12 @@ definePageMeta({
 })
 
 type ActionKind = 'complete' | 'cancel'
-type StatusFilter = 'all' | DiscoveryAppointmentListItem['status']
 type RangeFilter = 'all' | 'today' | 'next14' | 'past7'
-type SortFilter = 'upcoming' | 'recent'
 
 const systemError = ref<string | null>(null)
+const conversionNotice = ref<string | null>(null)
 const updatingId = ref<string | null>(null)
+const convertingId = ref<string | null>(null)
 
 const { data, pending, refresh } = await useAsyncData<ListDiscoveryAppointmentsResponse>('provider-discovery-appointments', async () => {
   try {
@@ -43,12 +44,11 @@ const timezone = computed(() => data.value?.timezone ?? 'Europe/Paris')
 
 const appointments = computed(() => data.value?.appointments ?? [])
 
-const statusFilter = ref<StatusFilter>('all')
 const rangeFilter = ref<RangeFilter>('all')
-const sortFilter = ref<SortFilter>('upcoming')
 const searchQuery = ref('')
 
 const selectedDay = ref<string | null>(null)
+const isDayFilterActive = ref(false)
 const visibleMonth = ref(new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)))
 
 function getYmdInTimeZone(date: Date, timeZone: string): string {
@@ -92,10 +92,50 @@ const appointmentDays = computed(() => {
   return days
 })
 
-const filteredAppointments = computed(() => {
+const todayYmd = computed(() => getYmdInTimeZone(new Date(), timezone.value))
+
+function setVisibleMonthFromYmd(ymd: string) {
+  const [yearStr, monthStr] = ymd.split('-')
+  const year = Number(yearStr)
+  const month = Number(monthStr)
+  if (!Number.isFinite(year) || !Number.isFinite(month)) return
+  visibleMonth.value = new Date(Date.UTC(year, month - 1, 1))
+}
+
+function activateDayFilter(ymd: string | null) {
+  if (!ymd) return
+  isDayFilterActive.value = true
+  selectedDay.value = ymd
+  setVisibleMonthFromYmd(ymd)
+}
+
+function resetDayFilter() {
+  isDayFilterActive.value = false
+  selectedDay.value = todayYmd.value
+  setVisibleMonthFromYmd(todayYmd.value)
+}
+
+watch(
+  () => selectedDay.value,
+  (ymd) => {
+    if (!ymd) return
+    setVisibleMonthFromYmd(ymd)
+  }
+)
+
+watchEffect(() => {
+  if (import.meta.server) return
+  if (pending.value) return
+  if (selectedDay.value) return
+
+  selectedDay.value = todayYmd.value
+  setVisibleMonthFromYmd(todayYmd.value)
+})
+
+const baseFilteredAppointments = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   const now = new Date()
-  const todayYmd = getYmdInTimeZone(now, timezone.value)
+  const todayYmdValue = getYmdInTimeZone(now, timezone.value)
   const fourteenDaysFromNow = new Date(now)
   fourteenDaysFromNow.setUTCDate(fourteenDaysFromNow.getUTCDate() + 14)
   const fourteenYmd = getYmdInTimeZone(fourteenDaysFromNow, timezone.value)
@@ -105,16 +145,14 @@ const filteredAppointments = computed(() => {
   const sevenDaysAgoYmd = getYmdInTimeZone(sevenDaysAgo, timezone.value)
 
   const items = appointments.value.filter((item) => {
-    if (statusFilter.value !== 'all' && item.status !== statusFilter.value) return false
-
-    if (selectedDay.value) {
+    if (isDayFilterActive.value && selectedDay.value) {
       if (ymdFromIso(item.scheduledAt) !== selectedDay.value) return false
     }
 
     const ymd = ymdFromIso(item.scheduledAt)
-    if (rangeFilter.value === 'today' && ymd !== todayYmd) return false
-    if (rangeFilter.value === 'next14' && (ymd < todayYmd || ymd > fourteenYmd)) return false
-    if (rangeFilter.value === 'past7' && (ymd < sevenDaysAgoYmd || ymd > todayYmd)) return false
+    if (rangeFilter.value === 'today' && ymd !== todayYmdValue) return false
+    if (rangeFilter.value === 'next14' && (ymd < todayYmdValue || ymd > fourteenYmd)) return false
+    if (rangeFilter.value === 'past7' && (ymd < sevenDaysAgoYmd || ymd > todayYmdValue)) return false
 
     if (!query) return true
     const fullName = `${item.client.firstname} ${item.client.lastname}`.toLowerCase()
@@ -125,11 +163,7 @@ const filteredAppointments = computed(() => {
     )
   })
 
-  return items.toSorted((a, b) => {
-    const aTime = new Date(a.scheduledAt).getTime()
-    const bTime = new Date(b.scheduledAt).getTime()
-    return sortFilter.value === 'upcoming' ? aTime - bTime : bTime - aTime
-  })
+  return items
 })
 
 const upcomingAppointments = computed(() => {
@@ -140,8 +174,7 @@ const upcomingAppointments = computed(() => {
 })
 
 const countScheduledToday = computed(() => {
-  const today = getYmdInTimeZone(new Date(), timezone.value)
-  return appointments.value.filter(item => item.status === 'scheduled' && ymdFromIso(item.scheduledAt) === today).length
+  return appointments.value.filter(item => item.status === 'scheduled' && ymdFromIso(item.scheduledAt) === todayYmd.value).length
 })
 
 const countCompletedLast7Days = computed(() => {
@@ -229,6 +262,44 @@ function statusLabel(status: DiscoveryAppointmentListItem['status']): string {
   }
 }
 
+function isPastScheduledAppointment(item: DiscoveryAppointmentListItem): boolean {
+  if (item.status !== 'scheduled') return false
+  return new Date(item.scheduledAt).getTime() < Date.now()
+}
+
+function appointmentBorderClass(item: DiscoveryAppointmentListItem): string {
+  if (isPastScheduledAppointment(item)) return 'border-l-[color:var(--color-warning)]'
+
+  switch (item.status) {
+    case 'scheduled':
+      return 'border-l-[color:var(--color-brand-solid)]'
+    case 'completed':
+      return 'border-l-[rgba(181,192,163,0.8)]'
+    case 'cancelled':
+      return 'border-l-[rgba(239,68,68,0.4)]'
+    default:
+      return 'border-l-[rgba(231,229,228,0.9)]'
+  }
+}
+
+function sortByScheduledAtDesc(items: DiscoveryAppointmentListItem[]) {
+  return items.toSorted(
+    (a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()
+  )
+}
+
+const scheduledAppointments = computed(() =>
+  sortByScheduledAtDesc(baseFilteredAppointments.value.filter(item => item.status === 'scheduled'))
+)
+
+const completedAppointments = computed(() =>
+  sortByScheduledAtDesc(baseFilteredAppointments.value.filter(item => item.status === 'completed'))
+)
+
+const cancelledAppointments = computed(() =>
+  sortByScheduledAtDesc(baseFilteredAppointments.value.filter(item => item.status === 'cancelled'))
+)
+
 function statusClass(status: DiscoveryAppointmentListItem['status']): string {
   switch (status) {
     case 'scheduled':
@@ -242,8 +313,27 @@ function statusClass(status: DiscoveryAppointmentListItem['status']): string {
   }
 }
 
+function appointmentStatusClass(item: DiscoveryAppointmentListItem): string {
+  if (isPastScheduledAppointment(item)) {
+    return 'bg-[rgba(217,119,6,0.12)] text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(217,119,6,0.25)]'
+  }
+  return statusClass(item.status)
+}
+
+function stageLabel(stage: DiscoveryAppointmentListItem['client']['stage']): string {
+  return stage === 'active' ? 'Active' : 'Lead'
+}
+
+function stageClass(stage: DiscoveryAppointmentListItem['client']['stage']): string {
+  if (stage === 'active') {
+    return 'bg-[rgba(181,192,163,0.25)] text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(181,192,163,0.5)]'
+  }
+  return 'bg-[rgba(212,184,160,0.20)] text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(212,184,160,0.45)]'
+}
+
 async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) {
   systemError.value = null
+  conversionNotice.value = null
   if (updatingId.value) return
   updatingId.value = appointmentId
 
@@ -285,10 +375,48 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
     updatingId.value = null
   }
 }
+
+async function convertDiscoveryLeadToActiveClient(appointmentId: string) {
+  systemError.value = null
+  conversionNotice.value = null
+  if (convertingId.value) return
+  convertingId.value = appointmentId
+
+  try {
+    const confirmed = confirm(
+      'Convertir ce prospect en cliente active ? Cette action est irréversible.'
+    )
+    if (!confirmed) return
+
+    const response = await apiFetch<ConvertDiscoveryToActiveClientResponse>(
+      `/appointments/${appointmentId}/convert`,
+      { method: 'POST', body: {} }
+    )
+
+    conversionNotice.value = response.alreadyActive
+      ? 'Cette cliente était déjà active.'
+      : 'Prospect converti en cliente active.'
+
+    await refresh()
+  } catch (err: unknown) {
+    if (err instanceof ApiFetchError) {
+      systemError.value = mapAppointmentErrorCodeToUserMessage(err.apiError.code)
+      return
+    }
+    systemError.value = 'Une erreur est survenue. Veuillez réessayer.'
+  } finally {
+    convertingId.value = null
+  }
+}
 </script>
 
 <template>
   <div class="grid gap-10">
+    <SystemAlert
+      v-if="conversionNotice"
+      variant="success"
+      :description="conversionNotice"
+    />
     <SystemAlert
       v-if="systemError"
       variant="error"
@@ -423,7 +551,7 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
               </p>
               <p class="text-sm text-[color:var(--color-brand-secondary)]">
                 Fuseau d’affichage : {{ timezone }}
-                <span v-if="selectedDay"> • Jour : {{ formatSelectedDayLabel(selectedDay) }}</span>
+                <span v-if="isDayFilterActive && selectedDay"> • Jour : {{ formatSelectedDayLabel(selectedDay) }}</span>
               </p>
             </div>
 
@@ -442,28 +570,7 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
             </button>
           </div>
 
-          <div class="grid gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-4">
-            <label class="grid gap-2 text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Statut
-              <select
-                v-model="statusFilter"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
-              >
-                <option value="all">
-                  Tous
-                </option>
-                <option value="scheduled">
-                  Planifié
-                </option>
-                <option value="completed">
-                  Terminé
-                </option>
-                <option value="cancelled">
-                  Annulé
-                </option>
-              </select>
-            </label>
-
+          <div class="grid gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-3">
             <label class="grid gap-2 text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
               Période
               <select
@@ -481,21 +588,6 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
                 </option>
                 <option value="past7">
                   7 jours passés
-                </option>
-              </select>
-            </label>
-
-            <label class="grid gap-2 text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Tri
-              <select
-                v-model="sortFilter"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
-              >
-                <option value="upcoming">
-                  À venir
-                </option>
-                <option value="recent">
-                  Plus récent
                 </option>
               </select>
             </label>
@@ -519,34 +611,177 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
           </div>
 
           <div
-            v-else-if="filteredAppointments.length === 0"
+            v-else-if="baseFilteredAppointments.length === 0"
             class="px-6 py-12 text-sm text-[color:var(--color-brand-secondary)]"
           >
             Aucun appel discovery ne correspond à ces filtres.
           </div>
 
-          <ul
+          <div
             v-else
-            class="divide-y divide-[rgba(231,229,228,0.6)]"
+            class="space-y-10 px-6 pb-8"
           >
-            <li
-              v-for="item in filteredAppointments"
-              :key="item.id"
-              class="px-6 py-6"
+            <section
+              v-if="scheduledAppointments.length"
+              class="space-y-4"
+              aria-label="Appels planifiés"
             >
-              <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_180px_120px_140px_auto] lg:items-center">
-                <div class="flex min-w-0 items-start gap-4">
-                  <div class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-[color:var(--color-brand-solid)] text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft">
-                    {{ clientInitials(item) }}
+              <div class="flex items-center justify-between gap-4">
+                <h2 class="font-serif text-xl italic text-[color:var(--color-brand-primary)]">
+                  Planifiés
+                </h2>
+                <span class="rounded-full bg-[rgba(212,184,160,0.20)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
+                  {{ scheduledAppointments.length }}
+                </span>
+              </div>
+
+              <div class="grid gap-4">
+                <article
+                  v-for="item in scheduledAppointments"
+                  :key="item.id"
+                  class="group grid gap-5 rounded-blob-a border border-white/60 border-l-4 bg-white/70 p-5 shadow-soft transition-base hover:shadow-floating md:grid-cols-[88px_minmax(0,1fr)_auto] md:items-center"
+                  :class="[appointmentBorderClass(item), isPastScheduledAppointment(item) ? 'bg-[rgba(217,119,6,0.04)]' : '']"
+                >
+                  <div class="flex items-center justify-center">
+                    <div
+                      class="flex h-16 w-16 items-center justify-center rounded-2xl rounded-bl-xs bg-[color:var(--color-brand-solid)] text-lg font-bold text-[color:var(--color-brand-primary)] shadow-soft"
+                      :class="isPastScheduledAppointment(item) ? 'bg-[rgba(217,119,6,0.16)]' : ''"
+                    >
+                      {{ clientInitials(item) }}
+                    </div>
                   </div>
 
                   <div class="min-w-0">
-                    <p class="truncate font-semibold text-[color:var(--color-brand-primary)]">
-                      {{ formatClientName(item) }}
-                    </p>
-                    <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-                      {{ formatDateTime(item.scheduledAt) }}
-                    </p>
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate font-semibold text-[color:var(--color-brand-primary)]">
+                          {{ formatClientName(item) }}
+                        </p>
+                        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+                          {{ formatDateTime(item.scheduledAt) }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap gap-3 text-sm">
+                      <a
+                        class="font-semibold text-[color:var(--color-brand-primary)] hover:underline"
+                        :href="`mailto:${item.client.email}`"
+                      >
+                        {{ item.client.email }}
+                      </a>
+                      <a
+                        class="font-semibold text-[color:var(--color-brand-primary)] hover:underline"
+                        :href="`tel:${item.client.phone}`"
+                      >
+                        {{ item.client.phone }}
+                      </a>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+                      <span
+                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold normal-case tracking-normal"
+                        :class="appointmentStatusClass(item)"
+                      >
+                        {{ statusLabel(item.status) }}
+                      </span>
+                      <span
+                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold normal-case tracking-normal"
+                        :class="stageClass(item.client.stage)"
+                      >
+                        {{ stageLabel(item.client.stage) }}
+                      </span>
+                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-[color:var(--color-brand-primary)] shadow-soft">
+                        <Icon
+                          name="lucide:clock"
+                          size="14"
+                          aria-hidden="true"
+                        />
+                        {{ formatShortTime(item.scheduledAt) }}
+                      </span>
+                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-[color:var(--color-brand-primary)] shadow-soft">
+                        <Icon
+                          name="lucide:timer"
+                          size="14"
+                          aria-hidden="true"
+                        />
+                        15 min
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-3 md:justify-end">
+                    <button
+                      type="button"
+                      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
+                      :disabled="updatingId === item.id"
+                      @click="updateAppointmentStatus(item.id, 'complete')"
+                    >
+                      <Icon
+                        name="lucide:check-circle"
+                        size="18"
+                        aria-hidden="true"
+                      />
+                      Terminer
+                    </button>
+
+                    <button
+                      type="button"
+                      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                      :disabled="updatingId === item.id"
+                      @click="updateAppointmentStatus(item.id, 'cancel')"
+                    >
+                      <Icon
+                        name="lucide:x-circle"
+                        size="18"
+                        aria-hidden="true"
+                      />
+                      Annuler
+                    </button>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section
+              v-if="completedAppointments.length"
+              class="space-y-4"
+              aria-label="Appels terminés"
+            >
+              <div class="flex items-center justify-between gap-4">
+                <h2 class="font-serif text-xl italic text-[color:var(--color-brand-primary)]">
+                  Terminés
+                </h2>
+                <span class="rounded-full bg-[rgba(181,192,163,0.20)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
+                  {{ completedAppointments.length }}
+                </span>
+              </div>
+
+              <div class="grid gap-4">
+                <article
+                  v-for="item in completedAppointments"
+                  :key="item.id"
+                  class="grid gap-5 rounded-blob-d border border-white/60 border-l-4 bg-white/60 p-5 shadow-soft md:grid-cols-[88px_minmax(0,1fr)_auto] md:items-center"
+                  :class="appointmentBorderClass(item)"
+                >
+                  <div class="flex items-center justify-center">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl rounded-bl-lg bg-[rgba(181,192,163,0.35)] text-lg font-bold text-[color:var(--color-brand-primary)] shadow-soft">
+                      {{ clientInitials(item) }}
+                    </div>
+                  </div>
+
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate font-semibold text-[color:var(--color-brand-primary)]">
+                          {{ formatClientName(item) }}
+                        </p>
+                        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+                          {{ formatDateTime(item.scheduledAt) }}
+                        </p>
+                      </div>
+                    </div>
+
                     <div class="mt-3 flex flex-wrap gap-3 text-sm">
                       <a
                         class="font-semibold text-[color:var(--color-brand-primary)] hover:underline"
@@ -562,69 +797,149 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
                       </a>
                     </div>
                   </div>
-                </div>
 
-                <div class="grid gap-1 text-sm text-[color:var(--color-brand-secondary)]">
-                  <p class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                    Heure
-                  </p>
-                  <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                    {{ formatShortTime(item.scheduledAt) }}
-                  </p>
-                </div>
+                  <div class="grid justify-items-end gap-2 text-right">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                      <span
+                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold normal-case tracking-normal"
+                        :class="appointmentStatusClass(item)"
+                      >
+                        {{ statusLabel(item.status) }}
+                      </span>
+                      <span
+                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold normal-case tracking-normal"
+                        :class="stageClass(item.client.stage)"
+                      >
+                        {{ stageLabel(item.client.stage) }}
+                      </span>
+                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft">
+                        <Icon
+                          name="lucide:clock"
+                          size="14"
+                          aria-hidden="true"
+                        />
+                        {{ formatShortTime(item.scheduledAt) }}
+                      </span>
+                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft">
+                        <Icon
+                          name="lucide:timer"
+                          size="14"
+                          aria-hidden="true"
+                        />
+                        15 min
+                      </span>
+                    </div>
 
-                <div class="grid gap-1 text-sm text-[color:var(--color-brand-secondary)]">
-                  <p class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                    Durée
-                  </p>
-                  <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                    15 min
-                  </p>
-                </div>
-
-                <div class="flex items-center">
-                  <span
-                    class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold"
-                    :class="statusClass(item.status)"
-                  >
-                    {{ statusLabel(item.status) }}
-                  </span>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-3 lg:justify-end">
-                  <button
-                    v-if="item.status === 'scheduled'"
-                    type="button"
-                    class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-                    :disabled="updatingId === item.id"
-                    @click="updateAppointmentStatus(item.id, 'complete')"
-                  >
-                    <Icon
-                      name="lucide:check-circle"
-                      size="18"
-                      aria-hidden="true"
-                    />
-                    Terminer
-                  </button>
-
-                  <button
-                    v-if="item.status === 'scheduled'"
-                    type="button"
-                    class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                    :disabled="updatingId === item.id"
-                    @click="updateAppointmentStatus(item.id, 'cancel')"
-                  >
-                    <Icon
-                      name="lucide:x-circle"
-                      size="18"
-                      aria-hidden="true"
-                    />
-                    Annuler
-                  </button>
-                </div>
+                    <button
+                      v-if="item.client.stage === 'lead'"
+                      type="button"
+                      class="mt-2 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                      :disabled="convertingId === item.id"
+                      @click="convertDiscoveryLeadToActiveClient(item.id)"
+                    >
+                      <Icon
+                        name="lucide:sparkles"
+                        size="18"
+                        aria-hidden="true"
+                      />
+                      Convertir
+                    </button>
+                  </div>
+                </article>
               </div>
-            </li>
-          </ul>
+            </section>
+
+            <section
+              v-if="cancelledAppointments.length"
+              class="space-y-4"
+              aria-label="Appels annulés"
+            >
+              <div class="flex items-center justify-between gap-4">
+                <h2 class="font-serif text-xl italic text-[color:var(--color-brand-primary)]">
+                  Annulés
+                </h2>
+                <span class="rounded-full bg-[rgba(239,68,68,0.10)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
+                  {{ cancelledAppointments.length }}
+                </span>
+              </div>
+
+              <div class="grid gap-4">
+                <article
+                  v-for="item in cancelledAppointments"
+                  :key="item.id"
+                  class="grid gap-5 rounded-blob-b border border-white/60 border-l-4 bg-white/50 p-5 shadow-soft md:grid-cols-[88px_minmax(0,1fr)_auto] md:items-center"
+                  :class="appointmentBorderClass(item)"
+                >
+                  <div class="flex items-center justify-center">
+                    <div class="flex h-16 w-16 items-center justify-center rounded-2xl rounded-bl-lg bg-[rgba(239,68,68,0.08)] text-lg font-bold text-[color:var(--color-brand-primary)] shadow-soft">
+                      {{ clientInitials(item) }}
+                    </div>
+                  </div>
+
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate font-semibold text-[color:var(--color-brand-primary)]">
+                          {{ formatClientName(item) }}
+                        </p>
+                        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+                          {{ formatDateTime(item.scheduledAt) }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="mt-3 flex flex-wrap gap-3 text-sm">
+                      <a
+                        class="font-semibold text-[color:var(--color-brand-primary)] hover:underline"
+                        :href="`mailto:${item.client.email}`"
+                      >
+                        {{ item.client.email }}
+                      </a>
+                      <a
+                        class="font-semibold text-[color:var(--color-brand-primary)] hover:underline"
+                        :href="`tel:${item.client.phone}`"
+                      >
+                        {{ item.client.phone }}
+                      </a>
+                    </div>
+                  </div>
+
+                  <div class="grid justify-items-end gap-2 text-right">
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                      <span
+                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold normal-case tracking-normal"
+                        :class="appointmentStatusClass(item)"
+                      >
+                        {{ statusLabel(item.status) }}
+                      </span>
+                      <span
+                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold normal-case tracking-normal"
+                        :class="stageClass(item.client.stage)"
+                      >
+                        {{ stageLabel(item.client.stage) }}
+                      </span>
+                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft">
+                        <Icon
+                          name="lucide:clock"
+                          size="14"
+                          aria-hidden="true"
+                        />
+                        {{ formatShortTime(item.scheduledAt) }}
+                      </span>
+                      <span class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-highlight)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft">
+                        <Icon
+                          name="lucide:timer"
+                          size="14"
+                          aria-hidden="true"
+                        />
+                        15 min
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </section>
+          </div>
         </div>
       </section>
 
@@ -643,15 +958,15 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
             <button
               type="button"
               class="mt-1 inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)]"
-              :disabled="!selectedDay"
-              @click="selectedDay = null"
+              :disabled="!isDayFilterActive"
+              @click="resetDayFilter"
             >
               <Icon
                 name="lucide:rotate-ccw"
                 size="16"
                 aria-hidden="true"
               />
-              Réinitialiser
+              Voir tout
             </button>
           </div>
 
@@ -664,6 +979,8 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
               :max-date="maxDate"
               :timezone-label="timezone"
               :is-loading="pending"
+              :allow-unavailable-selection="true"
+              @update:model-value="activateDayFilter"
             />
           </div>
         </div>
@@ -694,7 +1011,7 @@ async function updateAppointmentStatus(appointmentId: string, kind: ActionKind) 
               <button
                 type="button"
                 class="group flex w-full items-center justify-between gap-4 rounded-blob-a border border-white/60 bg-white/70 px-4 py-3 text-left shadow-soft transition-base hover:shadow-floating"
-                @click="selectedDay = ymdFromIso(item.scheduledAt)"
+                @click="activateDayFilter(ymdFromIso(item.scheduledAt))"
               >
                 <div class="min-w-0">
                   <p class="truncate text-sm font-semibold text-[color:var(--color-brand-primary)]">

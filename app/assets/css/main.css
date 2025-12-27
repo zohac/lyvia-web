@@ -10,6 +10,7 @@
   --leading-relaxed: 1.6;
 
   /* Kaora Organic radii */
+  --radius-xs: 0.5rem; /* inputs / buttons */
   --radius-sm: 1rem; /* inputs / buttons */
   --radius-md: 1.5rem;
   --radius-lg: 2rem; /* cards / panels */

@@ -13,6 +13,7 @@ export type DiscoveryAppointmentClient = {
   lastname: string
   email: string
   phone: string
+  stage: 'lead' | 'active'
 }
 
 export type DiscoveryAppointmentListItem = {
@@ -36,4 +37,13 @@ export type UpdateAppointmentStatusRequest = {
 export type UpdateAppointmentStatusResponse = {
   updated: true
   status: 'completed' | 'cancelled'
+}
+
+export type ConvertDiscoveryToActiveClientRequest = {
+  conversionNote?: string
+}
+
+export type ConvertDiscoveryToActiveClientResponse = {
+  converted: true
+  alreadyActive: boolean
 }
