@@ -16,7 +16,7 @@ export type AvailabilityBlock = {
   id: string
   startAt: string
   endAt: string
-  reason: unknown | null
+  reason: string | null
   blockType: AvailabilityBlockType
 }
 
@@ -31,3 +31,14 @@ export type ListAvailabilityBlocksResponse = {
 export type CreateAvailabilityRuleInput = Omit<AvailabilityRule, 'id'>
 
 export type UpdateAvailabilityRuleInput = Partial<CreateAvailabilityRuleInput>
+
+export type CreateAvailabilityBlockInput = {
+  startAt: string
+  endAt: string
+  blockType: AvailabilityBlockType
+  reason?: string | null
+}
+
+export type AvailabilityBlockIdResponse = {
+  blockId: string
+}

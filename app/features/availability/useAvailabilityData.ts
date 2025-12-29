@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
 import { mapAvailabilityErrorToMessage } from './api/availability-error'
+import { sortBlocksByStartAt } from './domain/blocks'
 import { groupRulesByWeekdayAndType } from './domain/rules'
 import {
   listAvailabilityBlocks,
@@ -45,10 +46,10 @@ export async function useAvailabilityData(options: {
 
   const groupedRules = computed(() => groupRulesByWeekdayAndType(rules.value))
 
+  const sortedBlocks = computed(() => sortBlocksByStartAt(blocks.value))
+
   const upcomingBlocks = computed(() => {
-    return blocks.value
-      .slice()
-      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    return sortedBlocks.value
       .slice(0, 6)
   })
 
@@ -57,6 +58,7 @@ export async function useAvailabilityData(options: {
     refresh,
     rules,
     blocks,
+    sortedBlocks,
     hasRules,
     hasBlocks,
     groupedRules,

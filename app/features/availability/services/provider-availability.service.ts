@@ -3,7 +3,10 @@ import type {
   AvailabilityRule,
   ListAvailabilityBlocksResponse,
   ListAvailabilityRulesResponse,
+  AvailabilityBlockIdResponse,
+  AvailabilityBlock,
   CreateAvailabilityRuleInput,
+  CreateAvailabilityBlockInput,
   UpdateAvailabilityRuleInput
 } from '../api/availability.contract'
 
@@ -19,6 +22,19 @@ export async function createAvailabilityRule(input: CreateAvailabilityRuleInput)
   return await apiFetch<{ ruleId: string }>('/provider/availability/rules', {
     method: 'POST',
     body: input
+  })
+}
+
+export async function createAvailabilityBlock(input: CreateAvailabilityBlockInput): Promise<AvailabilityBlockIdResponse> {
+  return await apiFetch<AvailabilityBlockIdResponse>('/provider/availability/blocks', {
+    method: 'POST',
+    body: input
+  })
+}
+
+export async function deleteAvailabilityBlock(blockId: AvailabilityBlock['id']): Promise<AvailabilityBlockIdResponse> {
+  return await apiFetch<AvailabilityBlockIdResponse>(`/provider/availability/blocks/${blockId}`, {
+    method: 'DELETE'
   })
 }
 

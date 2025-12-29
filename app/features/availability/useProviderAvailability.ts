@@ -1,5 +1,7 @@
 import type { AvailabilityBlock } from './api/availability.contract'
+import { formatBlockReason } from './domain/blocks'
 import { normalizeRuleTime } from './domain/time'
+import { useAvailabilityBlocksActions } from './useAvailabilityBlocksActions'
 import { useAvailabilityData } from './useAvailabilityData'
 import { useAvailabilityRulesActions } from './useAvailabilityRulesActions'
 import { useAvailabilityRulesCopy } from './useAvailabilityRulesCopy'
@@ -68,6 +70,12 @@ export async function useProviderAvailability() {
     actionErrorMessage
   })
 
+  const blockActions = useAvailabilityBlocksActions({
+    refresh: data.refresh,
+    noticeMessage,
+    actionErrorMessage
+  })
+
   return {
     errorMessage,
     actionErrorMessage,
@@ -79,9 +87,11 @@ export async function useProviderAvailability() {
     appointmentTypeLabel,
     blockTypeLabel,
     formatDateTime,
+    formatBlockReason,
     normalizeRuleTime,
 
     ...ruleActions,
-    ...ruleCopy
+    ...ruleCopy,
+    ...blockActions
   }
 }

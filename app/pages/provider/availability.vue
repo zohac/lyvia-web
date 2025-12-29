@@ -15,7 +15,7 @@ const {
   noticeMessage,
   pending,
   refresh,
-  blocks,
+  sortedBlocks,
   hasRules,
   hasBlocks,
   groupedRules,
@@ -23,6 +23,7 @@ const {
   weekdayLabel,
   appointmentTypeLabel,
   blockTypeLabel,
+  formatBlockReason,
   formatDateTime,
   normalizeRuleTime,
   createRuleModalOpen,
@@ -57,12 +58,174 @@ const {
   copyRulesAdaptDurations,
   copyRulesSummary,
   openCopyRulesModal,
-  confirmCopyRules
+  confirmCopyRules,
+  createBlockModalOpen,
+  createBlockError,
+  isCreatingBlock,
+  createBlockForm,
+  createBlockFieldErrors,
+  openCreateBlockModal,
+  submitCreateBlock,
+  deleteBlockModalOpen,
+  deleteBlockError,
+  deletingBlockId,
+  blockBeingDeleted,
+  openDeleteBlockModal,
+  confirmDeleteBlock
 } = await useProviderAvailability()
 </script>
 
 <template>
   <div class="grid gap-10">
+    <UModal
+      v-model:open="createBlockModalOpen"
+      :dismissible="!isCreatingBlock"
+      :ui="{
+        content:
+          'rounded-blob-c border border-white/70 bg-white/80 shadow-floating backdrop-blur-md',
+        header: 'px-8 pt-8 pb-4',
+        body: 'px-8 pb-6',
+        footer: 'px-8 pb-8 pt-6',
+        title:
+          'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
+        description: 'text-sm text-[color:var(--color-brand-secondary)]'
+      }"
+      :close="{ class: 'rounded-full' }"
+      title="Ajouter un blocage"
+      description="Bloquez un créneau ponctuel (Europe/Paris)."
+    >
+      <template #body>
+        <SystemAlert
+          v-if="createBlockError"
+          class="mb-5"
+          variant="error"
+          title="Création impossible"
+          :description="createBlockError"
+        />
+
+        <form
+          class="grid gap-6"
+          @submit.prevent="submitCreateBlock"
+        >
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-2">
+              <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+                Début
+              </label>
+              <input
+                v-model="createBlockForm.startAt"
+                type="datetime-local"
+                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+                :disabled="isCreatingBlock"
+              >
+              <p
+                v-if="createBlockFieldErrors.startAt"
+                class="text-xs text-[color:var(--color-error)]"
+              >
+                {{ createBlockFieldErrors.startAt }}
+              </p>
+            </div>
+
+            <div class="grid gap-2">
+              <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+                Fin
+              </label>
+              <input
+                v-model="createBlockForm.endAt"
+                type="datetime-local"
+                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+                :disabled="isCreatingBlock"
+              >
+              <p
+                v-if="createBlockFieldErrors.endAt"
+                class="text-xs text-[color:var(--color-error)]"
+              >
+                {{ createBlockFieldErrors.endAt }}
+              </p>
+            </div>
+          </div>
+
+          <div class="grid gap-2">
+            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+              Type
+            </label>
+            <select
+              v-model="createBlockForm.blockType"
+              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+              :disabled="isCreatingBlock"
+            >
+              <option value="all">
+                Tout
+              </option>
+              <option value="discovery">
+                Discovery
+              </option>
+              <option value="consultation">
+                Consultation
+              </option>
+            </select>
+            <p
+              v-if="createBlockFieldErrors.blockType"
+              class="text-xs text-[color:var(--color-error)]"
+            >
+              {{ createBlockFieldErrors.blockType }}
+            </p>
+          </div>
+
+          <div class="grid gap-2">
+            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+              Raison (optionnel)
+            </label>
+            <textarea
+              v-model="createBlockForm.reason"
+              rows="4"
+              class="min-h-[110px] w-full resize-none rounded-blob-d border border-white/60 bg-white/70 px-4 py-3 text-sm font-medium text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+              :disabled="isCreatingBlock"
+              placeholder="Vacances, indisponibilité…"
+            />
+            <p
+              v-if="createBlockFieldErrors.reason"
+              class="text-xs text-[color:var(--color-error)]"
+            >
+              {{ createBlockFieldErrors.reason }}
+            </p>
+          </div>
+        </form>
+      </template>
+
+      <template #footer>
+        <div class="flex flex-wrap justify-end gap-3">
+          <UButton
+            color="neutral"
+            variant="ghost"
+            class="rounded-full"
+            :disabled="isCreatingBlock"
+            @click="createBlockModalOpen = false"
+          >
+            Annuler
+          </UButton>
+          <UButton
+            color="primary"
+            class="rounded-full px-6"
+            :loading="isCreatingBlock"
+            @click="submitCreateBlock"
+          >
+            Ajouter
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <ConfirmActionModal
+      v-model:open="deleteBlockModalOpen"
+      title="Supprimer ce blocage ?"
+      :description="blockBeingDeleted ? `${formatDateTime(blockBeingDeleted.startAt)} → ${formatDateTime(blockBeingDeleted.endAt)} • ${blockTypeLabel(blockBeingDeleted)}${formatBlockReason(blockBeingDeleted.reason) ? ` • ${formatBlockReason(blockBeingDeleted.reason)}` : ''}` : 'Ce blocage sera supprimé définitivement.'"
+      confirm-label="Supprimer"
+      :loading="Boolean(deletingBlockId)"
+      :error="deleteBlockError"
+      @confirm="confirmDeleteBlock"
+    />
+
     <UModal
       v-model:open="createRuleModalOpen"
       :dismissible="!isCreatingRule"
@@ -867,7 +1030,8 @@ const {
             <button
               type="button"
               class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled
+              :disabled="pending"
+              @click="openCreateBlockModal"
             >
               <Icon
                 name="lucide:plus"
@@ -899,7 +1063,7 @@ const {
               class="grid gap-4"
             >
               <li
-                v-for="block in blocks.slice(0, 8)"
+                v-for="block in sortedBlocks"
                 :key="block.id"
                 class="rounded-blob-d border border-white/60 bg-white/60 p-5 shadow-soft"
               >
@@ -911,11 +1075,32 @@ const {
                     <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
                       Type : {{ blockTypeLabel(block) }}
                     </p>
+                    <p
+                      v-if="formatBlockReason(block.reason)"
+                      class="mt-2 text-xs text-[color:var(--color-brand-secondary)]"
+                    >
+                      Raison : {{ formatBlockReason(block.reason) }}
+                    </p>
                   </div>
 
-                  <span class="rounded-full bg-[rgba(212,184,160,0.20)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
-                    Blocage
-                  </span>
+                  <div class="flex flex-wrap items-center justify-end gap-2">
+                    <span class="rounded-full bg-[rgba(212,184,160,0.20)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
+                      Blocage
+                    </span>
+                    <button
+                      type="button"
+                      class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
+                      :disabled="pending || Boolean(deletingBlockId)"
+                      @click="openDeleteBlockModal(block)"
+                    >
+                      <Icon
+                        name="lucide:trash-2"
+                        size="14"
+                        aria-hidden="true"
+                      />
+                      Supprimer
+                    </button>
+                  </div>
                 </div>
               </li>
             </ul>

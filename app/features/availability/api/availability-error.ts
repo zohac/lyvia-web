@@ -19,6 +19,9 @@ export function mapAvailabilityErrorToMessage(err: unknown, fallback = 'Une erre
     if (err.apiError.code === 'RULE_OVERLAP') {
       return 'Cette règle chevauche une règle existante pour ce jour. Ajustez l’horaire ou la durée.'
     }
+    if (err.apiError.code === 'BLOCK_OVERLAP_APPOINTMENT') {
+      return 'Ce blocage chevauche un rendez-vous déjà planifié. Ajustez les dates ou annulez le rendez-vous concerné.'
+    }
     if (err.apiError.code === 'VALIDATION_ERROR') {
       return 'Certains champs sont invalides. Vérifiez votre saisie.'
     }
