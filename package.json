@@ -8,6 +8,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
+    "test": "pnpm test:unit",
+    "test:unit": "tsc -p tsconfig.tests.json && node -e \"require('fs').writeFileSync('.tmp/test-dist/package.json', '{\\\\\\\"type\\\\\\\":\\\\\\\"commonjs\\\\\\\"}')\" && node --test .tmp/test-dist/tests/**/*.test.js",
     "typecheck": "nuxt typecheck",
     "contract:check": "node ./scripts/contract-check-openapi-auth.mjs"
   },

@@ -24,3 +24,6 @@ logs
 !.env.example
 
 .pnpm-store
+
+# Local test compilation output
+.tmp

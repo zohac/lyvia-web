@@ -2,8 +2,20 @@ import { ApiFetchError } from '../../../services/api/api-error'
 
 export type AvailabilityFieldErrors = Record<string, string>
 
-export function mapAvailabilityErrorToMessage(err: unknown): string {
+export function mapAvailabilityErrorToMessage(err: unknown, fallback = 'Une erreur est survenue. Veuillez réessayer.'): string {
   if (err instanceof ApiFetchError) {
+    if (err.apiError.statusCode === 401) {
+      return 'Votre session a expiré. Veuillez vous reconnecter.'
+    }
+
+    if (err.apiError.statusCode === 403) {
+      return 'Accès refusé. Vous n’avez pas les droits nécessaires.'
+    }
+
+    if (err.apiError.statusCode === 404) {
+      return 'Ressource introuvable.'
+    }
+
     if (err.apiError.code === 'RULE_OVERLAP') {
       return 'Cette règle chevauche une règle existante pour ce jour. Ajustez l’horaire ou la durée.'
     }
@@ -11,7 +23,7 @@ export function mapAvailabilityErrorToMessage(err: unknown): string {
       return 'Certains champs sont invalides. Vérifiez votre saisie.'
     }
   }
-  return 'Une erreur est survenue. Veuillez réessayer.'
+  return fallback
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
