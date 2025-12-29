@@ -14,6 +14,12 @@ const navigation = [
   },
   {
     label: 'Agenda',
+    to: '/provider/agenda',
+    icon: 'lucide:calendar',
+    match: 'prefix'
+  },
+  {
+    label: 'Disponibilités',
     to: '/provider/availability',
     icon: 'lucide:calendar-clock',
     match: 'prefix'

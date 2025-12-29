@@ -81,14 +81,6 @@ watch(
           :aria-label="brandLabel"
           :to="brandTo"
         >
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[color:var(--color-surface-page)] to-white text-[color:var(--color-brand-accent)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)]">
-            <Icon
-              name="lucide:sparkles"
-              size="20"
-              aria-hidden="true"
-            />
-          </div>
-
           <template v-if="useKaoraLogoImage">
             <img
               src="/images/kaora-logo.png"

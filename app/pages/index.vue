@@ -13,6 +13,23 @@ definePageMeta({
   }
 })
 
+const requestUrl = useRequestURL()
+const hostname = computed(() => requestUrl.hostname.toLowerCase())
+
+const isPlatformDomain = computed(() => {
+  const platformHosts = new Set([
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    'kaora.app',
+    'www.kaora.app'
+  ])
+
+  if (platformHosts.has(hostname.value)) return true
+  if (hostname.value.endsWith('.kaora.app')) return true
+  return false
+})
+
 const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
   try {
     return await apiFetch<PublicTenantResponse>('/public/tenant', {
@@ -26,6 +43,10 @@ const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public
     return null
   }
 }, { default: () => null })
+
+if (!isPlatformDomain.value && !tenant.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
+}
 
 useSeoMeta({
   title: () => tenant.value?.brand.displayName ? `${tenant.value.brand.displayName} — Appel découverte` : 'Kaora — Coaching Platform',
