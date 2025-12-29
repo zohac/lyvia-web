@@ -31,6 +31,9 @@ export function useAuth() {
   const state = useAuthState()
 
   const bootstrapped = useState<boolean>('auth.bootstrapped', () => false)
+  type NuxtAppWithAuthBootstrap = ReturnType<typeof useNuxtApp> & {
+    __lyvia_auth_bootstrap__?: Promise<void> | null
+  }
 
   const role = computed<UserRole | null>(() => state.value.user?.role ?? null)
 
@@ -112,19 +115,31 @@ export function useAuth() {
 
   async function bootstrap(): Promise<void> {
     if (bootstrapped.value) return
-    bootstrapped.value = true
+    if (import.meta.server) return
 
-    try {
-      await refreshAccessToken()
-    } catch {
-      // ignore: refresh may fail if no cookie exists
-    }
+    const nuxtApp = useNuxtApp() as NuxtAppWithAuthBootstrap
+    const existing = nuxtApp.__lyvia_auth_bootstrap__
+    if (existing) return existing
 
-    try {
-      await fetchMe()
-    } catch {
-      setGuest()
-    }
+    const promise = (async () => {
+      try {
+        await refreshAccessToken()
+      } catch {
+        // ignore: refresh may fail if no cookie exists
+      }
+
+      try {
+        await fetchMe()
+      } catch {
+        setGuest()
+      } finally {
+        bootstrapped.value = true
+        nuxtApp.__lyvia_auth_bootstrap__ = null
+      }
+    })()
+
+    nuxtApp.__lyvia_auth_bootstrap__ = promise
+    return promise
   }
 
   function isAuthenticated(): boolean {

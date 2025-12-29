@@ -18,6 +18,13 @@ const UNSAFE_RESPONSE_HEADERS = new Set([
   'content-encoding'
 ])
 
+function rewriteSetCookieHeader(cookie: string): string {
+  // The upstream API sets cookies for `/auth`. When accessed through the Nuxt
+  // proxy (`/api/**`), the browser would not send them back unless we rewrite
+  // the cookie Path to match the proxied route.
+  return cookie.replace(/(^|;\s*)Path=\/auth\/?(?=;|$)/i, '$1Path=/api/auth')
+}
+
 function normalizeIp(ip: string | undefined | null): string | null {
   if (!ip) return null
   const value = ip.trim()
@@ -31,6 +38,40 @@ function joinUrl(base: string, path: string): string {
   const normalizedBase = base.replace(/\/+$/, '')
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
   return `${normalizedBase}${normalizedPath}`
+}
+
+function splitSetCookieHeader(value: string): string[] {
+  const cookies: string[] = []
+  let start = 0
+  let inExpires = false
+
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index]
+    if (char === ',') {
+      if (!inExpires) {
+        const part = value.slice(start, index).trim()
+        if (part) cookies.push(part)
+        start = index + 1
+      }
+      continue
+    }
+
+    if (char === ';') {
+      inExpires = false
+      continue
+    }
+
+    if (!inExpires) {
+      const snippet = value.slice(index, index + 8).toLowerCase()
+      if (snippet === 'expires=') {
+        inExpires = true
+      }
+    }
+  }
+
+  const last = value.slice(start).trim()
+  if (last) cookies.push(last)
+  return cookies
 }
 
 export default defineEventHandler(async (event) => {
@@ -88,10 +129,16 @@ export default defineEventHandler(async (event) => {
 
   const setCookie = (upstreamResponse.headers as unknown as { getSetCookie?: () => string[] }).getSetCookie?.()
   if (Array.isArray(setCookie) && setCookie.length) {
-    for (const cookie of setCookie) appendResponseHeader(event, 'set-cookie', cookie)
+    for (const cookie of setCookie) {
+      appendResponseHeader(event, 'set-cookie', rewriteSetCookieHeader(cookie))
+    }
   } else {
     const single = upstreamResponse.headers.get('set-cookie')
-    if (single) appendResponseHeader(event, 'set-cookie', single)
+    if (single) {
+      for (const cookie of splitSetCookieHeader(single)) {
+        appendResponseHeader(event, 'set-cookie', rewriteSetCookieHeader(cookie))
+      }
+    }
   }
 
   const contentType = upstreamResponse.headers.get('content-type') ?? ''
