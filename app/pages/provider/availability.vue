@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
 import ConfirmActionModal from '../../components/molecules/ConfirmActionModal.vue'
-import { ApiFetchError } from '../../services/api/api-error'
-import { apiFetch } from '../../services/api/apiFetch'
+import { useProviderAvailability } from '../../features/availability/useProviderAvailability'
 
 definePageMeta({
   layout: 'provider',
@@ -10,724 +9,56 @@ definePageMeta({
   pageTitle: 'Disponibilités'
 })
 
-type AvailabilityRule = {
-  id: string
-  weekday: number
-  startTime: string
-  endTime: string
-  slotDurationMinutes: number
-  appointmentType: 'discovery' | 'consultation'
-  isActive: boolean
-}
-
-type AvailabilityBlock = {
-  id: string
-  startAt: string
-  endAt: string
-  reason: unknown | null
-  blockType: 'all' | 'discovery' | 'consultation'
-}
-
-type ListAvailabilityRulesResponse = { rules: AvailabilityRule[] }
-type ListAvailabilityBlocksResponse = { blocks: AvailabilityBlock[] }
-
-const errorMessage = ref<string | null>(null)
-const actionErrorMessage = ref<string | null>(null)
-const noticeMessage = ref<string | null>(null)
-
-const createRuleModalOpen = ref(false)
-const createRuleError = ref<string | null>(null)
-const isCreatingRule = ref(false)
-const createRuleApplyToAllTypes = ref(false)
-const createRuleDurationByType = reactive<{ discovery: number, consultation: number }>({
-  discovery: 30,
-  consultation: 60
-})
-const createRuleDurationErrors = reactive<{ discovery: string | null, consultation: string | null }>({
-  discovery: null,
-  consultation: null
-})
-
-const updateRuleModalOpen = ref(false)
-const updateRuleError = ref<string | null>(null)
-const isUpdatingRule = ref(false)
-const updatingRuleId = ref<string | null>(null)
-const ruleBeingEdited = ref<AvailabilityRule | null>(null)
-
-const deleteRuleModalOpen = ref(false)
-const deleteRuleError = ref<string | null>(null)
-const deletingRuleId = ref<string | null>(null)
-const ruleBeingDeleted = ref<AvailabilityRule | null>(null)
-
-type CopyRulesDirection = 'discovery-to-consultation' | 'consultation-to-discovery'
-
-const copyRulesModalOpen = ref(false)
-const copyRulesError = ref<string | null>(null)
-const isCopyingRules = ref(false)
-const copyRulesDirection = ref<CopyRulesDirection>('discovery-to-consultation')
-const copyRulesAdaptDurations = ref(false)
-
-watch(updateRuleModalOpen, (open) => {
-  if (!open) {
-    ruleBeingEdited.value = null
-  }
-})
-
-watch(deleteRuleModalOpen, (open) => {
-  if (!open) {
-    ruleBeingDeleted.value = null
-    deleteRuleError.value = null
-  }
-})
-
-type AvailabilityRuleForm = {
-  appointmentType: 'discovery' | 'consultation'
-  weekday: number
-  startTime: string
-  endTime: string
-  slotDurationMinutes: number
-  isActive: boolean
-}
-
-const createRuleForm = reactive<AvailabilityRuleForm>({
-  appointmentType: 'discovery',
-  weekday: 1,
-  startTime: '09:00',
-  endTime: '17:00',
-  slotDurationMinutes: 30,
-  isActive: true
-})
-
-const createRuleFieldErrors = reactive<Record<keyof AvailabilityRuleForm, string | null>>({
-  appointmentType: null,
-  weekday: null,
-  startTime: null,
-  endTime: null,
-  slotDurationMinutes: null,
-  isActive: null
-})
-
-const updateRuleForm = reactive<AvailabilityRuleForm>({
-  appointmentType: 'discovery',
-  weekday: 1,
-  startTime: '09:00',
-  endTime: '17:00',
-  slotDurationMinutes: 30,
-  isActive: true
-})
-
-const updateRuleFieldErrors = reactive<Record<keyof AvailabilityRuleForm, string | null>>({
-  appointmentType: null,
-  weekday: null,
-  startTime: null,
-  endTime: null,
-  slotDurationMinutes: null,
-  isActive: null
-})
-
-const { data, pending, refresh } = await useAsyncData(
-  'provider-availability-skeleton',
-  async () => {
-    errorMessage.value = null
-    actionErrorMessage.value = null
-    noticeMessage.value = null
-    try {
-      const [rulesResponse, blocksResponse] = await Promise.all([
-        apiFetch<ListAvailabilityRulesResponse>('/provider/availability/rules', {
-          method: 'GET'
-        }),
-        apiFetch<ListAvailabilityBlocksResponse>('/provider/availability/blocks', {
-          method: 'GET'
-        })
-      ])
-
-      return {
-        rules: rulesResponse.rules,
-        blocks: blocksResponse.blocks
-      }
-    } catch (err: unknown) {
-      if (err instanceof ApiFetchError) {
-        errorMessage.value = 'Impossible de charger vos disponibilités. Veuillez réessayer.'
-        return { rules: [], blocks: [] }
-      }
-
-      errorMessage.value = 'Une erreur est survenue. Veuillez réessayer.'
-      return { rules: [], blocks: [] }
-    }
-  },
-  { default: () => ({ rules: [], blocks: [] }) }
-)
-
-const rules = computed(() => data.value.rules)
-const blocks = computed(() => data.value.blocks)
-
-const hasRules = computed(() => rules.value.length > 0)
-const hasBlocks = computed(() => blocks.value.length > 0)
-
-function weekdayLabel(weekday: number): string {
-  const labels: Record<number, string> = {
-    1: 'Lundi',
-    2: 'Mardi',
-    3: 'Mercredi',
-    4: 'Jeudi',
-    5: 'Vendredi',
-    6: 'Samedi',
-    7: 'Dimanche'
-  }
-  return labels[weekday] ?? `Jour ${weekday}`
-}
-
-function appointmentTypeLabel(type: AvailabilityRule['appointmentType']): string {
-  return type === 'consultation' ? 'Consultation' : 'Discovery'
-}
-
-function blockTypeLabel(block: AvailabilityBlock): string {
-  switch (block.blockType) {
-    case 'all':
-      return 'Tout'
-    case 'consultation':
-      return 'Consultation'
-    case 'discovery':
-      return 'Discovery'
-    default:
-      return block.blockType
-  }
-}
-
-function formatDateTime(iso: string): string {
-  const date = new Date(iso)
-  return new Intl.DateTimeFormat('fr-FR', {
-    timeZone: 'Europe/Paris',
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(date)
-}
-
-const groupedRules = computed(() => {
-  const byDay = new Map<number, AvailabilityRule[]>()
-  for (const rule of rules.value) {
-    const current = byDay.get(rule.weekday) ?? []
-    current.push(rule)
-    byDay.set(rule.weekday, current)
-  }
-
-  const sortedDays = [...byDay.entries()].sort((a, b) => a[0] - b[0])
-  const order: AvailabilityRule['appointmentType'][] = ['consultation', 'discovery']
-
-  return sortedDays.map(([weekday, dayRules]) => {
-    const byType = new Map<AvailabilityRule['appointmentType'], AvailabilityRule[]>()
-    for (const rule of dayRules) {
-      const current = byType.get(rule.appointmentType) ?? []
-      current.push(rule)
-      byType.set(rule.appointmentType, current)
-    }
-
-    const groups = order
-      .filter(type => (byType.get(type)?.length ?? 0) > 0)
-      .map(type => ({
-        type,
-        rules: (byType.get(type) ?? []).toSorted((a, b) => normalizeRuleTime(a.startTime).localeCompare(normalizeRuleTime(b.startTime)))
-      }))
-
-    return { weekday, groups }
-  })
-})
-
-const upcomingBlocks = computed(() => {
-  return blocks.value
-    .toSorted((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
-    .slice(0, 6)
-})
-
-function resetCreateRuleErrors() {
-  createRuleError.value = null
-  createRuleFieldErrors.appointmentType = null
-  createRuleFieldErrors.weekday = null
-  createRuleFieldErrors.startTime = null
-  createRuleFieldErrors.endTime = null
-  createRuleFieldErrors.slotDurationMinutes = null
-  createRuleFieldErrors.isActive = null
-  createRuleDurationErrors.discovery = null
-  createRuleDurationErrors.consultation = null
-}
-
-function resetUpdateRuleErrors() {
-  updateRuleError.value = null
-  updateRuleFieldErrors.appointmentType = null
-  updateRuleFieldErrors.weekday = null
-  updateRuleFieldErrors.startTime = null
-  updateRuleFieldErrors.endTime = null
-  updateRuleFieldErrors.slotDurationMinutes = null
-  updateRuleFieldErrors.isActive = null
-}
-
-function openCreateRuleModal() {
-  resetCreateRuleErrors()
-  createRuleApplyToAllTypes.value = false
-  createRuleDurationByType.discovery = 30
-  createRuleDurationByType.consultation = 60
-  createRuleModalOpen.value = true
-}
-
-function openCopyRulesModal(direction?: CopyRulesDirection) {
-  copyRulesError.value = null
-  copyRulesAdaptDurations.value = false
-  if (direction) copyRulesDirection.value = direction
-  copyRulesModalOpen.value = true
-}
-
-function parseTimeToMinutes(value: string): number | null {
-  const match = /^(\d{2}):(\d{2})$/.exec(value.trim())
-  if (!match) return null
-  const hours = Number(match[1])
-  const minutes = Number(match[2])
-  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null
-  if (hours < 0 || hours > 23) return null
-  if (minutes < 0 || minutes > 59) return null
-  return hours * 60 + minutes
-}
-
-function validateRuleForm(
-  form: AvailabilityRuleForm,
-  fieldErrors: Record<keyof AvailabilityRuleForm, string | null>,
-  options: { validateDuration?: boolean } = {}
-): boolean {
-  fieldErrors.appointmentType = null
-  fieldErrors.weekday = null
-  fieldErrors.startTime = null
-  fieldErrors.endTime = null
-  fieldErrors.slotDurationMinutes = null
-  fieldErrors.isActive = null
-
-  if (form.weekday < 1 || form.weekday > 7) {
-    fieldErrors.weekday = 'Choisissez un jour entre 1 et 7.'
-  }
-
-  const startMinutes = parseTimeToMinutes(form.startTime)
-  const endMinutes = parseTimeToMinutes(form.endTime)
-  if (startMinutes === null) fieldErrors.startTime = 'Format attendu : HH:mm.'
-  if (endMinutes === null) fieldErrors.endTime = 'Format attendu : HH:mm.'
-  if (startMinutes !== null && endMinutes !== null && startMinutes >= endMinutes) {
-    fieldErrors.endTime = 'L’heure de fin doit être après l’heure de début.'
-  }
-
-  const validateDuration = options.validateDuration ?? true
-  if (validateDuration) {
-    if (!Number.isFinite(form.slotDurationMinutes) || form.slotDurationMinutes <= 0) {
-      fieldErrors.slotDurationMinutes = 'La durée doit être > 0.'
-    }
-  }
-
-  return (
-    !fieldErrors.appointmentType
-    && !fieldErrors.weekday
-    && !fieldErrors.startTime
-    && !fieldErrors.endTime
-    && (!validateDuration || !fieldErrors.slotDurationMinutes)
-    && !fieldErrors.isActive
-  )
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
-function applyBackendValidationErrors(
-  details: unknown,
-  fieldErrors: Record<keyof AvailabilityRuleForm, string | null>
-) {
-  if (!isRecord(details)) return
-  const raw = details.validationErrors
-  if (!Array.isArray(raw)) return
-
-  for (const item of raw) {
-    if (!isRecord(item)) continue
-    const property = item.property
-    if (typeof property !== 'string') continue
-    const constraints = item.constraints
-    const message = isRecord(constraints) ? Object.values(constraints).filter(v => typeof v === 'string').join(' ') : ''
-
-    if (property === 'appointmentType') fieldErrors.appointmentType = message || 'Type invalide.'
-    if (property === 'weekday') fieldErrors.weekday = message || 'Jour invalide.'
-    if (property === 'startTime') fieldErrors.startTime = message || 'Heure de début invalide.'
-    if (property === 'endTime') fieldErrors.endTime = message || 'Heure de fin invalide.'
-    if (property === 'slotDurationMinutes') fieldErrors.slotDurationMinutes = message || 'Durée invalide.'
-    if (property === 'isActive') fieldErrors.isActive = message || 'Valeur invalide.'
-  }
-}
-
-function normalizeRuleTime(value: string): string {
-  const trimmed = value.trim()
-  if (/^\d{2}:\d{2}:\d{2}$/.test(trimmed)) return trimmed.slice(0, 5)
-  return trimmed
-}
-
-function getCopySourceAndTarget(direction: CopyRulesDirection): {
-  source: AvailabilityRule['appointmentType']
-  target: AvailabilityRule['appointmentType']
-} {
-  if (direction === 'consultation-to-discovery') {
-    return { source: 'consultation', target: 'discovery' }
-  }
-  return { source: 'discovery', target: 'consultation' }
-}
-
-const copyRulesSummary = computed(() => {
-  const { source, target } = getCopySourceAndTarget(copyRulesDirection.value)
-  const sourceRules = rules.value.filter(rule => rule.appointmentType === source)
-  const targetRules = rules.value.filter(rule => rule.appointmentType === target)
-
-  const targetKeys = new Set(
-    targetRules.map(rule => `${rule.weekday}|${normalizeRuleTime(rule.startTime)}|${normalizeRuleTime(rule.endTime)}`)
-  )
-  const duplicates = sourceRules.filter(rule => targetKeys.has(`${rule.weekday}|${normalizeRuleTime(rule.startTime)}|${normalizeRuleTime(rule.endTime)}`))
-
-  return {
-    sourceType: source,
-    targetType: target,
-    sourceCount: sourceRules.length,
-    targetCount: targetRules.length,
-    duplicatesCount: duplicates.length
-  }
-})
-
-async function submitCreateRule() {
-  noticeMessage.value = null
-  actionErrorMessage.value = null
-  createRuleError.value = null
-
-  if (isCreatingRule.value) return
-  resetCreateRuleErrors()
-  if (!validateRuleForm(createRuleForm, createRuleFieldErrors, { validateDuration: !createRuleApplyToAllTypes.value })) {
-    return
-  }
-
-  if (createRuleApplyToAllTypes.value) {
-    if (!Number.isFinite(createRuleDurationByType.discovery) || createRuleDurationByType.discovery <= 0) {
-      createRuleDurationErrors.discovery = 'La durée doit être > 0.'
-    }
-    if (!Number.isFinite(createRuleDurationByType.consultation) || createRuleDurationByType.consultation <= 0) {
-      createRuleDurationErrors.consultation = 'La durée doit être > 0.'
-    }
-    if (createRuleDurationErrors.discovery || createRuleDurationErrors.consultation) {
-      return
-    }
-  }
-
-  isCreatingRule.value = true
-  try {
-    if (!createRuleApplyToAllTypes.value) {
-      await apiFetch<{ ruleId: string }>('/provider/availability/rules', {
-        method: 'POST',
-        body: {
-          appointmentType: createRuleForm.appointmentType,
-          weekday: createRuleForm.weekday,
-          startTime: createRuleForm.startTime,
-          endTime: createRuleForm.endTime,
-          slotDurationMinutes: createRuleForm.slotDurationMinutes,
-          isActive: createRuleForm.isActive
-        }
-      })
-
-      await refresh()
-      noticeMessage.value = 'Règle ajoutée.'
-      createRuleModalOpen.value = false
-      return
-    }
-
-    const types: AvailabilityRule['appointmentType'][] = ['discovery', 'consultation']
-    const results: Record<AvailabilityRule['appointmentType'], 'created' | 'overlap' | 'failed'> = {
-      discovery: 'failed',
-      consultation: 'failed'
-    }
-
-    for (const type of types) {
-      try {
-        await apiFetch<{ ruleId: string }>('/provider/availability/rules', {
-          method: 'POST',
-          body: {
-            appointmentType: type,
-            weekday: createRuleForm.weekday,
-            startTime: createRuleForm.startTime,
-            endTime: createRuleForm.endTime,
-            slotDurationMinutes: createRuleDurationByType[type],
-            isActive: createRuleForm.isActive
-          }
-        })
-        results[type] = 'created'
-      } catch (err: unknown) {
-        if (err instanceof ApiFetchError && err.apiError.code === 'RULE_OVERLAP') {
-          results[type] = 'overlap'
-          continue
-        }
-
-        if (err instanceof ApiFetchError && err.apiError.code === 'VALIDATION_ERROR') {
-          applyBackendValidationErrors(err.apiError.details, createRuleFieldErrors)
-          if (createRuleFieldErrors.slotDurationMinutes) {
-            createRuleDurationErrors.discovery = createRuleFieldErrors.slotDurationMinutes
-            createRuleDurationErrors.consultation = createRuleFieldErrors.slotDurationMinutes
-          }
-          createRuleError.value = 'Certains champs sont invalides. Vérifiez votre saisie.'
-          return
-        }
-
-        results[type] = 'failed'
-      }
-    }
-
-    await refresh()
-    createRuleModalOpen.value = false
-
-    const created = types.filter(type => results[type] === 'created').length
-    const overlaps = types.filter(type => results[type] === 'overlap').length
-    const failed = types.filter(type => results[type] === 'failed').length
-
-    const parts: string[] = []
-    parts.push(`${created} créé(e)(s)`)
-    if (overlaps) parts.push(`${overlaps} chevauchement(s) ignoré(s)`)
-    if (failed) parts.push(`${failed} en échec`)
-
-    noticeMessage.value = `Règle appliquée aux types : ${parts.join(', ')}.`
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError) {
-      if (err.apiError.code === 'RULE_OVERLAP') {
-        createRuleError.value = 'Cette règle chevauche une règle existante pour ce jour. Ajustez l’horaire ou la durée.'
-        return
-      }
-
-      if (err.apiError.code === 'VALIDATION_ERROR') {
-        applyBackendValidationErrors(err.apiError.details, createRuleFieldErrors)
-        createRuleError.value = 'Certains champs sont invalides. Vérifiez votre saisie.'
-        return
-      }
-
-      createRuleError.value = 'Impossible de créer la règle. Veuillez réessayer.'
-      return
-    }
-
-    createRuleError.value = 'Une erreur est survenue. Veuillez réessayer.'
-  } finally {
-    isCreatingRule.value = false
-  }
-}
-
-function openUpdateRuleModal(rule: AvailabilityRule) {
-  resetUpdateRuleErrors()
-  ruleBeingEdited.value = rule
-  updateRuleForm.appointmentType = rule.appointmentType
-  updateRuleForm.weekday = rule.weekday
-  updateRuleForm.startTime = normalizeRuleTime(rule.startTime)
-  updateRuleForm.endTime = normalizeRuleTime(rule.endTime)
-  updateRuleForm.slotDurationMinutes = rule.slotDurationMinutes
-  updateRuleForm.isActive = rule.isActive
-  updateRuleModalOpen.value = true
-}
-
-async function submitUpdateRule() {
-  noticeMessage.value = null
-  actionErrorMessage.value = null
-  resetUpdateRuleErrors()
-
-  if (isUpdatingRule.value) return
-  if (!ruleBeingEdited.value) return
-  if (!validateRuleForm(updateRuleForm, updateRuleFieldErrors)) return
-
-  isUpdatingRule.value = true
-  updatingRuleId.value = ruleBeingEdited.value.id
-  try {
-    await apiFetch<{ ruleId: string }>(`/provider/availability/rules/${ruleBeingEdited.value.id}`, {
-      method: 'PATCH',
-      body: {
-        appointmentType: updateRuleForm.appointmentType,
-        weekday: updateRuleForm.weekday,
-        startTime: updateRuleForm.startTime,
-        endTime: updateRuleForm.endTime,
-        slotDurationMinutes: updateRuleForm.slotDurationMinutes,
-        isActive: updateRuleForm.isActive
-      }
-    })
-
-    await refresh()
-    noticeMessage.value = 'Règle mise à jour.'
-    updateRuleModalOpen.value = false
-    ruleBeingEdited.value = null
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError) {
-      if (err.apiError.code === 'RULE_OVERLAP') {
-        updateRuleError.value = 'Cette règle chevauche une règle existante pour ce jour. Ajustez l’horaire ou la durée.'
-        return
-      }
-
-      if (err.apiError.code === 'VALIDATION_ERROR') {
-        applyBackendValidationErrors(err.apiError.details, updateRuleFieldErrors)
-        updateRuleError.value = 'Certains champs sont invalides. Vérifiez votre saisie.'
-        return
-      }
-
-      updateRuleError.value = 'Impossible de modifier la règle. Veuillez réessayer.'
-      return
-    }
-
-    updateRuleError.value = 'Une erreur est survenue. Veuillez réessayer.'
-  } finally {
-    isUpdatingRule.value = false
-    updatingRuleId.value = null
-  }
-}
-
-async function setRuleActive(rule: AvailabilityRule, nextIsActive: boolean) {
-  noticeMessage.value = null
-  actionErrorMessage.value = null
-  if (updatingRuleId.value) return
-
-  updatingRuleId.value = rule.id
-  try {
-    await apiFetch<{ ruleId: string }>(`/provider/availability/rules/${rule.id}`, {
-      method: 'PATCH',
-      body: { isActive: nextIsActive }
-    })
-
-    await refresh()
-    noticeMessage.value = nextIsActive ? 'Règle activée.' : 'Règle désactivée.'
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError) {
-      if (err.apiError.code === 'RULE_OVERLAP') {
-        actionErrorMessage.value = 'Impossible d’activer cette règle : elle chevauche une autre règle active.'
-        return
-      }
-
-      actionErrorMessage.value = 'Action impossible. Veuillez réessayer.'
-      return
-    }
-
-    actionErrorMessage.value = 'Une erreur est survenue. Veuillez réessayer.'
-  } finally {
-    updatingRuleId.value = null
-  }
-}
-
-function openDeleteRuleModal(rule: AvailabilityRule) {
-  deleteRuleError.value = null
-  ruleBeingDeleted.value = rule
-  deleteRuleModalOpen.value = true
-}
-
-async function confirmDeleteRule() {
-  noticeMessage.value = null
-  actionErrorMessage.value = null
-  deleteRuleError.value = null
-
-  const rule = ruleBeingDeleted.value
-  if (!rule) return
-  if (updatingRuleId.value || deletingRuleId.value) return
-
-  deletingRuleId.value = rule.id
-  try {
-    await apiFetch<{ ruleId: string }>(`/provider/availability/rules/${rule.id}`, {
-      method: 'DELETE'
-    })
-
-    await refresh()
-    noticeMessage.value = 'Règle supprimée.'
-    deleteRuleModalOpen.value = false
-    ruleBeingDeleted.value = null
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError) {
-      deleteRuleError.value = 'Impossible de supprimer la règle. Veuillez réessayer.'
-      return
-    }
-
-    deleteRuleError.value = 'Une erreur est survenue. Veuillez réessayer.'
-  } finally {
-    deletingRuleId.value = null
-  }
-}
-
-async function confirmCopyRules() {
-  noticeMessage.value = null
-  actionErrorMessage.value = null
-  copyRulesError.value = null
-
-  if (isCopyingRules.value) return
-  if (pending.value) return
-
-  const { source, target } = getCopySourceAndTarget(copyRulesDirection.value)
-  const sourceRules = rules.value.filter(rule => rule.appointmentType === source)
-
-  if (sourceRules.length === 0) {
-    copyRulesError.value = 'Aucune règle à copier dans le type source.'
-    return
-  }
-
-  const recommendedDurations: Record<AvailabilityRule['appointmentType'], number> = {
-    discovery: 30,
-    consultation: 60
-  }
-
-  const targetKeys = new Set(
-    rules.value
-      .filter(rule => rule.appointmentType === target)
-      .map(rule => `${rule.weekday}|${normalizeRuleTime(rule.startTime)}|${normalizeRuleTime(rule.endTime)}`)
-  )
-
-  const payloads = sourceRules.map((rule) => {
-    const startTime = normalizeRuleTime(rule.startTime)
-    const endTime = normalizeRuleTime(rule.endTime)
-    return {
-      key: `${rule.weekday}|${startTime}|${endTime}`,
-      body: {
-        appointmentType: target,
-        weekday: rule.weekday,
-        startTime,
-        endTime,
-        slotDurationMinutes: copyRulesAdaptDurations.value ? recommendedDurations[target] : rule.slotDurationMinutes,
-        isActive: rule.isActive
-      }
-    }
-  })
-
-  isCopyingRules.value = true
-  try {
-    let created = 0
-    let skippedAlready = 0
-    let skippedOverlap = 0
-    let failed = 0
-
-    for (const item of payloads) {
-      if (targetKeys.has(item.key)) {
-        skippedAlready += 1
-        continue
-      }
-
-      try {
-        await apiFetch<{ ruleId: string }>('/provider/availability/rules', {
-          method: 'POST',
-          body: item.body
-        })
-        created += 1
-      } catch (err: unknown) {
-        if (err instanceof ApiFetchError && err.apiError.code === 'RULE_OVERLAP') {
-          skippedOverlap += 1
-          continue
-        }
-        failed += 1
-      }
-    }
-
-    await refresh()
-    copyRulesModalOpen.value = false
-
-    const parts: string[] = []
-    parts.push(`${created} copiée(s)`)
-    if (skippedAlready) parts.push(`${skippedAlready} déjà présente(s)`)
-    if (skippedOverlap) parts.push(`${skippedOverlap} chevauchement(s) ignoré(s)`)
-    if (failed) parts.push(`${failed} en échec`)
-
-    noticeMessage.value = `Copie terminée (${appointmentTypeLabel(source)} → ${appointmentTypeLabel(target)}) : ${parts.join(', ')}.`
-  } finally {
-    isCopyingRules.value = false
-  }
-}
+const {
+  errorMessage,
+  actionErrorMessage,
+  noticeMessage,
+  pending,
+  refresh,
+  blocks,
+  hasRules,
+  hasBlocks,
+  groupedRules,
+  upcomingBlocks,
+  weekdayLabel,
+  appointmentTypeLabel,
+  blockTypeLabel,
+  formatDateTime,
+  normalizeRuleTime,
+  createRuleModalOpen,
+  createRuleError,
+  isCreatingRule,
+  createRuleApplyToAllTypes,
+  createRuleDurationByType,
+  createRuleDurationErrors,
+  createRuleForm,
+  createRuleFieldErrors,
+  openCreateRuleModal,
+  submitCreateRule,
+  updateRuleModalOpen,
+  updateRuleError,
+  isUpdatingRule,
+  updatingRuleId,
+  updateRuleForm,
+  updateRuleFieldErrors,
+  openUpdateRuleModal,
+  submitUpdateRule,
+  setRuleActive,
+  deleteRuleModalOpen,
+  deleteRuleError,
+  deletingRuleId,
+  ruleBeingDeleted,
+  openDeleteRuleModal,
+  confirmDeleteRule,
+  copyRulesModalOpen,
+  copyRulesError,
+  isCopyingRules,
+  copyRulesDirection,
+  copyRulesAdaptDurations,
+  copyRulesSummary,
+  openCopyRulesModal,
+  confirmCopyRules
+} = await useProviderAvailability()
 </script>
 
 <template>
@@ -1250,11 +581,11 @@ async function confirmCopyRules() {
             </select>
           </div>
 
-          <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] p-5">
-            <p class="text-sm font-semibold text-[color:var(--color-brand-primary)]">
+          <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-secondary)]">
+            <p class="font-semibold text-[color:var(--color-brand-primary)]">
               Résumé
             </p>
-            <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
+            <p class="mt-2">
               {{ copyRulesSummary.sourceCount }} règle(s) source • {{ copyRulesSummary.targetCount }} règle(s) déjà configurée(s) côté cible
             </p>
             <p
@@ -1265,13 +596,13 @@ async function confirmCopyRules() {
             </p>
           </div>
 
-          <div class="flex flex-col justify-between gap-4 rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-white/70 p-4 md:flex-row md:items-center">
+          <div class="flex flex-col justify-between gap-4 rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-[color:var(--color-surface-highlight)] p-4 md:flex-row md:items-center">
             <div class="min-w-0">
               <span class="block font-bold text-[color:var(--color-brand-primary)]">
                 Adapter aux durées recommandées
               </span>
               <span class="text-xs text-[color:var(--color-brand-secondary)]">
-                Applique une durée par défaut (Discovery 30 min, Consultation 60 min).
+                Discovery : 30 min • Consultation : 60 min.
               </span>
             </div>
             <USwitch
@@ -1501,7 +832,7 @@ async function confirmCopyRules() {
 
                           <button
                             type="button"
-                            class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-[color:var(--color-error)] shadow-soft ring-1 ring-[rgba(239,68,68,0.20)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
+                            class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
                             :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
                             @click="openDeleteRuleModal(rule)"
                           >
