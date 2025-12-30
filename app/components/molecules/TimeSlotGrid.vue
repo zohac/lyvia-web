@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import type { AvailabilitySlot } from '../../features/onboarding/api/onboarding.contract'
+import type { TimeSlot } from '../../features/slots/domain/slots'
 import SlotButton from '../atoms/SlotButton.vue'
 
 const props = defineProps<{
   title: string
-  slots: AvailabilitySlot[]
+  slots: TimeSlot[]
   selectedStartAt: string | null
   timeZone: string
 }>()
 
 const emit = defineEmits<{
-  select: [slot: AvailabilitySlot]
+  select: [slot: TimeSlot]
 }>()
 
 function formatTime(iso: string): string {

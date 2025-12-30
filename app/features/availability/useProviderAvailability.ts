@@ -5,6 +5,7 @@ import { useAvailabilityBlocksActions } from './useAvailabilityBlocksActions'
 import { useAvailabilityData } from './useAvailabilityData'
 import { useAvailabilityRulesActions } from './useAvailabilityRulesActions'
 import { useAvailabilityRulesCopy } from './useAvailabilityRulesCopy'
+import { useAvailabilitySlotsPreview } from './useAvailabilitySlotsPreview'
 
 function weekdayLabel(weekday: number): string {
   const labels: Record<number, string> = {
@@ -76,6 +77,11 @@ export async function useProviderAvailability() {
     actionErrorMessage
   })
 
+  const slotsPreview = useAvailabilitySlotsPreview({
+    noticeMessage,
+    actionErrorMessage
+  })
+
   return {
     errorMessage,
     actionErrorMessage,
@@ -92,6 +98,7 @@ export async function useProviderAvailability() {
 
     ...ruleActions,
     ...ruleCopy,
-    ...blockActions
+    ...blockActions,
+    ...slotsPreview
   }
 }

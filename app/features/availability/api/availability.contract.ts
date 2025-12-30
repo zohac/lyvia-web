@@ -42,3 +42,33 @@ export type CreateAvailabilityBlockInput = {
 export type AvailabilityBlockIdResponse = {
   blockId: string
 }
+
+export type ProviderProfileIdentityResponse = {
+  providerId: string
+  timezone: string
+}
+
+export type AvailabilitySlot = {
+  startAt: string
+  endAt: string
+}
+
+export type ProviderAvailabilityMeta = {
+  rulesCount: number
+  blocksCount: number
+  appointmentsCount: number
+  candidates: number
+  deduped: number
+  excludedByBlocks: number
+  excludedByAppointments: number
+  overlapsDropped: number
+}
+
+export type ProviderAvailabilityResponse = {
+  providerId: string
+  type: AvailabilityAppointmentType
+  durationMinutes: number
+  timezone: string
+  slots: AvailabilitySlot[]
+  meta: ProviderAvailabilityMeta
+}

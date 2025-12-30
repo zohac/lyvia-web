@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
 import ConfirmActionModal from '../../components/molecules/ConfirmActionModal.vue'
+import ProviderAvailabilitySlotsPreview from '../../components/organisms/ProviderAvailabilitySlotsPreview.vue'
 import { useProviderAvailability } from '../../features/availability/useProviderAvailability'
 
 definePageMeta({
@@ -26,6 +27,13 @@ const {
   formatBlockReason,
   formatDateTime,
   normalizeRuleTime,
+  previewType,
+  previewPeriodDays,
+  previewError,
+  previewPending,
+  timezone,
+  slotGroups,
+  refreshSlotsPreview,
   createRuleModalOpen,
   createRuleError,
   isCreatingRule,
@@ -1150,6 +1158,18 @@ const {
             </li>
           </ul>
         </div>
+
+        <ProviderAvailabilitySlotsPreview
+          :type="previewType"
+          :period-days="previewPeriodDays"
+          :timezone="timezone"
+          :pending="previewPending"
+          :error="previewError"
+          :groups="slotGroups"
+          @update:type="(value) => (previewType = value)"
+          @update:period-days="(value) => (previewPeriodDays = value)"
+          @refresh="refreshSlotsPreview"
+        />
       </aside>
     </div>
   </div>

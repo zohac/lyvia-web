@@ -6,6 +6,7 @@ const props = defineProps<{
   minDate: string
   maxDate: string
   timezoneLabel: string
+  timeZone?: string
   isLoading?: boolean
   allowUnavailableSelection?: boolean
 }>()
@@ -15,7 +16,7 @@ const emit = defineEmits<{
   'update:visibleMonth': [value: Date]
 }>()
 
-function formatMonthLabel(date: Date): string {
+function formatMonthLabel(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat('fr-FR', {
     timeZone,
     month: 'long',
@@ -37,11 +38,12 @@ function getYmdInTimeZone(date: Date, timeZone: string): string {
   return `${year}-${month}-${day}`
 }
 
-const timeZone = 'Europe/Paris'
+const timeZone = computed(() => props.timeZone ?? 'Europe/Paris')
 
-const monthLabel = computed(() => formatMonthLabel(props.visibleMonth))
+const monthLabel = computed(() => formatMonthLabel(props.visibleMonth, timeZone.value))
 
 const days = computed(() => {
+  const resolvedTimeZone = timeZone.value
   const year = props.visibleMonth.getUTCFullYear()
   const month = props.visibleMonth.getUTCMonth()
   const first = new Date(Date.UTC(year, month, 1))
@@ -53,13 +55,13 @@ const days = computed(() => {
 
   for (let i = 0; i < offset; i += 1) {
     const d = new Date(Date.UTC(year, month, 1 - (offset - i)))
-    const ymd = getYmdInTimeZone(d, timeZone)
+    const ymd = getYmdInTimeZone(d, resolvedTimeZone)
     grid.push({ ymd, day: d.getUTCDate(), inMonth: false, disabled: true })
   }
 
   for (let day = 1; day <= last.getUTCDate(); day += 1) {
     const d = new Date(Date.UTC(year, month, day))
-    const ymd = getYmdInTimeZone(d, timeZone)
+    const ymd = getYmdInTimeZone(d, resolvedTimeZone)
     const isBeforeWindow = ymd < props.minDate
     const isAfterWindow = ymd > props.maxDate
     const hasAvailability = props.availableDates.has(ymd)
@@ -74,7 +76,7 @@ const days = computed(() => {
   while (grid.length % 7 !== 0) {
     const tailIndex = grid.length - (offset + last.getUTCDate())
     const d = new Date(Date.UTC(year, month + 1, tailIndex + 1))
-    const ymd = getYmdInTimeZone(d, timeZone)
+    const ymd = getYmdInTimeZone(d, resolvedTimeZone)
     grid.push({ ymd, day: d.getUTCDate(), inMonth: false, disabled: true })
   }
 
@@ -84,10 +86,11 @@ const days = computed(() => {
 const weekdayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
 
 const canGoPrev = computed(() => {
+  const resolvedTimeZone = timeZone.value
   const year = props.visibleMonth.getUTCFullYear()
   const month = props.visibleMonth.getUTCMonth() - 1
   const prevEnd = new Date(Date.UTC(year, month + 1, 0))
-  const ymdPrevEnd = getYmdInTimeZone(prevEnd, timeZone)
+  const ymdPrevEnd = getYmdInTimeZone(prevEnd, resolvedTimeZone)
   return ymdPrevEnd >= props.minDate
 })
 
@@ -99,10 +102,11 @@ function onPrevMonth() {
 }
 
 const canGoNext = computed(() => {
+  const resolvedTimeZone = timeZone.value
   const year = props.visibleMonth.getUTCFullYear()
   const month = props.visibleMonth.getUTCMonth() + 1
   const nextStart = new Date(Date.UTC(year, month, 1))
-  const ymdNextStart = getYmdInTimeZone(nextStart, timeZone)
+  const ymdNextStart = getYmdInTimeZone(nextStart, resolvedTimeZone)
   return ymdNextStart <= props.maxDate
 })
 
@@ -114,6 +118,7 @@ function onNextMonth() {
 }
 
 function formatAriaDateLabel(ymd: string): string {
+  const resolvedTimeZone = timeZone.value
   const [yearStr, monthStr, dayStr] = ymd.split('-')
   if (!yearStr || !monthStr || !dayStr) return ymd
 
@@ -124,7 +129,7 @@ function formatAriaDateLabel(ymd: string): string {
 
   const date = new Date(Date.UTC(year, month - 1, day))
   return new Intl.DateTimeFormat('fr-FR', {
-    timeZone,
+    timeZone: resolvedTimeZone,
     weekday: 'long',
     day: 'numeric',
     month: 'long',

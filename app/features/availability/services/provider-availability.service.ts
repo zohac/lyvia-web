@@ -7,7 +7,10 @@ import type {
   AvailabilityBlock,
   CreateAvailabilityRuleInput,
   CreateAvailabilityBlockInput,
-  UpdateAvailabilityRuleInput
+  UpdateAvailabilityRuleInput,
+  ProviderProfileIdentityResponse,
+  ProviderAvailabilityResponse,
+  AvailabilityAppointmentType
 } from '../api/availability.contract'
 
 export async function listAvailabilityRules(): Promise<ListAvailabilityRulesResponse> {
@@ -48,5 +51,28 @@ export async function updateAvailabilityRule(ruleId: AvailabilityRule['id'], inp
 export async function deleteAvailabilityRule(ruleId: AvailabilityRule['id']): Promise<{ ruleId: string }> {
   return await apiFetch<{ ruleId: string }>(`/provider/availability/rules/${ruleId}`, {
     method: 'DELETE'
+  })
+}
+
+export async function getMyProviderProfileIdentity(): Promise<ProviderProfileIdentityResponse> {
+  return await apiFetch<ProviderProfileIdentityResponse>('/provider/availability/profile', { method: 'GET' })
+}
+
+export async function listProviderAvailabilitySlots(input: {
+  providerId: string
+  type: AvailabilityAppointmentType
+  from: string
+  to: string
+  limit?: number
+}): Promise<ProviderAvailabilityResponse> {
+  const query = new URLSearchParams({
+    from: input.from,
+    to: input.to
+  })
+  if (typeof input.limit === 'number') query.set('limit', String(input.limit))
+
+  return await apiFetch<ProviderAvailabilityResponse>(`/providers/${input.providerId}/availability/${input.type}?${query.toString()}`, {
+    method: 'GET',
+    withAuth: true
   })
 }

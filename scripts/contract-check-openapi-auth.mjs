@@ -22,7 +22,8 @@ function assertMatches(haystack, pattern, message) {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const webRoot = path.resolve(__dirname, '..')
-const apiOpenApiPath = path.resolve(webRoot, '..', 'lyvia-api', 'openapi.yaml')
+const apiRoot = path.resolve(webRoot, '..', 'lyvia-api')
+const apiOpenApiPath = path.resolve(apiRoot, 'openapi.yaml')
 const frontAuthContractPath = path.resolve(
   webRoot,
   'app',
@@ -32,16 +33,7 @@ const frontAuthContractPath = path.resolve(
   'auth.contract.ts'
 )
 const frontApiErrorPath = path.resolve(webRoot, 'app', 'services', 'api', 'api-error.ts')
-const backAuthErrorsPath = path.resolve(
-  webRoot,
-  '..',
-  'lyvia-api',
-  'src',
-  'features',
-  'auth',
-  'domain',
-  'errors.ts'
-)
+const backAuthErrorsPath = path.resolve(apiRoot, 'src', 'features', 'auth', 'domain', 'errors.ts')
 
 const [openapiYaml, authContractTs, apiErrorTs, backAuthErrorsTs]
   = await Promise.all([

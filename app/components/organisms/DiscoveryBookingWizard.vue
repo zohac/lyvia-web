@@ -8,12 +8,12 @@ import type {
 } from '../../features/onboarding/api/onboarding.contract'
 import { mapOnboardingErrorCodeToUserMessage } from '../../features/onboarding/api/onboarding-error'
 import { normalizePhone } from '../../features/onboarding/phone/phone'
+import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { ApiFetchError } from '../../services/api/api-error'
 import { apiFetch } from '../../services/api/apiFetch'
 import BookingSummary from '../molecules/BookingSummary.vue'
-import CalendarMonthView from '../molecules/CalendarMonthView.vue'
 import IdentityForm from '../molecules/IdentityForm.vue'
-import TimeSlotGrid from '../molecules/TimeSlotGrid.vue'
+import SlotPicker from './SlotPicker.vue'
 import PrimaryButton from '../atoms/PrimaryButton.vue'
 import SystemAlert from '../atoms/SystemAlert.vue'
 
@@ -94,61 +94,11 @@ function getTenantStorageKey(): string {
   return `${STORAGE_KEY_PREFIX}:${key}`
 }
 
-function getYmdInTimeZone(date: Date, tz: string): string {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: tz,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).formatToParts(date)
-
-  const year = parts.find(p => p.type === 'year')?.value ?? '0000'
-  const month = parts.find(p => p.type === 'month')?.value ?? '01'
-  const day = parts.find(p => p.type === 'day')?.value ?? '01'
-  return `${year}-${month}-${day}`
-}
-
 const minDate = computed(() => getYmdInTimeZone(new Date(), timeZone.value))
 const maxDate = computed(() => {
   const now = new Date()
   const end = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
   return getYmdInTimeZone(end, timeZone.value)
-})
-
-const slotsByDate = computed(() => {
-  const map = new Map<string, AvailabilitySlot[]>()
-  for (const slot of availability.value?.slots ?? []) {
-    const key = getYmdInTimeZone(new Date(slot.startAt), timeZone.value)
-    const existing = map.get(key) ?? []
-    existing.push(slot)
-    map.set(key, existing)
-  }
-
-  for (const [key, list] of map) {
-    list.sort((a, b) => a.startAt.localeCompare(b.startAt))
-    map.set(key, list)
-  }
-
-  return map
-})
-
-const availableDates = computed(() => new Set(slotsByDate.value.keys()))
-
-const selectedDaySlots = computed(() => {
-  if (!selectedDate.value) return []
-  return slotsByDate.value.get(selectedDate.value) ?? []
-})
-
-const selectedDateLabel = computed(() => {
-  if (!selectedDate.value) return null
-  const [y, m, d] = selectedDate.value.split('-').map(Number)
-  if (!y || !m || !d) return selectedDate.value
-  return new Intl.DateTimeFormat('fr-FR', {
-    timeZone: timeZone.value,
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long'
-  }).format(new Date(Date.UTC(y, m - 1, d)))
 })
 
 function sanitizeStep(next: number): WizardStep {
@@ -280,12 +230,6 @@ async function loadAvailability() {
     if (selectedDate.value && (selectedDate.value < minDate.value || selectedDate.value > maxDate.value)) {
       selectedDate.value = null
       selectedSlotStartAt.value = null
-    }
-
-    if (!selectedDate.value || !availableDates.value.has(selectedDate.value)) {
-      const candidates = [...availableDates.value].sort()
-      const firstFuture = candidates.find(d => d >= minDate.value) ?? candidates[0]
-      selectedDate.value = firstFuture ?? null
     }
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
@@ -593,38 +537,27 @@ async function submitBooking() {
                 </p>
               </div>
 
-              <div class="grid gap-6 lg:grid-cols-[3fr,2fr] lg:items-start">
-                <div class="rounded-blob-b border border-[rgba(28,25,23,0.10)] bg-white/75 p-5 shadow-soft backdrop-blur">
-                  <CalendarMonthView
-                    v-model="selectedDate"
-                    v-model:visible-month="visibleMonth"
-                    :available-dates="availableDates"
-                    :min-date="minDate"
-                    :max-date="maxDate"
-                    :timezone-label="timeZone"
-                    :is-loading="isLoadingAvailability"
+              <div class="grid gap-6">
+                <SlotPicker
+                  v-model:date="selectedDate"
+                  v-model:visible-month="visibleMonth"
+                  :slots="availability?.slots ?? []"
+                  :selected-start-at="selectedSlotStartAt"
+                  :min-date="minDate"
+                  :max-date="maxDate"
+                  :time-zone="timeZone"
+                  :timezone-label="timeZone"
+                  :is-loading="isLoadingAvailability"
+                  @select="onSelectSlot"
+                />
+
+                <div class="hidden sm:block">
+                  <PrimaryButton
+                    type="button"
+                    label="Continuer"
+                    :disabled="!selectedSlotStartAt || isLoadingAvailability"
+                    @click="goToIdentityStep"
                   />
-                </div>
-
-                <div class="grid gap-6">
-                  <div class="rounded-blob-a border border-[rgba(28,25,23,0.10)] bg-white/75 p-5 shadow-soft backdrop-blur">
-                    <TimeSlotGrid
-                      :title="selectedDateLabel ? `Disponibilités pour ${selectedDateLabel}` : 'Sélectionnez un jour'"
-                      :slots="selectedDaySlots"
-                      :selected-start-at="selectedSlotStartAt"
-                      :time-zone="timeZone"
-                      @select="onSelectSlot"
-                    />
-                  </div>
-
-                  <div class="hidden sm:block">
-                    <PrimaryButton
-                      type="button"
-                      label="Continuer"
-                      :disabled="!selectedSlotStartAt || isLoadingAvailability"
-                      @click="goToIdentityStep"
-                    />
-                  </div>
                 </div>
               </div>
 
