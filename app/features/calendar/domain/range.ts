@@ -16,6 +16,19 @@ type ZonedParts = {
   second: number
 }
 
+export type CalendarWeekDay = {
+  key: string
+  date: Date
+  label: string
+}
+
+export type CalendarMonthCell = {
+  key: string
+  date: Date
+  dayNumber: number
+  inMonth: boolean
+}
+
 function getZonedParts(date: Date, timeZone: string): ZonedParts {
   const formatter = new Intl.DateTimeFormat('en-US', {
     timeZone,
@@ -70,6 +83,10 @@ function toUtcIsoFromZonedParts(parts: Omit<ZonedParts, 'second'> & { second?: n
   return new Date(toUtcTimestampFromZonedParts(parts, timeZone)).toISOString()
 }
 
+function toUtcDateFromZonedParts(parts: Omit<ZonedParts, 'second'> & { second?: number }, timeZone: string): Date {
+  return new Date(toUtcTimestampFromZonedParts(parts, timeZone))
+}
+
 function getIsoWeekday(date: Date, timeZone: string): number {
   const value = new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short' }).format(date)
   const map: Record<string, number> = {
@@ -105,12 +122,6 @@ function getStartOfDay(date: Date, timeZone: string): { year: number, month: num
   return { year: parts.year, month: parts.month, day: parts.day }
 }
 
-function getStartOfWeek(date: Date, timeZone: string): { year: number, month: number, day: number } {
-  const start = getStartOfDay(date, timeZone)
-  const weekday = getIsoWeekday(date, timeZone)
-  return shiftLocalDate(start, timeZone, -(weekday - 1))
-}
-
 function getNextMonth(startOfMonth: { year: number, month: number, day: number }): { year: number, month: number, day: number } {
   const month = startOfMonth.month + 1
   if (month <= 12) return { year: startOfMonth.year, month, day: 1 }
@@ -119,6 +130,98 @@ function getNextMonth(startOfMonth: { year: number, month: number, day: number }
 
 function pad2(value: number): string {
   return String(value).padStart(2, '0')
+}
+
+function getStartOfWeekYmd(anchorDate: Date, timeZone: string): { year: number, month: number, day: number } {
+  const start = getStartOfDay(anchorDate, timeZone)
+  const weekday = getIsoWeekday(anchorDate, timeZone)
+  return shiftLocalDate(start, timeZone, -(weekday - 1))
+}
+
+export function buildWeekDays(anchorDate: Date, timeZone: string): CalendarWeekDay[] {
+  const start = getStartOfWeekYmd(anchorDate, timeZone)
+  const labelFormatter = new Intl.DateTimeFormat('fr-FR', {
+    timeZone,
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short'
+  })
+
+  const days: CalendarWeekDay[] = []
+  for (let i = 0; i < 7; i++) {
+    const ymd = shiftLocalDate(start, timeZone, i)
+    const date = toUtcDateFromZonedParts({ ...ymd, hour: 12, minute: 0 }, timeZone)
+    const key = `${ymd.year}-${pad2(ymd.month)}-${pad2(ymd.day)}`
+    days.push({ key, date, label: labelFormatter.format(date) })
+  }
+
+  return days
+}
+
+export function buildDay(anchorDate: Date, timeZone: string): CalendarWeekDay {
+  const ymd = getStartOfDay(anchorDate, timeZone)
+  const date = toUtcDateFromZonedParts({ ...ymd, hour: 12, minute: 0 }, timeZone)
+  const key = `${ymd.year}-${pad2(ymd.month)}-${pad2(ymd.day)}`
+  const labelFormatter = new Intl.DateTimeFormat('fr-FR', {
+    timeZone,
+    weekday: 'long',
+    day: '2-digit',
+    month: 'short'
+  })
+
+  return { key, date, label: labelFormatter.format(date) }
+}
+
+export function buildMonthGrid(anchorDate: Date, timeZone: string): CalendarMonthCell[] {
+  const startOfMonth = getStartOfMonth(anchorDate, timeZone)
+  const month = startOfMonth.month
+  const startOfMonthDate = toUtcDateFromZonedParts({ ...startOfMonth, hour: 12, minute: 0 }, timeZone)
+  const startOfGrid = getStartOfWeekYmd(startOfMonthDate, timeZone)
+
+  const cells: CalendarMonthCell[] = []
+  for (let i = 0; i < 42; i++) {
+    const ymd = shiftLocalDate(startOfGrid, timeZone, i)
+    const date = toUtcDateFromZonedParts({ ...ymd, hour: 12, minute: 0 }, timeZone)
+    const key = `${ymd.year}-${pad2(ymd.month)}-${pad2(ymd.day)}`
+    cells.push({
+      key,
+      date,
+      dayNumber: ymd.day,
+      inMonth: ymd.month === month
+    })
+  }
+
+  return cells
+}
+
+export function shiftAnchorDate(anchorDate: Date, input: { view: CalendarViewMode, direction: -1 | 1, timeZone: string }): Date {
+  const { view, direction, timeZone } = input
+  const parts = getZonedParts(anchorDate, timeZone)
+  const ymd = { year: parts.year, month: parts.month, day: parts.day }
+
+  if (view === 'day') {
+    const shifted = shiftLocalDate(ymd, timeZone, direction)
+    return toUtcDateFromZonedParts({ ...shifted, hour: 12, minute: 0 }, timeZone)
+  }
+
+  if (view === 'week') {
+    const shifted = shiftLocalDate(ymd, timeZone, direction * 7)
+    return toUtcDateFromZonedParts({ ...shifted, hour: 12, minute: 0 }, timeZone)
+  }
+
+  const monthDelta = direction
+  let year = ymd.year
+  let month = ymd.month + monthDelta
+  if (month <= 0) {
+    year -= 1
+    month += 12
+  }
+  if (month >= 13) {
+    year += 1
+    month -= 12
+  }
+
+  return toUtcDateFromZonedParts({ year, month, day: 1, hour: 12, minute: 0 }, timeZone)
 }
 
 export function buildCalendarRange(input: { anchorDate: Date, view: CalendarViewMode, timeZone: string }): CalendarRange {
@@ -136,7 +239,7 @@ export function buildCalendarRange(input: { anchorDate: Date, view: CalendarView
   }
 
   if (view === 'week') {
-    const start = getStartOfWeek(anchorDate, timeZone)
+    const start = getStartOfWeekYmd(anchorDate, timeZone)
     const next = shiftLocalDate(start, timeZone, 7)
     return {
       view,

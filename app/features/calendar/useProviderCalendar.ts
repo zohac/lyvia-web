@@ -13,7 +13,7 @@ import type {
 import { extractFieldErrorsFromDetails, mapCalendarErrorToMessage } from './api/calendar-error'
 import { groupAppointmentsByLocalDay, sortAppointmentsByStartAt } from './domain/appointments'
 import type { CalendarViewMode } from './domain/range'
-import { buildCalendarRange } from './domain/range'
+import { buildCalendarRange, shiftAnchorDate } from './domain/range'
 import {
   cancelProviderAppointment,
   createProviderManualAppointment,
@@ -110,6 +110,18 @@ export async function useProviderCalendar() {
   function clearActionErrors() {
     actionErrorMessage.value = null
     actionFieldErrors.value = {}
+  }
+
+  function goToday() {
+    anchorDate.value = new Date()
+  }
+
+  function goPrev() {
+    anchorDate.value = shiftAnchorDate(anchorDate.value, { view: view.value, direction: -1, timeZone: timeZone.value })
+  }
+
+  function goNext() {
+    anchorDate.value = shiftAnchorDate(anchorDate.value, { view: view.value, direction: 1, timeZone: timeZone.value })
   }
 
   async function refresh(options: { revalidate?: boolean } = {}): Promise<void> {
@@ -278,6 +290,9 @@ export async function useProviderCalendar() {
     refresh,
     createAppointment,
     updateAppointment,
-    cancelAppointment
+    cancelAppointment,
+    goToday,
+    goPrev,
+    goNext
   }
 }

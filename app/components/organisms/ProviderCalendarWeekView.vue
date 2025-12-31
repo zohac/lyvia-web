@@ -1,0 +1,252 @@
+<script setup lang="ts">
+import type { ProviderAppointmentListItem } from '../../features/calendar/api/calendar.contract'
+import type { CalendarWeekDay } from '../../features/calendar/domain/range'
+import { getYmdInTimeZone } from '../../features/slots/domain/slots'
+import { getAppointmentAccentClass, getAppointmentMetaClass, getAppointmentNameClass } from '../../features/calendar/presentation/appointment-style'
+
+const emit = defineEmits<{
+  (e: 'select:appointment', appointment: ProviderAppointmentListItem): void
+  (e: 'select:empty', payload: { dayKey: string, minutes: number }): void
+}>()
+
+const props = withDefaults(
+  defineProps<{
+    timeZone: string
+    days: CalendarWeekDay[]
+    appointments: ProviderAppointmentListItem[]
+    /**
+     * Pixels per minute in the grid.
+     */
+    pxPerMinute?: number
+    mode?: 'week' | 'day'
+  }>(),
+  {
+    pxPerMinute: 1,
+    mode: 'week'
+  }
+)
+
+const scrollRef = ref<HTMLDivElement | null>(null)
+
+const gridStyle = computed(() => ({
+  gridTemplateColumns: `88px repeat(${Math.max(1, props.days.length)}, minmax(0, 1fr))`
+}))
+
+const modeLabel = computed(() => (props.mode === 'day' ? 'Vue jour' : 'Vue semaine'))
+
+function getZonedHourMinute(
+  date: Date,
+  timeZone: string,
+  options: { allow24Hour?: boolean } = {}
+): { hour: number, minute: number } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(date)
+
+  const map: Record<string, string> = {}
+  for (const part of parts) {
+    if (part.type !== 'literal') map[part.type] = part.value
+  }
+
+  const rawHour = map.hour ?? '0'
+  const parsedHour = Number(rawHour)
+  const hour = rawHour === '24' && options.allow24Hour ? 24 : parsedHour
+  const minute = Number(map.minute ?? '0')
+  return { hour: Number.isFinite(hour) ? hour : 0, minute: Number.isFinite(minute) ? minute : 0 }
+}
+
+function minutesSinceStartOfDay(iso: string, options: { allow24Hour?: boolean } = {}): number {
+  const date = new Date(iso)
+  const { hour, minute } = getZonedHourMinute(date, props.timeZone, options)
+  const clampedHour = hour === 24 && minute === 0 ? 24 : hour % 24
+  const total = clampedHour * 60 + minute
+  return Math.min(24 * 60, Math.max(0, total))
+}
+
+function formatTimeRange(appointment: ProviderAppointmentListItem): string {
+  const start = getZonedHourMinute(new Date(appointment.startAt), props.timeZone)
+  const end = getZonedHourMinute(new Date(appointment.endAt), props.timeZone, { allow24Hour: true })
+  const pad = (value: number) => String(value).padStart(2, '0')
+  const startHour = start.hour % 24
+  const endHour = end.hour % 24
+  return `${pad(startHour)}:${pad(start.minute)}–${pad(endHour)}:${pad(end.minute)}`
+}
+
+function eventAccentClass(appointment: ProviderAppointmentListItem): string {
+  return getAppointmentAccentClass(appointment)
+}
+
+function eventMetaClass(appointment: ProviderAppointmentListItem): string {
+  return getAppointmentMetaClass(appointment)
+}
+
+function eventNameClass(appointment: ProviderAppointmentListItem): string {
+  return getAppointmentNameClass(appointment)
+}
+
+const rows = computed(() => Array.from({ length: 24 }, (_, idx) => idx))
+
+const appointmentsByDayKey = computed(() => {
+  const byKey = new Map<string, ProviderAppointmentListItem[]>()
+  for (const item of props.appointments) {
+    const key = getYmdInTimeZone(new Date(item.startAt), props.timeZone)
+    const list = byKey.get(key) ?? []
+    list.push(item)
+    byKey.set(key, list)
+  }
+  for (const list of byKey.values()) {
+    list.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+  }
+  return byKey
+})
+
+function scrollToDefaultWindow() {
+  const el = scrollRef.value
+  if (!el) return
+  const centerMinute = 13 * 60
+  const target = centerMinute * props.pxPerMinute - el.clientHeight / 2
+  el.scrollTop = Math.max(0, target)
+}
+
+function onEmptyClick(event: MouseEvent, dayKey: string) {
+  const scrollEl = scrollRef.value
+  const targetEl = event.currentTarget as HTMLElement | null
+  if (!scrollEl || !targetEl) return
+
+  const rect = targetEl.getBoundingClientRect()
+  const y = event.clientY - rect.top + scrollEl.scrollTop
+  const minutes = Math.min(23 * 60 + 59, Math.max(0, Math.round(y / props.pxPerMinute)))
+  // Snap to 15 min for nicer UX.
+  const snapped = Math.round(minutes / 15) * 15
+  // Avoid 24:00 overflow.
+  const safe = Math.min(23 * 60 + 45, Math.max(0, snapped))
+  emit('select:empty', { dayKey, minutes: safe })
+}
+
+onMounted(() => {
+  scrollToDefaultWindow()
+})
+</script>
+
+<template>
+  <section class="rounded-blob-b border border-white/60 bg-white/70 p-6 shadow-soft backdrop-blur">
+    <div class="flex items-center justify-between gap-3">
+      <div class="grid gap-1">
+        <p class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-secondary)]">
+          {{ modeLabel }}
+        </p>
+        <p class="text-sm text-[color:var(--color-brand-secondary)]">
+          Fuseau : {{ timeZone }}
+        </p>
+      </div>
+      <div class="hidden items-center gap-2 text-xs text-[color:var(--color-brand-secondary)] md:flex">
+        <span
+          class="inline-flex size-2 rounded-full bg-[color:var(--color-accent-main)]"
+          aria-hidden="true"
+        />
+        <span>Discovery</span>
+        <span
+          class="ml-3 inline-flex size-2 rounded-full bg-[color:var(--color-brand-primary)]"
+          aria-hidden="true"
+        />
+        <span>Consultation</span>
+      </div>
+    </div>
+
+    <div class="mt-6 overflow-hidden rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-white/70">
+      <div
+        class="grid border-b border-[rgba(231,229,228,0.75)] bg-[color:var(--color-surface-highlight)]"
+        :style="gridStyle"
+      >
+        <div class="px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+          Heure
+        </div>
+        <div
+          v-for="day in days"
+          :key="day.key"
+          class="px-3 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[color:var(--color-brand-primary)]"
+        >
+          {{ day.label }}
+        </div>
+      </div>
+
+      <div
+        ref="scrollRef"
+        class="relative max-h-[560px] overflow-auto"
+      >
+        <div
+          class="grid"
+          :style="gridStyle"
+        >
+          <div class="relative border-r border-[rgba(231,229,228,0.75)] bg-white/50">
+            <div
+              v-for="hour in rows"
+              :key="hour"
+              class="relative h-[calc(var(--ppm)_*_60px)] border-b border-[rgba(231,229,228,0.6)] px-4 py-2 text-xs font-medium text-[color:var(--color-brand-secondary)]"
+              :style="{ '--ppm': String(pxPerMinute) }"
+            >
+              {{ String(hour).padStart(2, '0') }}:00
+            </div>
+          </div>
+
+          <div
+            v-for="day in days"
+            :key="day.key"
+            class="relative border-r border-[rgba(231,229,228,0.6)] last:border-r-0"
+          >
+            <button
+              type="button"
+              class="absolute inset-0 z-0 w-full cursor-pointer bg-transparent text-left"
+              @click="onEmptyClick($event, day.key)"
+            >
+              <span class="sr-only">Créer un rendez-vous</span>
+            </button>
+
+            <div
+              v-for="hour in rows"
+              :key="`${day.key}:${hour}`"
+              class="h-[calc(var(--ppm)_*_60px)] border-b border-[rgba(231,229,228,0.45)]"
+              :style="{ '--ppm': String(pxPerMinute) }"
+            />
+
+            <div
+              v-for="appointment in appointmentsByDayKey.get(day.key) ?? []"
+              :key="appointment.id"
+              class="absolute left-2 right-2 z-10"
+              :style="{
+                top: `${minutesSinceStartOfDay(appointment.startAt) * pxPerMinute}px`,
+                height: `${Math.max(
+                  24,
+                  (minutesSinceStartOfDay(appointment.endAt, { allow24Hour: true }) - minutesSinceStartOfDay(appointment.startAt)) * pxPerMinute
+                )}px`
+              }"
+            >
+              <button
+                type="button"
+                class="h-full w-full overflow-hidden rounded-2xl px-3 py-2 text-left text-xs font-bold shadow-soft transition-base hover:shadow-floating focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary)]"
+                :class="[eventAccentClass(appointment), eventMetaClass(appointment)]"
+                @click.stop="emit('select:appointment', appointment)"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="truncate">
+                    {{ appointment.type === 'consultation' ? 'Consultation' : 'Discovery' }}
+                  </span>
+                  <span class="shrink-0 opacity-90">{{ formatTimeRange(appointment) }}</span>
+                </div>
+                <div
+                  class="mt-1 text-[11px] font-medium opacity-90"
+                  :class="eventNameClass(appointment)"
+                >
+                  {{ appointment.firstname }} {{ appointment.lastname }}
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
