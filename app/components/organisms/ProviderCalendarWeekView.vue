@@ -14,6 +14,13 @@ const props = withDefaults(
     timeZone: string
     days: CalendarWeekDay[]
     appointments: ProviderAppointmentListItem[]
+    highlight?: {
+      dayKey: string
+      startMinutes: number
+      endMinutes: number
+      appointmentId: string | null
+      autoScroll: boolean
+    } | null
     /**
      * Pixels per minute in the grid.
      */
@@ -21,6 +28,7 @@ const props = withDefaults(
     mode?: 'week' | 'day'
   }>(),
   {
+    highlight: null,
     pxPerMinute: 1,
     mode: 'week'
   }
@@ -111,12 +119,27 @@ function scrollToDefaultWindow() {
   el.scrollTop = Math.max(0, target)
 }
 
+function scrollToHighlight() {
+  const highlight = props.highlight
+  if (!highlight?.autoScroll) return
+  const scrollEl = scrollRef.value
+  if (!scrollEl) return
+
+  const center = (highlight.startMinutes + highlight.endMinutes) / 2
+  const centerPx = center * props.pxPerMinute
+  const viewportStart = scrollEl.scrollTop
+  const viewportEnd = viewportStart + scrollEl.clientHeight
+
+  if (centerPx >= viewportStart && centerPx <= viewportEnd) return
+
+  scrollEl.scrollTop = Math.max(0, centerPx - scrollEl.clientHeight / 2)
+}
+
 function onEmptyClick(event: MouseEvent, dayKey: string) {
   const scrollEl = scrollRef.value
-  const targetEl = event.currentTarget as HTMLElement | null
-  if (!scrollEl || !targetEl) return
+  if (!scrollEl) return
 
-  const rect = targetEl.getBoundingClientRect()
+  const rect = scrollEl.getBoundingClientRect()
   const y = event.clientY - rect.top + scrollEl.scrollTop
   const minutes = Math.min(23 * 60 + 59, Math.max(0, Math.round(y / props.pxPerMinute)))
   // Snap to 15 min for nicer UX.
@@ -128,7 +151,15 @@ function onEmptyClick(event: MouseEvent, dayKey: string) {
 
 onMounted(() => {
   scrollToDefaultWindow()
+  scrollToHighlight()
 })
+
+watch(
+  () => props.highlight,
+  () => {
+    scrollToHighlight()
+  }
+)
 </script>
 
 <template>
@@ -213,6 +244,16 @@ onMounted(() => {
             />
 
             <div
+              v-if="highlight && highlight.dayKey === day.key"
+              class="pointer-events-none absolute left-2 right-2 z-[5] rounded-2xl bg-[rgba(245,158,11,0.12)] ring-2 ring-[color:var(--color-warning)] shadow-soft animate-pulse"
+              :style="{
+                top: `${highlight.startMinutes * pxPerMinute}px`,
+                height: `${Math.max(24, (highlight.endMinutes - highlight.startMinutes) * pxPerMinute)}px`
+              }"
+              aria-hidden="true"
+            />
+
+            <div
               v-for="appointment in appointmentsByDayKey.get(day.key) ?? []"
               :key="appointment.id"
               class="absolute left-2 right-2 z-10"
@@ -227,7 +268,11 @@ onMounted(() => {
               <button
                 type="button"
                 class="h-full w-full overflow-hidden rounded-2xl px-3 py-2 text-left text-xs font-bold shadow-soft transition-base hover:shadow-floating focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary)]"
-                :class="[eventAccentClass(appointment), eventMetaClass(appointment)]"
+                :class="[
+                  eventAccentClass(appointment),
+                  eventMetaClass(appointment),
+                  highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-warning)] animate-pulse' : ''
+                ]"
                 @click.stop="emit('select:appointment', appointment)"
               >
                 <div class="flex items-center justify-between gap-2">

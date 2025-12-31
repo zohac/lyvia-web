@@ -89,12 +89,14 @@ export default defineEventHandler(async (event) => {
   const incomingAuthorization = getRequestHeader(event, 'authorization')
   const incomingCookie = getRequestHeader(event, 'cookie')
   const incomingAccept = getRequestHeader(event, 'accept')
+  const incomingIdempotencyKey = getRequestHeader(event, 'idempotency-key')
 
   const headers = new Headers()
   if (incomingAccept) headers.set('accept', incomingAccept)
   if (incomingContentType) headers.set('content-type', incomingContentType)
   if (incomingAuthorization) headers.set('authorization', incomingAuthorization)
   if (incomingCookie) headers.set('cookie', incomingCookie)
+  if (incomingIdempotencyKey) headers.set('idempotency-key', incomingIdempotencyKey)
 
   // Trust boundary: we DO NOT forward X-Forwarded-* from the browser.
   // The upstream expects them from a trusted proxy; Nitro acts as that proxy here.

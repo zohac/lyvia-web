@@ -14,6 +14,7 @@ const props = defineProps<{
   timeZone: string
   anchorDate: Date
   appointments: ProviderAppointmentListItem[]
+  highlight?: { dayKey: string, appointmentId: string | null } | null
 }>()
 
 const monthCells = computed<CalendarMonthCell[]>(() => buildMonthGrid(props.anchorDate, props.timeZone))
@@ -130,6 +131,12 @@ function onSelectDay(dayKey: string) {
           class="relative min-h-[112px] border-b border-r border-[rgba(231,229,228,0.45)] p-3 last:border-r-0"
           :class="cell.inMonth ? 'bg-white/40' : 'bg-[rgba(231,229,228,0.22)] text-[color:var(--color-brand-secondary)] opacity-70'"
         >
+          <div
+            v-if="highlight?.dayKey === cell.key"
+            class="pointer-events-none absolute inset-2 rounded-blob-d bg-[rgba(245,158,11,0.10)] ring-2 ring-[color:var(--color-warning)] shadow-soft animate-pulse"
+            aria-hidden="true"
+          />
+
           <button
             type="button"
             class="absolute inset-0 z-0 w-full cursor-pointer bg-transparent text-left"
@@ -172,7 +179,11 @@ function onSelectDay(dayKey: string) {
                       :key="appointment.id"
                       type="button"
                       class="flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2 text-left text-xs font-bold shadow-soft transition-base hover:shadow-floating focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary)]"
-                      :class="[eventAccentClass(appointment), eventMetaClass(appointment)]"
+                      :class="[
+                        eventAccentClass(appointment),
+                        eventMetaClass(appointment),
+                        highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-warning)] animate-pulse' : ''
+                      ]"
                       @click="onSelectAppointment(appointment)"
                     >
                       <span class="truncate">
@@ -194,7 +205,11 @@ function onSelectDay(dayKey: string) {
               :key="appointment.id"
               type="button"
               class="flex w-full items-center justify-between gap-2 rounded-2xl px-2 py-1 text-left text-[11px] font-bold shadow-soft transition-base hover:shadow-floating focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary)]"
-              :class="[eventAccentClass(appointment), eventMetaClass(appointment)]"
+              :class="[
+                eventAccentClass(appointment),
+                eventMetaClass(appointment),
+                highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-warning)] animate-pulse' : ''
+              ]"
               @click.stop="onSelectAppointment(appointment)"
             >
               <span class="truncate">

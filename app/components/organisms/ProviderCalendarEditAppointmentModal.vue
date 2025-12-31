@@ -1,0 +1,335 @@
+<script setup lang="ts">
+import type { ProviderAppointmentListItem, UpdateProviderAppointmentRequest } from '../../features/calendar/api/calendar.contract'
+import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
+import { getYmdInTimeZone } from '../../features/slots/domain/slots'
+import { minutesToHHmm, parseHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
+import SystemAlert from '../atoms/SystemAlert.vue'
+
+const props = withDefaults(
+  defineProps<{
+    open: boolean
+    appointment: ProviderAppointmentListItem | null
+    timeZone: string
+    loading?: boolean
+    error?: string | null
+    fieldErrors?: Record<string, string>
+  }>(),
+  {
+    loading: false,
+    error: null,
+    fieldErrors: () => ({})
+  }
+)
+
+const emit = defineEmits<{
+  (event: 'update:open', value: boolean): void
+  (event: 'submit', payload: { appointmentId: string, body: UpdateProviderAppointmentRequest }): void
+}>()
+
+const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
+const isFullScreen = computed(() => !isDesktop.value)
+
+const dayKey = ref('')
+const time = ref('09:00')
+const durationMinutes = ref<number>(60)
+const notes = ref<string>('')
+
+const localValidationError = ref<string | null>(null)
+
+const canEdit = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return false
+  if (appointment.status !== 'scheduled') return false
+  if (appointment.type === 'consultation' && appointment.paymentStatus === 'paid') return false
+  return true
+})
+
+const disabledReason = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return 'Aucun rendez-vous sélectionné.'
+  if (appointment.status !== 'scheduled') return 'Impossible de modifier un rendez-vous déjà clôturé.'
+  if (appointment.type === 'consultation' && appointment.paymentStatus === 'paid') {
+    return 'Impossible de modifier un rendez-vous payé.'
+  }
+  return null
+})
+
+const typeLabel = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return null
+  return appointment.type === 'consultation' ? 'Consultation' : 'Discovery'
+})
+
+const durationLabel = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return ''
+  const minutes = appointment.type === 'discovery' ? 15 : durationMinutes.value
+  return `${minutes} min`
+})
+
+function accentClasses(appointment: ProviderAppointmentListItem): string {
+  return [getAppointmentAccentClass(appointment), getAppointmentMetaClass(appointment)].join(' ')
+}
+
+watch(
+  () => props.open,
+  (next) => {
+    if (!next) {
+      localValidationError.value = null
+    }
+  }
+)
+
+watch(
+  () => props.appointment?.id,
+  (next) => {
+    localValidationError.value = null
+    const appointment = props.appointment
+    if (!appointment || !next) return
+
+    const date = new Date(appointment.startAt)
+    dayKey.value = getYmdInTimeZone(date, props.timeZone)
+
+    const hoursMinutes = new Intl.DateTimeFormat('en-GB', {
+      timeZone: props.timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23'
+    }).format(date)
+
+    const parsedTime = parseHHmm(hoursMinutes)
+    time.value = parsedTime ? minutesToHHmm(parsedTime.hour * 60 + parsedTime.minute) : '09:00'
+
+    durationMinutes.value = appointment.durationMinutes
+    notes.value = appointment.notes ?? ''
+  },
+  { immediate: true }
+)
+
+function updateOpen(value: boolean) {
+  if (props.loading) return
+  emit('update:open', value)
+}
+
+function submit() {
+  const appointment = props.appointment
+  if (!appointment) return
+
+  localValidationError.value = null
+
+  if (!canEdit.value) {
+    localValidationError.value = disabledReason.value ?? 'Modification indisponible.'
+    return
+  }
+
+  const utcStartAt = zonedLocalDateTimeToUtcIso({
+    dayKey: dayKey.value,
+    time: time.value,
+    timeZone: props.timeZone
+  })
+
+  if (!utcStartAt) {
+    localValidationError.value = 'Veuillez vérifier la date et l’heure.'
+    return
+  }
+
+  const nextDuration = appointment.type === 'discovery'
+    ? 15
+    : Math.max(1, Math.floor(Number(durationMinutes.value) || 0))
+
+  if (appointment.type === 'consultation' && nextDuration <= 0) {
+    localValidationError.value = 'La durée doit être supérieure à 0.'
+    return
+  }
+
+  const trimmedNotes = notes.value.trim()
+
+  emit('submit', {
+    appointmentId: appointment.id,
+    body: {
+      startAt: utcStartAt,
+      durationMinutes: appointment.type === 'consultation' ? nextDuration : undefined,
+      notes: trimmedNotes ? trimmedNotes : null
+    }
+  })
+}
+</script>
+
+<template>
+  <UModal
+    :open="open"
+    :fullscreen="isFullScreen"
+    :dismissible="!loading"
+    :ui="{
+      content: isFullScreen
+        ? 'bg-white/92 backdrop-blur-md'
+        : 'rounded-blob-c border border-white/70 bg-white/85 shadow-floating backdrop-blur-md',
+      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[rgba(231,229,228,0.7)]' : 'px-8 pt-8 pb-4',
+      body: isFullScreen ? 'px-6 pb-6 pt-4' : 'px-8 pb-6',
+      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[rgba(231,229,228,0.7)]' : 'px-8 pb-8 pt-6',
+      title:
+        'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
+      description: 'text-sm text-[color:var(--color-brand-secondary)]'
+    }"
+    :close="{ class: 'rounded-full' }"
+    @update:open="updateOpen"
+  >
+    <template #title>
+      Modifier le rendez-vous
+    </template>
+
+    <template #description>
+      <div class="flex flex-wrap items-center gap-2">
+        <span
+          v-if="appointment"
+          class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold"
+          :class="accentClasses(appointment)"
+        >
+          {{ typeLabel }}
+        </span>
+        <span>Fuseau : {{ timeZone }}</span>
+      </div>
+    </template>
+
+    <template #body>
+      <div class="grid gap-6">
+        <SystemAlert
+          v-if="error"
+          variant="error"
+          title="Action impossible"
+          :description="error"
+        />
+
+        <SystemAlert
+          v-else-if="localValidationError"
+          variant="warning"
+          title="Vérification"
+          :description="localValidationError"
+        />
+
+        <section class="rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
+          <div class="grid gap-4">
+            <div class="grid gap-2 md:grid-cols-2">
+              <div class="grid gap-2">
+                <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+                  Date
+                </label>
+                <UInput
+                  v-model="dayKey"
+                  type="date"
+                  :disabled="loading || !canEdit"
+                />
+                <p
+                  v-if="fieldErrors?.startAt"
+                  class="text-xs font-bold text-[color:var(--color-error)]"
+                >
+                  {{ fieldErrors.startAt }}
+                </p>
+              </div>
+              <div class="grid gap-2">
+                <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+                  Heure
+                </label>
+                <UInput
+                  v-model="time"
+                  type="time"
+                  :disabled="loading || !canEdit"
+                />
+              </div>
+            </div>
+
+            <div class="grid gap-2">
+              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+                Durée
+              </label>
+              <div class="flex flex-wrap items-center gap-3">
+                <span
+                  v-if="appointment?.type === 'discovery'"
+                  class="inline-flex items-center rounded-full bg-[color:var(--color-surface-highlight)] px-4 py-2 text-sm font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)]"
+                >
+                  15 min (verrouillé)
+                </span>
+                <UInput
+                  v-else
+                  v-model.number="durationMinutes"
+                  type="number"
+                  min="15"
+                  step="5"
+                  :disabled="loading || !canEdit"
+                />
+                <span class="text-sm text-[color:var(--color-brand-secondary)]">
+                  {{ durationLabel }}
+                </span>
+              </div>
+              <p
+                v-if="fieldErrors?.durationMinutes"
+                class="text-xs font-bold text-[color:var(--color-error)]"
+              >
+                {{ fieldErrors.durationMinutes }}
+              </p>
+            </div>
+
+            <div class="grid gap-2">
+              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+                Notes (optionnel)
+              </label>
+              <UTextarea
+                v-model="notes"
+                placeholder="Notes privées…"
+                :rows="4"
+                variant="none"
+                class="w-full rounded-input border border-[rgba(231,229,228,0.9)] bg-[color:var(--color-surface-highlight)] p-3 text-sm text-[color:var(--color-brand-primary)] focus:ring-2 focus:ring-[color:var(--color-brand-solid)]"
+                :disabled="loading || !canEdit"
+              />
+              <p
+                v-if="fieldErrors?.notes"
+                class="text-xs font-bold text-[color:var(--color-error)]"
+              >
+                {{ fieldErrors.notes }}
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </template>
+
+    <template #footer>
+      <div class="flex flex-wrap justify-end gap-3">
+        <UButton
+          color="neutral"
+          variant="ghost"
+          class="rounded-full"
+          :disabled="loading"
+          @click="updateOpen(false)"
+        >
+          Annuler
+        </UButton>
+
+        <UTooltip
+          v-if="!canEdit"
+          :text="disabledReason ?? ''"
+        >
+          <span class="inline-flex">
+            <UButton
+              color="primary"
+              class="rounded-full px-6"
+              disabled
+            >
+              Enregistrer
+            </UButton>
+          </span>
+        </UTooltip>
+
+        <UButton
+          v-else
+          color="primary"
+          class="rounded-full px-6"
+          :loading="loading"
+          @click="submit"
+        >
+          Enregistrer
+        </UButton>
+      </div>
+    </template>
+  </UModal>
+</template>

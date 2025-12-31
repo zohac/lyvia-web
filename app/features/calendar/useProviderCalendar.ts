@@ -22,6 +22,7 @@ import {
 } from './services/provider-calendar.service'
 import { createUuidV4 } from '../../utils/uuid'
 import { useAuthState } from '../auth/state/auth.state'
+import { ApiFetchError } from '../../services/api/api-error'
 
 type CalendarFilters = {
   type?: ProviderCalendarAppointmentType
@@ -185,23 +186,41 @@ export async function useProviderCalendar() {
     }
   }
 
-  async function createAppointment(input: CreateProviderManualAppointmentRequest): Promise<CreateProviderManualAppointmentResponse | null> {
+  async function createAppointment(
+    input: CreateProviderManualAppointmentRequest,
+    options: { idempotencyKey?: string } = {}
+  ): Promise<
+    | { ok: true, response: CreateProviderManualAppointmentResponse }
+    | { ok: false, kind: 'validation' | 'overlap' | 'unknown', message: string }
+  > {
     clearActionErrors()
     actionPending.value = true
     try {
+      const idempotencyKey = options.idempotencyKey ?? createUuidV4()
       const response = await createProviderManualAppointment({
-        idempotencyKey: createUuidV4(),
+        idempotencyKey,
         body: input
       })
       await refresh({ revalidate: true })
-      return response
+      return { ok: true, response }
     } catch (err: unknown) {
-      actionErrorMessage.value = mapCalendarErrorToMessage(err)
-      if (err instanceof Error && 'apiError' in err) {
-        const anyErr = err as unknown as { apiError?: { details?: unknown } }
-        actionFieldErrors.value = extractFieldErrorsFromDetails(anyErr.apiError?.details)
+      const message = mapCalendarErrorToMessage(err)
+      actionErrorMessage.value = message
+
+      if (err instanceof ApiFetchError) {
+        actionFieldErrors.value = extractFieldErrorsFromDetails(err.apiError.details)
+
+        if (err.apiError.statusCode === 409 && err.apiError.code === 'APPOINTMENT_OVERLAP') {
+          await refresh({ revalidate: true })
+          return { ok: false, kind: 'overlap', message }
+        }
+
+        if (err.apiError.statusCode === 422 || err.apiError.code === 'VALIDATION_ERROR') {
+          return { ok: false, kind: 'validation', message }
+        }
       }
-      return null
+
+      return { ok: false, kind: 'unknown', message }
     } finally {
       actionPending.value = false
     }
@@ -210,20 +229,37 @@ export async function useProviderCalendar() {
   async function updateAppointment(
     appointmentId: ProviderAppointmentListItem['id'],
     input: UpdateProviderAppointmentRequest
-  ): Promise<UpdateProviderAppointmentResponse | null> {
+  ): Promise<
+    | { ok: true, response: UpdateProviderAppointmentResponse }
+    | { ok: false, kind: 'validation' | 'overlap' | 'forbidden' | 'unknown', message: string }
+  > {
     clearActionErrors()
     actionPending.value = true
     try {
       const response = await updateProviderAppointment(appointmentId, input)
       await refresh({ revalidate: true })
-      return response
+      return { ok: true, response }
     } catch (err: unknown) {
-      actionErrorMessage.value = mapCalendarErrorToMessage(err)
-      if (err instanceof Error && 'apiError' in err) {
-        const anyErr = err as unknown as { apiError?: { details?: unknown } }
-        actionFieldErrors.value = extractFieldErrorsFromDetails(anyErr.apiError?.details)
+      const message = mapCalendarErrorToMessage(err)
+      actionErrorMessage.value = message
+
+      if (err instanceof ApiFetchError) {
+        actionFieldErrors.value = extractFieldErrorsFromDetails(err.apiError.details)
+
+        if (err.apiError.statusCode === 403) {
+          return { ok: false, kind: 'forbidden', message }
+        }
+
+        if (err.apiError.statusCode === 409 && err.apiError.code === 'APPOINTMENT_OVERLAP') {
+          await refresh({ revalidate: true })
+          return { ok: false, kind: 'overlap', message }
+        }
+
+        if (err.apiError.statusCode === 422 || err.apiError.code === 'VALIDATION_ERROR') {
+          return { ok: false, kind: 'validation', message }
+        }
       }
-      return null
+      return { ok: false, kind: 'unknown', message }
     } finally {
       actionPending.value = false
     }
@@ -232,7 +268,10 @@ export async function useProviderCalendar() {
   async function cancelAppointment(input: {
     appointmentId: ProviderAppointmentListItem['id']
     body: CancelProviderAppointmentRequest
-  }): Promise<CancelProviderAppointmentResponse | null> {
+  }): Promise<
+    | { ok: true, response: CancelProviderAppointmentResponse }
+    | { ok: false, kind: 'validation' | 'forbidden' | 'unknown', message: string }
+  > {
     clearActionErrors()
     actionPending.value = true
     try {
@@ -242,14 +281,23 @@ export async function useProviderCalendar() {
         body: input.body
       })
       await refresh({ revalidate: true })
-      return response
+      return { ok: true, response }
     } catch (err: unknown) {
-      actionErrorMessage.value = mapCalendarErrorToMessage(err)
-      if (err instanceof Error && 'apiError' in err) {
-        const anyErr = err as unknown as { apiError?: { details?: unknown } }
-        actionFieldErrors.value = extractFieldErrorsFromDetails(anyErr.apiError?.details)
+      const message = mapCalendarErrorToMessage(err)
+      actionErrorMessage.value = message
+
+      if (err instanceof ApiFetchError) {
+        actionFieldErrors.value = extractFieldErrorsFromDetails(err.apiError.details)
+
+        if (err.apiError.statusCode === 403) {
+          return { ok: false, kind: 'forbidden', message }
+        }
+
+        if (err.apiError.statusCode === 422 || err.apiError.code === 'VALIDATION_ERROR') {
+          return { ok: false, kind: 'validation', message }
+        }
       }
-      return null
+      return { ok: false, kind: 'unknown', message }
     } finally {
       actionPending.value = false
     }
@@ -288,6 +336,7 @@ export async function useProviderCalendar() {
     setAnchorDate,
     setFilters,
     refresh,
+    clearActionErrors,
     createAppointment,
     updateAppointment,
     cancelAppointment,
