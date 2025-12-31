@@ -13,8 +13,8 @@ const navigation = [
     match: 'exact'
   },
   {
-    label: 'Agenda',
-    to: '/provider/agenda',
+    label: 'Calendrier',
+    to: '/provider/calendar',
     icon: 'lucide:calendar',
     match: 'prefix'
   },
