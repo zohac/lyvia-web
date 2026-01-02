@@ -44,7 +44,7 @@ const navigation = [
   },
   {
     label: 'Finance',
-    to: '/provider/payments',
+    to: '/provider/finance',
     icon: 'lucide:landmark',
     match: 'prefix'
   },

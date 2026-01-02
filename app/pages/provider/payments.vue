@@ -1,14 +1,6 @@
 <template>
-  <section class="grid gap-6">
-    <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-      <h2 class="font-serif text-[1.25rem] font-semibold leading-[var(--leading-normal)]">
-        Finance
-      </h2>
-      <p class="mt-2 text-[color:var(--color-brand-secondary)]">
-        Page placeholder (V0) — paiements et récapitulatif à venir.
-      </p>
-    </div>
-  </section>
+  <!-- Deprecated alias (V0): keep old link working without breaking bookmarks -->
+  <div />
 </template>
 
 <script setup lang="ts">
@@ -17,4 +9,6 @@ definePageMeta({
   middleware: 'auth-provider',
   pageTitle: 'Finance'
 })
+
+await navigateTo('/provider/finance', { replace: true })
 </script>
