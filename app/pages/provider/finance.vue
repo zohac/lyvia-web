@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
+import ProviderPaymentsSection from '../../components/organisms/ProviderPaymentsSection.vue'
 import { useProviderFinance } from '../../features/finance/useProviderFinance'
+import { useProviderPayments } from '../../features/payments/useProviderPayments'
 
 definePageMeta({
   layout: 'provider',
@@ -20,6 +22,7 @@ const stripeReturnCookie = useCookie<string | null>('kaora_stripe_return', {
 })
 
 const finance = await useProviderFinance()
+const payments = await useProviderPayments()
 
 const uiState = computed(() => finance.uiState.value)
 
@@ -162,6 +165,10 @@ async function onConnect() {
     window.sessionStorage.setItem('kaora_stripe_return', '1')
   }
   await finance.startConnect()
+}
+
+async function refreshPayments() {
+  await payments.refresh()
 }
 </script>
 
@@ -368,6 +375,17 @@ async function onConnect() {
           </p>
         </div>
       </div>
+
+      <ProviderPaymentsSection
+        :pending="payments.pending.value"
+        :error-message="payments.errorMessage.value"
+        :payments="payments.payments.value"
+        :next-cursor="payments.nextCursor.value"
+        :load-more-pending="payments.loadMorePending.value"
+        :load-more-error-message="payments.loadMoreErrorMessage.value"
+        @refresh="refreshPayments"
+        @load-more="payments.loadMore"
+      />
     </div>
   </section>
 </template>
