@@ -20,6 +20,7 @@ export type ClientConsultationBookingState = {
   selectedStartAt: string | null
   pending: boolean
   errorMessage: string | null
+  noticeMessage: string | null
   actionPending: boolean
   actionErrorCode: string | null
   actionErrorMessage: string | null
@@ -44,6 +45,7 @@ export async function useClientConsultationBooking() {
     selectedStartAt: null,
     pending: true,
     errorMessage: null,
+    noticeMessage: null,
     actionPending: false,
     actionErrorCode: null,
     actionErrorMessage: null,
@@ -91,9 +93,79 @@ export async function useClientConsultationBooking() {
     }
   }
 
+  function buildPricePlanMismatchMessage(): string {
+    return 'Le tarif sélectionné n’est plus disponible ou ne correspond pas à ce coach. Choisissez un autre tarif.'
+  }
+
+  function isPricePlanRelatedValidation(details: unknown): boolean {
+    const fieldErrors = extractValidationFieldErrors(details)
+    return Boolean(fieldErrors.pricePlanId || fieldErrors.providerId)
+  }
+
+  async function refreshPricingOnly(resolvedProviderId: string): Promise<void> {
+    state.pricing = await listConsultationPricePlans(resolvedProviderId)
+    state.activePlans = getActiveConsultationPricePlans(state.pricing.plans)
+
+    if (state.activePlans.length === 0) {
+      state.errorMessage = 'Aucun tarif de consultation n’est disponible pour le moment.'
+      state.availability = null
+      state.selectedPricePlanId = null
+      state.selectedStartAt = null
+      return
+    }
+
+    if (state.selectedPricePlanId && !state.activePlans.some(plan => plan.id === state.selectedPricePlanId)) {
+      state.selectedPricePlanId = null
+      state.selectedStartAt = null
+      state.availability = null
+    }
+
+    if (state.activePlans.length === 1 && !state.selectedPricePlanId) {
+      state.selectedPricePlanId = state.activePlans[0]!.id
+    }
+  }
+
+  async function refreshSlotsOnly(resolvedProviderId: string): Promise<void> {
+    const planId = state.selectedPricePlanId
+    if (!planId) {
+      state.availability = null
+      return
+    }
+
+    const range = buildConsultationAvailabilityRange(14)
+    state.availability = await listConsultationSlots({
+      providerId: resolvedProviderId,
+      from: range.from,
+      to: range.to,
+      pricePlanId: planId
+    })
+  }
+
+  async function recoverFromInvalidPricePlan(params: { resolvedProviderId: string, message: string }): Promise<void> {
+    state.noticeMessage = params.message
+    state.selectedPricePlanId = null
+    state.selectedStartAt = null
+    state.availability = null
+    state.pendingPayment = null
+
+    try {
+      await refreshPricingOnly(params.resolvedProviderId)
+      if (state.selectedPricePlanId) {
+        try {
+          await refreshSlotsOnly(params.resolvedProviderId)
+        } catch {
+          state.availability = null
+        }
+      }
+    } catch {
+      state.errorMessage = 'Impossible de recharger les tarifs. Réessayez dans quelques instants.'
+    }
+  }
+
   async function refreshAvailability(): Promise<void> {
     state.pending = true
     state.errorMessage = null
+    state.noticeMessage = null
 
     try {
       await ensureTenant()
@@ -103,50 +175,36 @@ export async function useClientConsultationBooking() {
         return
       }
 
-      state.pricing = await listConsultationPricePlans(resolvedProviderId)
-      state.activePlans = getActiveConsultationPricePlans(state.pricing.plans)
-
-      if (state.activePlans.length === 0) {
-        state.errorMessage = 'Aucun tarif de consultation n’est disponible pour le moment.'
-        state.availability = null
-        state.selectedPricePlanId = null
-        return
-      }
-
-      if (state.selectedPricePlanId && !state.activePlans.some(plan => plan.id === state.selectedPricePlanId)) {
-        state.selectedPricePlanId = null
-        state.selectedStartAt = null
-        state.availability = null
-      }
-
-      if (state.activePlans.length === 1 && !state.selectedPricePlanId) {
-        state.selectedPricePlanId = state.activePlans[0]!.id
-      }
+      await refreshPricingOnly(resolvedProviderId)
+      if (state.errorMessage) return
 
       if (state.activePlans.length > 1 && !state.selectedPricePlanId) {
         state.availability = null
         return
       }
 
-      const planId = state.selectedPricePlanId
-      if (!planId) {
-        state.availability = null
-        return
+      try {
+        await refreshSlotsOnly(resolvedProviderId)
+      } catch (err) {
+        if (err instanceof ApiFetchError) {
+          if (err.apiError.code === 'PRICE_PLAN_INACTIVE') {
+            await recoverFromInvalidPricePlan({
+              resolvedProviderId,
+              message: mapConsultationErrorToMessage(err)
+            })
+            return
+          }
+          if (err.apiError.statusCode === 422 && err.apiError.code === 'VALIDATION_ERROR' && isPricePlanRelatedValidation(err.apiError.details)) {
+            await recoverFromInvalidPricePlan({
+              resolvedProviderId,
+              message: buildPricePlanMismatchMessage()
+            })
+            return
+          }
+        }
+        throw err
       }
-
-      const range = buildConsultationAvailabilityRange(14)
-      state.availability = await listConsultationSlots({
-        providerId: resolvedProviderId,
-        from: range.from,
-        to: range.to,
-        pricePlanId: planId
-      })
     } catch (err) {
-      if (err instanceof ApiFetchError && err.apiError.code === 'PRICE_PLAN_INACTIVE') {
-        state.selectedPricePlanId = null
-        state.selectedStartAt = null
-        state.availability = null
-      }
       state.errorMessage = mapConsultationErrorToMessage(err)
     } finally {
       state.pending = false
@@ -167,6 +225,7 @@ export async function useClientConsultationBooking() {
   function selectPricePlan(pricePlanId: string | null) {
     state.selectedPricePlanId = pricePlanId
     clearSelection()
+    state.noticeMessage = null
     state.pendingPayment = null
     void refreshAvailability()
   }
@@ -219,14 +278,36 @@ export async function useClientConsultationBooking() {
           return null
         }
         if (err.apiError.code === 'PRICE_PLAN_INACTIVE') {
-          state.actionErrorMessage = mapConsultationErrorToMessage(err)
-          state.selectedPricePlanId = null
-          clearSelection()
-          await refreshAvailability()
+          state.actionErrorMessage = 'Ce tarif n’est plus disponible.'
+          const resolvedProviderId = providerId.value
+          if (resolvedProviderId) {
+            await recoverFromInvalidPricePlan({
+              resolvedProviderId,
+              message: state.actionErrorMessage
+            })
+          } else {
+            state.selectedPricePlanId = null
+            clearSelection()
+          }
           return null
         }
-        if (err.apiError.statusCode === 422 || err.apiError.code === 'VALIDATION_ERROR') {
+        if (err.apiError.statusCode === 422 && err.apiError.code === 'VALIDATION_ERROR') {
           state.actionFieldErrors = extractValidationFieldErrors(err.apiError.details)
+          if (isPricePlanRelatedValidation(err.apiError.details)) {
+            state.actionErrorMessage = buildPricePlanMismatchMessage()
+            const resolvedProviderId = providerId.value
+            if (resolvedProviderId) {
+              await recoverFromInvalidPricePlan({
+                resolvedProviderId,
+                message: state.actionErrorMessage
+              })
+            } else {
+              state.selectedPricePlanId = null
+              clearSelection()
+            }
+            return null
+          }
+
           state.actionErrorMessage = Object.keys(state.actionFieldErrors).length > 0 ? null : mapConsultationErrorToMessage(err)
           return null
         }

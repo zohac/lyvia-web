@@ -18,13 +18,13 @@ export function useConsultationCheckoutStatus(sessionId: Ref<string | null>, opt
   const intervalMs = options.intervalMs ?? 2000
   const maxAttempts = options.maxAttempts ?? 10
 
-  const state = reactive<CheckoutPollingState>({
+  const state = reactive({
     status: 'pending_confirmation',
     attempt: 0,
     lastResponse: null,
     errorMessage: null,
     isPolling: false
-  })
+  } as CheckoutPollingState)
 
   let stopped = false
   let timeoutHandle: ReturnType<typeof setTimeout> | null = null
@@ -42,17 +42,19 @@ export function useConsultationCheckoutStatus(sessionId: Ref<string | null>, opt
     state.isPolling = false
   }
 
-  async function pollOnce() {
+  async function pollOnce(): Promise<CheckoutStatus | null> {
     const id = sessionId.value
-    if (!id) return
+    if (!id) return null
 
     try {
       const response = await getCheckoutStatus(id)
       state.lastResponse = response
       state.errorMessage = null
       state.status = response.status
+      return response.status
     } catch {
       state.errorMessage = 'Impossible de vérifier le paiement pour le moment.'
+      return null
     }
   }
 
@@ -71,9 +73,9 @@ export function useConsultationCheckoutStatus(sessionId: Ref<string | null>, opt
 
     while (!stopped && state.attempt < maxAttempts) {
       state.attempt += 1
-      await pollOnce()
+      const status = await pollOnce()
 
-      if (state.status === 'confirmed' || state.status === 'failed') {
+      if (status === 'confirmed' || status === 'failed') {
         state.isPolling = false
         return
       }
@@ -83,7 +85,7 @@ export function useConsultationCheckoutStatus(sessionId: Ref<string | null>, opt
       })
     }
 
-    if (!stopped && state.status !== 'confirmed' && state.status !== 'failed') {
+    if (!stopped && state.status === 'pending_confirmation') {
       state.status = 'timeout'
     }
     state.isPolling = false

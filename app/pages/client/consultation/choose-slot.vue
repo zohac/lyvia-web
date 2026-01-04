@@ -22,6 +22,7 @@ const gateReason = computed(() => state.availability?.gates?.reason ?? null)
 const activePlans = computed(() => state.activePlans)
 const selectedPricePlan = computed(() => booking.selectedPricePlan.value)
 const mustChoosePricePlan = computed(() => activePlans.value.length > 1 && !selectedPricePlan.value)
+const hasNoActivePlans = computed(() => Boolean(state.pricing && activePlans.value.length === 0))
 
 const discoveryCtaPath = computed(() => {
   if (state.tenant?.brand.mode === 'custom_domain') return '/onboarding/discovery'
@@ -170,14 +171,66 @@ function retry() {
     </header>
 
     <SystemAlert
-      v-if="state.errorMessage"
+      v-if="state.errorMessage && !hasNoActivePlans"
       variant="error"
       title="Impossible de charger les créneaux"
       :description="state.errorMessage"
     />
 
+    <div
+      v-else-if="hasNoActivePlans"
+      class="grid gap-4 rounded-blob-d border border-[rgba(231,229,228,0.85)] bg-white/75 p-8 shadow-soft backdrop-blur"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="grid gap-2">
+        <p class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+          Tarifs indisponibles
+        </p>
+        <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
+          Aucun tarif de consultation
+        </h2>
+        <p class="text-sm leading-relaxed text-[color:var(--color-brand-secondary)]">
+          {{ state.errorMessage ?? 'Aucun tarif de consultation n’est disponible pour le moment.' }}
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <NuxtLink
+          :to="discoveryCtaPath"
+          class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
+        >
+          <Icon
+            name="lucide:phone-call"
+            size="18"
+            aria-hidden="true"
+          />
+          Réserver un appel découverte
+        </NuxtLink>
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:bg-white"
+          @click="retry"
+        >
+          <Icon
+            name="lucide:refresh-ccw"
+            size="16"
+            aria-hidden="true"
+          />
+          Actualiser les tarifs
+        </button>
+      </div>
+    </div>
+
+    <SystemAlert
+      v-else-if="state.noticeMessage"
+      variant="warning"
+      title="Tarif mis à jour"
+      :description="state.noticeMessage"
+    />
+
     <button
-      v-if="state.errorMessage"
+      v-if="state.errorMessage && !hasNoActivePlans"
       type="button"
       class="inline-flex w-fit items-center gap-2 rounded-full border border-white/70 bg-white/70 px-5 py-2.5 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:bg-white"
       @click="retry"

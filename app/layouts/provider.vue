@@ -49,6 +49,12 @@ const navigation = [
     match: 'prefix'
   },
   {
+    label: 'Tarifs consultation',
+    to: '/provider/pricing/consultations',
+    icon: 'lucide:tags',
+    match: 'prefix'
+  },
+  {
     label: 'Paramètres',
     to: '/provider/settings/payments',
     icon: 'lucide:sliders-horizontal',
