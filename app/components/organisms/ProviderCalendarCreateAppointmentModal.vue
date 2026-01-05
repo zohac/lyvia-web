@@ -20,7 +20,7 @@ const props = withDefaults(
     /**
      * Liste des price plans disponibles (chargés via useProviderCalendar).
      */
-    consultationPricePlans: ConsultationPricePlan[]
+    consultationPricePlans?: ConsultationPricePlan[]
     loading?: boolean
     error?: string | null
     fieldErrors?: Record<string, string>
@@ -46,7 +46,7 @@ type ProviderCalendarCreateAppointmentBody = {
   notes?: string | null
 } & (
   | { type: 'discovery' }
-  | { type: 'consultation'; pricePlanId: string }
+  | { type: 'consultation', pricePlanId: string }
 )
 
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
