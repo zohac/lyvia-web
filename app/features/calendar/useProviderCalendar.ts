@@ -265,6 +265,10 @@ export async function useProviderCalendar() {
           if (err.apiError.code === 'PRICE_PLAN_INACTIVE') {
             await refreshConsultationPricing({ revalidate: true })
           }
+          // Refresh pricing if pricePlanId validation error
+          if (err.apiError.code === 'VALIDATION_ERROR' && err.apiError.details?.pricePlanId) {
+            await refreshConsultationPricing({ revalidate: true })
+          }
           return { ok: false, kind: 'validation', message }
         }
       }
@@ -307,6 +311,10 @@ export async function useProviderCalendar() {
         if (err.apiError.statusCode === 422 || err.apiError.code === 'VALIDATION_ERROR') {
           // Refresh pricing if PRICE_PLAN_INACTIVE error
           if (err.apiError.code === 'PRICE_PLAN_INACTIVE') {
+            await refreshConsultationPricing({ revalidate: true })
+          }
+          // Refresh pricing if pricePlanId validation error
+          if (err.apiError.code === 'VALIDATION_ERROR' && err.apiError.details?.pricePlanId) {
             await refreshConsultationPricing({ revalidate: true })
           }
           return { ok: false, kind: 'validation', message }

@@ -9,7 +9,7 @@ import ProviderCalendarTopBar from '../../components/organisms/ProviderCalendarT
 import ProviderCalendarMonthView from '../../components/organisms/ProviderCalendarMonthView.vue'
 import ProviderCalendarWeekView from '../../components/organisms/ProviderCalendarWeekView.vue'
 import { useProviderCalendar } from '../../features/calendar/useProviderCalendar'
-import type { ProviderAppointmentListItem, ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
+import type { ProviderAppointmentListItem, ProviderCalendarAppointmentType, CreateProviderManualAppointmentRequest, UpdateProviderAppointmentRequest } from '../../features/calendar/api/calendar.contract'
 import type { ConflictHighlight } from '../../features/calendar/domain/conflict-highlight'
 import { buildDay, buildWeekDays } from '../../features/calendar/domain/range'
 import { buildConflictHighlight } from '../../features/calendar/domain/conflict-highlight'
@@ -323,7 +323,7 @@ async function onCancelAppointmentSubmit(payload: { appointmentId: string, body:
   })
 }
 
-async function onCreateAppointmentSubmit(payload: { body: { type: 'discovery' | 'consultation', startAt: string, durationMinutes?: number, pricePlanId?: string, clientProfileId: string, notes?: string | null } }) {
+async function onCreateAppointmentSubmit(payload: { body: CreateProviderManualAppointmentRequest }) {
   const idempotencyKey = createIdempotencyKey.value ?? undefined
   const result = await calendar.createAppointment(payload.body, { idempotencyKey })
   if (result.ok) {
@@ -343,9 +343,17 @@ async function onCreateAppointmentSubmit(payload: { body: { type: 'discovery' | 
       description: 'Ce créneau vient d\'être réservé. Choisissez-en un autre.',
       color: 'primary'
     })
+
+    // Calculate duration from pricePlanId for consultation
+    let durationMinutes = 15 // default for discovery
+    if (payload.body.type === 'consultation') {
+      const plan = calendar.consultationPricePlansById.value[payload.body.pricePlanId]
+      durationMinutes = plan?.durationMinutes ?? 60
+    }
+
     triggerConflictHighlight({
       startAt: payload.body.startAt,
-      durationMinutes: payload.body.type === 'discovery' ? 15 : (payload.body.durationMinutes ?? 60)
+      durationMinutes
     })
     return
   }
@@ -365,7 +373,7 @@ async function onCreateAppointmentSubmit(payload: { body: { type: 'discovery' | 
   }
 }
 
-async function onEditAppointmentSubmit(payload: { appointmentId: string, body: { startAt?: string, durationMinutes?: number, notes?: string | null } }) {
+async function onEditAppointmentSubmit(payload: { appointmentId: string, body: UpdateProviderAppointmentRequest }) {
   const result = await calendar.updateAppointment(payload.appointmentId, payload.body)
   if (result.ok) {
     toast.add({
@@ -380,16 +388,25 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: {
   if (result.kind === 'overlap') {
     toast.add({
       title: 'Créneau déjà pris',
-      description: 'Ce créneau vient d’être réservé. Choisissez-en un autre.',
+      description: 'Ce créneau vient d\'être réservé. Choisissez-en un autre.',
       color: 'primary'
     })
 
     const baseAppointment = editAppointment.value
     const startAt = payload.body.startAt ?? baseAppointment?.startAt
     if (startAt) {
+      // Calculate duration: use new pricePlanId if provided, else use appointment's current duration
+      let durationMinutes = baseAppointment?.durationMinutes ?? 60
+      if (baseAppointment?.type === 'discovery') {
+        durationMinutes = 15
+      } else if (payload.body.pricePlanId) {
+        const plan = calendar.consultationPricePlansById.value[payload.body.pricePlanId]
+        durationMinutes = plan?.durationMinutes ?? durationMinutes
+      }
+
       triggerConflictHighlight({
         startAt,
-        durationMinutes: baseAppointment?.type === 'discovery' ? 15 : (payload.body.durationMinutes ?? baseAppointment?.durationMinutes ?? 60)
+        durationMinutes
       })
     }
     return
