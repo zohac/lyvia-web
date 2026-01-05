@@ -340,7 +340,7 @@ async function onCreateAppointmentSubmit(payload: { body: { type: 'discovery' | 
   if (result.kind === 'overlap') {
     toast.add({
       title: 'Créneau déjà pris',
-      description: 'Ce créneau vient d'être réservé. Choisissez-en un autre.',
+      description: 'Ce créneau vient d\'être réservé. Choisissez-en un autre.',
       color: 'primary'
     })
     triggerConflictHighlight({
