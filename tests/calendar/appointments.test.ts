@@ -16,6 +16,7 @@ function appointment(id: string, startAt: string): ProviderAppointmentListItem {
     endAt: end.toISOString(),
     durationMinutes: 15,
     type: 'discovery',
+    pricePlanId: null,
     status: 'scheduled',
     paymentStatus: 'not_required',
     source: 'client_booking',

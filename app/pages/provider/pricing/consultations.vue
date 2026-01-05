@@ -255,7 +255,10 @@ async function onMove(plan: DisplayPlan, direction: 'up' | 'down') {
       Aucun tarif n’a été configuré pour le moment.
     </div>
 
-    <div v-else class="grid gap-3">
+    <div
+      v-else
+      class="grid gap-3"
+    >
       <article
         v-for="plan in displayPlans"
         :key="plan.id"

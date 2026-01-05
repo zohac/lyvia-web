@@ -3,6 +3,8 @@ import type { ProviderAppointmentListItem } from '../../features/calendar/api/ca
 import type { CalendarWeekDay } from '../../features/calendar/domain/range'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { getAppointmentAccentClass, getAppointmentMetaClass, getAppointmentNameClass } from '../../features/calendar/presentation/appointment-style'
+import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
+import { formatConsultationChipLabel } from '../../features/calendar/presentation/appointment-pricing'
 
 const emit = defineEmits<{
   (e: 'select:appointment', appointment: ProviderAppointmentListItem): void
@@ -14,6 +16,7 @@ const props = withDefaults(
     timeZone: string
     days: CalendarWeekDay[]
     appointments: ProviderAppointmentListItem[]
+    consultationPricePlansById?: ConsultationPricePlanById
     highlight?: {
       dayKey: string
       startMinutes: number
@@ -28,6 +31,7 @@ const props = withDefaults(
     mode?: 'week' | 'day'
   }>(),
   {
+    consultationPricePlansById: () => ({}),
     highlight: null,
     pxPerMinute: 1,
     mode: 'week'
@@ -93,6 +97,10 @@ function eventMetaClass(appointment: ProviderAppointmentListItem): string {
 
 function eventNameClass(appointment: ProviderAppointmentListItem): string {
   return getAppointmentNameClass(appointment)
+}
+
+function eventLabel(appointment: ProviderAppointmentListItem): string {
+  return formatConsultationChipLabel(appointment, props.consultationPricePlansById)
 }
 
 const rows = computed(() => Array.from({ length: 24 }, (_, idx) => idx))
@@ -277,7 +285,7 @@ watch(
               >
                 <div class="flex items-center justify-between gap-2">
                   <span class="truncate">
-                    {{ appointment.type === 'consultation' ? 'Consultation' : 'Discovery' }}
+                    {{ eventLabel(appointment) }}
                   </span>
                   <span class="shrink-0 opacity-90">{{ formatTimeRange(appointment) }}</span>
                 </div>

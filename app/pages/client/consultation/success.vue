@@ -133,7 +133,10 @@ function retryPolling() {
         description="Impossible de vérifier ce paiement sans identifiant de session."
       />
 
-      <div v-else class="grid gap-6 rounded-blob-c border border-[rgba(231,229,228,0.85)] bg-white/75 p-10 shadow-floating backdrop-blur">
+      <div
+        v-else
+        class="grid gap-6 rounded-blob-c border border-[rgba(231,229,228,0.85)] bg-white/75 p-10 shadow-floating backdrop-blur"
+      >
         <div
           v-if="showLoader"
           class="grid justify-items-center gap-4 text-center"
@@ -162,21 +165,30 @@ function retryPolling() {
                 class="grid h-10 w-10 place-items-center rounded-full bg-[rgba(34,197,94,0.12)] text-[color:rgb(22,163,74)]"
                 aria-hidden="true"
               >
-                <Icon name="lucide:check" size="18" />
+                <Icon
+                  name="lucide:check"
+                  size="18"
+                />
               </span>
               <span
                 v-else-if="statusLabel === 'failed'"
                 class="grid h-10 w-10 place-items-center rounded-full bg-[rgba(239,68,68,0.12)] text-[color:rgb(220,38,38)]"
                 aria-hidden="true"
               >
-                <Icon name="lucide:x" size="18" />
+                <Icon
+                  name="lucide:x"
+                  size="18"
+                />
               </span>
               <span
                 v-else-if="statusLabel === 'timeout'"
                 class="grid h-10 w-10 place-items-center rounded-full bg-[rgba(212,184,160,0.25)] text-[color:var(--color-brand-primary)]"
                 aria-hidden="true"
               >
-                <Icon name="lucide:clock" size="18" />
+                <Icon
+                  name="lucide:clock"
+                  size="18"
+                />
               </span>
             </div>
 
@@ -191,7 +203,10 @@ function retryPolling() {
             </p>
           </header>
 
-          <div v-if="poller.state.errorMessage" class="rounded-blob-d border border-[rgba(239,68,68,0.18)] bg-[rgba(254,242,242,0.55)] p-4 text-sm text-[color:var(--color-brand-primary)]">
+          <div
+            v-if="poller.state.errorMessage"
+            class="rounded-blob-d border border-[rgba(239,68,68,0.18)] bg-[rgba(254,242,242,0.55)] p-4 text-sm text-[color:var(--color-brand-primary)]"
+          >
             {{ poller.state.errorMessage }}
           </div>
 

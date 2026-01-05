@@ -22,6 +22,10 @@ export type ProviderAppointmentListItem = {
   endAt: string
   durationMinutes: number
   type: ProviderCalendarAppointmentType
+  /**
+   * Consultation price plan (provider-defined). Nullable for discovery or legacy data.
+   */
+  pricePlanId: string | null
   status: ProviderCalendarAppointmentStatus
   paymentStatus: ProviderCalendarPaymentStatus
   source: ProviderCalendarAppointmentSource
@@ -55,21 +59,27 @@ export type ListProviderAppointmentsResponse = {
 }
 
 export type CreateProviderManualAppointmentRequest = {
-  type: ProviderCalendarAppointmentType
-  /**
-   * UTC ISO date-time.
-   */
-  startAt: string
-  /**
-   * Required for consultation. Ignored for discovery (fixed 15).
-   */
-  durationMinutes?: number
   /**
    * Client profile ID (uuid).
    */
   clientProfileId: string
+  /**
+   * UTC ISO date-time.
+   */
+  startAt: string
   notes?: string | null
-}
+} & (
+  | {
+    type: 'discovery'
+  }
+  | {
+    type: 'consultation'
+    /**
+       * Consultation only. The active price plan to apply.
+       */
+    pricePlanId: string
+  }
+)
 
 export type CreateProviderManualAppointmentResponse = {
   appointmentId: string
@@ -79,7 +89,10 @@ export type CreateProviderManualAppointmentResponse = {
 
 export type UpdateProviderAppointmentRequest = {
   startAt?: string
-  durationMinutes?: number
+  /**
+   * Consultation only. Switch to another active price plan.
+   */
+  pricePlanId?: string
   notes?: string | null
 }
 

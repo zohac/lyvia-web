@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { ProviderAppointmentListItem } from '../../features/calendar/api/calendar.contract'
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
+import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
+import { formatConsultationDrawerSummary, formatCurrency, getConsultationPricePlan } from '../../features/calendar/presentation/appointment-pricing'
 import SystemAlert from '../atoms/SystemAlert.vue'
 
 const props = withDefaults(
@@ -8,11 +10,13 @@ const props = withDefaults(
     open: boolean
     appointment: ProviderAppointmentListItem | null
     timeZone: string
+    consultationPricePlansById?: ConsultationPricePlanById
     actionPending?: boolean
     actionError?: string | null
     actionFieldErrors?: Record<string, string>
   }>(),
   {
+    consultationPricePlansById: () => ({}),
     actionPending: false,
     actionError: null,
     actionFieldErrors: () => ({})
@@ -119,6 +123,21 @@ function requestCancelAppointment() {
   if (!canCancel.value) return
   emit('request-cancel', { appointmentId: appointment.id })
 }
+
+const consultationPricingSummary = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return null
+  return formatConsultationDrawerSummary(appointment, props.consultationPricePlansById)
+})
+
+const consultationPricingDetails = computed(() => {
+  const appointment = props.appointment
+  if (!appointment || appointment.type !== 'consultation') return null
+  const plan = getConsultationPricePlan(appointment, props.consultationPricePlansById)
+  return plan
+    ? { price: formatCurrency(plan.amountCents), isActive: plan.isActive }
+    : { price: null, isActive: null }
+})
 </script>
 
 <template>
@@ -215,6 +234,39 @@ function requestCancelAppointment() {
           title="Action impossible"
           :description="actionError"
         />
+
+        <section
+          v-if="appointment.type === 'consultation' && consultationPricingSummary"
+          class="rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              Tarif
+            </h3>
+
+            <span
+              v-if="consultationPricingDetails?.isActive === false"
+              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-[color:var(--color-brand-secondary)] ring-1 ring-[rgba(231,229,228,0.8)]"
+            >
+              Inactif
+            </span>
+          </div>
+
+          <div class="mt-4 grid gap-2 text-sm text-[color:var(--color-brand-secondary)]">
+            <p class="font-serif text-lg italic text-[color:var(--color-brand-primary)]">
+              {{ consultationPricingSummary.title }}
+            </p>
+            <p v-if="consultationPricingSummary.subtitle">
+              {{ consultationPricingSummary.subtitle }}
+            </p>
+            <p
+              v-if="consultationPricingDetails?.price"
+              class="font-semibold text-[color:var(--color-brand-primary)]"
+            >
+              {{ consultationPricingDetails.price }}
+            </p>
+          </div>
+        </section>
 
         <section class="rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
           <div class="flex items-center justify-between gap-4">

@@ -4,6 +4,8 @@ import type { CalendarMonthCell } from '../../features/calendar/domain/range'
 import { buildMonthGrid } from '../../features/calendar/domain/range'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
+import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
+import { formatConsultationChipLabel } from '../../features/calendar/presentation/appointment-pricing'
 
 const emit = defineEmits<{
   (e: 'select:appointment', appointment: ProviderAppointmentListItem): void
@@ -14,6 +16,7 @@ const props = defineProps<{
   timeZone: string
   anchorDate: Date
   appointments: ProviderAppointmentListItem[]
+  consultationPricePlansById?: ConsultationPricePlanById
   highlight?: { dayKey: string, appointmentId: string | null } | null
 }>()
 
@@ -75,6 +78,10 @@ function eventAccentClass(appointment: ProviderAppointmentListItem): string {
 
 function eventMetaClass(appointment: ProviderAppointmentListItem): string {
   return getAppointmentMetaClass(appointment)
+}
+
+function appointmentChipLabel(appointment: ProviderAppointmentListItem): string {
+  return formatConsultationChipLabel(appointment, props.consultationPricePlansById ?? {})
 }
 
 function onSelectAppointment(appointment: ProviderAppointmentListItem) {
@@ -215,8 +222,8 @@ function onSelectDay(dayKey: string) {
               <span class="truncate">
                 {{ formatTime(appointment.startAt) }} · {{ appointment.firstname }}
               </span>
-              <span class="shrink-0 opacity-90">
-                {{ appointment.type === 'consultation' ? 'C' : 'D' }}
+              <span class="max-w-[9rem] truncate text-right text-[11px] font-semibold opacity-90">
+                {{ appointmentChipLabel(appointment) }}
               </span>
             </button>
           </div>

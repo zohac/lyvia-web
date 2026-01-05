@@ -93,7 +93,10 @@ function openReceipt(url: string) {
       Aucun paiement pour le moment.
     </div>
 
-    <div v-else class="grid gap-4">
+    <div
+      v-else
+      class="grid gap-4"
+    >
       <article
         v-for="payment in formattedPayments"
         :key="payment.id"
@@ -162,7 +165,10 @@ function openReceipt(url: string) {
           {{ list.loadMorePending.value ? 'Chargement…' : 'Charger plus' }}
         </button>
 
-        <p v-if="list.loadMoreErrorMessage.value" class="text-sm text-[color:var(--color-brand-primary)]">
+        <p
+          v-if="list.loadMoreErrorMessage.value"
+          class="text-sm text-[color:var(--color-brand-primary)]"
+        >
           {{ list.loadMoreErrorMessage.value }}
         </p>
       </div>

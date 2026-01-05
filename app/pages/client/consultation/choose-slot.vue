@@ -397,7 +397,10 @@ function retry() {
             </p>
           </div>
 
-          <div v-if="state.actionErrorMessage" class="rounded-blob-d border border-[rgba(239,68,68,0.18)] bg-[rgba(254,242,242,0.6)] p-4 text-sm text-[color:var(--color-brand-primary)]">
+          <div
+            v-if="state.actionErrorMessage"
+            class="rounded-blob-d border border-[rgba(239,68,68,0.18)] bg-[rgba(254,242,242,0.6)] p-4 text-sm text-[color:var(--color-brand-primary)]"
+          >
             {{ state.actionErrorMessage }}
           </div>
 
@@ -417,7 +420,10 @@ function retry() {
             </li>
           </ul>
 
-          <div v-if="state.actionErrorCode === 'PAYMENT_PENDING'" class="rounded-blob-d border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]">
+          <div
+            v-if="state.actionErrorCode === 'PAYMENT_PENDING'"
+            class="rounded-blob-d border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]"
+          >
             Un paiement est déjà en cours pour ce créneau. Reprenez-le depuis votre espace Paiements.
             <NuxtLink
               to="/client/payments"
@@ -432,7 +438,10 @@ function retry() {
             </NuxtLink>
           </div>
 
-          <div v-if="state.actionErrorCode === 'ONBOARDING_NOT_COMPLETED'" class="rounded-blob-d border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]">
+          <div
+            v-if="state.actionErrorCode === 'ONBOARDING_NOT_COMPLETED'"
+            class="rounded-blob-d border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]"
+          >
             Un appel découverte est requis avant de pouvoir réserver une consultation.
             <NuxtLink
               :to="discoveryCtaPath"
@@ -478,11 +487,17 @@ function retry() {
           </button>
         </div>
 
-        <p v-if="state.actionErrorMessage" class="mt-3 text-xs text-[color:var(--color-brand-primary)]">
+        <p
+          v-if="state.actionErrorMessage"
+          class="mt-3 text-xs text-[color:var(--color-brand-primary)]"
+        >
           {{ state.actionErrorMessage }}
         </p>
 
-        <p v-if="state.actionErrorCode === 'ONBOARDING_NOT_COMPLETED'" class="mt-2 text-xs text-[color:var(--color-brand-secondary)]">
+        <p
+          v-if="state.actionErrorCode === 'ONBOARDING_NOT_COMPLETED'"
+          class="mt-2 text-xs text-[color:var(--color-brand-secondary)]"
+        >
           <NuxtLink
             :to="discoveryCtaPath"
             class="font-semibold text-[color:var(--color-brand-accent)] underline-offset-4 hover:underline"
