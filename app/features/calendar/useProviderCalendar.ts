@@ -23,6 +23,8 @@ import {
 import { createUuidV4 } from '../../utils/uuid'
 import { useAuthState } from '../auth/state/auth.state'
 import { ApiFetchError } from '../../services/api/api-error'
+import { listMyConsultationPricePlans } from '../pricing/services/provider-consultation-pricing.service'
+import type { ConsultationPricePlan, ListConsultationPricePlansResponse } from '../consultation/api/consultation.contract'
 
 type CalendarFilters = {
   type?: ProviderCalendarAppointmentType
@@ -31,6 +33,11 @@ type CalendarFilters = {
 
 type CacheEntry = {
   data: ListProviderAppointmentsResponse
+  fetchedAt: number
+}
+
+type PricingCacheEntry = {
+  data: ListConsultationPricePlansResponse
   fetchedAt: number
 }
 
@@ -72,6 +79,9 @@ export async function useProviderCalendar() {
 
   const cache = useState<Record<string, CacheEntry>>('__lyvia_provider_calendar_swr__', () => ({}))
   const data = ref<ListProviderAppointmentsResponse | null>(null)
+
+  const pricingCache = useState<Record<string, PricingCacheEntry>>('__lyvia_provider_consultation_pricing_swr__', () => ({}))
+  const consultationPricePlansById = ref<Record<string, ConsultationPricePlan>>({})
 
   const pending = ref(false)
   const errorMessage = ref<string | null>(null)
@@ -123,6 +133,41 @@ export async function useProviderCalendar() {
 
   function goNext() {
     anchorDate.value = shiftAnchorDate(anchorDate.value, { view: view.value, direction: 1, timeZone: timeZone.value })
+  }
+
+  function buildConsultationPricePlanById(response: ListConsultationPricePlansResponse | null): Record<string, ConsultationPricePlan> {
+    if (!response) return {}
+    const output: Record<string, ConsultationPricePlan> = {}
+    for (const plan of response.plans) {
+      output[plan.id] = plan
+    }
+    return output
+  }
+
+  async function refreshConsultationPricing(options: { revalidate?: boolean } = {}): Promise<void> {
+    const actorId = providerActorId.value
+    if (!actorId || actorId === 'anonymous') {
+      consultationPricePlansById.value = {}
+      return
+    }
+
+    const cached = pricingCache.value[actorId]
+    if (cached && !options.revalidate) {
+      consultationPricePlansById.value = buildConsultationPricePlanById(cached.data)
+      return
+    }
+
+    if (cached) {
+      consultationPricePlansById.value = buildConsultationPricePlanById(cached.data)
+    }
+
+    try {
+      const response = await listMyConsultationPricePlans()
+      pricingCache.value[actorId] = { data: response, fetchedAt: Date.now() }
+      consultationPricePlansById.value = buildConsultationPricePlanById(response)
+    } catch {
+      consultationPricePlansById.value = {}
+    }
   }
 
   async function refresh(options: { revalidate?: boolean } = {}): Promise<void> {
@@ -216,6 +261,10 @@ export async function useProviderCalendar() {
         }
 
         if (err.apiError.statusCode === 422 || err.apiError.code === 'VALIDATION_ERROR') {
+          // Refresh pricing if PRICE_PLAN_INACTIVE error
+          if (err.apiError.code === 'PRICE_PLAN_INACTIVE') {
+            await refreshConsultationPricing({ revalidate: true })
+          }
           return { ok: false, kind: 'validation', message }
         }
       }
@@ -311,6 +360,14 @@ export async function useProviderCalendar() {
     { immediate: true }
   )
 
+  watch(
+    () => providerActorId.value,
+    () => {
+      void refreshConsultationPricing({ revalidate: true })
+    },
+    { immediate: true }
+  )
+
   onBeforeUnmount(() => {
     abortPendingRequest()
   })
@@ -331,11 +388,13 @@ export async function useProviderCalendar() {
 
     sortedAppointments,
     appointmentsByDay,
+    consultationPricePlansById,
 
     setView,
     setAnchorDate,
     setFilters,
     refresh,
+    refreshConsultationPricing,
     clearActionErrors,
     createAppointment,
     updateAppointment,

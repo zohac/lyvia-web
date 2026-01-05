@@ -323,7 +323,7 @@ async function onCancelAppointmentSubmit(payload: { appointmentId: string, body:
   })
 }
 
-async function onCreateAppointmentSubmit(payload: { body: { type: 'discovery' | 'consultation', startAt: string, durationMinutes?: number, clientProfileId: string, notes?: string | null } }) {
+async function onCreateAppointmentSubmit(payload: { body: { type: 'discovery' | 'consultation', startAt: string, durationMinutes?: number, pricePlanId?: string, clientProfileId: string, notes?: string | null } }) {
   const idempotencyKey = createIdempotencyKey.value ?? undefined
   const result = await calendar.createAppointment(payload.body, { idempotencyKey })
   if (result.ok) {
@@ -340,13 +340,19 @@ async function onCreateAppointmentSubmit(payload: { body: { type: 'discovery' | 
   if (result.kind === 'overlap') {
     toast.add({
       title: 'Créneau déjà pris',
-      description: 'Ce créneau vient d’être réservé. Choisissez-en un autre.',
+      description: 'Ce créneau vient d'être réservé. Choisissez-en un autre.',
       color: 'primary'
     })
     triggerConflictHighlight({
       startAt: payload.body.startAt,
       durationMinutes: payload.body.type === 'discovery' ? 15 : (payload.body.durationMinutes ?? 60)
     })
+    return
+  }
+
+  if (result.kind === 'validation') {
+    // Erreurs spécifiques au tarif : refresh la liste des plans
+    await calendar.refreshConsultationPricing({ revalidate: true })
     return
   }
 
@@ -522,6 +528,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: {
       :time-zone="calendar.timeZone.value"
       :days="weekDays"
       :appointments="visibleAppointments"
+      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
       :px-per-minute="1"
       :highlight="conflictHighlight"
       @select:appointment="onSelectAppointment"
@@ -534,6 +541,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: {
       :time-zone="calendar.timeZone.value"
       :days="dayDays"
       :appointments="visibleAppointments"
+      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
       :px-per-minute="1"
       :highlight="conflictHighlight"
       @select:appointment="onSelectAppointment"
@@ -545,6 +553,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: {
       :time-zone="calendar.timeZone.value"
       :anchor-date="calendar.anchorDate.value"
       :appointments="visibleAppointments"
+      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
       :highlight="monthHighlight"
       @select:appointment="onSelectAppointment"
       @select:day="onSelectMonthDay"
@@ -569,6 +578,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: {
       :open="isDrawerOpen"
       :appointment="selectedAppointment"
       :time-zone="calendar.timeZone.value"
+      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
       :action-pending="calendar.actionPending.value"
       :action-error="calendar.actionErrorMessage.value"
       :action-field-errors="calendar.actionFieldErrors.value"
@@ -583,6 +593,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: {
       :initial-day-key="createInitialDayKey"
       :initial-minutes="createInitialMinutes"
       :known-clients="knownClients"
+      :consultation-price-plans="Object.values(calendar.consultationPricePlansById.value)"
       :loading="calendar.actionPending.value"
       :error="createErrorMessage"
       :field-errors="createFieldErrors"

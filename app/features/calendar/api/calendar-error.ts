@@ -31,6 +31,10 @@ export function mapCalendarErrorToMessage(err: unknown, fallback = 'Une erreur e
     if (err.apiError.code === 'VALIDATION_ERROR') {
       return 'Certains champs sont invalides. Vérifiez votre saisie.'
     }
+
+    if (err.apiError.code === 'PRICE_PLAN_INACTIVE') {
+      return 'Ce tarif n\'est plus disponible. Sélectionnez-en un autre.'
+    }
   }
 
   return fallback

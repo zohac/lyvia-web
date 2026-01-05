@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { ProviderAppointmentListItem, ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
+import type { ConsultationPricePlan } from '../../features/consultation/api/consultation.contract'
 import { minutesToHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
 import SystemAlert from '../atoms/SystemAlert.vue'
+import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
 
 type ClientOption = {
   label: string
@@ -15,11 +17,16 @@ const props = withDefaults(
     initialDayKey: string
     initialMinutes: number
     knownClients: ClientOption[]
+    /**
+     * Liste des price plans disponibles (chargés via useProviderCalendar).
+     */
+    consultationPricePlans: ConsultationPricePlan[]
     loading?: boolean
     error?: string | null
     fieldErrors?: Record<string, string>
   }>(),
   {
+    consultationPricePlans: () => [],
     loading: false,
     error: null,
     fieldErrors: () => ({})
@@ -35,10 +42,12 @@ const emit = defineEmits<{
 type ProviderCalendarCreateAppointmentBody = {
   type: ProviderCalendarAppointmentType
   startAt: string
-  durationMinutes?: number
   clientProfileId: ProviderAppointmentListItem['clientProfileId']
   notes?: string | null
-}
+} & (
+  | { type: 'discovery' }
+  | { type: 'consultation'; pricePlanId: string }
+)
 
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
 const isFullScreen = computed(() => !isDesktop.value)
@@ -46,16 +55,20 @@ const isFullScreen = computed(() => !isDesktop.value)
 const type = ref<ProviderCalendarAppointmentType>('consultation')
 const dayKey = ref('')
 const time = ref('09:00')
-const durationMinutes = ref<number>(60)
+const pricePlanId = ref<string | null>(null)
 const clientProfileId = ref<string>('')
 const selectedKnownClientId = ref<string>('')
 const notes = ref<string>('')
 
 const inferredClients = computed(() => props.knownClients)
 
-const durationLabel = computed(() => {
-  if (type.value === 'discovery') return '15 min'
-  return `${durationMinutes.value} min`
+/**
+ * Durée calculée depuis le price plan sélectionné (consultation) ou fixe (discovery).
+ */
+const computedDurationMinutes = computed<number>(() => {
+  if (type.value === 'discovery') return 15
+  const selectedPlan = props.consultationPricePlans.find(plan => plan.id === pricePlanId.value)
+  return selectedPlan?.durationMinutes ?? 60
 })
 
 const startAt = computed(() => {
@@ -70,8 +83,8 @@ const startAt = computed(() => {
 const localValidationError = computed(() => {
   if (!startAt.value) return 'Date ou heure invalide.'
   if (!clientProfileId.value.trim()) return 'Sélectionnez une cliente.'
-  if (type.value === 'consultation' && (!Number.isFinite(durationMinutes.value) || durationMinutes.value <= 0)) {
-    return 'La durée doit être supérieure à 0.'
+  if (type.value === 'consultation' && !pricePlanId.value) {
+    return 'Sélectionnez un tarif de consultation.'
   }
   return null
 })
@@ -85,9 +98,17 @@ watch(
     dayKey.value = props.initialDayKey
     time.value = minutesToHHmm(props.initialMinutes)
     type.value = 'consultation'
-    durationMinutes.value = 60
     notes.value = ''
     selectedKnownClientId.value = ''
+
+    // Reset price plan selection
+    pricePlanId.value = null
+
+    // Pre-select first active plan if only one
+    const activePlans = props.consultationPricePlans.filter(plan => plan.isActive)
+    if (activePlans.length === 1) {
+      pricePlanId.value = activePlans[0]!.id
+    }
 
     if (inferredClients.value.length === 1) {
       clientProfileId.value = inferredClients.value[0]!.value
@@ -99,13 +120,10 @@ watch(
 
 watch(
   () => type.value,
-  (next, prev) => {
+  (next) => {
+    // Reset price plan selection when switching type
     if (next === 'discovery') {
-      durationMinutes.value = 15
-      return
-    }
-    if (prev === 'discovery') {
-      durationMinutes.value = 60
+      pricePlanId.value = null
     }
   }
 )
@@ -125,15 +143,31 @@ function submit() {
   if (localValidationError.value) return
   if (!startAt.value) return
 
-  emit('submit', {
-    body: {
-      type: type.value,
-      startAt: startAt.value,
-      durationMinutes: type.value === 'consultation' ? durationMinutes.value : undefined,
-      clientProfileId: clientProfileId.value.trim(),
-      notes: notes.value.trim() ? notes.value.trim() : null
-    }
-  })
+  const baseBody = {
+    startAt: startAt.value,
+    clientProfileId: clientProfileId.value.trim(),
+    notes: notes.value.trim() ? notes.value.trim() : null
+  }
+
+  if (type.value === 'discovery') {
+    emit('submit', {
+      body: {
+        ...baseBody,
+        type: 'discovery'
+      }
+    })
+  } else {
+    // Consultation : envoie pricePlanId (pas durationMinutes)
+    if (!pricePlanId.value) return
+
+    emit('submit', {
+      body: {
+        ...baseBody,
+        type: 'consultation',
+        pricePlanId: pricePlanId.value
+      }
+    })
+  }
 }
 </script>
 
@@ -229,35 +263,39 @@ function submit() {
             </div>
           </div>
 
+          <!-- Tarif consultation (si type = consultation) -->
+          <ConsultationPlanSelector
+            v-if="type === 'consultation'"
+            v-model="pricePlanId"
+            :plans="consultationPricePlans"
+            :disabled="loading"
+            :error="fieldErrors?.pricePlanId"
+          />
+
+          <!-- Durée (affichage read-only) -->
           <div class="grid gap-2">
             <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
               Durée
             </label>
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-3">
               <span
-                v-if="type === 'discovery'"
                 class="inline-flex items-center rounded-full bg-[color:var(--color-surface-highlight)] px-4 py-2 text-sm font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)]"
               >
-                15 min (verrouillé)
-              </span>
-              <UInput
-                v-else
-                v-model.number="durationMinutes"
-                type="number"
-                min="15"
-                step="5"
-                :disabled="loading"
-              />
-              <span class="text-sm text-[color:var(--color-brand-secondary)]">
-                {{ durationLabel }}
+                {{ computedDurationMinutes }} min
+                <span
+                  v-if="type === 'discovery'"
+                  class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                >
+                  (verrouillé)
+                </span>
+                <span
+                  v-else-if="pricePlanId"
+                  class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                >
+                  (depuis tarif)
+                </span>
               </span>
             </div>
-            <p
-              v-if="fieldErrors?.durationMinutes"
-              class="text-xs font-bold text-[color:var(--color-error)]"
-            >
-              {{ fieldErrors.durationMinutes }}
-            </p>
           </div>
 
           <div class="grid gap-2">
