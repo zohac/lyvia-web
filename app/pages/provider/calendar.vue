@@ -606,6 +606,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: {
       :open="isEditModalOpen"
       :appointment="editAppointment"
       :time-zone="calendar.timeZone.value"
+      :consultation-price-plans="Object.values(calendar.consultationPricePlansById.value)"
       :loading="calendar.actionPending.value"
       :error="editErrorMessage"
       :field-errors="editFieldErrors"

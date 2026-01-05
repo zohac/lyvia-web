@@ -305,6 +305,10 @@ export async function useProviderCalendar() {
         }
 
         if (err.apiError.statusCode === 422 || err.apiError.code === 'VALIDATION_ERROR') {
+          // Refresh pricing if PRICE_PLAN_INACTIVE error
+          if (err.apiError.code === 'PRICE_PLAN_INACTIVE') {
+            await refreshConsultationPricing({ revalidate: true })
+          }
           return { ok: false, kind: 'validation', message }
         }
       }

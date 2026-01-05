@@ -1,20 +1,27 @@
 <script setup lang="ts">
 import type { ProviderAppointmentListItem, UpdateProviderAppointmentRequest } from '../../features/calendar/api/calendar.contract'
+import type { ConsultationPricePlan } from '../../features/consultation/api/consultation.contract'
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { minutesToHHmm, parseHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
 import SystemAlert from '../atoms/SystemAlert.vue'
+import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
 
 const props = withDefaults(
   defineProps<{
     open: boolean
     appointment: ProviderAppointmentListItem | null
     timeZone: string
+    /**
+     * Liste des price plans disponibles (chargés via useProviderCalendar).
+     */
+    consultationPricePlans?: ConsultationPricePlan[]
     loading?: boolean
     error?: string | null
     fieldErrors?: Record<string, string>
   }>(),
   {
+    consultationPricePlans: () => [],
     loading: false,
     error: null,
     fieldErrors: () => ({})
@@ -31,10 +38,37 @@ const isFullScreen = computed(() => !isDesktop.value)
 
 const dayKey = ref('')
 const time = ref('09:00')
-const durationMinutes = ref<number>(60)
+const pricePlanId = ref<string | null>(null)
 const notes = ref<string>('')
 
 const localValidationError = ref<string | null>(null)
+
+/**
+ * Plan actuel (chargé depuis appointment.pricePlanId).
+ */
+const currentPlan = computed<ConsultationPricePlan | null>(() => {
+  const appointment = props.appointment
+  if (!appointment || appointment.type !== 'consultation' || !appointment.pricePlanId) return null
+  return props.consultationPricePlans.find(plan => plan.id === appointment.pricePlanId) ?? null
+})
+
+/**
+ * Durée calculée depuis le price plan sélectionné (consultation) ou fixe (discovery).
+ */
+const computedDurationMinutes = computed<number>(() => {
+  const appointment = props.appointment
+  if (!appointment) return 60
+  if (appointment.type === 'discovery') return 15
+
+  // Si un nouveau plan est sélectionné
+  if (pricePlanId.value) {
+    const selectedPlan = props.consultationPricePlans.find(plan => plan.id === pricePlanId.value)
+    return selectedPlan?.durationMinutes ?? appointment.durationMinutes
+  }
+
+  // Sinon, utiliser le plan actuel
+  return currentPlan.value?.durationMinutes ?? appointment.durationMinutes
+})
 
 const canEdit = computed(() => {
   const appointment = props.appointment
@@ -58,13 +92,6 @@ const typeLabel = computed(() => {
   const appointment = props.appointment
   if (!appointment) return null
   return appointment.type === 'consultation' ? 'Consultation' : 'Discovery'
-})
-
-const durationLabel = computed(() => {
-  const appointment = props.appointment
-  if (!appointment) return ''
-  const minutes = appointment.type === 'discovery' ? 15 : durationMinutes.value
-  return `${minutes} min`
 })
 
 function accentClasses(appointment: ProviderAppointmentListItem): string {
@@ -100,7 +127,8 @@ watch(
     const parsedTime = parseHHmm(hoursMinutes)
     time.value = parsedTime ? minutesToHHmm(parsedTime.hour * 60 + parsedTime.minute) : '09:00'
 
-    durationMinutes.value = appointment.durationMinutes
+    // Reset price plan selection (user can change it)
+    pricePlanId.value = null
     notes.value = appointment.notes ?? ''
   },
   { immediate: true }
@@ -133,25 +161,28 @@ function submit() {
     return
   }
 
-  const nextDuration = appointment.type === 'discovery'
-    ? 15
-    : Math.max(1, Math.floor(Number(durationMinutes.value) || 0))
-
-  if (appointment.type === 'consultation' && nextDuration <= 0) {
-    localValidationError.value = 'La durée doit être supérieure à 0.'
-    return
-  }
-
   const trimmedNotes = notes.value.trim()
 
-  emit('submit', {
-    appointmentId: appointment.id,
-    body: {
-      startAt: utcStartAt,
-      durationMinutes: appointment.type === 'consultation' ? nextDuration : undefined,
-      notes: trimmedNotes ? trimmedNotes : null
-    }
-  })
+  // Consultation : envoie pricePlanId si changement de plan
+  if (appointment.type === 'consultation') {
+    emit('submit', {
+      appointmentId: appointment.id,
+      body: {
+        startAt: utcStartAt,
+        pricePlanId: pricePlanId.value ?? undefined,
+        notes: trimmedNotes ? trimmedNotes : null
+      }
+    })
+  } else {
+    // Discovery : pas de pricePlanId
+    emit('submit', {
+      appointmentId: appointment.id,
+      body: {
+        startAt: utcStartAt,
+        notes: trimmedNotes ? trimmedNotes : null
+      }
+    })
+  }
 }
 </script>
 
@@ -238,35 +269,95 @@ function submit() {
               </div>
             </div>
 
+            <!-- Tarif actuel (consultation) -->
+            <div
+              v-if="appointment?.type === 'consultation' && currentPlan"
+              class="grid gap-3"
+            >
+              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+                Tarif actuel
+              </label>
+              <div class="rounded-input border border-[rgba(231,229,228,0.7)] bg-white/70 p-4 shadow-soft">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div class="grid gap-1">
+                    <div class="flex items-center gap-2">
+                      <span class="text-base font-bold text-[color:var(--color-brand-primary)]">
+                        {{ currentPlan.label }}
+                      </span>
+                      <span
+                        v-if="!currentPlan.isActive"
+                        class="inline-flex items-center rounded-full bg-[color:var(--color-warning-bg)] px-2 py-0.5 text-xs font-bold text-[color:var(--color-warning)]"
+                      >
+                        Inactif
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-[color:var(--color-brand-secondary)]">
+                      <Icon
+                        name="lucide:clock"
+                        size="14"
+                        aria-hidden="true"
+                      />
+                      <span>{{ currentPlan.durationMinutes }} min</span>
+                      <span class="text-[color:var(--color-brand-tertiary)]">·</span>
+                      <span>{{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(currentPlan.amountCents / 100) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Changer de tarif (consultation) -->
+            <div
+              v-if="appointment?.type === 'consultation'"
+              class="grid gap-3"
+            >
+              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+                Changer de tarif (optionnel)
+              </label>
+              <ConsultationPlanSelector
+                v-model="pricePlanId"
+                :plans="consultationPricePlans"
+                :disabled="loading || !canEdit"
+                :error="fieldErrors?.pricePlanId"
+              />
+              <p
+                v-if="!currentPlan?.isActive"
+                class="text-xs text-[color:var(--color-warning)]"
+              >
+                Le tarif actuel est inactif. Sélectionnez un nouveau tarif pour continuer.
+              </p>
+            </div>
+
+            <!-- Durée (affichage read-only) -->
             <div class="grid gap-2">
               <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
                 Durée
               </label>
-              <div class="flex flex-wrap items-center gap-3">
+              <div class="flex items-center gap-3">
                 <span
-                  v-if="appointment?.type === 'discovery'"
                   class="inline-flex items-center rounded-full bg-[color:var(--color-surface-highlight)] px-4 py-2 text-sm font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)]"
                 >
-                  15 min (verrouillé)
-                </span>
-                <UInput
-                  v-else
-                  v-model.number="durationMinutes"
-                  type="number"
-                  min="15"
-                  step="5"
-                  :disabled="loading || !canEdit"
-                />
-                <span class="text-sm text-[color:var(--color-brand-secondary)]">
-                  {{ durationLabel }}
+                  {{ computedDurationMinutes }} min
+                  <span
+                    v-if="appointment?.type === 'discovery'"
+                    class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                  >
+                    (verrouillé)
+                  </span>
+                  <span
+                    v-else-if="pricePlanId"
+                    class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                  >
+                    (nouveau tarif)
+                  </span>
+                  <span
+                    v-else-if="currentPlan"
+                    class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                  >
+                    (depuis tarif)
+                  </span>
                 </span>
               </div>
-              <p
-                v-if="fieldErrors?.durationMinutes"
-                class="text-xs font-bold text-[color:var(--color-error)]"
-              >
-                {{ fieldErrors.durationMinutes }}
-              </p>
             </div>
 
             <div class="grid gap-2">
