@@ -23,7 +23,7 @@
           </div>
 
           <h1 class="font-serif italic text-5xl sm:text-6xl lg:text-7xl xl:text-8xl leading-[1.1] text-[color:var(--color-brand-primary)]">
-            L’écrin digital
+            L'écrin digital
             <br>
             pour vos
             <br>
@@ -41,44 +41,49 @@
           </p>
 
           <div class="pt-4 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            <NuxtLink
+            <!-- Primary CTA using UButton -->
+            <UButton
               to="/login"
-              class="group relative overflow-hidden rounded-full bg-[color:var(--color-accent-main)] text-[color:var(--color-accent-contrast)] px-8 py-4 text-base font-bold shadow-floating transition-base hover:brightness-110"
+              size="xl"
+              color="neutral"
+              variant="solid"
+              class="group"
             >
-              <span class="relative z-10 flex items-center gap-2">
-                Créer mon espace pro
+              Créer mon espace pro
+              <template #trailing>
                 <Icon
                   name="lucide:arrow-right"
-                  size="18"
                   class="group-hover:translate-x-1 transition-transform"
-                  aria-hidden="true"
                 />
-              </span>
-            </NuxtLink>
+              </template>
+            </UButton>
 
-            <a
+            <!-- Secondary link using UButton variant="ghost" -->
+            <UButton
               href="#atelier"
-              class="flex items-center justify-center gap-2 px-8 py-4 text-[color:var(--color-brand-primary)] font-medium hover:text-[color:var(--color-brand-accent)] transition-base"
+              size="lg"
+              color="neutral"
+              variant="ghost"
+              class="sm:px-6"
             >
-              <Icon
-                name="lucide:play-circle"
-                size="20"
-                aria-hidden="true"
-              />
-              Ouvrir l’atelier
-            </a>
+              <template #leading>
+                <Icon name="lucide:play-circle" />
+              </template>
+              Ouvrir l'atelier
+            </UButton>
           </div>
 
           <div class="flex flex-wrap justify-center gap-2 text-sm text-[color:var(--color-brand-secondary)] lg:justify-start">
-            <span class="rounded-full bg-white/70 px-4 py-2 shadow-soft">
+            <!-- Using UBadge instead of custom rounded pills -->
+            <UBadge variant="soft" color="neutral" size="lg" class="px-4 py-2">
               Essai gratuit
-            </span>
-            <span class="rounded-full bg-white/70 px-4 py-2 shadow-soft">
+            </UBadge>
+            <UBadge variant="soft" color="neutral" size="lg" class="px-4 py-2">
               Sans carte bancaire
-            </span>
-            <span class="rounded-full bg-white/70 px-4 py-2 shadow-soft">
+            </UBadge>
+            <UBadge variant="soft" color="neutral" size="lg" class="px-4 py-2">
               White-label (multi-domaines)
-            </span>
+            </UBadge>
           </div>
         </div>
 
@@ -94,6 +99,7 @@
               class="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,rgba(212,184,160,0.38),transparent_60%)] blur-[70px]"
             />
 
+            <!-- Glass card with blob -->
             <div class="rounded-blob-d border border-white/50 bg-white/85 p-3 shadow-floating backdrop-blur-md">
               <img
                 src="/images/marketing-dashboard-mockup.svg"
@@ -104,13 +110,14 @@
               >
             </div>
 
+            <!-- Floating cards -->
             <div class="pointer-events-none absolute -bottom-10 -left-10 hidden w-[17rem] rotate-[-2deg] md:block">
               <div class="rounded-blob-c border border-white/55 bg-white/80 p-5 shadow-soft backdrop-blur-md">
                 <p class="text-xs font-bold uppercase tracking-[0.28em] text-[color:var(--color-brand-muted)]">
                   Silence
                 </p>
                 <p class="mt-2 text-sm leading-[var(--leading-relaxed)] text-[color:var(--color-brand-secondary)]">
-                  Un dashboard qui s’efface, pour laisser la relation au centre.
+                  Un dashboard qui s'efface, pour laisser la relation au centre.
                 </p>
               </div>
             </div>
@@ -121,7 +128,7 @@
                   Structure
                 </p>
                 <p class="mt-2 font-serif text-lg italic leading-tight text-[color:var(--color-brand-primary)]">
-                  “Tout est là. Juste là.”
+                  "Tout est là. Juste là."
                 </p>
               </div>
             </div>
@@ -174,7 +181,7 @@
                     aria-hidden="true"
                   />
                   <p class="mt-2 text-sm font-medium leading-relaxed italic font-serif text-[color:var(--color-brand-primary)]">
-                    On ne “gère” pas des clientes. On les accompagne.
+                    On ne "gère" pas des clientes. On les accompagne.
                   </p>
                 </div>
               </div>
@@ -183,7 +190,7 @@
 
           <div class="w-full md:w-1/2 flex flex-col gap-6">
             <h2 class="font-serif text-4xl md:text-5xl text-[color:var(--color-brand-primary)]">
-              L’atelier
+              L'atelier
               <span class="italic text-[color:var(--color-brand-accent)]">Kaora</span>
             </h2>
             <p class="text-lg text-[color:var(--color-brand-secondary)] leading-relaxed font-light">
@@ -193,20 +200,26 @@
               Chaque détail vise à réduire la charge mentale. Vous gardez la relation, Kaora garde la structure.
             </p>
             <div class="pt-4">
-              <NuxtLink
+              <!-- Using UButton variant="link" -->
+              <UButton
                 to="/login"
-                class="inline-flex items-center gap-2 text-[color:var(--color-brand-accent)] font-bold hover:gap-4 transition-base"
+                variant="link"
+                color="primary"
+                size="lg"
+                class="group"
               >
-                Découvrir l’expérience
-                <Icon
-                  name="lucide:arrow-right"
-                  size="16"
-                  aria-hidden="true"
-                />
-              </NuxtLink>
+                Découvrir l'expérience
+                <template #trailing>
+                  <Icon
+                    name="lucide:arrow-right"
+                    class="group-hover:translate-x-1 transition-transform"
+                  />
+                </template>
+              </UButton>
             </div>
 
             <div class="grid gap-3 pt-2">
+              <!-- Organic cards with blobs -->
               <div class="rounded-blob-c border border-[rgba(28,25,23,0.10)] bg-white/70 p-5 shadow-soft backdrop-blur">
                 <p class="text-xs font-bold uppercase tracking-[0.28em] text-[color:var(--color-brand-muted)]">
                   Paiements
@@ -285,6 +298,7 @@
           </svg>
 
           <div class="grid gap-6 md:grid-cols-3 md:items-start">
+            <!-- Journey step cards -->
             <div class="rounded-blob-c border border-[rgba(28,25,23,0.10)] bg-white/75 p-8 shadow-soft backdrop-blur transition-base hover:shadow-floating">
               <p class="text-xs font-bold uppercase tracking-[0.28em] text-[color:var(--color-brand-muted)]">
                 01 — Mise en place
@@ -354,6 +368,7 @@
           <span class="italic text-[color:var(--color-brand-accent)]">métamorphoses</span>
         </h2>
         <div class="flex flex-nowrap overflow-x-auto gap-6 pb-8 no-scrollbar md:justify-center">
+          <!-- Testimonial cards with UBadge -->
           <div class="min-w-[300px] md:min-w-[350px] bg-white/90 p-8 rounded-2xl rounded-tr-[4rem] shadow-soft hover:shadow-floating transition-all duration-500">
             <div class="flex items-center gap-4 mb-6">
               <div class="w-12 h-12 rounded-full bg-[rgba(212,184,160,0.22)] grid place-items-center font-semibold text-[color:var(--color-brand-primary)]">
@@ -363,13 +378,13 @@
                 <p class="font-bold text-[color:var(--color-brand-primary)]">
                   Isabelle
                 </p>
-                <p class="text-xs text-[color:var(--color-brand-accent)] font-medium">
+                <UBadge variant="soft" color="primary" size="xs">
                   Coach
-                </p>
+                </UBadge>
               </div>
             </div>
             <p class="font-serif text-xl italic text-[color:var(--color-brand-secondary)] leading-relaxed">
-              “Enfin un outil qui ne me donne pas l'impression de gérer une usine.”
+              "Enfin un outil qui ne me donne pas l'impression de gérer une usine."
             </p>
           </div>
 
@@ -382,13 +397,13 @@
                 <p class="font-bold text-[color:var(--color-brand-primary)]">
                   Claire
                 </p>
-                <p class="text-xs text-[color:var(--color-brand-accent)] font-medium">
+                <UBadge variant="soft" color="primary" size="xs">
                   Naturopathe
-                </p>
+                </UBadge>
               </div>
             </div>
             <p class="font-serif text-xl italic text-[color:var(--color-brand-secondary)] leading-relaxed">
-              “Kaora a rendu mon parcours client plus fluide. C’est simple, doux, efficace.”
+              "Kaora a rendu mon parcours client plus fluide. C'est simple, doux, efficace."
             </p>
           </div>
 
@@ -401,13 +416,13 @@
                 <p class="font-bold text-[color:var(--color-brand-primary)]">
                   Véronique
                 </p>
-                <p class="text-xs text-[color:var(--color-brand-accent)] font-medium">
+                <UBadge variant="soft" color="primary" size="xs">
                   Thérapeute
-                </p>
+                </UBadge>
               </div>
             </div>
             <p class="font-serif text-xl italic text-[color:var(--color-brand-secondary)] leading-relaxed">
-              “Une interface premium, mais surtout apaisante. Mes clientes le sentent.”
+              "Une interface premium, mais surtout apaisante. Mes clientes le sentent."
             </p>
           </div>
         </div>
