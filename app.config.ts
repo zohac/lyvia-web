@@ -154,16 +154,17 @@ export default defineAppConfig({
         },
 
         // ===================================================================
-        // PRIMARY (kaora) — BRAND ACTIONS
+        // PRIMARY — NOW USES STONE-900 (overridden in main.css)
         // ===================================================================
-        // Solid = kaora accent (brand highlight)
+        // CRITICAL: --ui-primary is overridden to stone-900 in main.css,
+        // so this variant now renders black background with white text (same as neutral)
         {
           color: 'primary',
           variant: 'solid',
           class: [
-            'bg-[color:var(--ui-primary)]',
-            'text-white',
-            'hover:bg-[color:var(--color-kaora-700)]',
+            'bg-[color:var(--ui-primary)]',           // stone-900 (#1c1917) via override
+            'text-[color:var(--color-accent-contrast)]',  // white (#ffffff)
+            'hover:bg-[color:var(--ui-color-primary-800)]',  // stone-800
             'active:scale-[0.98]'
           ].join(' ')
         },

@@ -254,3 +254,23 @@
     filter: sepia(10%) contrast(95%) brightness(105%);
   }
 }
+
+/* =================================================================================================
+ * NUXT UI BUTTON PRIMARY FIX — Ensure white text on stone-900 background
+ * ================================================================================================= */
+/*
+ * CRITICAL: Since --ui-primary is overridden to stone-900 in :root,
+ * buttons using color="primary" need explicit white text to avoid black-on-black.
+ *
+ * This rule forces white text on primary solid buttons regardless of
+ * Tailwind class order or Nuxt UI internal styles.
+ */
+button.bg-\[color\:var\(--ui-primary\)\],
+.bg-\[color\:var\(--ui-primary\)\] {
+  color: white !important;
+}
+
+button.bg-\[color\:var\(--color-accent-main\)\],
+.bg-\[color\:var\(--color-accent-main\)\] {
+  color: var(--color-accent-contrast) !important;
+}
