@@ -26,7 +26,7 @@
   --color-brand-secondary: #57534e; /* stone-600 */
   --color-brand-muted: #78716c; /* stone-500 */
   --color-brand-subtle: #e7e5e4; /* stone-200 */
-  --color-brand-accent: #9c826b; /* kaora-600 (text/link) */
+  --color-brand-accent: #7a6251; /* kaora-700 (text/link) */
   --color-brand-solid: #d4b8a0; /* kaora-300 (surfaces/borders, not text) */
 
   /* Surfaces */
@@ -41,8 +41,8 @@
 
   /* Semantic */
   --color-success: #b5c0a3; /* sage */
-  --color-error: #ef4444; /* red */
-  --color-warning: #d97706; /* amber */
+  --color-error: #b60010; /* red */
+  --color-warning: #dc9f59; /* amber */
 
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);

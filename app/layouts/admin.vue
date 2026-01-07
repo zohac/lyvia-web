@@ -11,6 +11,12 @@ const navigation = [
     to: '/admin/dashboard',
     icon: 'lucide:layout-dashboard',
     match: 'exact'
+  },
+  { 
+    label: 'Design System',
+    to: '/admin/design-system',
+    icon: 'lucide:layout-dashboard',
+    match: 'exact'
   }
 ] as const
 </script>

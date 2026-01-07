@@ -11,12 +11,15 @@
         </p>
       </div>
 
-      <!-- Primary CTA (should be stone-900) -->
+      <!-- Primary CTA -->
       <section class="space-y-4">
         <h2 class="font-serif text-2xl font-bold text-[color:var(--color-brand-primary)]">
-          Primary CTA (Attendu: Stone-900 #1c1917)
+          Primary CTA
         </h2>
         <div class="flex flex-wrap gap-4 items-center p-6 bg-white rounded-[var(--radius-lg)] border border-[color:var(--color-border-soft)]">
+          <UButton color="primary" size="xs">
+            Très petit CTA
+          </UButton>
           <UButton color="primary" size="sm">
             Petit CTA
           </UButton>
@@ -26,25 +29,12 @@
           <UButton color="primary" size="lg">
             Grand CTA
           </UButton>
+          <UButton color="primary" size="xl">
+            Très Grand CTA
+          </UButton>
           <UButton color="primary" size="md" disabled>
             CTA Désactivé
           </UButton>
-        </div>
-
-        <!-- Color reference -->
-        <div class="grid grid-cols-2 gap-4 p-6 bg-white rounded-[var(--radius-lg)] border border-[color:var(--color-border-soft)]">
-          <div>
-            <div class="h-16 rounded-lg bg-[#1c1917] mb-2" />
-            <p class="text-xs font-mono text-[color:var(--color-brand-secondary)]">
-              #1c1917 (stone-900) — ATTENDU
-            </p>
-          </div>
-          <div>
-            <div class="h-16 rounded-lg bg-[#9c826b] mb-2" />
-            <p class="text-xs font-mono text-[color:var(--color-brand-secondary)]">
-              #9c826b (kaora-600) — ANCIEN
-            </p>
-          </div>
         </div>
       </section>
 
@@ -72,12 +62,12 @@
       <!-- Kaora Accent (links/highlights) -->
       <section class="space-y-4">
         <h2 class="font-serif text-2xl font-bold text-[color:var(--color-brand-primary)]">
-          Accent Kaora (Liens/Highlights) — #9c826b
+          Accent Kaora (Liens/Highlights)
         </h2>
         <div class="flex flex-wrap gap-4 items-center p-6 bg-white rounded-[var(--radius-lg)] border border-[color:var(--color-border-soft)]">
-          <a href="#" class="text-[color:var(--color-brand-accent)] hover:underline underline-offset-4 font-semibold">
+          <ULink href="#"  color="primary">
             Lien standard (Kaora)
-          </a>
+          </ULink>
           <UButton color="primary" variant="outline" size="md">
             Outline Primary (Kaora border)
           </UButton>
@@ -147,6 +137,11 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: 'admin',
+  middleware: 'auth-admin',
+  pageTitle: 'Design System'
+})
 /**
  * Design System Button Validation Page
  *

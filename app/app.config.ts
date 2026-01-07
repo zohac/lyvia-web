@@ -24,7 +24,7 @@ export default defineAppConfig({
           // typography (bold comme dans DS)
           'font-bold',
           // shape (Kaora organic radius)
-          'rounded-[var(--radius-sm)]',
+          'rounded-full',
           // interaction
           'select-none',
           'transition-all duration-[var(--duration-normal)] ease-[var(--ease-smooth)]',
@@ -54,17 +54,17 @@ export default defineAppConfig({
             trailingIcon: 'size-4'
           },
           md: {
-            base: 'h-12 px-5 text-sm',
+            base: 'h-12 px-5 text-md',
             leadingIcon: 'size-5',
             trailingIcon: 'size-5'
           },
           lg: {
-            base: 'h-14 px-6 text-base',
+            base: 'h-14 px-6 text-lg',
             leadingIcon: 'size-5',
             trailingIcon: 'size-5'
           },
           xl: {
-            base: 'h-16 px-8 text-base',
+            base: 'h-16 px-8 text-xl',
             leadingIcon: 'size-6',
             trailingIcon: 'size-6'
           }
@@ -255,7 +255,7 @@ export default defineAppConfig({
           variant: 'solid',
           class: [
             'bg-[color:var(--color-warning)]',
-            'text-white',
+            'text-[color:var(--color-brand-primary)]',
             'hover:opacity-95',
             'active:scale-[0.98]'
           ].join(' ')
@@ -288,7 +288,7 @@ export default defineAppConfig({
           variant: 'solid',
           class: [
             'bg-[color:var(--color-error)]',
-            'text-white',
+            'text-white font-black text-lg',
             'hover:opacity-90',
             'active:scale-[0.98]'
           ].join(' ')
@@ -409,7 +409,7 @@ export default defineAppConfig({
         {
           color: 'warning',
           variant: 'solid',
-          class: 'bg-[color:var(--color-warning)] text-white border-transparent'
+          class: 'bg-[color:var(--color-warning)] text-[color:var(--color-brand-primary)] border-transparent'
         },
         {
           color: 'warning',
@@ -426,7 +426,7 @@ export default defineAppConfig({
         {
           color: 'error',
           variant: 'solid',
-          class: 'bg-[color:var(--color-error)] text-white border-transparent'
+          class: 'bg-[color:var(--color-error)] text-[color:var(--color-brand-primary)] border-transparent'
         },
         {
           color: 'error',
