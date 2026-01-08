@@ -166,6 +166,45 @@ export const kaoraButton = {
       class:
         "text-muted hover:text-default active:text-default disabled:text-muted aria-disabled:text-muted focus:outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-inverted",
     },
+    // =========================================================================
+    // SECONDARY (kaora) — BRAND ACCENT ACTIONS
+    // =========================================================================
+    {
+      color: "secondary",
+      variant: "solid",
+      class:
+        "text-white bg-secondary hover:bg-secondary/75 active:bg-secondary/75 disabled:bg-secondary aria-disabled:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary",
+    },
+    {
+      color: "secondary",
+      variant: "outline",
+      class:
+        "ring ring-inset ring-secondary/50 text-secondary hover:bg-secondary/10 active:bg-secondary/10 disabled:bg-transparent aria-disabled:bg-transparent dark:disabled:bg-transparent dark:aria-disabled:bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
+    },
+    {
+      color: "secondary",
+      variant: "soft",
+      class:
+        "text-secondary bg-secondary/10 hover:bg-secondary/15 active:bg-secondary/15 focus:outline-none focus-visible:bg-secondary/15 disabled:bg-secondary/10 aria-disabled:bg-secondary/10",
+    },
+    {
+      color: "secondary",
+      variant: "subtle",
+      class:
+        "text-secondary ring ring-inset ring-secondary/25 bg-secondary/10 hover:bg-secondary/15 active:bg-secondary/15 disabled:bg-secondary/10 aria-disabled:bg-secondary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
+    },
+    {
+      color: "secondary",
+      variant: "ghost",
+      class:
+        "text-secondary hover:bg-secondary/10 active:bg-secondary/10 focus:outline-none focus-visible:bg-secondary/10 disabled:bg-transparent aria-disabled:bg-transparent dark:disabled:bg-transparent dark:aria-disabled:bg-transparent",
+    },
+    {
+      color: "secondary",
+      variant: "link",
+      class:
+        "text-secondary hover:text-secondary/75 active:text-secondary/75 disabled:text-secondary aria-disabled:text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-secondary",
+    },
     {
       size: "xs",
       square: true,

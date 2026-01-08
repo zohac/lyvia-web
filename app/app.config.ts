@@ -2,22 +2,23 @@ import { kaoraAlert } from "./config/design-system/kaora-alert";
 import { kaoraBadge } from "./config/design-system/kaora-badge";
 import { kaoraButton } from "./config/design-system/kaora-button";
 import { kaoraCard } from "./config/design-system/kaora-card";
+import { kaoraColors } from "./config/design-system/kaora-colors";
 import { kaoraInput } from "./config/design-system/kaora-input";
 import { kaoraLink } from "./config/design-system/kaora-link";
 
 export default defineAppConfig({
   ui: {
     // =========================================================================
-    // COLORS — Kaora Design System
+    // COLORS — Kaora Design System (Semantic Mapping)
     // =========================================================================
-    // NOTE: Despite `primary: 'kaora'` here, main.css overrides --ui-primary
-    // to use stone-900 (#1c1917) to match the design system CTA specification.
-    // Kaora palette is exposed as --ui-color-accent-* for links/highlights.
+    // Aligned with design system spec:
+    //   - primary: stone (CTA → stone-900 background + white text)
+    //   - secondary: kaora (accents/links → kaora-700 text/border)
+    //
+    // @see app/config/design-system/kaora-colors.ts
+    // @see docs/03_uiux/kaora/COLOR_SYSTEM.md
     // =========================================================================
-    colors: {
-      primary: 'kaora',  // Overridden in main.css → stone-900 for CTAs
-      neutral: 'stone'
-    },
+    colors: kaoraColors,
 
     // =========================================================================
     // BUTTON — Organic Luxury Theme

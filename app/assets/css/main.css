@@ -84,57 +84,26 @@
     color-scheme: light;
 
     /* =================================================================================================
-     * NUXT UI v4 — KAORA PRIMARY OVERRIDE
+     * NUXT UI v4 — KAORA SECONDARY PALETTE
      * =================================================================================================
-     * CRITICAL: Primary color MUST use STONE (not kaora) to match design system CTA spec.
+     * Exposes kaora palette as secondary color for brand accents (links, highlights).
+     * Primary color (stone) is managed natively by Nuxt UI via app.config.ts.
      *
-     * Design System Reference:
-     *   .btn--primary → stone-900 (#1c1917) background
-     *   --color-accent-main → stone-900
-     *
-     * This override forces Nuxt UI components using color="primary" to render with stone palette
-     * instead of kaora. Kaora remains available as an accent/link color via --color-brand-accent.
+     * @see app/config/design-system/kaora-colors.ts
      * ================================================================================================= */
 
-    /* Primary palette = STONE (CTA spec) */
-    --ui-primary: var(--color-stone-900);
-    --ui-color-primary-50: var(--color-stone-50);
-    --ui-color-primary-100: var(--color-stone-100);
-    --ui-color-primary-200: var(--color-stone-200);
-    --ui-color-primary-300: var(--color-stone-300);
-    --ui-color-primary-400: var(--color-stone-400);
-    --ui-color-primary-500: var(--color-stone-500);
-    --ui-color-primary-600: var(--color-stone-600);
-    --ui-color-primary-700: var(--color-stone-700);
-    --ui-color-primary-800: var(--color-stone-800);
-    --ui-color-primary-900: var(--color-stone-900);  /* #1c1917 — PRIMARY CTA */
-    --ui-color-primary-950: var(--color-stone-950);
-
-    /* Neutral palette = STONE */
-    --ui-color-neutral-50: var(--color-stone-50);
-    --ui-color-neutral-100: var(--color-stone-100);
-    --ui-color-neutral-200: var(--color-stone-200);
-    --ui-color-neutral-300: var(--color-stone-300);
-    --ui-color-neutral-400: var(--color-stone-400);
-    --ui-color-neutral-500: var(--color-stone-500);
-    --ui-color-neutral-600: var(--color-stone-600);
-    --ui-color-neutral-700: var(--color-stone-700);
-    --ui-color-neutral-800: var(--color-stone-800);
-    --ui-color-neutral-900: var(--color-stone-900);
-    --ui-color-neutral-950: var(--color-stone-950);
-
-    /* Kaora palette exposed as accent (for links/highlights) */
-    --ui-color-accent-50: var(--color-kaora-50);
-    --ui-color-accent-100: var(--color-kaora-100);
-    --ui-color-accent-200: var(--color-kaora-200);
-    --ui-color-accent-300: var(--color-kaora-300);
-    --ui-color-accent-400: var(--color-kaora-400);
-    --ui-color-accent-500: var(--color-kaora-500);
-    --ui-color-accent-600: var(--color-kaora-600);  /* #9c826b — BRAND ACCENT */
-    --ui-color-accent-700: var(--color-kaora-700);
-    --ui-color-accent-800: var(--color-kaora-800);
-    --ui-color-accent-900: var(--color-kaora-900);
-    --ui-color-accent-950: var(--color-kaora-950);
+    /* Secondary palette = KAORA (Brand accents) */
+    --ui-color-secondary-50: var(--color-kaora-50);
+    --ui-color-secondary-100: var(--color-kaora-100);
+    --ui-color-secondary-200: var(--color-kaora-200);
+    --ui-color-secondary-300: var(--color-kaora-300);
+    --ui-color-secondary-400: var(--color-kaora-400);
+    --ui-color-secondary-500: var(--color-kaora-500);
+    --ui-color-secondary-600: var(--color-kaora-600);  /* #9c826b */
+    --ui-color-secondary-700: var(--color-kaora-700);  /* #7a6251 — BRAND ACCENT */
+    --ui-color-secondary-800: var(--color-kaora-800);
+    --ui-color-secondary-900: var(--color-kaora-900);
+    --ui-color-secondary-950: var(--color-kaora-950);
   }
 
   html {
