@@ -41,7 +41,7 @@ defineProps<{
         </p>
 
         <div class="grid gap-4 pt-2 sm:flex sm:justify-center lg:justify-start">
-          <ULink
+          <UButton
             :to="ctaTo"
             class="group inline-flex items-center justify-center rounded-full bg-[color:var(--color-accent-main)] px-8 py-4 text-base font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:brightness-110"
           >
@@ -54,7 +54,7 @@ defineProps<{
                 aria-hidden="true"
               />
             </span>
-          </ULink>
+          </UButton>
 
           <a
             href="#parcours"

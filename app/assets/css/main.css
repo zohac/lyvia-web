@@ -35,14 +35,15 @@
   --color-surface-highlight: #f5f5f4; /* stone-100 */
 
   /* Primary CTA (Kaora uses stone as primary action background) */
-  --color-accent-main: #1c1917; /* stone-900 */
-  --color-accent-hover: #292524; /* stone-800 */
+  --color-accent-main: var(--color-stone-900); /* stone-900 */
+  --color-accent-hover: var(--color-stone-700); /* stone-700 */
   --color-accent-contrast: #FFFFFF;
 
   /* Semantic */
-  --color-success: #b5c0a3; /* sage */
-  --color-error: #b60010; /* red */
+  --color-success: var(--color-success-300); /* sage */
+  --color-error: var(--color-error-800); /* red */
   --color-warning: var(--color-amber-400); /* amber */
+  --color-info: var(--color-blue-400); /* blue */
 
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
@@ -51,6 +52,30 @@
 
   --font-sans: var(--font-family-body);
   --font-serif: var(--font-family-heading);
+
+  --color-success-50: #f3f5f0;
+  --color-success-100: #e5e9de;
+  --color-success-200: #ced5c1;
+  --color-success-300: #b5c0a3;
+  --color-success-400: #91a17a;
+  --color-success-500: #74855d;
+  --color-success-600: #5b6947;
+  --color-success-700: #475239;
+  --color-success-800: #3b4331;
+  --color-success-900: #343a2d;
+  --color-success-950: #1a1e15;
+
+  --color-error-50: #ffeff0;
+  --color-error-100: #ffdcdf;
+  --color-error-200: #ffbfc5;
+  --color-error-300: #ff929c;
+  --color-error-400: #ff5463;
+  --color-error-500: #ff1f33;
+  --color-error-600: #ff0016;
+  --color-error-700: #db0013;
+  --color-error-800: #b60010;
+  --color-error-900: #940814;
+  --color-error-950: #520007;
 
   /* Kaora palette (brand) */
   --color-kaora-50: #fbf7f4;
@@ -222,24 +247,4 @@
   .warm-filter {
     filter: sepia(10%) contrast(95%) brightness(105%);
   }
-}
-
-/* =================================================================================================
- * NUXT UI BUTTON PRIMARY FIX — Ensure white text on stone-900 background
- * ================================================================================================= */
-/*
- * CRITICAL: Since --ui-primary is overridden to stone-900 in :root,
- * buttons using color="primary" need explicit white text to avoid black-on-black.
- *
- * This rule forces white text on primary solid buttons regardless of
- * Tailwind class order or Nuxt UI internal styles.
- */
-button.bg-\[color\:var\(--ui-primary\)\],
-.bg-\[color\:var\(--ui-primary\)\] {
-  color: white !important;
-}
-
-button.bg-\[color\:var\(--color-accent-main\)\],
-.bg-\[color\:var\(--color-accent-main\)\] {
-  color: var(--color-accent-contrast) !important;
 }
