@@ -12,12 +12,12 @@
         </p>
       </div>
 
-      <NuxtLink
+      <ULink
         to="/provider/availability"
         class="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-floating transition-base hover:brightness-110"
       >
         Configurer mes disponibilités
-      </NuxtLink>
+      </ULink>
     </section>
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
@@ -43,7 +43,7 @@
             <p class="mt-3 text-sm text-[color:var(--color-brand-secondary)]">
               Gérez vos appels discovery depuis une vue dédiée.
             </p>
-            <NuxtLink
+            <ULink
               to="/provider/discovery"
               class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-accent)] hover:underline"
             >
@@ -53,7 +53,7 @@
                 size="16"
                 aria-hidden="true"
               />
-            </NuxtLink>
+            </ULink>
           </div>
 
           <div class="rounded-blob-d border border-[rgba(28,25,23,0.10)] bg-white/75 p-7 shadow-soft backdrop-blur">
@@ -83,12 +83,12 @@
           <p class="mt-2 text-sm text-[color:var(--color-brand-muted)]">
             Mettez à jour vos créneaux en quelques secondes.
           </p>
-          <NuxtLink
+          <ULink
             to="/provider/availability"
             class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white px-4 py-3 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
           >
             Ouvrir l’agenda
-          </NuxtLink>
+          </ULink>
         </div>
 
         <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-white/75 p-8 shadow-soft backdrop-blur">

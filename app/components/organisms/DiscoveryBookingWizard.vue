@@ -15,7 +15,6 @@ import { apiFetch } from '../../services/api/apiFetch'
 import BookingSummary from '../molecules/BookingSummary.vue'
 import IdentityForm from '../molecules/IdentityForm.vue'
 import SlotPicker from './SlotPicker.vue'
-import PrimaryButton from '../atoms/PrimaryButton.vue'
 import SystemAlert from '../atoms/SystemAlert.vue'
 
 type WizardStep = 1 | 2 | 3
@@ -419,7 +418,7 @@ async function submitBooking() {
   <div class="w-full">
     <div class="mx-auto grid w-full max-w-5xl gap-8">
       <header class="grid justify-items-center gap-5 text-center">
-        <NuxtLink
+        <ULink
           to="/"
           aria-label="Retour à l’accueil"
           class="inline-flex items-center justify-center"
@@ -430,7 +429,7 @@ async function submitBooking() {
             class="h-10 w-auto"
             decoding="async"
           >
-        </NuxtLink>
+        </ULink>
 
         <div class="grid gap-2">
           <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--color-brand-muted)]">
@@ -527,7 +526,7 @@ async function submitBooking() {
                 />
 
                 <div class="hidden sm:block">
-                  <PrimaryButton
+                  <UButton
                     type="button"
                     label="Continuer"
                     :disabled="!selectedSlotStartAt || isLoadingAvailability"
@@ -539,7 +538,7 @@ async function submitBooking() {
               <div class="sm:hidden">
                 <div class="fixed inset-x-0 bottom-0 z-50 px-4 pb-[env(safe-area-inset-bottom)]">
                   <div class="glass-panel rounded-blob-d p-4 shadow-floating">
-                    <PrimaryButton
+                    <UButton
                       type="button"
                       label="Continuer"
                       :disabled="!selectedSlotStartAt || isLoadingAvailability"
@@ -598,7 +597,7 @@ async function submitBooking() {
                   @update:consents="updateConsents"
                 />
 
-                <PrimaryButton
+                <UButton
                   type="button"
                   label="Confirmer mon appel"
                   loading-label="Confirmation en cours…"
@@ -657,12 +656,12 @@ async function submitBooking() {
                   </p>
                 </div>
 
-                <NuxtLink
+                <ULink
                   to="/"
                   class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
                 >
                   Retour à l’accueil
-                </NuxtLink>
+                </ULink>
               </div>
 
               <div
@@ -674,7 +673,7 @@ async function submitBooking() {
                   description="Impossible d’afficher la confirmation pour le moment."
                 />
 
-                <PrimaryButton
+                <UButton
                   type="button"
                   label="Revenir au début"
                   @click="goToStep(1)"

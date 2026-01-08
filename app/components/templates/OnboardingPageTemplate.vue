@@ -31,13 +31,13 @@ onMounted(() => {
     <div class="mx-auto flex w-full max-w-[576px] flex-col gap-8">
       <header class="flex flex-col items-center gap-4 text-center">
         <slot name="logo">
-          <NuxtLink
+          <ULink
             to="/"
             class="inline-flex items-center justify-center"
             aria-label="Retour à l’accueil"
           >
             <AppLogo class="h-12 w-auto" />
-          </NuxtLink>
+          </ULink>
         </slot>
 
         <div class="grid gap-2">

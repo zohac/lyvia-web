@@ -42,7 +42,7 @@
   /* Semantic */
   --color-success: #b5c0a3; /* sage */
   --color-error: #b60010; /* red */
-  --color-warning: #dc9f59; /* amber */
+  --color-warning: var(--color-amber-400); /* amber */
 
   --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);

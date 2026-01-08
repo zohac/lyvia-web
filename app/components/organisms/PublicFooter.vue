@@ -20,12 +20,12 @@ const footerLine = computed(() => {
       <p v-if="footerLine">
         {{ footerLine }}
       </p>
-      <NuxtLink
+      <ULink
         :to="headerState.loginTo"
         class="font-semibold hover:underline"
       >
         {{ headerState.loginLabel }}
-      </NuxtLink>
+      </ULink>
     </div>
   </footer>
 </template>

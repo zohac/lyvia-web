@@ -6,7 +6,7 @@
     aria-atomic="true"
   >
     <header class="grid gap-3 text-center">
-      <NuxtLink
+      <ULink
         to="/"
         aria-label="Retour à l’accueil"
         class="mx-auto mb-12 inline-flex w-fit items-center justify-center"
@@ -17,7 +17,7 @@
           class="h-10 w-auto"
           decoding="async"
         >
-      </NuxtLink>
+      </ULink>
 
       <h1
         ref="titleRef"
@@ -64,17 +64,17 @@
     </div>
 
     <div class="grid gap-4">
-      <PrimaryButton
+      <UButton
         to="/login"
         label="Retour à la connexion"
         class="shadow-floating hover:-translate-y-0.5 hover:shadow-floating"
       />
-      <NuxtLink
+      <ULink
         to="/"
         class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
       >
         Revenir à l’accueil
-      </NuxtLink>
+      </ULink>
     </div>
   </div>
 </template>

@@ -65,7 +65,7 @@
           Accent Kaora (Liens/Highlights)
         </h2>
         <div class="flex flex-wrap gap-4 items-center p-6 bg-white rounded-[var(--radius-lg)] border border-[color:var(--color-border-soft)]">
-          <ULink href="#"  color="primary">
+          <ULink href="#">
             Lien standard (Kaora)
           </ULink>
           <UButton color="primary" variant="outline" size="md">

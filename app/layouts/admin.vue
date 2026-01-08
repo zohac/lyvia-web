@@ -15,7 +15,7 @@ const navigation = [
   { 
     label: 'Design System',
     to: '/admin/design-system',
-    icon: 'lucide:layout-dashboard',
+    icon: 'lucide:file-sliders',
     match: 'exact'
   }
 ] as const

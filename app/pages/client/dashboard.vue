@@ -12,12 +12,12 @@
         </p>
       </div>
 
-      <NuxtLink
+      <ULink
         to="/client/consultation"
         class="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-floating transition-base hover:brightness-110"
       >
         Voir mes rendez-vous
-      </NuxtLink>
+      </ULink>
     </section>
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
@@ -72,12 +72,12 @@
           <p class="mt-2 text-sm text-[color:var(--color-brand-muted)]">
             Retrouver vos prochains rendez-vous en un clic.
           </p>
-          <NuxtLink
+          <ULink
             to="/client/consultation"
             class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white px-4 py-3 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
           >
             Ouvrir
-          </NuxtLink>
+          </ULink>
         </div>
 
         <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-white/75 p-8 shadow-soft backdrop-blur">

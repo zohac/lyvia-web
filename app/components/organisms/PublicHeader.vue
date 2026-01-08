@@ -17,7 +17,7 @@ const useKaoraLogoImage = computed(
       aria-label="Navigation principale"
     >
       <div class="glass-panel flex w-full max-w-6xl items-center justify-between gap-6 rounded-full px-5 py-3 shadow-floating">
-        <NuxtLink
+        <ULink
           :to="headerState.brandTo"
           class="inline-flex items-center gap-2 transition-base"
           aria-label="Accueil"
@@ -40,33 +40,27 @@ const useKaoraLogoImage = computed(
           >
             {{ headerState.brandLabel }}
           </span>
-        </NuxtLink>
+        </ULink>
 
         <div class="hidden items-center gap-6 md:flex">
-          <a
+          <Ulink
             v-for="link in headerState.navLinks"
             :key="link.href"
             :href="link.href"
             class="text-sm font-semibold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)] transition-base"
           >
             {{ link.label }}
-          </a>
+          </Ulink>
         </div>
 
         <div class="flex items-center gap-3">
-          <NuxtLink
-            :to="headerState.loginTo"
-            class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)] md:inline-flex transition-base"
-          >
+          <ULink :to="headerState.loginTo">
             {{ headerState.loginLabel }}
-          </NuxtLink>
+          </ULink>
 
-          <NuxtLink
-            :to="headerState.ctaTo"
-            class="inline-flex h-11 items-center justify-center rounded-full bg-[color:var(--color-accent-main)] px-6 text-[15px] font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:brightness-110 active:scale-[0.99]"
-          >
+          <UButton :to="headerState.ctaTo" color="primary" >
             {{ headerState.ctaLabel }}
-          </NuxtLink>
+          </UButton>
         </div>
       </div>
     </nav>
@@ -78,7 +72,7 @@ const useKaoraLogoImage = computed(
   >
     <div class="glass-panel">
       <div class="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <NuxtLink
+        <ULink
           :to="headerState.brandTo"
           class="inline-flex items-center gap-3 transition-base"
           aria-label="Accueil"
@@ -108,7 +102,7 @@ const useKaoraLogoImage = computed(
           >
             {{ headerState.brandLabel }}
           </span>
-        </NuxtLink>
+        </ULink>
 
         <nav
           v-if="showNavLinks"
@@ -126,19 +120,19 @@ const useKaoraLogoImage = computed(
         </nav>
 
         <div class="flex items-center gap-3">
-          <NuxtLink
+          <ULink
             :to="headerState.loginTo"
             class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)] md:inline-flex transition-base"
           >
             {{ headerState.loginLabel }}
-          </NuxtLink>
+          </ULink>
 
-          <NuxtLink
+          <ULink
             :to="headerState.ctaTo"
             class="inline-flex h-12 items-center justify-center rounded-full bg-[color:var(--color-accent-main)] px-7 text-[15px] font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:brightness-110 active:scale-[0.99]"
           >
             {{ headerState.ctaLabel }}
-          </NuxtLink>
+          </ULink>
         </div>
       </div>
     </div>

@@ -119,7 +119,7 @@ function updateSelection(value: string) {
         </div>
       </div>
 
-      <NuxtLink
+      <ULink
         to="/provider/pricing/consultations"
         class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-5 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-soft transition-base hover:shadow-floating"
       >
@@ -129,7 +129,7 @@ function updateSelection(value: string) {
           aria-hidden="true"
         />
         Créer un tarif
-      </NuxtLink>
+      </ULink>
     </div>
 
     <!-- Sélecteur : plans actifs disponibles -->

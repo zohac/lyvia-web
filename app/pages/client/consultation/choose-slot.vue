@@ -196,7 +196,7 @@ function retry() {
       </div>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <NuxtLink
+        <ULink
           :to="discoveryCtaPath"
           class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
         >
@@ -206,7 +206,7 @@ function retry() {
             aria-hidden="true"
           />
           Réserver un appel découverte
-        </NuxtLink>
+        </ULink>
         <button
           type="button"
           class="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:bg-white"
@@ -270,7 +270,7 @@ function retry() {
       </p>
 
       <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <NuxtLink
+        <ULink
           :to="discoveryCtaPath"
           class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
         >
@@ -280,13 +280,13 @@ function retry() {
             aria-hidden="true"
           />
           Réserver l’appel découverte
-        </NuxtLink>
-        <NuxtLink
+        </ULink>
+        <ULink
           to="/client/dashboard"
           class="text-sm font-semibold text-[color:var(--color-brand-accent)] underline-offset-4 hover:underline"
         >
           Retour au tableau de bord
-        </NuxtLink>
+        </ULink>
       </div>
     </div>
 
@@ -425,7 +425,7 @@ function retry() {
             class="rounded-blob-d border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]"
           >
             Un paiement est déjà en cours pour ce créneau. Reprenez-le depuis votre espace Paiements.
-            <NuxtLink
+            <ULink
               to="/client/payments"
               class="mt-3 inline-flex w-fit items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-accent)] underline-offset-4 hover:underline"
             >
@@ -435,7 +435,7 @@ function retry() {
                 size="16"
                 aria-hidden="true"
               />
-            </NuxtLink>
+            </ULink>
           </div>
 
           <div
@@ -443,7 +443,7 @@ function retry() {
             class="rounded-blob-d border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]"
           >
             Un appel découverte est requis avant de pouvoir réserver une consultation.
-            <NuxtLink
+            <ULink
               :to="discoveryCtaPath"
               class="mt-3 inline-flex w-fit items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-accent)] underline-offset-4 hover:underline"
             >
@@ -453,7 +453,7 @@ function retry() {
                 size="16"
                 aria-hidden="true"
               />
-            </NuxtLink>
+            </ULink>
           </div>
         </div>
       </aside>
@@ -498,12 +498,12 @@ function retry() {
           v-if="state.actionErrorCode === 'ONBOARDING_NOT_COMPLETED'"
           class="mt-2 text-xs text-[color:var(--color-brand-secondary)]"
         >
-          <NuxtLink
+          <ULink
             :to="discoveryCtaPath"
             class="font-semibold text-[color:var(--color-brand-accent)] underline-offset-4 hover:underline"
           >
             Réserver l’appel découverte
-          </NuxtLink>
+          </ULink>
         </p>
       </div>
     </div>

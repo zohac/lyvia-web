@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
-import PrimaryButton from './components/atoms/PrimaryButton.vue'
 
 const props = defineProps<{
   error: NuxtError
@@ -38,16 +37,16 @@ function goHome() {
       </p>
 
       <div class="mt-8 grid gap-3">
-        <PrimaryButton
+        <UButton
           label="Retour à l’accueil"
           @click="goHome"
         />
-        <NuxtLink
+        <ULink
           to="/login"
           class="text-sm font-semibold text-[color:var(--color-brand-primary)] hover:underline"
         >
           Accéder à mon espace
-        </NuxtLink>
+        </ULink>
       </div>
     </div>
   </div>

@@ -42,7 +42,7 @@
 
           <div class="pt-4 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <!-- Primary CTA using UButton -->
-            <UButton to="/login" size="lg" color="neutral" variant="solid" class="group">
+            <UButton to="/login" size="xl" color="primary" class="group">
               Créer mon espace pro
               <template #trailing>
                 <Icon name="lucide:arrow-right" class="group-hover:translate-x-1 transition-transform" />
@@ -50,7 +50,7 @@
             </UButton>
 
             <!-- Secondary link using UButton variant="ghost" -->
-            <UButton href="#atelier" size="lg" color="neutral" variant="outline" class="sm:px-6">
+            <UButton to="#atelier" size="lg" color="primary" variant="outline" class="sm:px-6">
               <template #leading>
                 <Icon name="lucide:play-circle" />
               </template>
@@ -61,13 +61,13 @@
           <div
             class="flex flex-wrap justify-center gap-2 text-sm text-[color:var(--color-brand-secondary)] lg:justify-start">
             <!-- Using UBadge instead of custom rounded pills -->
-            <UBadge variant="outline" color="neutral" size="lg" class="px-4 py-2">
+            <UBadge variant="outline" color="neutral" class="px-4 py-2">
               Essai gratuit
             </UBadge>
-            <UBadge variant="outline" color="neutral" size="lg" class="px-4 py-2">
+            <UBadge variant="outline" color="neutral" class="px-4 py-2">
               Sans carte bancaire
             </UBadge>
-            <UBadge variant="outline" color="neutral" size="lg" class="px-4 py-2">
+            <UBadge variant="outline" color="neutral" class="px-4 py-2">
               White-label (multi-domaines)
             </UBadge>
           </div>

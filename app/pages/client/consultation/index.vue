@@ -9,7 +9,7 @@
       </p>
 
       <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <NuxtLink
+        <ULink
           to="/client/consultation/choose-slot"
           class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
         >
@@ -21,7 +21,7 @@
           <span>
             Réserver une consultation
           </span>
-        </NuxtLink>
+        </ULink>
 
         <p class="text-xs text-[color:var(--color-brand-muted)]">
           Vous pouvez aussi accéder à cette page depuis votre tableau de bord.

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { PublicTenantResponse } from '../../features/onboarding/api/onboarding.contract'
 import CoachHeroProfile from '../organisms/CoachHeroProfile.vue'
-import PrimaryButton from '../atoms/PrimaryButton.vue'
 
 defineProps<{
   tenant: PublicTenantResponse
@@ -238,9 +237,10 @@ defineProps<{
           ?
         </h2>
         <div class="mx-auto mt-8 max-w-[22rem]">
-          <PrimaryButton
+          <UButton
             :to="ctaTo"
             label="Réserver mon appel gratuit"
+            size="lg"
           />
         </div>
       </div>

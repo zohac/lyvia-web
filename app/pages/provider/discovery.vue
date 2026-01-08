@@ -562,7 +562,7 @@ async function confirmCancel() {
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <NuxtLink
+        <ULink
           to="/provider/availability"
           class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating"
         >
@@ -572,7 +572,7 @@ async function confirmCancel() {
             aria-hidden="true"
           />
           Disponibilités
-        </NuxtLink>
+        </ULink>
 
         <button
           type="button"

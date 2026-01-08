@@ -76,7 +76,7 @@ watch(
       aria-label="Navigation principale"
     >
       <div class="p-8">
-        <NuxtLink
+        <ULink
           class="inline-flex items-center gap-3"
           :aria-label="brandLabel"
           :to="brandTo"
@@ -99,7 +99,7 @@ watch(
           >
             {{ brandLabel }}
           </span>
-        </NuxtLink>
+        </ULink>
       </div>
 
       <nav class="flex-1 px-4">
@@ -108,9 +108,9 @@ watch(
             v-for="item in navigation"
             :key="item.to"
           >
-            <NuxtLink
+            <ULink
               :to="item.to"
-              class="group flex items-center gap-3 px-5 py-3.5 text-sm font-semibold tracking-wide text-[color:var(--color-brand-muted)] transition-base"
+              class="group flex items-center gap-3 px-5 py-3.5 font-semibold tracking-wide text-[color:var(--color-brand-muted)] transition-base"
               :class="
                 isItemActive(item)
                   ? 'rounded-r-full rounded-l-[var(--radius-organic)] bg-[color:var(--color-surface-highlight)] text-[color:var(--color-brand-accent)] shadow-soft ring-1 ring-[rgba(231,229,228,0.8)]'
@@ -122,7 +122,7 @@ watch(
                 class="inline-flex h-6 w-6 items-center justify-center"
                 aria-hidden="true"
               >
-                <Icon
+                <UIcon
                   :name="item.icon"
                   size="20"
                   class="transition-base"
@@ -136,7 +136,7 @@ watch(
               <span class="min-w-0 truncate">
                 {{ item.label }}
               </span>
-            </NuxtLink>
+            </ULink>
           </li>
         </ul>
       </nav>
@@ -168,7 +168,7 @@ watch(
                 aria-label="Se déconnecter"
                 @click="onLogout"
               >
-                <Icon
+                <UIcon
                   name="lucide:log-out"
                   size="20"
                   aria-hidden="true"
@@ -189,7 +189,7 @@ watch(
             aria-label="Ouvrir la navigation"
             @click="isMobileNavOpen = true"
           >
-            <Icon
+            <UIcon
               name="lucide:menu"
               size="20"
               aria-hidden="true"
@@ -200,7 +200,7 @@ watch(
             <span class="cursor-default">
               Kaora
             </span>
-            <Icon
+            <UIcon
               name="lucide:chevron-right"
               size="16"
               class="mx-3 opacity-40"
@@ -218,7 +218,7 @@ watch(
 
         <div class="flex items-center gap-4">
           <div class="relative hidden md:block">
-            <Icon
+            <UIcon
               name="lucide:search"
               size="18"
               class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--color-brand-muted)]"
@@ -269,14 +269,14 @@ watch(
           class="relative flex h-full w-[85%] max-w-72 flex-col border-r border-[rgba(231,229,228,0.5)] bg-white/85 backdrop-blur-xl"
         >
           <div class="flex items-center justify-between p-6">
-            <NuxtLink
+            <ULink
               :to="brandTo"
               class="inline-flex items-center gap-3"
               :aria-label="brandLabel"
               @click="closeMobileNav"
             >
               <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[color:var(--color-surface-page)] to-white text-[color:var(--color-brand-accent)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)]">
-                <Icon
+                <UIcon
                   name="lucide:sparkles"
                   size="20"
                   aria-hidden="true"
@@ -301,7 +301,7 @@ watch(
               >
                 {{ brandLabel }}
               </span>
-            </NuxtLink>
+            </ULink>
 
             <button
               type="button"
@@ -309,7 +309,7 @@ watch(
               aria-label="Fermer"
               @click="closeMobileNav"
             >
-              <Icon
+              <UIcon
                 name="lucide:x"
                 size="20"
                 aria-hidden="true"
@@ -323,7 +323,7 @@ watch(
                 v-for="item in navigation"
                 :key="item.to"
               >
-                <NuxtLink
+                <ULink
                   :to="item.to"
                   class="group flex items-center gap-3 px-5 py-3.5 text-sm font-semibold tracking-wide text-[color:var(--color-brand-muted)] transition-base"
                   :class="
@@ -337,8 +337,8 @@ watch(
                     class="inline-flex h-6 w-6 items-center justify-center"
                     aria-hidden="true"
                   >
-                    <Icon
-                      :name="item.icon"
+                    <UIcon
+                      :name="item.UIcon"
                       size="20"
                       class="transition-base"
                       :class="
@@ -351,7 +351,7 @@ watch(
                   <span class="min-w-0 truncate">
                     {{ item.label }}
                   </span>
-                </NuxtLink>
+                </ULink>
               </li>
             </ul>
           </nav>
@@ -363,7 +363,7 @@ watch(
               class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-4 py-3 text-sm font-bold text-white shadow-floating transition-base hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
               @click="onLogout"
             >
-              <Icon
+              <UIcon
                 name="lucide:log-out"
                 size="18"
                 aria-hidden="true"

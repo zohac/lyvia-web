@@ -41,7 +41,7 @@ defineProps<{
         </p>
 
         <div class="grid gap-4 pt-2 sm:flex sm:justify-center lg:justify-start">
-          <NuxtLink
+          <ULink
             :to="ctaTo"
             class="group inline-flex items-center justify-center rounded-full bg-[color:var(--color-accent-main)] px-8 py-4 text-base font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:brightness-110"
           >
@@ -54,7 +54,7 @@ defineProps<{
                 aria-hidden="true"
               />
             </span>
-          </NuxtLink>
+          </ULink>
 
           <a
             href="#parcours"
@@ -88,7 +88,7 @@ defineProps<{
       </div>
     </div>
 
-    <div class="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-[color:var(--color-brand-muted)]">
+    <div class="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-[color:var(--color-brand-muted)] z-10">
       <div class="flex flex-col items-center gap-2">
         <span class="text-xs uppercase tracking-widest">
           Explorer

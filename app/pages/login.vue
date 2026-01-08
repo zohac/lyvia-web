@@ -1,7 +1,7 @@
 <template>
   <div class="grid gap-12">
     <header class="grid gap-3">
-      <NuxtLink
+      <ULink
         to="/"
         aria-label="Retour à l’accueil"
         class="mb-12 inline-flex w-fit items-center justify-center"
@@ -12,7 +12,7 @@
           class="h-10 w-auto"
           decoding="async"
         >
-      </NuxtLink>
+      </ULink>
 
       <h1 class="font-serif text-4xl font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
         Bienvenue dans votre <span class="italic text-[color:var(--color-brand-accent)]">espace</span>
@@ -73,22 +73,24 @@
         :elevated="true"
       >
         <template #label-aside>
-          <NuxtLink
+          <ULink
             to="/forgot-password"
             class="text-xs font-bold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)]"
           >
             Mot de passe oublié
-          </NuxtLink>
+          </ULink>
         </template>
       </PasswordInput>
 
-      <PrimaryButton
+      <UButton
+        color="primary"
+        size="xl"
         type="submit"
         label="Se connecter"
         loading-label="Connexion en cours…"
         :loading="isSubmitting"
         :disabled="!canSubmit"
-        class="shadow-floating hover:-translate-y-0.5 hover:shadow-floating"
+        class="w-full justify-center"
       />
     </form>
   </div>

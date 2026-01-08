@@ -1,7 +1,7 @@
 <template>
   <div class="grid gap-12">
     <header class="grid gap-3">
-      <NuxtLink
+      <ULink
         to="/"
         aria-label="Retour à l’accueil"
         class="mb-12 inline-flex w-fit items-center justify-center"
@@ -12,7 +12,7 @@
           class="h-10 w-auto"
           decoding="async"
         >
-      </NuxtLink>
+      </ULink>
 
       <h1 class="font-serif text-4xl font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
         Nouveau <span class="italic text-[color:var(--color-brand-accent)]">mot de passe</span>
@@ -38,18 +38,18 @@
         description="Par mesure de sécurité, ce lien de réinitialisation n’est plus valide."
       />
 
-      <PrimaryButton
+      <UButton
         to="/forgot-password"
         label="Demander un nouveau lien"
         class="shadow-floating hover:-translate-y-0.5 hover:shadow-floating"
       />
 
-      <NuxtLink
+      <ULink
         to="/login"
         class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
       >
         Retour à la connexion
-      </NuxtLink>
+      </ULink>
     </div>
 
     <form
@@ -88,7 +88,7 @@
         :elevated="true"
       />
 
-      <PrimaryButton
+      <UButton
         type="submit"
         label="Enregistrer le nouveau mot de passe"
         loading-label="Enregistrement…"
@@ -98,13 +98,13 @@
       />
     </form>
 
-    <NuxtLink
+    <ULink
       v-if="!isTokenInvalid"
       to="/login"
       class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
     >
       Retour à la connexion
-    </NuxtLink>
+    </ULink>
   </div>
 </template>
 
