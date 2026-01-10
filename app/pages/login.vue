@@ -44,23 +44,17 @@
         label="Adresse e-mail"
         :required="true"
       >
-        <input
+        <UInput
           ref="emailInputRef"
+          v-model="form.email"
           v-bind="slotProps?.inputAttrs ?? { id: 'email' }"
           name="email"
           type="email"
           inputmode="email"
           autocomplete="username"
           :disabled="isSubmitting"
-          class="h-12 w-full rounded-[var(--radius-sm)] border bg-white px-4 text-lg text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-muted)] shadow-soft transition-[border-color,box-shadow,transform] duration-150 ease-in-out focus:outline-none focus:ring-4"
-          :class="
-            slotProps?.invalid
-              ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
-              : 'border-[rgba(231,229,228,0.9)] focus:border-[color:var(--color-brand-solid)] focus:ring-[rgba(212,184,160,0.35)]'
-          "
-          :value="form.email"
-          @input="form.email = ($event.target as HTMLInputElement).value"
-        >
+          size="xl"
+        />
       </FormControl>
 
       <PasswordInput
@@ -84,7 +78,7 @@
 
       <UButton
         color="primary"
-        size="xl"
+        size="md"
         type="submit"
         label="Se connecter"
         loading-label="Connexion en cours…"
@@ -112,7 +106,7 @@ const form = reactive({
 
 const error = ref<string | null>(null)
 const isSubmitting = ref(false)
-const emailInputRef = ref<HTMLInputElement | null>(null)
+const emailInputRef = ref<{ inputRef: { el: HTMLInputElement } } | null>(null)
 
 const resetSuccess = computed(() => route.query.reset === 'success')
 
@@ -132,7 +126,7 @@ onMounted(() => {
   if (import.meta.server) return
 
   const canFocus = window.matchMedia?.('(pointer: fine)').matches ?? false
-  if (canFocus) emailInputRef.value?.focus()
+  if (canFocus) emailInputRef.value?.inputRef?.el?.focus()
 })
 
 async function onSubmit() {

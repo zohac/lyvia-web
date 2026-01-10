@@ -5,6 +5,8 @@ import { kaoraCard } from "./config/design-system/kaora-card";
 import { kaoraColors } from "./config/design-system/kaora-colors";
 import { kaoraInput } from "./config/design-system/kaora-input";
 import { kaoraLink } from "./config/design-system/kaora-link";
+import { kaoraSelect } from "./config/design-system/kaora-select";
+import { kaoraTabs } from "./config/design-system/kaora-tabs";
 
 export default defineAppConfig({
   ui: {
@@ -50,5 +52,15 @@ export default defineAppConfig({
     // ALERT — Organic Luxury Theme
     // =========================================================================
     alert: kaoraAlert,
+
+    // =========================================================================
+    // SELECT — Organic Luxury Theme
+    // =========================================================================
+    select: kaoraSelect,
+
+    // =========================================================================
+    // Tabs — Organic Luxury Theme
+    // =========================================================================
+    tabs: kaoraTabs,
   }
 })

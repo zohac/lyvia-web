@@ -680,9 +680,9 @@ async function confirmCancel() {
               </p>
             </div>
 
-            <button
+            <UButton
               type="button"
-              class="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
+              variant="soft"
               :disabled="pending"
               @click="() => refresh()"
             >
@@ -692,39 +692,34 @@ async function confirmCancel() {
                 aria-hidden="true"
               />
               Actualiser
-            </button>
+            </UButton>
           </div>
 
           <div class="grid gap-4 px-6 py-5 sm:grid-cols-2 lg:grid-cols-3">
             <label class="grid gap-2 text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
               Période
-              <select
+              <USelect
                 v-model="rangeFilter"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
-              >
-                <option value="all">
-                  Tout
-                </option>
-                <option value="today">
-                  Aujourd’hui
-                </option>
-                <option value="next14">
-                  Prochains 14 jours
-                </option>
-                <option value="past7">
-                  7 jours passés
-                </option>
-              </select>
+                :items="[
+                  { value: 'all', label: 'Tout' },
+                  { value: 'today', label: 'Aujourd\'hui' },
+                  { value: 'next14', label: 'Prochains 14 jours' },
+                  { value: 'past7', label: '7 jours passés' }
+                ]"
+                option-attribute="label"
+                value-attribute="value"
+                :highlight=false
+              />
             </label>
 
             <label class="grid gap-2 text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
               Recherche
-              <input
+              <UInput
                 v-model="searchQuery"
                 type="search"
                 placeholder="Nom, email, téléphone..."
                 class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base placeholder:text-[color:var(--color-brand-muted)] focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
-              >
+              />
             </label>
           </div>
         </div>
@@ -850,9 +845,10 @@ async function confirmCancel() {
                     </div>
 
                     <div class="flex flex-wrap items-center justify-end gap-3">
-                      <button
+                      <UButton
                         type="button"
-                        class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
+                        variant="ghost"
+                        size="xs"
                         :disabled="updatingId === item.id"
                         @click="openConclusionModal(item)"
                       >
@@ -862,11 +858,11 @@ async function confirmCancel() {
                           aria-hidden="true"
                         />
                         Conclure l’appel
-                      </button>
+                      </UButton>
 
-                      <button
+                      <UButton
                         type="button"
-                        class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                        size="xs"
                         :disabled="updatingId === item.id"
                         @click="openCancelModal(item)"
                       >
@@ -876,7 +872,7 @@ async function confirmCancel() {
                           aria-hidden="true"
                         />
                         Annuler
-                      </button>
+                      </UButton>
                     </div>
                   </div>
                 </article>

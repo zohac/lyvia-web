@@ -8,6 +8,11 @@ export default defineNuxtConfig({
     '@nuxt/ui'
   ],
 
+  // Kaora Design System: Disable color mode entirely (light only)
+  ui: {
+    colorMode: false
+  },
+
   devtools: {
     enabled: true
   },

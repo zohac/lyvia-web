@@ -12,12 +12,9 @@
         </p>
       </div>
 
-      <ULink
-        to="/provider/availability"
-        class="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-floating transition-base hover:brightness-110"
-      >
+      <UButton to="/provider/availability">
         Configurer mes disponibilités
-      </ULink>
+      </UButton>
     </section>
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
