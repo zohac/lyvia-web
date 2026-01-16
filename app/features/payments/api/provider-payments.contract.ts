@@ -11,6 +11,8 @@ export type ProviderPaymentListItem = {
   status: PaymentStatus
   amountCents: number
   platformFeeCents: number
+  stripeFeeCents: number | null
+  netAmountCents: number
   currency: string
   receiptUrl: string | null
   createdAt: string

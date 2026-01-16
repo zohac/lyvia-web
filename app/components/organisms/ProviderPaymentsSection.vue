@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import SystemAlert from '../atoms/SystemAlert.vue'
 import { getPaymentStatusDisplay } from '../../features/payments/domain/payment-display'
+import { formatProviderPaymentAmounts } from '../../features/payments/domain/provider-payment-display'
 import type { ProviderPaymentListItem } from '../../features/payments/api/provider-payments.contract'
 
 type Props = {
@@ -20,9 +21,7 @@ const emit = defineEmits<{
 
 const formattedPayments = computed(() => props.payments.map((payment) => {
   const status = getPaymentStatusDisplay(payment.status)
-  const amount = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: payment.currency }).format(payment.amountCents / 100)
-  const fee = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: payment.currency }).format(payment.platformFeeCents / 100)
-  const net = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: payment.currency }).format((payment.amountCents - payment.platformFeeCents) / 100)
+  const amounts = formatProviderPaymentAmounts(payment)
 
   const paymentDate = new Intl.DateTimeFormat('fr-FR', {
     weekday: 'short',
@@ -46,9 +45,10 @@ const formattedPayments = computed(() => props.payments.map((payment) => {
   return {
     ...payment,
     status,
-    amount,
-    fee,
-    net,
+    amount: amounts.amount,
+    fee: amounts.platformFee,
+    stripeFee: amounts.stripeFee,
+    net: amounts.net,
     paymentDate,
     appointmentWhen
   }
@@ -155,7 +155,7 @@ function openReceipt(url: string) {
             </p>
           </div>
 
-          <dl class="mt-2 grid gap-2 rounded-blob-a bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-primary)] sm:grid-cols-3">
+          <dl class="mt-2 grid gap-2 rounded-blob-a bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-primary)] sm:grid-cols-4">
             <div class="grid gap-1">
               <dt class="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
                 Montant
@@ -170,6 +170,23 @@ function openReceipt(url: string) {
               </dt>
               <dd class="font-semibold">
                 {{ payment.fee }}
+              </dd>
+            </div>
+            <div class="grid gap-1">
+              <dt class="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+                <UTooltip text="Frais prélevés par Stripe pour le traitement du paiement">
+                  <span class="inline-flex cursor-help items-center gap-1 border-b border-dashed border-current">
+                    Frais Stripe
+                    <Icon
+                      name="lucide:info"
+                      size="12"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </UTooltip>
+              </dt>
+              <dd class="font-semibold">
+                {{ payment.stripeFee ?? '—' }}
               </dd>
             </div>
             <div class="grid gap-1">
