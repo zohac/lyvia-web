@@ -22,7 +22,9 @@ function assertMatches(haystack, pattern, message) {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const webRoot = path.resolve(__dirname, '..')
-const apiRoot = path.resolve(webRoot, '..', 'lyvia-api')
+// In CI, LYVIA_API_PATH points to the checked-out lyvia-api repo
+// Locally (bootstrap), lyvia-api is a sibling directory
+const apiRoot = process.env.LYVIA_API_PATH || path.resolve(webRoot, '..', 'lyvia-api')
 const apiOpenApiPath = path.resolve(apiRoot, 'openapi.yaml')
 const frontAuthContractPath = path.resolve(
   webRoot,

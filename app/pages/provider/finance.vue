@@ -316,19 +316,33 @@ async function refreshPayments() {
               Prochaines étapes
             </p>
             <ul
-              v-if="finance.requirementSteps.value.length"
+              v-if="finance.requirementAlerts.value.length"
               class="grid gap-2"
             >
               <li
-                v-for="step in finance.requirementSteps.value"
-                :key="step"
-                class="flex gap-3 rounded-2xl bg-[color:var(--color-surface-highlight)] px-4 py-3 text-sm text-[color:var(--color-brand-primary)]"
+                v-for="alert in finance.requirementAlerts.value"
+                :key="alert.message"
+                class="flex gap-3 rounded-2xl px-4 py-3 text-sm"
+                :class="[
+                  alert.severity === 'critical'
+                    ? 'bg-[rgba(239,68,68,0.10)] text-[color:rgb(185,28,28)]'
+                    : alert.severity === 'warning'
+                      ? 'bg-[rgba(245,158,11,0.12)] text-[color:rgb(180,83,9)]'
+                      : 'bg-[color:var(--color-surface-highlight)] text-[color:var(--color-brand-primary)]'
+                ]"
               >
                 <UIcon
-                  name="lucide:sparkles"
-                  class="mt-0.5 h-5 w-5 flex-shrink-0 text-[color:var(--color-brand-accent)]"
+                  :name="alert.severity === 'critical' ? 'lucide:alert-circle' : alert.severity === 'warning' ? 'lucide:alert-triangle' : 'lucide:info'"
+                  class="mt-0.5 h-5 w-5 flex-shrink-0"
+                  :class="[
+                    alert.severity === 'critical'
+                      ? 'text-[color:rgb(220,38,38)]'
+                      : alert.severity === 'warning'
+                        ? 'text-[color:rgb(217,119,6)]'
+                        : 'text-[color:var(--color-brand-accent)]'
+                  ]"
                 />
-                <span>{{ step }}</span>
+                <span>{{ alert.message }}</span>
               </li>
             </ul>
             <p

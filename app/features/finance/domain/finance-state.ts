@@ -1,5 +1,12 @@
 import type { ProviderFinanceSummary, StripeConnectStatus } from '../api/finance.contract'
 
+export type RequirementSeverity = 'critical' | 'warning' | 'info'
+
+export type StripeRequirementAlert = {
+  severity: RequirementSeverity
+  message: string
+}
+
 export type ProviderFinanceUiStateKind = 'start' | 'incomplete' | 'ready' | 'shadow'
 
 export type ProviderFinanceUiState = {
@@ -42,63 +49,143 @@ function normalizeString(value: unknown): string | null {
 }
 
 /**
- * Converts Stripe "requirements.currently_due" keys into human-friendly steps.
+ * Converts a single Stripe requirement key into a human-friendly French message.
  *
  * The backend intentionally stores raw Stripe keys; the UI MUST never expose them directly.
+ */
+export function mapRequirementKeyToMessage(key: string): string {
+  const normalized = normalizeString(key)
+  if (!normalized) return 'Finaliser la vérification de votre compte pour activer les virements.'
+
+  switch (normalized) {
+    case 'external_account':
+      return 'Ajouter votre compte bancaire (IBAN) pour recevoir les virements.'
+    case 'individual.verification.document':
+    case 'company.verification.document':
+      return 'Vérifier votre identité avec un document officiel.'
+    case 'individual.verification.additional_document':
+    case 'company.verification.additional_document':
+      return 'Fournir un document complémentaire pour finaliser la vérification.'
+    case 'individual.first_name':
+    case 'individual.last_name':
+    case 'individual.dob.day':
+    case 'individual.dob.month':
+    case 'individual.dob.year':
+      return 'Compléter vos informations personnelles (identité).'
+    case 'individual.address.line1':
+    case 'individual.address.postal_code':
+    case 'individual.address.city':
+    case 'individual.address.country':
+      return 'Renseigner votre adresse postale.'
+    case 'business_profile.url':
+      return 'Ajouter un lien public (site ou page) pour valider votre activité.'
+    case 'business_profile.mcc':
+    case 'business_profile.product_description':
+      return 'Décrire votre activité pour valider votre dossier.'
+    case 'company.tax_id':
+    case 'company.vat_id':
+      return 'Renseigner vos informations fiscales (si applicable).'
+    default:
+      if (normalized.startsWith('individual.')) {
+        return 'Compléter vos informations personnelles pour finaliser la vérification.'
+      }
+      if (normalized.startsWith('company.')) {
+        return 'Compléter les informations de votre structure pour finaliser la vérification.'
+      }
+      return 'Finaliser la vérification de votre compte pour activer les virements.'
+  }
+}
+
+/**
+ * Converts Stripe "requirements.currently_due" keys into human-friendly steps.
+ *
+ * @deprecated Use `mapAllStripeRequirements()` for new code. This function
+ * is kept for backwards compatibility with existing UI components.
  */
 export function mapStripeRequirementsToSteps(requirementsDue: string[]): string[] {
   const steps = new Set<string>()
 
-  for (const raw of requirementsDue) {
-    const key = normalizeString(raw)
-    if (!key) continue
-
-    switch (key) {
-      case 'external_account':
-        steps.add('Ajouter votre compte bancaire (IBAN) pour recevoir les virements.')
-        break
-      case 'individual.verification.document':
-      case 'company.verification.document':
-        steps.add('Vérifier votre identité avec un document officiel.')
-        break
-      case 'individual.verification.additional_document':
-      case 'company.verification.additional_document':
-        steps.add('Fournir un document complémentaire pour finaliser la vérification.')
-        break
-      case 'individual.first_name':
-      case 'individual.last_name':
-      case 'individual.dob.day':
-      case 'individual.dob.month':
-      case 'individual.dob.year':
-        steps.add('Compléter vos informations personnelles (identité).')
-        break
-      case 'individual.address.line1':
-      case 'individual.address.postal_code':
-      case 'individual.address.city':
-      case 'individual.address.country':
-        steps.add('Renseigner votre adresse postale.')
-        break
-      case 'business_profile.url':
-        steps.add('Ajouter un lien public (site ou page) pour valider votre activité.')
-        break
-      case 'business_profile.mcc':
-      case 'business_profile.product_description':
-        steps.add('Décrire votre activité pour valider votre dossier.')
-        break
-      case 'company.tax_id':
-      case 'company.vat_id':
-        steps.add('Renseigner vos informations fiscales (si applicable).')
-        break
-      default:
-        if (key.startsWith('individual.')) {
-          steps.add('Compléter vos informations personnelles pour finaliser la vérification.')
-        } else if (key.startsWith('company.')) {
-          steps.add('Compléter les informations de votre structure pour finaliser la vérification.')
-        } else {
-          steps.add('Finaliser la vérification de votre compte pour activer les virements.')
-        }
-    }
+  for (const key of requirementsDue) {
+    steps.add(mapRequirementKeyToMessage(key))
   }
 
   return Array.from(steps)
+}
+
+/**
+ * Maps a disabled_reason code to a human-friendly French message.
+ */
+function mapDisabledReasonToMessage(reason: string): string {
+  const normalized = normalizeString(reason)
+  if (!normalized) return 'Votre compte a été désactivé. Contactez le support pour plus d\'informations.'
+
+  switch (normalized) {
+    case 'requirements.past_due':
+      return 'Des informations requises n\'ont pas été fournies à temps.'
+    case 'requirements.pending_verification':
+      return 'Vérification en cours par Stripe.'
+    case 'listed':
+      return 'Votre compte a été signalé. Contactez le support.'
+    case 'platform_paused':
+      return 'Les paiements sont temporairement suspendus par la plateforme.'
+    case 'rejected.fraud':
+      return 'Votre compte a été refusé pour suspicion de fraude.'
+    case 'rejected.terms_of_service':
+      return 'Votre compte a été refusé pour non-respect des conditions d\'utilisation.'
+    case 'rejected.listed':
+      return 'Votre compte a été refusé car il figure sur une liste de surveillance.'
+    case 'rejected.other':
+      return 'Votre compte a été refusé. Contactez le support pour plus d\'informations.'
+    case 'under_review':
+      return 'Votre compte est en cours d\'examen par Stripe.'
+    case 'other':
+    default:
+      return 'Votre compte présente un problème. Contactez le support pour plus d\'informations.'
+  }
+}
+
+/**
+ * Maps all Stripe requirements (past_due, currently_due, eventually_due) and disabled_reason
+ * into categorized alerts with severity levels.
+ *
+ * Severity levels:
+ * - critical: past_due or disabled_reason (red)
+ * - warning: currently_due (amber)
+ * - info: eventually_due (neutral)
+ *
+ * The backend intentionally stores raw Stripe keys; the UI MUST never expose them directly.
+ */
+export function mapAllStripeRequirements(stripe: StripeConnectStatus): StripeRequirementAlert[] {
+  const alerts: StripeRequirementAlert[] = []
+  const seenMessages = new Set<string>()
+
+  // Helper to add alert without duplicates
+  const addAlert = (severity: RequirementSeverity, message: string) => {
+    if (!seenMessages.has(message)) {
+      seenMessages.add(message)
+      alerts.push({ severity, message })
+    }
+  }
+
+  // 1. Critical: disabled_reason (highest priority)
+  if (stripe.disabledReason) {
+    addAlert('critical', mapDisabledReasonToMessage(stripe.disabledReason))
+  }
+
+  // 2. Critical: past_due requirements
+  for (const key of stripe.requirementsPastDue) {
+    addAlert('critical', mapRequirementKeyToMessage(key))
+  }
+
+  // 3. Warning: currently_due requirements
+  for (const key of stripe.requirementsDue) {
+    addAlert('warning', mapRequirementKeyToMessage(key))
+  }
+
+  // 4. Info: eventually_due requirements
+  for (const key of stripe.requirementsEventuallyDue) {
+    addAlert('info', mapRequirementKeyToMessage(key))
+  }
+
+  return alerts
 }

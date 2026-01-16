@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { useProviderStripeStatus } from '../features/stripe/useProviderStripeStatus'
+
 useHead({
   meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   link: [{ rel: 'icon', href: '/favicon.ico' }],
   htmlAttrs: { lang: 'fr' }
 })
+
+const stripeStatus = useProviderStripeStatus()
 
 const navigation = [
   {
@@ -70,6 +74,30 @@ const navigation = [
     sidebar-label="Coach"
     :navigation="navigation"
   >
+    <div
+      v-if="stripeStatus.isBlocked.value"
+      class="mb-6 flex items-center justify-center gap-3 rounded-blob-b bg-gradient-to-r from-red-600 to-red-500 px-4 py-3 text-sm font-medium text-white shadow-floating"
+      role="alert"
+    >
+      <UIcon
+        name="lucide:alert-triangle"
+        size="18"
+        class="flex-shrink-0"
+        aria-hidden="true"
+      />
+      <span>{{ stripeStatus.blockMessage.value }}</span>
+      <NuxtLink
+        to="/provider/finance"
+        class="ml-1 inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wide transition-colors hover:bg-white/30"
+      >
+        Résoudre
+        <UIcon
+          name="lucide:arrow-right"
+          size="14"
+          aria-hidden="true"
+        />
+      </NuxtLink>
+    </div>
     <slot />
   </DashboardShell>
 </template>

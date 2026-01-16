@@ -4,6 +4,9 @@ export type StripeConnectStatus = {
   payoutsEnabled: boolean
   detailsSubmitted: boolean
   requirementsDue: string[]
+  requirementsEventuallyDue: string[]
+  requirementsPastDue: string[]
+  disabledReason: string | null
   onboardingCompletedAt: string | null
 }
 

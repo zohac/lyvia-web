@@ -1,6 +1,6 @@
 import { mapFinanceErrorToMessage } from './api/finance-error'
 import type { ProviderFinanceSummary } from './api/finance.contract'
-import { buildProviderFinanceUiState, mapStripeRequirementsToSteps } from './domain/finance-state'
+import { buildProviderFinanceUiState, mapStripeRequirementsToSteps, mapAllStripeRequirements } from './domain/finance-state'
 import { getProviderFinanceSummary, startProviderStripeConnectOnboarding } from './services/provider-finance.service'
 
 export async function useProviderFinance() {
@@ -37,6 +37,12 @@ export async function useProviderFinance() {
     return mapStripeRequirementsToSteps(state.stripe.requirementsDue)
   })
 
+  const requirementAlerts = computed(() => {
+    const state = uiState.value
+    if (!state) return []
+    return mapAllStripeRequirements(state.stripe)
+  })
+
   function clearActionError() {
     actionErrorMessage.value = null
   }
@@ -65,6 +71,7 @@ export async function useProviderFinance() {
     summary,
     uiState,
     requirementSteps,
+    requirementAlerts,
     refresh,
     startConnect,
     actionPending,

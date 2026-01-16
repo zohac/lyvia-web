@@ -15,6 +15,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Checkout lyvia-api (for contract check)
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.repository_owner }}/lyvia-api
+          token: ${{ secrets.LYVIA_API_TOKEN }}
+          path: lyvia-api
+          sparse-checkout: |
+            openapi.yaml
+            src/features/auth/domain/errors.ts
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
@@ -35,3 +45,5 @@ jobs:
 
       - name: Contract check (OpenAPI)
         run: pnpm run contract:check
+        env:
+          LYVIA_API_PATH: ${{ github.workspace }}/lyvia-api
