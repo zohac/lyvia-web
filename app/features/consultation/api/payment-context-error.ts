@@ -18,6 +18,7 @@ export type PaymentContextErrorCode
     | 'PRICE_PLAN_INACTIVE'
     | 'APPOINTMENT_MISMATCH'
     | 'VALIDATION_ERROR'
+    | 'PROVIDER_PAYMENT_NOT_CONFIGURED'
 
 /**
  * Maps errors from GET /client/appointments/:id/payment-context to user-friendly messages.
@@ -130,6 +131,9 @@ export function mapCheckoutErrorToMessage(
     }
 
     if (statusCode === 422) {
+      if (code === 'PROVIDER_PAYMENT_NOT_CONFIGURED') {
+        return 'Le paiement n\'est pas disponible pour ce coach. Veuillez le contacter directement.'
+      }
       if (code === 'PRICE_PLAN_INACTIVE') {
         return 'Le tarif n\'est plus disponible. Contactez votre coach.'
       }
