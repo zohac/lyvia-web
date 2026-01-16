@@ -338,7 +338,7 @@ watch(
                     aria-hidden="true"
                   >
                     <UIcon
-                      :name="item.UIcon"
+                      :name="item.icon"
                       size="20"
                       class="transition-base"
                       :class="

@@ -12,7 +12,7 @@ const navigation = [
     icon: 'lucide:layout-dashboard',
     match: 'exact'
   },
-  { 
+  {
     label: 'Design System',
     to: '/admin/design-system',
     icon: 'lucide:file-sliders',

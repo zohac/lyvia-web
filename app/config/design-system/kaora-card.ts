@@ -26,14 +26,14 @@
 export const kaoraCard = {
   slots: {
     root: [
-      "relative",
-      "border",
-      "overflow-hidden",
-      "transition-all duration-200 ease-out",
-    ].join(" "),
-    header: "px-6 py-5",
-    body: "px-6 py-5",
-    footer: "px-6 py-5",
+      'relative',
+      'border',
+      'overflow-hidden',
+      'transition-all duration-200 ease-out'
+    ].join(' '),
+    header: 'px-6 py-5',
+    body: 'px-6 py-5',
+    footer: 'px-6 py-5'
   },
 
   variants: {
@@ -42,163 +42,163 @@ export const kaoraCard = {
       // Organic: contenu principal (défaut)
       organic: {
         root: [
-          "bg-[color:var(--color-surface-card)]",
-          "border-[rgba(231,229,228,0.7)]",
-          "shadow-[var(--shadow-card)]",
-        ].join(" "),
+          'bg-[color:var(--color-surface-card)]',
+          'border-[rgba(231,229,228,0.7)]',
+          'shadow-[var(--shadow-card)]'
+        ].join(' ')
       },
 
       // Glass: panneaux premium, sidebars
       glass: {
         root: [
-          "bg-[rgba(255,255,255,0.75)]",
-          "border-white/60",
-          "shadow-[var(--shadow-card)]",
-          "backdrop-blur-[12px]",
-        ].join(" "),
+          'bg-[rgba(255,255,255,0.75)]',
+          'border-white/60',
+          'shadow-[var(--shadow-card)]',
+          'backdrop-blur-[12px]'
+        ].join(' ')
       },
 
       // Ops: items denses (RDV, logs)
       ops: {
         root: [
-          "bg-[rgba(255,255,255,0.6)]",
-          "border-white/60",
-          "shadow-[var(--shadow-card)]",
-        ].join(" "),
+          'bg-[rgba(255,255,255,0.6)]',
+          'border-white/60',
+          'shadow-[var(--shadow-card)]'
+        ].join(' ')
       },
 
       // Ink: CTA sombre "Your Next Action" (1 max par écran)
       ink: {
         root: [
-          "bg-[color:var(--color-ink)]",
-          "border-[color:var(--color-ink)]",
-          "text-white",
-          "shadow-[var(--shadow-card)]",
-        ].join(" "),
-      },
+          'bg-[color:var(--color-ink)]',
+          'border-[color:var(--color-ink)]',
+          'text-white',
+          'shadow-[var(--shadow-card)]'
+        ].join(' ')
+      }
     },
 
     // === Densités (padding) ===
     density: {
       cozy: {
-        header: "px-6 py-5",
-        body: "px-6 py-5",
-        footer: "px-6 py-5",
+        header: 'px-6 py-5',
+        body: 'px-6 py-5',
+        footer: 'px-6 py-5'
       },
       compact: {
-        header: "px-5 py-4",
-        body: "px-5 py-4",
-        footer: "px-5 py-4",
+        header: 'px-5 py-4',
+        body: 'px-5 py-4',
+        footer: 'px-5 py-4'
       },
       tight: {
-        header: "px-4 py-3",
-        body: "px-4 py-3",
-        footer: "px-4 py-3",
-      },
+        header: 'px-4 py-3',
+        body: 'px-4 py-3',
+        footer: 'px-4 py-3'
+      }
     },
 
     // === État interactif ===
     interactive: {
       true: {
         root: [
-          "cursor-pointer",
-          "hover:shadow-[var(--shadow-floating)]",
-          "hover:-translate-y-px",
-          "active:scale-[0.99]",
-          "active:translate-y-0",
-          "focus-visible:outline-2",
-          "focus-visible:outline-offset-2",
-          "focus-visible:outline-[color:var(--color-brand)]",
-        ].join(" "),
+          'cursor-pointer',
+          'hover:shadow-[var(--shadow-floating)]',
+          'hover:-translate-y-px',
+          'active:scale-[0.99]',
+          'active:translate-y-0',
+          'focus-visible:outline-2',
+          'focus-visible:outline-offset-2',
+          'focus-visible:outline-[color:var(--color-brand)]'
+        ].join(' ')
       },
       false: {
-        root: "",
-      },
+        root: ''
+      }
     },
 
     // === État désactivé ===
     disabled: {
       true: {
-        root: "opacity-55 cursor-not-allowed pointer-events-none",
+        root: 'opacity-55 cursor-not-allowed pointer-events-none'
       },
       false: {
-        root: "",
-      },
+        root: ''
+      }
     },
 
     // === Rail latéral (ops) ===
     rail: {
       true: {
-        root: "border-l-4",
+        root: 'border-l-4'
       },
       false: {
-        root: "",
-      },
+        root: ''
+      }
     },
 
     // === Couleur du rail ===
     railColor: {
       neutral: {
-        root: "border-l-[color:var(--color-stone-300)]",
+        root: 'border-l-[color:var(--color-stone-300)]'
       },
       brand: {
-        root: "border-l-[color:var(--color-brand)]",
+        root: 'border-l-[color:var(--color-brand)]'
       },
       success: {
-        root: "border-l-[color:var(--color-success)]",
+        root: 'border-l-[color:var(--color-success)]'
       },
       warning: {
-        root: "border-l-[color:var(--color-warning)]",
+        root: 'border-l-[color:var(--color-warning)]'
       },
       error: {
-        root: "border-l-[color:var(--color-error)]",
-      },
-    },
+        root: 'border-l-[color:var(--color-error)]'
+      }
+    }
   },
 
   compoundVariants: [
     // Rail actif seulement si rail=true
     {
       rail: false,
-      railColor: "neutral",
-      class: { root: "border-l-[rgba(231,229,228,0.7)]" },
+      railColor: 'neutral',
+      class: { root: 'border-l-[rgba(231,229,228,0.7)]' }
     },
     {
       rail: false,
-      railColor: "brand",
-      class: { root: "border-l-[rgba(231,229,228,0.7)]" },
+      railColor: 'brand',
+      class: { root: 'border-l-[rgba(231,229,228,0.7)]' }
     },
     {
       rail: false,
-      railColor: "success",
-      class: { root: "border-l-[rgba(231,229,228,0.7)]" },
+      railColor: 'success',
+      class: { root: 'border-l-[rgba(231,229,228,0.7)]' }
     },
     {
       rail: false,
-      railColor: "warning",
-      class: { root: "border-l-[rgba(231,229,228,0.7)]" },
+      railColor: 'warning',
+      class: { root: 'border-l-[rgba(231,229,228,0.7)]' }
     },
     {
       rail: false,
-      railColor: "error",
-      class: { root: "border-l-[rgba(231,229,228,0.7)]" },
+      railColor: 'error',
+      class: { root: 'border-l-[rgba(231,229,228,0.7)]' }
     },
 
     // Ink + interactive: hover avec shadow mais pas de changement de bg
     {
-      variant: "ink",
+      variant: 'ink',
       interactive: true,
       class: {
-        root: "hover:shadow-[var(--shadow-floating)]",
-      },
-    },
+        root: 'hover:shadow-[var(--shadow-floating)]'
+      }
+    }
   ],
 
   defaultVariants: {
-    variant: "organic",
-    density: "cozy",
+    variant: 'organic',
+    density: 'cozy',
     interactive: false,
     disabled: false,
-    rail: false,
-  },
-};
+    rail: false
+  }
+}

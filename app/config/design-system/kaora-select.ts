@@ -82,19 +82,19 @@ export const kaoraSelect = {
      */
     base: [
       // Layout & shape (from .filter-trigger line 1166-1193)
-      "relative group rounded-full inline-flex items-center justify-between",
-      "w-full",
+      'relative group rounded-full inline-flex items-center justify-between',
+      'w-full',
       // Typography
-      "font-semibold text-[color:var(--color-brand-primary)]",
+      'font-semibold text-[color:var(--color-brand-primary)]',
       // Interaction
-      "transition-all duration-[var(--duration-normal)]",
-      "cursor-pointer",
+      'transition-all duration-[var(--duration-normal)]',
+      'cursor-pointer',
       // Border
-      "border border-stone-900/10",
+      'border border-stone-900/10',
       // Disabled
-      "disabled:cursor-not-allowed disabled:opacity-55",
+      'disabled:cursor-not-allowed disabled:opacity-55',
       // Focus (removed default outline, handled in compoundVariants)
-      "focus:outline-none",
+      'focus:outline-none'
     ],
 
     /**
@@ -105,7 +105,7 @@ export const kaoraSelect = {
      *
      * HTML: <span class="absolute inset-y-0 start-0 ...">
      */
-    leading: "absolute inset-y-0 start-0 flex items-center",
+    leading: 'absolute inset-y-0 start-0 flex items-center',
 
     /**
      * LEADING ICON — The <UIcon> inside leading container
@@ -115,7 +115,7 @@ export const kaoraSelect = {
      *
      * HTML: <UIcon class="shrink-0 text-secondary ..." />
      */
-    leadingIcon: "shrink-0 text-[color:var(--color-brand-secondary)]",
+    leadingIcon: 'shrink-0 text-[color:var(--color-brand-secondary)]',
 
     /**
      * LEADING AVATAR — The <UAvatar> inside leading container
@@ -125,7 +125,7 @@ export const kaoraSelect = {
      *
      * HTML: <UAvatar class="shrink-0" />
      */
-    leadingAvatar: "shrink-0",
+    leadingAvatar: 'shrink-0',
 
     /**
      * LEADING AVATAR SIZE — Avatar size class name
@@ -135,7 +135,7 @@ export const kaoraSelect = {
      *
      * @internal Mapped by size variant
      */
-    leadingAvatarSize: "",
+    leadingAvatarSize: '',
 
     /**
      * TRAILING — Container for trailing icon and arrow
@@ -145,7 +145,7 @@ export const kaoraSelect = {
      *
      * HTML: <span class="absolute inset-y-0 end-0 ...">
      */
-    trailing: "absolute inset-y-0 end-0 flex items-center",
+    trailing: 'absolute inset-y-0 end-0 flex items-center',
 
     /**
      * TRAILING ICON — The <UIcon> inside trailing container
@@ -155,7 +155,7 @@ export const kaoraSelect = {
      *
      * HTML: <UIcon class="shrink-0 text-secondary ..." />
      */
-    trailingIcon: "shrink-0 text-[color:var(--color-brand-secondary)]",
+    trailingIcon: 'shrink-0 text-[color:var(--color-brand-secondary)]',
 
     /**
      * VALUE — The displayed selected value text
@@ -165,7 +165,7 @@ export const kaoraSelect = {
      *
      * HTML: <span class="truncate ...">Selected Option</span>
      */
-    value: "truncate pointer-events-none",
+    value: 'truncate pointer-events-none',
 
     /**
      * PLACEHOLDER — The placeholder text when no value selected
@@ -175,7 +175,7 @@ export const kaoraSelect = {
      *
      * HTML: <span class="truncate text-muted ...">Select...</span>
      */
-    placeholder: "truncate text-default",
+    placeholder: 'truncate text-default',
 
     /**
      * ARROW — The dropdown caret/chevron icon
@@ -185,7 +185,7 @@ export const kaoraSelect = {
      *
      * HTML: <UIcon class="fill-secondary ..." name="chevron-down" />
      */
-    arrow: "fill-[color:var(--color-brand-secondary)]",
+    arrow: 'fill-[color:var(--color-brand-secondary)]',
 
     // =========================================================================
     // DROPDOWN PANEL SLOTS — The floating dropdown container
@@ -211,21 +211,21 @@ export const kaoraSelect = {
      * - origin from Reka UI transform origin variable
      */
     content: [
-      "max-h-60 w-(--reka-select-trigger-width)",
+      'max-h-60 w-(--reka-select-trigger-width)',
       // Surface (from .dropdown-panel)
-      "bg-[color:var(--color-surface-card)]",
-      "border border-stone-900/10",
-      "rounded-[1.25rem]",
-      "shadow-floating",
+      'bg-[color:var(--color-surface-card)]',
+      'border border-stone-900/10',
+      'rounded-[1.25rem]',
+      'shadow-floating',
       // Spacing
-      "p-[0.85rem]",
+      'p-[0.85rem]',
       // Animation
-      "data-[state=open]:animate-[scale-in_100ms_ease-out]",
-      "data-[state=closed]:animate-[scale-out_100ms_ease-in]",
-      "origin-(--reka-select-content-transform-origin)",
+      'data-[state=open]:animate-[scale-in_100ms_ease-out]',
+      'data-[state=closed]:animate-[scale-out_100ms_ease-in]',
+      'origin-(--reka-select-content-transform-origin)',
       // Layout
-      "overflow-hidden pointer-events-auto flex flex-col",
-    ].join(" "),
+      'overflow-hidden pointer-events-auto flex flex-col'
+    ].join(' '),
 
     /**
      * VIEWPORT — Scrollable area containing options
@@ -240,11 +240,11 @@ export const kaoraSelect = {
      * - scroll-py-1: Scroll padding for smooth scrolling
      */
     viewport: [
-      "relative",
-      "scroll-py-1 overflow-y-auto flex-1",
+      'relative',
+      'scroll-py-1 overflow-y-auto flex-1',
       // Gap between items (from .dropdown-panel gap: 0.35rem)
-      "space-y-[0.35rem]",
-    ].join(" "),
+      'space-y-[0.35rem]'
+    ].join(' '),
 
     /**
      * GROUP — Container for grouped options
@@ -254,7 +254,7 @@ export const kaoraSelect = {
      *
      * HTML: <div class="p-1 isolate">
      */
-    group: "p-1 isolate",
+    group: 'p-1 isolate',
 
     /**
      * EMPTY — Shown when no options match search/filter
@@ -264,7 +264,7 @@ export const kaoraSelect = {
      *
      * HTML: <div class="text-center py-8 ...">No results found</div>
      */
-    empty: "text-center text-[color:var(--color-brand-muted)] py-8 text-sm",
+    empty: 'text-center text-[color:var(--color-brand-muted)] py-8 text-sm',
 
     /**
      * LABEL — Group label/header text
@@ -274,7 +274,7 @@ export const kaoraSelect = {
      *
      * HTML: <span class="font-bold text-xs uppercase ...">Group Name</span>
      */
-    label: "font-bold text-xs uppercase tracking-[0.22em] text-default px-3 py-2",
+    label: 'font-bold text-xs uppercase tracking-[0.22em] text-default px-3 py-2',
 
     /**
      * SEPARATOR — Horizontal divider between groups
@@ -284,7 +284,7 @@ export const kaoraSelect = {
      *
      * HTML: <div class="-mx-1 my-1 h-px bg-..." />
      */
-    separator: "-mx-1 my-1 h-px bg-[rgba(28,25,23,0.06)]",
+    separator: '-mx-1 my-1 h-px bg-[rgba(28,25,23,0.06)]',
 
     // =========================================================================
     // ITEM SLOTS — Individual dropdown options
@@ -312,31 +312,31 @@ export const kaoraSelect = {
      */
     item: [
       // Layout (from .dropdown-item)
-      "group relative w-full flex items-center justify-between",
-      "min-h-[44px]",
-      "px-4",
-      "gap-3",
-      "rounded-[0.95rem]",
+      'group relative w-full flex items-center justify-between',
+      'min-h-[44px]',
+      'px-4',
+      'gap-3',
+      'rounded-[0.95rem]',
       // Typography
-      "text-sm font-semibold text-[color:var(--color-brand-primary)]",
-      "text-left",
+      'text-sm font-semibold text-[color:var(--color-brand-primary)]',
+      'text-left',
       // Interaction
-      "select-none outline-none cursor-pointer",
-      "transition-all duration-[var(--duration-fast)]",
+      'select-none outline-none cursor-pointer',
+      'transition-all duration-[var(--duration-fast)]',
       // Background & border
-      "border border-transparent bg-transparent",
+      'border border-transparent bg-transparent',
       // States handled via compoundVariants and data attributes
-      "data-disabled:cursor-not-allowed data-disabled:opacity-45",
+      'data-disabled:cursor-not-allowed data-disabled:opacity-45',
       // Highlighted state (hover/keyboard nav) - from .dropdown-item:hover line 1327
-      "data-highlighted:not-data-disabled:bg-[rgba(245,245,244,0.9)]",
+      'data-highlighted:not-data-disabled:bg-[rgba(245,245,244,0.9)]',
       // Selected state - from .dropdown-item[aria-selected="true"] line 1335
-      "[&[aria-selected='true']]:bg-[rgba(212,184,160,0.18)]",
-      "[&[aria-selected='true']]:shadow-[inset_0_0_0_1px_rgba(212,184,160,0.38)]",
-      "[&[aria-selected='true']]:font-bold",
+      '[&[aria-selected=\'true\']]:bg-[rgba(212,184,160,0.18)]',
+      '[&[aria-selected=\'true\']]:shadow-[inset_0_0_0_1px_rgba(212,184,160,0.38)]',
+      '[&[aria-selected=\'true\']]:font-bold',
       // Before pseudo for animations
-      "before:absolute before:z-[-1] before:inset-px before:rounded-md",
-      "before:transition-colors",
-    ].join(" "),
+      'before:absolute before:z-[-1] before:inset-px before:rounded-md',
+      'before:transition-colors'
+    ].join(' '),
 
     /**
      * ITEM LEADING ICON — Icon at the start of an option
@@ -347,10 +347,10 @@ export const kaoraSelect = {
      * HTML: <UIcon class="shrink-0 text-secondary ..." />
      */
     itemLeadingIcon: [
-      "shrink-0 text-[color:var(--color-brand-secondary)]",
-      "group-data-highlighted:not-group-data-disabled:text-[color:var(--color-brand-primary)]",
-      "transition-colors",
-    ].join(" "),
+      'shrink-0 text-[color:var(--color-brand-secondary)]',
+      'group-data-highlighted:not-group-data-disabled:text-[color:var(--color-brand-primary)]',
+      'transition-colors'
+    ].join(' '),
 
     /**
      * ITEM LEADING AVATAR — Avatar at the start of an option
@@ -359,7 +359,7 @@ export const kaoraSelect = {
      *
      * HTML: <UAvatar class="shrink-0" />
      */
-    itemLeadingAvatar: "shrink-0",
+    itemLeadingAvatar: 'shrink-0',
 
     /**
      * ITEM LEADING AVATAR SIZE — Avatar size class name
@@ -368,7 +368,7 @@ export const kaoraSelect = {
      *
      * @internal Mapped by size variant
      */
-    itemLeadingAvatarSize: "",
+    itemLeadingAvatarSize: '',
 
     /**
      * ITEM LEADING CHIP — Color chip at the start of an option
@@ -377,7 +377,7 @@ export const kaoraSelect = {
      *
      * HTML: <UChip class="shrink-0" />
      */
-    itemLeadingChip: "shrink-0",
+    itemLeadingChip: 'shrink-0',
 
     /**
      * ITEM LEADING CHIP SIZE — Chip size class name
@@ -386,7 +386,7 @@ export const kaoraSelect = {
      *
      * @internal Mapped by size variant
      */
-    itemLeadingChipSize: "",
+    itemLeadingChipSize: '',
 
     /**
      * ITEM TRAILING — Container for trailing content in options
@@ -401,7 +401,7 @@ export const kaoraSelect = {
      * - tabular-nums: Consistent number width
      */
     itemTrailing:
-      "ms-auto inline-flex gap-1.5 items-center text-xs font-bold text-[color:var(--color-brand-muted)] tabular-nums",
+      'ms-auto inline-flex gap-1.5 items-center text-xs font-bold text-[color:var(--color-brand-muted)] tabular-nums',
 
     /**
      * ITEM TRAILING ICON — Icon in the trailing area
@@ -410,7 +410,7 @@ export const kaoraSelect = {
      *
      * HTML: <UIcon class="shrink-0" />
      */
-    itemTrailingIcon: "shrink-0",
+    itemTrailingIcon: 'shrink-0',
 
     /**
      * ITEM WRAPPER — Container for label and description
@@ -420,7 +420,7 @@ export const kaoraSelect = {
      *
      * HTML: <div class="flex-1 flex flex-col min-w-0">
      */
-    itemWrapper: "flex-1 flex flex-col min-w-0",
+    itemWrapper: 'flex-1 flex flex-col min-w-0',
 
     /**
      * ITEM LABEL — Main text of the option
@@ -429,7 +429,7 @@ export const kaoraSelect = {
      *
      * HTML: <span class="truncate">Option Label</span>
      */
-    itemLabel: "truncate",
+    itemLabel: 'truncate',
 
     /**
      * ITEM DESCRIPTION — Secondary text for the option
@@ -439,7 +439,7 @@ export const kaoraSelect = {
      *
      * HTML: <span class="truncate text-xs text-secondary">Description</span>
      */
-    itemDescription: "truncate text-xs text-[color:var(--color-brand-secondary)]",
+    itemDescription: 'truncate text-xs text-[color:var(--color-brand-secondary)]'
   },
 
   /**
@@ -465,13 +465,13 @@ export const kaoraSelect = {
        * First item keeps rounded start, last keeps rounded end.
        */
       horizontal:
-        "not-only:first:rounded-e-none not-only:last:rounded-s-none not-last:not-first:rounded-none focus-visible:z-[1]",
+        'not-only:first:rounded-e-none not-only:last:rounded-s-none not-last:not-first:rounded-none focus-visible:z-[1]',
       /**
        * vertical: Select is in a vertical stack with siblings.
        * First item keeps rounded top, last keeps rounded bottom.
        */
       vertical:
-        "not-only:first:rounded-b-none not-only:last:rounded-t-none not-last:not-first:rounded-none focus-visible:z-[1]",
+        'not-only:first:rounded-b-none not-only:last:rounded-t-none not-last:not-first:rounded-none focus-visible:z-[1]'
     },
 
     /**
@@ -492,98 +492,98 @@ export const kaoraSelect = {
        * xs (40px): Most compact size, for dense admin interfaces
        */
       xs: {
-        base: "h-10 px-3 text-xs gap-2",
-        leading: "ps-3",
-        trailing: "pe-3",
-        leadingIcon: "size-4",
-        leadingAvatarSize: "3xs",
-        trailingIcon: "size-4",
-        label: "p-1.5 text-[10px]/3 gap-1.5",
-        item: "px-3 py-1.5 text-xs gap-2 min-h-[36px]",
-        itemLeadingIcon: "size-4",
-        itemLeadingAvatarSize: "3xs",
-        itemLeadingChip: "size-4",
-        itemLeadingChipSize: "sm",
-        itemTrailingIcon: "size-4",
-        empty: "p-6 text-xs",
+        base: 'h-10 px-3 text-xs gap-2',
+        leading: 'ps-3',
+        trailing: 'pe-3',
+        leadingIcon: 'size-4',
+        leadingAvatarSize: '3xs',
+        trailingIcon: 'size-4',
+        label: 'p-1.5 text-[10px]/3 gap-1.5',
+        item: 'px-3 py-1.5 text-xs gap-2 min-h-[36px]',
+        itemLeadingIcon: 'size-4',
+        itemLeadingAvatarSize: '3xs',
+        itemLeadingChip: 'size-4',
+        itemLeadingChipSize: 'sm',
+        itemTrailingIcon: 'size-4',
+        empty: 'p-6 text-xs'
       },
       /**
        * sm (44px): Compact but accessible, good for filter bars
        */
       sm: {
-        base: "h-11 px-3.5 text-xs gap-2",
-        leading: "ps-3.5",
-        trailing: "pe-3.5",
-        leadingIcon: "size-4",
-        leadingAvatarSize: "3xs",
-        trailingIcon: "size-4",
-        label: "p-1.5 text-[10px]/3 gap-1.5",
-        item: "px-3.5 py-2 text-xs gap-2 min-h-[40px]",
-        itemLeadingIcon: "size-4",
-        itemLeadingAvatarSize: "3xs",
-        itemLeadingChip: "size-4",
-        itemLeadingChipSize: "sm",
-        itemTrailingIcon: "size-4",
-        empty: "p-6 text-xs",
+        base: 'h-11 px-3.5 text-xs gap-2',
+        leading: 'ps-3.5',
+        trailing: 'pe-3.5',
+        leadingIcon: 'size-4',
+        leadingAvatarSize: '3xs',
+        trailingIcon: 'size-4',
+        label: 'p-1.5 text-[10px]/3 gap-1.5',
+        item: 'px-3.5 py-2 text-xs gap-2 min-h-[40px]',
+        itemLeadingIcon: 'size-4',
+        itemLeadingAvatarSize: '3xs',
+        itemLeadingChip: 'size-4',
+        itemLeadingChipSize: 'sm',
+        itemTrailingIcon: 'size-4',
+        empty: 'p-6 text-xs'
       },
       /**
        * md (44px): Default size, optimal touch target (Fitts' Law)
        * This is the 44px height from the design system spec.
        */
       md: {
-        base: "h-11 px-4 text-sm gap-3",
-        leading: "ps-4",
-        trailing: "pe-4",
-        leadingIcon: "size-5",
-        leadingAvatarSize: "2xs",
-        trailingIcon: "size-5",
-        label: "px-3 py-2 text-xs gap-2",
-        item: "px-4 py-2 text-sm gap-3 min-h-[44px]",
-        itemLeadingIcon: "size-5",
-        itemLeadingAvatarSize: "2xs",
-        itemLeadingChip: "size-5",
-        itemLeadingChipSize: "md",
-        itemTrailingIcon: "size-5",
-        empty: "p-8 text-sm",
+        base: 'h-11 px-4 text-sm gap-3',
+        leading: 'ps-4',
+        trailing: 'pe-4',
+        leadingIcon: 'size-5',
+        leadingAvatarSize: '2xs',
+        trailingIcon: 'size-5',
+        label: 'px-3 py-2 text-xs gap-2',
+        item: 'px-4 py-2 text-sm gap-3 min-h-[44px]',
+        itemLeadingIcon: 'size-5',
+        itemLeadingAvatarSize: '2xs',
+        itemLeadingChip: 'size-5',
+        itemLeadingChipSize: 'md',
+        itemTrailingIcon: 'size-5',
+        empty: 'p-8 text-sm'
       },
       /**
        * lg (48px): Larger selects for emphasis, mobile-friendly
        */
       lg: {
-        base: "h-12 px-5 text-sm gap-3",
-        leading: "ps-5",
-        trailing: "pe-5",
-        leadingIcon: "size-5",
-        leadingAvatarSize: "2xs",
-        trailingIcon: "size-5",
-        label: "px-3 py-2.5 text-sm gap-2.5",
-        item: "px-5 py-2.5 text-sm gap-3 min-h-[48px]",
-        itemLeadingIcon: "size-5",
-        itemLeadingAvatarSize: "2xs",
-        itemLeadingChip: "size-5",
-        itemLeadingChipSize: "md",
-        itemTrailingIcon: "size-5",
-        empty: "p-10 text-sm",
+        base: 'h-12 px-5 text-sm gap-3',
+        leading: 'ps-5',
+        trailing: 'pe-5',
+        leadingIcon: 'size-5',
+        leadingAvatarSize: '2xs',
+        trailingIcon: 'size-5',
+        label: 'px-3 py-2.5 text-sm gap-2.5',
+        item: 'px-5 py-2.5 text-sm gap-3 min-h-[48px]',
+        itemLeadingIcon: 'size-5',
+        itemLeadingAvatarSize: '2xs',
+        itemLeadingChip: 'size-5',
+        itemLeadingChipSize: 'md',
+        itemTrailingIcon: 'size-5',
+        empty: 'p-10 text-sm'
       },
       /**
        * xl (56px): Prominent selects, hero sections, landing pages
        */
       xl: {
-        base: "h-14 px-6 text-base gap-3",
-        leading: "ps-6",
-        trailing: "pe-6",
-        leadingIcon: "size-6",
-        leadingAvatarSize: "xs",
-        trailingIcon: "size-6",
-        label: "px-4 py-3 text-sm gap-3",
-        item: "px-6 py-3 text-base gap-3 min-h-[52px]",
-        itemLeadingIcon: "size-6",
-        itemLeadingAvatarSize: "xs",
-        itemLeadingChip: "size-6",
-        itemLeadingChipSize: "lg",
-        itemTrailingIcon: "size-6",
-        empty: "p-12 text-base",
-      },
+        base: 'h-14 px-6 text-base gap-3',
+        leading: 'ps-6',
+        trailing: 'pe-6',
+        leadingIcon: 'size-6',
+        leadingAvatarSize: 'xs',
+        trailingIcon: 'size-6',
+        label: 'px-4 py-3 text-sm gap-3',
+        item: 'px-6 py-3 text-base gap-3 min-h-[52px]',
+        itemLeadingIcon: 'size-6',
+        itemLeadingAvatarSize: 'xs',
+        itemLeadingChip: 'size-6',
+        itemLeadingChipSize: 'lg',
+        itemTrailingIcon: 'size-6',
+        empty: 'p-12 text-base'
+      }
     },
 
     /**
@@ -602,10 +602,10 @@ export const kaoraSelect = {
        * - Shadow elevation
        */
       outline: [
-        "bg-[color:var(--field-bg)]",
-        "border border-stone-900/10",
-        "shadow-card",
-      ].join(" "),
+        'bg-[color:var(--field-bg)]',
+        'border border-stone-900/10',
+        'shadow-card'
+      ].join(' '),
 
       /**
        * soft: Softer appearance, less prominent
@@ -614,10 +614,10 @@ export const kaoraSelect = {
        * - No shadow
        */
       soft: [
-        "bg-[color:var(--field-bg)]",
-        "border border-[color:var(--field-border)]",
-        "shadow-none",
-      ].join(" "),
+        'bg-[color:var(--field-bg)]',
+        'border border-[color:var(--field-border)]',
+        'shadow-none'
+      ].join(' '),
 
       /**
        * subtle: Minimal styling, for inline/embedded selects
@@ -625,10 +625,10 @@ export const kaoraSelect = {
        * - Very soft border
        */
       subtle: [
-        "bg-[color:var(--color-surface-highlight)]",
-        "border border-[color:var(--color-border-soft)]",
-        "shadow-none",
-      ].join(" "),
+        'bg-[color:var(--color-surface-highlight)]',
+        'border border-[color:var(--color-border-soft)]',
+        'shadow-none'
+      ].join(' '),
 
       /**
        * ghost: Transparent until interaction
@@ -636,16 +636,16 @@ export const kaoraSelect = {
        * - Shows styling on hover/focus
        */
       ghost: [
-        "bg-transparent",
-        "border border-transparent",
-        "shadow-none",
-      ].join(" "),
+        'bg-transparent',
+        'border border-transparent',
+        'shadow-none'
+      ].join(' '),
 
       /**
        * none: Completely unstyled base
        * - Use for custom implementations
        */
-      none: "bg-transparent border-none shadow-none",
+      none: 'bg-transparent border-none shadow-none'
     },
 
     /**
@@ -657,13 +657,13 @@ export const kaoraSelect = {
      * @prop color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
      */
     color: {
-      primary: "",
-      secondary: "",
-      success: "",
-      info: "",
-      warning: "",
-      error: "",
-      neutral: "",
+      primary: '',
+      secondary: '',
+      success: '',
+      info: '',
+      warning: '',
+      error: '',
+      neutral: ''
     },
 
     /**
@@ -675,7 +675,7 @@ export const kaoraSelect = {
      * @internal Set automatically by Nuxt UI
      */
     leading: {
-      true: "",
+      true: ''
     },
 
     /**
@@ -687,7 +687,7 @@ export const kaoraSelect = {
      * @internal Set automatically by Nuxt UI
      */
     trailing: {
-      true: "",
+      true: ''
     },
 
     /**
@@ -699,7 +699,7 @@ export const kaoraSelect = {
      * @prop loading?: boolean
      */
     loading: {
-      true: "",
+      true: ''
     },
 
     /**
@@ -711,7 +711,7 @@ export const kaoraSelect = {
      * @prop highlight?: boolean
      */
     highlight: {
-      true: "",
+      true: ''
     },
 
     /**
@@ -722,8 +722,8 @@ export const kaoraSelect = {
      * @prop type?: 'file'
      */
     type: {
-      file: "file:me-1.5 file:font-medium file:text-[color:var(--color-brand-muted)] file:outline-none",
-    },
+      file: 'file:me-1.5 file:font-medium file:text-[color:var(--color-brand-muted)] file:outline-none'
+    }
   },
 
   /**
@@ -746,41 +746,41 @@ export const kaoraSelect = {
      * - Warm amber focus ring (Kaora signature)
      */
     {
-      variant: "outline",
+      variant: 'outline',
       class: [
-        "hover:bg-[color:var(--field-bg-hover)]",
-        "hover:border-[color:var(--field-border-hover)]",
-        "hover:shadow-floating",
-        "focus:border-[color:var(--field-border-focus)]",
-        "focus:shadow-[0_0_0_4px_var(--field-ring),var(--shadow-floating)]",
-      ].join(" "),
+        'hover:bg-[color:var(--field-bg-hover)]',
+        'hover:border-[color:var(--field-border-hover)]',
+        'hover:shadow-floating',
+        'focus:border-[color:var(--field-border-focus)]',
+        'focus:shadow-[0_0_0_4px_var(--field-ring),var(--shadow-floating)]'
+      ].join(' ')
     },
 
     /**
      * Soft variant hover/focus states
      */
     {
-      variant: "soft",
+      variant: 'soft',
       class: [
-        "hover:bg-[color:var(--field-bg-hover)]",
-        "hover:border-[color:var(--field-border-hover)]",
-        "hover:shadow-card",
-        "focus:border-[color:var(--field-border-focus)]",
-        "focus:shadow-[0_0_0_4px_var(--field-ring)]",
-      ].join(" "),
+        'hover:bg-[color:var(--field-bg-hover)]',
+        'hover:border-[color:var(--field-border-hover)]',
+        'hover:shadow-card',
+        'focus:border-[color:var(--field-border-focus)]',
+        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+      ].join(' ')
     },
 
     /**
      * Subtle variant hover/focus states
      */
     {
-      variant: "subtle",
+      variant: 'subtle',
       class: [
-        "hover:bg-[color:var(--color-surface-card)]",
-        "hover:border-[color:var(--color-border-subtle)]",
-        "focus:border-[color:var(--field-border-focus)]",
-        "focus:shadow-[0_0_0_4px_var(--field-ring)]",
-      ].join(" "),
+        'hover:bg-[color:var(--color-surface-card)]',
+        'hover:border-[color:var(--color-border-subtle)]',
+        'focus:border-[color:var(--field-border-focus)]',
+        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+      ].join(' ')
     },
 
     /**
@@ -788,14 +788,14 @@ export const kaoraSelect = {
      * - Reveals background/border on interaction
      */
     {
-      variant: "ghost",
+      variant: 'ghost',
       class: [
-        "hover:bg-[color:var(--color-surface-highlight)]",
-        "hover:border-[color:var(--color-border-soft)]",
-        "focus:bg-[color:var(--color-surface-highlight)]",
-        "focus:border-[color:var(--field-border-focus)]",
-        "focus:shadow-[0_0_0_4px_var(--field-ring)]",
-      ].join(" "),
+        'hover:bg-[color:var(--color-surface-highlight)]',
+        'hover:border-[color:var(--color-border-soft)]',
+        'focus:bg-[color:var(--color-surface-highlight)]',
+        'focus:border-[color:var(--field-border-focus)]',
+        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+      ].join(' ')
     },
 
     // =========================================================================
@@ -806,36 +806,36 @@ export const kaoraSelect = {
      * Primary color focus ring (warm Kaora ring)
      */
     {
-      color: "primary",
-      variant: ["outline", "subtle"],
-      class: "focus:ring-primary",
+      color: 'primary',
+      variant: ['outline', 'subtle'],
+      class: 'focus:ring-primary'
     },
 
     /**
      * Primary color without highlight: subtle inset ring
      */
     {
-      color: "primary",
+      color: 'primary',
       highlight: false,
-      class: "ring ring-inset ring-stone-900/10",
+      class: 'ring ring-inset ring-stone-900/10'
     },
 
     /**
      * Neutral color focus ring
      */
     {
-      color: "neutral",
-      variant: ["outline", "subtle"],
-      class: "focus:ring-[rgba(231,229,228,0.5)]",
+      color: 'neutral',
+      variant: ['outline', 'subtle'],
+      class: 'focus:ring-[rgba(231,229,228,0.5)]'
     },
 
     /**
      * Neutral color with highlight: subtle inset ring
      */
     {
-      color: "neutral",
+      color: 'neutral',
       highlight: true,
-      class: "ring ring-inset ring-[color:var(--color-border-subtle)]",
+      class: 'ring ring-inset ring-[color:var(--color-border-subtle)]'
     },
 
     // =========================================================================
@@ -846,11 +846,11 @@ export const kaoraSelect = {
      * When leading icon is present, add padding to prevent text overlap.
      * Padding scales with size to maintain visual balance.
      */
-    { leading: true, size: "xs", class: "ps-9" },
-    { leading: true, size: "sm", class: "ps-9" },
-    { leading: true, size: "md", class: "ps-10" },
-    { leading: true, size: "lg", class: "ps-11" },
-    { leading: true, size: "xl", class: "ps-12" },
+    { leading: true, size: 'xs', class: 'ps-9' },
+    { leading: true, size: 'sm', class: 'ps-9' },
+    { leading: true, size: 'md', class: 'ps-10' },
+    { leading: true, size: 'lg', class: 'ps-11' },
+    { leading: true, size: 'xl', class: 'ps-12' },
 
     // =========================================================================
     // TRAILING ICON PADDING ADJUSTMENTS
@@ -859,11 +859,11 @@ export const kaoraSelect = {
     /**
      * When trailing icon is present, add padding to prevent text overlap.
      */
-    { trailing: true, size: "xs", class: "pe-9" },
-    { trailing: true, size: "sm", class: "pe-9" },
-    { trailing: true, size: "md", class: "pe-10" },
-    { trailing: true, size: "lg", class: "pe-11" },
-    { trailing: true, size: "xl", class: "pe-12" },
+    { trailing: true, size: 'xs', class: 'pe-9' },
+    { trailing: true, size: 'sm', class: 'pe-9' },
+    { trailing: true, size: 'md', class: 'pe-10' },
+    { trailing: true, size: 'lg', class: 'pe-11' },
+    { trailing: true, size: 'xl', class: 'pe-12' },
 
     // =========================================================================
     // LOADING STATE ANIMATIONS
@@ -876,8 +876,8 @@ export const kaoraSelect = {
       loading: true,
       leading: true,
       class: {
-        leadingIcon: "animate-spin",
-      },
+        leadingIcon: 'animate-spin'
+      }
     },
 
     /**
@@ -888,9 +888,9 @@ export const kaoraSelect = {
       leading: false,
       trailing: true,
       class: {
-        trailingIcon: "animate-spin",
-      },
-    },
+        trailingIcon: 'animate-spin'
+      }
+    }
   ],
 
   /**
@@ -900,10 +900,10 @@ export const kaoraSelect = {
    */
   defaultVariants: {
     /** Default size: md (44px) — Optimal touch target per Fitts' Law */
-    size: "md",
+    size: 'md',
     /** Default color: primary — Warm amber focus ring */
-    color: "primary",
+    color: 'primary',
     /** Default variant: outline — Standard Kaora select appearance */
-    variant: "outline",
-  },
-};
+    variant: 'outline'
+  }
+}

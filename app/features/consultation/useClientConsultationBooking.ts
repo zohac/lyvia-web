@@ -1,6 +1,7 @@
 import { ApiFetchError } from '../../services/api/api-error'
 import type { PublicTenantResponse } from '../onboarding/api/onboarding.contract'
 import { buildConsultationAvailabilityRange } from './domain/range'
+import { buildCheckoutReturnUrls, getCurrentOrigin, isValidReturnUrl } from './domain/return-urls'
 import type {
   ConsultationPricePlan,
   CreateConsultationCheckoutSessionResponse,
@@ -255,15 +256,23 @@ export async function useClientConsultationBooking() {
 
     try {
       const { successPath, cancelPath } = input
-      const origin = import.meta.client ? window.location.origin : ''
+      // RF7: Use domain function to build return URLs respecting custom domains
+      const returnUrls = buildCheckoutReturnUrls(getCurrentOrigin(), {
+        success: successPath,
+        cancel: cancelPath
+      })
+
+      // Validate return URLs before sending to backend
+      if (!isValidReturnUrl(returnUrls.success) || !isValidReturnUrl(returnUrls.cancel)) {
+        state.actionErrorMessage = 'Erreur de configuration. Veuillez rafraîchir la page.'
+        return null
+      }
+
       const response = await createConsultationCheckoutSession({
         providerId: resolvedProviderId,
         pricePlanId: state.selectedPricePlanId,
         slotStartAt: state.selectedStartAt,
-        returnUrls: {
-          success: `${origin}${successPath}`,
-          cancel: `${origin}${cancelPath}`
-        }
+        returnUrls
       })
       state.pendingPayment = response
       return response

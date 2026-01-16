@@ -73,16 +73,18 @@ const title = computed(() => {
   const status = statusLabel.value
   if (status === 'confirmed') return 'Consultation confirmée'
   if (status === 'failed') return 'Paiement non finalisé'
-  if (status === 'timeout') return 'Vérification en cours'
+  // RF9: Timeout n'est pas un échec - message rassurant
+  if (status === 'timeout') return 'Paiement reçu'
   return 'Vérification du paiement…'
 })
 
 const subtitle = computed(() => {
   const status = statusLabel.value
-  if (status === 'confirmed') return 'Votre rendez-vous est réservé. Vous allez recevoir une confirmation.'
-  if (status === 'failed') return 'Le paiement n’a pas été confirmé. Votre rendez-vous n’a pas été réservé.'
-  if (status === 'timeout') return 'Le webhook Stripe peut prendre quelques minutes. Vous pouvez réessayer.'
-  return 'Nous attendons la confirmation de Stripe. Cela peut prendre quelques secondes.'
+  if (status === 'confirmed') return `Votre rendez-vous est réservé. Vous allez recevoir une confirmation.`
+  if (status === 'failed') return `Le paiement n'a pas été confirmé. Votre rendez-vous n'a pas été réservé.`
+  // RF9: Message rassurant sans jargon technique
+  if (status === 'timeout') return `Confirmation par email sous peu. Vous pouvez fermer cette page en toute sécurité.`
+  return `Nous attendons la confirmation de Stripe. Cela peut prendre quelques secondes.`
 })
 
 const formattedWhen = computed(() => {
@@ -117,6 +119,33 @@ const formattedPrice = computed(() => {
 })
 
 const showLoader = computed(() => poller.state.status === 'pending_confirmation' && poller.state.isPolling)
+
+/**
+ * Cleans the session_id query param from the URL after polling completes.
+ *
+ * RF3 DoD: "URL propre (clean query params après traitement)"
+ */
+function cleanUrlQueryParams() {
+  if (!import.meta.client) return
+
+  try {
+    const url = new URL(window.location.href)
+    url.searchParams.delete('session_id')
+    window.history.replaceState({}, '', url.pathname + url.search)
+  } catch {
+    // Ignore errors (e.g., SSR or malformed URL)
+  }
+}
+
+// Watch for polling completion to clean URL
+watch(
+  () => poller.state.status,
+  (status) => {
+    if (status === 'confirmed' || status === 'failed' || status === 'timeout') {
+      cleanUrlQueryParams()
+    }
+  }
+)
 
 function retryPolling() {
   return poller.start()
@@ -180,13 +209,14 @@ function retryPolling() {
                   size="18"
                 />
               </span>
+              <!-- RF9: Timeout affiche une icône positive (paiement reçu, pas un échec) -->
               <span
                 v-else-if="statusLabel === 'timeout'"
-                class="grid h-10 w-10 place-items-center rounded-full bg-[rgba(212,184,160,0.25)] text-[color:var(--color-brand-primary)]"
+                class="grid h-10 w-10 place-items-center rounded-full bg-[rgba(34,197,94,0.08)] text-[color:rgb(22,163,74)]"
                 aria-hidden="true"
               >
                 <Icon
-                  name="lucide:clock"
+                  name="lucide:mail-check"
                   size="18"
                 />
               </span>
@@ -244,6 +274,7 @@ function retryPolling() {
           </dl>
 
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center">
+            <!-- Confirmed: CTA principal = Voir mes rendez-vous -->
             <ULink
               v-if="statusLabel === 'confirmed'"
               to="/client/consultation"
@@ -252,24 +283,37 @@ function retryPolling() {
               Voir mes rendez-vous
             </ULink>
 
+            <!-- RF9: Timeout = CTA principal vers dashboard (paiement reçu, pas un échec) -->
             <ULink
-              v-else
+              v-else-if="statusLabel === 'timeout'"
+              to="/client/dashboard"
+              class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
+            >
+              Retour au tableau de bord
+            </ULink>
+
+            <!-- Failed: CTA principal = Revenir au choix du créneau -->
+            <ULink
+              v-else-if="statusLabel === 'failed'"
               to="/client/consultation/choose-slot"
               class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
             >
               Revenir au choix du créneau
             </ULink>
 
+            <!-- Bouton Réessayer (timeout ou erreur réseau) -->
             <button
               v-if="statusLabel === 'timeout' || poller.state.errorMessage"
               type="button"
               class="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:bg-white"
               @click="retryPolling"
             >
-              Réessayer
+              Réessayer la vérification
             </button>
 
+            <!-- CTA secondaire vers dashboard (pour confirmed et failed) -->
             <ULink
+              v-if="statusLabel === 'confirmed' || statusLabel === 'failed'"
               to="/client/dashboard"
               class="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:bg-white"
             >

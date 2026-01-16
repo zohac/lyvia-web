@@ -44,7 +44,7 @@ export const kaoraInput = {
      *
      * @default "relative inline-flex items-center"
      */
-    root: "relative w-full inline-flex items-center",
+    root: 'relative w-full inline-flex items-center',
 
     /**
      * BASE — The actual <input> element
@@ -65,24 +65,24 @@ export const kaoraInput = {
      */
     base: [
       // Layout & sizing
-      "w-full",
+      'w-full',
       // Shape — Kaora signature pill/rounded form
-      "rounded-full",
+      'rounded-full',
       // Border — Subtle warm stone border
-      "border border-stone-900/10",
+      'border border-stone-900/10',
       // Background — Organic card surface
-      "bg-[color:var(--color-surface-card)]",
+      'bg-[color:var(--color-surface-card)]',
       // Typography
-      "text-[color:var(--color-brand-primary)]",
-      "font-medium",
+      'text-[color:var(--color-brand-primary)]',
+      'font-medium',
       // Placeholder — Muted brand color
-      "placeholder:text-[color:var(--color-brand-muted)]",
+      'placeholder:text-[color:var(--color-brand-muted)]',
       // Transitions — Smooth state changes
-      "transition-all duration-[var(--duration-normal)]",
+      'transition-all duration-[var(--duration-normal)]',
       // Disabled state
-      "disabled:opacity-55 disabled:cursor-not-allowed",
+      'disabled:opacity-55 disabled:cursor-not-allowed',
       // Focus — Remove default, custom styling via variants
-      "focus:outline-none",
+      'focus:outline-none'
     ],
 
     /**
@@ -97,7 +97,7 @@ export const kaoraInput = {
      * - Flex centering ensures icon is vertically centered
      * - pointer-events-none prevents icon from blocking input focus
      */
-    leading: "absolute inset-y-0 start-0 flex items-center pointer-events-none",
+    leading: 'absolute inset-y-0 start-0 flex items-center pointer-events-none',
 
     /**
      * LEADING ICON — The <UIcon> inside leading container
@@ -106,7 +106,7 @@ export const kaoraInput = {
      *
      * HTML: <UIcon class="shrink-0 text-muted ..." />
      */
-    leadingIcon: "shrink-0 text-[color:var(--color-brand-muted)]",
+    leadingIcon: 'shrink-0 text-[color:var(--color-brand-muted)]',
 
     /**
      * LEADING AVATAR — The <UAvatar> inside leading container
@@ -116,7 +116,7 @@ export const kaoraInput = {
      *
      * HTML: <UAvatar class="shrink-0" />
      */
-    leadingAvatar: "shrink-0",
+    leadingAvatar: 'shrink-0',
 
     /**
      * TRAILING — Container for trailing icon
@@ -126,7 +126,7 @@ export const kaoraInput = {
      *
      * HTML: <span class="absolute inset-y-0 end-0 ...">
      */
-    trailing: "absolute inset-y-0 end-0 flex items-center pointer-events-none",
+    trailing: 'absolute inset-y-0 end-0 flex items-center pointer-events-none',
 
     /**
      * TRAILING ICON — The <UIcon> inside trailing container
@@ -135,7 +135,7 @@ export const kaoraInput = {
      *
      * HTML: <UIcon class="shrink-0 text-muted ..." />
      */
-    trailingIcon: "shrink-0 text-[color:var(--color-brand-muted)]",
+    trailingIcon: 'shrink-0 text-[color:var(--color-brand-muted)]'
   },
 
   /**
@@ -161,13 +161,13 @@ export const kaoraInput = {
        * First item keeps rounded start, last keeps rounded end.
        */
       horizontal:
-        "not-only:first:rounded-e-none not-only:last:rounded-s-none not-last:not-first:rounded-none focus-visible:z-[1]",
+        'not-only:first:rounded-e-none not-only:last:rounded-s-none not-last:not-first:rounded-none focus-visible:z-[1]',
       /**
        * vertical: Input is in a vertical stack with siblings.
        * First item keeps rounded top, last keeps rounded bottom.
        */
       vertical:
-        "not-only:first:rounded-b-none not-only:last:rounded-t-none not-last:not-first:rounded-none focus-visible:z-[1]",
+        'not-only:first:rounded-b-none not-only:last:rounded-t-none not-last:not-first:rounded-none focus-visible:z-[1]'
     },
 
     /**
@@ -188,58 +188,58 @@ export const kaoraInput = {
        * xs (40px): Most compact size, for dense admin interfaces
        */
       xs: {
-        base: "h-10 px-3 py-2 text-xs gap-2",
-        leading: "ps-3",
-        trailing: "pe-3",
-        leadingIcon: "size-4",
-        leadingAvatarSize: "3xs",
-        trailingIcon: "size-4",
+        base: 'h-10 px-3 py-2 text-xs gap-2',
+        leading: 'ps-3',
+        trailing: 'pe-3',
+        leadingIcon: 'size-4',
+        leadingAvatarSize: '3xs',
+        trailingIcon: 'size-4'
       },
       /**
        * sm (44px): Compact but accessible, good for forms with many fields
        */
       sm: {
-        base: "h-11 px-3.5 py-2 text-xs gap-2",
-        leading: "ps-3.5",
-        trailing: "pe-3.5",
-        leadingIcon: "size-4",
-        leadingAvatarSize: "3xs",
-        trailingIcon: "size-4",
+        base: 'h-11 px-3.5 py-2 text-xs gap-2',
+        leading: 'ps-3.5',
+        trailing: 'pe-3.5',
+        leadingIcon: 'size-4',
+        leadingAvatarSize: '3xs',
+        trailingIcon: 'size-4'
       },
       /**
        * md (44px): Default size, optimal touch target (Fitts' Law)
        * Provides comfortable typing experience with clear visual hierarchy.
        */
       md: {
-        base: "h-11 px-4 py-3 text-sm gap-3",
-        leading: "ps-4",
-        trailing: "pe-4",
-        leadingIcon: "size-5",
-        leadingAvatarSize: "2xs",
-        trailingIcon: "size-5",
+        base: 'h-11 px-4 py-3 text-sm gap-3',
+        leading: 'ps-4',
+        trailing: 'pe-4',
+        leadingIcon: 'size-5',
+        leadingAvatarSize: '2xs',
+        trailingIcon: 'size-5'
       },
       /**
        * lg (48px): Larger inputs for emphasis, mobile-friendly
        */
       lg: {
-        base: "h-12 px-5 py-3 text-sm gap-3",
-        leading: "ps-5",
-        trailing: "pe-5",
-        leadingIcon: "size-5",
-        leadingAvatarSize: "2xs",
-        trailingIcon: "size-5",
+        base: 'h-12 px-5 py-3 text-sm gap-3',
+        leading: 'ps-5',
+        trailing: 'pe-5',
+        leadingIcon: 'size-5',
+        leadingAvatarSize: '2xs',
+        trailingIcon: 'size-5'
       },
       /**
        * xl (56px): Prominent inputs, hero sections, landing pages
        */
       xl: {
-        base: "h-14 px-6 py-4 text-base gap-3",
-        leading: "ps-6",
-        trailing: "pe-6",
-        leadingIcon: "size-6",
-        leadingAvatarSize: "xs",
-        trailingIcon: "size-6",
-      },
+        base: 'h-14 px-6 py-4 text-base gap-3',
+        leading: 'ps-6',
+        trailing: 'pe-6',
+        leadingIcon: 'size-6',
+        leadingAvatarSize: 'xs',
+        trailingIcon: 'size-6'
+      }
     },
 
     /**
@@ -258,10 +258,10 @@ export const kaoraInput = {
        * - Shadow elevation
        */
       outline: [
-        "bg-[color:var(--color-surface-card)]",
-        "border border-stone-900/10",
-        "shadow-card",
-      ].join(" "),
+        'bg-[color:var(--color-surface-card)]',
+        'border border-stone-900/10',
+        'shadow-card'
+      ].join(' '),
 
       /**
        * soft: Softer appearance, less prominent
@@ -270,10 +270,10 @@ export const kaoraInput = {
        * - No shadow
        */
       soft: [
-        "bg-[color:var(--field-bg)]",
-        "border border-[color:var(--field-border)]",
-        "shadow-none",
-      ].join(" "),
+        'bg-[color:var(--field-bg)]',
+        'border border-[color:var(--field-border)]',
+        'shadow-none'
+      ].join(' '),
 
       /**
        * subtle: Minimal styling, blends with content
@@ -281,23 +281,23 @@ export const kaoraInput = {
        * - Very soft border
        */
       subtle: [
-        "bg-[color:var(--color-surface-highlight)]",
-        "border border-[color:var(--color-border-soft)]",
-        "shadow-none",
-      ].join(" "),
+        'bg-[color:var(--color-surface-highlight)]',
+        'border border-[color:var(--color-border-soft)]',
+        'shadow-none'
+      ].join(' '),
 
       /**
        * ghost: Transparent until interaction
        * - No background or border by default
        * - Shows styling on hover/focus
        */
-      ghost: ["bg-transparent", "border border-transparent", "shadow-none"].join(" "),
+      ghost: ['bg-transparent', 'border border-transparent', 'shadow-none'].join(' '),
 
       /**
        * none: Completely unstyled base
        * - Use for custom implementations
        */
-      none: "bg-transparent border-none shadow-none",
+      none: 'bg-transparent border-none shadow-none'
     },
 
     /**
@@ -309,13 +309,13 @@ export const kaoraInput = {
      * @prop color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
      */
     color: {
-      primary: "",
-      secondary: "",
-      success: "",
-      info: "",
-      warning: "",
-      error: "",
-      neutral: "",
+      primary: '',
+      secondary: '',
+      success: '',
+      info: '',
+      warning: '',
+      error: '',
+      neutral: ''
     },
 
     /**
@@ -327,7 +327,7 @@ export const kaoraInput = {
      * @internal Set automatically by Nuxt UI
      */
     leading: {
-      true: "",
+      true: ''
     },
 
     /**
@@ -339,7 +339,7 @@ export const kaoraInput = {
      * @internal Set automatically by Nuxt UI
      */
     trailing: {
-      true: "",
+      true: ''
     },
 
     /**
@@ -351,7 +351,7 @@ export const kaoraInput = {
      * @prop loading?: boolean
      */
     loading: {
-      true: "",
+      true: ''
     },
 
     /**
@@ -362,8 +362,8 @@ export const kaoraInput = {
      * @prop type?: 'file' | 'text' | 'email' | 'password' | etc.
      */
     type: {
-      file: "file:me-1.5 file:font-medium file:text-[color:var(--color-brand-muted)] file:outline-none",
-    },
+      file: 'file:me-1.5 file:font-medium file:text-[color:var(--color-brand-muted)] file:outline-none'
+    }
   },
 
   /**
@@ -385,41 +385,41 @@ export const kaoraInput = {
      * - Warm amber focus ring (Kaora signature)
      */
     {
-      variant: "outline",
+      variant: 'outline',
       class: [
-        "hover:bg-[color:var(--field-bg-hover)]",
-        "hover:border-[color:var(--field-border-hover)]",
-        "hover:shadow-floating",
-        "focus:border-[color:var(--field-border-focus)]",
-        "focus:shadow-[0_0_0_4px_var(--field-ring),var(--shadow-floating)]",
-      ].join(" "),
+        'hover:bg-[color:var(--field-bg-hover)]',
+        'hover:border-[color:var(--field-border-hover)]',
+        'hover:shadow-floating',
+        'focus:border-[color:var(--field-border-focus)]',
+        'focus:shadow-[0_0_0_4px_var(--field-ring),var(--shadow-floating)]'
+      ].join(' ')
     },
 
     /**
      * Soft variant hover/focus states
      */
     {
-      variant: "soft",
+      variant: 'soft',
       class: [
-        "hover:bg-[color:var(--field-bg-hover)]",
-        "hover:border-[color:var(--field-border-hover)]",
-        "hover:shadow-card",
-        "focus:border-[color:var(--field-border-focus)]",
-        "focus:shadow-[0_0_0_4px_var(--field-ring)]",
-      ].join(" "),
+        'hover:bg-[color:var(--field-bg-hover)]',
+        'hover:border-[color:var(--field-border-hover)]',
+        'hover:shadow-card',
+        'focus:border-[color:var(--field-border-focus)]',
+        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+      ].join(' ')
     },
 
     /**
      * Subtle variant hover/focus states
      */
     {
-      variant: "subtle",
+      variant: 'subtle',
       class: [
-        "hover:bg-[color:var(--color-surface-card)]",
-        "hover:border-[color:var(--color-border-subtle)]",
-        "focus:border-[color:var(--field-border-focus)]",
-        "focus:shadow-[0_0_0_4px_var(--field-ring)]",
-      ].join(" "),
+        'hover:bg-[color:var(--color-surface-card)]',
+        'hover:border-[color:var(--color-border-subtle)]',
+        'focus:border-[color:var(--field-border-focus)]',
+        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+      ].join(' ')
     },
 
     /**
@@ -427,14 +427,14 @@ export const kaoraInput = {
      * - Reveals background/border on interaction
      */
     {
-      variant: "ghost",
+      variant: 'ghost',
       class: [
-        "hover:bg-[color:var(--color-surface-highlight)]",
-        "hover:border-[color:var(--color-border-soft)]",
-        "focus:bg-[color:var(--color-surface-highlight)]",
-        "focus:border-[color:var(--field-border-focus)]",
-        "focus:shadow-[0_0_0_4px_var(--field-ring)]",
-      ].join(" "),
+        'hover:bg-[color:var(--color-surface-highlight)]',
+        'hover:border-[color:var(--color-border-soft)]',
+        'focus:bg-[color:var(--color-surface-highlight)]',
+        'focus:border-[color:var(--field-border-focus)]',
+        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+      ].join(' ')
     },
 
     // =========================================================================
@@ -447,12 +447,12 @@ export const kaoraInput = {
      * - Visual feedback for validation errors
      */
     {
-      color: "error",
+      color: 'error',
       class: [
-        "border-red-500/50",
-        "focus:border-red-500",
-        "focus:shadow-[0_0_0_4px_rgba(239,68,68,0.15)]",
-      ].join(" "),
+        'border-red-500/50',
+        'focus:border-red-500',
+        'focus:shadow-[0_0_0_4px_rgba(239,68,68,0.15)]'
+      ].join(' ')
     },
 
     // =========================================================================
@@ -463,11 +463,11 @@ export const kaoraInput = {
      * When leading icon is present, add padding to prevent text overlap.
      * Padding scales with size to maintain visual balance.
      */
-    { leading: true, size: "xs", class: "ps-9" },
-    { leading: true, size: "sm", class: "ps-9" },
-    { leading: true, size: "md", class: "ps-10" },
-    { leading: true, size: "lg", class: "ps-11" },
-    { leading: true, size: "xl", class: "ps-12" },
+    { leading: true, size: 'xs', class: 'ps-9' },
+    { leading: true, size: 'sm', class: 'ps-9' },
+    { leading: true, size: 'md', class: 'ps-10' },
+    { leading: true, size: 'lg', class: 'ps-11' },
+    { leading: true, size: 'xl', class: 'ps-12' },
 
     // =========================================================================
     // TRAILING ICON PADDING ADJUSTMENTS
@@ -476,11 +476,11 @@ export const kaoraInput = {
     /**
      * When trailing icon is present, add padding to prevent text overlap.
      */
-    { trailing: true, size: "xs", class: "pe-9" },
-    { trailing: true, size: "sm", class: "pe-9" },
-    { trailing: true, size: "md", class: "pe-10" },
-    { trailing: true, size: "lg", class: "pe-11" },
-    { trailing: true, size: "xl", class: "pe-12" },
+    { trailing: true, size: 'xs', class: 'pe-9' },
+    { trailing: true, size: 'sm', class: 'pe-9' },
+    { trailing: true, size: 'md', class: 'pe-10' },
+    { trailing: true, size: 'lg', class: 'pe-11' },
+    { trailing: true, size: 'xl', class: 'pe-12' },
 
     // =========================================================================
     // LOADING STATE ANIMATIONS
@@ -493,8 +493,8 @@ export const kaoraInput = {
       loading: true,
       leading: true,
       class: {
-        leadingIcon: "animate-spin",
-      },
+        leadingIcon: 'animate-spin'
+      }
     },
 
     /**
@@ -505,9 +505,9 @@ export const kaoraInput = {
       leading: false,
       trailing: true,
       class: {
-        trailingIcon: "animate-spin",
-      },
-    },
+        trailingIcon: 'animate-spin'
+      }
+    }
   ],
 
   /**
@@ -517,10 +517,10 @@ export const kaoraInput = {
    */
   defaultVariants: {
     /** Default size: md (44px) — Optimal touch target per Fitts' Law */
-    size: "md",
+    size: 'md',
     /** Default color: primary — Warm amber focus ring */
-    color: "primary",
+    color: 'primary',
     /** Default variant: outline — Standard Kaora input appearance */
-    variant: "outline",
-  },
-};
+    variant: 'outline'
+  }
+}

@@ -1,12 +1,12 @@
-import { kaoraAlert } from "./config/design-system/kaora-alert";
-import { kaoraBadge } from "./config/design-system/kaora-badge";
-import { kaoraButton } from "./config/design-system/kaora-button";
-import { kaoraCard } from "./config/design-system/kaora-card";
-import { kaoraColors } from "./config/design-system/kaora-colors";
-import { kaoraInput } from "./config/design-system/kaora-input";
-import { kaoraLink } from "./config/design-system/kaora-link";
-import { kaoraSelect } from "./config/design-system/kaora-select";
-import { kaoraTabs } from "./config/design-system/kaora-tabs";
+import { kaoraAlert } from './config/design-system/kaora-alert'
+import { kaoraBadge } from './config/design-system/kaora-badge'
+import { kaoraButton } from './config/design-system/kaora-button'
+import { kaoraCard } from './config/design-system/kaora-card'
+import { kaoraColors } from './config/design-system/kaora-colors'
+import { kaoraInput } from './config/design-system/kaora-input'
+import { kaoraLink } from './config/design-system/kaora-link'
+import { kaoraSelect } from './config/design-system/kaora-select'
+import { kaoraTabs } from './config/design-system/kaora-tabs'
 
 export default defineAppConfig({
   ui: {
@@ -61,6 +61,6 @@ export default defineAppConfig({
     // =========================================================================
     // Tabs — Organic Luxury Theme
     // =========================================================================
-    tabs: kaoraTabs,
+    tabs: kaoraTabs
   }
 })

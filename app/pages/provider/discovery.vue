@@ -708,7 +708,7 @@ async function confirmCancel() {
                 ]"
                 option-attribute="label"
                 value-attribute="value"
-                :highlight=false
+                :highlight="false"
               />
             </label>
 

@@ -18,7 +18,10 @@ defineProps<{
       </p>
       <p class="truncate font-mono text-xs text-[color:var(--color-brand-muted)]">
         {{ name }}
-        <span v-if="hex" class="ml-1 opacity-60">{{ hex }}</span>
+        <span
+          v-if="hex"
+          class="ml-1 opacity-60"
+        >{{ hex }}</span>
       </p>
     </div>
   </div>

@@ -58,7 +58,10 @@ const useKaoraLogoImage = computed(
             {{ headerState.loginLabel }}
           </ULink>
 
-          <UButton :to="headerState.ctaTo" color="primary" >
+          <UButton
+            :to="headerState.ctaTo"
+            color="primary"
+          >
             {{ headerState.ctaLabel }}
           </UButton>
         </div>

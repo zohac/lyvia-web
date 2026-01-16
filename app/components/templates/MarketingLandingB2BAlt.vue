@@ -18,11 +18,24 @@
           <span class="font-display text-xl tracking-tight">Kaora</span>
         </div>
         <nav class="hidden md:flex items-center gap-8 text-sm tracking-wide text-[#a8a29e]">
-          <a href="#atelier" class="hover:text-[#fafaf8] transition-colors duration-300">L'atelier</a>
-          <a href="#parcours" class="hover:text-[#fafaf8] transition-colors duration-300">Parcours</a>
-          <a href="#temoignages" class="hover:text-[#fafaf8] transition-colors duration-300">Témoignages</a>
+          <a
+            href="#atelier"
+            class="hover:text-[#fafaf8] transition-colors duration-300"
+          >L'atelier</a>
+          <a
+            href="#parcours"
+            class="hover:text-[#fafaf8] transition-colors duration-300"
+          >Parcours</a>
+          <a
+            href="#temoignages"
+            class="hover:text-[#fafaf8] transition-colors duration-300"
+          >Témoignages</a>
         </nav>
-        <UButton to="/login" size="sm" class="alt-btn-primary">
+        <UButton
+          to="/login"
+          size="sm"
+          class="alt-btn-primary"
+        >
           Commencer
         </UButton>
       </header>
@@ -68,23 +81,44 @@
             </p>
           </div>
 
-          <div class="flex flex-col sm:flex-row gap-4 pt-4 hero-line" style="animation-delay: 0.6s">
-            <UButton to="/login" size="xl" class="alt-btn-primary group">
+          <div
+            class="flex flex-col sm:flex-row gap-4 pt-4 hero-line"
+            style="animation-delay: 0.6s"
+          >
+            <UButton
+              to="/login"
+              size="xl"
+              class="alt-btn-primary group"
+            >
               Créer mon espace
               <template #trailing>
-                <Icon name="lucide:arrow-right" class="group-hover:translate-x-2 transition-transform duration-300" />
+                <Icon
+                  name="lucide:arrow-right"
+                  class="group-hover:translate-x-2 transition-transform duration-300"
+                />
               </template>
             </UButton>
-            <UButton to="#atelier" size="xl" variant="ghost" class="alt-btn-ghost">
+            <UButton
+              to="#atelier"
+              size="xl"
+              variant="ghost"
+              class="alt-btn-ghost"
+            >
               <template #leading>
-                <Icon name="lucide:play" class="w-4 h-4" />
+                <Icon
+                  name="lucide:play"
+                  class="w-4 h-4"
+                />
               </template>
               Explorer l'atelier
             </UButton>
           </div>
 
           <!-- Trust badges as a strip -->
-          <div class="flex flex-wrap gap-6 pt-8 text-xs text-[#78716c] uppercase tracking-[0.2em] hero-line" style="animation-delay: 0.7s">
+          <div
+            class="flex flex-wrap gap-6 pt-8 text-xs text-[#78716c] uppercase tracking-[0.2em] hero-line"
+            style="animation-delay: 0.7s"
+          >
             <span class="flex items-center gap-2">
               <span class="w-1.5 h-1.5 rounded-full bg-[#b5c0a3]" />
               Essai gratuit
@@ -126,9 +160,16 @@
             </div>
 
             <!-- Floating stat card -->
-            <div class="absolute -left-8 bottom-12 bg-[#1c1917] border border-[#292524] rounded-lg p-4 floating-card" style="animation-delay: 0.8s">
-              <p class="text-[#78716c] text-xs uppercase tracking-widest mb-1">Clients actifs</p>
-              <p class="font-display text-3xl text-[#d4b8a0]">+47%</p>
+            <div
+              class="absolute -left-8 bottom-12 bg-[#1c1917] border border-[#292524] rounded-lg p-4 floating-card"
+              style="animation-delay: 0.8s"
+            >
+              <p class="text-[#78716c] text-xs uppercase tracking-widest mb-1">
+                Clients actifs
+              </p>
+              <p class="font-display text-3xl text-[#d4b8a0]">
+                +47%
+              </p>
             </div>
           </div>
         </div>
@@ -142,7 +183,10 @@
     </section>
 
     <!-- Atelier Section -->
-    <section id="atelier" class="relative py-32 lg:py-48">
+    <section
+      id="atelier"
+      class="relative py-32 lg:py-48"
+    >
       <!-- Horizontal rule accent -->
       <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#292524] to-transparent" />
 
@@ -198,7 +242,9 @@
                 <div class="flex items-start gap-6">
                   <span class="font-display text-4xl text-[#d4b8a0]/30 group-hover:text-[#d4b8a0]/60 transition-colors">01</span>
                   <div>
-                    <h3 class="font-display text-xl mb-2">Agenda intelligent</h3>
+                    <h3 class="font-display text-xl mb-2">
+                      Agenda intelligent
+                    </h3>
                     <p class="text-sm text-[#78716c] leading-relaxed">
                       Disponibilités, créneaux et rappels. Tout s'orchestre automatiquement.
                     </p>
@@ -210,7 +256,9 @@
                 <div class="flex items-start gap-6">
                   <span class="font-display text-4xl text-[#d4b8a0]/30 group-hover:text-[#d4b8a0]/60 transition-colors">02</span>
                   <div>
-                    <h3 class="font-display text-xl mb-2">Paiements fluides</h3>
+                    <h3 class="font-display text-xl mb-2">
+                      Paiements fluides
+                    </h3>
                     <p class="text-sm text-[#78716c] leading-relaxed">
                       Stripe intégré, factures automatiques, suivi de trésorerie limpide.
                     </p>
@@ -222,7 +270,9 @@
                 <div class="flex items-start gap-6">
                   <span class="font-display text-4xl text-[#d4b8a0]/30 group-hover:text-[#d4b8a0]/60 transition-colors">03</span>
                   <div>
-                    <h3 class="font-display text-xl mb-2">Ressources partagées</h3>
+                    <h3 class="font-display text-xl mb-2">
+                      Ressources partagées
+                    </h3>
                     <p class="text-sm text-[#78716c] leading-relaxed">
                       Documents et contenus au bon moment, pour prolonger le travail.
                     </p>
@@ -231,10 +281,17 @@
               </div>
             </div>
 
-            <UButton to="/login" variant="link" class="alt-link group self-start">
+            <UButton
+              to="/login"
+              variant="link"
+              class="alt-link group self-start"
+            >
               Découvrir l'expérience
               <template #trailing>
-                <Icon name="lucide:arrow-right" class="group-hover:translate-x-2 transition-transform duration-300" />
+                <Icon
+                  name="lucide:arrow-right"
+                  class="group-hover:translate-x-2 transition-transform duration-300"
+                />
               </template>
             </UButton>
           </div>
@@ -243,7 +300,10 @@
     </section>
 
     <!-- Parcours Section -->
-    <section id="parcours" class="relative py-32 lg:py-48 bg-[#0f0f0e]">
+    <section
+      id="parcours"
+      class="relative py-32 lg:py-48 bg-[#0f0f0e]"
+    >
       <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#292524] to-transparent" />
 
       <div class="px-6 lg:px-12 max-w-7xl mx-auto">
@@ -274,7 +334,9 @@
                 </div>
               </div>
               <div class="lg:col-span-4">
-                <h3 class="font-display text-3xl mb-4">Mise en place</h3>
+                <h3 class="font-display text-3xl mb-4">
+                  Mise en place
+                </h3>
                 <p class="text-[#78716c] leading-relaxed">
                   Votre page publique et vos créneaux se configurent en quelques minutes.
                   Une identité qui vous ressemble, sans effort technique.
@@ -300,7 +362,9 @@
                 </div>
               </div>
               <div class="lg:col-span-4">
-                <h3 class="font-display text-3xl mb-4">Automatisation</h3>
+                <h3 class="font-display text-3xl mb-4">
+                  Automatisation
+                </h3>
                 <p class="text-[#78716c] leading-relaxed">
                   Paiements, confirmations, rappels : le flux suit naturellement.
                   La structure devient invisible, la relation reste au centre.
@@ -326,7 +390,9 @@
                 </div>
               </div>
               <div class="lg:col-span-4">
-                <h3 class="font-display text-3xl mb-4">Expérience client</h3>
+                <h3 class="font-display text-3xl mb-4">
+                  Expérience client
+                </h3>
                 <p class="text-[#78716c] leading-relaxed">
                   Contenus, suivi et ressources partagés au bon moment.
                   Vos clientes restent engagées, sans surcharge.
@@ -349,7 +415,10 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section id="temoignages" class="relative py-32 lg:py-48">
+    <section
+      id="temoignages"
+      class="relative py-32 lg:py-48"
+    >
       <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#292524] to-transparent" />
 
       <div class="px-6 lg:px-12 max-w-7xl mx-auto">
@@ -370,15 +439,21 @@
         <div class="grid md:grid-cols-3 gap-8">
           <!-- Testimonial 1 -->
           <div class="group relative p-8 bg-[#1c1917]/30 border border-[#292524] rounded-2xl hover:bg-[#1c1917]/50 transition-all duration-500">
-            <div class="absolute top-8 right-8 font-display text-6xl text-[#d4b8a0]/10 group-hover:text-[#d4b8a0]/20 transition-colors">"</div>
+            <div class="absolute top-8 right-8 font-display text-6xl text-[#d4b8a0]/10 group-hover:text-[#d4b8a0]/20 transition-colors">
+              "
+            </div>
             <div class="relative">
               <div class="flex items-center gap-4 mb-6">
                 <div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#d4b8a0] to-[#b5c0a3] flex items-center justify-center">
                   <span class="font-display text-[#0a0a09] text-xl">I</span>
                 </div>
                 <div>
-                  <p class="font-display text-lg">Isabelle</p>
-                  <p class="text-xs text-[#78716c] uppercase tracking-widest">Coach</p>
+                  <p class="font-display text-lg">
+                    Isabelle
+                  </p>
+                  <p class="text-xs text-[#78716c] uppercase tracking-widest">
+                    Coach
+                  </p>
                 </div>
               </div>
               <p class="font-display text-xl italic text-[#a8a29e] leading-relaxed">
@@ -389,15 +464,21 @@
 
           <!-- Testimonial 2 -->
           <div class="group relative p-8 bg-[#1c1917]/30 border border-[#292524] rounded-2xl hover:bg-[#1c1917]/50 transition-all duration-500 md:mt-12">
-            <div class="absolute top-8 right-8 font-display text-6xl text-[#d4b8a0]/10 group-hover:text-[#d4b8a0]/20 transition-colors">"</div>
+            <div class="absolute top-8 right-8 font-display text-6xl text-[#d4b8a0]/10 group-hover:text-[#d4b8a0]/20 transition-colors">
+              "
+            </div>
             <div class="relative">
               <div class="flex items-center gap-4 mb-6">
                 <div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#b5c0a3] to-[#d4b8a0] flex items-center justify-center">
                   <span class="font-display text-[#0a0a09] text-xl">C</span>
                 </div>
                 <div>
-                  <p class="font-display text-lg">Claire</p>
-                  <p class="text-xs text-[#78716c] uppercase tracking-widest">Naturopathe</p>
+                  <p class="font-display text-lg">
+                    Claire
+                  </p>
+                  <p class="text-xs text-[#78716c] uppercase tracking-widest">
+                    Naturopathe
+                  </p>
                 </div>
               </div>
               <p class="font-display text-xl italic text-[#a8a29e] leading-relaxed">
@@ -408,15 +489,21 @@
 
           <!-- Testimonial 3 -->
           <div class="group relative p-8 bg-[#1c1917]/30 border border-[#292524] rounded-2xl hover:bg-[#1c1917]/50 transition-all duration-500">
-            <div class="absolute top-8 right-8 font-display text-6xl text-[#d4b8a0]/10 group-hover:text-[#d4b8a0]/20 transition-colors">"</div>
+            <div class="absolute top-8 right-8 font-display text-6xl text-[#d4b8a0]/10 group-hover:text-[#d4b8a0]/20 transition-colors">
+              "
+            </div>
             <div class="relative">
               <div class="flex items-center gap-4 mb-6">
                 <div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#d4b8a0] to-[#78716c] flex items-center justify-center">
                   <span class="font-display text-[#0a0a09] text-xl">V</span>
                 </div>
                 <div>
-                  <p class="font-display text-lg">Véronique</p>
-                  <p class="text-xs text-[#78716c] uppercase tracking-widest">Thérapeute</p>
+                  <p class="font-display text-lg">
+                    Véronique
+                  </p>
+                  <p class="text-xs text-[#78716c] uppercase tracking-widest">
+                    Thérapeute
+                  </p>
                 </div>
               </div>
               <p class="font-display text-xl italic text-[#a8a29e] leading-relaxed">
@@ -443,13 +530,25 @@
           Rejoignez les professionnels du soin qui ont choisi le calme.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <UButton to="/login" size="xl" class="alt-btn-primary group">
+          <UButton
+            to="/login"
+            size="xl"
+            class="alt-btn-primary group"
+          >
             Créer mon espace pro
             <template #trailing>
-              <Icon name="lucide:arrow-right" class="group-hover:translate-x-2 transition-transform duration-300" />
+              <Icon
+                name="lucide:arrow-right"
+                class="group-hover:translate-x-2 transition-transform duration-300"
+              />
             </template>
           </UButton>
-          <UButton to="#atelier" size="xl" variant="ghost" class="alt-btn-ghost">
+          <UButton
+            to="#atelier"
+            size="xl"
+            variant="ghost"
+            class="alt-btn-ghost"
+          >
             Revoir la démo
           </UButton>
         </div>

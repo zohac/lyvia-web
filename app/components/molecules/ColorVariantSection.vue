@@ -17,7 +17,12 @@
         <p class="text-xs font-bold text-[color:var(--color-brand-secondary)] uppercase tracking-wide">
           Solid
         </p>
-        <UButton :color="color" variant="solid" size="md" block>
+        <UButton
+          :color="color"
+          variant="solid"
+          size="md"
+          block
+        >
           {{ title }} Solid
         </UButton>
       </div>
@@ -27,7 +32,12 @@
         <p class="text-xs font-bold text-[color:var(--color-brand-secondary)] uppercase tracking-wide">
           Outline
         </p>
-        <UButton :color="color" variant="outline" size="md" block>
+        <UButton
+          :color="color"
+          variant="outline"
+          size="md"
+          block
+        >
           {{ title }} Outline
         </UButton>
       </div>
@@ -37,7 +47,12 @@
         <p class="text-xs font-bold text-[color:var(--color-brand-secondary)] uppercase tracking-wide">
           Soft
         </p>
-        <UButton :color="color" variant="soft" size="md" block>
+        <UButton
+          :color="color"
+          variant="soft"
+          size="md"
+          block
+        >
           {{ title }} Soft
         </UButton>
       </div>
@@ -47,7 +62,12 @@
         <p class="text-xs font-bold text-[color:var(--color-brand-secondary)] uppercase tracking-wide">
           Subtle
         </p>
-        <UButton :color="color" variant="subtle" size="md" block>
+        <UButton
+          :color="color"
+          variant="subtle"
+          size="md"
+          block
+        >
           {{ title }} Subtle
         </UButton>
       </div>
@@ -57,7 +77,12 @@
         <p class="text-xs font-bold text-[color:var(--color-brand-secondary)] uppercase tracking-wide">
           Ghost
         </p>
-        <UButton :color="color" variant="ghost" size="md" block>
+        <UButton
+          :color="color"
+          variant="ghost"
+          size="md"
+          block
+        >
           {{ title }} Ghost
         </UButton>
       </div>
@@ -67,7 +92,12 @@
         <p class="text-xs font-bold text-[color:var(--color-brand-secondary)] uppercase tracking-wide">
           Link
         </p>
-        <UButton :color="color" variant="link" size="md" block>
+        <UButton
+          :color="color"
+          variant="link"
+          size="md"
+          block
+        >
           {{ title }} Link
         </UButton>
       </div>

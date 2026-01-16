@@ -12,6 +12,7 @@
   "include": [
     "app/features/availability/domain/**/*.ts",
     "app/features/availability/api/availability.contract.ts",
+    "app/features/consultation/domain/**/*.ts",
     "tests/types/**/*.d.ts",
     "tests/**/*.ts"
   ]

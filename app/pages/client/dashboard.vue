@@ -22,18 +22,28 @@
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
       <div class="space-y-8 lg:col-span-8">
-        <section class="relative overflow-hidden rounded-blob-a border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-kaora-50)]/50 p-8 shadow-soft">
-          <div class="pointer-events-none absolute right-[-10%] top-[-30%] h-[22rem] w-[22rem] rounded-full bg-[color:var(--color-kaora-100)] opacity-45 blur-[90px]" />
+        <!-- Dynamic consultation card (RF6) -->
+        <OrganismsConsultationDashboardCard
+          :pending="consultationPending"
+          :error-message="consultationError"
+          :display-state="consultationState"
+          @retry="refreshConsultation"
+          @request-cancel="openCancelModal"
+          @request-reschedule="openRescheduleModal"
+        />
 
-          <div class="relative z-10 grid gap-2">
-            <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-              Prochain rendez-vous
-            </h2>
-            <p class="text-sm text-[color:var(--color-brand-secondary)]">
-              Votre prochain rendez-vous apparaîtra ici dès qu’il est confirmé.
-            </p>
-          </div>
-        </section>
+        <!-- RF5: Modal demande annulation/report -->
+        <OrganismsClientConsultationRequestModal
+          :open="requestModalOpen"
+          :request-type="requestModalType"
+          :scheduled-at="requestModalScheduledAt"
+          :duration-minutes="requestModalDurationMinutes"
+          :loading="requestModalLoading"
+          :success="requestModalSuccess"
+          :error="requestModalError"
+          @update:open="requestModalOpen = $event"
+          @submit="handleRequestSubmit"
+        />
 
         <section class="grid gap-6 md:grid-cols-2">
           <div class="rounded-blob-b border border-[rgba(28,25,23,0.10)] bg-white/75 p-7 shadow-soft backdrop-blur">
@@ -94,6 +104,9 @@
 </template>
 
 <script setup lang="ts">
+import type { RequestType, RequestReason } from '../../components/organisms/ClientConsultationRequestModal.vue'
+import { useClientNextConsultation } from '../../features/consultation/useClientNextConsultation'
+
 definePageMeta({
   layout: 'client',
   middleware: 'auth-client',
@@ -101,6 +114,7 @@ definePageMeta({
 })
 
 const auth = useAuth()
+const toast = useToast()
 
 const displayName = computed(() => {
   const email = auth.user.value?.email
@@ -108,4 +122,95 @@ const displayName = computed(() => {
   const local = email.split('@')[0]
   return local?.trim() || 'cliente'
 })
+
+/**
+ * Consultation state for dashboard card (RF6)
+ */
+const {
+  pending: consultationPending,
+  errorMessage: consultationError,
+  displayState: consultationState,
+  refresh: refreshConsultation
+} = await useClientNextConsultation()
+
+/**
+ * RF5: Modal state for cancellation/reschedule requests
+ */
+const requestModalOpen = ref(false)
+const requestModalType = ref<RequestType>('cancel')
+const requestModalLoading = ref(false)
+const requestModalSuccess = ref(false)
+const requestModalError = ref<string | null>(null)
+
+/**
+ * Computed appointment details for modal
+ */
+const requestModalScheduledAt = computed(() => {
+  if (consultationState.value?.kind !== 'payment_confirmed') return null
+  return consultationState.value.scheduledAt
+})
+
+const requestModalDurationMinutes = computed(() => {
+  if (consultationState.value?.kind !== 'payment_confirmed') return null
+  return consultationState.value.durationMinutes
+})
+
+/**
+ * Open cancel request modal
+ */
+function openCancelModal(_appointmentId: string) {
+  requestModalType.value = 'cancel'
+  requestModalSuccess.value = false
+  requestModalError.value = null
+  requestModalOpen.value = true
+}
+
+/**
+ * Open reschedule request modal
+ */
+function openRescheduleModal(_appointmentId: string) {
+  requestModalType.value = 'reschedule'
+  requestModalSuccess.value = false
+  requestModalError.value = null
+  requestModalOpen.value = true
+}
+
+/**
+ * Handle request submission
+ *
+ * V0: No backend endpoint - simulate success and show confirmation.
+ * The request will be handled manually by the provider.
+ */
+async function handleRequestSubmit(payload: {
+  type: RequestType
+  reason: RequestReason
+  details: string | null
+}) {
+  requestModalLoading.value = true
+  requestModalError.value = null
+
+  try {
+    // V0: Simulate API delay (backend endpoint to be implemented)
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    // V0: Always succeed - in future, call backend API
+    // await requestAppointmentChange(appointmentId, payload)
+
+    requestModalSuccess.value = true
+
+    // Show toast notification
+    toast.add({
+      title: payload.type === 'cancel'
+        ? `Demande d'annulation envoyée`
+        : `Demande de report envoyée`,
+      description: 'Votre coach vous contactera prochainement.',
+      color: 'success',
+      icon: 'i-lucide-check-circle'
+    })
+  } catch {
+    requestModalError.value = 'Une erreur est survenue. Veuillez réessayer.'
+  } finally {
+    requestModalLoading.value = false
+  }
+}
 </script>
