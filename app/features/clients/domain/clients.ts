@@ -4,6 +4,8 @@ import type {
   AppointmentStatus,
   AppointmentType,
   CancellationReason,
+  NotificationChannel,
+  NotificationLogItem,
   PaymentStatus,
   ProviderClientDetailPayment,
   ProviderClientStatus
@@ -247,4 +249,62 @@ export function sortPaymentsByDate(
   return [...payments].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
+}
+
+// ============================================================================
+// Notification Status Helpers (H4)
+// ============================================================================
+
+const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, string> = {
+  discovery_confirmation: 'Confirmation envoyée',
+  discovery_reminder_j1: 'Rappel J-1 envoyé',
+  consultation_confirmation: 'Confirmation envoyée',
+  consultation_reminder_j1: 'Rappel J-1 envoyé',
+  consultation_reminder_h2: 'Rappel H-2 envoyé'
+}
+
+/**
+ * Returns the human-readable label for a notification channel.
+ */
+export function getNotificationChannelLabel(channel: NotificationChannel): string {
+  return NOTIFICATION_CHANNEL_LABELS[channel] || channel
+}
+
+/**
+ * Derives notification summary for an appointment.
+ * Returns what has been sent and what is expected.
+ */
+export function getAppointmentNotificationSummary(
+  appointment: { type: 'discovery' | 'consultation', status: 'scheduled' | 'cancelled' | 'completed', notifications?: NotificationLogItem[] }
+): { confirmationSent: boolean, remindersSent: string[], allExpectedSent: boolean } {
+  const notifications = appointment.notifications ?? []
+  const sentChannels = new Set(notifications.filter(n => n.status === 'sent').map(n => n.channel))
+
+  const isDiscovery = appointment.type === 'discovery'
+  const confirmationChannel = isDiscovery ? 'discovery_confirmation' : 'consultation_confirmation'
+  const confirmationSent = sentChannels.has(confirmationChannel)
+
+  const remindersSent: string[] = []
+  if (isDiscovery) {
+    if (sentChannels.has('discovery_reminder_j1')) remindersSent.push('J-1')
+  } else {
+    if (sentChannels.has('consultation_reminder_j1')) remindersSent.push('J-1')
+    if (sentChannels.has('consultation_reminder_h2')) remindersSent.push('H-2')
+  }
+
+  // For scheduled appointments, check if all expected notifications have been sent
+  // Confirmation is always expected. Reminders are only expected for completed/past appointments.
+  let allExpectedSent = confirmationSent
+  if (appointment.status === 'completed' || appointment.status === 'cancelled') {
+    // If appointment is done, all reminders should have been sent (unless cancelled early)
+    if (isDiscovery) {
+      allExpectedSent = confirmationSent && sentChannels.has('discovery_reminder_j1')
+    } else {
+      allExpectedSent = confirmationSent
+        && sentChannels.has('consultation_reminder_j1')
+        && sentChannels.has('consultation_reminder_h2')
+    }
+  }
+
+  return { confirmationSent, remindersSent, allExpectedSent }
 }

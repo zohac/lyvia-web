@@ -104,6 +104,58 @@
           />
           <span class="line-clamp-2 italic">{{ appointment.notes }}</span>
         </div>
+
+        <!-- Notification indicator (H4) -->
+        <div
+          v-if="notificationSummary && appointment.status !== 'cancelled'"
+          class="mt-2 flex flex-wrap items-center gap-2 text-xs"
+        >
+          <!-- Confirmation status -->
+          <span
+            v-if="notificationSummary.confirmationSent"
+            class="inline-flex items-center gap-1 text-[color:var(--color-success)]"
+          >
+            <UIcon
+              name="i-lucide-mail-check"
+              class="h-3.5 w-3.5"
+            />
+            <span>Confirmé</span>
+          </span>
+          <span
+            v-else
+            class="inline-flex items-center gap-1 text-[color:var(--color-warning)]"
+          >
+            <UIcon
+              name="i-lucide-mail"
+              class="h-3.5 w-3.5"
+            />
+            <span>En attente</span>
+          </span>
+
+          <!-- Reminders sent -->
+          <span
+            v-if="notificationSummary.remindersSent.length > 0"
+            class="inline-flex items-center gap-1 text-[color:var(--color-brand-muted)]"
+          >
+            <UIcon
+              name="i-lucide-bell-ring"
+              class="h-3.5 w-3.5"
+            />
+            <span>Rappels: {{ notificationSummary.remindersSent.join(', ') }}</span>
+          </span>
+
+          <!-- Upcoming reminders indicator -->
+          <span
+            v-else-if="temporalContext === 'upcoming' && notificationSummary.confirmationSent"
+            class="inline-flex items-center gap-1 text-[color:var(--color-brand-muted)]"
+          >
+            <UIcon
+              name="i-lucide-bell"
+              class="h-3.5 w-3.5"
+            />
+            <span>Rappels programmés</span>
+          </span>
+        </div>
       </div>
     </div>
 
@@ -122,6 +174,7 @@
 import type { AppointmentDisplayItem } from '../../features/clients/api/clients.contract'
 import {
   formatAppointmentDateTime,
+  getAppointmentNotificationSummary,
   getAppointmentPaymentStatusLabel,
   getAppointmentStatusMeta,
   getAppointmentTypeLabel,
@@ -153,6 +206,10 @@ const typeLabel = computed(() => getAppointmentTypeLabel(props.appointment.type)
 const statusMeta = computed(() => getAppointmentStatusMeta(props.appointment.status))
 const dateTime = computed(() => formatAppointmentDateTime(props.appointment.scheduledAt, props.timezone))
 const paymentStatusLabel = computed(() => getAppointmentPaymentStatusLabel(props.appointment.paymentStatus))
+const notificationSummary = computed(() => {
+  if (!props.appointment.notifications) return null
+  return getAppointmentNotificationSummary(props.appointment)
+})
 
 const paymentStatusClass = computed(() => {
   if (props.appointment.paymentStatus === 'paid') {

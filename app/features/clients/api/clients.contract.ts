@@ -88,6 +88,30 @@ export type CancellationReason
     | 'other'
 
 /**
+ * Notification channel for appointments.
+ */
+export type NotificationChannel
+  = | 'discovery_confirmation'
+    | 'discovery_reminder_j1'
+    | 'consultation_confirmation'
+    | 'consultation_reminder_j1'
+    | 'consultation_reminder_h2'
+
+/**
+ * Notification log status.
+ */
+export type NotificationLogStatus = 'sent' | 'failed' | 'skipped'
+
+/**
+ * Notification log item for an appointment.
+ */
+export type NotificationLogItem = {
+  channel: NotificationChannel
+  status: NotificationLogStatus
+  createdAt: string
+}
+
+/**
  * Appointment item in provider client detail response.
  */
 export type ProviderClientDetailAppointment = {
@@ -180,6 +204,7 @@ export type AppointmentDisplayItem = {
   cancellationReason: CancellationReason | null
   cancellationReasonText?: string | null
   notes?: string | null
+  notifications?: NotificationLogItem[]
 }
 
 /**
@@ -194,6 +219,7 @@ export type ProviderClientAppointmentItem = {
   paymentStatus: AppointmentPaymentStatus
   cancellationReason: CancellationReason | null
   notes: string | null
+  notifications: NotificationLogItem[]
 }
 
 /**
