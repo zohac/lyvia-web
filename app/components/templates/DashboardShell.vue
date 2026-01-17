@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import LegalFooterLinks from '../atoms/LegalFooterLinks.vue'
+
 type NavItem = {
   label: string
   to: string
@@ -247,6 +249,15 @@ watch(
         <div class="mx-auto w-full max-w-7xl">
           <slot />
         </div>
+
+        <footer class="mt-12 border-t border-[rgba(231,229,228,0.5)] pt-6">
+          <div class="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 text-center">
+            <LegalFooterLinks />
+            <p class="text-xs text-[color:var(--color-brand-muted)]">
+              © {{ new Date().getFullYear() }} Kaora
+            </p>
+          </div>
+        </footer>
       </main>
     </div>
 

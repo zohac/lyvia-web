@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
+
 useHead({
   meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   link: [{ rel: 'icon', href: '/favicon.ico' }],
@@ -8,11 +10,16 @@ useHead({
 
 <template>
   <div class="min-h-[100svh] bg-[color:var(--color-surface-page)] text-[color:var(--color-brand-primary)]">
-    <div class="min-h-[100svh] lg:grid lg:grid-cols-2 lg:items-stretch">
-      <main class="flex items-center justify-center px-6 py-14 lg:px-16">
-        <div class="w-full max-w-md">
-          <slot />
+    <div class="flex min-h-[100svh] flex-col lg:grid lg:grid-cols-2 lg:items-stretch">
+      <main class="flex flex-1 flex-col px-6 py-14 lg:px-16">
+        <div class="flex flex-1 items-center justify-center">
+          <div class="w-full max-w-md">
+            <slot />
+          </div>
         </div>
+        <footer class="pt-8 lg:hidden">
+          <LegalFooterLinks />
+        </footer>
       </main>
 
       <aside class="hidden bg-[color:var(--color-surface-card)] p-4 lg:block">
@@ -34,6 +41,10 @@ useHead({
             <p class="mt-5 text-xs font-bold uppercase tracking-[0.28em] text-white/90">
               Kaora — Calm Tech
             </p>
+          </div>
+
+          <div class="absolute bottom-6 left-12 right-12">
+            <LegalFooterLinks class="[&_a]:text-white/70 [&_a:hover]:text-white" />
           </div>
         </div>
       </aside>

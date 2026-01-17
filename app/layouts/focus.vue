@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
+
 useHead({
   meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   link: [{ rel: 'icon', href: '/favicon.ico' }],
@@ -15,8 +17,9 @@ const currentYear = new Date().getFullYear()
         <slot />
       </main>
 
-      <footer class="pt-10 text-center text-xs text-[color:var(--color-brand-muted)]">
-        © {{ currentYear }} Kaora
+      <footer class="flex flex-col items-center gap-4 pt-10 text-center text-xs text-[color:var(--color-brand-muted)]">
+        <LegalFooterLinks />
+        <p>© {{ currentYear }} Kaora</p>
       </footer>
     </div>
   </div>
