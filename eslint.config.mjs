@@ -2,5 +2,8 @@
 import withNuxt from './.nuxt/eslint.config.mjs'
 
 export default withNuxt(
-  // Your custom configs here
+  {
+    // Ignore lyvia-api checkout in CI (different eslint rules)
+    ignores: ['lyvia-api/**']
+  }
 )
