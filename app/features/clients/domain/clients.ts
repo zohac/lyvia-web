@@ -1,4 +1,13 @@
-import type { ProviderClientStatus } from '../api/clients.contract'
+import type {
+  AppointmentDisplayItem,
+  AppointmentPaymentStatus,
+  AppointmentStatus,
+  AppointmentType,
+  CancellationReason,
+  PaymentStatus,
+  ProviderClientDetailPayment,
+  ProviderClientStatus
+} from '../api/clients.contract'
 
 /**
  * Minimal client identity for display functions.
@@ -51,10 +60,191 @@ export function formatProgramMonth(currentProgramMonth: number | null, totalMont
 
 export function getClientStatusMicrocopy(status: ProviderClientStatus): string {
   if (status === 'onboarding') {
-    return 'Onboarding en cours, la cliente n’a pas encore terminé son appel découverte.'
+    return 'Onboarding en cours, la cliente n\'a pas encore terminé son appel découverte.'
   }
   if (status === 'in_progress') {
     return 'Accompagnement actif, la cliente est dans son programme en cours.'
   }
   return 'Parcours terminé, la cliente a clôturé son accompagnement.'
+}
+
+// ============================================================================
+// Appointment Formatting
+// ============================================================================
+
+const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, string> = {
+  discovery: 'Appel découverte',
+  consultation: 'Consultation'
+}
+
+const APPOINTMENT_STATUS_META: Record<AppointmentStatus, { label: string, color: 'warning' | 'primary' | 'neutral' | 'success' | 'error' }> = {
+  scheduled: { label: 'À venir', color: 'primary' },
+  completed: { label: 'Terminé', color: 'success' },
+  cancelled: { label: 'Annulé', color: 'error' }
+}
+
+const APPOINTMENT_PAYMENT_STATUS_LABELS: Record<AppointmentPaymentStatus, string> = {
+  not_required: 'Non requis',
+  unpaid: 'Non payé',
+  paid: 'Payé'
+}
+
+const CANCELLATION_REASON_LABELS: Record<CancellationReason, string> = {
+  client_request: 'Demande cliente',
+  provider_unavailable: 'Indisponibilité coach',
+  client_no_show: 'Absence cliente',
+  emergency: 'Urgence',
+  other: 'Autre'
+}
+
+/**
+ * Returns the human-readable label for an appointment type.
+ */
+export function getAppointmentTypeLabel(type: AppointmentType): string {
+  return APPOINTMENT_TYPE_LABELS[type]
+}
+
+/**
+ * Returns display metadata for an appointment status (label + color).
+ */
+export function getAppointmentStatusMeta(status: AppointmentStatus): { label: string, color: 'warning' | 'primary' | 'neutral' | 'success' | 'error' } {
+  return APPOINTMENT_STATUS_META[status]
+}
+
+/**
+ * Returns the human-readable label for an appointment payment status.
+ */
+export function getAppointmentPaymentStatusLabel(status: AppointmentPaymentStatus): string {
+  return APPOINTMENT_PAYMENT_STATUS_LABELS[status]
+}
+
+/**
+ * Returns the human-readable label for a cancellation reason.
+ */
+export function getCancellationReasonLabel(reason: CancellationReason): string {
+  return CANCELLATION_REASON_LABELS[reason]
+}
+
+/**
+ * Formats an appointment's scheduled date/time for display.
+ * Returns date and time parts separately for flexible display.
+ */
+export function formatAppointmentDateTime(
+  iso: string,
+  timeZone = 'Europe/Paris'
+): { date: string, time: string, full: string } {
+  const d = new Date(iso)
+
+  const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
+    timeZone,
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+
+  const timeFormatter = new Intl.DateTimeFormat('fr-FR', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+
+  const fullFormatter = new Intl.DateTimeFormat('fr-FR', {
+    timeZone,
+    dateStyle: 'long',
+    timeStyle: 'short'
+  })
+
+  return {
+    date: dateFormatter.format(d),
+    time: timeFormatter.format(d),
+    full: fullFormatter.format(d)
+  }
+}
+
+/**
+ * Determines if an appointment is in the past based on scheduledAt.
+ */
+export function isAppointmentInPast(scheduledAt: string): boolean {
+  return new Date(scheduledAt) < new Date()
+}
+
+/**
+ * Partitions appointments into past and upcoming.
+ * Past appointments are sorted by scheduledAt DESC (most recent first).
+ * Upcoming appointments are sorted by scheduledAt ASC (next one first).
+ */
+export function partitionAppointmentsByTime<T extends AppointmentDisplayItem>(
+  appointments: T[]
+): { past: T[], upcoming: T[] } {
+  const now = new Date()
+  const past: T[] = []
+  const upcoming: T[] = []
+
+  for (const apt of appointments) {
+    if (new Date(apt.scheduledAt) < now) {
+      past.push(apt)
+    } else {
+      upcoming.push(apt)
+    }
+  }
+
+  // Sort past DESC (most recent first)
+  past.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+  // Sort upcoming ASC (next one first)
+  upcoming.sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+
+  return { past, upcoming }
+}
+
+// ============================================================================
+// Payment Formatting
+// ============================================================================
+
+const PAYMENT_STATUS_META: Record<PaymentStatus, { label: string, color: 'warning' | 'success' | 'error' }> = {
+  pending: { label: 'En attente', color: 'warning' },
+  succeeded: { label: 'Payé', color: 'success' },
+  failed: { label: 'Échoué', color: 'error' }
+}
+
+/**
+ * Returns display metadata for a payment status (label + color).
+ */
+export function getPaymentStatusMeta(status: PaymentStatus): { label: string, color: 'warning' | 'success' | 'error' } {
+  return PAYMENT_STATUS_META[status]
+}
+
+/**
+ * Formats an amount in cents to a human-readable currency string.
+ * Example: 8000 → "80,00 €"
+ */
+export function formatAmountCents(amountCents: number, currency = 'EUR'): string {
+  const amount = amountCents / 100
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency
+  }).format(amount)
+}
+
+/**
+ * Formats a payment date for display.
+ */
+export function formatPaymentDate(iso: string, timeZone = 'Europe/Paris'): string {
+  const formatter = new Intl.DateTimeFormat('fr-FR', {
+    timeZone,
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+  return formatter.format(new Date(iso))
+}
+
+/**
+ * Sorts payments by createdAt DESC (most recent first).
+ */
+export function sortPaymentsByDate(
+  payments: ProviderClientDetailPayment[]
+): ProviderClientDetailPayment[] {
+  return [...payments].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
 }

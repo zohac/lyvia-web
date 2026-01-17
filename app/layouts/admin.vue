@@ -13,6 +13,12 @@ const navigation = [
     match: 'exact'
   },
   {
+    label: 'Providers',
+    to: '/admin/providers',
+    icon: 'lucide:users',
+    match: 'prefix'
+  },
+  {
     label: 'Design System',
     to: '/admin/design-system',
     icon: 'lucide:file-sliders',

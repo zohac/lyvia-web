@@ -308,12 +308,13 @@ async function refreshPayments() {
             </span>
           </div>
 
+          <!-- Show alerts when not ready OR when there are requirements to display -->
           <div
-            v-if="uiState.kind !== 'ready'"
+            v-if="uiState.kind !== 'ready' || finance.requirementAlerts.value.length > 0"
             class="mt-6 grid gap-3"
           >
             <p class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Prochaines étapes
+              {{ uiState.kind === 'ready' ? 'À compléter prochainement' : 'Prochaines étapes' }}
             </p>
             <ul
               v-if="finance.requirementAlerts.value.length"
@@ -351,6 +352,22 @@ async function refreshPayments() {
             >
               Connectez votre banque pour finaliser les informations nécessaires.
             </p>
+
+            <!-- CTA to resolve requirements on Stripe -->
+            <UButton
+              v-if="finance.requirementAlerts.value.length > 0"
+              color="primary"
+              variant="outline"
+              class="mt-2 rounded-full"
+              :loading="finance.actionPending.value"
+              @click="onConnect"
+            >
+              <UIcon
+                name="lucide:external-link"
+                class="mr-1 h-4 w-4"
+              />
+              Résoudre sur Stripe
+            </UButton>
           </div>
         </div>
 

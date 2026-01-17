@@ -172,9 +172,9 @@
 </template>
 
 <script setup lang="ts">
-import SystemAlert from '../../components/atoms/SystemAlert.vue'
-import { useProviderClients } from '../../features/clients/useProviderClients'
-import { formatClientName, formatNextAppointment, getClientInitials, getClientStatusMeta } from '../../features/clients/domain/clients'
+import SystemAlert from '../../../components/atoms/SystemAlert.vue'
+import { useProviderClients } from '../../../features/clients/useProviderClients'
+import { formatClientName, formatNextAppointment, getClientInitials, getClientStatusMeta } from '../../../features/clients/domain/clients'
 
 definePageMeta({
   layout: 'provider',
