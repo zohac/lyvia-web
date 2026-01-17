@@ -28,6 +28,11 @@ const emit = defineEmits<{
 
 function updateField<K extends keyof IdentityModel>(key: K, value: string) {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
+
+  // If phone is cleared and SMS marketing is checked, uncheck it
+  if (key === 'phone' && !value.trim() && props.consents.smsMarketingOptIn) {
+    emit('update:consents', { ...props.consents, smsMarketingOptIn: false })
+  }
 }
 
 function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
@@ -173,16 +178,25 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
         </span>
       </label>
 
-      <label class="flex items-start gap-3">
+      <label
+        class="flex items-start gap-3"
+        :class="{ 'opacity-50 cursor-not-allowed': !modelValue.phone.trim() }"
+      >
         <input
           type="checkbox"
           class="mt-1 h-4 w-4 rounded border-[color:var(--color-brand-subtle)] text-[color:var(--color-accent-main)] focus:ring-4 focus:ring-[rgba(200,121,100,0.2)]"
           :checked="consents.smsMarketingOptIn"
-          :disabled="disabled"
+          :disabled="disabled || !modelValue.phone.trim()"
           @change="updateConsent('smsMarketingOptIn', ($event.target as HTMLInputElement).checked)"
         >
         <span class="text-sm text-[color:var(--color-brand-primary)]">
           Je souhaite recevoir des conseils bien-être par SMS (optionnel).
+          <span
+            v-if="!modelValue.phone.trim()"
+            class="block text-xs text-[color:var(--color-brand-muted)] mt-0.5"
+          >
+            Renseignez un numéro de téléphone pour activer cette option.
+          </span>
         </span>
       </label>
     </div>
