@@ -9,96 +9,135 @@ defineProps<{
 </script>
 
 <template>
+  <!-- Cinematic full-screen hero - dark immersive experience -->
   <section
     id="essence"
-    class="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-6 py-24 sm:px-12 lg:px-20"
+    class="relative flex min-h-[100svh] items-end overflow-hidden bg-[#1a161e]"
   >
+    <!-- Gradient atmosphere - sunset hues bleeding from edges -->
     <div
       aria-hidden="true"
       class="pointer-events-none absolute inset-0"
     >
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,rgba(212,184,160,0.30),transparent_58%)]" />
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_90%_70%,rgba(181,192,163,0.18),transparent_55%)]" />
+      <!-- Top-right warm glow -->
+      <div
+        class="absolute -right-[20%] -top-[10%] h-[80vh] w-[80vh] rounded-full"
+        style="background: radial-gradient(circle, rgba(212, 149, 106, 0.15), transparent 60%); filter: blur(100px);"
+      />
+      <!-- Bottom-left violet mist -->
+      <div
+        class="absolute -bottom-[20%] -left-[15%] h-[70vh] w-[70vh] rounded-full"
+        style="background: radial-gradient(circle, rgba(122, 107, 142, 0.2), transparent 60%); filter: blur(80px);"
+      />
+      <!-- Film grain overlay -->
+      <div
+        class="absolute inset-0 opacity-[0.03]"
+        style="background-image: url('data:image/svg+xml,%3Csvg viewBox=&quot;0 0 256 256&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;%3E%3Cfilter id=&quot;noise&quot;%3E%3CfeTurbulence type=&quot;fractalNoise&quot; baseFrequency=&quot;0.9&quot; numOctaves=&quot;4&quot; stitchTiles=&quot;stitch&quot;/%3E%3C/filter%3E%3Crect width=&quot;100%25&quot; height=&quot;100%25&quot; filter=&quot;url(%23noise)&quot;/%3E%3C/svg%3E');"
+      />
     </div>
 
-    <div class="relative z-10 w-full max-w-[1200px] grid gap-12 lg:grid-cols-2 lg:items-center">
-      <div class="order-2 grid gap-8 text-center lg:order-1 lg:text-left">
-        <h1 class="font-serif text-5xl italic leading-[1.1] text-[color:var(--color-brand-primary)] sm:text-6xl lg:text-7xl xl:text-8xl">
-          Naviguez la
-          <br>
-          <span
-            class="not-italic text-transparent bg-clip-text"
-            :style="{ backgroundImage: 'linear-gradient(90deg,var(--color-kaora-500),var(--color-kaora-700))' }"
-          >
-            ménopause
-          </span>
-          <br>
-          avec confiance.
-        </h1>
+    <!-- Main content - editorial layout -->
+    <div class="relative z-10 w-full px-6 pb-20 pt-32 sm:px-12 lg:px-20">
+      <div class="mx-auto max-w-7xl">
+        <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
+          <!-- Left column - Typography driven -->
+          <div class="flex flex-col justify-end lg:col-span-7">
+            <!-- Coach name as subtle label -->
+            <p class="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[#d4956a]">
+              {{ tenant.brand.displayName }}
+            </p>
 
-        <p class="mx-auto max-w-lg text-lg font-light leading-[var(--leading-relaxed)] text-[color:var(--color-brand-secondary)] sm:text-xl lg:mx-0">
-          Une expérience sereine pour les femmes qui se redécouvrent. Loin des clichés médicaux, un sanctuaire pour votre équilibre.
-        </p>
+            <!-- Main headline - extra large, editorial -->
+            <h1 class="font-serif text-[clamp(3rem,8vw,6rem)] leading-[0.95] tracking-tight text-white">
+              <span class="block">Traverser</span>
+              <span class="block text-[#b9aac7]">la ménopause</span>
+              <span class="block">
+                avec
+                <em class="relative font-normal not-italic">
+                  douceur
+                  <span class="absolute -bottom-2 left-0 h-1 w-full bg-gradient-to-r from-[#d4956a] to-transparent" />
+                </em>
+              </span>
+            </h1>
 
-        <div class="grid gap-4 pt-2 sm:flex sm:justify-center lg:justify-start">
-          <UButton
-            :to="ctaTo"
-            class="group inline-flex items-center justify-center rounded-full bg-[color:var(--color-accent-main)] px-8 py-4 text-base font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:brightness-110"
-          >
-            <span class="flex items-center gap-2">
-              {{ ctaLabel ?? 'Appel découverte gratuit' }}
-              <Icon
-                name="lucide:arrow-right"
-                size="18"
-                class="transition-transform group-hover:translate-x-1"
-                aria-hidden="true"
+            <!-- Subtle tagline -->
+            <p class="mt-10 max-w-md text-lg leading-relaxed text-[#857d8c]">
+              Un espace de transformation pour les femmes qui refusent de simplement "gérer" cette étape de leur vie.
+            </p>
+
+            <!-- CTA - understated elegance -->
+            <div class="mt-12 flex items-center gap-8">
+              <UButton
+                :to="ctaTo"
+                size="xl"
+                class="group border border-[#d4956a]/30 bg-transparent px-8 py-4 font-medium text-[#d4956a] transition-all duration-500 hover:border-[#d4956a] hover:bg-[#d4956a]/10"
+              >
+                <span class="flex items-center gap-3">
+                  {{ ctaLabel ?? 'Réserver un appel' }}
+                  <span class="inline-block transition-transform duration-500 group-hover:translate-x-1">→</span>
+                </span>
+              </UButton>
+
+              <span class="hidden text-sm text-[#5b4b6e] sm:block">
+                30 min · Gratuit · Sans engagement
+              </span>
+            </div>
+          </div>
+
+          <!-- Right column - Visual accent -->
+          <div class="relative hidden lg:col-span-5 lg:flex lg:items-end lg:justify-end">
+            <!-- Abstract shape instead of photo placeholder -->
+            <div class="relative">
+              <!-- Organic shape with gradient -->
+              <div
+                class="h-[50vh] w-80 rounded-[40%_60%_70%_30%/40%_50%_60%_50%]"
+                style="background: linear-gradient(160deg, rgba(91, 75, 110, 0.4) 0%, rgba(212, 149, 106, 0.2) 100%); backdrop-filter: blur(1px);"
               />
-            </span>
-          </UButton>
-
-          <a
-            href="#parcours"
-            class="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-medium text-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-accent)] transition-base"
-          >
-            <Icon
-              name="lucide:play-circle"
-              size="20"
-              aria-hidden="true"
-            />
-            Voir le manifeste
-          </a>
-        </div>
-
-        <p class="text-sm text-[color:var(--color-brand-muted)]">
-          Fuseau : {{ tenant.timezone }} · Sans engagement.
-        </p>
-      </div>
-
-      <div class="order-1 relative flex h-[50vh] items-center justify-center lg:order-2 lg:h-[80vh]">
-        <div
-          class="blob-shape absolute inset-0 bg-cover bg-center opacity-95 shadow-floating transition-all duration-[1200ms] ease-out hover:rotate-2 scale-95 hover:scale-100"
-          style="background-image:url('/images/coach-hero-texture.svg')"
-          aria-hidden="true"
-        />
-        <div class="pointer-events-none absolute -bottom-10 -left-10 grid h-32 w-32 place-items-center rounded-full bg-white/35 shadow-soft backdrop-blur-md">
-          <span class="font-serif text-xs uppercase tracking-widest text-[color:var(--color-brand-primary)]">
-            Sérénité
-          </span>
+              <!-- Overlapping accent -->
+              <div
+                class="absolute -bottom-8 -left-12 h-32 w-32 rounded-full border border-[#d4956a]/20"
+                style="animation: pulse-slow 4s ease-in-out infinite;"
+              />
+              <div
+                class="absolute -right-4 top-1/4 h-20 w-20 rounded-full bg-[#d4956a]/10"
+                style="animation: pulse-slow 4s ease-in-out 2s infinite;"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce text-[color:var(--color-brand-muted)] z-10">
-      <div class="flex flex-col items-center gap-2">
-        <span class="text-xs uppercase tracking-widest">
-          Explorer
-        </span>
-        <Icon
-          name="lucide:chevron-down"
-          size="18"
-          aria-hidden="true"
-        />
-      </div>
+    <!-- Scroll indicator - minimal -->
+    <div class="absolute bottom-8 left-1/2 z-10 -translate-x-1/2">
+      <div
+        class="h-12 w-px bg-gradient-to-b from-transparent via-[#5b4b6e] to-transparent"
+        style="animation: scroll-fade 2s ease-in-out infinite;"
+      />
     </div>
   </section>
 </template>
+
+<style scoped>
+@keyframes pulse-slow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+}
+
+@keyframes scroll-fade {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-50%) scaleY(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-50%) scaleY(1.2);
+  }
+}
+</style>
