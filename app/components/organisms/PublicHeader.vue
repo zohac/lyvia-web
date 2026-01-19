@@ -11,22 +11,24 @@ const useKaoraLogoImage = computed(
 </script>
 
 <template>
+  <!-- Dock-style floating header -->
   <template v-if="isDockHeader">
     <nav
-      class="fixed top-6 left-0 right-0 z-50 flex justify-center px-4"
+      class="fixed left-0 right-0 top-6 z-50 flex justify-center px-4"
       aria-label="Navigation principale"
     >
-      <div class="glass-panel flex w-full max-w-6xl items-center justify-between gap-6 rounded-full px-5 py-3 shadow-floating">
+      <div class="flex w-full max-w-5xl items-center justify-between gap-6 rounded-full border border-white/40 bg-white/80 px-6 py-3 shadow-lg backdrop-blur-xl">
+        <!-- Brand -->
         <ULink
           :to="headerState.brandTo"
-          class="inline-flex items-center gap-2 transition-base"
+          class="inline-flex items-center gap-2 transition-all duration-300"
           aria-label="Accueil"
         >
           <template v-if="useKaoraLogoImage">
             <img
               src="/images/kaora-logo.png"
               alt=""
-              class="h-7 w-auto opacity-90 sm:h-8"
+              class="h-7 w-auto sm:h-8"
               aria-hidden="true"
               decoding="async"
             >
@@ -36,31 +38,40 @@ const useKaoraLogoImage = computed(
           </template>
           <span
             v-else
-            class="font-serif text-xl italic tracking-tight"
+            class="font-serif text-xl tracking-tight text-[#3d3250]"
           >
             {{ headerState.brandLabel }}
           </span>
         </ULink>
 
-        <div class="hidden items-center gap-6 md:flex">
-          <Ulink
+        <!-- Nav links -->
+        <div
+          v-if="showNavLinks"
+          class="hidden items-center gap-6 md:flex"
+        >
+          <ULink
             v-for="link in headerState.navLinks"
             :key="link.href"
-            :href="link.href"
-            class="text-sm font-semibold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)] transition-base"
+            :to="link.href"
+            class="text-sm font-medium text-[#857d8c] transition-colors duration-200 hover:text-[#5b4b6e]"
           >
             {{ link.label }}
-          </Ulink>
+          </ULink>
         </div>
 
+        <!-- Actions -->
         <div class="flex items-center gap-3">
-          <ULink :to="headerState.loginTo">
+          <ULink
+            :to="headerState.loginTo"
+            class="hidden text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:text-[#3d3250] md:inline-flex"
+          >
             {{ headerState.loginLabel }}
           </ULink>
 
           <UButton
             :to="headerState.ctaTo"
-            color="primary"
+            size="md"
+            class="rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c] px-5 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
           >
             {{ headerState.ctaLabel }}
           </UButton>
@@ -69,29 +80,24 @@ const useKaoraLogoImage = computed(
     </nav>
   </template>
 
+  <!-- Classic sticky header -->
   <header
     v-else
-    class="sticky top-0 z-40 border-b border-[color:var(--color-brand-subtle)]"
+    class="sticky top-0 z-40 border-b border-[#ebe7ef]"
   >
-    <div class="glass-panel">
+    <div class="bg-white/90 backdrop-blur-lg">
       <div class="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+        <!-- Brand -->
         <ULink
           :to="headerState.brandTo"
-          class="inline-flex items-center gap-3 transition-base"
+          class="inline-flex items-center gap-3 transition-all duration-300"
           aria-label="Accueil"
         >
           <template v-if="useKaoraLogoImage">
             <img
               src="/images/kaora-logo.png"
               alt=""
-              class="h-8 w-auto opacity-90 dark:hidden sm:h-9"
-              aria-hidden="true"
-              decoding="async"
-            >
-            <img
-              src="/images/kaora-logo-light.png"
-              alt=""
-              class="hidden h-8 w-auto opacity-90 dark:block sm:h-9"
+              class="h-8 w-auto sm:h-9"
               aria-hidden="true"
               decoding="async"
             >
@@ -101,41 +107,44 @@ const useKaoraLogoImage = computed(
           </template>
           <span
             v-else
-            class="font-serif text-2xl italic tracking-tight"
+            class="font-serif text-2xl tracking-tight text-[#3d3250]"
           >
             {{ headerState.brandLabel }}
           </span>
         </ULink>
 
+        <!-- Nav links -->
         <nav
           v-if="showNavLinks"
-          class="hidden items-center gap-8 text-sm font-semibold text-[color:var(--color-brand-muted)] md:flex"
+          class="hidden items-center gap-8 md:flex"
           aria-label="Navigation"
         >
-          <a
+          <ULink
             v-for="link in headerState.navLinks"
             :key="link.href"
-            :href="link.href"
-            class="hover:text-[color:var(--color-brand-primary)] transition-base"
+            :to="link.href"
+            class="text-sm font-semibold text-[#857d8c] transition-colors duration-200 hover:text-[#5b4b6e]"
           >
             {{ link.label }}
-          </a>
+          </ULink>
         </nav>
 
+        <!-- Actions -->
         <div class="flex items-center gap-3">
           <ULink
             :to="headerState.loginTo"
-            class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)] md:inline-flex transition-base"
+            class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[#5b4b6e] transition-colors duration-200 hover:text-[#3d3250] md:inline-flex"
           >
             {{ headerState.loginLabel }}
           </ULink>
 
-          <ULink
+          <UButton
             :to="headerState.ctaTo"
-            class="inline-flex h-12 items-center justify-center rounded-full bg-[color:var(--color-accent-main)] px-7 text-[15px] font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:brightness-110 active:scale-[0.99]"
+            size="lg"
+            class="rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
           >
             {{ headerState.ctaLabel }}
-          </ULink>
+          </UButton>
         </div>
       </div>
     </div>

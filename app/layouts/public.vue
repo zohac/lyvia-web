@@ -32,7 +32,7 @@ const isDockHeader = computed(() => headerState.value.layoutStyle === 'dock')
 </script>
 
 <template>
-  <div class="min-h-[100svh] bg-[color:var(--color-surface-page)] text-[color:var(--color-brand-primary)]">
+  <div class="min-h-[100svh] bg-[#f9f8fa] text-[#221d28]">
     <PublicHeader v-if="showHeader" />
 
     <main
