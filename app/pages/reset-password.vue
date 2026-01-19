@@ -14,10 +14,10 @@
         >
       </ULink>
 
-      <h1 class="font-serif text-4xl font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
-        Nouveau <span class="italic text-[color:var(--color-brand-accent)]">mot de passe</span>
+      <h1 class="font-serif text-4xl font-bold leading-tight text-[#221d28]">
+        Nouveau <span class="italic text-[#d4956a]">mot de passe</span>
       </h1>
-      <p class="text-base text-[color:var(--color-brand-secondary)]">
+      <p class="text-base text-[#4a4255]">
         Sécurisez votre compte avec un mot de passe fort.
       </p>
     </header>
@@ -46,7 +46,7 @@
 
       <ULink
         to="/login"
-        class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
+        class="text-center text-sm font-semibold text-[#4a4255] hover:underline"
       >
         Retour à la connexion
       </ULink>
@@ -58,35 +58,75 @@
       novalidate
       @submit.prevent="onSubmit"
     >
-      <PasswordInput
+      <FormControl
         id="new-password"
-        v-model="form.newPassword"
+        v-slot="slotProps"
         label="Nouveau mot de passe"
-        name="newPassword"
-        autocomplete="new-password"
         :required="true"
-        :disabled="isSubmitting"
-        :described-by-ids="[criteriaId]"
         :error="passwordError"
-        :elevated="true"
-      />
+        :described-by-ids="[criteriaId]"
+      >
+        <UInput
+          v-model="form.newPassword"
+          v-bind="slotProps?.inputAttrs ?? { id: 'new-password' }"
+          name="newPassword"
+          :type="showNewPassword ? 'text' : 'password'"
+          autocomplete="new-password"
+          :disabled="isSubmitting"
+          :ui="{ trailing: 'pe-1' }"
+          size="xl"
+        >
+          <template #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              :icon="showNewPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+              :aria-label="showNewPassword ? 'Masquer' : 'Afficher'"
+              :aria-pressed="showNewPassword"
+              aria-controls="new-password"
+              @click="showNewPassword = !showNewPassword"
+            />
+          </template>
+        </UInput>
+      </FormControl>
 
       <PasswordCriteriaList
         :id="criteriaId"
         :password="form.newPassword"
       />
 
-      <PasswordInput
+      <FormControl
         id="confirm-password"
-        v-model="form.confirmPassword"
+        v-slot="slotProps"
         label="Confirmer le mot de passe"
-        name="confirmPassword"
-        autocomplete="new-password"
         :required="true"
-        :disabled="isSubmitting"
         :error="confirmError"
-        :elevated="true"
-      />
+      >
+        <UInput
+          v-model="form.confirmPassword"
+          v-bind="slotProps?.inputAttrs ?? { id: 'confirm-password' }"
+          name="confirmPassword"
+          :type="showConfirmPassword ? 'text' : 'password'"
+          autocomplete="new-password"
+          :disabled="isSubmitting"
+          :ui="{ trailing: 'pe-1' }"
+          size="xl"
+        >
+          <template #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              size="sm"
+              :icon="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+              :aria-label="showConfirmPassword ? 'Masquer' : 'Afficher'"
+              :aria-pressed="showConfirmPassword"
+              aria-controls="confirm-password"
+              @click="showConfirmPassword = !showConfirmPassword"
+            />
+          </template>
+        </UInput>
+      </FormControl>
 
       <UButton
         type="submit"
@@ -101,7 +141,7 @@
     <ULink
       v-if="!isTokenInvalid"
       to="/login"
-      class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
+      class="text-center text-sm font-semibold text-[#4a4255] hover:underline"
     >
       Retour à la connexion
     </ULink>
@@ -134,6 +174,8 @@ const form = reactive({
 const isSubmitting = ref(false)
 const error = ref<string | null>(null)
 const isTokenInvalid = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 const tokenIsWellFormed = computed(() => {
   if (!token.value) return false

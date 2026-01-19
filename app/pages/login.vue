@@ -1,40 +1,53 @@
 <template>
-  <div class="grid gap-12">
-    <header class="grid gap-3">
+  <div class="grid gap-10">
+    <!-- Brand mark -->
+    <header class="grid gap-6">
       <ULink
         to="/"
-        aria-label="Retour à l’accueil"
-        class="mb-12 inline-flex w-fit items-center justify-center"
+        aria-label="Retour à l'accueil"
+        class="group inline-flex w-fit items-center gap-3"
       >
-        <img
-          src="/images/kaora-logo.png"
-          alt="Kaora"
-          class="h-10 w-auto"
-          decoding="async"
-        >
+        <div class="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-[#5b4b6e] to-[#4d3f5c] shadow-lg transition-transform duration-300 group-hover:scale-105">
+          <span class="font-serif text-xl font-bold text-white">
+            K
+          </span>
+        </div>
+        <span class="font-serif text-2xl tracking-tight text-[#3d3250]">
+          Kaora
+        </span>
       </ULink>
 
-      <h1 class="font-serif text-4xl font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
-        Bienvenue dans votre <span class="italic text-[color:var(--color-brand-accent)]">espace</span>
-      </h1>
-      <p class="text-base text-[color:var(--color-brand-secondary)]">
-        Connectez-vous pour accéder à Kaora.
-      </p>
+      <div class="space-y-2 pt-4">
+        <h1 class="font-serif text-4xl leading-tight text-[#221d28]">
+          Bon retour
+          <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">parmi nous</span>
+        </h1>
+        <p class="text-[#857d8c]">
+          Connectez-vous pour retrouver votre espace.
+        </p>
+      </div>
     </header>
 
-    <SystemAlert
-      v-if="resetSuccess"
-      variant="success"
-      description="Votre mot de passe a été mis à jour. Vous pouvez vous connecter."
-    />
-    <SystemAlert
-      v-if="error"
-      variant="error"
-      :description="error"
-    />
+    <!-- Alerts -->
+    <div
+      v-if="resetSuccess || error"
+      class="space-y-3"
+    >
+      <SystemAlert
+        v-if="resetSuccess"
+        variant="success"
+        description="Votre mot de passe a été mis à jour. Vous pouvez vous connecter."
+      />
+      <SystemAlert
+        v-if="error"
+        variant="error"
+        :description="error"
+      />
+    </div>
 
+    <!-- Form -->
     <form
-      class="grid gap-6"
+      class="grid gap-5"
       novalidate
       @submit.prevent="onSubmit"
     >
@@ -52,41 +65,89 @@
           type="email"
           inputmode="email"
           autocomplete="username"
+          placeholder="vous@exemple.com"
           :disabled="isSubmitting"
           size="xl"
+          class="[&_input]:rounded-xl"
         />
       </FormControl>
 
-      <PasswordInput
+      <FormControl
         id="password"
-        v-model="form.password"
         label="Mot de passe"
-        autocomplete="current-password"
         :required="true"
-        :disabled="isSubmitting"
-        :elevated="true"
       >
         <template #label-aside>
           <ULink
             to="/forgot-password"
-            class="text-xs font-bold text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-brand-primary)]"
+            class="text-xs font-semibold text-[#9685ab] transition-colors hover:text-[#5b4b6e]"
           >
-            Mot de passe oublié
+            Oublié ?
           </ULink>
         </template>
-      </PasswordInput>
+        <template #default="slotProps">
+          <UInput
+            v-model="form.password"
+            v-bind="slotProps?.inputAttrs ?? { id: 'password' }"
+            name="password"
+            :type="showPassword ? 'text' : 'password'"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            :disabled="isSubmitting"
+            :ui="{ trailing: 'pe-1' }"
+            size="xl"
+            class="[&_input]:rounded-xl"
+          >
+            <template #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                size="sm"
+                :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                :aria-label="showPassword ? 'Masquer' : 'Afficher'"
+                :aria-pressed="showPassword"
+                aria-controls="password"
+                @click="showPassword = !showPassword"
+              />
+            </template>
+          </UInput>
+        </template>
+      </FormControl>
 
       <UButton
-        color="primary"
-        size="md"
         type="submit"
-        label="Se connecter"
-        loading-label="Connexion en cours…"
+        size="xl"
         :loading="isSubmitting"
         :disabled="!canSubmit"
-        class="w-full justify-center"
-      />
+        class="mt-2 w-full justify-center rounded-xl bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c] py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-50"
+      >
+        <span v-if="!isSubmitting">Se connecter</span>
+        <span v-else>Connexion...</span>
+      </UButton>
     </form>
+
+    <!-- Divider -->
+    <div class="relative py-2">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-[#ebe7ef]" />
+      </div>
+      <div class="relative flex justify-center">
+        <span class="bg-[#f9f8fa] px-4 text-sm text-[#b9aac7]">ou</span>
+      </div>
+    </div>
+
+    <!-- Register CTA -->
+    <div class="text-center">
+      <p class="text-sm text-[#857d8c]">
+        Pas encore de compte ?
+        <ULink
+          to="/register"
+          class="font-semibold text-[#5b4b6e] transition-colors hover:text-[#d4956a]"
+        >
+          Créer un espace pro
+        </ULink>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -106,6 +167,7 @@ const form = reactive({
 
 const error = ref<string | null>(null)
 const isSubmitting = ref(false)
+const showPassword = ref(false)
 const emailInputRef = ref<{ inputRef: { el: HTMLInputElement } } | null>(null)
 
 const resetSuccess = computed(() => route.query.reset === 'success')
