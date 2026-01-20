@@ -8,10 +8,22 @@ type NavItem = {
   match?: 'exact' | 'prefix'
 }
 
+type NavGroup = {
+  key: string
+  label: string
+  defaultOpen: boolean
+  items: NavItem[]
+}
+
+type GroupedNavigation = {
+  home: NavItem
+  groups: NavGroup[]
+}
+
 const props = defineProps<{
   brandLabel: string
   brandTo: string
-  navigation: NavItem[]
+  navigation: GroupedNavigation
   sidebarLabel: string
 }>()
 
@@ -27,6 +39,58 @@ const isLoggingOut = ref(false)
 const isMobileNavOpen = ref(false)
 
 const useKaoraLogoImage = computed(() => props.brandLabel === 'Kaora')
+
+// Collapsed state management with localStorage persistence
+const STORAGE_KEY = 'kaora-nav-collapsed'
+
+function getInitialCollapsedState(): Record<string, boolean> {
+  if (import.meta.server) return {}
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) return JSON.parse(stored)
+  } catch {
+    // Ignore parse errors
+  }
+  // Default: use defaultOpen from each group (inverted for collapsed state)
+  return Object.fromEntries(
+    props.navigation.groups.map(g => [g.key, !g.defaultOpen])
+  )
+}
+
+const collapsedGroups = ref<Record<string, boolean>>(getInitialCollapsedState())
+
+function toggleGroup(key: string) {
+  collapsedGroups.value[key] = !collapsedGroups.value[key]
+  if (import.meta.client) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedGroups.value))
+    } catch {
+      // Ignore storage errors
+    }
+  }
+}
+
+function isGroupOpen(key: string): boolean {
+  return !collapsedGroups.value[key]
+}
+
+// Check if any item in a group is active (to auto-expand)
+function isGroupActive(group: NavGroup): boolean {
+  return group.items.some(item => isItemActive(item))
+}
+
+// Auto-expand group if it contains the active route
+watch(
+  () => route.path,
+  () => {
+    for (const group of props.navigation.groups) {
+      if (isGroupActive(group) && collapsedGroups.value[group.key]) {
+        collapsedGroups.value[group.key] = false
+      }
+    }
+  },
+  { immediate: true }
+)
 
 const pageTitle = computed(() => {
   const meta = route.meta as Record<string, unknown>
@@ -104,43 +168,111 @@ watch(
         </ULink>
       </div>
 
-      <nav class="flex-1 px-4">
-        <ul class="grid gap-2">
-          <li
-            v-for="item in navigation"
-            :key="item.to"
+      <nav class="flex-1 overflow-y-auto px-3 py-2">
+        <!-- Home item (always visible) -->
+        <ULink
+          :to="navigation.home.to"
+          class="group relative mb-6 flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200"
+          :class="
+            isItemActive(navigation.home)
+              ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md'
+              : 'text-stone-600 hover:bg-stone-100 hover:text-[color:var(--color-crepuscule-800)]'
+          "
+          :aria-current="isItemActive(navigation.home) ? 'page' : undefined"
+        >
+          <span
+            class="inline-flex h-5 w-5 items-center justify-center"
+            aria-hidden="true"
           >
-            <ULink
-              :to="item.to"
-              class="group flex items-center gap-3 px-5 py-3.5 font-semibold tracking-wide text-[color:var(--color-brand-muted)] transition-base"
-              :class="
-                isItemActive(item)
-                  ? 'rounded-r-full rounded-l-[var(--radius-organic)] bg-[color:var(--color-surface-highlight)] text-[color:var(--color-brand-accent)] shadow-soft ring-1 ring-[rgba(231,229,228,0.8)]'
-                  : 'rounded-[2rem] hover:bg-white/70 hover:text-[color:var(--color-brand-primary)]'
-              "
-              :aria-current="isItemActive(item) ? 'page' : undefined"
+            <UIcon
+              :name="navigation.home.icon"
+              size="20"
+              :class="isItemActive(navigation.home) ? 'text-white' : 'text-stone-500 group-hover:text-stone-700'"
+            />
+          </span>
+          <span class="min-w-0 truncate text-sm">
+            {{ navigation.home.label }}
+          </span>
+        </ULink>
+
+        <!-- Collapsible groups -->
+        <div
+          v-for="group in navigation.groups"
+          :key="group.key"
+          class="mb-4"
+        >
+          <!-- Group header (collapsible trigger) -->
+          <button
+            type="button"
+            class="group mb-2 flex w-full items-center gap-2 px-3 py-1.5 text-left"
+            :aria-expanded="isGroupOpen(group.key)"
+            :aria-controls="`nav-group-${group.key}`"
+            @click="toggleGroup(group.key)"
+          >
+            <UIcon
+              name="lucide:chevron-right"
+              size="12"
+              class="text-stone-400 transition-transform duration-200"
+              :class="{ 'rotate-90': isGroupOpen(group.key) }"
+              aria-hidden="true"
+            />
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 transition-colors group-hover:text-stone-600">
+              {{ group.label }}
+            </span>
+          </button>
+
+          <!-- Group items (collapsible content) -->
+          <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            enter-from-class="opacity-0 -translate-y-1 max-h-0"
+            enter-to-class="opacity-100 translate-y-0 max-h-96"
+            leave-active-class="transition-all duration-150 ease-in"
+            leave-from-class="opacity-100 translate-y-0 max-h-96"
+            leave-to-class="opacity-0 -translate-y-1 max-h-0"
+          >
+            <ul
+              v-show="isGroupOpen(group.key)"
+              :id="`nav-group-${group.key}`"
+              class="grid gap-0.5 overflow-hidden"
             >
-              <span
-                class="inline-flex h-6 w-6 items-center justify-center"
-                aria-hidden="true"
+              <li
+                v-for="item in group.items"
+                :key="item.to"
               >
-                <UIcon
-                  :name="item.icon"
-                  size="20"
-                  class="transition-base"
+                <ULink
+                  :to="item.to"
+                  class="group relative flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200"
                   :class="
                     isItemActive(item)
-                      ? 'text-[color:var(--color-brand-accent)]'
-                      : 'text-[color:var(--color-brand-muted)]'
+                      ? 'bg-stone-100 text-[color:var(--color-crepuscule-800)]'
+                      : 'text-stone-500 hover:bg-stone-50 hover:text-stone-700'
                   "
-                />
-              </span>
-              <span class="min-w-0 truncate">
-                {{ item.label }}
-              </span>
-            </ULink>
-          </li>
-        </ul>
+                  :aria-current="isItemActive(item) ? 'page' : undefined"
+                >
+                  <!-- Active indicator bar -->
+                  <span
+                    v-if="isItemActive(item)"
+                    class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-crepuscule-800)]"
+                    aria-hidden="true"
+                  />
+                  <span
+                    class="inline-flex h-5 w-5 items-center justify-center"
+                    aria-hidden="true"
+                  >
+                    <UIcon
+                      :name="item.icon"
+                      size="18"
+                      :class="isItemActive(item) ? 'text-[color:var(--color-crepuscule-800)]' : 'text-stone-400 group-hover:text-stone-600'"
+                    />
+                  </span>
+                  <span class="min-w-0 truncate">
+                    {{ item.label }}
+                  </span>
+                </ULink>
+              </li>
+            </ul>
+          </Transition>
+        </div>
       </nav>
 
       <div class="mt-auto p-6">
@@ -328,43 +460,100 @@ watch(
             </button>
           </div>
 
-          <nav class="flex-1 px-4">
-            <ul class="grid gap-2">
-              <li
-                v-for="item in navigation"
-                :key="item.to"
+          <nav class="flex-1 overflow-y-auto px-3 py-2">
+            <!-- Home item (always visible) -->
+            <ULink
+              :to="navigation.home.to"
+              class="group relative mb-6 flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200"
+              :class="
+                isItemActive(navigation.home)
+                  ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md'
+                  : 'text-stone-600 hover:bg-stone-100 hover:text-[color:var(--color-crepuscule-800)]'
+              "
+              :aria-current="isItemActive(navigation.home) ? 'page' : undefined"
+            >
+              <span
+                class="inline-flex h-5 w-5 items-center justify-center"
+                aria-hidden="true"
               >
-                <ULink
-                  :to="item.to"
-                  class="group flex items-center gap-3 px-5 py-3.5 text-sm font-semibold tracking-wide text-[color:var(--color-brand-muted)] transition-base"
-                  :class="
-                    isItemActive(item)
-                      ? 'rounded-r-full rounded-l-[var(--radius-organic)] bg-[color:var(--color-surface-highlight)] text-[color:var(--color-brand-accent)] shadow-soft ring-1 ring-[rgba(231,229,228,0.8)]'
-                      : 'rounded-[2rem] hover:bg-white/70 hover:text-[color:var(--color-brand-primary)]'
-                  "
-                  :aria-current="isItemActive(item) ? 'page' : undefined"
+                <UIcon
+                  :name="navigation.home.icon"
+                  size="20"
+                  :class="isItemActive(navigation.home) ? 'text-white' : 'text-stone-500 group-hover:text-stone-700'"
+                />
+              </span>
+              <span class="min-w-0 truncate text-sm">
+                {{ navigation.home.label }}
+              </span>
+            </ULink>
+
+            <!-- Collapsible groups (mobile) -->
+            <div
+              v-for="group in navigation.groups"
+              :key="group.key"
+              class="mb-4"
+            >
+              <!-- Group header -->
+              <button
+                type="button"
+                class="group mb-2 flex w-full items-center gap-2 px-3 py-1.5 text-left"
+                :aria-expanded="isGroupOpen(group.key)"
+                @click="toggleGroup(group.key)"
+              >
+                <UIcon
+                  name="lucide:chevron-right"
+                  size="12"
+                  class="text-stone-400 transition-transform duration-200"
+                  :class="{ 'rotate-90': isGroupOpen(group.key) }"
+                  aria-hidden="true"
+                />
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 transition-colors group-hover:text-stone-600">
+                  {{ group.label }}
+                </span>
+              </button>
+
+              <!-- Group items -->
+              <ul
+                v-show="isGroupOpen(group.key)"
+                class="grid gap-0.5"
+              >
+                <li
+                  v-for="item in group.items"
+                  :key="item.to"
                 >
-                  <span
-                    class="inline-flex h-6 w-6 items-center justify-center"
-                    aria-hidden="true"
+                  <ULink
+                    :to="item.to"
+                    class="group relative flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200"
+                    :class="
+                      isItemActive(item)
+                        ? 'bg-stone-100 text-[color:var(--color-crepuscule-800)]'
+                        : 'text-stone-500 hover:bg-stone-50 hover:text-stone-700'
+                    "
+                    :aria-current="isItemActive(item) ? 'page' : undefined"
                   >
-                    <UIcon
-                      :name="item.icon"
-                      size="20"
-                      class="transition-base"
-                      :class="
-                        isItemActive(item)
-                          ? 'text-[color:var(--color-brand-accent)]'
-                          : 'text-[color:var(--color-brand-muted)]'
-                      "
+                    <!-- Active indicator bar -->
+                    <span
+                      v-if="isItemActive(item)"
+                      class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-crepuscule-800)]"
+                      aria-hidden="true"
                     />
-                  </span>
-                  <span class="min-w-0 truncate">
-                    {{ item.label }}
-                  </span>
-                </ULink>
-              </li>
-            </ul>
+                    <span
+                      class="inline-flex h-5 w-5 items-center justify-center"
+                      aria-hidden="true"
+                    >
+                      <UIcon
+                        :name="item.icon"
+                        size="18"
+                        :class="isItemActive(item) ? 'text-[color:var(--color-crepuscule-800)]' : 'text-stone-400 group-hover:text-stone-600'"
+                      />
+                    </span>
+                    <span class="min-w-0 truncate">
+                      {{ item.label }}
+                    </span>
+                  </ULink>
+                </li>
+              </ul>
+            </div>
           </nav>
 
           <div class="mt-auto p-6">

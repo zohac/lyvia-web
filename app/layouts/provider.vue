@@ -9,62 +9,80 @@ useHead({
 
 const stripeStatus = useProviderStripeStatus()
 
-const navigation = [
-  {
+const navigation = {
+  // Item principal toujours visible
+  home: {
     label: 'Vue d\'ensemble',
     to: '/provider/dashboard',
-    icon: 'lucide:home',
-    match: 'exact'
+    icon: 'lucide:layout-dashboard',
+    match: 'exact' as const
   },
-  {
-    label: 'Calendrier',
-    to: '/provider/calendar',
-    icon: 'lucide:calendar',
-    match: 'prefix'
-  },
-  {
-    label: 'Disponibilités',
-    to: '/provider/availability',
-    icon: 'lucide:calendar-clock',
-    match: 'prefix'
-  },
-  {
-    label: 'Appels discovery',
-    to: '/provider/discovery',
-    icon: 'lucide:phone-call',
-    match: 'prefix'
-  },
-  {
-    label: 'Mes clientes',
-    to: '/provider/clients',
-    icon: 'lucide:users',
-    match: 'prefix'
-  },
-  {
-    label: 'Contenus',
-    to: '/provider/content',
-    icon: 'lucide:feather',
-    match: 'prefix'
-  },
-  {
-    label: 'Finance',
-    to: '/provider/finance',
-    icon: 'lucide:landmark',
-    match: 'prefix'
-  },
-  {
-    label: 'Tarifs consultation',
-    to: '/provider/pricing/consultations',
-    icon: 'lucide:tags',
-    match: 'prefix'
-  },
-  {
-    label: 'Paramètres',
-    to: '/provider/settings/payments',
-    icon: 'lucide:sliders-horizontal',
-    match: 'prefix'
-  }
-] as const
+  // Groupes collapsibles
+  groups: [
+    {
+      key: 'pilotage',
+      label: 'Pilotage',
+      defaultOpen: true,
+      items: [
+        {
+          label: 'Calendrier',
+          to: '/provider/calendar',
+          icon: 'lucide:calendar',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Appels discovery',
+          to: '/provider/discovery',
+          icon: 'lucide:phone-call',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Mes clientes',
+          to: '/provider/clients',
+          icon: 'lucide:users',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Finance',
+          to: '/provider/finance',
+          icon: 'lucide:wallet',
+          match: 'prefix' as const
+        }
+      ]
+    },
+    {
+      key: 'configuration',
+      label: 'Configuration',
+      defaultOpen: false,
+      items: [
+        {
+          label: 'Disponibilités',
+          to: '/provider/availability',
+          icon: 'lucide:calendar-clock',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Tarifs',
+          to: '/provider/pricing/consultations',
+          icon: 'lucide:tags',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Contenus',
+          to: '/provider/content',
+          icon: 'lucide:file-text',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Paramètres',
+          to: '/provider/settings/payments',
+          icon: 'lucide:settings',
+          match: 'prefix' as const
+        }
+      ]
+    }
+  ]
+}
 </script>
 
 <template>
