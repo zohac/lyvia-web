@@ -350,30 +350,37 @@ watch(
           </p>
         </div>
 
-        <div class="flex items-center gap-4">
-          <div class="relative hidden md:block">
+        <div class="flex items-center gap-3">
+          <slot name="header-actions" />
+
+          <UButton
+            to="/provider/calendar"
+            color="primary"
+            size="xl"
+            class="hidden sm:inline-flex rounded-full bg-[color:var(--color-brand-primary)]"
+          >
             <UIcon
-              name="lucide:search"
-              size="18"
-              class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--color-brand-muted)]"
-              aria-hidden="true"
+              name="lucide:plus"
+              size="16"
+              class="mr-1.5"
             />
-            <input
-              type="search"
-              placeholder="Rechercher..."
-              class="h-11 w-72 rounded-full border border-white/60 bg-white/70 pl-12 pr-4 text-sm text-[color:var(--color-brand-primary)] shadow-soft transition-base placeholder:text-[color:var(--color-brand-muted)] focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
-            >
-          </div>
+            Nouveau RDV
+          </UButton>
 
-          <div class="flex items-center gap-2">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/70 shadow-soft ring-1 ring-white">
-              <span class="text-sm font-bold text-[color:var(--color-brand-primary)]">
-                {{ userInitials }}
-              </span>
-            </div>
-
-            <slot name="header-actions" />
-          </div>
+          <!-- Mobile: icon only -->
+          <UButton
+            to="/provider/calendar"
+            color="primary"
+            size="sm"
+            square
+            class="sm:hidden"
+            aria-label="Nouveau rendez-vous"
+          >
+            <UIcon
+              name="lucide:plus"
+              size="18"
+            />
+          </UButton>
         </div>
       </header>
 
