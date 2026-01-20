@@ -4,7 +4,6 @@ import type { ConsultationPricePlan } from '../../features/consultation/api/cons
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { minutesToHHmm, parseHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
-import SystemAlert from '../atoms/SystemAlert.vue'
 import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
 
 const props = withDefaults(
@@ -157,7 +156,7 @@ function submit() {
   })
 
   if (!utcStartAt) {
-    localValidationError.value = 'Veuillez vérifier la date et l’heure.'
+    localValidationError.value = "Veuillez vérifier la date et l'heure."
     return
   }
 
@@ -191,24 +190,9 @@ function submit() {
     :open="open"
     :fullscreen="isFullScreen"
     :dismissible="!loading"
-    :ui="{
-      content: isFullScreen
-        ? 'bg-white/92 backdrop-blur-md'
-        : 'rounded-blob-c border border-white/70 bg-white/85 shadow-floating backdrop-blur-md',
-      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[rgba(231,229,228,0.7)]' : 'px-8 pt-8 pb-4',
-      body: isFullScreen ? 'px-6 pb-6 pt-4' : 'px-8 pb-6',
-      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[rgba(231,229,228,0.7)]' : 'px-8 pb-8 pt-6',
-      title:
-        'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-      description: 'text-sm text-[color:var(--color-brand-secondary)]'
-    }"
-    :close="{ class: 'rounded-full' }"
+    title="Modifier le rendez-vous"
     @update:open="updateOpen"
   >
-    <template #title>
-      Modifier le rendez-vous
-    </template>
-
     <template #description>
       <div class="flex flex-wrap items-center gap-2">
         <span
@@ -218,31 +202,35 @@ function submit() {
         >
           {{ typeLabel }}
         </span>
-        <span>Fuseau : {{ timeZone }}</span>
+        <span class="text-stone-500">Fuseau : {{ timeZone }}</span>
       </div>
     </template>
 
     <template #body>
       <div class="grid gap-6">
-        <SystemAlert
+        <UAlert
           v-if="error"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Action impossible"
           :description="error"
+          icon="i-lucide-alert-circle"
         />
 
-        <SystemAlert
+        <UAlert
           v-else-if="localValidationError"
-          variant="warning"
+          color="warning"
+          variant="soft"
           title="Vérification"
           :description="localValidationError"
+          icon="i-lucide-alert-triangle"
         />
 
-        <section class="rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
+        <section class="rounded-lg border border-stone-200 bg-stone-50 p-5">
           <div class="grid gap-4">
             <div class="grid gap-2 md:grid-cols-2">
               <div class="grid gap-2">
-                <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+                <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                   Date
                 </label>
                 <UInput
@@ -252,13 +240,13 @@ function submit() {
                 />
                 <p
                   v-if="fieldErrors?.startAt"
-                  class="text-xs font-bold text-[color:var(--color-error)]"
+                  class="text-xs font-bold text-red-600"
                 >
                   {{ fieldErrors.startAt }}
                 </p>
               </div>
               <div class="grid gap-2">
-                <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+                <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                   Heure
                 </label>
                 <UInput
@@ -274,31 +262,31 @@ function submit() {
               v-if="appointment?.type === 'consultation' && currentPlan"
               class="grid gap-3"
             >
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                 Tarif actuel
               </label>
-              <div class="rounded-input border border-[rgba(231,229,228,0.7)] bg-white/70 p-4 shadow-soft">
+              <div class="rounded-lg border border-stone-200 bg-white p-4 shadow-sm">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="grid gap-1">
                     <div class="flex items-center gap-2">
-                      <span class="text-base font-bold text-[color:var(--color-brand-primary)]">
+                      <span class="text-base font-bold text-stone-900">
                         {{ currentPlan.label }}
                       </span>
                       <span
                         v-if="!currentPlan.isActive"
-                        class="inline-flex items-center rounded-full bg-[color:var(--color-warning-bg)] px-2 py-0.5 text-xs font-bold text-[color:var(--color-warning)]"
+                        class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700"
                       >
                         Inactif
                       </span>
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-[color:var(--color-brand-secondary)]">
+                    <div class="flex items-center gap-2 text-sm text-stone-500">
                       <Icon
                         name="lucide:clock"
                         size="14"
                         aria-hidden="true"
                       />
                       <span>{{ currentPlan.durationMinutes }} min</span>
-                      <span class="text-[color:var(--color-brand-tertiary)]">·</span>
+                      <span class="text-stone-300">·</span>
                       <span>{{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(currentPlan.amountCents / 100) }}</span>
                     </div>
                   </div>
@@ -311,7 +299,7 @@ function submit() {
               v-if="appointment?.type === 'consultation'"
               class="grid gap-3"
             >
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                 Changer de tarif (optionnel)
               </label>
               <ConsultationPlanSelector
@@ -322,7 +310,7 @@ function submit() {
               />
               <p
                 v-if="!currentPlan?.isActive"
-                class="text-xs text-[color:var(--color-warning)]"
+                class="text-xs text-amber-600"
               >
                 Le tarif actuel est inactif. Sélectionnez un nouveau tarif pour continuer.
               </p>
@@ -330,29 +318,29 @@ function submit() {
 
             <!-- Durée (affichage read-only) -->
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                 Durée
               </label>
               <div class="flex items-center gap-3">
                 <span
-                  class="inline-flex items-center rounded-full bg-[color:var(--color-surface-highlight)] px-4 py-2 text-sm font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)]"
+                  class="inline-flex items-center rounded-full bg-stone-100 px-4 py-2 text-sm font-bold text-stone-900 ring-1 ring-stone-200"
                 >
                   {{ computedDurationMinutes }} min
                   <span
                     v-if="appointment?.type === 'discovery'"
-                    class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                    class="ml-2 text-xs text-stone-500"
                   >
                     (verrouillé)
                   </span>
                   <span
                     v-else-if="pricePlanId"
-                    class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                    class="ml-2 text-xs text-stone-500"
                   >
                     (nouveau tarif)
                   </span>
                   <span
                     v-else-if="currentPlan"
-                    class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                    class="ml-2 text-xs text-stone-500"
                   >
                     (depuis tarif)
                   </span>
@@ -361,20 +349,18 @@ function submit() {
             </div>
 
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                 Notes (optionnel)
               </label>
               <UTextarea
                 v-model="notes"
                 placeholder="Notes privées…"
                 :rows="4"
-                variant="none"
-                class="w-full rounded-input border border-[rgba(231,229,228,0.9)] bg-[color:var(--color-surface-highlight)] p-3 text-sm text-[color:var(--color-brand-primary)] focus:ring-2 focus:ring-[color:var(--color-brand-solid)]"
                 :disabled="loading || !canEdit"
               />
               <p
                 v-if="fieldErrors?.notes"
-                class="text-xs font-bold text-[color:var(--color-error)]"
+                class="text-xs font-bold text-red-600"
               >
                 {{ fieldErrors.notes }}
               </p>
@@ -385,11 +371,10 @@ function submit() {
     </template>
 
     <template #footer>
-      <div class="flex flex-wrap justify-end gap-3">
+      <div class="flex justify-end gap-3">
         <UButton
           color="neutral"
           variant="ghost"
-          class="rounded-full"
           :disabled="loading"
           @click="updateOpen(false)"
         >
@@ -403,7 +388,6 @@ function submit() {
           <span class="inline-flex">
             <UButton
               color="primary"
-              class="rounded-full px-6"
               disabled
             >
               Enregistrer
@@ -414,7 +398,6 @@ function submit() {
         <UButton
           v-else
           color="primary"
-          class="rounded-full px-6"
           :loading="loading"
           @click="submit"
         >

@@ -171,42 +171,42 @@ watch(
 </script>
 
 <template>
-  <section class="rounded-blob-b border border-white/60 bg-white/70 p-6 shadow-soft backdrop-blur">
+  <section class="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-1">
-        <p class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-secondary)]">
+        <p class="text-xs font-bold uppercase tracking-wider text-stone-500">
           {{ modeLabel }}
         </p>
-        <p class="text-sm text-[color:var(--color-brand-secondary)]">
+        <p class="text-sm text-stone-500">
           Fuseau : {{ timeZone }}
         </p>
       </div>
-      <div class="hidden items-center gap-2 text-xs text-[color:var(--color-brand-secondary)] md:flex">
+      <div class="hidden items-center gap-2 text-xs text-stone-500 md:flex">
         <span
-          class="inline-flex size-2 rounded-full bg-[color:var(--color-accent-main)]"
+          class="inline-flex size-2 rounded-full bg-amber-500"
           aria-hidden="true"
         />
         <span>Discovery</span>
         <span
-          class="ml-3 inline-flex size-2 rounded-full bg-[color:var(--color-brand-primary)]"
+          class="ml-3 inline-flex size-2 rounded-full bg-crepuscule-500"
           aria-hidden="true"
         />
         <span>Consultation</span>
       </div>
     </div>
 
-    <div class="mt-6 overflow-hidden rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-white/70">
+    <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white">
       <div
-        class="grid border-b border-[rgba(231,229,228,0.75)] bg-[color:var(--color-surface-highlight)]"
+        class="grid border-b border-stone-200 bg-stone-50"
         :style="gridStyle"
       >
-        <div class="px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+        <div class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-stone-500">
           Heure
         </div>
         <div
           v-for="day in days"
           :key="day.key"
-          class="px-3 py-3 text-xs font-bold uppercase tracking-[0.14em] text-[color:var(--color-brand-primary)]"
+          class="px-3 py-3 text-xs font-bold uppercase tracking-wider text-stone-800"
         >
           {{ day.label }}
         </div>
@@ -220,11 +220,11 @@ watch(
           class="grid"
           :style="gridStyle"
         >
-          <div class="relative border-r border-[rgba(231,229,228,0.75)] bg-white/50">
+          <div class="relative border-r border-stone-200 bg-stone-50/50">
             <div
               v-for="hour in rows"
               :key="hour"
-              class="relative h-[calc(var(--ppm)_*_60px)] border-b border-[rgba(231,229,228,0.6)] px-4 py-2 text-xs font-medium text-[color:var(--color-brand-secondary)]"
+              class="relative h-[calc(var(--ppm)_*_60px)] border-b border-stone-200 px-4 py-2 text-xs font-medium text-stone-500"
               :style="{ '--ppm': String(pxPerMinute) }"
             >
               {{ String(hour).padStart(2, '0') }}:00
@@ -234,7 +234,7 @@ watch(
           <div
             v-for="day in days"
             :key="day.key"
-            class="relative border-r border-[rgba(231,229,228,0.6)] last:border-r-0"
+            class="relative border-r border-stone-200 last:border-r-0"
           >
             <button
               type="button"
@@ -247,13 +247,13 @@ watch(
             <div
               v-for="hour in rows"
               :key="`${day.key}:${hour}`"
-              class="h-[calc(var(--ppm)_*_60px)] border-b border-[rgba(231,229,228,0.45)]"
+              class="h-[calc(var(--ppm)_*_60px)] border-b border-stone-100"
               :style="{ '--ppm': String(pxPerMinute) }"
             />
 
             <div
               v-if="highlight && highlight.dayKey === day.key"
-              class="pointer-events-none absolute left-2 right-2 z-[5] rounded-2xl bg-[rgba(245,158,11,0.12)] ring-2 ring-[color:var(--color-warning)] shadow-soft animate-pulse"
+              class="pointer-events-none absolute left-2 right-2 z-[5] rounded-lg bg-amber-500/10 ring-2 ring-amber-400 shadow-sm animate-pulse"
               :style="{
                 top: `${highlight.startMinutes * pxPerMinute}px`,
                 height: `${Math.max(24, (highlight.endMinutes - highlight.startMinutes) * pxPerMinute)}px`
@@ -275,11 +275,11 @@ watch(
             >
               <button
                 type="button"
-                class="h-full w-full overflow-hidden rounded-2xl px-3 py-2 text-left text-xs font-bold shadow-soft transition-base hover:shadow-floating focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary)]"
+                class="h-full w-full overflow-hidden rounded-lg px-3 py-2 text-left text-xs font-bold shadow-sm transition-all hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
                 :class="[
                   eventAccentClass(appointment),
                   eventMetaClass(appointment),
-                  highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-warning)] animate-pulse' : ''
+                  highlight?.appointmentId === appointment.id ? 'ring-2 ring-amber-400 animate-pulse' : ''
                 ]"
                 @click.stop="emit('select:appointment', appointment)"
               >

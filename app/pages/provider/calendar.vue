@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import SystemAlert from '../../components/atoms/SystemAlert.vue'
 import ProviderCalendarAppointmentDrawer from '../../components/organisms/ProviderCalendarAppointmentDrawer.vue'
 import ProviderCalendarCancelAppointmentModal from '../../components/organisms/ProviderCalendarCancelAppointmentModal.vue'
 import ProviderCalendarCreateAppointmentModal from '../../components/organisms/ProviderCalendarCreateAppointmentModal.vue'
@@ -310,8 +309,8 @@ async function onCancelAppointmentSubmit(payload: { appointmentId: string, body:
   if (result.kind === 'forbidden') {
     toast.add({
       title: 'Accès non autorisé',
-      description: 'Vous n’êtes pas autorisé à annuler ce rendez-vous.',
-      color: 'primary'
+      description: "Vous n'êtes pas autorisé à annuler ce rendez-vous.",
+      color: 'error'
     })
     return
   }
@@ -319,7 +318,7 @@ async function onCancelAppointmentSubmit(payload: { appointmentId: string, body:
   toast.add({
     title: 'Erreur',
     description: result.message,
-    color: 'primary'
+    color: 'error'
   })
 }
 
@@ -341,7 +340,7 @@ async function onCreateAppointmentSubmit(payload: { body: CreateProviderManualAp
     toast.add({
       title: 'Créneau déjà pris',
       description: 'Ce créneau vient d\'être réservé. Choisissez-en un autre.',
-      color: 'primary'
+      color: 'warning'
     })
 
     // Calculate duration from pricePlanId for consultation
@@ -368,7 +367,7 @@ async function onCreateAppointmentSubmit(payload: { body: CreateProviderManualAp
     toast.add({
       title: 'Erreur',
       description: result.message,
-      color: 'primary'
+      color: 'error'
     })
   }
 }
@@ -389,7 +388,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
     toast.add({
       title: 'Créneau déjà pris',
       description: 'Ce créneau vient d\'être réservé. Choisissez-en un autre.',
-      color: 'primary'
+      color: 'warning'
     })
 
     const baseAppointment = editAppointment.value
@@ -415,8 +414,8 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
   if (result.kind === 'forbidden') {
     toast.add({
       title: 'Accès non autorisé',
-      description: 'Vous n’êtes pas autorisé à modifier ce rendez-vous.',
-      color: 'primary'
+      description: "Vous n'êtes pas autorisé à modifier ce rendez-vous.",
+      color: 'error'
     })
     return
   }
@@ -425,121 +424,103 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
     toast.add({
       title: 'Erreur',
       description: result.message,
-      color: 'primary'
+      color: 'error'
     })
   }
 }
 </script>
 
 <template>
-  <div class="grid gap-10">
+  <div class="space-y-6">
+    <!-- Top bar with navigation and actions -->
     <ProviderCalendarTopBar
       :view="calendar.view.value"
       :is-loading="calendar.pending.value"
+      :range-label="weekRangeLabel ?? dayLabel ?? monthLabel"
       @prev="calendar.goPrev"
       @today="calendar.goToday"
       @next="calendar.goNext"
       @update:view="calendar.setView"
-    >
-      <template #right>
-        <div class="flex flex-wrap items-center justify-end gap-2">
-          <span
-            v-if="weekRangeLabel || dayLabel || monthLabel"
-            class="inline-flex items-center rounded-full bg-white/80 px-4 py-2 text-xs font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.7)]"
-          >
-            {{ weekRangeLabel ?? dayLabel ?? monthLabel }}
-          </span>
+      @refresh="onRetry"
+      @create="onCreateAppointment"
+    />
 
-          <button
-            type="button"
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="calendar.pending.value"
-            @click="onRetry"
-          >
-            <Icon
-              name="lucide:refresh-ccw"
-              size="18"
-              aria-hidden="true"
-            />
-            Actualiser
-          </button>
-
-          <button
-            type="button"
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="calendar.pending.value"
-            @click="onCreateAppointment"
-          >
-            <Icon
-              name="lucide:plus"
-              size="18"
-              aria-hidden="true"
-            />
-            Créer un RDV
-          </button>
-        </div>
-      </template>
-    </ProviderCalendarTopBar>
-
+    <!-- Display options -->
     <ProviderCalendarDisplayOptions
       :type-filter="displayTypeFilter"
       :disabled="calendar.pending.value"
       @update:type-filter="setDisplayTypeFilter"
     />
 
-    <SystemAlert
+    <!-- Alerts -->
+    <UAlert
       v-if="noticeMessage"
-      variant="info"
+      color="info"
+      variant="soft"
       :description="noticeMessage"
+      icon="i-lucide-info"
     />
 
-    <SystemAlert
+    <UAlert
       v-else-if="isFilterEmpty"
-      variant="info"
+      color="info"
+      variant="soft"
       title="Filtre actif"
       description="Aucun rendez-vous ne correspond à ce filtre sur la période."
+      icon="i-lucide-filter"
     />
 
-    <SystemAlert
+    <UAlert
       v-if="calendar.errorMessage.value"
-      variant="error"
+      color="error"
+      variant="soft"
       title="Erreur"
       :description="calendar.errorMessage.value"
+      icon="i-lucide-alert-circle"
     />
 
-    <div
+    <!-- Loading state -->
+    <UCard
       v-if="calendar.pending.value && !calendar.data.value"
-      class="grid gap-6 rounded-blob-b border border-white/60 bg-white/70 p-8 shadow-soft backdrop-blur"
-      role="status"
-      aria-live="polite"
+      class="bg-white"
     >
-      <p class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-        Chargement…
-      </p>
-      <div class="mt-2 grid gap-4 md:grid-cols-2">
-        <div class="h-24 rounded-blob-d bg-[rgba(231,229,228,0.45)]" />
-        <div class="h-24 rounded-blob-d bg-[rgba(231,229,228,0.30)]" />
-        <div class="h-24 rounded-blob-d bg-[rgba(231,229,228,0.35)]" />
-        <div class="h-24 rounded-blob-d bg-[rgba(231,229,228,0.25)]" />
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <USkeleton class="h-5 w-5 rounded-full" />
+          <USkeleton class="h-5 w-32" />
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <USkeleton class="h-24 w-full" />
+          <USkeleton class="h-24 w-full" />
+          <USkeleton class="h-24 w-full" />
+          <USkeleton class="h-24 w-full" />
+        </div>
       </div>
-    </div>
+    </UCard>
 
-    <div
+    <!-- Empty state -->
+    <UCard
       v-else-if="isRangeEmpty"
-      class="rounded-blob-b border border-white/60 bg-white/70 p-8 shadow-soft backdrop-blur"
+      class="bg-white"
     >
-      <p class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-        Cette semaine
-      </p>
-      <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-        Aucun RDV sur cette période. (Fuseau : {{ calendar.timeZone.value }})
-      </p>
-
-      <div class="mt-6 rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] p-6 text-sm text-[color:var(--color-brand-secondary)]">
-        La vue calendrier complète (semaine/jour/mois + CRUD) arrive avec la Feature L.
+      <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
+        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
+          <UIcon name="lucide:calendar-x" class="h-8 w-8 text-stone-400" />
+        </div>
+        <div>
+          <p class="font-medium text-stone-900">Aucun rendez-vous</p>
+          <p class="mt-1 text-sm text-stone-500">
+            Aucun RDV sur cette période. (Fuseau : {{ calendar.timeZone.value }})
+          </p>
+        </div>
+        <UButton color="primary" @click="onCreateAppointment">
+          <UIcon name="lucide:plus" class="mr-2 h-4 w-4" />
+          Créer un RDV
+        </UButton>
       </div>
-    </div>
+    </UCard>
 
+    <!-- Week view -->
     <ProviderCalendarWeekView
       v-else-if="calendar.view.value === 'week'"
       :time-zone="calendar.timeZone.value"
@@ -552,6 +533,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
       @select:empty="onSelectEmpty"
     />
 
+    <!-- Day view -->
     <ProviderCalendarWeekView
       v-else-if="calendar.view.value === 'day'"
       mode="day"
@@ -565,6 +547,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
       @select:empty="onSelectEmpty"
     />
 
+    <!-- Month view -->
     <ProviderCalendarMonthView
       v-else-if="calendar.view.value === 'month'"
       :time-zone="calendar.timeZone.value"
@@ -576,21 +559,27 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
       @select:day="onSelectMonthDay"
     />
 
-    <div
+    <!-- Fallback view -->
+    <UCard
       v-else
-      class="rounded-blob-b border border-white/60 bg-white/70 p-8 shadow-soft backdrop-blur"
+      class="bg-white"
     >
-      <p class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-        Vue {{ calendar.view.value === 'month' ? 'mois' : 'jour' }}
-      </p>
-      <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-        Cette vue arrive avec les tickets suivants (L12-b / L12-c). La navigation recalcule déjà la plage et refetch.
-      </p>
-      <div class="mt-6 rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] p-6 text-sm text-[color:var(--color-brand-secondary)]">
-        {{ calendar.sortedAppointments.value.length }} rendez-vous chargés sur la plage courante.
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold text-stone-900">
+          Vue {{ calendar.view.value === 'month' ? 'mois' : 'jour' }}
+        </h2>
+        <p class="text-sm text-stone-500">
+          Cette vue arrive avec les tickets suivants (L12-b / L12-c). La navigation recalcule déjà la plage et refetch.
+        </p>
+        <div class="rounded-lg bg-stone-50 p-4">
+          <p class="text-sm text-stone-600">
+            {{ calendar.sortedAppointments.value.length }} rendez-vous chargés sur la plage courante.
+          </p>
+        </div>
       </div>
-    </div>
+    </UCard>
 
+    <!-- Drawers and Modals -->
     <ProviderCalendarAppointmentDrawer
       :open="isDrawerOpen"
       :appointment="selectedAppointment"

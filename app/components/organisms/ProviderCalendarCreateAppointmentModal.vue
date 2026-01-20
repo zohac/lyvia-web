@@ -2,7 +2,6 @@
 import type { ProviderAppointmentListItem, ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
 import type { ConsultationPricePlan } from '../../features/consultation/api/consultation.contract'
 import { minutesToHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
-import SystemAlert from '../atoms/SystemAlert.vue'
 import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
 
 type ClientOption = {
@@ -176,46 +175,33 @@ function submit() {
     :open="open"
     :fullscreen="isFullScreen"
     :dismissible="!loading"
-    :ui="{
-      content: isFullScreen
-        ? 'bg-white/92 backdrop-blur-md'
-        : 'rounded-blob-c border border-white/70 bg-white/85 shadow-floating backdrop-blur-md',
-      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[rgba(231,229,228,0.7)]' : 'px-8 pt-8 pb-4',
-      body: isFullScreen ? 'px-6 pb-6 pt-4' : 'px-8 pb-6',
-      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[rgba(231,229,228,0.7)]' : 'px-8 pb-8 pt-6',
-      title:
-        'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-      description: 'text-sm text-[color:var(--color-brand-secondary)]'
-    }"
-    :close="{ class: 'rounded-full' }"
+    title="Créer un rendez-vous"
+    :description="`Fuseau : ${timeZone} · Choisissez un type, une date et une cliente.`"
     @update:open="updateOpen"
   >
-    <template #title>
-      Créer un rendez-vous
-    </template>
-    <template #description>
-      Fuseau : {{ timeZone }} · Choisissez un type, une date et une cliente.
-    </template>
-
     <template #body>
       <div class="grid gap-6">
-        <SystemAlert
+        <UAlert
           v-if="error"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Action impossible"
           :description="error"
+          icon="i-lucide-alert-circle"
         />
 
-        <SystemAlert
+        <UAlert
           v-else-if="localValidationError"
-          variant="warning"
+          color="warning"
+          variant="soft"
           title="Vérification"
           :description="localValidationError"
+          icon="i-lucide-alert-triangle"
         />
 
-        <div class="grid gap-4 rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
+        <div class="grid gap-4 rounded-lg border border-stone-200 bg-stone-50 p-5">
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
               Type
             </label>
             <USelect
@@ -228,7 +214,7 @@ function submit() {
             />
             <p
               v-if="fieldErrors?.type"
-              class="text-xs font-bold text-[color:var(--color-error)]"
+              class="text-xs font-bold text-red-600"
             >
               {{ fieldErrors.type }}
             </p>
@@ -236,7 +222,7 @@ function submit() {
 
           <div class="grid gap-2 md:grid-cols-2">
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                 Date
               </label>
               <UInput
@@ -246,13 +232,13 @@ function submit() {
               />
               <p
                 v-if="fieldErrors?.startAt"
-                class="text-xs font-bold text-[color:var(--color-error)]"
+                class="text-xs font-bold text-red-600"
               >
                 {{ fieldErrors.startAt }}
               </p>
             </div>
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                 Heure
               </label>
               <UInput
@@ -274,23 +260,23 @@ function submit() {
 
           <!-- Durée (affichage read-only) -->
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
               Durée
             </label>
             <div class="flex items-center gap-3">
               <span
-                class="inline-flex items-center rounded-full bg-[color:var(--color-surface-highlight)] px-4 py-2 text-sm font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)]"
+                class="inline-flex items-center rounded-full bg-stone-100 px-4 py-2 text-sm font-bold text-stone-900 ring-1 ring-stone-200"
               >
                 {{ computedDurationMinutes }} min
                 <span
                   v-if="type === 'discovery'"
-                  class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                  class="ml-2 text-xs text-stone-500"
                 >
                   (verrouillé)
                 </span>
                 <span
                   v-else-if="pricePlanId"
-                  class="ml-2 text-xs text-[color:var(--color-brand-secondary)]"
+                  class="ml-2 text-xs text-stone-500"
                 >
                   (depuis tarif)
                 </span>
@@ -299,7 +285,7 @@ function submit() {
           </div>
 
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
               Cliente
             </label>
 
@@ -321,33 +307,31 @@ function submit() {
 
             <p
               v-if="inferredClients.length === 0"
-              class="text-xs text-[color:var(--color-brand-secondary)]"
+              class="text-xs text-stone-500"
             >
               Astuce : la liste de sélection est construite depuis les clientes déjà visibles sur la période chargée. Vous pouvez coller un UUID si nécessaire.
             </p>
             <p
               v-if="fieldErrors?.clientProfileId"
-              class="text-xs font-bold text-[color:var(--color-error)]"
+              class="text-xs font-bold text-red-600"
             >
               {{ fieldErrors.clientProfileId }}
             </p>
           </div>
 
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
               Notes (optionnel)
             </label>
             <UTextarea
               v-model="notes"
               placeholder="Notes privées…"
               :rows="4"
-              variant="none"
-              class="w-full rounded-input border border-[rgba(231,229,228,0.9)] bg-[color:var(--color-surface-highlight)] p-3 text-sm text-[color:var(--color-brand-primary)] focus:ring-2 focus:ring-[color:var(--color-brand-solid)]"
               :disabled="loading"
             />
             <p
               v-if="fieldErrors?.notes"
-              class="text-xs font-bold text-[color:var(--color-error)]"
+              class="text-xs font-bold text-red-600"
             >
               {{ fieldErrors.notes }}
             </p>
@@ -357,11 +341,10 @@ function submit() {
     </template>
 
     <template #footer>
-      <div class="flex flex-wrap justify-end gap-3">
+      <div class="flex justify-end gap-3">
         <UButton
           color="neutral"
           variant="ghost"
-          class="rounded-full"
           :disabled="loading"
           @click="updateOpen(false)"
         >
@@ -369,7 +352,6 @@ function submit() {
         </UButton>
         <UButton
           color="primary"
-          class="rounded-full px-6"
           :loading="loading"
           @click="submit"
         >

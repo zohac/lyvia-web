@@ -4,99 +4,108 @@ type CalendarViewMode = 'month' | 'week' | 'day'
 const props = defineProps<{
   view: CalendarViewMode
   isLoading?: boolean
+  rangeLabel?: string | null
 }>()
 
 defineEmits<{
-  (e: 'prev' | 'today' | 'next'): void
+  (e: 'prev' | 'today' | 'next' | 'refresh' | 'create'): void
   (e: 'update:view', value: CalendarViewMode): void
 }>()
 
-function isActive(value: CalendarViewMode) {
+const viewOptions = [
+  { label: 'Mois', value: 'month' },
+  { label: 'Semaine', value: 'week' },
+  { label: 'Jour', value: 'day' }
+]
+
+function isViewActive(value: CalendarViewMode) {
   return props.view === value
 }
 </script>
 
 <template>
-  <header class="grid gap-4 rounded-blob-b border border-white/60 bg-white/70 p-6 shadow-soft backdrop-blur">
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div class="grid gap-1">
-        <h1 class="font-serif text-3xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-4xl">
-          Calendrier
-        </h1>
-        <p class="text-sm font-medium text-[color:var(--color-brand-secondary)]">
-          Une timeline unique pour Discovery et Consultations.
-        </p>
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <!-- Left side: View selector + Navigation -->
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- View selector -->
+      <div class="inline-flex rounded-lg border border-stone-200 bg-white p-1">
+        <button
+          v-for="option in viewOptions"
+          :key="option.value"
+          type="button"
+          class="rounded-md px-4 py-2 text-sm font-medium transition-colors"
+          :class="isViewActive(option.value as CalendarViewMode)
+            ? 'bg-stone-100 text-stone-900 shadow-sm'
+            : 'text-stone-600 hover:text-stone-900'"
+          @click="$emit('update:view', option.value as CalendarViewMode)"
+        >
+          {{ option.label }}
+        </button>
       </div>
 
-      <div class="flex flex-wrap items-center justify-start gap-2 md:justify-end">
-        <button
-          type="button"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
+      <!-- Navigation buttons -->
+      <div class="flex items-center gap-1">
+        <UButton
+          icon="lucide:chevron-left"
+          color="neutral"
+          variant="ghost"
+          size="sm"
           :disabled="isLoading"
           @click="$emit('prev')"
-        >
-          <Icon
-            name="lucide:chevron-left"
-            size="18"
-            aria-hidden="true"
-          />
-          <span class="hidden sm:inline">Prev</span>
-        </button>
+        />
 
-        <button
-          type="button"
-          class="inline-flex h-10 items-center justify-center rounded-full bg-[color:var(--color-surface-highlight)] px-4 text-sm font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+        <UButton
+          color="neutral"
+          variant="soft"
+          size="sm"
           :disabled="isLoading"
           @click="$emit('today')"
         >
-          Today
-        </button>
+          Aujourd'hui
+        </UButton>
 
-        <button
-          type="button"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
+        <UButton
+          icon="lucide:chevron-right"
+          color="neutral"
+          variant="ghost"
+          size="sm"
           :disabled="isLoading"
           @click="$emit('next')"
-        >
-          <span class="hidden sm:inline">Next</span>
-          <Icon
-            name="lucide:chevron-right"
-            size="18"
-            aria-hidden="true"
-          />
-        </button>
+        />
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="inline-flex rounded-full bg-white/80 p-1 ring-1 ring-[rgba(231,229,228,0.7)]">
-        <button
-          type="button"
-          class="h-9 rounded-full px-4 text-sm font-bold transition-base"
-          :class="isActive('month') ? 'bg-[color:var(--color-brand-primary)] text-white shadow-soft' : 'text-[color:var(--color-brand-primary)] hover:bg-[rgba(231,229,228,0.45)]'"
-          @click="$emit('update:view', 'month')"
-        >
-          Mois
-        </button>
-        <button
-          type="button"
-          class="h-9 rounded-full px-4 text-sm font-bold transition-base"
-          :class="isActive('week') ? 'bg-[color:var(--color-brand-primary)] text-white shadow-soft' : 'text-[color:var(--color-brand-primary)] hover:bg-[rgba(231,229,228,0.45)]'"
-          @click="$emit('update:view', 'week')"
-        >
-          Semaine
-        </button>
-        <button
-          type="button"
-          class="h-9 rounded-full px-4 text-sm font-bold transition-base"
-          :class="isActive('day') ? 'bg-[color:var(--color-brand-primary)] text-white shadow-soft' : 'text-[color:var(--color-brand-primary)] hover:bg-[rgba(231,229,228,0.45)]'"
-          @click="$emit('update:view', 'day')"
-        >
-          Jour
-        </button>
-      </div>
+    <!-- Right side: Range label + actions -->
+    <div class="flex flex-wrap items-center gap-2">
+      <UBadge
+        v-if="rangeLabel"
+        color="neutral"
+        variant="soft"
+        size="lg"
+      >
+        {{ rangeLabel }}
+      </UBadge>
 
-      <slot name="right" />
+      <UButton
+        variant="outline"
+        color="neutral"
+        size="sm"
+        :loading="isLoading"
+        @click="$emit('refresh')"
+      >
+        <UIcon name="lucide:refresh-cw" class="mr-1.5 h-4 w-4" />
+        Actualiser
+      </UButton>
+
+      <UButton
+        color="primary"
+        size="sm"
+        :disabled="isLoading"
+        @click="$emit('create')"
+      >
+        <UIcon name="lucide:plus" class="mr-1.5 h-4 w-4" />
+        Créer un RDV
+      </UButton>
     </div>
-  </header>
+  </div>
 </template>

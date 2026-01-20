@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { CancelProviderAppointmentRequest, ProviderAppointmentListItem } from '../../features/calendar/api/calendar.contract'
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
-import SystemAlert from '../atoms/SystemAlert.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -41,8 +40,8 @@ const canCancel = computed(() => {
 const disabledReason = computed(() => {
   const appointment = props.appointment
   if (!appointment) return 'Aucun rendez-vous sélectionné.'
-  if (appointment.paymentStatus === 'paid') return 'Impossible d’annuler un rendez-vous payé.'
-  if (appointment.status !== 'scheduled') return 'Impossible d’annuler un rendez-vous déjà clôturé.'
+  if (appointment.paymentStatus === 'paid') return "Impossible d'annuler un rendez-vous payé."
+  if (appointment.status !== 'scheduled') return "Impossible d'annuler un rendez-vous déjà clôturé."
   return null
 })
 
@@ -94,24 +93,9 @@ function submit() {
     :open="open"
     :fullscreen="isFullScreen"
     :dismissible="!loading"
-    :ui="{
-      content: isFullScreen
-        ? 'bg-white/92 backdrop-blur-md'
-        : 'rounded-blob-c border border-white/70 bg-white/85 shadow-floating backdrop-blur-md',
-      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[rgba(231,229,228,0.7)]' : 'px-8 pt-8 pb-4',
-      body: isFullScreen ? 'px-6 pb-6 pt-4' : 'px-8 pb-6',
-      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[rgba(231,229,228,0.7)]' : 'px-8 pb-8 pt-6',
-      title:
-        'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-      description: 'text-sm text-[color:var(--color-brand-secondary)]'
-    }"
-    :close="{ class: 'rounded-full' }"
+    title="Annuler le rendez-vous"
     @update:open="updateOpen"
   >
-    <template #title>
-      Annuler le rendez-vous
-    </template>
-
     <template #description>
       <div class="flex flex-wrap items-center gap-2">
         <span
@@ -121,30 +105,34 @@ function submit() {
         >
           {{ typeLabel }}
         </span>
-        <span>Fuseau : {{ timeZone }}</span>
+        <span class="text-stone-500">Fuseau : {{ timeZone }}</span>
       </div>
     </template>
 
     <template #body>
       <div class="grid gap-6">
-        <SystemAlert
+        <UAlert
           v-if="error"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Action impossible"
           :description="error"
+          icon="i-lucide-alert-circle"
         />
 
-        <SystemAlert
+        <UAlert
           v-else-if="!canCancel"
-          variant="warning"
+          color="warning"
+          variant="soft"
           title="Annulation indisponible"
           :description="disabledReason ?? 'Annulation indisponible.'"
+          icon="i-lucide-alert-triangle"
         />
 
-        <section class="rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
+        <section class="rounded-lg border border-stone-200 bg-stone-50 p-5">
           <div class="grid gap-4">
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                 Motif
               </label>
               <USelect
@@ -159,34 +147,32 @@ function submit() {
               />
               <p
                 v-if="fieldErrors?.reason"
-                class="text-xs font-bold text-[color:var(--color-error)]"
+                class="text-xs font-bold text-red-600"
               >
                 {{ fieldErrors.reason }}
               </p>
             </div>
 
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
                 Précision (optionnel)
               </label>
               <UTextarea
                 v-model="reasonText"
                 :rows="3"
-                variant="none"
                 placeholder="Ex : motif, contexte, consigne…"
-                class="w-full rounded-input border border-[rgba(231,229,228,0.9)] bg-[color:var(--color-surface-highlight)] p-3 text-sm text-[color:var(--color-brand-primary)] focus:ring-2 focus:ring-[color:var(--color-brand-solid)]"
                 :disabled="loading || !canCancel"
               />
               <p
                 v-if="fieldErrors?.reasonText"
-                class="text-xs font-bold text-[color:var(--color-error)]"
+                class="text-xs font-bold text-red-600"
               >
                 {{ fieldErrors.reasonText }}
               </p>
             </div>
 
-            <p class="text-sm text-[color:var(--color-brand-secondary)]">
-              L’annulation envoie une notification et libère le créneau (si applicable).
+            <p class="text-sm text-stone-500">
+              L'annulation envoie une notification et libère le créneau (si applicable).
             </p>
           </div>
         </section>
@@ -194,24 +180,24 @@ function submit() {
     </template>
 
     <template #footer>
-      <div class="flex flex-wrap justify-end gap-3">
-        <button
-          type="button"
-          class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)] transition-base hover:bg-[rgba(231,229,228,0.25)] disabled:cursor-not-allowed disabled:opacity-60"
+      <div class="flex justify-end gap-3">
+        <UButton
+          color="neutral"
+          variant="ghost"
           :disabled="loading"
           @click="updateOpen(false)"
         >
           Retour
-        </button>
+        </UButton>
 
-        <button
-          type="button"
-          class="inline-flex items-center justify-center rounded-full bg-[color:var(--color-error)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:bg-[rgba(239,68,68,0.9)] disabled:cursor-not-allowed disabled:opacity-60"
-          :disabled="loading || !canCancel"
+        <UButton
+          color="error"
+          :loading="loading"
+          :disabled="!canCancel"
           @click="submit"
         >
-          Confirmer l’annulation
-        </button>
+          Confirmer l'annulation
+        </UButton>
       </div>
     </template>
   </UModal>

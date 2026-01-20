@@ -3,7 +3,6 @@ import type { ProviderAppointmentListItem } from '../../features/calendar/api/ca
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationDrawerSummary, formatCurrency, getConsultationPricePlan } from '../../features/calendar/presentation/appointment-pricing'
-import SystemAlert from '../atoms/SystemAlert.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -45,10 +44,10 @@ const statusLabel = computed(() => {
 
 const statusDotClass = computed(() => {
   const appointment = props.appointment
-  if (!appointment) return 'bg-[color:var(--color-brand-muted)]'
-  if (appointment.status === 'cancelled') return 'bg-[color:var(--color-error)]'
-  if (appointment.status === 'completed') return 'bg-[color:var(--color-success)]'
-  return 'bg-[color:var(--color-brand-primary)]'
+  if (!appointment) return 'bg-stone-400'
+  if (appointment.status === 'cancelled') return 'bg-red-500'
+  if (appointment.status === 'completed') return 'bg-green-500'
+  return 'bg-crepuscule-500'
 })
 
 const paymentLabel = computed(() => {
@@ -149,11 +148,11 @@ const consultationPricingDetails = computed(() => {
     :inset="inset"
     :handle="showHandle"
     :ui="{
-      overlay: 'fixed inset-0 bg-[rgba(0,0,0,0.25)] backdrop-blur-sm',
-      content: 'bg-white/92 ring-1 ring-white/60 shadow-floating backdrop-blur-md',
-      handle: '!bg-[rgba(231,229,228,0.9)]',
+      overlay: 'fixed inset-0 bg-black/25 backdrop-blur-sm',
+      content: 'bg-white shadow-lg',
+      handle: '!bg-stone-300',
       container: 'w-full flex flex-col gap-6 px-6 pb-8 pt-4 overflow-y-auto',
-      header: 'pb-4 border-b border-[rgba(231,229,228,0.7)]',
+      header: 'pb-4 border-b border-stone-200',
       body: 'flex-1',
       footer: ''
     }"
@@ -174,7 +173,7 @@ const consultationPricingDetails = computed(() => {
             </span>
 
             <span
-              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)]"
+              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-stone-800 ring-1 ring-stone-200"
             >
               <span
                 class="inline-flex size-2 rounded-full"
@@ -186,30 +185,30 @@ const consultationPricingDetails = computed(() => {
 
             <span
               v-if="paymentLabel"
-              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)]"
+              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-stone-800 ring-1 ring-stone-200"
             >
               <span
-                class="inline-flex size-2 rounded-full bg-[color:var(--color-warning)]"
+                class="inline-flex size-2 rounded-full bg-amber-500"
                 aria-hidden="true"
               />
               {{ paymentLabel }}
             </span>
           </div>
 
-          <h2 class="font-serif text-2xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
+          <h2 class="text-2xl font-semibold text-stone-900">
             {{ appointment.firstname }} {{ appointment.lastname }}
           </h2>
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
+          <p class="text-sm text-stone-500">
             {{ formatZonedDateTime(appointment.startAt) }}
           </p>
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
+          <p class="text-sm text-stone-500">
             Source : <span class="font-bold">{{ appointment.source }}</span>
           </p>
         </div>
 
         <button
           type="button"
-          class="inline-flex size-10 items-center justify-center rounded-full bg-white text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)] transition-base hover:bg-[rgba(231,229,228,0.25)] disabled:cursor-not-allowed disabled:opacity-60"
+          class="inline-flex size-10 items-center justify-center rounded-full bg-white text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="actionPending"
           @click="updateOpen(false)"
         >
@@ -228,32 +227,34 @@ const consultationPricingDetails = computed(() => {
       #body
     >
       <div class="grid gap-6">
-        <SystemAlert
+        <UAlert
           v-if="actionError"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Action impossible"
           :description="actionError"
+          icon="i-lucide-alert-circle"
         />
 
         <section
           v-if="appointment.type === 'consultation' && consultationPricingSummary"
-          class="rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft"
+          class="rounded-lg border border-stone-200 bg-stone-50 p-5"
         >
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
               Tarif
             </h3>
 
             <span
               v-if="consultationPricingDetails?.isActive === false"
-              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-[color:var(--color-brand-secondary)] ring-1 ring-[rgba(231,229,228,0.8)]"
+              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-stone-500 ring-1 ring-stone-200"
             >
               Inactif
             </span>
           </div>
 
-          <div class="mt-4 grid gap-2 text-sm text-[color:var(--color-brand-secondary)]">
-            <p class="font-serif text-lg italic text-[color:var(--color-brand-primary)]">
+          <div class="mt-4 grid gap-2 text-sm text-stone-500">
+            <p class="text-lg font-semibold text-stone-900">
               {{ consultationPricingSummary.title }}
             </p>
             <p v-if="consultationPricingSummary.subtitle">
@@ -261,16 +262,16 @@ const consultationPricingDetails = computed(() => {
             </p>
             <p
               v-if="consultationPricingDetails?.price"
-              class="font-semibold text-[color:var(--color-brand-primary)]"
+              class="font-semibold text-stone-900"
             >
               {{ consultationPricingDetails.price }}
             </p>
           </div>
         </section>
 
-        <section class="rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
+        <section class="rounded-lg border border-stone-200 bg-stone-50 p-5">
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
               Notes
             </h3>
 
@@ -281,7 +282,7 @@ const consultationPricingDetails = computed(() => {
               <span class="inline-flex">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)] transition-base hover:bg-[rgba(231,229,228,0.25)] disabled:cursor-not-allowed disabled:opacity-60"
+                  class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled
                 >
                   Modifier
@@ -292,7 +293,7 @@ const consultationPricingDetails = computed(() => {
             <button
               v-else
               type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)] transition-base hover:bg-[rgba(231,229,228,0.25)] disabled:cursor-not-allowed disabled:opacity-60"
+              class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="actionPending"
               @click="startEditAppointment"
             >
@@ -305,7 +306,7 @@ const consultationPricingDetails = computed(() => {
             </button>
           </div>
 
-          <div class="mt-4 text-sm text-[color:var(--color-brand-secondary)]">
+          <div class="mt-4 text-sm text-stone-500">
             <p
               v-if="appointment.notes"
               class="whitespace-pre-line"
@@ -321,9 +322,9 @@ const consultationPricingDetails = computed(() => {
           </div>
         </section>
 
-        <section class="rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
+        <section class="rounded-lg border border-stone-200 bg-stone-50 p-5">
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
               Annulation
             </h3>
 
@@ -334,7 +335,7 @@ const consultationPricingDetails = computed(() => {
               <span class="inline-flex">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)] transition-base hover:bg-[rgba(231,229,228,0.25)] disabled:cursor-not-allowed disabled:opacity-60"
+                  class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled
                 >
                   Annuler
@@ -345,7 +346,7 @@ const consultationPricingDetails = computed(() => {
             <button
               v-else
               type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)] transition-base hover:bg-[rgba(231,229,228,0.25)] disabled:cursor-not-allowed disabled:opacity-60"
+              class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="actionPending"
               @click="requestCancelAppointment"
             >
@@ -358,9 +359,9 @@ const consultationPricingDetails = computed(() => {
             </button>
           </div>
 
-          <div class="mt-4 text-sm text-[color:var(--color-brand-secondary)]">
+          <div class="mt-4 text-sm text-stone-500">
             <p class="opacity-90">
-              L’annulation envoie une notification et libère le créneau (si applicable).
+              L'annulation envoie une notification et libère le créneau (si applicable).
             </p>
           </div>
         </section>
@@ -372,10 +373,10 @@ const consultationPricingDetails = computed(() => {
       #body
     >
       <div class="grid gap-4">
-        <p class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
+        <p class="text-2xl font-semibold text-stone-900">
           Aucun rendez-vous sélectionné
         </p>
-        <p class="text-sm text-[color:var(--color-brand-secondary)]">
+        <p class="text-sm text-stone-500">
           Sélectionnez un RDV dans le calendrier pour afficher ses détails.
         </p>
       </div>
