@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import SystemAlert from '../../components/atoms/SystemAlert.vue'
 import ConfirmActionModal from '../../components/molecules/ConfirmActionModal.vue'
 import ProviderAvailabilitySlotsPreview from '../../components/organisms/ProviderAvailabilitySlotsPreview.vue'
 import { useProviderAvailability } from '../../features/availability/useProviderAvailability'
@@ -81,132 +80,100 @@ const {
   openDeleteBlockModal,
   confirmDeleteBlock
 } = await useProviderAvailability()
+
+const weekdayOptions = [
+  { label: 'Lundi', value: 1 },
+  { label: 'Mardi', value: 2 },
+  { label: 'Mercredi', value: 3 },
+  { label: 'Jeudi', value: 4 },
+  { label: 'Vendredi', value: 5 },
+  { label: 'Samedi', value: 6 },
+  { label: 'Dimanche', value: 7 }
+]
+
+const appointmentTypeOptions = [
+  { label: 'Discovery', value: 'discovery' },
+  { label: 'Consultation', value: 'consultation' }
+]
+
+const blockTypeOptions = [
+  { label: 'Tout', value: 'all' },
+  { label: 'Discovery', value: 'discovery' },
+  { label: 'Consultation', value: 'consultation' }
+]
+
+const copyDirectionOptions = [
+  { label: 'Discovery → Consultation', value: 'discovery-to-consultation' },
+  { label: 'Consultation → Discovery', value: 'consultation-to-discovery' }
+]
 </script>
 
 <template>
-  <div class="grid gap-10">
+  <div class="space-y-8">
+    <!-- Create Block Modal -->
     <UModal
       v-model:open="createBlockModalOpen"
       :dismissible="!isCreatingBlock"
-      :ui="{
-        content:
-          'rounded-blob-c border border-white/70 bg-white/80 shadow-floating backdrop-blur-md',
-        header: 'px-8 pt-8 pb-4',
-        body: 'px-8 pb-6',
-        footer: 'px-8 pb-8 pt-6',
-        title:
-          'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-        description: 'text-sm text-[color:var(--color-brand-secondary)]'
-      }"
-      :close="{ class: 'rounded-full' }"
       title="Ajouter un blocage"
       description="Bloquez un créneau ponctuel (Europe/Paris)."
     >
       <template #body>
-        <SystemAlert
+        <UAlert
           v-if="createBlockError"
           class="mb-5"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Création impossible"
           :description="createBlockError"
+          icon="i-lucide-alert-circle"
         />
 
         <form
-          class="grid gap-6"
+          class="space-y-5"
           @submit.prevent="submitCreateBlock"
         >
           <div class="grid gap-4 sm:grid-cols-2">
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                Début
-              </label>
-              <input
+            <UFormField label="Début" :error="createBlockFieldErrors.startAt ?? undefined">
+              <UInput
                 v-model="createBlockForm.startAt"
                 type="datetime-local"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
                 :disabled="isCreatingBlock"
-              >
-              <p
-                v-if="createBlockFieldErrors.startAt"
-                class="text-xs text-[color:var(--color-error)]"
-              >
-                {{ createBlockFieldErrors.startAt }}
-              </p>
-            </div>
+              />
+            </UFormField>
 
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                Fin
-              </label>
-              <input
+            <UFormField label="Fin" :error="createBlockFieldErrors.endAt ?? undefined">
+              <UInput
                 v-model="createBlockForm.endAt"
                 type="datetime-local"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
                 :disabled="isCreatingBlock"
-              >
-              <p
-                v-if="createBlockFieldErrors.endAt"
-                class="text-xs text-[color:var(--color-error)]"
-              >
-                {{ createBlockFieldErrors.endAt }}
-              </p>
-            </div>
+              />
+            </UFormField>
           </div>
 
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Type
-            </label>
-            <select
+          <UFormField label="Type" :error="createBlockFieldErrors.blockType ?? undefined">
+            <USelect
               v-model="createBlockForm.blockType"
-              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+              :items="blockTypeOptions"
               :disabled="isCreatingBlock"
-            >
-              <option value="all">
-                Tout
-              </option>
-              <option value="discovery">
-                Discovery
-              </option>
-              <option value="consultation">
-                Consultation
-              </option>
-            </select>
-            <p
-              v-if="createBlockFieldErrors.blockType"
-              class="text-xs text-[color:var(--color-error)]"
-            >
-              {{ createBlockFieldErrors.blockType }}
-            </p>
-          </div>
+            />
+          </UFormField>
 
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Raison (optionnel)
-            </label>
-            <textarea
+          <UFormField label="Raison (optionnel)" :error="createBlockFieldErrors.reason ?? undefined">
+            <UTextarea
               v-model="createBlockForm.reason"
-              rows="4"
-              class="min-h-[110px] w-full resize-none rounded-blob-d border border-white/60 bg-white/70 px-4 py-3 text-sm font-medium text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+              :rows="3"
               :disabled="isCreatingBlock"
               placeholder="Vacances, indisponibilité…"
             />
-            <p
-              v-if="createBlockFieldErrors.reason"
-              class="text-xs text-[color:var(--color-error)]"
-            >
-              {{ createBlockFieldErrors.reason }}
-            </p>
-          </div>
+          </UFormField>
         </form>
       </template>
 
       <template #footer>
-        <div class="flex flex-wrap justify-end gap-3">
+        <div class="flex justify-end gap-3">
           <UButton
             color="neutral"
             variant="ghost"
-            class="rounded-full"
             :disabled="isCreatingBlock"
             @click="createBlockModalOpen = false"
           >
@@ -214,7 +181,6 @@ const {
           </UButton>
           <UButton
             color="primary"
-            class="rounded-full px-6"
             :loading="isCreatingBlock"
             @click="submitCreateBlock"
           >
@@ -224,6 +190,7 @@ const {
       </template>
     </UModal>
 
+    <!-- Delete Block Modal -->
     <ConfirmActionModal
       v-model:open="deleteBlockModalOpen"
       title="Supprimer ce blocage ?"
@@ -234,265 +201,132 @@ const {
       @confirm="confirmDeleteBlock"
     />
 
+    <!-- Create Rule Modal -->
     <UModal
       v-model:open="createRuleModalOpen"
       :dismissible="!isCreatingRule"
-      :ui="{
-        content:
-          'rounded-blob-c border border-white/70 bg-white/80 shadow-floating backdrop-blur-md',
-        header: 'px-8 pt-8 pb-4',
-        body: 'px-8 pb-6',
-        footer: 'px-8 pb-8 pt-6',
-        title:
-          'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-        description: 'text-sm text-[color:var(--color-brand-secondary)]'
-      }"
-      :close="{ class: 'rounded-full' }"
       title="Ajouter une règle"
       description="Créez une règle récurrente (Europe/Paris)."
     >
       <template #body>
-        <SystemAlert
+        <UAlert
           v-if="createRuleError"
           class="mb-5"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Création impossible"
           :description="createRuleError"
+          icon="i-lucide-alert-circle"
         />
 
         <form
-          class="grid gap-6"
+          class="space-y-5"
           @submit.prevent="submitCreateRule"
         >
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Type
-            </label>
-            <select
+          <UFormField label="Type" :error="createRuleFieldErrors.appointmentType ?? undefined">
+            <USelect
               v-model="createRuleForm.appointmentType"
-              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+              :items="appointmentTypeOptions"
               :disabled="isCreatingRule || createRuleApplyToAllTypes"
-            >
-              <option value="discovery">
-                Discovery
-              </option>
-              <option value="consultation">
-                Consultation
-              </option>
-            </select>
-            <p
-              v-if="createRuleFieldErrors.appointmentType"
-              class="text-xs text-[color:var(--color-error)]"
-            >
-              {{ createRuleFieldErrors.appointmentType }}
-            </p>
-            <p
-              v-if="createRuleApplyToAllTypes"
-              class="text-xs text-[color:var(--color-brand-secondary)]"
-            >
+            />
+            <template v-if="createRuleApplyToAllTypes" #hint>
               Les deux types (Discovery + Consultation) seront créés.
-            </p>
-          </div>
+            </template>
+          </UFormField>
 
-          <div class="flex flex-col justify-between gap-4 rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-[color:var(--color-surface-highlight)] p-4 md:flex-row md:items-center">
-            <div class="min-w-0">
-              <span class="block font-bold text-[color:var(--color-brand-primary)]">
-                Appliquer à tous les types
-              </span>
-              <span class="text-xs text-[color:var(--color-brand-secondary)]">
-                Crée la règle pour Discovery et Consultation en une seule action.
-              </span>
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <div>
+              <p class="font-medium text-stone-900">Appliquer à tous les types</p>
+              <p class="text-sm text-stone-500">Crée la règle pour Discovery et Consultation.</p>
             </div>
             <USwitch
               v-model="createRuleApplyToAllTypes"
-              size="lg"
-              color="primary"
               :disabled="isCreatingRule"
-              class="self-start md:self-auto"
             />
           </div>
 
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Jour
-            </label>
-            <select
-              v-model.number="createRuleForm.weekday"
-              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+          <UFormField label="Jour" :error="createRuleFieldErrors.weekday ?? undefined">
+            <USelect
+              v-model="createRuleForm.weekday"
+              :items="weekdayOptions"
               :disabled="isCreatingRule"
-            >
-              <option :value="1">
-                Lundi
-              </option>
-              <option :value="2">
-                Mardi
-              </option>
-              <option :value="3">
-                Mercredi
-              </option>
-              <option :value="4">
-                Jeudi
-              </option>
-              <option :value="5">
-                Vendredi
-              </option>
-              <option :value="6">
-                Samedi
-              </option>
-              <option :value="7">
-                Dimanche
-              </option>
-            </select>
-            <p
-              v-if="createRuleFieldErrors.weekday"
-              class="text-xs text-[color:var(--color-error)]"
-            >
-              {{ createRuleFieldErrors.weekday }}
-            </p>
-          </div>
+            />
+          </UFormField>
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                Début
-              </label>
-              <input
+            <UFormField label="Début" :error="createRuleFieldErrors.startTime ?? undefined">
+              <UInput
                 v-model="createRuleForm.startTime"
                 type="time"
                 step="60"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
                 :disabled="isCreatingRule"
-              >
-              <p
-                v-if="createRuleFieldErrors.startTime"
-                class="text-xs text-[color:var(--color-error)]"
-              >
-                {{ createRuleFieldErrors.startTime }}
-              </p>
-            </div>
+              />
+            </UFormField>
 
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                Fin
-              </label>
-              <input
+            <UFormField label="Fin" :error="createRuleFieldErrors.endTime ?? undefined">
+              <UInput
                 v-model="createRuleForm.endTime"
                 type="time"
                 step="60"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
                 :disabled="isCreatingRule"
-              >
-              <p
-                v-if="createRuleFieldErrors.endTime"
-                class="text-xs text-[color:var(--color-error)]"
-              >
-                {{ createRuleFieldErrors.endTime }}
-              </p>
-            </div>
+              />
+            </UFormField>
           </div>
 
-          <div
+          <UFormField
             v-if="!createRuleApplyToAllTypes"
-            class="grid gap-2"
+            label="Durée (minutes)"
+            :error="createRuleFieldErrors.slotDurationMinutes ?? undefined"
           >
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Durée (minutes)
-            </label>
-            <input
+            <UInput
               v-model.number="createRuleForm.slotDurationMinutes"
               type="number"
               min="1"
-              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
               :disabled="isCreatingRule"
-            >
-            <p
-              v-if="createRuleFieldErrors.slotDurationMinutes"
-              class="text-xs text-[color:var(--color-error)]"
-            >
-              {{ createRuleFieldErrors.slotDurationMinutes }}
-            </p>
-          </div>
+            />
+          </UFormField>
 
           <div
             v-else
-            class="grid gap-4"
+            class="grid gap-4 sm:grid-cols-2"
           >
-            <p class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Durées par type (minutes)
-            </p>
-            <div class="grid gap-6 md:grid-cols-2">
-              <div class="grid gap-2">
-                <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                  Discovery
-                </label>
-                <input
-                  v-model.number="createRuleDurationByType.discovery"
-                  type="number"
-                  min="1"
-                  class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
-                  :disabled="isCreatingRule"
-                >
-                <p
-                  v-if="createRuleDurationErrors.discovery"
-                  class="text-xs text-[color:var(--color-error)]"
-                >
-                  {{ createRuleDurationErrors.discovery }}
-                </p>
-              </div>
+            <UFormField label="Durée Discovery (min)" :error="createRuleDurationErrors.discovery ?? undefined">
+              <UInput
+                v-model.number="createRuleDurationByType.discovery"
+                type="number"
+                min="1"
+                :disabled="isCreatingRule"
+              />
+            </UFormField>
 
-              <div class="grid gap-2">
-                <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                  Consultation
-                </label>
-                <input
-                  v-model.number="createRuleDurationByType.consultation"
-                  type="number"
-                  min="1"
-                  class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
-                  :disabled="isCreatingRule"
-                >
-                <p
-                  v-if="createRuleDurationErrors.consultation"
-                  class="text-xs text-[color:var(--color-error)]"
-                >
-                  {{ createRuleDurationErrors.consultation }}
-                </p>
-              </div>
-            </div>
+            <UFormField label="Durée Consultation (min)" :error="createRuleDurationErrors.consultation ?? undefined">
+              <UInput
+                v-model.number="createRuleDurationByType.consultation"
+                type="number"
+                min="1"
+                :disabled="isCreatingRule"
+              />
+            </UFormField>
           </div>
 
-          <div class="flex flex-col justify-between gap-4 rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-[color:var(--color-surface-highlight)] p-4 md:flex-row md:items-center">
-            <div class="min-w-0">
-              <span class="block font-bold text-[color:var(--color-brand-primary)]">
-                Activer la règle
-              </span>
-              <span class="text-xs text-[color:var(--color-brand-secondary)]">
-                Désactivez temporairement une règle sans la supprimer.
-              </span>
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <div>
+              <p class="font-medium text-stone-900">Activer la règle</p>
+              <p class="text-sm text-stone-500">Désactivez temporairement sans supprimer.</p>
             </div>
             <USwitch
               v-model="createRuleForm.isActive"
-              size="lg"
-              color="primary"
               :disabled="isCreatingRule"
-              class="self-start md:self-auto"
             />
           </div>
-          <p
-            v-if="createRuleFieldErrors.isActive"
-            class="text-xs text-[color:var(--color-error)]"
-          >
-            {{ createRuleFieldErrors.isActive }}
-          </p>
         </form>
       </template>
 
       <template #footer>
-        <div class="flex flex-wrap justify-end gap-3">
+        <div class="flex justify-end gap-3">
           <UButton
             color="neutral"
             variant="ghost"
-            class="rounded-full"
             :disabled="isCreatingRule"
             @click="createRuleModalOpen = false"
           >
@@ -500,7 +334,6 @@ const {
           </UButton>
           <UButton
             color="primary"
-            class="rounded-full px-6"
             :loading="isCreatingRule"
             @click="submitCreateRule"
           >
@@ -510,176 +343,91 @@ const {
       </template>
     </UModal>
 
+    <!-- Update Rule Modal -->
     <UModal
       v-model:open="updateRuleModalOpen"
       :dismissible="!isUpdatingRule"
-      :ui="{
-        content:
-          'rounded-blob-c border border-white/70 bg-white/80 shadow-floating backdrop-blur-md',
-        header: 'px-8 pt-8 pb-4',
-        body: 'px-8 pb-6',
-        footer: 'px-8 pb-8 pt-6',
-        title:
-          'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-        description: 'text-sm text-[color:var(--color-brand-secondary)]'
-      }"
-      :close="{ class: 'rounded-full' }"
       title="Modifier une règle"
       description="Ajustez votre règle récurrente (Europe/Paris)."
     >
       <template #body>
-        <SystemAlert
+        <UAlert
           v-if="updateRuleError"
           class="mb-5"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Modification impossible"
           :description="updateRuleError"
+          icon="i-lucide-alert-circle"
         />
 
         <form
-          class="grid gap-6"
+          class="space-y-5"
           @submit.prevent="submitUpdateRule"
         >
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Type
-            </label>
-            <select
+          <UFormField label="Type" :error="updateRuleFieldErrors.appointmentType ?? undefined">
+            <USelect
               v-model="updateRuleForm.appointmentType"
-              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+              :items="appointmentTypeOptions"
               :disabled="isUpdatingRule"
-            >
-              <option value="discovery">
-                Discovery
-              </option>
-              <option value="consultation">
-                Consultation
-              </option>
-            </select>
-            <p
-              v-if="updateRuleFieldErrors.appointmentType"
-              class="text-xs text-[color:var(--color-error)]"
-            >
-              {{ updateRuleFieldErrors.appointmentType }}
-            </p>
-          </div>
+            />
+          </UFormField>
 
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Jour
-            </label>
-            <select
-              v-model.number="updateRuleForm.weekday"
-              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+          <UFormField label="Jour" :error="updateRuleFieldErrors.weekday ?? undefined">
+            <USelect
+              v-model="updateRuleForm.weekday"
+              :items="weekdayOptions"
               :disabled="isUpdatingRule"
-            >
-              <option
-                v-for="weekday in [1, 2, 3, 4, 5, 6, 7]"
-                :key="weekday"
-                :value="weekday"
-              >
-                {{ weekdayLabel(weekday) }}
-              </option>
-            </select>
-            <p
-              v-if="updateRuleFieldErrors.weekday"
-              class="text-xs text-[color:var(--color-error)]"
-            >
-              {{ updateRuleFieldErrors.weekday }}
-            </p>
-          </div>
+            />
+          </UFormField>
 
-          <div class="grid gap-6 md:grid-cols-2">
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                Début
-              </label>
-              <input
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UFormField label="Début" :error="updateRuleFieldErrors.startTime ?? undefined">
+              <UInput
                 v-model="updateRuleForm.startTime"
                 type="time"
                 step="60"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
                 :disabled="isUpdatingRule"
-              >
-              <p
-                v-if="updateRuleFieldErrors.startTime"
-                class="text-xs text-[color:var(--color-error)]"
-              >
-                {{ updateRuleFieldErrors.startTime }}
-              </p>
-            </div>
+              />
+            </UFormField>
 
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                Fin
-              </label>
-              <input
+            <UFormField label="Fin" :error="updateRuleFieldErrors.endTime ?? undefined">
+              <UInput
                 v-model="updateRuleForm.endTime"
                 type="time"
                 step="60"
-                class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
                 :disabled="isUpdatingRule"
-              >
-              <p
-                v-if="updateRuleFieldErrors.endTime"
-                class="text-xs text-[color:var(--color-error)]"
-              >
-                {{ updateRuleFieldErrors.endTime }}
-              </p>
-            </div>
+              />
+            </UFormField>
           </div>
 
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Durée (minutes)
-            </label>
-            <input
+          <UFormField label="Durée (minutes)" :error="updateRuleFieldErrors.slotDurationMinutes ?? undefined">
+            <UInput
               v-model.number="updateRuleForm.slotDurationMinutes"
               type="number"
               min="1"
-              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
               :disabled="isUpdatingRule"
-            >
-            <p
-              v-if="updateRuleFieldErrors.slotDurationMinutes"
-              class="text-xs text-[color:var(--color-error)]"
-            >
-              {{ updateRuleFieldErrors.slotDurationMinutes }}
-            </p>
-          </div>
+            />
+          </UFormField>
 
-          <div class="flex flex-col justify-between gap-4 rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-[color:var(--color-surface-highlight)] p-4 md:flex-row md:items-center">
-            <div class="min-w-0">
-              <span class="block font-bold text-[color:var(--color-brand-primary)]">
-                Activer la règle
-              </span>
-              <span class="text-xs text-[color:var(--color-brand-secondary)]">
-                Désactivez temporairement une règle sans la supprimer.
-              </span>
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <div>
+              <p class="font-medium text-stone-900">Activer la règle</p>
+              <p class="text-sm text-stone-500">Désactivez temporairement sans supprimer.</p>
             </div>
             <USwitch
               v-model="updateRuleForm.isActive"
-              size="lg"
-              color="primary"
               :disabled="isUpdatingRule"
-              class="self-start md:self-auto"
             />
           </div>
-          <p
-            v-if="updateRuleFieldErrors.isActive"
-            class="text-xs text-[color:var(--color-error)]"
-          >
-            {{ updateRuleFieldErrors.isActive }}
-          </p>
         </form>
       </template>
 
       <template #footer>
-        <div class="flex flex-wrap justify-end gap-3">
+        <div class="flex justify-end gap-3">
           <UButton
             color="neutral"
             variant="ghost"
-            class="rounded-full"
             :disabled="isUpdatingRule"
             @click="updateRuleModalOpen = false"
           >
@@ -687,7 +435,6 @@ const {
           </UButton>
           <UButton
             color="primary"
-            class="rounded-full px-6"
             :loading="isUpdatingRule"
             @click="submitUpdateRule"
           >
@@ -697,6 +444,7 @@ const {
       </template>
     </UModal>
 
+    <!-- Delete Rule Modal -->
     <ConfirmActionModal
       v-model:open="deleteRuleModalOpen"
       title="Supprimer cette règle ?"
@@ -707,92 +455,64 @@ const {
       @confirm="confirmDeleteRule"
     />
 
+    <!-- Copy Rules Modal -->
     <UModal
       v-model:open="copyRulesModalOpen"
       :dismissible="!isCopyingRules"
-      :ui="{
-        content:
-          'rounded-blob-c border border-white/70 bg-white/80 shadow-floating backdrop-blur-md',
-        header: 'px-8 pt-8 pb-4',
-        body: 'px-8 pb-6',
-        footer: 'px-8 pb-8 pt-6',
-        title:
-          'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-        description: 'text-sm text-[color:var(--color-brand-secondary)]'
-      }"
-      :close="{ class: 'rounded-full' }"
       title="Copier un planning"
-      description="Dupliquez vos règles d’un type de rendez-vous à l’autre."
+      description="Dupliquez vos règles d'un type à l'autre."
     >
       <template #body>
-        <SystemAlert
+        <UAlert
           v-if="copyRulesError"
           class="mb-5"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Copie impossible"
           :description="copyRulesError"
+          icon="i-lucide-alert-circle"
         />
 
-        <div class="grid gap-6">
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-              Copier
-            </label>
-            <select
+        <div class="space-y-5">
+          <UFormField label="Copier">
+            <USelect
               v-model="copyRulesDirection"
-              class="h-11 rounded-full border border-white/60 bg-white/70 px-4 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
+              :items="copyDirectionOptions"
               :disabled="isCopyingRules"
-            >
-              <option value="discovery-to-consultation">
-                Discovery → Consultation
-              </option>
-              <option value="consultation-to-discovery">
-                Consultation → Discovery
-              </option>
-            </select>
-          </div>
+            />
+          </UFormField>
 
-          <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-secondary)]">
-            <p class="font-semibold text-[color:var(--color-brand-primary)]">
-              Résumé
-            </p>
-            <p class="mt-2">
-              {{ copyRulesSummary.sourceCount }} règle(s) source • {{ copyRulesSummary.targetCount }} règle(s) déjà configurée(s) côté cible
+          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <p class="font-medium text-stone-900">Résumé</p>
+            <p class="mt-2 text-sm text-stone-600">
+              {{ copyRulesSummary.sourceCount }} règle(s) source • {{ copyRulesSummary.targetCount }} règle(s) déjà configurée(s)
             </p>
             <p
               v-if="copyRulesSummary.duplicatesCount"
-              class="mt-2 text-xs text-[color:var(--color-brand-secondary)]"
+              class="mt-1 text-xs text-stone-500"
             >
-              {{ copyRulesSummary.duplicatesCount }} créneau(x) identique(s) détecté(s) et ignoré(s).
+              {{ copyRulesSummary.duplicatesCount }} créneau(x) identique(s) ignoré(s).
             </p>
           </div>
 
-          <div class="flex flex-col justify-between gap-4 rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-[color:var(--color-surface-highlight)] p-4 md:flex-row md:items-center">
-            <div class="min-w-0">
-              <span class="block font-bold text-[color:var(--color-brand-primary)]">
-                Adapter aux durées recommandées
-              </span>
-              <span class="text-xs text-[color:var(--color-brand-secondary)]">
-                Discovery : 30 min • Consultation : 60 min.
-              </span>
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+            <div>
+              <p class="font-medium text-stone-900">Adapter aux durées recommandées</p>
+              <p class="text-sm text-stone-500">Discovery : 30 min • Consultation : 60 min.</p>
             </div>
             <USwitch
               v-model="copyRulesAdaptDurations"
-              size="lg"
-              color="primary"
               :disabled="isCopyingRules"
-              class="self-start md:self-auto"
             />
           </div>
         </div>
       </template>
 
       <template #footer>
-        <div class="flex flex-wrap justify-end gap-3">
+        <div class="flex justify-end gap-3">
           <UButton
             color="neutral"
             variant="ghost"
-            class="rounded-full"
             :disabled="isCopyingRules"
             @click="copyRulesModalOpen = false"
           >
@@ -800,7 +520,6 @@ const {
           </UButton>
           <UButton
             color="primary"
-            class="rounded-full px-6"
             :loading="isCopyingRules"
             @click="confirmCopyRules"
           >
@@ -810,355 +529,343 @@ const {
       </template>
     </UModal>
 
-    <SystemAlert
+    <!-- Error/Notice alerts -->
+    <UAlert
       v-if="errorMessage"
-      variant="error"
+      color="error"
+      variant="soft"
       title="Disponibilités indisponibles"
       :description="errorMessage"
+      icon="i-lucide-alert-circle"
     />
-    <SystemAlert
+    <UAlert
       v-if="actionErrorMessage"
-      variant="error"
+      color="error"
+      variant="soft"
       title="Action impossible"
       :description="actionErrorMessage"
+      icon="i-lucide-alert-circle"
     />
-    <SystemAlert
+    <UAlert
       v-if="noticeMessage"
-      variant="success"
+      color="success"
+      variant="soft"
       :description="noticeMessage"
+      icon="i-lucide-check-circle"
     />
 
-    <section class="relative flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
+    <!-- Page header -->
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
           Disponibilités
         </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Définissez vos règles hebdomadaires, puis ajoutez des blocages ponctuels si besoin.
+        <p class="mt-1 text-stone-500">
+          Définissez vos règles hebdomadaires et ajoutez des blocages ponctuels.
         </p>
       </div>
-
-      <button
-        type="button"
-        class="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-        :disabled="pending"
+      <UButton
+        :loading="pending"
+        variant="outline"
+        color="neutral"
         @click="() => refresh()"
       >
-        <Icon
-          name="lucide:refresh-ccw"
-          size="16"
-          aria-hidden="true"
-        />
+        <UIcon name="lucide:refresh-cw" class="mr-2 h-4 w-4" />
         Actualiser
-      </button>
-    </section>
+      </UButton>
+    </header>
 
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
-      <section class="space-y-8 lg:col-span-8">
-        <div class="rounded-blob-a border border-white/60 bg-white/70 shadow-soft backdrop-blur">
-          <div class="flex flex-col gap-4 border-b border-[rgba(231,229,228,0.7)] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <div class="grid gap-1">
-              <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-                Règles récurrentes hebdomadaires
-              </h2>
-              <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                Vos créneaux récurrents (Europe/Paris). La génération des slots est calculée côté backend.
-              </p>
+    <!-- Main content -->
+    <div class="grid gap-8 lg:grid-cols-3">
+      <!-- Main column -->
+      <div class="space-y-8 lg:col-span-2">
+        <!-- Recurring rules section -->
+        <UCard class="bg-white">
+          <template #header>
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="font-semibold text-stone-900">
+                  Règles récurrentes
+                </h2>
+                <p class="mt-1 text-sm text-stone-500">
+                  Vos créneaux récurrents (Europe/Paris)
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <UButton
+                  variant="outline"
+                  color="neutral"
+                  size="sm"
+                  :disabled="pending || Boolean(errorMessage)"
+                  @click="openCopyRulesModal()"
+                >
+                  <UIcon name="lucide:copy" class="mr-1.5 h-4 w-4" />
+                  Copier depuis…
+                </UButton>
+                <UButton
+                  color="primary"
+                  size="sm"
+                  :disabled="pending || Boolean(errorMessage)"
+                  @click="openCreateRuleModal"
+                >
+                  <UIcon name="lucide:plus" class="mr-1.5 h-4 w-4" />
+                  Ajouter
+                </UButton>
+              </div>
             </div>
+          </template>
 
-            <div class="flex flex-wrap items-center justify-end gap-3">
-              <button
-                type="button"
-                class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="pending || Boolean(errorMessage)"
-                @click="openCopyRulesModal()"
-              >
-                <Icon
-                  name="lucide:copy"
-                  size="18"
-                  aria-hidden="true"
-                />
-                Copier depuis…
-              </button>
-
-              <button
-                type="button"
-                class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="pending || Boolean(errorMessage)"
-                @click="openCreateRuleModal"
-              >
-                <Icon
-                  name="lucide:plus"
-                  size="18"
-                  aria-hidden="true"
-                />
-                Ajouter une règle
-              </button>
-            </div>
+          <!-- Loading -->
+          <div
+            v-if="pending"
+            class="space-y-4"
+          >
+            <USkeleton class="h-20 w-full" />
+            <USkeleton class="h-20 w-full" />
           </div>
 
-          <div class="px-6 py-6">
-            <div
-              v-if="pending"
-              class="grid gap-4"
-            >
-              <div class="h-16 rounded-blob-d bg-[rgba(231,229,228,0.55)]" />
-              <div class="h-16 rounded-blob-d bg-[rgba(231,229,228,0.35)]" />
+          <!-- Empty state -->
+          <div
+            v-else-if="!hasRules"
+            class="flex flex-col items-center justify-center gap-3 py-12 text-center"
+          >
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
+              <UIcon name="lucide:calendar-clock" class="h-6 w-6 text-stone-400" />
             </div>
+            <p class="text-sm text-stone-500">
+              Aucune règle configurée. Ajoutez vos plages horaires récurrentes.
+            </p>
+          </div>
 
+          <!-- Rules list -->
+          <div
+            v-else
+            class="space-y-4"
+          >
             <div
-              v-else-if="!hasRules"
-              class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] p-6 text-sm text-[color:var(--color-brand-secondary)]"
+              v-for="group in groupedRules"
+              :key="group.weekday"
+              class="rounded-lg border border-stone-100 bg-stone-50 p-4"
             >
-              Aucune règle configurée pour le moment. Ajoutez vos plages horaires récurrentes pour générer des créneaux.
-            </div>
+              <div class="flex items-center justify-between">
+                <p class="font-semibold text-stone-900">
+                  {{ weekdayLabel(group.weekday) }}
+                </p>
+                <UBadge color="neutral" variant="soft" size="sm">
+                  {{ group.groups.reduce((count, typeGroup) => count + typeGroup.rules.length, 0) }} règle(s)
+                </UBadge>
+              </div>
 
-            <div
-              v-else
-              class="grid gap-6"
-            >
-              <div
-                v-for="group in groupedRules"
-                :key="group.weekday"
-                class="rounded-blob-d border border-white/60 bg-white/60 p-5 shadow-soft"
-              >
-                <div class="flex items-center justify-between gap-3">
-                  <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                    {{ weekdayLabel(group.weekday) }}
-                  </p>
-                  <span class="rounded-full bg-[rgba(212,184,160,0.20)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
-                    {{
-                      group.groups.reduce((count, typeGroup) => count + typeGroup.rules.length, 0)
-                    }}
-                  </span>
-                </div>
+              <div class="mt-4 space-y-3">
+                <div
+                  v-for="typeGroup in group.groups"
+                  :key="typeGroup.type"
+                  class="rounded-lg border border-stone-200 bg-white p-4"
+                >
+                  <div class="flex items-center justify-between">
+                    <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                      {{ appointmentTypeLabel(typeGroup.type) }}
+                    </p>
+                    <UBadge color="primary" variant="soft" size="sm">
+                      {{ typeGroup.rules.length }}
+                    </UBadge>
+                  </div>
 
-                <div class="mt-4 grid gap-5">
-                  <section
-                    v-for="typeGroup in group.groups"
-                    :key="typeGroup.type"
-                    class="rounded-blob-d border border-white/55 bg-white/65 p-4 shadow-soft"
-                  >
-                    <div class="flex items-center justify-between gap-3">
-                      <p class="text-sm font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
-                        {{ appointmentTypeLabel(typeGroup.type) }}
-                      </p>
-                      <span class="rounded-full bg-[rgba(212,184,160,0.20)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
-                        {{ typeGroup.rules.length }}
-                      </span>
+                  <div class="mt-3 space-y-2">
+                    <div
+                      v-for="rule in typeGroup.rules"
+                      :key="rule.id"
+                      class="flex flex-col gap-3 rounded-lg bg-stone-50 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="font-medium text-stone-900">
+                          {{ normalizeRuleTime(rule.startTime) }}–{{ normalizeRuleTime(rule.endTime) }}
+                        </span>
+                        <UBadge color="neutral" variant="soft" size="sm">
+                          {{ rule.slotDurationMinutes }} min
+                        </UBadge>
+                        <UBadge
+                          :color="rule.isActive ? 'success' : 'error'"
+                          variant="soft"
+                          size="sm"
+                        >
+                          {{ rule.isActive ? 'Active' : 'Inactive' }}
+                        </UBadge>
+                      </div>
+
+                      <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs text-stone-500">
+                            {{ rule.isActive ? 'Actif' : 'Inactif' }}
+                          </span>
+                          <USwitch
+                            :model-value="rule.isActive"
+                            size="sm"
+                            :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
+                            @update:model-value="(next) => setRuleActive(rule, next)"
+                          />
+                        </div>
+                        <UButton
+                          variant="ghost"
+                          color="neutral"
+                          size="xs"
+                          :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
+                          @click="openUpdateRuleModal(rule)"
+                        >
+                          <UIcon name="lucide:pencil" class="h-4 w-4" />
+                        </UButton>
+                        <UButton
+                          variant="ghost"
+                          color="neutral"
+                          size="xs"
+                          :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
+                          @click="openDeleteRuleModal(rule)"
+                        >
+                          <UIcon name="lucide:trash-2" class="h-4 w-4" />
+                        </UButton>
+                      </div>
                     </div>
-
-                    <ul class="mt-4 grid gap-3">
-                      <li
-                        v-for="rule in typeGroup.rules"
-                        :key="rule.id"
-                        class="flex flex-col gap-4 rounded-blob-d bg-[color:var(--color-surface-highlight)] px-4 py-4 text-sm shadow-soft sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <div class="min-w-0">
-                          <span class="block font-semibold text-[color:var(--color-brand-primary)]">
-                            {{ normalizeRuleTime(rule.startTime) }}–{{ normalizeRuleTime(rule.endTime) }}
-                          </span>
-                          <span class="mt-2 inline-flex flex-wrap items-center gap-2">
-                            <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft">
-                              {{ rule.slotDurationMinutes }} min
-                            </span>
-                            <span
-                              class="rounded-full px-3 py-1 text-xs font-bold shadow-soft"
-                              :class="rule.isActive ? 'bg-[rgba(181,192,163,0.25)] text-[color:var(--color-brand-primary)]' : 'bg-[rgba(239,68,68,0.10)] text-[color:var(--color-brand-primary)]'"
-                            >
-                              {{ rule.isActive ? 'Active' : 'Inactive' }}
-                            </span>
-                          </span>
-                        </div>
-
-                        <div class="flex flex-wrap items-center justify-end gap-3">
-                          <div class="flex items-center gap-2">
-                            <span class="text-xs font-semibold text-[color:var(--color-brand-secondary)]">
-                              {{ rule.isActive ? 'Actif' : 'Inactif' }}
-                            </span>
-                            <USwitch
-                              :model-value="rule.isActive"
-                              size="md"
-                              color="primary"
-                              :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
-                              @update:model-value="(next) => setRuleActive(rule, next)"
-                            />
-                          </div>
-
-                          <button
-                            type="button"
-                            class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-                            :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
-                            @click="openUpdateRuleModal(rule)"
-                          >
-                            <Icon
-                              name="lucide:pencil"
-                              size="14"
-                              aria-hidden="true"
-                            />
-                            Modifier
-                          </button>
-
-                          <button
-                            type="button"
-                            class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-                            :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
-                            @click="openDeleteRuleModal(rule)"
-                          >
-                            <Icon
-                              name="lucide:trash-2"
-                              size="14"
-                              aria-hidden="true"
-                            />
-                            Supprimer
-                          </button>
-                        </div>
-                      </li>
-                    </ul>
-                  </section>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </UCard>
 
-        <div class="rounded-blob-b border border-white/60 bg-white/70 shadow-soft backdrop-blur">
-          <div class="flex flex-col gap-4 border-b border-[rgba(231,229,228,0.7)] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <div class="grid gap-1">
-              <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-                Blocages ponctuels
-              </h2>
-              <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                Bloquez des créneaux (vacances, indisponibilités). Ces blocages sont prioritaires sur les règles.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-4 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-floating transition-base hover:bg-[color:var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="pending"
-              @click="openCreateBlockModal"
-            >
-              <Icon
-                name="lucide:plus"
-                size="18"
-                aria-hidden="true"
-              />
-              Ajouter un blocage
-            </button>
-          </div>
-
-          <div class="px-6 py-6">
-            <div
-              v-if="pending"
-              class="grid gap-4"
-            >
-              <div class="h-20 rounded-blob-d bg-[rgba(231,229,228,0.55)]" />
-              <div class="h-20 rounded-blob-d bg-[rgba(231,229,228,0.35)]" />
-            </div>
-
-            <div
-              v-else-if="!hasBlocks"
-              class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] p-6 text-sm text-[color:var(--color-brand-secondary)]"
-            >
-              Aucun blocage ponctuel pour le moment.
-            </div>
-
-            <ul
-              v-else
-              class="grid gap-4"
-            >
-              <li
-                v-for="block in sortedBlocks"
-                :key="block.id"
-                class="rounded-blob-d border border-white/60 bg-white/60 p-5 shadow-soft"
+        <!-- Blocks section -->
+        <UCard class="bg-white">
+          <template #header>
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 class="font-semibold text-stone-900">
+                  Blocages ponctuels
+                </h2>
+                <p class="mt-1 text-sm text-stone-500">
+                  Bloquez des créneaux (vacances, indisponibilités)
+                </p>
+              </div>
+              <UButton
+                color="primary"
+                size="sm"
+                :disabled="pending"
+                @click="openCreateBlockModal"
               >
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                      {{ formatDateTime(block.startAt) }} → {{ formatDateTime(block.endAt) }}
-                    </p>
-                    <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-                      Type : {{ blockTypeLabel(block) }}
-                    </p>
-                    <p
-                      v-if="formatBlockReason(block.reason)"
-                      class="mt-2 text-xs text-[color:var(--color-brand-secondary)]"
-                    >
-                      Raison : {{ formatBlockReason(block.reason) }}
-                    </p>
-                  </div>
+                <UIcon name="lucide:plus" class="mr-1.5 h-4 w-4" />
+                Ajouter
+              </UButton>
+            </div>
+          </template>
 
-                  <div class="flex flex-wrap items-center justify-end gap-2">
-                    <span class="rounded-full bg-[rgba(212,184,160,0.20)] px-3 py-1 text-xs font-bold text-[color:var(--color-brand-primary)]">
-                      Blocage
-                    </span>
-                    <button
-                      type="button"
-                      class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-white px-4 text-xs font-bold text-[color:var(--color-brand-primary)] shadow-soft ring-1 ring-[rgba(231,229,228,0.7)] transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-                      :disabled="pending || Boolean(deletingBlockId)"
-                      @click="openDeleteBlockModal(block)"
-                    >
-                      <Icon
-                        name="lucide:trash-2"
-                        size="14"
-                        aria-hidden="true"
-                      />
-                      Supprimer
-                    </button>
-                  </div>
-                </div>
-              </li>
-            </ul>
+          <!-- Loading -->
+          <div
+            v-if="pending"
+            class="space-y-4"
+          >
+            <USkeleton class="h-24 w-full" />
+            <USkeleton class="h-24 w-full" />
           </div>
-        </div>
-      </section>
 
-      <aside class="space-y-8 lg:col-span-4">
-        <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-white/75 p-6 shadow-soft backdrop-blur">
-          <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-            À venir
-          </h2>
-          <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-            Les prochains blocages, pour garder une vue d’ensemble.
-          </p>
+          <!-- Empty state -->
+          <div
+            v-else-if="!hasBlocks"
+            class="flex flex-col items-center justify-center gap-3 py-12 text-center"
+          >
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
+              <UIcon name="lucide:calendar-x" class="h-6 w-6 text-stone-400" />
+            </div>
+            <p class="text-sm text-stone-500">
+              Aucun blocage ponctuel pour le moment.
+            </p>
+          </div>
+
+          <!-- Blocks list -->
+          <div
+            v-else
+            class="space-y-3"
+          >
+            <div
+              v-for="block in sortedBlocks"
+              :key="block.id"
+              class="flex flex-col gap-3 rounded-lg border border-stone-100 bg-stone-50 p-4 sm:flex-row sm:items-start sm:justify-between"
+            >
+              <div>
+                <p class="font-medium text-stone-900">
+                  {{ formatDateTime(block.startAt) }} → {{ formatDateTime(block.endAt) }}
+                </p>
+                <p class="mt-1 text-sm text-stone-500">
+                  Type : {{ blockTypeLabel(block) }}
+                </p>
+                <p
+                  v-if="formatBlockReason(block.reason)"
+                  class="mt-1 text-xs text-stone-400"
+                >
+                  Raison : {{ formatBlockReason(block.reason) }}
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                <UBadge color="warning" variant="soft" size="sm">
+                  Blocage
+                </UBadge>
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  size="xs"
+                  :disabled="pending || Boolean(deletingBlockId)"
+                  @click="openDeleteBlockModal(block)"
+                >
+                  <UIcon name="lucide:trash-2" class="h-4 w-4" />
+                </UButton>
+              </div>
+            </div>
+          </div>
+        </UCard>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="space-y-6">
+        <!-- Upcoming blocks card -->
+        <UCard class="bg-white">
+          <template #header>
+            <h3 class="font-semibold text-stone-900">
+              À venir
+            </h3>
+          </template>
 
           <div
             v-if="pending"
-            class="mt-6 grid gap-3"
+            class="space-y-3"
           >
-            <div class="h-16 rounded-blob-a bg-[rgba(231,229,228,0.55)]" />
-            <div class="h-16 rounded-blob-a bg-[rgba(231,229,228,0.35)]" />
+            <USkeleton class="h-14 w-full" />
+            <USkeleton class="h-14 w-full" />
           </div>
 
           <div
             v-else-if="upcomingBlocks.length === 0"
-            class="mt-6 text-sm text-[color:var(--color-brand-secondary)]"
+            class="py-4 text-center text-sm text-stone-500"
           >
             Aucun blocage à venir.
           </div>
 
-          <ul
+          <div
             v-else
-            class="mt-6 grid gap-3"
+            class="space-y-2"
           >
-            <li
+            <div
               v-for="block in upcomingBlocks"
               :key="block.id"
-              class="rounded-blob-a border border-white/60 bg-white/70 px-4 py-3 shadow-soft"
+              class="rounded-lg border border-stone-100 bg-stone-50 p-3"
             >
-              <p class="text-sm font-semibold text-[color:var(--color-brand-primary)]">
+              <p class="text-sm font-medium text-stone-900">
                 {{ formatDateTime(block.startAt) }}
               </p>
-              <p class="mt-1 text-xs text-[color:var(--color-brand-secondary)]">
+              <p class="mt-0.5 text-xs text-stone-500">
                 {{ blockTypeLabel(block) }}
               </p>
-            </li>
-          </ul>
-        </div>
+            </div>
+          </div>
+        </UCard>
 
+        <!-- Slots preview -->
         <ProviderAvailabilitySlotsPreview
           :type="previewType"
           :period-days="previewPeriodDays"
