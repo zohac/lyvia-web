@@ -4,7 +4,7 @@
     <div class="grid gap-6">
       <!-- Header card with client identity -->
       <UCard
-        variant="organic"
+        variant="soft"
         class="rounded-blob-a"
       >
         <div
@@ -77,7 +77,7 @@
 
     <!-- Synthesis sidebar (sticky on desktop, first on mobile) -->
     <UCard
-      variant="glass"
+      variant="outline"
       class="order-first w-full self-start rounded-blob-b lg:order-last lg:sticky lg:top-6"
     >
       <div class="flex items-center justify-between">

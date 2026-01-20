@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { TimeSlot } from '../../features/slots/domain/slots'
 import { getYmdInTimeZone, groupSlotsByLocalDay } from '../../features/slots/domain/slots'
-import SystemAlert from '../atoms/SystemAlert.vue'
 import CalendarMonthView from '../molecules/CalendarMonthView.vue'
 import TimeSlotGrid from '../molecules/TimeSlotGrid.vue'
 
@@ -169,11 +168,13 @@ function onSelectSlot(slot: TimeSlot) {
 
 <template>
   <section class="grid gap-6">
-    <SystemAlert
+    <UAlert
       v-if="error"
-      variant="error"
+      color="error"
+      variant="soft"
       title="Créneaux indisponibles"
       :description="error"
+      icon="i-lucide-alert-circle"
     />
 
     <div
@@ -182,24 +183,28 @@ function onSelectSlot(slot: TimeSlot) {
       role="status"
       aria-live="polite"
     >
-      <div class="h-72 rounded-blob-b bg-[rgba(231,229,228,0.55)]" />
-      <div class="h-44 rounded-blob-a bg-[rgba(231,229,228,0.35)]" />
+      <USkeleton class="h-72 w-full rounded-xl" />
+      <USkeleton class="h-44 w-full rounded-xl" />
     </div>
 
     <div
       v-else-if="slots.length === 0"
-      class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] p-6 text-sm text-[color:var(--color-brand-secondary)]"
+      class="rounded-xl border border-neutral-200 bg-neutral-50 p-6 text-center text-sm text-neutral-500"
       role="status"
       aria-live="polite"
     >
-      Aucun créneau disponible pour le moment.
+      <UIcon
+        name="i-lucide-calendar-x"
+        class="mx-auto mb-2 size-8 text-neutral-400"
+      />
+      <p>Aucun créneau disponible pour le moment.</p>
     </div>
 
     <div
       v-else
-      class="grid gap-6 lg:grid-cols-[3fr,2fr] lg:items-start"
+      class="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-start"
     >
-      <div class="rounded-blob-b border border-[rgba(28,25,23,0.10)] bg-white/75 p-5 shadow-soft backdrop-blur">
+      <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
         <CalendarMonthView
           v-model="selectedDate"
           v-model:visible-month="visibleMonth"
@@ -213,9 +218,9 @@ function onSelectSlot(slot: TimeSlot) {
         />
       </div>
 
-      <div class="rounded-blob-a border border-[rgba(28,25,23,0.10)] bg-white/75 p-5 shadow-soft backdrop-blur">
+      <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
         <TimeSlotGrid
-          :title="selectedDateLabel ? `Disponibilités pour ${selectedDateLabel}` : 'Sélectionnez un jour'"
+          :title="selectedDateLabel ? `${selectedDateLabel}` : 'Sélectionnez un jour'"
           :slots="selectedDaySlots"
           :selected-start-at="selectedStartAt"
           :time-zone="timeZone"

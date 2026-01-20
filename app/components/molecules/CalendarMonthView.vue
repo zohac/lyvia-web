@@ -142,49 +142,41 @@ function formatAriaDateLabel(ymd: string): string {
   <section class="grid gap-4">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-0.5">
-        <h3 class="font-semibold text-[color:var(--color-brand-primary)]">
+        <h3 class="font-semibold capitalize text-neutral-900">
           {{ monthLabel }}
         </h3>
-        <p class="text-xs text-[color:var(--color-brand-secondary)]">
-          Horaires affichés : {{ timezoneLabel }}
+        <p class="text-xs text-neutral-500">
+          {{ timezoneLabel }}
         </p>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] text-[color:var(--color-brand-secondary)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-surface-highlight)] disabled:cursor-not-allowed disabled:opacity-50"
+      <div class="flex items-center gap-1">
+        <UButton
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          icon="i-lucide-chevron-left"
           :disabled="!canGoPrev || isLoading"
           aria-label="Mois précédent"
           @click="onPrevMonth"
-        >
-          <Icon
-            name="lucide:chevron-left"
-            size="18"
-            aria-hidden="true"
-          />
-        </button>
-        <button
-          type="button"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] text-[color:var(--color-brand-secondary)] transition-colors duration-150 ease-in-out hover:bg-[color:var(--color-surface-highlight)] disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        <UButton
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          icon="i-lucide-chevron-right"
           :disabled="!canGoNext || isLoading"
           aria-label="Mois suivant"
           @click="onNextMonth"
-        >
-          <Icon
-            name="lucide:chevron-right"
-            size="18"
-            aria-hidden="true"
-          />
-        </button>
+        />
       </div>
     </div>
 
-    <div class="grid grid-cols-7 gap-2 text-center text-xs font-semibold text-[color:var(--color-brand-secondary)]">
+    <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-neutral-500">
       <span
         v-for="(label, index) in weekdayLabels"
         :key="index"
-        class="py-1"
+        class="py-2"
         aria-hidden="true"
       >
         {{ label }}
@@ -192,7 +184,7 @@ function formatAriaDateLabel(ymd: string): string {
     </div>
 
     <div
-      class="grid grid-cols-7 gap-2"
+      class="grid grid-cols-7 gap-1"
       role="grid"
       aria-label="Calendrier des disponibilités"
     >
@@ -200,18 +192,18 @@ function formatAriaDateLabel(ymd: string): string {
         v-for="d in days"
         :key="d.ymd"
         type="button"
-        class="h-11 rounded-[var(--radius-sm)] text-sm font-semibold transition-colors duration-150 ease-in-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(200,121,100,0.2)]"
-        :class="
+        class="flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-all duration-150"
+        :class="[
           !d.inMonth
-            ? 'text-transparent'
+            ? 'pointer-events-none text-transparent'
             : d.disabled
-              ? 'cursor-not-allowed bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-secondary)] opacity-40'
+              ? 'cursor-not-allowed text-neutral-300'
               : modelValue === d.ymd
-                ? 'bg-[color:var(--color-accent-main)] text-[color:var(--color-accent-contrast)]'
+                ? 'bg-crepuscule-600 text-white shadow-sm'
                 : availableDates.has(d.ymd)
-                  ? 'bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-primary)] hover:bg-[color:var(--color-surface-highlight)]'
-                  : 'bg-white/60 text-[color:var(--color-brand-muted)] hover:bg-[color:var(--color-surface-highlight)]'
-        "
+                  ? 'bg-crepuscule-50 text-crepuscule-700 hover:bg-crepuscule-100'
+                  : 'text-neutral-400 hover:bg-neutral-100'
+        ]"
         :disabled="d.disabled || isLoading"
         role="gridcell"
         :aria-current="modelValue === d.ymd ? 'date' : undefined"

@@ -66,7 +66,7 @@ watchEffect(() => {
       showBrandIcon: false,
       navLinks: [
         { label: 'L\'Essence', href: '#essence' },
-        { label: 'Guide', href: '#sophie' },
+        { label: 'L\'Approche', href: '#approche' },
         { label: 'Parcours', href: '#parcours' }
       ],
       loginLabel: 'Espace cliente',

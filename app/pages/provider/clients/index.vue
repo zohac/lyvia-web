@@ -1,7 +1,7 @@
 <template>
   <section class="grid gap-6">
     <UCard
-      variant="organic"
+      variant="soft"
       class="rounded-blob-b"
     >
       <div class="flex flex-wrap items-start justify-between gap-4">
@@ -64,8 +64,7 @@
       <UCard
         v-for="index in 4"
         :key="`skeleton-${index}`"
-        variant="ops"
-        density="tight"
+        variant="subtle"
         class="rounded-blob-a"
       >
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -83,7 +82,7 @@
 
     <UCard
       v-else-if="clients.length === 0"
-      variant="organic"
+      variant="soft"
       class="rounded-blob-c"
     >
       <div class="grid gap-2 text-sm text-[color:var(--color-brand-secondary)]">
@@ -103,8 +102,7 @@
       <UCard
         v-for="client in clients"
         :key="client.clientProfileId"
-        variant="ops"
-        density="tight"
+        variant="subtle"
         class="rounded-blob-a"
       >
         <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

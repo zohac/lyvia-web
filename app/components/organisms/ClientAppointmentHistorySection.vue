@@ -1,6 +1,6 @@
 <template>
   <UCard
-    variant="ops"
+    variant="subtle"
     class="rounded-blob-c"
   >
     <!-- Collapsible header -->

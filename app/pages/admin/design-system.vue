@@ -585,7 +585,7 @@
               <div class="grid gap-6 lg:grid-cols-2">
                 <!-- Organic Cozy -->
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   class="rounded-blob-b"
                 >
                   <template #header>
@@ -625,7 +625,7 @@
 
                 <!-- Organic KPI -->
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   class="rounded-blob-a"
                 >
                   <template #header>
@@ -665,7 +665,7 @@
               <div class="grid gap-6 lg:grid-cols-2">
                 <!-- Organic Interactive with corner-blob feel -->
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   :interactive="true"
                   class="rounded-blob-b"
                 >
@@ -719,7 +719,7 @@
 
                 <!-- Ink CTA Card -->
                 <UCard
-                  variant="ink"
+                  variant="solid"
                   :interactive="true"
                   class="rounded-blob-b"
                 >
@@ -771,7 +771,7 @@
                 <div class="grid gap-6 lg:grid-cols-2">
                   <!-- Glass Sidebar -->
                   <UCard
-                    variant="glass"
+                    variant="outline"
                     class="rounded-blob-b"
                   >
                     <template #header>
@@ -787,7 +787,7 @@
                     <div class="space-y-4">
                       <!-- Nested organic card -->
                       <UCard
-                        variant="organic"
+                        variant="soft"
                         density="compact"
                         class="rounded-blob-c"
                       >
@@ -805,7 +805,7 @@
 
                       <!-- Interactive nested card -->
                       <UCard
-                        variant="organic"
+                        variant="soft"
                         density="compact"
                         :interactive="true"
                         class="rounded-blob-a"
@@ -833,7 +833,7 @@
 
                   <!-- Glass Interactive -->
                   <UCard
-                    variant="glass"
+                    variant="outline"
                     :interactive="true"
                     class="rounded-blob-d"
                   >
@@ -868,7 +868,7 @@
               <div class="space-y-3">
                 <!-- Ops Brand Rail - Planifié -->
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :interactive="true"
                   :rail="true"
@@ -919,7 +919,7 @@
 
                 <!-- Ops Success Rail - Terminé -->
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :rail="true"
                   rail-color="success"
@@ -955,7 +955,7 @@
 
                 <!-- Ops Warning Rail -->
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :rail="true"
                   rail-color="warning"
@@ -991,7 +991,7 @@
 
                 <!-- Ops Error Rail - Annulé (disabled) -->
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :disabled="true"
                   :rail="true"
@@ -1039,7 +1039,7 @@
 
               <div class="grid gap-6 lg:grid-cols-3">
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   density="cozy"
                   class="rounded-blob-b"
                 >
@@ -1054,7 +1054,7 @@
                 </UCard>
 
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   density="compact"
                   class="rounded-blob-b"
                 >
@@ -1069,7 +1069,7 @@
                 </UCard>
 
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   density="tight"
                   class="rounded-blob-b"
                 >
@@ -1096,7 +1096,7 @@
 
               <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   density="compact"
                   class="rounded-blob-a"
                 >
@@ -1111,7 +1111,7 @@
                 </UCard>
 
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   density="compact"
                   class="rounded-blob-b"
                 >
@@ -1126,7 +1126,7 @@
                 </UCard>
 
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   density="compact"
                   class="rounded-blob-c"
                 >
@@ -1141,7 +1141,7 @@
                 </UCard>
 
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   density="compact"
                   class="rounded-blob-d"
                 >
@@ -1168,7 +1168,7 @@
 
               <div class="grid gap-6 lg:grid-cols-2">
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   :interactive="true"
                   class="rounded-blob-b"
                 >
@@ -1185,7 +1185,7 @@
                 </UCard>
 
                 <UCard
-                  variant="organic"
+                  variant="soft"
                   :disabled="true"
                   class="rounded-blob-b"
                 >
@@ -1212,7 +1212,7 @@
 
               <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :rail="true"
                   rail-color="neutral"
@@ -1223,7 +1223,7 @@
                   </p>
                 </UCard>
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :rail="true"
                   rail-color="brand"
@@ -1234,7 +1234,7 @@
                   </p>
                 </UCard>
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :rail="true"
                   rail-color="success"
@@ -1245,7 +1245,7 @@
                   </p>
                 </UCard>
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :rail="true"
                   rail-color="warning"
@@ -1256,7 +1256,7 @@
                   </p>
                 </UCard>
                 <UCard
-                  variant="ops"
+                  variant="subtle"
                   density="tight"
                   :rail="true"
                   rail-color="error"

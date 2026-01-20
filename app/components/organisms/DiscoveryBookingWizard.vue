@@ -12,10 +12,10 @@ import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { createUuidV4, isUuid } from '../../utils/uuid'
 import { ApiFetchError } from '../../services/api/api-error'
 import { apiFetch } from '../../services/api/apiFetch'
+import BookingSidebar from '../molecules/BookingSidebar.vue'
 import BookingSummary from '../molecules/BookingSummary.vue'
 import IdentityForm from '../molecules/IdentityForm.vue'
 import SlotPicker from './SlotPicker.vue'
-import SystemAlert from '../atoms/SystemAlert.vue'
 
 type WizardStep = 1 | 2 | 3
 
@@ -23,10 +23,6 @@ type FormErrors = Partial<Record<'firstname' | 'lastname' | 'email' | 'phone' | 
 
 const props = withDefaults(
   defineProps<{
-    /**
-     * Platform route: `/coach/:slug/onboarding/discovery`
-     * Custom domain route: `/onboarding/discovery` (slug resolved via host).
-     */
     slug?: string
   }>(),
   {
@@ -83,10 +79,23 @@ const coachInitials = computed(() => {
   return initials || 'K'
 })
 
-const progressWidth = computed(() => {
-  const percent = (step.value / 3) * 100
-  return `${Math.min(100, Math.max(0, percent))}%`
-})
+const stepperItems = computed(() => [
+  {
+    title: 'Créneau',
+    description: 'Choisissez un moment',
+    icon: 'i-lucide-calendar'
+  },
+  {
+    title: 'Informations',
+    description: 'Vos coordonnées',
+    icon: 'i-lucide-user'
+  },
+  {
+    title: 'Confirmation',
+    description: 'C\'est réservé !',
+    icon: 'i-lucide-check'
+  }
+])
 
 function getTenantStorageKey(): string {
   if (import.meta.server) return STORAGE_KEY_PREFIX
@@ -299,7 +308,7 @@ function validateIdentity(): boolean {
 
   if (!identity.value.firstname.trim()) errors.firstname = 'Le prénom est requis.'
   if (!identity.value.lastname.trim()) errors.lastname = 'Le nom est requis.'
-  if (!identity.value.email.trim()) errors.email = 'L’email est requis.'
+  if (!identity.value.email.trim()) errors.email = 'L\'email est requis.'
   if (!identity.value.phone.trim()) errors.phone = 'Le téléphone est requis.'
   if (!consents.value.legalAccepted) errors.legalAccepted = 'Veuillez accepter les conditions pour continuer.'
 
@@ -416,272 +425,337 @@ async function submitBooking() {
 
 <template>
   <div class="w-full">
-    <div class="mx-auto grid w-full max-w-5xl gap-8">
-      <header class="grid justify-items-center gap-5 text-center">
-        <ULink
-          to="/"
-          aria-label="Retour à l’accueil"
-          class="inline-flex items-center justify-center"
+    <!-- Header -->
+    <header class="mb-8 text-center">
+      <ULink
+        to="/"
+        aria-label="Retour à l'accueil"
+        class="mb-6 inline-block"
+      >
+        <img
+          src="/images/kaora-logo.png"
+          alt="Kaora"
+          class="h-10 w-auto"
+          decoding="async"
         >
-          <img
-            src="/images/kaora-logo.png"
-            alt="Kaora"
-            class="h-10 w-auto"
-            decoding="async"
-          >
-        </ULink>
+      </ULink>
 
-        <div class="grid gap-2">
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--color-brand-muted)]">
-            Appel découverte
-          </p>
-          <h1 class="font-serif text-[2.2rem] font-bold leading-[var(--leading-tight)] tracking-[-0.01em] text-[color:var(--color-brand-primary)] sm:text-[2.75rem]">
-            Votre appel découverte gratuit
-          </h1>
-          <p class="text-base text-[color:var(--color-brand-secondary)]">
-            15 minutes pour faire le point, sans engagement.
-          </p>
-        </div>
+      <h1 class="font-serif text-3xl font-normal text-neutral-900 sm:text-4xl">
+        Réservez votre appel découverte
+      </h1>
+      <p class="mt-2 text-neutral-500">
+        {{ durationMinutes }} minutes pour faire le point, gratuitement.
+      </p>
+    </header>
 
-        <div
-          v-if="tenant"
-          class="inline-flex items-center gap-3 rounded-full border border-white/60 bg-white/80 px-4 py-2 shadow-soft backdrop-blur"
-          aria-label="Coach sélectionné"
+    <!-- Stepper -->
+    <div class="mx-auto mb-8 max-w-2xl">
+      <UStepper
+        :model-value="step"
+        :items="stepperItems"
+        color="primary"
+        size="md"
+        :disabled="true"
+        class="w-full"
+      />
+    </div>
+
+    <!-- Loading state -->
+    <div
+      v-if="isLoadingTenant"
+      class="flex items-center justify-center gap-3 py-20 text-neutral-500"
+    >
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="size-5 animate-spin"
+      />
+      <span>Chargement...</span>
+    </div>
+
+    <!-- Main content -->
+    <div
+      v-else-if="tenant"
+      class="grid gap-8 lg:grid-cols-[280px_1fr] lg:items-start"
+    >
+      <!-- Sidebar - Desktop only -->
+      <div class="hidden lg:block">
+        <UCard
+          class="sticky top-8"
+          :ui="{ body: 'p-6' }"
         >
-          <div class="flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--color-brand-solid)] text-sm font-bold text-[color:var(--color-brand-primary)]">
-            {{ coachInitials }}
-          </div>
-          <div class="grid gap-0.5 text-left">
-            <p class="text-sm font-semibold text-[color:var(--color-brand-primary)]">
-              {{ coachName }}
-            </p>
-            <p class="text-xs text-[color:var(--color-brand-secondary)]">
-              Fuseau : {{ timeZone }} • Durée : {{ durationMinutes }} min
-            </p>
-          </div>
-        </div>
-      </header>
-
-      <div class="relative w-full overflow-hidden rounded-none bg-[color:var(--color-surface-card)] shadow-none sm:rounded-[var(--radius-organic)] sm:border sm:border-white/60 sm:shadow-soft">
-        <div class="h-1 w-full bg-[color:var(--color-surface-highlight)]">
-          <div
-            class="h-full bg-[color:var(--color-brand-solid)] transition-base"
-            :style="{ width: progressWidth }"
+          <BookingSidebar
+            :coach-name="coachName"
+            :coach-initials="coachInitials"
+            :timezone="timeZone"
+            :duration-minutes="durationMinutes"
+            :selected-slot-start-at="selectedSlotStartAt"
           />
-        </div>
+        </UCard>
+      </div>
 
-        <div class="p-6 sm:p-10">
-          <SystemAlert
-            v-if="systemError"
-            variant="error"
-            :description="systemError"
-          />
+      <!-- Mobile summary card -->
+      <div class="lg:hidden">
+        <UCard
+          :ui="{ body: 'p-4' }"
+          class="mb-6"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <UAvatar
+                :text="coachInitials"
+                size="sm"
+                class="bg-crepuscule-100 text-crepuscule-700"
+              />
+              <div>
+                <p class="font-medium text-neutral-900">
+                  {{ coachName }}
+                </p>
+                <p class="text-xs text-neutral-500">
+                  {{ durationMinutes }} min · Gratuit
+                </p>
+              </div>
+            </div>
+            <UBadge
+              v-if="selectedSlotStartAt"
+              color="primary"
+              variant="soft"
+              size="xs"
+            >
+              Créneau choisi
+            </UBadge>
+          </div>
+        </UCard>
+      </div>
 
-          <div
-            v-if="isLoadingTenant"
-            class="mt-6 flex items-center gap-3 rounded-blob-d bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-secondary)]"
-            role="status"
-            aria-live="polite"
+      <!-- Step content -->
+      <div>
+        <!-- System error -->
+        <UAlert
+          v-if="systemError"
+          color="error"
+          variant="soft"
+          :title="systemError"
+          icon="i-lucide-alert-circle"
+          class="mb-6"
+          :close-button="{ icon: 'i-lucide-x', color: 'error', variant: 'link' }"
+          @close="systemError = null"
+        />
+
+        <Transition
+          name="wizard-step"
+          mode="out-in"
+        >
+          <!-- Step 1: Slot selection -->
+          <UCard
+            v-if="step === 1"
+            key="step-1"
+            :ui="{ body: 'p-6 sm:p-8' }"
           >
-            <Icon
-              name="lucide:loader-circle"
-              size="18"
-              class="animate-spin text-[color:var(--color-accent-main)]"
-              aria-hidden="true"
+            <div class="mb-6">
+              <h2 class="text-xl font-semibold text-neutral-900">
+                Choisissez votre moment
+              </h2>
+              <p class="mt-1 text-sm text-neutral-500">
+                Sélectionnez une date puis un créneau disponible.
+              </p>
+            </div>
+
+            <SlotPicker
+              v-model:date="selectedDate"
+              v-model:visible-month="visibleMonth"
+              :slots="availability?.slots ?? []"
+              :selected-start-at="selectedSlotStartAt"
+              :min-date="minDate"
+              :max-date="maxDate"
+              :time-zone="timeZone"
+              :timezone-label="timeZone"
+              :is-loading="isLoadingAvailability"
+              @select="onSelectSlot"
             />
-            <span>Chargement du coach…</span>
-          </div>
 
-          <Transition
-            name="wizard-step"
-            mode="out-in"
+            <!-- Desktop CTA -->
+            <div class="mt-8 hidden sm:block">
+              <UButton
+                size="lg"
+                color="primary"
+                :disabled="!selectedSlotStartAt || isLoadingAvailability"
+                @click="goToIdentityStep"
+              >
+                Continuer
+                <template #trailing>
+                  <UIcon name="i-lucide-arrow-right" />
+                </template>
+              </UButton>
+            </div>
+
+            <!-- Mobile fixed CTA -->
+            <div class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white p-4 sm:hidden">
+              <UButton
+                size="lg"
+                color="primary"
+                block
+                :disabled="!selectedSlotStartAt || isLoadingAvailability"
+                @click="goToIdentityStep"
+              >
+                Continuer
+              </UButton>
+            </div>
+
+            <!-- Spacer for mobile fixed button -->
+            <div class="h-20 sm:hidden" />
+          </UCard>
+
+          <!-- Step 2: Identity form -->
+          <UCard
+            v-else-if="step === 2"
+            key="step-2"
+            :ui="{ body: 'p-6 sm:p-8' }"
           >
-            <section
-              v-if="step === 1 && tenant"
-              key="step-1"
-              class="mt-8 grid gap-6 pb-24 sm:pb-0"
-              aria-label="Étape 1 : choix du créneau"
-            >
-              <div class="grid gap-1">
-                <h2 class="font-serif text-[1.6rem] font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
-                  Choisissez votre moment
-                </h2>
-                <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                  Sélectionnez une date puis un créneau disponible.
-                </p>
-              </div>
-
-              <div class="grid gap-6">
-                <SlotPicker
-                  v-model:date="selectedDate"
-                  v-model:visible-month="visibleMonth"
-                  :slots="availability?.slots ?? []"
-                  :selected-start-at="selectedSlotStartAt"
-                  :min-date="minDate"
-                  :max-date="maxDate"
-                  :time-zone="timeZone"
-                  :timezone-label="timeZone"
-                  :is-loading="isLoadingAvailability"
-                  @select="onSelectSlot"
-                />
-
-                <div class="hidden sm:block">
-                  <UButton
-                    type="button"
-                    label="Continuer"
-                    :disabled="!selectedSlotStartAt || isLoadingAvailability"
-                    @click="goToIdentityStep"
-                  />
+            <div class="mx-auto max-w-lg">
+              <div class="mb-6 flex items-start justify-between">
+                <div>
+                  <h2 class="text-xl font-semibold text-neutral-900">
+                    Vos informations
+                  </h2>
+                  <p class="mt-1 text-sm text-neutral-500">
+                    Pour confirmer votre réservation.
+                  </p>
                 </div>
-              </div>
-
-              <div class="sm:hidden">
-                <div class="fixed inset-x-0 bottom-0 z-50 px-4 pb-[env(safe-area-inset-bottom)]">
-                  <div class="glass-panel rounded-blob-d p-4 shadow-floating">
-                    <UButton
-                      type="button"
-                      label="Continuer"
-                      :disabled="!selectedSlotStartAt || isLoadingAvailability"
-                      @click="goToIdentityStep"
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section
-              v-else-if="step === 2 && tenant"
-              key="step-2"
-              class="mt-8 grid gap-8"
-              aria-label="Étape 2 : informations"
-            >
-              <div class="mx-auto grid w-full max-w-lg gap-6">
-                <div class="flex items-start justify-between gap-4">
-                  <div class="grid gap-1">
-                    <h2 class="font-serif text-[1.6rem] font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
-                      Vos informations
-                    </h2>
-                    <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                      Gratuit et sans engagement.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    class="inline-flex items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
-                    :disabled="isSubmitting"
-                    @click="goToStep(1)"
-                  >
-                    <Icon
-                      name="lucide:arrow-left"
-                      size="16"
-                      aria-hidden="true"
-                    />
-                    Retour
-                  </button>
-                </div>
-
-                <BookingSummary
-                  v-if="selectedSlotStartAt"
-                  :scheduled-at="selectedSlotStartAt"
-                  :time-zone="timeZone"
-                  :duration-minutes="durationMinutes"
-                  @edit="goToStep(1)"
-                />
-
-                <IdentityForm
-                  v-model="identity"
-                  :consents="consents"
-                  :errors="formErrors"
-                  :disabled="isSubmitting"
-                  @update:consents="updateConsents"
-                />
-
                 <UButton
-                  type="button"
-                  label="Confirmer mon appel"
-                  loading-label="Confirmation en cours…"
-                  :loading="isSubmitting"
+                  variant="ghost"
+                  color="neutral"
+                  size="sm"
                   :disabled="isSubmitting"
-                  @click="submitBooking"
-                />
-
-                <p class="text-center text-xs text-[color:var(--color-brand-secondary)]">
-                  Une confirmation vous sera envoyée par email. Pensez à vérifier vos spams.
-                </p>
-              </div>
-            </section>
-
-            <section
-              v-else-if="step === 3 && tenant"
-              key="step-3"
-              class="mt-8 grid gap-8"
-              aria-label="Étape 3 : succès"
-            >
-              <div
-                v-if="booking"
-                class="mx-auto grid w-full max-w-lg gap-6"
-                role="status"
-                aria-live="polite"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(181,192,163,0.18)]">
-                    <Icon
-                      name="lucide:check"
-                      size="18"
-                      class="text-[color:var(--color-success)]"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <div class="grid gap-0.5">
-                    <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                      C’est noté, {{ identity.firstname || 'merci' }} !
-                    </p>
-                    <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                      Votre appel découverte est confirmé.
-                    </p>
-                  </div>
-                </div>
-
-                <div class="rounded-blob-d bg-[color:var(--color-surface-highlight)] p-5">
-                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                    Date
-                  </p>
-                  <p class="mt-1 text-base font-semibold text-[color:var(--color-brand-primary)]">
-                    {{ formatConfirmationDate(booking.scheduledAt) }}
-                  </p>
-                  <p class="mt-3 text-sm text-[color:var(--color-brand-secondary)]">
-                    Une confirmation vient d’être envoyée à <span class="font-semibold">{{ identity.email }}</span>.
-                    Pensez à vérifier votre dossier Spam si vous ne recevez rien dans les prochaines minutes.
-                  </p>
-                </div>
-
-                <ULink
-                  to="/"
-                  class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
-                >
-                  Retour à l’accueil
-                </ULink>
-              </div>
-
-              <div
-                v-else
-                class="mx-auto grid w-full max-w-lg gap-6"
-              >
-                <SystemAlert
-                  variant="error"
-                  description="Impossible d’afficher la confirmation pour le moment."
-                />
-
-                <UButton
-                  type="button"
-                  label="Revenir au début"
                   @click="goToStep(1)"
+                >
+                  <UIcon name="i-lucide-arrow-left" />
+                  Retour
+                </UButton>
+              </div>
+
+              <BookingSummary
+                v-if="selectedSlotStartAt"
+                :scheduled-at="selectedSlotStartAt"
+                :time-zone="timeZone"
+                :duration-minutes="durationMinutes"
+                class="mb-6"
+                @edit="goToStep(1)"
+              />
+
+              <IdentityForm
+                v-model="identity"
+                :consents="consents"
+                :errors="formErrors"
+                :disabled="isSubmitting"
+                @update:consents="updateConsents"
+              />
+
+              <UButton
+                size="lg"
+                color="primary"
+                class="mt-8"
+                block
+                :loading="isSubmitting"
+                :disabled="isSubmitting"
+                @click="submitBooking"
+              >
+                Confirmer mon appel
+              </UButton>
+
+              <p class="mt-4 text-center text-xs text-neutral-500">
+                Une confirmation vous sera envoyée par email.
+              </p>
+            </div>
+          </UCard>
+
+          <!-- Step 3: Confirmation -->
+          <UCard
+            v-else-if="step === 3"
+            key="step-3"
+            :ui="{ body: 'p-6 sm:p-8' }"
+          >
+            <div
+              v-if="booking"
+              class="mx-auto max-w-lg text-center"
+            >
+              <div class="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-success-100">
+                <UIcon
+                  name="i-lucide-check"
+                  class="size-8 text-success-600"
                 />
               </div>
-            </section>
-          </Transition>
-        </div>
+
+              <h2 class="text-2xl font-semibold text-neutral-900">
+                C'est confirmé{{ identity.firstname ? `, ${identity.firstname}` : '' }} !
+              </h2>
+              <p class="mt-2 text-neutral-500">
+                Votre appel découverte est réservé.
+              </p>
+
+              <UCard
+                class="mt-8 text-left"
+                :ui="{ body: 'p-5' }"
+                variant="soft"
+              >
+                <div class="flex items-start gap-4">
+                  <UIcon
+                    name="i-lucide-calendar-check"
+                    class="size-6 shrink-0 text-crepuscule-600"
+                  />
+                  <div>
+                    <p class="font-semibold capitalize text-neutral-900">
+                      {{ formatConfirmationDate(booking.scheduledAt) }}
+                    </p>
+                    <p class="mt-1 text-sm text-neutral-500">
+                      Avec {{ coachName }} · {{ durationMinutes }} min
+                    </p>
+                  </div>
+                </div>
+              </UCard>
+
+              <UAlert
+                class="mt-6 text-left"
+                color="info"
+                variant="soft"
+                icon="i-lucide-mail"
+              >
+                <template #title>
+                  Confirmation envoyée à <strong>{{ identity.email }}</strong>
+                </template>
+                <template #description>
+                  Vérifiez votre dossier spam si vous ne recevez rien.
+                </template>
+              </UAlert>
+
+              <UButton
+                to="/"
+                variant="ghost"
+                color="neutral"
+                class="mt-8"
+              >
+                Retour à l'accueil
+              </UButton>
+            </div>
+
+            <div
+              v-else
+              class="py-8 text-center"
+            >
+              <UAlert
+                color="error"
+                variant="soft"
+                title="Impossible d'afficher la confirmation"
+                icon="i-lucide-alert-circle"
+              />
+              <UButton
+                class="mt-6"
+                @click="goToStep(1)"
+              >
+                Recommencer
+              </UButton>
+            </div>
+          </UCard>
+        </Transition>
       </div>
     </div>
   </div>
@@ -690,12 +764,16 @@ async function submitBooking() {
 <style scoped>
 .wizard-step-enter-active,
 .wizard-step-leave-active {
-  transition: opacity var(--duration-normal) var(--ease-smooth), transform var(--duration-normal) var(--ease-smooth);
+  transition: opacity 200ms ease, transform 200ms ease;
 }
 
-.wizard-step-enter-from,
+.wizard-step-enter-from {
+  opacity: 0;
+  transform: translateX(16px);
+}
+
 .wizard-step-leave-to {
   opacity: 0;
-  transform: translateX(10px);
+  transform: translateX(-16px);
 }
 </style>
