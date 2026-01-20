@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import SystemAlert from '../../../components/atoms/SystemAlert.vue'
 import ProviderCreateConsultationPricePlanModal from '../../../components/organisms/ProviderCreateConsultationPricePlanModal.vue'
 import { useProviderConsultationPricing } from '../../../features/pricing/useProviderConsultationPricing'
 import type { ComponentPublicInstance } from 'vue'
@@ -21,11 +20,12 @@ const currencyFormatter = new Intl.NumberFormat('fr-FR', {
 type DisplayPlan = {
   id: string
   label: string
+  durationMinutes: number
   durationLabel: string
+  amountCents: number
   amountLabel: string
   isActive: boolean
   sortOrder: number
-  orderLabel: string
   index: number
   canMoveUp: boolean
   canMoveDown: boolean
@@ -40,11 +40,12 @@ const displayPlans = computed<DisplayPlan[]>(() => {
     return {
       id: plan.id,
       label: plan.label,
+      durationMinutes: plan.durationMinutes,
       durationLabel: `${plan.durationMinutes} min`,
+      amountCents: plan.amountCents,
       amountLabel: currencyFormatter.format(plan.amountCents / 100),
       isActive: plan.isActive,
       sortOrder: plan.sortOrder,
-      orderLabel: `#${plan.sortOrder}`,
       index,
       canMoveUp: Boolean(prev),
       canMoveDown: Boolean(next),
@@ -63,22 +64,6 @@ const suggestedSortOrder = computed(() => {
 const isCreateModalOpen = ref(false)
 const highlightedPlanId = ref<string | null>(null)
 const planRefs = new Map<string, HTMLElement>()
-
-const updateNotice = computed(() => pricing.updateErrorMessage.value)
-
-function statusPillClasses(isActive: boolean): string {
-  if (isActive) {
-    return 'border-[rgba(74,124,89,0.35)] bg-[rgba(74,124,89,0.12)] text-[color:var(--color-brand-primary)]'
-  }
-  return 'border-[rgba(148,139,132,0.35)] bg-[rgba(148,139,132,0.10)] text-[color:var(--color-brand-secondary)]'
-}
-
-function orderPillClasses(isActive: boolean): string {
-  if (isActive) {
-    return 'border-[rgba(178,120,88,0.35)] bg-[rgba(178,120,88,0.10)] text-[color:var(--color-brand-primary)]'
-  }
-  return 'border-[rgba(178,120,88,0.22)] bg-[rgba(178,120,88,0.06)] text-[color:var(--color-brand-secondary)]'
-}
 
 function setPlanRef(planId: string, value: Element | ComponentPublicInstance | null) {
   if (value instanceof HTMLElement) {
@@ -144,7 +129,7 @@ async function onToggleActive(plan: DisplayPlan, nextActive: boolean) {
     toast.add({
       title: 'Action impossible',
       description: pricing.updateErrorMessage.value ?? 'Impossible de mettre à jour le tarif.',
-      color: 'primary'
+      color: 'error'
     })
     return
   }
@@ -165,7 +150,7 @@ async function onMove(plan: DisplayPlan, direction: 'up' | 'down') {
     toast.add({
       title: 'Action impossible',
       description: pricing.updateErrorMessage.value ?? 'Impossible de réordonner les tarifs.',
-      color: 'primary'
+      color: 'error'
     })
     return
   }
@@ -187,170 +172,212 @@ async function onMove(plan: DisplayPlan, direction: 'up' | 'down') {
 </script>
 
 <template>
-  <section class="grid gap-8">
-    <div class="flex flex-wrap items-center justify-between gap-3">
+  <div class="space-y-8">
+    <!-- Page header -->
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="font-serif text-3xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]">
+        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
           Tarifs consultation
         </h1>
-        <p class="mt-2 max-w-2xl text-sm text-[color:var(--color-brand-secondary)]">
-          Gérez vos tarifs (durée + prix) et leur ordre d’affichage dans le parcours cliente.
+        <p class="mt-1 text-stone-500">
+          Gérez vos tarifs (durée + prix) et leur ordre d'affichage dans le parcours cliente.
         </p>
       </div>
-
-      <div class="flex flex-wrap items-center justify-end gap-3">
+      <div class="flex items-center gap-3">
         <UButton
+          variant="outline"
           color="neutral"
-          variant="ghost"
-          class="rounded-full"
           :loading="pricing.pending.value"
           @click="pricing.refresh"
         >
-          Rafraîchir
+          <UIcon name="lucide:refresh-cw" class="mr-2 h-4 w-4" />
+          Actualiser
         </UButton>
         <UButton
           color="primary"
-          class="rounded-full px-6"
           @click="openCreateModal"
         >
+          <UIcon name="lucide:plus" class="mr-2 h-4 w-4" />
           Créer un tarif
         </UButton>
       </div>
-    </div>
+    </header>
 
-    <SystemAlert
-      variant="info"
+    <!-- Info alert -->
+    <UAlert
+      color="info"
+      variant="soft"
       title="Règle produit"
-      description="Pour changer un prix ou une durée, créez un nouveau tarif puis désactivez l’ancien. Les tarifs inactifs n’apparaissent jamais côté cliente."
+      description="Pour changer un prix ou une durée, créez un nouveau tarif puis désactivez l'ancien. Les tarifs inactifs n'apparaissent jamais côté cliente."
+      icon="i-lucide-info"
     />
 
-    <SystemAlert
+    <!-- Error alerts -->
+    <UAlert
       v-if="pricing.errorMessage.value"
-      variant="error"
+      color="error"
+      variant="soft"
       title="Impossible de charger les tarifs"
       :description="pricing.errorMessage.value"
+      icon="i-lucide-alert-circle"
     />
 
-    <SystemAlert
-      v-else-if="updateNotice"
-      variant="error"
+    <UAlert
+      v-else-if="pricing.updateErrorMessage.value"
+      color="error"
+      variant="soft"
       title="Mise à jour impossible"
-      :description="updateNotice"
+      :description="pricing.updateErrorMessage.value"
+      icon="i-lucide-alert-circle"
     />
 
+    <!-- Loading skeleton -->
     <div
       v-else-if="pricing.pending.value"
-      class="grid gap-4"
-      role="status"
-      aria-live="polite"
+      class="space-y-4"
     >
-      <div class="h-24 rounded-blob-a bg-[color:var(--color-surface-highlight)]" />
-      <div class="h-24 rounded-blob-b bg-[color:var(--color-surface-highlight)]" />
+      <USkeleton
+        v-for="i in 2"
+        :key="i"
+        class="h-32 w-full"
+      />
     </div>
 
-    <div
+    <!-- Empty state -->
+    <UCard
       v-else-if="displayPlans.length === 0"
-      class="rounded-blob-c border border-[rgba(231,229,228,0.85)] bg-white/70 p-6 text-sm text-[color:var(--color-brand-secondary)]"
+      class="bg-white"
     >
-      Aucun tarif n’a été configuré pour le moment.
-    </div>
+      <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
+        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
+          <UIcon name="lucide:tag" class="h-8 w-8 text-stone-400" />
+        </div>
+        <div>
+          <p class="font-medium text-stone-900">Aucun tarif configuré</p>
+          <p class="mt-1 text-sm text-stone-500">
+            Créez votre premier tarif pour commencer à recevoir des consultations.
+          </p>
+        </div>
+        <UButton color="primary" @click="openCreateModal">
+          <UIcon name="lucide:plus" class="mr-2 h-4 w-4" />
+          Créer un tarif
+        </UButton>
+      </div>
+    </UCard>
 
+    <!-- Plans list -->
     <div
       v-else
-      class="grid gap-3"
+      class="space-y-4"
     >
-      <article
+      <UCard
         v-for="plan in displayPlans"
         :key="plan.id"
         :ref="(el) => setPlanRef(plan.id, el)"
-        class="grid gap-4 rounded-blob-c border border-[rgba(231,229,228,0.85)] bg-white/75 p-6 shadow-soft"
-        :class="plan.id === highlightedPlanId ? 'ring-2 ring-[rgba(178,120,88,0.35)] ring-offset-2 ring-offset-[color:var(--color-surface)]' : ''"
+        class="bg-white transition-all"
+        :class="plan.id === highlightedPlanId ? 'ring-2 ring-crepuscule-400 ring-offset-2' : ''"
       >
-        <div class="grid gap-3">
+        <div class="space-y-4">
+          <!-- Plan header -->
           <div class="flex flex-wrap items-start justify-between gap-4">
             <div class="flex min-w-0 flex-wrap items-center gap-3">
-              <h2 class="text-sm font-semibold text-[color:var(--color-brand-primary)]">
+              <h2 class="font-semibold text-stone-900">
                 {{ plan.label }}
               </h2>
 
-              <span
-                class="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
-                :class="orderPillClasses(plan.isActive)"
-                title="Ordre côté cliente (backend)"
+              <UBadge
+                color="primary"
+                variant="soft"
+                size="sm"
               >
-                {{ plan.orderLabel }}
-              </span>
+                #{{ plan.sortOrder }}
+              </UBadge>
 
-              <span
-                class="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
-                :class="statusPillClasses(plan.isActive)"
+              <UBadge
+                :color="plan.isActive ? 'success' : 'neutral'"
+                variant="soft"
+                size="sm"
               >
+                <UIcon
+                  :name="plan.isActive ? 'lucide:check-circle' : 'lucide:circle-off'"
+                  class="mr-1 h-3 w-3"
+                />
                 {{ plan.isActive ? 'Actif' : 'Inactif' }}
-              </span>
+              </UBadge>
             </div>
 
-            <div class="flex flex-wrap items-center justify-end gap-2">
-              <UButton
-                icon="lucide:chevron-up"
-                color="neutral"
-                variant="ghost"
-                class="rounded-full"
-                :disabled="!plan.canMoveUp || isPlanBusy(plan)"
-                :loading="pricing.isPlanUpdating(plan.id)"
-                @click="onMove(plan, 'up')"
-              />
-              <UButton
-                icon="lucide:chevron-down"
-                color="neutral"
-                variant="ghost"
-                class="rounded-full"
-                :disabled="!plan.canMoveDown || isPlanBusy(plan)"
-                :loading="pricing.isPlanUpdating(plan.id)"
-                @click="onMove(plan, 'down')"
-              />
-              <div class="flex items-center gap-2 rounded-full border border-[rgba(231,229,228,0.85)] bg-white/70 px-3 py-2">
+            <!-- Actions -->
+            <div class="flex items-center gap-2">
+              <UTooltip text="Monter">
+                <UButton
+                  icon="lucide:chevron-up"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  :disabled="!plan.canMoveUp || isPlanBusy(plan)"
+                  :loading="pricing.isPlanUpdating(plan.id) && plan.canMoveUp"
+                  @click="onMove(plan, 'up')"
+                />
+              </UTooltip>
+              <UTooltip text="Descendre">
+                <UButton
+                  icon="lucide:chevron-down"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  :disabled="!plan.canMoveDown || isPlanBusy(plan)"
+                  :loading="pricing.isPlanUpdating(plan.id) && plan.canMoveDown"
+                  @click="onMove(plan, 'down')"
+                />
+              </UTooltip>
+
+              <div class="ml-2 flex items-center gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2">
                 <USwitch
                   :model-value="plan.isActive"
-                  size="lg"
+                  size="sm"
                   :disabled="isPlanBusy(plan)"
                   @update:model-value="(value: boolean) => onToggleActive(plan, value)"
                 />
-                <span class="text-xs font-semibold text-[color:var(--color-brand-secondary)]">
+                <span class="text-xs font-medium text-stone-600">
                   Actif
                 </span>
               </div>
             </div>
           </div>
 
-          <p
+          <!-- Field errors -->
+          <UAlert
             v-if="hasFieldErrors(plan.id)"
-            class="text-xs font-bold text-[color:var(--color-error)]"
-          >
-            {{ getFieldError(plan.id, 'label') || getFieldError(plan.id, 'sortOrder') || getFieldError(plan.id, 'isActive') }}
-          </p>
+            color="error"
+            variant="soft"
+            :description="getFieldError(plan.id, 'label') || getFieldError(plan.id, 'sortOrder') || getFieldError(plan.id, 'isActive') || 'Erreur de validation'"
+            icon="i-lucide-alert-circle"
+          />
 
-          <dl class="grid gap-2 rounded-blob-a bg-[color:var(--color-surface-highlight)] p-4 text-sm text-[color:var(--color-brand-primary)] sm:grid-cols-2">
-            <div class="grid gap-1">
-              <dt class="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+          <!-- Plan details -->
+          <div class="grid gap-4 rounded-lg bg-stone-50 p-4 sm:grid-cols-2">
+            <div>
+              <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
                 Durée
-              </dt>
-              <dd class="font-semibold">
+              </p>
+              <p class="mt-1 text-lg font-semibold text-stone-900">
                 {{ plan.durationLabel }}
-              </dd>
+              </p>
             </div>
-            <div class="grid gap-1">
-              <dt class="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
+            <div>
+              <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
                 Prix
-              </dt>
-              <dd class="font-semibold">
+              </p>
+              <p class="mt-1 text-lg font-semibold text-stone-900">
                 {{ plan.amountLabel }}
-              </dd>
+              </p>
             </div>
-          </dl>
+          </div>
         </div>
-      </article>
+      </UCard>
     </div>
 
+    <!-- Create modal -->
     <ProviderCreateConsultationPricePlanModal
       :open="isCreateModalOpen"
       :suggested-sort-order="suggestedSortOrder"
@@ -360,5 +387,5 @@ async function onMove(plan: DisplayPlan, direction: 'up' | 'down') {
       @update:open="updateCreateModalOpen"
       @submit="onCreatePlan"
     />
-  </section>
+  </div>
 </template>

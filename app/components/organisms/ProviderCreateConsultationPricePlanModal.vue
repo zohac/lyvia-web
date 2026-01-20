@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { eurosToCents } from '../../features/pricing/domain/price'
-import SystemAlert from '../atoms/SystemAlert.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -29,9 +28,6 @@ type ProviderCreateConsultationPricePlanBody = {
   sortOrder?: number
 }
 
-const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
-const isFullScreen = computed(() => !isDesktop.value)
-
 const label = ref('')
 const durationMinutes = ref<number>(60)
 const priceEuros = ref<string>('')
@@ -43,7 +39,7 @@ const localValidationError = computed(() => {
   const cents = eurosToCents(priceEuros.value)
   if (!cents) return 'Le prix doit être supérieur à 0.'
   if (sortOrder.value !== null && (!Number.isInteger(sortOrder.value) || sortOrder.value < 0)) {
-    return 'L’ordre doit être un entier positif.'
+    return "L'ordre doit être un entier positif."
   }
   return null
 })
@@ -85,130 +81,91 @@ function submit() {
 <template>
   <UModal
     :open="open"
-    :fullscreen="isFullScreen"
     :dismissible="!loading"
-    :ui="{
-      content: isFullScreen
-        ? 'bg-white/92 backdrop-blur-md'
-        : 'rounded-blob-c border border-white/70 bg-white/85 shadow-floating backdrop-blur-md',
-      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[rgba(231,229,228,0.7)]' : 'px-8 pt-8 pb-4',
-      body: isFullScreen ? 'px-6 pb-6 pt-4' : 'px-8 pb-6',
-      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[rgba(231,229,228,0.7)]' : 'px-8 pb-8 pt-6',
-      title:
-        'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-      description: 'text-sm text-[color:var(--color-brand-secondary)]'
-    }"
-    :close="{ class: 'rounded-full' }"
+    title="Créer un tarif consultation"
+    description="Ajoutez un nouveau tarif (prix/durée). Le parcours cliente suivra l'ordre défini."
     @update:open="updateOpen"
   >
-    <template #title>
-      Créer un tarif consultation
-    </template>
-    <template #description>
-      Ajoutez un nouveau tarif (prix/durée). Le parcours cliente suivra l’ordre défini.
-    </template>
-
     <template #body>
-      <div class="grid gap-6">
-        <SystemAlert
+      <div class="space-y-4">
+        <UAlert
           v-if="error"
-          variant="error"
+          color="error"
+          variant="soft"
           title="Action impossible"
           :description="error"
+          icon="i-lucide-alert-circle"
         />
 
-        <SystemAlert
+        <UAlert
           v-else-if="localValidationError"
-          variant="warning"
+          color="warning"
+          variant="soft"
           title="Vérification"
           :description="localValidationError"
+          icon="i-lucide-alert-triangle"
         />
 
-        <div class="grid gap-4 rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
-              Libellé
-            </label>
+        <UFormField
+          label="Libellé"
+          :error="fieldErrors?.label ?? undefined"
+          class="w-full"
+        >
+          <UInput
+            v-model="label"
+            :disabled="loading"
+            placeholder="Ex : Consultation — 60 min — 80€"
+            class="w-full"
+          />
+        </UFormField>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+          <UFormField
+            label="Durée (min)"
+            :error="fieldErrors?.durationMinutes ?? undefined"
+          >
             <UInput
-              v-model="label"
+              v-model.number="durationMinutes"
+              type="number"
+              min="1"
+              step="1"
               :disabled="loading"
-              placeholder="Ex : Consultation — 60 min — 80€"
             />
-            <p
-              v-if="fieldErrors?.label"
-              class="text-xs font-bold text-[color:var(--color-error)]"
-            >
-              {{ fieldErrors.label }}
-            </p>
-          </div>
+          </UFormField>
 
-          <div class="grid gap-4 md:grid-cols-3">
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
-                Durée (min)
-              </label>
-              <UInput
-                v-model.number="durationMinutes"
-                type="number"
-                min="1"
-                step="1"
-                :disabled="loading"
-              />
-              <p
-                v-if="fieldErrors?.durationMinutes"
-                class="text-xs font-bold text-[color:var(--color-error)]"
-              >
-                {{ fieldErrors.durationMinutes }}
-              </p>
-            </div>
+          <UFormField
+            label="Prix (€)"
+            :error="fieldErrors?.amountCents ?? undefined"
+          >
+            <UInput
+              v-model="priceEuros"
+              inputmode="decimal"
+              placeholder="80"
+              :disabled="loading"
+            />
+          </UFormField>
 
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
-                Prix (€)
-              </label>
-              <UInput
-                v-model="priceEuros"
-                inputmode="decimal"
-                placeholder="80"
-                :disabled="loading"
-              />
-              <p
-                v-if="fieldErrors?.amountCents"
-                class="text-xs font-bold text-[color:var(--color-error)]"
-              >
-                {{ fieldErrors.amountCents }}
-              </p>
-            </div>
-
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
-                Ordre
-              </label>
-              <UInput
-                v-model.number="sortOrder"
-                type="number"
-                min="0"
-                step="1"
-                :disabled="loading"
-              />
-              <p
-                v-if="fieldErrors?.sortOrder"
-                class="text-xs font-bold text-[color:var(--color-error)]"
-              >
-                {{ fieldErrors.sortOrder }}
-              </p>
-            </div>
-          </div>
+          <UFormField
+            label="Ordre"
+            :error="fieldErrors?.sortOrder ?? undefined"
+          >
+            <UInput
+              v-model.number="sortOrder"
+              type="number"
+              min="0"
+              step="1"
+              :disabled="loading"
+            />
+          </UFormField>
         </div>
       </div>
     </template>
 
     <template #footer>
-      <div class="flex flex-wrap justify-end gap-3">
+      <div class="flex justify-end gap-3">
         <UButton
           color="neutral"
           variant="ghost"
-          class="rounded-full"
           :disabled="loading"
           @click="updateOpen(false)"
         >
@@ -216,7 +173,6 @@ function submit() {
         </UButton>
         <UButton
           color="primary"
-          class="rounded-full px-6"
           :loading="loading"
           @click="submit"
         >
