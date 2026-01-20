@@ -1,11 +1,7 @@
 <template>
-  <div class="grid gap-3">
-    <label class="text-xs font-medium uppercase tracking-[0.2em] text-[color:var(--color-brand-muted)]">
-      Mois en cours
-    </label>
-
+  <div class="space-y-3">
     <!-- Stepper buttons -->
-    <div class="flex flex-wrap items-center gap-1">
+    <div class="flex flex-wrap items-center gap-1.5">
       <!-- Month buttons (1-6) -->
       <button
         v-for="month in PROGRAM_MONTHS"
@@ -14,27 +10,17 @@
         :disabled="pending"
         :aria-pressed="modelValue === month"
         :aria-label="`Mois ${month}`"
-        class="relative flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold transition-all"
+        class="relative flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-crepuscule-500 focus:ring-offset-2"
         :class="getMonthButtonClasses(month)"
         @click="handleMonthClick(month)"
       >
-        <span
-          class="relative z-10"
-          :class="{ 'opacity-50': pending }"
-        >
+        <span :class="{ 'opacity-50': pending }">
           M{{ month }}
         </span>
-
-        <!-- Active indicator ring -->
-        <span
-          v-if="modelValue === month"
-          class="absolute inset-0 rounded-full ring-2 ring-[color:var(--color-brand-primary)] ring-offset-2"
-          aria-hidden="true"
-        />
       </button>
 
       <!-- Separator -->
-      <span class="mx-2 h-px w-4 bg-[color:var(--color-brand-subtle)]" />
+      <span class="mx-1.5 h-px w-3 bg-stone-200" />
 
       <!-- Terminate button -->
       <button
@@ -42,50 +28,33 @@
         :disabled="pending"
         :aria-pressed="modelValue === null"
         aria-label="Terminer le programme"
-        class="relative flex h-10 items-center justify-center rounded-full px-4 text-sm font-medium transition-all"
+        class="relative flex h-9 items-center justify-center rounded-lg px-3 text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
         :class="getTerminateButtonClasses()"
         @click="handleTerminate"
       >
         <span
-          class="relative z-10 flex items-center gap-1.5"
+          class="flex items-center gap-1.5"
           :class="{ 'opacity-50': pending }"
         >
-          <svg
+          <UIcon
+            name="lucide:check-circle"
             class="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-            />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
+          />
           Terminé
         </span>
-
-        <!-- Active indicator ring -->
-        <span
-          v-if="modelValue === null"
-          class="absolute inset-0 rounded-full ring-2 ring-[color:var(--color-success)] ring-offset-2"
-          aria-hidden="true"
-        />
       </button>
     </div>
 
     <!-- Loading indicator -->
     <div
       v-if="pending"
-      class="flex items-center gap-2 text-xs text-[color:var(--color-brand-muted)]"
+      class="flex items-center gap-2 text-xs text-stone-500"
     >
-      <span class="h-3 w-3 animate-spin rounded-full border-2 border-[color:var(--color-brand-muted)] border-t-transparent" />
-      Mise à jour en cours...
+      <UIcon
+        name="lucide:loader-2"
+        class="h-3.5 w-3.5 animate-spin"
+      />
+      Mise à jour...
     </div>
   </div>
 </template>
@@ -95,13 +64,7 @@ const PROGRAM_MONTHS = [1, 2, 3, 4, 5, 6] as const
 
 const props = withDefaults(
   defineProps<{
-    /**
-     * Current program month (1-6) or null if completed.
-     */
     modelValue: number | null
-    /**
-     * Whether an update is in progress.
-     */
     pending?: boolean
   }>(),
   {
@@ -110,9 +73,6 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  /**
-   * Emitted when a new month is selected.
-   */
   'update:modelValue': [value: number | null]
 }>()
 
@@ -131,23 +91,23 @@ function getMonthButtonClasses(month: number): string {
   const isPast = props.modelValue !== null && month < props.modelValue
 
   if (isActive) {
-    return 'bg-[color:var(--color-brand-primary)] text-white shadow-md'
+    return 'bg-crepuscule-600 text-white shadow-sm ring-2 ring-crepuscule-600 ring-offset-2'
   }
 
   if (isPast) {
-    return 'bg-[color:var(--color-surface-highlight)] text-[color:var(--color-brand-secondary)] hover:bg-[color:var(--color-brand-subtle)]'
+    return 'bg-stone-100 text-stone-600 hover:bg-stone-200'
   }
 
-  return 'bg-white/60 text-[color:var(--color-brand-muted)] hover:bg-white hover:text-[color:var(--color-brand-primary)] border border-[color:var(--color-brand-subtle)]'
+  return 'bg-white text-stone-400 border border-stone-200 hover:border-stone-300 hover:text-stone-600'
 }
 
 function getTerminateButtonClasses(): string {
   const isActive = props.modelValue === null
 
   if (isActive) {
-    return 'bg-[color:var(--color-success-200)] text-[color:var(--color-success-700)]'
+    return 'bg-green-100 text-green-700 ring-2 ring-green-500 ring-offset-2'
   }
 
-  return 'bg-white/60 text-[color:var(--color-brand-muted)] hover:bg-[color:var(--color-success-50)] hover:text-[color:var(--color-success-600)] border border-[color:var(--color-brand-subtle)]'
+  return 'bg-white text-stone-400 border border-stone-200 hover:border-green-300 hover:bg-green-50 hover:text-green-600'
 }
 </script>

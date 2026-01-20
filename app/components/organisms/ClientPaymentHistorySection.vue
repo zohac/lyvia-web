@@ -1,39 +1,35 @@
 <template>
-  <UCard
-    variant="subtle"
-    class="rounded-blob-d"
-  >
+  <UCard class="bg-white">
     <!-- Collapsible header -->
-    <button
-      type="button"
-      class="flex w-full items-center justify-between gap-4"
-      :aria-expanded="isExpanded"
-      :aria-controls="sectionId"
-      @click="toggleExpanded"
-    >
-      <h2 class="font-serif text-lg italic text-[color:var(--color-brand-primary)]">
-        Paiements
-      </h2>
-      <div class="flex items-center gap-3">
-        <span
-          v-if="!loading"
-          class="text-xs text-[color:var(--color-brand-muted)]"
-        >
-          {{ totalLabel }}
-        </span>
-        <UIcon
-          name="i-lucide-chevron-down"
-          class="h-5 w-5 text-[color:var(--color-brand-muted)] transition-transform duration-200"
-          :class="{ 'rotate-180': isExpanded }"
-        />
-      </div>
-    </button>
+    <template #header>
+      <button
+        type="button"
+        class="flex w-full items-center justify-between gap-4"
+        :aria-expanded="isExpanded"
+        :aria-controls="sectionId"
+        @click="toggleExpanded"
+      >
+        <h2 class="font-semibold text-stone-900">Paiements</h2>
+        <div class="flex items-center gap-3">
+          <span
+            v-if="!loading"
+            class="text-sm text-stone-500"
+          >
+            {{ totalLabel }}
+          </span>
+          <UIcon
+            name="lucide:chevron-down"
+            class="h-5 w-5 text-stone-400 transition-transform duration-200"
+            :class="{ 'rotate-180': isExpanded }"
+          />
+        </div>
+      </button>
+    </template>
 
     <!-- Collapsible content -->
     <div
       v-show="isExpanded"
       :id="sectionId"
-      class="mt-4"
     >
       <!-- Filters -->
       <PaymentFilters
@@ -45,14 +41,14 @@
       <!-- Loading skeleton -->
       <div
         v-if="loading"
-        class="grid gap-3"
+        class="space-y-3"
       >
         <div
           v-for="index in 3"
           :key="`payment-skeleton-${index}`"
-          class="flex items-center justify-between gap-4 rounded-[var(--radius-md)] border border-white/70 bg-white/60 p-4 shadow-soft"
+          class="flex items-center justify-between gap-4 rounded-lg border border-stone-100 bg-stone-50 p-4"
         >
-          <div class="grid gap-2">
+          <div class="space-y-2">
             <USkeleton class="h-4 w-24" />
             <USkeleton class="h-3 w-32" />
           </div>
@@ -61,19 +57,23 @@
       </div>
 
       <!-- Error state -->
-      <SystemAlert
+      <UAlert
         v-else-if="errorMessage"
-        variant="error"
+        color="error"
+        variant="soft"
         :description="errorMessage"
+        icon="i-lucide-alert-circle"
       />
 
       <!-- Empty state -->
       <div
         v-else-if="payments.length === 0"
-        class="flex flex-col items-center justify-center gap-2 py-8 text-center"
+        class="flex flex-col items-center justify-center gap-3 py-8 text-center"
       >
-        <span class="i-lucide-credit-card h-10 w-10 text-[color:var(--color-brand-muted)]" />
-        <p class="text-sm text-[color:var(--color-brand-secondary)]">
+        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
+          <UIcon name="lucide:credit-card" class="h-6 w-6 text-stone-400" />
+        </div>
+        <p class="text-sm text-stone-500">
           {{ emptyStateLabel }}
         </p>
       </div>
@@ -81,7 +81,7 @@
       <!-- Payments list -->
       <div
         v-else
-        class="grid gap-3"
+        class="space-y-3"
       >
         <PaymentLine
           v-for="payment in payments"
@@ -101,6 +101,7 @@
             :loading="loadingMore"
             @click="handleLoadMore"
           >
+            <UIcon name="lucide:chevrons-down" class="mr-2 h-4 w-4" />
             Charger plus
           </UButton>
         </div>
@@ -118,7 +119,6 @@ import { getProviderClientPayments } from '../../features/clients/services/provi
 import { mapProviderClientsErrorToMessage } from '../../features/clients/api/clients-error'
 import PaymentFilters from '../molecules/PaymentFilters.vue'
 import PaymentLine from '../molecules/PaymentLine.vue'
-import SystemAlert from '../atoms/SystemAlert.vue'
 
 const props = withDefaults(
   defineProps<{

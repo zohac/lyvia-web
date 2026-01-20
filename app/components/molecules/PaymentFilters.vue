@@ -2,7 +2,7 @@
   <div class="flex flex-wrap items-end gap-3">
     <!-- Status filter -->
     <div class="grid w-full gap-1.5 sm:w-auto sm:min-w-[160px]">
-      <label class="text-xs font-medium uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+      <label class="text-xs font-medium uppercase tracking-wider text-stone-500">
         Statut
       </label>
       <USelect
@@ -18,7 +18,7 @@
       v-if="hasActiveFilters"
       variant="ghost"
       size="sm"
-      icon="i-lucide-x"
+      icon="lucide:x"
       @click="handleReset"
     >
       Effacer

@@ -1,24 +1,32 @@
 <template>
-  <section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-    <!-- Main content area -->
-    <div class="grid gap-6">
-      <!-- Header card with client identity -->
-      <UCard
-        variant="soft"
-        class="rounded-blob-a"
+  <div class="space-y-6">
+    <!-- Back link + Header -->
+    <div class="space-y-4">
+      <UButton
+        to="/provider/clients"
+        variant="link"
+        color="neutral"
+        size="sm"
+        class="px-0"
       >
+        <UIcon name="lucide:arrow-left" class="mr-1.5 h-4 w-4" />
+        Retour aux clientes
+      </UButton>
+
+      <!-- Header card -->
+      <UCard class="bg-white">
         <div
           v-if="pending"
           class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
           <div class="flex items-center gap-4">
             <USkeleton class="h-14 w-14 rounded-full" />
-            <div class="grid gap-2">
-              <USkeleton class="h-4 w-40" />
-              <USkeleton class="h-3 w-56" />
+            <div class="space-y-2">
+              <USkeleton class="h-5 w-40" />
+              <USkeleton class="h-4 w-56" />
             </div>
           </div>
-          <USkeleton class="h-10 w-40 rounded-full" />
+          <USkeleton class="h-10 w-36 rounded-lg" />
         </div>
 
         <div
@@ -28,187 +36,216 @@
           <div class="flex items-center gap-4">
             <UAvatar
               :text="getClientInitials(client)"
-              size="lg"
-              class="bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-primary)]"
+              size="xl"
+              :class="avatarClass"
             />
-            <div class="grid gap-1">
-              <h1 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
+            <div>
+              <h1 class="text-2xl font-semibold text-stone-900">
                 {{ formatClientName(client) }}
               </h1>
-              <p class="text-xs text-[color:var(--color-brand-secondary)]">
-                {{ client.email }} · {{ client.phone }}
-              </p>
+              <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-stone-500">
+                <a
+                  :href="`mailto:${client.email}`"
+                  class="hover:text-crepuscule-600 hover:underline"
+                >
+                  {{ client.email }}
+                </a>
+                <span class="text-stone-300">·</span>
+                <a
+                  :href="`tel:${client.phone}`"
+                  class="hover:text-crepuscule-600 hover:underline"
+                >
+                  {{ client.phone }}
+                </a>
+              </div>
             </div>
           </div>
           <UButton
-            icon="i-lucide-calendar"
-            variant="solid"
-            color="primary"
-            class="rounded-full"
             to="/provider/calendar"
+            color="primary"
           >
+            <UIcon name="lucide:calendar-plus" class="mr-2 h-4 w-4" />
             Planifier un RDV
           </UButton>
         </div>
       </UCard>
-
-      <!-- Error alert -->
-      <SystemAlert
-        v-if="errorMessage"
-        variant="error"
-        title="Chargement impossible"
-        :description="errorMessage"
-      />
-
-      <!-- Appointments history section -->
-      <ClientAppointmentHistorySection
-        v-if="clientProfileId"
-        :client-profile-id="clientProfileId"
-        :timezone="timezoneLabel"
-      />
-
-      <!-- Payments history section -->
-      <ClientPaymentHistorySection
-        v-if="clientProfileId"
-        :client-profile-id="clientProfileId"
-        :timezone="timezoneLabel"
-      />
     </div>
 
-    <!-- Synthesis sidebar (sticky on desktop, first on mobile) -->
-    <UCard
-      variant="outline"
-      class="order-first w-full self-start rounded-blob-b lg:order-last lg:sticky lg:top-6"
-    >
-      <div class="flex items-center justify-between">
-        <h2 class="font-serif text-lg italic text-[color:var(--color-brand-primary)]">
-          Synthèse
-        </h2>
-        <UBadge
-          v-if="currentStatusMeta"
-          :color="currentStatusMeta.color"
-          variant="soft"
-        >
-          {{ currentStatusMeta.label }}
-        </UBadge>
-      </div>
+    <!-- Error alert -->
+    <UAlert
+      v-if="errorMessage"
+      color="error"
+      variant="soft"
+      title="Chargement impossible"
+      :description="errorMessage"
+      icon="i-lucide-alert-circle"
+    />
 
-      <!-- Loading state -->
-      <div
-        v-if="pending"
-        class="mt-4 grid gap-3"
-      >
-        <USkeleton class="h-3 w-full" />
-        <USkeleton class="h-3 w-4/5" />
-        <USkeleton class="h-10 w-32 rounded-full" />
-      </div>
-
-      <!-- Synthesis content -->
-      <div
-        v-else-if="detail"
-        class="mt-4 grid min-w-0 gap-5 text-sm text-[color:var(--color-brand-secondary)]"
-      >
-        <!-- Status microcopy (P0.1 requirement) -->
-        <p class="text-[color:var(--color-brand-primary)] [word-break:break-word]">
-          {{ currentStatusMicrocopy }}
-        </p>
-
-        <!-- Program month stepper (D5-b) -->
-        <ProgramMonthStepper
-          :model-value="currentProgramMonth"
-          :pending="updatePending"
-          @update:model-value="handleProgramMonthUpdate"
+    <!-- Main content grid -->
+    <div class="grid gap-6 lg:grid-cols-3">
+      <!-- Main content (2 cols) -->
+      <div class="space-y-6 lg:col-span-2">
+        <!-- Appointments section -->
+        <ClientAppointmentHistorySection
+          v-if="clientProfileId"
+          :client-profile-id="clientProfileId"
+          :timezone="timezoneLabel"
         />
 
-        <!-- Success confirmation (inline feedback) -->
-        <Transition
-          enter-active-class="transition-all duration-200 ease-out"
-          enter-from-class="opacity-0 -translate-y-1"
-          enter-to-class="opacity-100 translate-y-0"
-          leave-active-class="transition-all duration-150 ease-in"
-          leave-from-class="opacity-100 translate-y-0"
-          leave-to-class="opacity-0 -translate-y-1"
-        >
+        <!-- Payments section -->
+        <ClientPaymentHistorySection
+          v-if="clientProfileId"
+          :client-profile-id="clientProfileId"
+          :timezone="timezoneLabel"
+        />
+      </div>
+
+      <!-- Sidebar (1 col) -->
+      <aside class="space-y-6 lg:order-first lg:order-last">
+        <!-- Synthesis card -->
+        <UCard class="bg-white">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h2 class="font-semibold text-stone-900">Synthèse</h2>
+              <UBadge
+                v-if="currentStatusMeta"
+                :color="currentStatusMeta.color"
+                variant="soft"
+              >
+                {{ currentStatusMeta.label }}
+              </UBadge>
+            </div>
+          </template>
+
+          <!-- Loading -->
           <div
-            v-if="updateSuccessMessage"
-            class="flex items-center gap-2 rounded-[var(--radius-sm)] bg-[color:var(--color-success-100)] px-3 py-2 text-xs text-[color:var(--color-success-700)]"
-            role="status"
-            aria-live="polite"
+            v-if="pending"
+            class="space-y-4"
           >
-            <svg
-              class="h-4 w-4 shrink-0"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-              />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
-            {{ updateSuccessMessage }}
+            <USkeleton class="h-4 w-full" />
+            <USkeleton class="h-4 w-4/5" />
+            <USkeleton class="h-10 w-full" />
           </div>
-        </Transition>
 
-        <!-- Warning: onboarding not completed -->
-        <SystemAlert
-          v-if="showOnboardingWarning"
-          variant="warning"
-          description="Onboarding non terminé — certaines données peuvent être incomplètes."
-        />
+          <!-- Content -->
+          <div
+            v-else-if="detail"
+            class="space-y-6"
+          >
+            <!-- Status description -->
+            <p class="text-sm text-stone-600">
+              {{ currentStatusMicrocopy }}
+            </p>
 
-        <!-- Update error -->
-        <SystemAlert
-          v-if="updateErrorMessage"
-          variant="error"
-          :description="updateErrorMessage"
-        />
+            <!-- Program month stepper -->
+            <div class="space-y-2">
+              <label class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                Mois en cours
+              </label>
+              <ProgramMonthStepper
+                :model-value="currentProgramMonth"
+                :pending="updatePending"
+                @update:model-value="handleProgramMonthUpdate"
+              />
+            </div>
 
-        <!-- Next appointment -->
-        <div class="grid gap-1">
-          <span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-brand-muted)]">
-            Prochain RDV
-          </span>
-          <p class="font-semibold text-[color:var(--color-brand-primary)]">
-            {{ nextAppointmentLabel }}
-          </p>
-        </div>
+            <!-- Success message -->
+            <UAlert
+              v-if="updateSuccessMessage"
+              color="success"
+              variant="soft"
+              :title="updateSuccessMessage"
+              icon="i-lucide-check-circle"
+            />
 
-        <!-- Consultations completed -->
-        <div class="grid gap-1">
-          <span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-brand-muted)]">
-            Consultations terminées
-          </span>
-          <p class="font-semibold text-[color:var(--color-brand-primary)]">
-            {{ detail.stats.consultationsCompleted }}
-          </p>
-        </div>
+            <!-- Warning: onboarding not completed -->
+            <UAlert
+              v-if="showOnboardingWarning"
+              color="warning"
+              variant="soft"
+              description="Onboarding non terminé — certaines données peuvent être incomplètes."
+              icon="i-lucide-alert-triangle"
+            />
 
-        <!-- Timezone explicit display -->
-        <div class="grid gap-1">
-          <span class="text-xs uppercase tracking-[0.2em] text-[color:var(--color-brand-muted)]">
-            Fuseau horaire
-          </span>
-          <p class="font-semibold text-[color:var(--color-brand-primary)]">
-            Heure France ({{ timezoneLabel }})
-          </p>
-        </div>
-      </div>
-    </UCard>
-  </section>
+            <!-- Update error -->
+            <UAlert
+              v-if="updateErrorMessage"
+              color="error"
+              variant="soft"
+              :description="updateErrorMessage"
+              icon="i-lucide-alert-circle"
+            />
+
+            <!-- Stats -->
+            <div class="divide-y divide-stone-100">
+              <div class="py-3 first:pt-0">
+                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                  Prochain RDV
+                </span>
+                <p class="mt-1 font-medium text-stone-900">
+                  {{ nextAppointmentLabel }}
+                </p>
+              </div>
+
+              <div class="py-3">
+                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                  Consultations terminées
+                </span>
+                <p class="mt-1 font-medium text-stone-900">
+                  {{ detail.stats.consultationsCompleted }}
+                </p>
+              </div>
+
+              <div class="py-3 last:pb-0">
+                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                  Fuseau horaire
+                </span>
+                <p class="mt-1 font-medium text-stone-900">
+                  {{ timezoneLabel }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </UCard>
+
+        <!-- Quick actions card -->
+        <UCard
+          v-if="client"
+          class="bg-white"
+        >
+          <template #header>
+            <h2 class="font-semibold text-stone-900">Actions rapides</h2>
+          </template>
+
+          <div class="space-y-2">
+            <UButton
+              :href="`mailto:${client.email}`"
+              variant="soft"
+              color="neutral"
+              block
+              class="justify-start"
+            >
+              <UIcon name="lucide:mail" class="mr-2 h-4 w-4" />
+              Envoyer un email
+            </UButton>
+            <UButton
+              :href="`tel:${client.phone}`"
+              variant="soft"
+              color="neutral"
+              block
+              class="justify-start"
+            >
+              <UIcon name="lucide:phone" class="mr-2 h-4 w-4" />
+              Appeler
+            </UButton>
+          </div>
+        </UCard>
+      </aside>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import SystemAlert from '../../../components/atoms/SystemAlert.vue'
-import ProgramMonthStepper from '../../../components/molecules/ProgramMonthStepper.vue'
-import ClientAppointmentHistorySection from '../../../components/organisms/ClientAppointmentHistorySection.vue'
-import ClientPaymentHistorySection from '../../../components/organisms/ClientPaymentHistorySection.vue'
 import type { ProviderClientStatus } from '../../../features/clients/api/clients.contract'
 import { useProviderClientDetail } from '../../../features/clients/useProviderClientDetail'
 import { updateProviderClientProgram } from '../../../features/clients/services/provider-client-detail.service'
@@ -221,6 +258,9 @@ import {
   getClientStatusMicrocopy
 } from '../../../features/clients/domain/clients'
 import { mapUpdateProgramErrorToMessage } from '../../../features/clients/api/clients-error'
+import ProgramMonthStepper from '../../../components/molecules/ProgramMonthStepper.vue'
+import ClientAppointmentHistorySection from '../../../components/organisms/ClientAppointmentHistorySection.vue'
+import ClientPaymentHistorySection from '../../../components/organisms/ClientPaymentHistorySection.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -243,11 +283,26 @@ const { pending, errorMessage, detail } = await useProviderClientDetail(clientPr
 const client = computed(() => detail.value?.client ?? null)
 const timezoneLabel = computed(() => detail.value?.timezone ?? 'Europe/Paris')
 
+// Avatar color based on status
+const avatarClass = computed(() => {
+  if (!detail.value) return 'bg-stone-100 text-stone-700'
+
+  switch (detail.value.computedStatus) {
+    case 'onboarding':
+      return 'bg-amber-100 text-amber-700'
+    case 'in_progress':
+      return 'bg-blue-100 text-blue-700'
+    case 'completed':
+      return 'bg-green-100 text-green-700'
+    default:
+      return 'bg-stone-100 text-stone-700'
+  }
+})
+
 // ============================================================================
 // Program Month Update (D5-b)
 // ============================================================================
 
-/** Local state for optimistic UI and feedback */
 const currentProgramMonth = ref<number | null>(detail.value?.program.currentProgramMonth ?? null)
 const currentComputedStatus = ref<ProviderClientStatus>(detail.value?.computedStatus ?? 'onboarding')
 const updatePending = ref(false)
@@ -255,12 +310,11 @@ const updateSuccessMessage = ref<string | null>(null)
 const updateErrorMessage = ref<string | null>(null)
 const showOnboardingWarning = ref(false)
 
-// Sync local state when detail changes (initial load)
+// Sync local state when detail changes
 watch(detail, (newDetail) => {
   if (newDetail) {
     currentProgramMonth.value = newDetail.program.currentProgramMonth
     currentComputedStatus.value = newDetail.computedStatus
-    // Show warning if onboarding not completed and month is set
     showOnboardingWarning.value = !newDetail.onboardingCallDone && newDetail.program.currentProgramMonth !== null
   }
 }, { immediate: true })
@@ -272,12 +326,9 @@ const nextAppointmentLabel = computed(() => {
   if (!detail.value) return 'Aucun rendez-vous planifié'
   const formatted = formatNextAppointment(detail.value.stats.nextConsultationAt, timezoneLabel.value)
   if (!formatted) return 'Aucun rendez-vous planifié'
-  return `Consultation — ${formatted}`
+  return formatted
 })
 
-/**
- * Handles program month update with optimistic UI and feedback.
- */
 async function handleProgramMonthUpdate(newMonth: number | null): Promise<void> {
   if (!clientProfileId.value) return
 
@@ -306,14 +357,14 @@ async function handleProgramMonthUpdate(newMonth: number | null): Promise<void> 
     const fromLabel = formatProgramMonth(result.previousProgramMonth, 6)
     const toLabel = formatProgramMonth(result.currentProgramMonth, 6)
     const statusLabel = getClientStatusMeta(result.computedStatus).label
-    updateSuccessMessage.value = `Mois mis à jour : ${fromLabel} → ${toLabel} (${statusLabel})`
+    updateSuccessMessage.value = `${fromLabel} → ${toLabel} (${statusLabel})`
 
     // Handle warning from backend
     if (result.warning === 'ONBOARDING_NOT_COMPLETED') {
       showOnboardingWarning.value = true
     }
 
-    // Auto-dismiss success message after 4 seconds
+    // Auto-dismiss success message
     setTimeout(() => {
       updateSuccessMessage.value = null
     }, 4000)
@@ -321,8 +372,6 @@ async function handleProgramMonthUpdate(newMonth: number | null): Promise<void> 
     // Rollback optimistic update
     currentProgramMonth.value = previousMonth
     currentComputedStatus.value = previousStatus
-
-    // Show error message
     updateErrorMessage.value = mapUpdateProgramErrorToMessage(error)
   } finally {
     updatePending.value = false
