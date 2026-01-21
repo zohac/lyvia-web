@@ -12,7 +12,7 @@ defineProps<{
   <!-- Elegant light hero - warm and welcoming -->
   <section
     id="essence"
-    class="relative flex min-h-[100svh] items-end overflow-hidden bg-[#f5f0eb]"
+    class="relative flex min-h-[100svh] items-center overflow-hidden bg-[#f5f0eb]"
   >
     <!-- Gradient atmosphere - soft warm accents -->
     <div
@@ -32,11 +32,11 @@ defineProps<{
     </div>
 
     <!-- Main content - editorial layout -->
-    <div class="relative z-10 w-full px-6 pb-20 pt-32 sm:px-12 lg:px-20">
+    <div class="relative z-10 w-full px-6 py-20 sm:px-12 lg:px-20">
       <div class="mx-auto max-w-7xl">
         <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
           <!-- Left column - Typography driven -->
-          <div class="flex flex-col justify-end lg:col-span-7">
+          <div class="flex flex-col justify-center lg:col-span-7">
             <!-- Coach name as subtle label -->
             <p class="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[#d4956a]">
               {{ tenant.brand.displayName }}
@@ -74,13 +74,13 @@ defineProps<{
               </UButton>
 
               <span class="hidden text-sm text-[#857d8c] sm:block">
-                30 min · Gratuit · Sans engagement
+                15 min · Gratuit · Sans engagement
               </span>
             </div>
           </div>
 
           <!-- Right column - Visual accent -->
-          <div class="relative hidden lg:col-span-5 lg:flex lg:items-end lg:justify-end">
+          <div class="relative hidden lg:col-span-5 lg:flex lg:items-center lg:justify-end">
             <!-- Abstract shape instead of photo placeholder -->
             <div class="relative">
               <!-- Organic shape with gradient -->
