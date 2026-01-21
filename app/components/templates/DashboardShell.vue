@@ -336,13 +336,6 @@ watch(
                 <p class="truncate text-sm font-semibold text-stone-900">
                   {{ userDisplayName }}
                 </p>
-                <UBadge
-                  :color="roleBadgeColor"
-                  variant="subtle"
-                  size="xs"
-                >
-                  {{ sidebarLabel }}
-                </UBadge>
               </div>
               <p class="truncate text-xs text-stone-500">
                 {{ userLabel }}

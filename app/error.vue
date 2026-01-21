@@ -38,9 +38,12 @@ function goHome() {
 
       <div class="mt-8 grid gap-3">
         <UButton
-          label="Retour à l’accueil"
+          color="primary"
+          block
           @click="goHome"
-        />
+        >
+          Retour à l'accueil
+        </UButton>
         <ULink
           to="/login"
           class="text-sm font-semibold text-[color:var(--color-brand-primary)] hover:underline"

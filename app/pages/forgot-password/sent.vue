@@ -1,80 +1,133 @@
 <template>
   <div
-    class="grid gap-12"
+    class="grid gap-10"
     role="status"
     aria-live="polite"
     aria-atomic="true"
   >
-    <header class="grid gap-3 text-center">
+    <!-- Brand mark -->
+    <header class="grid gap-6">
       <ULink
         to="/"
-        aria-label="Retour à l’accueil"
-        class="mx-auto mb-12 inline-flex w-fit items-center justify-center"
+        aria-label="Retour à l'accueil"
+        class="group inline-flex w-fit items-center gap-3"
       >
-        <img
-          src="/images/kaora-logo.png"
-          alt="Kaora"
-          class="h-10 w-auto"
-          decoding="async"
-        >
+        <div class="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-[#5b4b6e] to-[#4d3f5c] shadow-lg transition-transform duration-300 group-hover:scale-105">
+          <span class="font-serif text-xl font-bold text-white">
+            K
+          </span>
+        </div>
+        <span class="font-serif text-2xl tracking-tight text-[#3d3250]">
+          Kaora
+        </span>
       </ULink>
 
-      <h1
-        ref="titleRef"
-        tabindex="-1"
-        class="font-serif text-4xl font-bold leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]"
-      >
-        Vérifiez votre boîte de réception
-      </h1>
-      <p class="text-base text-[color:var(--color-brand-secondary)]">
-        Si un compte est associé à cette adresse, un e-mail vous sera envoyé.
-      </p>
+      <div class="space-y-2 pt-4 text-center">
+        <h1
+          ref="titleRef"
+          tabindex="-1"
+          class="font-serif text-4xl leading-tight text-[#221d28]"
+        >
+          E-mail
+          <span class="bg-gradient-to-r from-[#4a8b6e] to-[#3d7a5c] bg-clip-text text-transparent">envoyé</span>
+        </h1>
+        <p class="text-[#857d8c]">
+          Vérifiez votre boîte de réception pour continuer.
+        </p>
+      </div>
     </header>
 
-    <div class="grid gap-4 text-center">
-      <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(212,184,160,0.35)] text-[color:var(--color-brand-primary)]">
-        <svg
-          viewBox="0 0 24 24"
-          class="h-7 w-7"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6" />
-          <path d="M22 7.5V8a2 2 0 0 1-1 1.73l-8 4.27a2 2 0 0 1-2 0L3 9.73A2 2 0 0 1 2 8v-.5" />
-          <path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2" />
-        </svg>
+    <!-- Success visual -->
+    <div class="flex flex-col items-center gap-6">
+      <!-- Animated checkmark -->
+      <div class="relative">
+        <div class="absolute inset-0 animate-ping rounded-full bg-[#4a8b6e]/20" />
+        <div class="relative grid size-20 place-items-center rounded-full bg-gradient-to-br from-[#4a8b6e] to-[#3d7a5c] shadow-lg">
+          <UIcon
+            name="i-lucide-mail-check"
+            class="size-10 text-white"
+          />
+        </div>
       </div>
 
-      <p class="text-sm font-semibold text-[color:var(--color-brand-secondary)]">
-        Adresse saisie
-      </p>
-
-      <p class="break-words rounded-[var(--radius-md)] border border-[rgba(231,229,228,0.9)] bg-white px-4 py-3 font-mono text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft">
-        {{ email || '—' }}
-      </p>
-
-      <SystemAlert
-        variant="info"
-        description="Le lien expire dans un délai limité. Pensez à vérifier votre dossier Spam."
-      />
+      <!-- Email display card -->
+      <div class="w-full max-w-sm space-y-3">
+        <p class="text-center text-sm font-medium text-[#857d8c]">
+          E-mail envoyé à
+        </p>
+        <div class="flex items-center justify-center gap-3 rounded-2xl border border-[#ebe7ef] bg-white px-5 py-4 shadow-sm">
+          <UIcon
+            name="i-lucide-at-sign"
+            class="size-5 shrink-0 text-[#9685ab]"
+          />
+          <span class="truncate font-mono text-sm font-semibold text-[#221d28]">
+            {{ email || '—' }}
+          </span>
+        </div>
+      </div>
     </div>
 
+    <!-- Info box -->
+    <div class="rounded-2xl border border-[#d4956a]/20 bg-[#d4956a]/5 p-4">
+      <div class="flex gap-3">
+        <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-[#d4956a]/15">
+          <UIcon
+            name="i-lucide-info"
+            class="size-5 text-[#d4956a]"
+          />
+        </div>
+        <div class="space-y-1">
+          <p class="text-sm font-semibold text-[#221d28]">
+            Conseils
+          </p>
+          <ul class="space-y-1 text-sm text-[#4a4255]">
+            <li class="flex items-start gap-2">
+              <UIcon
+                name="i-lucide-clock"
+                class="mt-0.5 size-4 shrink-0 text-[#9685ab]"
+              />
+              <span>Le lien expire dans <strong>1 heure</strong></span>
+            </li>
+            <li class="flex items-start gap-2">
+              <UIcon
+                name="i-lucide-folder"
+                class="mt-0.5 size-4 shrink-0 text-[#9685ab]"
+              />
+              <span>Pensez à vérifier votre dossier <strong>Spam</strong></span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
     <div class="grid gap-4">
       <UButton
         to="/login"
-        label="Retour à la connexion"
-        class="shadow-floating hover:-translate-y-0.5 hover:shadow-floating"
-      />
-      <ULink
-        to="/"
-        class="text-center text-sm font-semibold text-[color:var(--color-brand-secondary)] hover:underline"
+        size="xl"
+        class="w-full justify-center rounded-xl bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c] py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
       >
-        Revenir à l’accueil
-      </ULink>
+        <template #leading>
+          <UIcon
+            name="i-lucide-log-in"
+            class="size-5"
+          />
+        </template>
+        Retour à la connexion
+      </UButton>
+
+      <div class="text-center">
+        <ULink
+          to="/"
+          class="group inline-flex items-center gap-2 text-sm font-semibold text-[#857d8c] transition-colors hover:text-[#5b4b6e]"
+        >
+          <UIcon
+            name="i-lucide-home"
+            class="size-4"
+          />
+          Revenir à l'accueil
+        </ULink>
+      </div>
     </div>
   </div>
 </template>
@@ -98,3 +151,16 @@ onMounted(() => {
   titleRef.value?.focus()
 })
 </script>
+
+<style scoped>
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+</style>
