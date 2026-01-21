@@ -126,28 +126,7 @@
       </UButton>
     </form>
 
-    <!-- Divider -->
-    <div class="relative py-2">
-      <div class="absolute inset-0 flex items-center">
-        <div class="w-full border-t border-[#ebe7ef]" />
-      </div>
-      <div class="relative flex justify-center">
-        <span class="bg-[#f9f8fa] px-4 text-sm text-[#b9aac7]">ou</span>
-      </div>
-    </div>
-
-    <!-- Register CTA -->
-    <div class="text-center">
-      <p class="text-sm text-[#857d8c]">
-        Pas encore de compte ?
-        <ULink
-          to="/register"
-          class="font-semibold text-[#5b4b6e] transition-colors hover:text-[#d4956a]"
-        >
-          Créer un espace pro
-        </ULink>
-      </p>
-    </div>
+    <!-- TODO v1: Ajouter inscription provider ("Créer un espace pro") -->
   </div>
 </template>
 
