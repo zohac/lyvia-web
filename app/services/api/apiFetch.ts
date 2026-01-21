@@ -40,6 +40,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
 
+/**
+ * Returns a fetch function that propagates request headers during SSR.
+ * On the client, this is just $fetch. On the server, it uses useRequestFetch()
+ * to forward headers like Host, Cookie, etc. from the original browser request.
+ */
+function getContextualFetch(): typeof $fetch {
+  if (import.meta.server) {
+    try {
+      return useRequestFetch()
+    } catch {
+      // Fallback if called outside request context
+      return $fetch
+    }
+  }
+  return $fetch
+}
+
 function resolveAccessToken(accessTokenOverride: string | null | undefined): string | null {
   if (typeof accessTokenOverride !== 'undefined') return accessTokenOverride
   const authState = useAuthState()
@@ -131,8 +148,10 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const headers = new Headers(headersInit)
   if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
 
+  const contextFetch = getContextualFetch()
+
   try {
-    return await $fetch<T>(path, {
+    return await contextFetch<T>(path, {
       ...fetchOptions,
       baseURL,
       credentials: 'include',
