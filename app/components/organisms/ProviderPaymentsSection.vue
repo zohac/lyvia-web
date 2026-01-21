@@ -87,7 +87,10 @@ function openReceipt(url: string) {
           :loading="pending"
           @click="emit('refresh')"
         >
-          <UIcon name="lucide:refresh-cw" class="mr-2 h-4 w-4" />
+          <UIcon
+            name="lucide:refresh-cw"
+            class="mr-2 h-4 w-4"
+          />
           Actualiser
         </UButton>
       </div>
@@ -130,7 +133,10 @@ function openReceipt(url: string) {
       class="flex flex-col items-center justify-center gap-3 py-12 text-center"
     >
       <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
-        <UIcon name="lucide:credit-card" class="h-6 w-6 text-stone-400" />
+        <UIcon
+          name="lucide:credit-card"
+          class="h-6 w-6 text-stone-400"
+        />
       </div>
       <p class="text-sm text-stone-500">
         Aucun paiement à afficher pour le moment.
@@ -203,7 +209,10 @@ function openReceipt(url: string) {
                 <UTooltip text="Frais prélevés par Stripe pour le traitement du paiement">
                   <p class="flex cursor-help items-center gap-1 text-xs font-medium uppercase tracking-wider text-stone-500">
                     Frais Stripe
-                    <UIcon name="lucide:info" class="h-3 w-3" />
+                    <UIcon
+                      name="lucide:info"
+                      class="h-3 w-3"
+                    />
                   </p>
                 </UTooltip>
                 <p class="mt-1 font-semibold text-stone-900">
@@ -229,7 +238,10 @@ function openReceipt(url: string) {
               color="neutral"
               @click="payment.receiptUrl ? openReceipt(payment.receiptUrl) : undefined"
             >
-              <UIcon name="lucide:external-link" class="mr-2 h-4 w-4" />
+              <UIcon
+                name="lucide:external-link"
+                class="mr-2 h-4 w-4"
+              />
               Voir le reçu
             </UButton>
             <span
@@ -253,7 +265,10 @@ function openReceipt(url: string) {
           :loading="loadMorePending"
           @click="emit('loadMore')"
         >
-          <UIcon name="lucide:chevrons-down" class="mr-2 h-4 w-4" />
+          <UIcon
+            name="lucide:chevrons-down"
+            class="mr-2 h-4 w-4"
+          />
           Charger plus
         </UButton>
 

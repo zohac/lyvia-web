@@ -49,7 +49,10 @@
             class="h-auto p-0 text-xs"
           >
             Voir le reçu
-            <UIcon name="lucide:external-link" class="ml-1 h-3 w-3" />
+            <UIcon
+              name="lucide:external-link"
+              class="ml-1 h-3 w-3"
+            />
           </UButton>
           <span
             v-else

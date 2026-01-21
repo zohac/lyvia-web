@@ -1,34 +1,29 @@
 <template>
-  <div>
+  <div class="space-y-8">
     <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
           Mes rendez-vous
         </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
+        <p class="mt-1 text-stone-500">
           Consultez vos consultations programmées avec votre coach.
         </p>
       </div>
 
-      <ULink
+      <UButton
         to="/client/dashboard"
-        class="group inline-flex items-center gap-2 text-sm text-[color:var(--color-brand-muted)] transition-colors hover:text-[color:var(--color-brand-primary)]"
+        variant="ghost"
+        color="neutral"
+        leading-icon="i-lucide-arrow-left"
       >
-        <UIcon
-          name="lucide:arrow-left"
-          size="16"
-          class="transition-transform group-hover:-translate-x-1"
-        />
-        Retour au tableau de bord
-      </ULink>
-    </section>
+        Retour
+      </UButton>
+    </header>
 
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
+    <div class="grid gap-6 lg:grid-cols-3">
       <!-- Main Content -->
-      <div class="space-y-8 lg:col-span-8">
+      <div class="space-y-6 lg:col-span-2">
         <!-- Next consultation card -->
         <OrganismsConsultationDashboardCard
           :pending="consultationPending"
@@ -53,35 +48,37 @@
         />
 
         <!-- History placeholder -->
-        <section class="rounded-blob-b border border-[rgba(28,25,23,0.10)] bg-white/75 p-8 shadow-soft backdrop-blur">
+        <UCard class="bg-white">
           <div class="flex items-start gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--color-surface-highlight)]">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-stone-100">
               <UIcon
                 name="lucide:history"
-                size="24"
-                class="text-[color:var(--color-brand-muted)]"
+                class="h-6 w-6 text-stone-500"
               />
             </div>
             <div>
-              <h3 class="font-serif text-xl italic text-[color:var(--color-brand-primary)]">
+              <h3 class="font-semibold text-stone-900">
                 Historique des consultations
               </h3>
-              <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
+              <p class="mt-1 text-sm text-stone-500">
                 L'historique complet de vos consultations passées sera disponible prochainement.
               </p>
             </div>
           </div>
-        </section>
+        </UCard>
       </div>
 
       <!-- Sidebar -->
-      <aside class="space-y-8 lg:col-span-4">
+      <div class="space-y-6">
         <!-- Info card -->
-        <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-white/75 p-8 shadow-soft backdrop-blur">
-          <p class="text-xs font-bold uppercase tracking-[0.24em] text-[color:var(--color-brand-muted)]">
-            Comment ça marche
-          </p>
-          <div class="mt-4 space-y-4 text-sm text-[color:var(--color-brand-secondary)]">
+        <UCard class="bg-white">
+          <template #header>
+            <h2 class="font-semibold text-stone-900">
+              Comment ça marche
+            </h2>
+          </template>
+
+          <div class="space-y-3 text-sm text-stone-600">
             <p>
               Votre coach planifie vos consultations selon vos disponibilités et vos besoins.
             </p>
@@ -92,25 +89,29 @@
               Pour toute demande de modification, utilisez les boutons disponibles sur votre consultation.
             </p>
           </div>
-        </div>
+        </UCard>
 
         <!-- Support card -->
-        <div class="rounded-blob-a border border-white/60 bg-gradient-to-br from-[color:var(--color-kaora-50)] to-white p-8 shadow-soft">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-soft">
-            <UIcon
-              name="lucide:message-circle"
-              size="24"
-              class="text-[color:var(--color-brand-accent)]"
-            />
+        <UCard class="bg-gradient-to-br from-crepuscule-50 to-white">
+          <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm">
+              <UIcon
+                name="lucide:message-circle"
+                class="h-6 w-6 text-crepuscule-600"
+              />
+            </div>
+            <div>
+              <h3 class="font-semibold text-stone-900">
+                Besoin d'aide ?
+              </h3>
+            </div>
           </div>
-          <h3 class="font-serif text-lg italic text-[color:var(--color-brand-primary)]">
-            Besoin d'aide ?
-          </h3>
-          <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
+
+          <p class="mt-4 text-sm text-stone-600">
             Contactez votre coach directement pour toute question concernant vos rendez-vous.
           </p>
-        </div>
-      </aside>
+        </UCard>
+      </div>
     </div>
   </div>
 </template>

@@ -133,7 +133,10 @@ const copyDirectionOptions = [
           @submit.prevent="submitCreateBlock"
         >
           <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField label="Début" :error="createBlockFieldErrors.startAt ?? undefined">
+            <UFormField
+              label="Début"
+              :error="createBlockFieldErrors.startAt ?? undefined"
+            >
               <UInput
                 v-model="createBlockForm.startAt"
                 type="datetime-local"
@@ -141,7 +144,10 @@ const copyDirectionOptions = [
               />
             </UFormField>
 
-            <UFormField label="Fin" :error="createBlockFieldErrors.endAt ?? undefined">
+            <UFormField
+              label="Fin"
+              :error="createBlockFieldErrors.endAt ?? undefined"
+            >
               <UInput
                 v-model="createBlockForm.endAt"
                 type="datetime-local"
@@ -150,7 +156,10 @@ const copyDirectionOptions = [
             </UFormField>
           </div>
 
-          <UFormField label="Type" :error="createBlockFieldErrors.blockType ?? undefined">
+          <UFormField
+            label="Type"
+            :error="createBlockFieldErrors.blockType ?? undefined"
+          >
             <USelect
               v-model="createBlockForm.blockType"
               :items="blockTypeOptions"
@@ -158,7 +167,10 @@ const copyDirectionOptions = [
             />
           </UFormField>
 
-          <UFormField label="Raison (optionnel)" :error="createBlockFieldErrors.reason ?? undefined">
+          <UFormField
+            label="Raison (optionnel)"
+            :error="createBlockFieldErrors.reason ?? undefined"
+          >
             <UTextarea
               v-model="createBlockForm.reason"
               :rows="3"
@@ -223,21 +235,31 @@ const copyDirectionOptions = [
           class="space-y-5"
           @submit.prevent="submitCreateRule"
         >
-          <UFormField label="Type" :error="createRuleFieldErrors.appointmentType ?? undefined">
+          <UFormField
+            label="Type"
+            :error="createRuleFieldErrors.appointmentType ?? undefined"
+          >
             <USelect
               v-model="createRuleForm.appointmentType"
               :items="appointmentTypeOptions"
               :disabled="isCreatingRule || createRuleApplyToAllTypes"
             />
-            <template v-if="createRuleApplyToAllTypes" #hint>
+            <template
+              v-if="createRuleApplyToAllTypes"
+              #hint
+            >
               Les deux types (Discovery + Consultation) seront créés.
             </template>
           </UFormField>
 
           <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
             <div>
-              <p class="font-medium text-stone-900">Appliquer à tous les types</p>
-              <p class="text-sm text-stone-500">Crée la règle pour Discovery et Consultation.</p>
+              <p class="font-medium text-stone-900">
+                Appliquer à tous les types
+              </p>
+              <p class="text-sm text-stone-500">
+                Crée la règle pour Discovery et Consultation.
+              </p>
             </div>
             <USwitch
               v-model="createRuleApplyToAllTypes"
@@ -245,7 +267,10 @@ const copyDirectionOptions = [
             />
           </div>
 
-          <UFormField label="Jour" :error="createRuleFieldErrors.weekday ?? undefined">
+          <UFormField
+            label="Jour"
+            :error="createRuleFieldErrors.weekday ?? undefined"
+          >
             <USelect
               v-model="createRuleForm.weekday"
               :items="weekdayOptions"
@@ -254,7 +279,10 @@ const copyDirectionOptions = [
           </UFormField>
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField label="Début" :error="createRuleFieldErrors.startTime ?? undefined">
+            <UFormField
+              label="Début"
+              :error="createRuleFieldErrors.startTime ?? undefined"
+            >
               <UInput
                 v-model="createRuleForm.startTime"
                 type="time"
@@ -263,7 +291,10 @@ const copyDirectionOptions = [
               />
             </UFormField>
 
-            <UFormField label="Fin" :error="createRuleFieldErrors.endTime ?? undefined">
+            <UFormField
+              label="Fin"
+              :error="createRuleFieldErrors.endTime ?? undefined"
+            >
               <UInput
                 v-model="createRuleForm.endTime"
                 type="time"
@@ -290,7 +321,10 @@ const copyDirectionOptions = [
             v-else
             class="grid gap-4 sm:grid-cols-2"
           >
-            <UFormField label="Durée Discovery (min)" :error="createRuleDurationErrors.discovery ?? undefined">
+            <UFormField
+              label="Durée Discovery (min)"
+              :error="createRuleDurationErrors.discovery ?? undefined"
+            >
               <UInput
                 v-model.number="createRuleDurationByType.discovery"
                 type="number"
@@ -299,7 +333,10 @@ const copyDirectionOptions = [
               />
             </UFormField>
 
-            <UFormField label="Durée Consultation (min)" :error="createRuleDurationErrors.consultation ?? undefined">
+            <UFormField
+              label="Durée Consultation (min)"
+              :error="createRuleDurationErrors.consultation ?? undefined"
+            >
               <UInput
                 v-model.number="createRuleDurationByType.consultation"
                 type="number"
@@ -311,8 +348,12 @@ const copyDirectionOptions = [
 
           <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
             <div>
-              <p class="font-medium text-stone-900">Activer la règle</p>
-              <p class="text-sm text-stone-500">Désactivez temporairement sans supprimer.</p>
+              <p class="font-medium text-stone-900">
+                Activer la règle
+              </p>
+              <p class="text-sm text-stone-500">
+                Désactivez temporairement sans supprimer.
+              </p>
             </div>
             <USwitch
               v-model="createRuleForm.isActive"
@@ -365,7 +406,10 @@ const copyDirectionOptions = [
           class="space-y-5"
           @submit.prevent="submitUpdateRule"
         >
-          <UFormField label="Type" :error="updateRuleFieldErrors.appointmentType ?? undefined">
+          <UFormField
+            label="Type"
+            :error="updateRuleFieldErrors.appointmentType ?? undefined"
+          >
             <USelect
               v-model="updateRuleForm.appointmentType"
               :items="appointmentTypeOptions"
@@ -373,7 +417,10 @@ const copyDirectionOptions = [
             />
           </UFormField>
 
-          <UFormField label="Jour" :error="updateRuleFieldErrors.weekday ?? undefined">
+          <UFormField
+            label="Jour"
+            :error="updateRuleFieldErrors.weekday ?? undefined"
+          >
             <USelect
               v-model="updateRuleForm.weekday"
               :items="weekdayOptions"
@@ -382,7 +429,10 @@ const copyDirectionOptions = [
           </UFormField>
 
           <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField label="Début" :error="updateRuleFieldErrors.startTime ?? undefined">
+            <UFormField
+              label="Début"
+              :error="updateRuleFieldErrors.startTime ?? undefined"
+            >
               <UInput
                 v-model="updateRuleForm.startTime"
                 type="time"
@@ -391,7 +441,10 @@ const copyDirectionOptions = [
               />
             </UFormField>
 
-            <UFormField label="Fin" :error="updateRuleFieldErrors.endTime ?? undefined">
+            <UFormField
+              label="Fin"
+              :error="updateRuleFieldErrors.endTime ?? undefined"
+            >
               <UInput
                 v-model="updateRuleForm.endTime"
                 type="time"
@@ -401,7 +454,10 @@ const copyDirectionOptions = [
             </UFormField>
           </div>
 
-          <UFormField label="Durée (minutes)" :error="updateRuleFieldErrors.slotDurationMinutes ?? undefined">
+          <UFormField
+            label="Durée (minutes)"
+            :error="updateRuleFieldErrors.slotDurationMinutes ?? undefined"
+          >
             <UInput
               v-model.number="updateRuleForm.slotDurationMinutes"
               type="number"
@@ -412,8 +468,12 @@ const copyDirectionOptions = [
 
           <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
             <div>
-              <p class="font-medium text-stone-900">Activer la règle</p>
-              <p class="text-sm text-stone-500">Désactivez temporairement sans supprimer.</p>
+              <p class="font-medium text-stone-900">
+                Activer la règle
+              </p>
+              <p class="text-sm text-stone-500">
+                Désactivez temporairement sans supprimer.
+              </p>
             </div>
             <USwitch
               v-model="updateRuleForm.isActive"
@@ -483,7 +543,9 @@ const copyDirectionOptions = [
           </UFormField>
 
           <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
-            <p class="font-medium text-stone-900">Résumé</p>
+            <p class="font-medium text-stone-900">
+              Résumé
+            </p>
             <p class="mt-2 text-sm text-stone-600">
               {{ copyRulesSummary.sourceCount }} règle(s) source • {{ copyRulesSummary.targetCount }} règle(s) déjà configurée(s)
             </p>
@@ -497,8 +559,12 @@ const copyDirectionOptions = [
 
           <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
             <div>
-              <p class="font-medium text-stone-900">Adapter aux durées recommandées</p>
-              <p class="text-sm text-stone-500">Discovery : 30 min • Consultation : 60 min.</p>
+              <p class="font-medium text-stone-900">
+                Adapter aux durées recommandées
+              </p>
+              <p class="text-sm text-stone-500">
+                Discovery : 30 min • Consultation : 60 min.
+              </p>
             </div>
             <USwitch
               v-model="copyRulesAdaptDurations"
@@ -570,7 +636,10 @@ const copyDirectionOptions = [
         color="neutral"
         @click="() => refresh()"
       >
-        <UIcon name="lucide:refresh-cw" class="mr-2 h-4 w-4" />
+        <UIcon
+          name="lucide:refresh-cw"
+          class="mr-2 h-4 w-4"
+        />
         Actualiser
       </UButton>
     </header>
@@ -599,7 +668,10 @@ const copyDirectionOptions = [
                   :disabled="pending || Boolean(errorMessage)"
                   @click="openCopyRulesModal()"
                 >
-                  <UIcon name="lucide:copy" class="mr-1.5 h-4 w-4" />
+                  <UIcon
+                    name="lucide:copy"
+                    class="mr-1.5 h-4 w-4"
+                  />
                   Copier depuis…
                 </UButton>
                 <UButton
@@ -608,7 +680,10 @@ const copyDirectionOptions = [
                   :disabled="pending || Boolean(errorMessage)"
                   @click="openCreateRuleModal"
                 >
-                  <UIcon name="lucide:plus" class="mr-1.5 h-4 w-4" />
+                  <UIcon
+                    name="lucide:plus"
+                    class="mr-1.5 h-4 w-4"
+                  />
                   Ajouter
                 </UButton>
               </div>
@@ -630,7 +705,10 @@ const copyDirectionOptions = [
             class="flex flex-col items-center justify-center gap-3 py-12 text-center"
           >
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
-              <UIcon name="lucide:calendar-clock" class="h-6 w-6 text-stone-400" />
+              <UIcon
+                name="lucide:calendar-clock"
+                class="h-6 w-6 text-stone-400"
+              />
             </div>
             <p class="text-sm text-stone-500">
               Aucune règle configurée. Ajoutez vos plages horaires récurrentes.
@@ -651,7 +729,11 @@ const copyDirectionOptions = [
                 <p class="font-semibold text-stone-900">
                   {{ weekdayLabel(group.weekday) }}
                 </p>
-                <UBadge color="neutral" variant="soft" size="sm">
+                <UBadge
+                  color="neutral"
+                  variant="soft"
+                  size="sm"
+                >
                   {{ group.groups.reduce((count, typeGroup) => count + typeGroup.rules.length, 0) }} règle(s)
                 </UBadge>
               </div>
@@ -666,7 +748,11 @@ const copyDirectionOptions = [
                     <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
                       {{ appointmentTypeLabel(typeGroup.type) }}
                     </p>
-                    <UBadge color="primary" variant="soft" size="sm">
+                    <UBadge
+                      color="primary"
+                      variant="soft"
+                      size="sm"
+                    >
                       {{ typeGroup.rules.length }}
                     </UBadge>
                   </div>
@@ -681,7 +767,11 @@ const copyDirectionOptions = [
                         <span class="font-medium text-stone-900">
                           {{ normalizeRuleTime(rule.startTime) }}–{{ normalizeRuleTime(rule.endTime) }}
                         </span>
-                        <UBadge color="neutral" variant="soft" size="sm">
+                        <UBadge
+                          color="neutral"
+                          variant="soft"
+                          size="sm"
+                        >
                           {{ rule.slotDurationMinutes }} min
                         </UBadge>
                         <UBadge
@@ -712,7 +802,10 @@ const copyDirectionOptions = [
                           :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
                           @click="openUpdateRuleModal(rule)"
                         >
-                          <UIcon name="lucide:pencil" class="h-4 w-4" />
+                          <UIcon
+                            name="lucide:pencil"
+                            class="h-4 w-4"
+                          />
                         </UButton>
                         <UButton
                           variant="ghost"
@@ -721,7 +814,10 @@ const copyDirectionOptions = [
                           :disabled="pending || updatingRuleId === rule.id || deletingRuleId === rule.id"
                           @click="openDeleteRuleModal(rule)"
                         >
-                          <UIcon name="lucide:trash-2" class="h-4 w-4" />
+                          <UIcon
+                            name="lucide:trash-2"
+                            class="h-4 w-4"
+                          />
                         </UButton>
                       </div>
                     </div>
@@ -750,7 +846,10 @@ const copyDirectionOptions = [
                 :disabled="pending"
                 @click="openCreateBlockModal"
               >
-                <UIcon name="lucide:plus" class="mr-1.5 h-4 w-4" />
+                <UIcon
+                  name="lucide:plus"
+                  class="mr-1.5 h-4 w-4"
+                />
                 Ajouter
               </UButton>
             </div>
@@ -771,7 +870,10 @@ const copyDirectionOptions = [
             class="flex flex-col items-center justify-center gap-3 py-12 text-center"
           >
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
-              <UIcon name="lucide:calendar-x" class="h-6 w-6 text-stone-400" />
+              <UIcon
+                name="lucide:calendar-x"
+                class="h-6 w-6 text-stone-400"
+              />
             </div>
             <p class="text-sm text-stone-500">
               Aucun blocage ponctuel pour le moment.
@@ -803,7 +905,11 @@ const copyDirectionOptions = [
                 </p>
               </div>
               <div class="flex items-center gap-2">
-                <UBadge color="warning" variant="soft" size="sm">
+                <UBadge
+                  color="warning"
+                  variant="soft"
+                  size="sm"
+                >
                   Blocage
                 </UBadge>
                 <UButton
@@ -813,7 +919,10 @@ const copyDirectionOptions = [
                   :disabled="pending || Boolean(deletingBlockId)"
                   @click="openDeleteBlockModal(block)"
                 >
-                  <UIcon name="lucide:trash-2" class="h-4 w-4" />
+                  <UIcon
+                    name="lucide:trash-2"
+                    class="h-4 w-4"
+                  />
                 </UButton>
               </div>
             </div>

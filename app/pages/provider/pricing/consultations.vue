@@ -190,14 +190,20 @@ async function onMove(plan: DisplayPlan, direction: 'up' | 'down') {
           :loading="pricing.pending.value"
           @click="pricing.refresh"
         >
-          <UIcon name="lucide:refresh-cw" class="mr-2 h-4 w-4" />
+          <UIcon
+            name="lucide:refresh-cw"
+            class="mr-2 h-4 w-4"
+          />
           Actualiser
         </UButton>
         <UButton
           color="primary"
           @click="openCreateModal"
         >
-          <UIcon name="lucide:plus" class="mr-2 h-4 w-4" />
+          <UIcon
+            name="lucide:plus"
+            class="mr-2 h-4 w-4"
+          />
           Créer un tarif
         </UButton>
       </div>
@@ -250,16 +256,27 @@ async function onMove(plan: DisplayPlan, direction: 'up' | 'down') {
     >
       <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
         <div class="flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
-          <UIcon name="lucide:tag" class="h-8 w-8 text-stone-400" />
+          <UIcon
+            name="lucide:tag"
+            class="h-8 w-8 text-stone-400"
+          />
         </div>
         <div>
-          <p class="font-medium text-stone-900">Aucun tarif configuré</p>
+          <p class="font-medium text-stone-900">
+            Aucun tarif configuré
+          </p>
           <p class="mt-1 text-sm text-stone-500">
             Créez votre premier tarif pour commencer à recevoir des consultations.
           </p>
         </div>
-        <UButton color="primary" @click="openCreateModal">
-          <UIcon name="lucide:plus" class="mr-2 h-4 w-4" />
+        <UButton
+          color="primary"
+          @click="openCreateModal"
+        >
+          <UIcon
+            name="lucide:plus"
+            class="mr-2 h-4 w-4"
+          />
           Créer un tarif
         </UButton>
       </div>

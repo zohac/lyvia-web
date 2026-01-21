@@ -9,7 +9,9 @@
         :aria-controls="sectionId"
         @click="toggleExpanded"
       >
-        <h2 class="font-semibold text-stone-900">Paiements</h2>
+        <h2 class="font-semibold text-stone-900">
+          Paiements
+        </h2>
         <div class="flex items-center gap-3">
           <span
             v-if="!loading"
@@ -71,7 +73,10 @@
         class="flex flex-col items-center justify-center gap-3 py-8 text-center"
       >
         <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
-          <UIcon name="lucide:credit-card" class="h-6 w-6 text-stone-400" />
+          <UIcon
+            name="lucide:credit-card"
+            class="h-6 w-6 text-stone-400"
+          />
         </div>
         <p class="text-sm text-stone-500">
           {{ emptyStateLabel }}
@@ -101,7 +106,10 @@
             :loading="loadingMore"
             @click="handleLoadMore"
           >
-            <UIcon name="lucide:chevrons-down" class="mr-2 h-4 w-4" />
+            <UIcon
+              name="lucide:chevrons-down"
+              class="mr-2 h-4 w-4"
+            />
             Charger plus
           </UButton>
         </div>

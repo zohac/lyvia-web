@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LegalFooterLinks from '../atoms/LegalFooterLinks.vue'
+import { useCurrentUser } from '../../features/auth/useCurrentUser'
 
 type NavItem = {
   label: string
@@ -34,6 +35,7 @@ const _slots = defineSlots<{
 
 const auth = useAuth()
 const route = useRoute()
+const currentUser = useCurrentUser()
 
 const isLoggingOut = ref(false)
 const isMobileNavOpen = ref(false)
@@ -99,13 +101,43 @@ const pageTitle = computed(() => {
     : 'Tableau de bord'
 })
 
-const userLabel = computed(() => auth.user.value?.email ?? 'Utilisateur')
+// User display info from useCurrentUser composable
+const userLabel = computed(() => currentUser.email.value || 'Utilisateur')
+const userInitials = computed(() => currentUser.initials.value)
+const userDisplayName = computed(() => currentUser.displayName.value)
 
-const userInitials = computed(() => {
-  const email = auth.user.value?.email
-  if (!email) return 'U'
-  return email.slice(0, 1).toUpperCase()
+const roleBadgeColor = computed(() => {
+  const label = props.sidebarLabel.toLowerCase()
+  if (label === 'admin') return 'error' as const
+  if (label === 'provider' || label === 'coach') return 'primary' as const
+  return 'neutral' as const
 })
+
+const userMenuItems = computed(() => [
+  [
+    {
+      label: userDisplayName.value,
+      icon: 'i-lucide-user',
+      disabled: true,
+      class: 'font-semibold'
+    },
+    {
+      label: userLabel.value,
+      icon: 'i-lucide-mail',
+      disabled: true,
+      class: 'text-stone-500'
+    }
+  ],
+  [
+    {
+      label: 'Se déconnecter',
+      icon: 'i-lucide-log-out',
+      color: 'error' as const,
+      disabled: isLoggingOut.value,
+      onSelect: onLogout
+    }
+  ]
+])
 
 function isItemActive(item: NavItem): boolean {
   if (item.match === 'prefix') return route.path.startsWith(item.to)
@@ -275,42 +307,55 @@ watch(
         </div>
       </nav>
 
-      <div class="mt-auto p-6">
-        <div class="rounded-[2rem] bg-white/50 p-5 shadow-soft ring-1 ring-white backdrop-blur-md transition-base hover:bg-white/70">
-          <div class="flex items-center justify-between gap-3">
-            <div class="grid min-w-0 gap-0.5">
-              <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-[color:var(--color-brand-muted)]">
-                Statut
-              </p>
-              <p class="font-serif text-sm italic text-[color:var(--color-brand-primary)]">
-                {{ sidebarLabel }}
-              </p>
-              <p class="truncate text-xs text-[color:var(--color-brand-secondary)]">
+      <!-- User Section -->
+      <div class="mt-auto border-t border-stone-200/60 p-4">
+        <UDropdownMenu
+          :items="userMenuItems"
+          :content="{ align: 'start', side: 'top', sideOffset: 8 }"
+          :ui="{ content: 'w-64' }"
+        >
+          <button
+            type="button"
+            class="group flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all hover:bg-stone-100"
+          >
+            <!-- Avatar -->
+            <div class="relative">
+              <UAvatar
+                :text="userInitials"
+                size="lg"
+                class="ring-2 ring-crepuscule-200 ring-offset-2 ring-offset-white"
+                :ui="{ root: 'bg-crepuscule-100', fallback: 'text-crepuscule-700 font-semibold' }"
+              />
+              <!-- Online indicator -->
+              <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+            </div>
+
+            <!-- User info -->
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <p class="truncate text-sm font-semibold text-stone-900">
+                  {{ userDisplayName }}
+                </p>
+                <UBadge
+                  :color="roleBadgeColor"
+                  variant="subtle"
+                  size="xs"
+                >
+                  {{ sidebarLabel }}
+                </UBadge>
+              </div>
+              <p class="truncate text-xs text-stone-500">
                 {{ userLabel }}
               </p>
             </div>
 
-            <div class="flex items-center gap-3">
-              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-brand-solid)] text-sm font-bold text-[color:var(--color-brand-primary)]">
-                {{ userInitials }}
-              </div>
-
-              <button
-                type="button"
-                :disabled="isLoggingOut"
-                class="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-sm)] text-[color:var(--color-brand-secondary)] transition-base hover:bg-white disabled:cursor-not-allowed disabled:opacity-70"
-                aria-label="Se déconnecter"
-                @click="onLogout"
-              >
-                <UIcon
-                  name="lucide:log-out"
-                  size="20"
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-          </div>
-        </div>
+            <!-- Chevron -->
+            <UIcon
+              name="lucide:chevrons-up-down"
+              class="h-4 w-4 shrink-0 text-stone-400 transition-colors group-hover:text-stone-600"
+            />
+          </button>
+        </UDropdownMenu>
       </div>
     </aside>
 
@@ -352,35 +397,6 @@ watch(
 
         <div class="flex items-center gap-3">
           <slot name="header-actions" />
-
-          <UButton
-            to="/provider/calendar"
-            color="primary"
-            size="xl"
-            class="hidden sm:inline-flex rounded-full bg-[color:var(--color-brand-primary)]"
-          >
-            <UIcon
-              name="lucide:plus"
-              size="16"
-              class="mr-1.5"
-            />
-            Nouveau RDV
-          </UButton>
-
-          <!-- Mobile: icon only -->
-          <UButton
-            to="/provider/calendar"
-            color="primary"
-            size="sm"
-            square
-            class="sm:hidden"
-            aria-label="Nouveau rendez-vous"
-          >
-            <UIcon
-              name="lucide:plus"
-              size="18"
-            />
-          </UButton>
         </div>
       </header>
 
@@ -388,16 +404,16 @@ watch(
         <div class="mx-auto w-full max-w-7xl">
           <slot />
         </div>
-
-        <footer class="mt-12 border-t border-[rgba(231,229,228,0.5)] pt-6">
-          <div class="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 text-center">
-            <LegalFooterLinks />
-            <p class="text-xs text-[color:var(--color-brand-muted)]">
-              © {{ new Date().getFullYear() }} Kaora
-            </p>
-          </div>
-        </footer>
       </main>
+
+      <footer class="border-t border-[rgba(231,229,228,0.5)] px-6 py-6 md:px-8 lg:px-12">
+        <div class="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 text-center">
+          <LegalFooterLinks />
+          <p class="text-xs text-[color:var(--color-brand-muted)]">
+            © {{ new Date().getFullYear() }} Kaora
+          </p>
+        </div>
+      </footer>
     </div>
 
     <Teleport to="body">
@@ -563,20 +579,46 @@ watch(
             </div>
           </nav>
 
-          <div class="mt-auto p-6">
-            <button
-              type="button"
-              :disabled="isLoggingOut"
-              class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-4 py-3 text-sm font-bold text-white shadow-floating transition-base hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+          <!-- User Section (Mobile) -->
+          <div class="mt-auto border-t border-stone-200/60 p-4">
+            <!-- User info card -->
+            <div class="mb-3 flex items-center gap-3 rounded-xl bg-stone-50 p-3">
+              <UAvatar
+                :text="userInitials"
+                size="lg"
+                class="ring-2 ring-crepuscule-200 ring-offset-2 ring-offset-stone-50"
+                :ui="{ root: 'bg-crepuscule-100', fallback: 'text-crepuscule-700 font-semibold' }"
+              />
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <p class="truncate text-sm font-semibold text-stone-900">
+                    {{ userDisplayName }}
+                  </p>
+                  <UBadge
+                    :color="roleBadgeColor"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    {{ sidebarLabel }}
+                  </UBadge>
+                </div>
+                <p class="truncate text-xs text-stone-500">
+                  {{ userLabel }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Logout button -->
+            <UButton
+              color="error"
+              variant="soft"
+              block
+              :loading="isLoggingOut"
+              leading-icon="i-lucide-log-out"
               @click="onLogout"
             >
-              <UIcon
-                name="lucide:log-out"
-                size="18"
-                aria-hidden="true"
-              />
               Se déconnecter
-            </button>
+            </UButton>
           </div>
         </aside>
       </div>

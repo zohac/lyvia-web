@@ -309,7 +309,7 @@ async function onCancelAppointmentSubmit(payload: { appointmentId: string, body:
   if (result.kind === 'forbidden') {
     toast.add({
       title: 'Accès non autorisé',
-      description: "Vous n'êtes pas autorisé à annuler ce rendez-vous.",
+      description: 'Vous n\'êtes pas autorisé à annuler ce rendez-vous.',
       color: 'error'
     })
     return
@@ -414,7 +414,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
   if (result.kind === 'forbidden') {
     toast.add({
       title: 'Accès non autorisé',
-      description: "Vous n'êtes pas autorisé à modifier ce rendez-vous.",
+      description: 'Vous n\'êtes pas autorisé à modifier ce rendez-vous.',
       color: 'error'
     })
     return
@@ -505,16 +505,27 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
     >
       <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
         <div class="flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
-          <UIcon name="lucide:calendar-x" class="h-8 w-8 text-stone-400" />
+          <UIcon
+            name="lucide:calendar-x"
+            class="h-8 w-8 text-stone-400"
+          />
         </div>
         <div>
-          <p class="font-medium text-stone-900">Aucun rendez-vous</p>
+          <p class="font-medium text-stone-900">
+            Aucun rendez-vous
+          </p>
           <p class="mt-1 text-sm text-stone-500">
             Aucun RDV sur cette période. (Fuseau : {{ calendar.timeZone.value }})
           </p>
         </div>
-        <UButton color="primary" @click="onCreateAppointment">
-          <UIcon name="lucide:plus" class="mr-2 h-4 w-4" />
+        <UButton
+          color="primary"
+          @click="onCreateAppointment"
+        >
+          <UIcon
+            name="lucide:plus"
+            class="mr-2 h-4 w-4"
+          />
           Créer un RDV
         </UButton>
       </div>

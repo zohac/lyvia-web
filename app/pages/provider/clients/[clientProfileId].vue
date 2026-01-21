@@ -9,7 +9,10 @@
         size="sm"
         class="px-0"
       >
-        <UIcon name="lucide:arrow-left" class="mr-1.5 h-4 w-4" />
+        <UIcon
+          name="lucide:arrow-left"
+          class="mr-1.5 h-4 w-4"
+        />
         Retour aux clientes
       </UButton>
 
@@ -64,7 +67,10 @@
             to="/provider/calendar"
             color="primary"
           >
-            <UIcon name="lucide:calendar-plus" class="mr-2 h-4 w-4" />
+            <UIcon
+              name="lucide:calendar-plus"
+              class="mr-2 h-4 w-4"
+            />
             Planifier un RDV
           </UButton>
         </div>
@@ -106,7 +112,9 @@
         <UCard class="bg-white">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-stone-900">Synthèse</h2>
+              <h2 class="font-semibold text-stone-900">
+                Synthèse
+              </h2>
               <UBadge
                 v-if="currentStatusMeta"
                 :color="currentStatusMeta.color"
@@ -214,7 +222,9 @@
           class="bg-white"
         >
           <template #header>
-            <h2 class="font-semibold text-stone-900">Actions rapides</h2>
+            <h2 class="font-semibold text-stone-900">
+              Actions rapides
+            </h2>
           </template>
 
           <div class="space-y-2">
@@ -225,7 +235,10 @@
               block
               class="justify-start"
             >
-              <UIcon name="lucide:mail" class="mr-2 h-4 w-4" />
+              <UIcon
+                name="lucide:mail"
+                class="mr-2 h-4 w-4"
+              />
               Envoyer un email
             </UButton>
             <UButton
@@ -235,7 +248,10 @@
               block
               class="justify-start"
             >
-              <UIcon name="lucide:phone" class="mr-2 h-4 w-4" />
+              <UIcon
+                name="lucide:phone"
+                class="mr-2 h-4 w-4"
+              />
               Appeler
             </UButton>
           </div>

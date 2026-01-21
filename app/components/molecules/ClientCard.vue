@@ -70,7 +70,10 @@
           size="sm"
         >
           Voir fiche
-          <UIcon name="lucide:arrow-right" class="ml-1.5 h-4 w-4" />
+          <UIcon
+            name="lucide:arrow-right"
+            class="ml-1.5 h-4 w-4"
+          />
         </UButton>
       </div>
     </div>

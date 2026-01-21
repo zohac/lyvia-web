@@ -40,8 +40,8 @@ const canCancel = computed(() => {
 const disabledReason = computed(() => {
   const appointment = props.appointment
   if (!appointment) return 'Aucun rendez-vous sélectionné.'
-  if (appointment.paymentStatus === 'paid') return "Impossible d'annuler un rendez-vous payé."
-  if (appointment.status !== 'scheduled') return "Impossible d'annuler un rendez-vous déjà clôturé."
+  if (appointment.paymentStatus === 'paid') return 'Impossible d\'annuler un rendez-vous payé.'
+  if (appointment.status !== 'scheduled') return 'Impossible d\'annuler un rendez-vous déjà clôturé.'
   return null
 })
 

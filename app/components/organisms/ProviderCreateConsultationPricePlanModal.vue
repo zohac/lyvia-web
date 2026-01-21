@@ -39,7 +39,7 @@ const localValidationError = computed(() => {
   const cents = eurosToCents(priceEuros.value)
   if (!cents) return 'Le prix doit être supérieur à 0.'
   if (sortOrder.value !== null && (!Number.isInteger(sortOrder.value) || sortOrder.value < 0)) {
-    return "L'ordre doit être un entier positif."
+    return 'L\'ordre doit être un entier positif.'
   }
   return null
 })

@@ -60,7 +60,10 @@ function formatTime(iso: string): string {
           :disabled="pending"
           @click="emit('refresh')"
         >
-          <UIcon name="lucide:refresh-cw" class="h-4 w-4" />
+          <UIcon
+            name="lucide:refresh-cw"
+            class="h-4 w-4"
+          />
         </UButton>
       </div>
     </template>
@@ -129,7 +132,11 @@ function formatTime(iso: string): string {
             <p class="text-sm font-medium text-stone-900">
               {{ group.label }}
             </p>
-            <UBadge color="primary" variant="soft" size="sm">
+            <UBadge
+              color="primary"
+              variant="soft"
+              size="sm"
+            >
               {{ group.slots.length }}
             </UBadge>
           </div>
@@ -142,7 +149,10 @@ function formatTime(iso: string): string {
               variant="soft"
               size="sm"
             >
-              <UIcon name="lucide:clock" class="mr-1 h-3 w-3" />
+              <UIcon
+                name="lucide:clock"
+                class="mr-1 h-3 w-3"
+              />
               {{ formatTime(slot.startAt) }}
             </UBadge>
             <UBadge

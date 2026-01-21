@@ -1,31 +1,29 @@
 <template>
-  <div>
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Bonjour, <span class="text-[color:var(--color-brand-accent)]">{{ displayName }}</span>
+  <div class="space-y-8">
+    <!-- Page header -->
+    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
+          Bonjour, {{ displayName }}
         </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Votre espace client, conçu pour rester simple et rassurant.
+        <p class="mt-1 text-stone-500">
+          Votre espace accompagnement
         </p>
       </div>
 
-      <ULink
+      <UButton
         to="/client/consultation"
-        class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-floating transition-base hover:brightness-110"
+        color="primary"
+        trailing-icon="i-lucide-arrow-right"
       >
-        <UIcon
-          name="lucide:calendar"
-          class="h-4 w-4"
-        />
-        Voir mes rendez-vous
-      </ULink>
-    </section>
+        Mes rendez-vous
+      </UButton>
+    </header>
 
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10">
-      <div class="space-y-8 lg:col-span-8">
+    <!-- Main content grid -->
+    <div class="grid gap-6 lg:grid-cols-3">
+      <!-- Main column -->
+      <div class="space-y-6 lg:col-span-2">
         <!-- Dynamic consultation card (RF6) -->
         <OrganismsConsultationDashboardCard
           :pending="consultationPending"
@@ -49,79 +47,111 @@
           @submit="handleRequestSubmit"
         />
 
-        <section class="grid gap-6 md:grid-cols-2">
-          <div class="rounded-blob-b border border-[rgba(28,25,23,0.10)] bg-white/75 p-7 shadow-soft backdrop-blur">
-            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--color-surface-highlight)]">
-              <UIcon
-                name="lucide:book-open"
-                class="h-5 w-5 text-[color:var(--color-brand-muted)]"
-              />
+        <!-- Cards grid -->
+        <div class="grid gap-6 md:grid-cols-2">
+          <!-- Ressources card -->
+          <UCard class="bg-white">
+            <div class="flex items-center gap-4">
+              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
+                <UIcon
+                  name="lucide:book-open"
+                  class="h-6 w-6 text-crepuscule-600"
+                />
+              </div>
+              <div>
+                <h3 class="font-semibold text-stone-900">
+                  Ressources
+                </h3>
+                <p class="text-sm text-stone-500">
+                  Bientôt disponible
+                </p>
+              </div>
             </div>
-            <h3 class="font-serif text-xl italic text-[color:var(--color-brand-primary)]">
-              Ressources
-            </h3>
-            <p class="mt-3 text-sm text-[color:var(--color-brand-secondary)]">
+
+            <p class="mt-4 text-sm text-stone-600">
               Vos contenus arrivent bientôt : guides, exercices et recommandations.
             </p>
-          </div>
+          </UCard>
 
           <!-- Paiements card -->
-          <div class="rounded-blob-d border border-[rgba(28,25,23,0.10)] bg-white/75 p-7 shadow-soft backdrop-blur">
-            <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--color-surface-highlight)]">
-              <UIcon
-                name="lucide:credit-card"
-                class="h-5 w-5 text-[color:var(--color-brand-muted)]"
-              />
-            </div>
-            <h3 class="font-serif text-xl italic text-[color:var(--color-brand-primary)]">
-              Paiements
-            </h3>
+          <UCard class="bg-white">
+            <template #header>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-sunset-100">
+                    <UIcon
+                      name="lucide:credit-card"
+                      class="h-5 w-5 text-sunset-600"
+                    />
+                  </div>
+                  <h3 class="font-semibold text-stone-900">
+                    Paiements
+                  </h3>
+                </div>
+                <UButton
+                  v-if="payments.length > 0"
+                  to="/client/payments"
+                  variant="ghost"
+                  color="neutral"
+                  size="xs"
+                  trailing-icon="i-lucide-arrow-right"
+                >
+                  Voir tout
+                </UButton>
+              </div>
+            </template>
 
             <!-- Loading state -->
             <div
               v-if="paymentsPending"
-              class="mt-4 space-y-2"
+              class="space-y-3"
             >
-              <div class="h-4 w-3/4 animate-pulse rounded bg-[color:var(--color-surface-highlight)]" />
-              <div class="h-4 w-1/2 animate-pulse rounded bg-[color:var(--color-surface-highlight)]" />
+              <USkeleton class="h-10 w-full rounded-lg" />
+              <USkeleton class="h-10 w-full rounded-lg" />
             </div>
 
             <!-- Error state -->
-            <div
+            <UAlert
               v-else-if="paymentsError"
-              class="mt-3"
+              color="error"
+              variant="soft"
+              :title="paymentsError"
+              icon="i-lucide-alert-circle"
             >
-              <p class="text-sm text-red-600">
-                {{ paymentsError }}
-              </p>
-              <button
-                class="mt-2 text-sm font-medium text-[color:var(--color-brand-accent)] hover:underline"
-                @click="refreshPayments"
-              >
-                Réessayer
-              </button>
-            </div>
+              <template #actions>
+                <UButton
+                  variant="link"
+                  color="error"
+                  size="sm"
+                  @click="refreshPayments"
+                >
+                  Réessayer
+                </UButton>
+              </template>
+            </UAlert>
 
             <!-- Empty state -->
-            <p
+            <div
               v-else-if="!payments.length"
-              class="mt-3 text-sm text-[color:var(--color-brand-secondary)]"
+              class="py-4 text-center"
             >
-              Aucun paiement pour le moment.
-            </p>
+              <p class="text-sm text-stone-500">
+                Aucun paiement pour le moment
+              </p>
+            </div>
 
             <!-- Payments list -->
             <div
               v-else
-              class="mt-4 space-y-3"
+              class="divide-y divide-stone-100"
             >
               <div
                 v-for="payment in payments.slice(0, 3)"
                 :key="payment.id"
-                class="flex items-center justify-between rounded-lg bg-[color:var(--color-surface-highlight)]/50 px-3 py-2"
+                class="flex items-center justify-between py-2.5 first:pt-0 last:pb-0"
               >
                 <div class="flex items-center gap-2">
-                  <div
+                  <span
                     class="h-2 w-2 rounded-full"
                     :class="{
                       'bg-green-500': payment.status === 'succeeded',
@@ -129,47 +159,50 @@
                       'bg-red-500': payment.status === 'failed'
                     }"
                   />
-                  <span class="text-sm text-[color:var(--color-brand-secondary)]">
+                  <span class="text-sm text-stone-600">
                     {{ formatPaymentDate(payment.createdAt) }}
                   </span>
                 </div>
-                <span class="text-sm font-medium text-[color:var(--color-brand-primary)]">
+                <span class="text-sm font-medium text-stone-900">
                   {{ formatPrice(payment.amountCents) }}
                 </span>
               </div>
 
               <p
                 v-if="payments.length > 3"
-                class="text-xs text-[color:var(--color-brand-muted)]"
+                class="pt-2 text-center text-xs text-stone-400"
               >
                 + {{ payments.length - 3 }} autre{{ payments.length - 3 > 1 ? 's' : '' }}
               </p>
             </div>
-          </div>
-        </section>
+          </UCard>
+        </div>
       </div>
 
-      <aside class="space-y-8 lg:col-span-4">
-        <!-- Aperçu card with real data -->
-        <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-white/75 p-8 shadow-soft backdrop-blur">
-          <p class="text-xs font-bold uppercase tracking-[0.24em] text-[color:var(--color-brand-muted)]">
-            Aperçu
-          </p>
+      <!-- Sidebar -->
+      <div class="space-y-6">
+        <!-- Aperçu card -->
+        <UCard class="bg-white">
+          <template #header>
+            <h2 class="font-semibold text-stone-900">
+              Aperçu
+            </h2>
+          </template>
 
-          <div class="mt-5 space-y-4">
+          <div class="space-y-4">
             <!-- Next appointment summary -->
             <div class="flex items-start gap-3">
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-surface-highlight)]">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-crepuscule-100">
                 <UIcon
                   name="lucide:calendar-check"
-                  class="h-4 w-4 text-[color:var(--color-brand-accent)]"
+                  class="h-5 w-5 text-crepuscule-600"
                 />
               </div>
               <div>
-                <p class="text-xs font-medium uppercase tracking-wide text-[color:var(--color-brand-muted)]">
+                <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
                   Prochain RDV
                 </p>
-                <p class="mt-0.5 text-sm font-medium text-[color:var(--color-brand-primary)]">
+                <p class="mt-0.5 text-sm font-medium text-stone-900">
                   {{ nextAppointmentLabel }}
                 </p>
               </div>
@@ -177,40 +210,45 @@
 
             <!-- Payments summary -->
             <div class="flex items-start gap-3">
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-surface-highlight)]">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sunset-100">
                 <UIcon
                   name="lucide:receipt"
-                  class="h-4 w-4 text-[color:var(--color-brand-accent)]"
+                  class="h-5 w-5 text-sunset-600"
                 />
               </div>
               <div>
-                <p class="text-xs font-medium uppercase tracking-wide text-[color:var(--color-brand-muted)]">
+                <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
                   Paiements
                 </p>
-                <p class="mt-0.5 text-sm font-medium text-[color:var(--color-brand-primary)]">
+                <p class="mt-0.5 text-sm font-medium text-stone-900">
                   {{ paymentsSummaryLabel }}
                 </p>
               </div>
             </div>
           </div>
-        </div>
+        </UCard>
 
         <!-- Support card -->
-        <div class="rounded-blob-a border border-white/60 bg-gradient-to-br from-[color:var(--color-kaora-50)] to-white p-8 shadow-soft">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-soft">
-            <UIcon
-              name="lucide:message-circle"
-              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
-            />
+        <UCard class="bg-gradient-to-br from-crepuscule-50 to-white">
+          <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm">
+              <UIcon
+                name="lucide:message-circle"
+                class="h-6 w-6 text-crepuscule-600"
+              />
+            </div>
+            <div>
+              <h3 class="font-semibold text-stone-900">
+                Besoin d'aide ?
+              </h3>
+            </div>
           </div>
-          <h3 class="font-serif text-lg italic text-[color:var(--color-brand-primary)]">
-            Besoin d'aide ?
-          </h3>
-          <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
+
+          <p class="mt-4 text-sm text-stone-600">
             Contactez votre coach directement pour toute question concernant vos rendez-vous ou votre accompagnement.
           </p>
-        </div>
-      </aside>
+        </UCard>
+      </div>
     </div>
   </div>
 </template>
@@ -218,6 +256,7 @@
 <script setup lang="ts">
 import type { RequestType, RequestReason } from '../../components/organisms/ClientConsultationRequestModal.vue'
 import type { ClientPaymentListItem } from '../../features/payments/api/client-payments.contract'
+import { useCurrentUser } from '../../features/auth/useCurrentUser'
 import { useClientNextConsultation, formatDateLong, formatPrice } from '../../features/consultation/useClientNextConsultation'
 import { listClientPayments } from '../../features/payments/services/client-payments.service'
 
@@ -227,15 +266,10 @@ definePageMeta({
   pageTitle: 'Tableau de bord'
 })
 
-const auth = useAuth()
 const toast = useToast()
+const currentUser = useCurrentUser()
 
-const displayName = computed(() => {
-  const email = auth.user.value?.email
-  if (!email) return 'cliente'
-  const local = email.split('@')[0]
-  return local?.trim() || 'cliente'
-})
+const displayName = computed(() => currentUser.displayName.value)
 
 /**
  * Consultation state for dashboard card (RF6)
@@ -298,7 +332,7 @@ const nextAppointmentLabel = computed(() => {
     return 'Aucun rendez-vous'
   }
   if (state.kind === 'awaiting_payment') {
-    return `En attente de paiement`
+    return 'En attente de paiement'
   }
   if (state.kind === 'payment_confirmed') {
     return formatDateLong(state.scheduledAt)

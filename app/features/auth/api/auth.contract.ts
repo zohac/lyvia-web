@@ -22,6 +22,12 @@ export type AuthUser = {
   id: string
   email: string
   role: UserRole
+  /** First name from profile (null for ADMIN or if profile not found) */
+  firstname: string | null
+  /** Last name from profile (null for ADMIN or if profile not found) */
+  lastname: string | null
+  /** Display name (e.g., "Marie D.") or null if profile not found */
+  displayName: string | null
 }
 
 export type LoginRequest = {

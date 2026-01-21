@@ -5,26 +5,42 @@ useHead({
   htmlAttrs: { lang: 'fr' }
 })
 
-const navigation = [
-  {
+const navigation = {
+  home: {
     label: 'Dashboard',
     to: '/admin/dashboard',
     icon: 'lucide:layout-dashboard',
-    match: 'exact'
+    match: 'exact' as const
   },
-  {
-    label: 'Providers',
-    to: '/admin/providers',
-    icon: 'lucide:users',
-    match: 'prefix'
-  },
-  {
-    label: 'Design System',
-    to: '/admin/design-system',
-    icon: 'lucide:file-sliders',
-    match: 'exact'
-  }
-] as const
+  groups: [
+    {
+      key: 'gestion',
+      label: 'Gestion',
+      defaultOpen: true,
+      items: [
+        {
+          label: 'Providers',
+          to: '/admin/providers',
+          icon: 'lucide:users',
+          match: 'prefix' as const
+        }
+      ]
+    },
+    {
+      key: 'outils',
+      label: 'Outils',
+      defaultOpen: false,
+      items: [
+        {
+          label: 'Design System',
+          to: '/admin/design-system',
+          icon: 'lucide:file-sliders',
+          match: 'exact' as const
+        }
+      ]
+    }
+  ]
+}
 </script>
 
 <template>

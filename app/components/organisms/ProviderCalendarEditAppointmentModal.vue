@@ -156,7 +156,7 @@ function submit() {
   })
 
   if (!utcStartAt) {
-    localValidationError.value = "Veuillez vérifier la date et l'heure."
+    localValidationError.value = 'Veuillez vérifier la date et l\'heure.'
     return
   }
 

@@ -93,7 +93,10 @@ function isViewActive(value: CalendarViewMode) {
         :loading="isLoading"
         @click="$emit('refresh')"
       >
-        <UIcon name="lucide:refresh-cw" class="mr-1.5 h-4 w-4" />
+        <UIcon
+          name="lucide:refresh-cw"
+          class="mr-1.5 h-4 w-4"
+        />
         Actualiser
       </UButton>
 
@@ -103,7 +106,10 @@ function isViewActive(value: CalendarViewMode) {
         :disabled="isLoading"
         @click="$emit('create')"
       >
-        <UIcon name="lucide:plus" class="mr-1.5 h-4 w-4" />
+        <UIcon
+          name="lucide:plus"
+          class="mr-1.5 h-4 w-4"
+        />
         Créer un RDV
       </UButton>
     </div>

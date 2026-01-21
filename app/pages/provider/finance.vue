@@ -189,7 +189,10 @@ async function refreshPayments() {
         color="neutral"
         @click="onRefresh"
       >
-        <UIcon name="lucide:refresh-cw" class="mr-2 h-4 w-4" />
+        <UIcon
+          name="lucide:refresh-cw"
+          class="mr-2 h-4 w-4"
+        />
         Actualiser
       </UButton>
     </header>
@@ -311,7 +314,10 @@ async function refreshPayments() {
                 variant="soft"
                 size="lg"
               >
-                <UIcon :name="stripeHumanStatus.icon" class="mr-1.5 h-3.5 w-3.5" />
+                <UIcon
+                  :name="stripeHumanStatus.icon"
+                  class="mr-1.5 h-3.5 w-3.5"
+                />
                 {{ stripeHumanStatus.label }}
               </UBadge>
             </div>
@@ -355,7 +361,10 @@ async function refreshPayments() {
               :loading="finance.actionPending.value"
               @click="onConnect"
             >
-              <UIcon name="lucide:external-link" class="mr-2 h-4 w-4" />
+              <UIcon
+                name="lucide:external-link"
+                class="mr-2 h-4 w-4"
+              />
               Résoudre sur Stripe
             </UButton>
           </div>
@@ -366,11 +375,18 @@ async function refreshPayments() {
             class="flex items-center gap-4 rounded-lg bg-green-50 p-4"
           >
             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-              <UIcon name="lucide:check" class="h-5 w-5 text-green-600" />
+              <UIcon
+                name="lucide:check"
+                class="h-5 w-5 text-green-600"
+              />
             </div>
             <div>
-              <p class="font-medium text-green-900">Tout est en ordre</p>
-              <p class="text-sm text-green-700">Vos virements seront traités automatiquement.</p>
+              <p class="font-medium text-green-900">
+                Tout est en ordre
+              </p>
+              <p class="text-sm text-green-700">
+                Vos virements seront traités automatiquement.
+              </p>
             </div>
           </div>
         </UCard>

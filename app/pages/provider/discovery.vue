@@ -54,7 +54,10 @@
           variant="soft"
           color="neutral"
         >
-          <UIcon name="lucide:calendar-clock" class="mr-2 h-4 w-4" />
+          <UIcon
+            name="lucide:calendar-clock"
+            class="mr-2 h-4 w-4"
+          />
           Disponibilités
         </UButton>
         <UButton
@@ -63,7 +66,10 @@
           color="neutral"
           @click="() => refresh()"
         >
-          <UIcon name="lucide:refresh-cw" class="mr-2 h-4 w-4" />
+          <UIcon
+            name="lucide:refresh-cw"
+            class="mr-2 h-4 w-4"
+          />
           Actualiser
         </UButton>
       </div>
@@ -74,14 +80,21 @@
       <UCard class="bg-white">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
-            <UIcon name="lucide:phone" class="h-6 w-6 text-crepuscule-600" />
+            <UIcon
+              name="lucide:phone"
+              class="h-6 w-6 text-crepuscule-600"
+            />
           </div>
           <div>
-            <p class="text-sm text-stone-500">Aujourd'hui</p>
+            <p class="text-sm text-stone-500">
+              Aujourd'hui
+            </p>
             <p class="text-2xl font-semibold text-stone-900">
               {{ pending ? '...' : countScheduledToday }}
             </p>
-            <p class="text-xs text-stone-400">appel(s) planifié(s)</p>
+            <p class="text-xs text-stone-400">
+              appel(s) planifié(s)
+            </p>
           </div>
         </div>
       </UCard>
@@ -89,14 +102,21 @@
       <UCard class="bg-white">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
-            <UIcon name="lucide:check-circle" class="h-6 w-6 text-green-600" />
+            <UIcon
+              name="lucide:check-circle"
+              class="h-6 w-6 text-green-600"
+            />
           </div>
           <div>
-            <p class="text-sm text-stone-500">Terminés (7j)</p>
+            <p class="text-sm text-stone-500">
+              Terminés (7j)
+            </p>
             <p class="text-2xl font-semibold text-stone-900">
               {{ pending ? '...' : countCompletedLast7Days }}
             </p>
-            <p class="text-xs text-stone-400">sessions clôturées</p>
+            <p class="text-xs text-stone-400">
+              sessions clôturées
+            </p>
           </div>
         </div>
       </UCard>
@@ -104,14 +124,21 @@
       <UCard class="bg-white">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sunset-100">
-            <UIcon name="lucide:calendar-days" class="h-6 w-6 text-sunset-600" />
+            <UIcon
+              name="lucide:calendar-days"
+              class="h-6 w-6 text-sunset-600"
+            />
           </div>
           <div>
-            <p class="text-sm text-stone-500">À venir (14j)</p>
+            <p class="text-sm text-stone-500">
+              À venir (14j)
+            </p>
             <p class="text-2xl font-semibold text-stone-900">
               {{ pending ? '...' : countUpcomingNext14Days }}
             </p>
-            <p class="text-xs text-stone-400">appels programmés</p>
+            <p class="text-xs text-stone-400">
+              appels programmés
+            </p>
           </div>
         </div>
       </UCard>
@@ -149,8 +176,15 @@
             v-if="isDayFilterActive && selectedDay"
             class="mt-4 flex items-center gap-2"
           >
-            <UBadge color="primary" variant="soft" size="lg">
-              <UIcon name="lucide:calendar" class="mr-1.5 h-3.5 w-3.5" />
+            <UBadge
+              color="primary"
+              variant="soft"
+              size="lg"
+            >
+              <UIcon
+                name="lucide:calendar"
+                class="mr-1.5 h-3.5 w-3.5"
+              />
               {{ formatSelectedDayLabel(selectedDay) }}
             </UBadge>
             <UButton
@@ -159,7 +193,10 @@
               size="xs"
               @click="resetDayFilter"
             >
-              <UIcon name="lucide:x" class="h-4 w-4" />
+              <UIcon
+                name="lucide:x"
+                class="h-4 w-4"
+              />
             </UButton>
           </div>
         </UCard>
@@ -235,7 +272,9 @@
         <UCard class="bg-white">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-stone-900">Calendrier</h2>
+              <h2 class="font-semibold text-stone-900">
+                Calendrier
+              </h2>
               <UButton
                 v-if="isDayFilterActive"
                 variant="link"
@@ -264,7 +303,9 @@
         <!-- Prochains appels -->
         <UCard class="bg-white">
           <template #header>
-            <h2 class="font-semibold text-stone-900">Prochains appels</h2>
+            <h2 class="font-semibold text-stone-900">
+              Prochains appels
+            </h2>
           </template>
 
           <div

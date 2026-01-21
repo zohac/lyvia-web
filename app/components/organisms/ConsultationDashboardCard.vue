@@ -17,7 +17,6 @@
 import type { ConsultationDashboardState } from '../../features/consultation/api/next-consultation.contract'
 import {
   formatDateLong,
-  formatTime,
   formatTimeRange,
   formatPrice
 } from '../../features/consultation/useClientNextConsultation'
@@ -64,7 +63,6 @@ const awaitingPaymentDisplay = computed(() => {
   const { scheduledAt, durationMinutes, amountCents } = props.displayState
   return {
     date: formatDateLong(scheduledAt),
-    time: formatTime(scheduledAt),
     timeRange: formatTimeRange(scheduledAt, durationMinutes),
     duration: `${durationMinutes} min`,
     price: formatPrice(amountCents)
@@ -79,7 +77,6 @@ const confirmedDisplay = computed(() => {
   const { scheduledAt, durationMinutes } = props.displayState
   return {
     date: formatDateLong(scheduledAt),
-    time: formatTime(scheduledAt),
     timeRange: formatTimeRange(scheduledAt, durationMinutes),
     duration: `${durationMinutes} min`
   }
@@ -87,33 +84,26 @@ const confirmedDisplay = computed(() => {
 </script>
 
 <template>
-  <section
-    class="consultation-card relative overflow-hidden rounded-blob-a border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-kaora-50)]/50 p-8 shadow-soft"
+  <UCard
+    class="bg-white"
     aria-labelledby="consultation-card-title"
   >
-    <!-- Decorative blob background -->
-    <div
-      class="pointer-events-none absolute right-[-10%] top-[-30%] h-[22rem] w-[22rem] rounded-full bg-[color:var(--color-kaora-100)] opacity-45 blur-[90px] transition-opacity duration-500"
-      :class="{ 'opacity-60': displayState?.kind === 'awaiting_payment' }"
-      aria-hidden="true"
-    />
-
-    <!-- Loading State (Skeleton) -->
+    <!-- Loading State -->
     <div
       v-if="pending"
-      class="relative z-10 grid gap-4"
+      class="space-y-4"
       aria-busy="true"
       aria-label="Chargement de votre prochaine consultation"
     >
-      <div class="grid gap-2">
-        <div class="h-7 w-48 animate-pulse rounded-lg bg-[color:var(--color-brand-subtle)]" />
-        <div class="h-4 w-72 animate-pulse rounded bg-[color:var(--color-brand-subtle)]" />
+      <div class="space-y-2">
+        <USkeleton class="h-7 w-48" />
+        <USkeleton class="h-4 w-72" />
       </div>
-      <div class="mt-2 flex gap-3">
-        <div class="h-10 w-10 animate-pulse rounded-xl bg-[color:var(--color-brand-subtle)]" />
-        <div class="grid gap-1">
-          <div class="h-4 w-32 animate-pulse rounded bg-[color:var(--color-brand-subtle)]" />
-          <div class="h-3 w-24 animate-pulse rounded bg-[color:var(--color-brand-subtle)]" />
+      <div class="flex items-center gap-3">
+        <USkeleton class="h-12 w-12 rounded-xl" />
+        <div class="space-y-2">
+          <USkeleton class="h-4 w-32" />
+          <USkeleton class="h-3 w-24" />
         </div>
       </div>
     </div>
@@ -121,183 +111,163 @@ const confirmedDisplay = computed(() => {
     <!-- Error State -->
     <div
       v-else-if="errorMessage"
-      class="relative z-10 grid gap-4"
+      class="space-y-4"
       role="alert"
       aria-live="assertive"
     >
-      <div class="grid gap-2">
-        <h2
-          id="consultation-card-title"
-          class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]"
-        >
-          Oups !
-        </h2>
-        <p class="text-sm text-[color:var(--color-error)]">
-          {{ errorMessage }}
-        </p>
-      </div>
-      <button
-        type="button"
-        class="inline-flex w-fit items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating focus:outline-none focus:ring-4 focus:ring-[rgba(212,184,160,0.35)]"
-        @click="emit('retry')"
+      <UAlert
+        color="error"
+        variant="soft"
+        :title="errorMessage"
+        icon="i-lucide-alert-circle"
       >
-        <Icon
-          name="lucide:refresh-cw"
-          size="16"
-          aria-hidden="true"
-        />
-        Réessayer
-      </button>
+        <template #actions>
+          <UButton
+            variant="link"
+            color="error"
+            size="sm"
+            leading-icon="i-lucide-refresh-cw"
+            @click="emit('retry')"
+          >
+            Réessayer
+          </UButton>
+        </template>
+      </UAlert>
     </div>
 
     <!-- Onboarding Required State -->
     <div
       v-else-if="displayState?.kind === 'onboarding_required'"
-      class="relative z-10 grid gap-4"
+      class="space-y-4"
     >
-      <div class="grid gap-2">
-        <h2
-          id="consultation-card-title"
-          class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]"
-        >
-          Première étape
-        </h2>
-        <p class="max-w-md text-sm leading-relaxed text-[color:var(--color-brand-secondary)]">
-          Avant de réserver une consultation payante, faisons connaissance lors d'un appel découverte gratuit.
-        </p>
+      <div class="flex items-start gap-4">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-crepuscule-100">
+          <UIcon
+            name="lucide:calendar-heart"
+            class="h-6 w-6 text-crepuscule-600"
+          />
+        </div>
+        <div>
+          <h2
+            id="consultation-card-title"
+            class="font-semibold text-stone-900"
+          >
+            Première étape
+          </h2>
+          <p class="mt-1 text-sm text-stone-500">
+            Avant de réserver une consultation payante, faisons connaissance lors d'un appel découverte gratuit.
+          </p>
+        </div>
       </div>
 
-      <ULink
+      <UButton
         to="/client/onboarding/discovery"
-        class="cta-button inline-flex w-fit items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-[rgba(28,25,23,0.25)]"
+        color="primary"
+        leading-icon="i-lucide-calendar-heart"
       >
-        <Icon
-          name="lucide:calendar-heart"
-          size="18"
-          aria-hidden="true"
-        />
         Réserver l'appel découverte
-      </ULink>
+      </UButton>
     </div>
 
     <!-- No Consultation State -->
     <div
       v-else-if="displayState?.kind === 'no_consultation'"
-      class="relative z-10 grid gap-4"
+      class="space-y-4"
     >
-      <div class="grid gap-2">
-        <h2
-          id="consultation-card-title"
-          class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]"
-        >
-          Prochain rendez-vous
-        </h2>
-        <p class="max-w-md text-sm leading-relaxed text-[color:var(--color-brand-secondary)]">
-          Aucune consultation en attente. Votre prochaine séance apparaîtra ici dès qu'elle sera planifiée.
-        </p>
-      </div>
-
-      <div class="flex items-center gap-3 text-[color:var(--color-brand-muted)]">
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--color-surface-highlight)]">
-          <Icon
+      <div class="flex items-start gap-4">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-stone-100">
+          <UIcon
             name="lucide:calendar-check"
-            size="20"
-            aria-hidden="true"
+            class="h-6 w-6 text-stone-500"
           />
         </div>
-        <span class="text-sm">
-          En attendant, consultez vos ressources ou contactez votre coach.
-        </span>
+        <div>
+          <h2
+            id="consultation-card-title"
+            class="font-semibold text-stone-900"
+          >
+            Prochain rendez-vous
+          </h2>
+          <p class="mt-1 text-sm text-stone-500">
+            Aucune consultation en attente. Votre prochaine séance apparaîtra ici dès qu'elle sera planifiée.
+          </p>
+        </div>
       </div>
+
+      <p class="text-sm text-stone-400">
+        En attendant, consultez vos ressources ou contactez votre coach.
+      </p>
     </div>
 
     <!-- Awaiting Payment State -->
     <div
       v-else-if="displayState?.kind === 'awaiting_payment' && awaitingPaymentDisplay"
-      class="relative z-10 grid gap-5"
+      class="space-y-5"
     >
-      <!-- Glow effect for attention -->
-      <div
-        class="pointer-events-none absolute -inset-4 rounded-blob-a bg-gradient-to-br from-[color:var(--color-kaora-200)]/20 to-transparent opacity-0 blur-xl transition-opacity duration-700 group-hover:opacity-100"
-        aria-hidden="true"
-      />
+      <div class="space-y-3">
+        <UBadge
+          color="warning"
+          variant="subtle"
+          size="sm"
+        >
+          <span class="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-500" />
+          En attente de paiement
+        </UBadge>
 
-      <div class="grid gap-2">
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-warning)]/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-warning)]">
-            <span
-              class="h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--color-warning)]"
-              aria-hidden="true"
-            />
-            En attente de paiement
-          </span>
-        </div>
         <h2
           id="consultation-card-title"
-          class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]"
+          class="text-lg font-semibold text-stone-900"
         >
           Votre consultation vous attend
         </h2>
       </div>
 
       <!-- Appointment details -->
-      <div class="grid gap-3 rounded-blob-d border border-[color:var(--color-brand-subtle)]/60 bg-white/60 p-4 backdrop-blur-sm">
+      <div class="rounded-xl border border-stone-200 bg-stone-50 p-4">
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-highlight)] shadow-sm">
-            <Icon
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+            <UIcon
               name="lucide:calendar"
-              size="20"
-              class="text-[color:var(--color-brand-accent)]"
-              aria-hidden="true"
+              class="h-5 w-5 text-sunset-600"
             />
           </div>
           <div>
-            <p class="text-sm font-semibold capitalize text-[color:var(--color-brand-primary)]">
+            <p class="text-sm font-semibold capitalize text-stone-900">
               {{ awaitingPaymentDisplay.date }}
             </p>
-            <p class="text-xs text-[color:var(--color-brand-muted)]">
+            <p class="text-xs text-stone-500">
               {{ awaitingPaymentDisplay.timeRange }} ({{ awaitingPaymentDisplay.duration }})
             </p>
           </div>
         </div>
 
-        <div class="flex items-center justify-between border-t border-[color:var(--color-brand-subtle)]/50 pt-3">
-          <span class="text-sm text-[color:var(--color-brand-secondary)]">
+        <div class="mt-3 flex items-center justify-between border-t border-stone-200 pt-3">
+          <span class="text-sm text-stone-600">
             Montant à régler
           </span>
-          <span class="font-serif text-lg font-semibold text-[color:var(--color-brand-primary)]">
+          <span class="text-lg font-semibold text-stone-900">
             {{ awaitingPaymentDisplay.price }}
           </span>
         </div>
       </div>
 
       <!-- Primary CTA -->
-      <ULink
+      <UButton
         :to="paymentUrl!"
-        class="cta-payment group inline-flex w-full items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3.5 text-sm font-bold text-white shadow-floating transition-base hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-[rgba(28,25,23,0.25)] sm:w-fit"
+        color="primary"
+        size="lg"
+        block
+        leading-icon="i-lucide-lock"
+        trailing-icon="i-lucide-arrow-right"
         aria-describedby="consultation-card-title"
       >
-        <Icon
-          name="lucide:lock"
-          size="16"
-          class="transition-transform group-hover:scale-110"
-          aria-hidden="true"
-        />
         Payer {{ awaitingPaymentDisplay.price }} & confirmer
-        <Icon
-          name="lucide:arrow-right"
-          size="16"
-          class="transition-transform group-hover:translate-x-0.5"
-          aria-hidden="true"
-        />
-      </ULink>
+      </UButton>
 
-      <p class="text-xs text-[color:var(--color-brand-muted)]">
-        <Icon
+      <p class="flex items-center gap-1 text-xs text-stone-400">
+        <UIcon
           name="lucide:shield-check"
-          size="14"
-          class="mr-1 inline-block"
-          aria-hidden="true"
+          class="h-3.5 w-3.5"
         />
         Paiement sécurisé par Stripe. Votre RDV sera confirmé immédiatement.
       </p>
@@ -306,135 +276,73 @@ const confirmedDisplay = computed(() => {
     <!-- Payment Confirmed State -->
     <div
       v-else-if="displayState?.kind === 'payment_confirmed' && confirmedDisplay"
-      class="relative z-10 grid gap-4"
+      class="space-y-4"
     >
-      <div class="grid gap-2">
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-success)]/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[color:var(--color-success)]">
-            <Icon
-              name="lucide:check-circle"
-              size="14"
-              aria-hidden="true"
-            />
-            Confirmé
-          </span>
-        </div>
+      <div class="space-y-3">
+        <UBadge
+          color="success"
+          variant="subtle"
+          size="sm"
+        >
+          <UIcon
+            name="lucide:check-circle"
+            class="mr-1 h-3.5 w-3.5"
+          />
+          Confirmé
+        </UBadge>
+
         <h2
           id="consultation-card-title"
-          class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]"
+          class="text-lg font-semibold text-stone-900"
         >
           Prochain rendez-vous
         </h2>
       </div>
 
       <!-- Confirmed appointment details -->
-      <div class="flex items-center gap-4 rounded-blob-d border border-[color:var(--color-success)]/20 bg-[color:var(--color-success)]/5 p-4">
-        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-success)]/15 shadow-sm">
-          <Icon
+      <div class="flex items-center gap-4 rounded-xl border border-green-200 bg-green-50 p-4">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100">
+          <UIcon
             name="lucide:video"
-            size="24"
-            class="text-[color:var(--color-success)]"
-            aria-hidden="true"
+            class="h-6 w-6 text-green-600"
           />
         </div>
         <div>
-          <p class="text-base font-semibold capitalize text-[color:var(--color-brand-primary)]">
+          <p class="font-semibold capitalize text-stone-900">
             {{ confirmedDisplay.date }}
           </p>
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
+          <p class="text-sm text-stone-600">
             {{ confirmedDisplay.timeRange }} ({{ confirmedDisplay.duration }})
           </p>
         </div>
       </div>
 
-      <p class="text-sm text-[color:var(--color-brand-secondary)]">
+      <p class="text-sm text-stone-500">
         Un email de confirmation avec le lien de visio vous a été envoyé.
       </p>
 
       <!-- RF5: Actions annulation / report -->
-      <div class="flex flex-wrap items-center gap-2 border-t border-[color:var(--color-brand-subtle)]/40 pt-4">
-        <button
-          type="button"
-          class="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-[color:var(--color-brand-secondary)] ring-1 ring-[color:var(--color-brand-subtle)]/60 transition-base hover:bg-[color:var(--color-surface-highlight)] hover:text-[color:var(--color-brand-primary)]"
+      <div class="flex flex-wrap items-center gap-2 border-t border-stone-100 pt-4">
+        <UButton
+          variant="outline"
+          color="neutral"
+          size="xs"
+          leading-icon="i-lucide-calendar-clock"
           @click="emit('requestReschedule', displayState.appointmentId)"
         >
-          <Icon
-            name="lucide:calendar-clock"
-            size="14"
-            aria-hidden="true"
-          />
           Demander un report
-        </button>
-        <button
-          type="button"
-          class="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-[color:var(--color-brand-muted)] transition-base hover:bg-[rgba(239,68,68,0.08)] hover:text-[color:var(--color-error)]"
+        </UButton>
+        <UButton
+          variant="ghost"
+          color="neutral"
+          size="xs"
+          leading-icon="i-lucide-calendar-x"
+          class="text-stone-400 hover:text-red-600"
           @click="emit('requestCancel', displayState.appointmentId)"
         >
-          <Icon
-            name="lucide:calendar-x"
-            size="14"
-            aria-hidden="true"
-          />
           Demander une annulation
-        </button>
+        </UButton>
       </div>
     </div>
-  </section>
+  </UCard>
 </template>
-
-<style scoped>
-.consultation-card {
-  /* Smooth entrance animation */
-  animation: card-fade-in 0.5s ease-out;
-}
-
-@keyframes card-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* CTA button subtle glow on hover for awaiting payment state */
-.cta-payment {
-  position: relative;
-}
-
-.cta-payment::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 9999px;
-  background: linear-gradient(
-    135deg,
-    var(--color-kaora-300) 0%,
-    var(--color-kaora-200) 50%,
-    var(--color-kaora-300) 100%
-  );
-  opacity: 0;
-  z-index: -1;
-  transition: opacity 0.3s ease;
-}
-
-.cta-payment:hover::before {
-  opacity: 0.5;
-}
-
-/* Skeleton pulse animation refinement */
-.animate-pulse {
-  animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes skeleton-pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-</style>

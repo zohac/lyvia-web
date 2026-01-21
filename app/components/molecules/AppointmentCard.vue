@@ -57,12 +57,26 @@
           >
             {{ appointment.client.stage === 'active' ? 'Active' : 'Lead' }}
           </UBadge>
-          <UBadge color="neutral" variant="soft" size="sm">
-            <UIcon name="lucide:clock" class="mr-1 h-3 w-3" />
+          <UBadge
+            color="neutral"
+            variant="soft"
+            size="sm"
+          >
+            <UIcon
+              name="lucide:clock"
+              class="mr-1 h-3 w-3"
+            />
             {{ formattedTime }}
           </UBadge>
-          <UBadge color="neutral" variant="soft" size="sm">
-            <UIcon name="lucide:timer" class="mr-1 h-3 w-3" />
+          <UBadge
+            color="neutral"
+            variant="soft"
+            size="sm"
+          >
+            <UIcon
+              name="lucide:timer"
+              class="mr-1 h-3 w-3"
+            />
             15 min
           </UBadge>
         </div>
@@ -78,7 +92,10 @@
               :disabled="isUpdating"
               @click="emit('conclude', appointment)"
             >
-              <UIcon name="lucide:check-circle" class="mr-1.5 h-4 w-4" />
+              <UIcon
+                name="lucide:check-circle"
+                class="mr-1.5 h-4 w-4"
+              />
               Conclure
             </UButton>
             <UButton
@@ -88,7 +105,10 @@
               :disabled="isUpdating"
               @click="emit('cancel', appointment)"
             >
-              <UIcon name="lucide:x-circle" class="mr-1.5 h-4 w-4" />
+              <UIcon
+                name="lucide:x-circle"
+                class="mr-1.5 h-4 w-4"
+              />
               Annuler
             </UButton>
           </template>
@@ -102,7 +122,10 @@
               :disabled="isUpdating"
               @click="emit('convert', appointment)"
             >
-              <UIcon name="lucide:sparkles" class="mr-1.5 h-4 w-4" />
+              <UIcon
+                name="lucide:sparkles"
+                class="mr-1.5 h-4 w-4"
+              />
               Convertir en cliente
             </UButton>
           </template>
