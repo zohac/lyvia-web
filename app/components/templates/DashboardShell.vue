@@ -352,8 +352,8 @@ watch(
       </div>
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col overflow-hidden md:pl-72">
-      <header class="sticky top-0 z-20 flex h-24 items-center justify-between border-b border-[rgba(231,229,228,0.6)] bg-[color:var(--color-surface-page)]/80 px-4 backdrop-blur-md sm:px-6 lg:px-12">
+    <div class="flex min-w-0 flex-1 flex-col overflow-y-auto md:pl-72">
+      <header class="sticky top-0 z-20 flex h-24 shrink-0 items-center justify-between border-b border-[rgba(231,229,228,0.6)] bg-[color:var(--color-surface-page)]/80 px-4 backdrop-blur-md sm:px-6 lg:px-12">
         <div class="flex items-center gap-4">
           <button
             type="button"
@@ -393,7 +393,7 @@ watch(
         </div>
       </header>
 
-      <main class="no-scrollbar flex-1 overflow-y-auto scroll-smooth p-6 md:p-8 lg:p-12">
+      <main class="flex-1 p-6 md:p-8 lg:p-12">
         <div class="mx-auto w-full max-w-7xl">
           <slot />
         </div>

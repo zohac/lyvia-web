@@ -25,7 +25,7 @@ function isViewActive(value: CalendarViewMode) {
 
 <template>
   <div class="flex flex-wrap items-center justify-between gap-4">
-    <!-- Left side: View selector + Navigation -->
+    <!-- Left side: View selector -->
     <div class="flex flex-wrap items-center gap-3">
       <!-- View selector -->
       <div class="inline-flex rounded-lg border border-stone-200 bg-white p-1">
@@ -43,7 +43,7 @@ function isViewActive(value: CalendarViewMode) {
         </button>
       </div>
 
-      <!-- Navigation buttons -->
+      <!-- Date navigation: chevrons around range label -->
       <div class="flex items-center gap-1">
         <UButton
           icon="lucide:chevron-left"
@@ -51,18 +51,16 @@ function isViewActive(value: CalendarViewMode) {
           variant="ghost"
           size="sm"
           :disabled="isLoading"
+          aria-label="Période précédente"
           @click="$emit('prev')"
         />
 
-        <UButton
-          color="neutral"
-          variant="soft"
-          size="sm"
-          :disabled="isLoading"
-          @click="$emit('today')"
+        <span
+          v-if="rangeLabel"
+          class="min-w-32 px-3 py-1.5 text-center text-sm font-semibold text-stone-700"
         >
-          Aujourd'hui
-        </UButton>
+          {{ rangeLabel }}
+        </span>
 
         <UButton
           icon="lucide:chevron-right"
@@ -70,34 +68,41 @@ function isViewActive(value: CalendarViewMode) {
           variant="ghost"
           size="sm"
           :disabled="isLoading"
+          aria-label="Période suivante"
           @click="$emit('next')"
         />
       </div>
+
+      <!-- Today button: explicit reset action -->
+      <UButton
+        color="neutral"
+        variant="outline"
+        size="sm"
+        :disabled="isLoading"
+        @click="$emit('today')"
+      >
+        <UIcon
+          name="lucide:calendar-check"
+          class="mr-1.5 h-4 w-4"
+        />
+        Revenir à aujourd'hui
+      </UButton>
     </div>
 
-    <!-- Right side: Range label + actions -->
+    <!-- Right side: actions -->
     <div class="flex flex-wrap items-center gap-2">
-      <UBadge
-        v-if="rangeLabel"
-        color="neutral"
-        variant="soft"
-        size="lg"
-      >
-        {{ rangeLabel }}
-      </UBadge>
-
       <UButton
-        variant="outline"
+        variant="ghost"
         color="neutral"
         size="sm"
         :loading="isLoading"
+        aria-label="Actualiser"
         @click="$emit('refresh')"
       >
         <UIcon
           name="lucide:refresh-cw"
-          class="mr-1.5 h-4 w-4"
+          class="h-4 w-4"
         />
-        Actualiser
       </UButton>
 
       <UButton

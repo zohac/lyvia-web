@@ -8,6 +8,8 @@ import ProviderCalendarTopBar from '../../components/organisms/ProviderCalendarT
 import ProviderCalendarMonthView from '../../components/organisms/ProviderCalendarMonthView.vue'
 import ProviderCalendarWeekView from '../../components/organisms/ProviderCalendarWeekView.vue'
 import { useProviderCalendar } from '../../features/calendar/useProviderCalendar'
+import { listProviderClients } from '../../features/clients/services/provider-clients.service'
+import type { ProviderClientListItem } from '../../features/clients/api/clients.contract'
 import type { ProviderAppointmentListItem, ProviderCalendarAppointmentType, CreateProviderManualAppointmentRequest, UpdateProviderAppointmentRequest } from '../../features/calendar/api/calendar.contract'
 import type { ConflictHighlight } from '../../features/calendar/domain/conflict-highlight'
 import { buildDay, buildWeekDays } from '../../features/calendar/domain/range'
@@ -25,6 +27,23 @@ const noticeMessage = ref<string | null>(null)
 const toast = useToast()
 
 const calendar = await useProviderCalendar()
+
+// Load all provider clients for the create modal dropdown
+const allClients = ref<ProviderClientListItem[]>([])
+
+async function loadAllClients() {
+  try {
+    // Load clients with high limit to get all (pagination can be added if needed)
+    const response = await listProviderClients({ limit: 100, sort: 'lastname' })
+    allClients.value = response.items
+  } catch {
+    // Silently fail - knownClients will be empty but modal still works
+    allClients.value = []
+  }
+}
+
+// Load clients on mount
+loadAllClients()
 
 type DisplayTypeFilter = 'all' | ProviderCalendarAppointmentType
 
@@ -77,16 +96,10 @@ const createInitialMinutes = ref(9 * 60)
 const createIdempotencyKey = ref<string | null>(null)
 
 const knownClients = computed(() => {
-  const byId = new Map<string, { label: string, value: string }>()
-  for (const appointment of calendar.sortedAppointments.value) {
-    if (!appointment.clientProfileId) continue
-    if (byId.has(appointment.clientProfileId)) continue
-    byId.set(appointment.clientProfileId, {
-      value: appointment.clientProfileId,
-      label: `${appointment.firstname} ${appointment.lastname}`.trim()
-    })
-  }
-  return Array.from(byId.values()).sort((a, b) => a.label.localeCompare(b.label, 'fr-FR'))
+  return allClients.value.map(client => ({
+    value: client.clientProfileId,
+    label: `${client.firstname} ${client.lastname}`.trim()
+  }))
 })
 
 const createFieldErrors = computed(() => calendar.actionFieldErrors.value)
@@ -498,42 +511,20 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
       </div>
     </UCard>
 
-    <!-- Empty state -->
-    <UCard
-      v-else-if="isRangeEmpty"
-      class="bg-white"
-    >
-      <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
-        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
-          <UIcon
-            name="lucide:calendar-x"
-            class="h-8 w-8 text-stone-400"
-          />
-        </div>
-        <div>
-          <p class="font-medium text-stone-900">
-            Aucun rendez-vous
-          </p>
-          <p class="mt-1 text-sm text-stone-500">
-            Aucun RDV sur cette période. (Fuseau : {{ calendar.timeZone.value }})
-          </p>
-        </div>
-        <UButton
-          color="primary"
-          @click="onCreateAppointment"
-        >
-          <UIcon
-            name="lucide:plus"
-            class="mr-2 h-4 w-4"
-          />
-          Créer un RDV
-        </UButton>
-      </div>
-    </UCard>
+    <!-- Empty state (non-bloquant) -->
+    <UAlert
+      v-if="isRangeEmpty"
+      color="neutral"
+      variant="soft"
+      icon="i-lucide-calendar-x"
+      title="Aucun rendez-vous sur cette période"
+      description="Cliquez sur un créneau du calendrier pour créer un RDV."
+    />
 
     <!-- Week view -->
     <ProviderCalendarWeekView
-      v-else-if="calendar.view.value === 'week'"
+      v-if="!calendar.pending.value || calendar.data.value"
+      v-show="calendar.view.value === 'week'"
       :time-zone="calendar.timeZone.value"
       :days="weekDays"
       :appointments="visibleAppointments"
@@ -546,7 +537,8 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
 
     <!-- Day view -->
     <ProviderCalendarWeekView
-      v-else-if="calendar.view.value === 'day'"
+      v-if="!calendar.pending.value || calendar.data.value"
+      v-show="calendar.view.value === 'day'"
       mode="day"
       :time-zone="calendar.timeZone.value"
       :days="dayDays"
@@ -560,7 +552,8 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
 
     <!-- Month view -->
     <ProviderCalendarMonthView
-      v-else-if="calendar.view.value === 'month'"
+      v-if="!calendar.pending.value || calendar.data.value"
+      v-show="calendar.view.value === 'month'"
       :time-zone="calendar.timeZone.value"
       :anchor-date="calendar.anchorDate.value"
       :appointments="visibleAppointments"
@@ -569,26 +562,6 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
       @select:appointment="onSelectAppointment"
       @select:day="onSelectMonthDay"
     />
-
-    <!-- Fallback view -->
-    <UCard
-      v-else
-      class="bg-white"
-    >
-      <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-stone-900">
-          Vue {{ calendar.view.value === 'month' ? 'mois' : 'jour' }}
-        </h2>
-        <p class="text-sm text-stone-500">
-          Cette vue arrive avec les tickets suivants (L12-b / L12-c). La navigation recalcule déjà la plage et refetch.
-        </p>
-        <div class="rounded-lg bg-stone-50 p-4">
-          <p class="text-sm text-stone-600">
-            {{ calendar.sortedAppointments.value.length }} rendez-vous chargés sur la plage courante.
-          </p>
-        </div>
-      </div>
-    </UCard>
 
     <!-- Drawers and Modals -->
     <ProviderCalendarAppointmentDrawer
