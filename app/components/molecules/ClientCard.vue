@@ -1,5 +1,5 @@
 <template>
-  <UCard class="bg-white transition-shadow hover:shadow-md">
+  <UCard class="bg-white transition-all hover:shadow-md hover:ring-1 hover:ring-crepuscule-100">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <!-- Client info -->
       <div class="flex items-center gap-4">
@@ -32,15 +32,22 @@
 
       <!-- Status and actions -->
       <div class="flex flex-col items-start gap-3 sm:items-end">
-        <!-- Badges -->
+        <!-- Badges with tooltip -->
         <div class="flex flex-wrap items-center gap-2">
-          <UBadge
-            :color="statusMeta.color"
-            variant="soft"
-            size="sm"
-          >
-            {{ statusMeta.label }}
-          </UBadge>
+          <UTooltip :text="statusMeta.description">
+            <UBadge
+              :color="statusMeta.color"
+              variant="soft"
+              size="sm"
+              class="cursor-help"
+            >
+              <UIcon
+                :name="statusMeta.icon"
+                class="mr-1 h-3 w-3"
+              />
+              {{ statusMeta.shortLabel }}
+            </UBadge>
+          </UTooltip>
           <UBadge
             v-if="programLabel"
             color="neutral"
@@ -103,18 +110,22 @@ const nextAppointment = computed(() =>
 )
 
 const programLabel = computed(() => {
-  if (props.client.computedStatus === 'onboarding') return null
+  // N'affiche le mois de programme que pour les clientes actives avec un compteur > 0
+  if (props.client.computedStatus !== 'active') return null
+  if (!props.client.currentProgramMonth) return null
   return formatProgramMonth(props.client.currentProgramMonth)
 })
 
 const avatarClass = computed(() => {
   switch (props.client.computedStatus) {
-    case 'onboarding':
+    case 'discovery':
       return 'bg-amber-100 text-amber-700'
-    case 'in_progress':
+    case 'lead':
+      return 'bg-emerald-100 text-emerald-700'
+    case 'active':
       return 'bg-blue-100 text-blue-700'
-    case 'completed':
-      return 'bg-green-100 text-green-700'
+    case 'paused':
+      return 'bg-stone-100 text-stone-700'
     default:
       return 'bg-stone-100 text-stone-700'
   }

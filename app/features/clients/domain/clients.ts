@@ -8,6 +8,7 @@ import type {
   NotificationLogItem,
   PaymentStatus,
   ProviderClientDetailPayment,
+  ProviderClientStage,
   ProviderClientStatus
 } from '../api/clients.contract'
 
@@ -20,10 +21,36 @@ type ClientIdentity = {
   lastname: string
 }
 
-const STATUS_LABELS: Record<ProviderClientStatus, { label: string, color: 'warning' | 'primary' | 'neutral' }> = {
-  onboarding: { label: 'Onboarding', color: 'warning' },
-  in_progress: { label: 'En cours', color: 'primary' },
-  completed: { label: 'Terminé', color: 'neutral' }
+const STATUS_LABELS: Record<ProviderClientStatus, { label: string, shortLabel: string, color: 'warning' | 'primary' | 'neutral' | 'success', icon: string, description: string }> = {
+  // 4-stage model validated by PM (2026-01-21)
+  discovery: {
+    label: 'En découverte',
+    shortLabel: 'Découverte',
+    color: 'warning',
+    icon: 'lucide:search',
+    description: 'Appel découverte planifié'
+  },
+  lead: {
+    label: 'À convertir',
+    shortLabel: 'À convertir',
+    color: 'success',
+    icon: 'lucide:user-check',
+    description: 'Discovery effectué, en attente de décision'
+  },
+  active: {
+    label: 'Actives',
+    shortLabel: 'Active',
+    color: 'primary',
+    icon: 'lucide:rocket',
+    description: 'Accompagnement en cours'
+  },
+  paused: {
+    label: 'Archivées',
+    shortLabel: 'Archivée',
+    color: 'neutral',
+    icon: 'lucide:archive',
+    description: 'Parcours clôturé ou en pause'
+  }
 }
 
 export function formatClientName(client: ClientIdentity): string {
@@ -36,7 +63,7 @@ export function getClientInitials(client: ClientIdentity): string {
   return `${first}${last}`.toUpperCase() || 'CL'
 }
 
-export function getClientStatusMeta(status: ProviderClientStatus): { label: string, color: 'warning' | 'primary' | 'neutral' } {
+export function getClientStatusMeta(status: ProviderClientStatus): { label: string, shortLabel: string, color: 'warning' | 'primary' | 'neutral' | 'success', icon: string, description: string } {
   return STATUS_LABELS[status]
 }
 
@@ -55,19 +82,24 @@ export function formatNextAppointment(
   return formatter.format(new Date(iso))
 }
 
-export function formatProgramMonth(currentProgramMonth: number | null, totalMonths = 6): string {
-  if (!currentProgramMonth) return 'Terminé'
-  return `M${currentProgramMonth}/${totalMonths}`
+export function formatProgramMonth(currentProgramMonth: number | null): string | null {
+  // Return null if no program month (don't display "Terminé" badge)
+  if (!currentProgramMonth) return null
+  // Simple counter without max (flexible program duration per PM decision)
+  return `M${currentProgramMonth}`
 }
 
 export function getClientStatusMicrocopy(status: ProviderClientStatus): string {
-  if (status === 'onboarding') {
-    return 'Onboarding en cours, la cliente n\'a pas encore terminé son appel découverte.'
-  }
-  if (status === 'in_progress') {
-    return 'Accompagnement actif, la cliente est dans son programme en cours.'
-  }
-  return 'Parcours terminé, la cliente a clôturé son accompagnement.'
+  return STATUS_LABELS[status].description
+}
+
+/**
+ * Derives client stage from computedStatus.
+ * With 4-stage model, computedStatus === stage.
+ */
+export function deriveStageFromStatus(computedStatus: ProviderClientStatus): ProviderClientStage {
+  // With 4-stage model, computedStatus is the stage
+  return computedStatus
 }
 
 // ============================================================================

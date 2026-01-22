@@ -7,7 +7,7 @@
           Mes clientes
         </h1>
         <p class="mt-1 text-stone-500">
-          Suivez vos clientes, leur statut et leurs prochains rendez-vous.
+          Cliquez sur une carte pour filtrer par statut.
         </p>
       </div>
       <UButton
@@ -34,117 +34,234 @@
       icon="i-lucide-alert-circle"
     />
 
-    <!-- Stats row -->
-    <div class="grid gap-4 sm:grid-cols-4">
-      <UCard class="bg-white">
-        <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
-            <UIcon
-              name="lucide:users"
-              class="h-6 w-6 text-crepuscule-600"
-            />
-          </div>
-          <div>
-            <p class="text-sm text-stone-500">
-              Total
+    <!-- Stats cards - Interactive filters -->
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <!-- En découverte -->
+      <button
+        type="button"
+        class="group relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all duration-200"
+        :class="[
+          statusFilter === 'discovery'
+            ? 'border-amber-300 ring-2 ring-amber-200 shadow-md'
+            : 'border-stone-200 hover:border-amber-200 hover:shadow-sm'
+        ]"
+        @click="toggleFilter('discovery')"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
+                <UIcon
+                  name="lucide:search"
+                  class="h-4.5 w-4.5 text-amber-600"
+                />
+              </div>
+              <span class="text-sm font-semibold text-stone-900">En découverte</span>
+            </div>
+            <p class="mt-3 text-xs leading-relaxed text-stone-500">
+              Appel découverte planifié
             </p>
-            <p class="text-2xl font-semibold text-stone-900">
-              {{ pending ? '...' : totalClients }}
-            </p>
           </div>
+          <span class="text-3xl font-bold tabular-nums text-amber-600">
+            {{ pending ? '—' : discoveryCount }}
+          </span>
         </div>
-      </UCard>
+        <!-- Progress bar -->
+        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+          <div
+            class="h-full rounded-full bg-amber-400 transition-all duration-500"
+            :style="{ width: progressWidth(discoveryCount) }"
+          />
+        </div>
+        <!-- Selected indicator -->
+        <div
+          v-if="statusFilter === 'discovery'"
+          class="absolute right-3 top-3"
+        >
+          <UIcon
+            name="lucide:check-circle-2"
+            class="h-5 w-5 text-amber-500"
+          />
+        </div>
+      </button>
 
-      <UCard class="bg-white">
-        <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-            <UIcon
-              name="lucide:rocket"
-              class="h-6 w-6 text-blue-600"
-            />
-          </div>
-          <div>
-            <p class="text-sm text-stone-500">
-              En cours
+      <!-- Leads -->
+      <button
+        type="button"
+        class="group relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all duration-200"
+        :class="[
+          statusFilter === 'lead'
+            ? 'border-emerald-300 ring-2 ring-emerald-200 shadow-md'
+            : 'border-stone-200 hover:border-emerald-200 hover:shadow-sm'
+        ]"
+        @click="toggleFilter('lead')"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100">
+                <UIcon
+                  name="lucide:user-check"
+                  class="h-4.5 w-4.5 text-emerald-600"
+                />
+              </div>
+              <span class="text-sm font-semibold text-stone-900">À convertir</span>
+            </div>
+            <p class="mt-3 text-xs leading-relaxed text-stone-500">
+              Discovery effectué, en attente de décision
             </p>
-            <p class="text-2xl font-semibold text-stone-900">
-              {{ pending ? '...' : inProgressCount }}
-            </p>
           </div>
+          <span class="text-3xl font-bold tabular-nums text-emerald-600">
+            {{ pending ? '—' : leadCount }}
+          </span>
         </div>
-      </UCard>
+        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+          <div
+            class="h-full rounded-full bg-emerald-400 transition-all duration-500"
+            :style="{ width: progressWidth(leadCount) }"
+          />
+        </div>
+        <div
+          v-if="statusFilter === 'lead'"
+          class="absolute right-3 top-3"
+        >
+          <UIcon
+            name="lucide:check-circle-2"
+            class="h-5 w-5 text-emerald-500"
+          />
+        </div>
+      </button>
 
-      <UCard class="bg-white">
-        <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100">
-            <UIcon
-              name="lucide:user-plus"
-              class="h-6 w-6 text-amber-600"
-            />
-          </div>
-          <div>
-            <p class="text-sm text-stone-500">
-              Onboarding
+      <!-- Actives -->
+      <button
+        type="button"
+        class="group relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all duration-200"
+        :class="[
+          statusFilter === 'active'
+            ? 'border-crepuscule-300 ring-2 ring-crepuscule-200 shadow-md'
+            : 'border-stone-200 hover:border-crepuscule-200 hover:shadow-sm'
+        ]"
+        @click="toggleFilter('active')"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-crepuscule-100">
+                <UIcon
+                  name="lucide:rocket"
+                  class="h-4.5 w-4.5 text-crepuscule-600"
+                />
+              </div>
+              <span class="text-sm font-semibold text-stone-900">Actives</span>
+            </div>
+            <p class="mt-3 text-xs leading-relaxed text-stone-500">
+              Accompagnement en cours
             </p>
-            <p class="text-2xl font-semibold text-stone-900">
-              {{ pending ? '...' : onboardingCount }}
-            </p>
           </div>
+          <span class="text-3xl font-bold tabular-nums text-crepuscule-600">
+            {{ pending ? '—' : activeCount }}
+          </span>
         </div>
-      </UCard>
+        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+          <div
+            class="h-full rounded-full bg-crepuscule-400 transition-all duration-500"
+            :style="{ width: progressWidth(activeCount) }"
+          />
+        </div>
+        <div
+          v-if="statusFilter === 'active'"
+          class="absolute right-3 top-3"
+        >
+          <UIcon
+            name="lucide:check-circle-2"
+            class="h-5 w-5 text-crepuscule-500"
+          />
+        </div>
+      </button>
 
-      <UCard class="bg-white">
-        <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
-            <UIcon
-              name="lucide:check-circle"
-              class="h-6 w-6 text-green-600"
-            />
-          </div>
-          <div>
-            <p class="text-sm text-stone-500">
-              Terminé
+      <!-- Archivées -->
+      <button
+        type="button"
+        class="group relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all duration-200"
+        :class="[
+          statusFilter === 'paused'
+            ? 'border-stone-400 ring-2 ring-stone-300 shadow-md'
+            : 'border-stone-200 hover:border-stone-300 hover:shadow-sm'
+        ]"
+        @click="toggleFilter('paused')"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-100">
+                <UIcon
+                  name="lucide:archive"
+                  class="h-4.5 w-4.5 text-stone-600"
+                />
+              </div>
+              <span class="text-sm font-semibold text-stone-900">Archivées</span>
+            </div>
+            <p class="mt-3 text-xs leading-relaxed text-stone-500">
+              Parcours clôturé ou en pause
             </p>
-            <p class="text-2xl font-semibold text-stone-900">
-              {{ pending ? '...' : completedCount }}
-            </p>
           </div>
+          <span class="text-3xl font-bold tabular-nums text-stone-600">
+            {{ pending ? '—' : pausedCount }}
+          </span>
         </div>
-      </UCard>
+        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+          <div
+            class="h-full rounded-full bg-stone-400 transition-all duration-500"
+            :style="{ width: progressWidth(pausedCount) }"
+          />
+        </div>
+        <div
+          v-if="statusFilter === 'paused'"
+          class="absolute right-3 top-3"
+        >
+          <UIcon
+            name="lucide:check-circle-2"
+            class="h-5 w-5 text-stone-500"
+          />
+        </div>
+      </button>
     </div>
 
-    <!-- Filters -->
-    <UCard class="bg-white">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
-        <div class="flex-1">
-          <label class="mb-2 block text-xs font-medium uppercase tracking-wider text-stone-500">
-            Recherche
-          </label>
-          <UInput
-            v-model="searchQuery"
-            placeholder="Nom, email, téléphone..."
-            icon="i-lucide-search"
+    <!-- Search & results count -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-3">
+        <UInput
+          v-model="searchQuery"
+          placeholder="Rechercher par nom, email..."
+          icon="i-lucide-search"
+          class="w-full sm:w-72"
+        />
+        <UButton
+          v-if="statusFilter !== 'all'"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          @click="statusFilter = 'all'"
+        >
+          <UIcon
+            name="lucide:x"
+            class="mr-1 h-3.5 w-3.5"
           />
-        </div>
-        <div class="sm:w-48">
-          <label class="mb-2 block text-xs font-medium uppercase tracking-wider text-stone-500">
-            Statut
-          </label>
-          <USelect
-            v-model="statusFilter"
-            :items="statusOptions"
-          />
-        </div>
+          Réinitialiser
+        </UButton>
       </div>
-
-      <p class="mt-4 text-sm text-stone-500">
-        {{ clients.length }} cliente(s) trouvée(s)
+      <p class="text-sm tabular-nums text-stone-500">
+        <span class="font-semibold text-stone-900">{{ clients.length }}</span>
+        cliente{{ clients.length > 1 ? 's' : '' }}
+        <span v-if="statusFilter !== 'all'">
+          · filtre actif
+        </span>
         <span
           v-if="pending"
           class="ml-2 text-stone-400"
         >— Chargement...</span>
       </p>
-    </UCard>
+    </div>
 
     <!-- Loading state -->
     <div
@@ -266,25 +383,38 @@ const {
   loadMoreErrorMessage
 } = await useProviderClients()
 
-const statusOptions = [
-  { label: 'Toutes', value: 'all' },
-  { label: 'Onboarding', value: 'onboarding' },
-  { label: 'En cours', value: 'in_progress' },
-  { label: 'Terminé', value: 'completed' }
-]
-
-// Stats computed from clients list
+// Stats computed from clients list (4-stage model)
 const totalClients = computed(() => clients.value.length)
 
-const inProgressCount = computed(() =>
-  clients.value.filter(c => c.computedStatus === 'in_progress').length
+const discoveryCount = computed(() =>
+  clients.value.filter(c => c.computedStatus === 'discovery').length
 )
 
-const onboardingCount = computed(() =>
-  clients.value.filter(c => c.computedStatus === 'onboarding').length
+const leadCount = computed(() =>
+  clients.value.filter(c => c.computedStatus === 'lead').length
 )
 
-const completedCount = computed(() =>
-  clients.value.filter(c => c.computedStatus === 'completed').length
+const activeCount = computed(() =>
+  clients.value.filter(c => c.computedStatus === 'active').length
 )
+
+const pausedCount = computed(() =>
+  clients.value.filter(c => c.computedStatus === 'paused').length
+)
+
+/**
+ * Toggle filter on card click. If already selected, reset to 'all'.
+ */
+function toggleFilter(status: 'discovery' | 'lead' | 'active' | 'paused') {
+  statusFilter.value = statusFilter.value === status ? 'all' : status
+}
+
+/**
+ * Calculate progress bar width as percentage of total clients.
+ */
+function progressWidth(count: number): string {
+  if (totalClients.value === 0) return '0%'
+  const percentage = Math.round((count / totalClients.value) * 100)
+  return `${Math.max(percentage, count > 0 ? 4 : 0)}%` // Minimum 4% if count > 0 for visibility
+}
 </script>

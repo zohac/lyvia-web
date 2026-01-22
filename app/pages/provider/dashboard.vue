@@ -414,7 +414,7 @@ async function refreshClients() {
   try {
     const response = await listProviderClients({ limit: 100 })
     clientsCount.value = response.items.length
-    activeClientsCount.value = response.items.filter(c => c.computedStatus === 'in_progress').length
+    activeClientsCount.value = response.items.filter(c => c.computedStatus === 'active').length
   } catch {
     // Silent fail
   } finally {

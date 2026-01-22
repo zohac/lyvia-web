@@ -7,6 +7,8 @@ import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
 type ClientOption = {
   label: string
   value: string
+  stage: 'discovery' | 'lead' | 'active' | 'paused'
+  hasActiveDiscovery?: boolean
 }
 
 const props = withDefaults(
@@ -59,7 +61,18 @@ const clientProfileId = ref<string>('')
 const selectedKnownClientId = ref<string>('')
 const notes = ref<string>('')
 
-const inferredClients = computed(() => props.knownClients)
+/**
+ * Filtre les clients selon le type de RDV sélectionné :
+ * - Discovery : stage='lead' et pas de discovery actif
+ * - Consultation : stage='active'
+ */
+const inferredClients = computed(() => {
+  if (type.value === 'discovery') {
+    return props.knownClients.filter(c => c.stage === 'lead' && !c.hasActiveDiscovery)
+  }
+  // Consultation : uniquement les clientes actives
+  return props.knownClients.filter(c => c.stage === 'active')
+})
 
 /**
  * Durée calculée depuis le price plan sélectionné (consultation) ou fixe (discovery).
@@ -124,6 +137,10 @@ watch(
     if (next === 'discovery') {
       pricePlanId.value = null
     }
+
+    // Reset client selection when type changes (filtered list changes)
+    clientProfileId.value = ''
+    selectedKnownClientId.value = ''
   }
 )
 
@@ -306,10 +323,16 @@ function submit() {
             </div>
 
             <p
-              v-if="inferredClients.length === 0"
-              class="text-xs text-stone-500"
+              v-if="inferredClients.length === 0 && type === 'discovery'"
+              class="text-xs text-amber-600"
             >
-              Astuce : la liste de sélection est construite depuis les clientes déjà visibles sur la période chargée. Vous pouvez coller un UUID si nécessaire.
+              Aucun lead éligible pour un discovery. Les leads avec un discovery déjà planifié ou complété ne sont pas affichés.
+            </p>
+            <p
+              v-else-if="inferredClients.length === 0 && type === 'consultation'"
+              class="text-xs text-amber-600"
+            >
+              Aucune cliente active éligible pour une consultation. Convertissez d'abord un lead après son appel découverte.
             </p>
             <p
               v-if="fieldErrors?.clientProfileId"

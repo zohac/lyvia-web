@@ -10,6 +10,7 @@ import ProviderCalendarWeekView from '../../components/organisms/ProviderCalenda
 import { useProviderCalendar } from '../../features/calendar/useProviderCalendar'
 import { listProviderClients } from '../../features/clients/services/provider-clients.service'
 import type { ProviderClientListItem } from '../../features/clients/api/clients.contract'
+import { deriveStageFromStatus } from '../../features/clients/domain/clients'
 import type { ProviderAppointmentListItem, ProviderCalendarAppointmentType, CreateProviderManualAppointmentRequest, UpdateProviderAppointmentRequest } from '../../features/calendar/api/calendar.contract'
 import type { ConflictHighlight } from '../../features/calendar/domain/conflict-highlight'
 import { buildDay, buildWeekDays } from '../../features/calendar/domain/range'
@@ -95,11 +96,28 @@ const createInitialDayKey = ref(getYmdInTimeZone(calendar.anchorDate.value, cale
 const createInitialMinutes = ref(9 * 60)
 const createIdempotencyKey = ref<string | null>(null)
 
+/**
+ * Détecte si un client lead a déjà un discovery scheduled ou completed.
+ */
+function hasActiveDiscovery(clientProfileId: string): boolean {
+  return calendar.sortedAppointments.value.some(
+    apt => apt.clientProfileId === clientProfileId
+      && apt.type === 'discovery'
+      && (apt.status === 'scheduled' || apt.status === 'completed')
+  )
+}
+
 const knownClients = computed(() => {
-  return allClients.value.map(client => ({
-    value: client.clientProfileId,
-    label: `${client.firstname} ${client.lastname}`.trim()
-  }))
+  return allClients.value.map((client) => {
+    // Use stage if provided, otherwise derive from computedStatus
+    const stage = client.stage ?? deriveStageFromStatus(client.computedStatus)
+    return {
+      value: client.clientProfileId,
+      label: `${client.firstname} ${client.lastname}`.trim(),
+      stage,
+      hasActiveDiscovery: stage === 'lead' ? hasActiveDiscovery(client.clientProfileId) : false
+    }
+  })
 })
 
 const createFieldErrors = computed(() => calendar.actionFieldErrors.value)

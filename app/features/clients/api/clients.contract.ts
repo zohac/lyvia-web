@@ -1,4 +1,14 @@
-export type ProviderClientStatus = 'onboarding' | 'in_progress' | 'completed'
+/**
+ * Client stage in the journey (source of truth from ClientProfile).
+ * 4-stage model validated by PM (2026-01-21).
+ */
+export type ProviderClientStage = 'discovery' | 'lead' | 'active' | 'paused'
+
+/**
+ * Computed status for display purposes.
+ * Simplified: computedStatus = stage (4-stage model).
+ */
+export type ProviderClientStatus = 'discovery' | 'lead' | 'active' | 'paused'
 
 export type ProviderClientStats = {
   consultationsCompleted: number
@@ -32,6 +42,11 @@ export type ProviderClientListItem = {
   lastname: string
   email: string
   phone: string
+  /**
+   * Client stage (optional for backward compatibility).
+   * If not provided, derived from computedStatus.
+   */
+  stage?: ProviderClientStage
   onboardingCallDone: boolean
   currentProgramMonth: number | null
   computedStatus: ProviderClientStatus
@@ -150,6 +165,11 @@ export type ProviderClientDetailPayment = {
 
 export type ProviderClientDetailResponse = {
   client: ProviderClientDetailProfile
+  /**
+   * Client stage (optional for backward compatibility).
+   * If not provided, derived from computedStatus.
+   */
+  stage?: ProviderClientStage
   onboardingCallDone: boolean
   program: ProviderClientDetailProgram
   stats: ProviderClientDetailStats

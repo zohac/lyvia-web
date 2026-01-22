@@ -145,45 +145,6 @@
               {{ currentStatusMicrocopy }}
             </p>
 
-            <!-- Program month stepper -->
-            <div class="space-y-2">
-              <label class="text-xs font-medium uppercase tracking-wider text-stone-500">
-                Mois en cours
-              </label>
-              <ProgramMonthStepper
-                :model-value="currentProgramMonth"
-                :pending="updatePending"
-                @update:model-value="handleProgramMonthUpdate"
-              />
-            </div>
-
-            <!-- Success message -->
-            <UAlert
-              v-if="updateSuccessMessage"
-              color="success"
-              variant="soft"
-              :title="updateSuccessMessage"
-              icon="i-lucide-check-circle"
-            />
-
-            <!-- Warning: onboarding not completed -->
-            <UAlert
-              v-if="showOnboardingWarning"
-              color="warning"
-              variant="soft"
-              description="Onboarding non terminé — certaines données peuvent être incomplètes."
-              icon="i-lucide-alert-triangle"
-            />
-
-            <!-- Update error -->
-            <UAlert
-              v-if="updateErrorMessage"
-              color="error"
-              variant="soft"
-              :description="updateErrorMessage"
-              icon="i-lucide-alert-circle"
-            />
-
             <!-- Stats -->
             <div class="divide-y divide-stone-100">
               <div class="py-3 first:pt-0">
@@ -262,19 +223,14 @@
 </template>
 
 <script setup lang="ts">
-import type { ProviderClientStatus } from '../../../features/clients/api/clients.contract'
 import { useProviderClientDetail } from '../../../features/clients/useProviderClientDetail'
-import { updateProviderClientProgram } from '../../../features/clients/services/provider-client-detail.service'
 import {
   formatClientName,
   formatNextAppointment,
-  formatProgramMonth,
   getClientInitials,
   getClientStatusMeta,
   getClientStatusMicrocopy
 } from '../../../features/clients/domain/clients'
-import { mapUpdateProgramErrorToMessage } from '../../../features/clients/api/clients-error'
-import ProgramMonthStepper from '../../../components/molecules/ProgramMonthStepper.vue'
 import ClientAppointmentHistorySection from '../../../components/organisms/ClientAppointmentHistorySection.vue'
 import ClientPaymentHistorySection from '../../../components/organisms/ClientPaymentHistorySection.vue'
 
@@ -304,12 +260,14 @@ const avatarClass = computed(() => {
   if (!detail.value) return 'bg-stone-100 text-stone-700'
 
   switch (detail.value.computedStatus) {
-    case 'onboarding':
+    case 'discovery':
       return 'bg-amber-100 text-amber-700'
-    case 'in_progress':
+    case 'lead':
+      return 'bg-emerald-100 text-emerald-700'
+    case 'active':
       return 'bg-blue-100 text-blue-700'
-    case 'completed':
-      return 'bg-green-100 text-green-700'
+    case 'paused':
+      return 'bg-stone-100 text-stone-700'
     default:
       return 'bg-stone-100 text-stone-700'
   }
@@ -319,24 +277,15 @@ const avatarClass = computed(() => {
 // Program Month Update (D5-b)
 // ============================================================================
 
-const currentProgramMonth = ref<number | null>(detail.value?.program.currentProgramMonth ?? null)
-const currentComputedStatus = ref<ProviderClientStatus>(detail.value?.computedStatus ?? 'onboarding')
-const updatePending = ref(false)
-const updateSuccessMessage = ref<string | null>(null)
-const updateErrorMessage = ref<string | null>(null)
-const showOnboardingWarning = ref(false)
+const currentStatusMeta = computed(() => {
+  const status = detail.value?.computedStatus ?? 'discovery'
+  return getClientStatusMeta(status)
+})
 
-// Sync local state when detail changes
-watch(detail, (newDetail) => {
-  if (newDetail) {
-    currentProgramMonth.value = newDetail.program.currentProgramMonth
-    currentComputedStatus.value = newDetail.computedStatus
-    showOnboardingWarning.value = !newDetail.onboardingCallDone && newDetail.program.currentProgramMonth !== null
-  }
-}, { immediate: true })
-
-const currentStatusMeta = computed(() => getClientStatusMeta(currentComputedStatus.value))
-const currentStatusMicrocopy = computed(() => getClientStatusMicrocopy(currentComputedStatus.value))
+const currentStatusMicrocopy = computed(() => {
+  const status = detail.value?.computedStatus ?? 'discovery'
+  return getClientStatusMicrocopy(status)
+})
 
 const nextAppointmentLabel = computed(() => {
   if (!detail.value) return 'Aucun rendez-vous planifié'
@@ -344,53 +293,4 @@ const nextAppointmentLabel = computed(() => {
   if (!formatted) return 'Aucun rendez-vous planifié'
   return formatted
 })
-
-async function handleProgramMonthUpdate(newMonth: number | null): Promise<void> {
-  if (!clientProfileId.value) return
-
-  const previousMonth = currentProgramMonth.value
-  const previousStatus = currentComputedStatus.value
-
-  // Clear previous messages
-  updateSuccessMessage.value = null
-  updateErrorMessage.value = null
-  showOnboardingWarning.value = false
-
-  // Optimistic update
-  currentProgramMonth.value = newMonth
-  updatePending.value = true
-
-  try {
-    const result = await updateProviderClientProgram(clientProfileId.value, {
-      currentProgramMonth: newMonth
-    })
-
-    // Update local state with server response
-    currentProgramMonth.value = result.currentProgramMonth
-    currentComputedStatus.value = result.computedStatus
-
-    // Build success message
-    const fromLabel = formatProgramMonth(result.previousProgramMonth, 6)
-    const toLabel = formatProgramMonth(result.currentProgramMonth, 6)
-    const statusLabel = getClientStatusMeta(result.computedStatus).label
-    updateSuccessMessage.value = `${fromLabel} → ${toLabel} (${statusLabel})`
-
-    // Handle warning from backend
-    if (result.warning === 'ONBOARDING_NOT_COMPLETED') {
-      showOnboardingWarning.value = true
-    }
-
-    // Auto-dismiss success message
-    setTimeout(() => {
-      updateSuccessMessage.value = null
-    }, 4000)
-  } catch (error) {
-    // Rollback optimistic update
-    currentProgramMonth.value = previousMonth
-    currentComputedStatus.value = previousStatus
-    updateErrorMessage.value = mapUpdateProgramErrorToMessage(error)
-  } finally {
-    updatePending.value = false
-  }
-}
 </script>
