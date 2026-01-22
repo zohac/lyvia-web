@@ -24,7 +24,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
-  (e: 'edit' | 'request-cancel', payload: { appointmentId: string }): void
+  (e: 'edit' | 'request-cancel' | 'mark-completed', payload: { appointmentId: string }): void
 }>()
 
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
@@ -85,8 +85,39 @@ const editDisabledReason = computed(() => {
 const cancelDisabledReason = computed(() => {
   const appointment = props.appointment
   if (!appointment) return 'Aucun rendez-vous sélectionné.'
-  if (appointment.paymentStatus === 'paid') return 'Impossible d’annuler un rendez-vous payé.'
-  if (appointment.status !== 'scheduled') return 'Impossible d’annuler un rendez-vous déjà clôturé.'
+  if (appointment.paymentStatus === 'paid') return 'Impossible d\'annuler un rendez-vous payé.'
+  if (appointment.status !== 'scheduled') return 'Impossible d\'annuler un rendez-vous déjà clôturé.'
+  return null
+})
+
+/**
+ * Can mark a consultation as completed when:
+ * - type = 'consultation'
+ * - status = 'scheduled'
+ * - paymentStatus = 'paid'
+ * - startAt < now (date passée)
+ */
+const canMarkCompleted = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return false
+  if (appointment.type !== 'consultation') return false
+  if (appointment.status !== 'scheduled') return false
+  if (appointment.paymentStatus !== 'paid') return false
+  // Check if appointment is in the past
+  const now = new Date()
+  const appointmentStart = new Date(appointment.startAt)
+  return appointmentStart < now
+})
+
+const markCompletedDisabledReason = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return 'Aucun rendez-vous sélectionné.'
+  if (appointment.type !== 'consultation') return 'Seules les consultations peuvent être marquées terminées.'
+  if (appointment.status !== 'scheduled') return 'Ce rendez-vous est déjà clôturé.'
+  if (appointment.paymentStatus !== 'paid') return 'Le paiement doit être effectué avant de marquer terminé.'
+  const now = new Date()
+  const appointmentStart = new Date(appointment.startAt)
+  if (appointmentStart >= now) return 'Le rendez-vous doit être passé pour être marqué terminé.'
   return null
 })
 
@@ -121,6 +152,13 @@ function requestCancelAppointment() {
   if (!appointment) return
   if (!canCancel.value) return
   emit('request-cancel', { appointmentId: appointment.id })
+}
+
+function requestMarkCompleted() {
+  const appointment = props.appointment
+  if (!appointment) return
+  if (!canMarkCompleted.value) return
+  emit('mark-completed', { appointmentId: appointment.id })
 }
 
 const consultationPricingSummary = computed(() => {
@@ -362,6 +400,54 @@ const consultationPricingDetails = computed(() => {
           <div class="mt-4 text-sm text-stone-500">
             <p class="opacity-90">
               L'annulation envoie une notification et libère le créneau (si applicable).
+            </p>
+          </div>
+        </section>
+
+        <!-- Marquer terminée (consultation payée passée uniquement) -->
+        <section
+          v-if="appointment.type === 'consultation'"
+          class="rounded-lg border border-stone-200 bg-stone-50 p-5"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              Clôture
+            </h3>
+
+            <UTooltip
+              v-if="!canMarkCompleted"
+              :text="markCompletedDisabledReason ?? ''"
+            >
+              <span class="inline-flex">
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled
+                >
+                  Marquer terminée
+                </button>
+              </span>
+            </UTooltip>
+
+            <button
+              v-else
+              type="button"
+              class="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-xs font-bold text-green-700 ring-1 ring-green-200 transition-all hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-60"
+              :disabled="actionPending"
+              @click="requestMarkCompleted"
+            >
+              <Icon
+                name="lucide:check-circle"
+                size="16"
+                aria-hidden="true"
+              />
+              Marquer terminée
+            </button>
+          </div>
+
+          <div class="mt-4 text-sm text-stone-500">
+            <p class="opacity-90">
+              Marque cette consultation comme terminée une fois la séance effectuée.
             </p>
           </div>
         </section>

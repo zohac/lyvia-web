@@ -159,14 +159,33 @@
       </div>
     </div>
 
-    <!-- Status badge -->
-    <UBadge
-      :color="statusMeta.color"
-      variant="soft"
-      class="shrink-0"
-    >
-      {{ statusMeta.label }}
-    </UBadge>
+    <!-- Actions + Status badge -->
+    <div class="flex shrink-0 items-center gap-2">
+      <!-- Mark completed button -->
+      <UButton
+        v-if="canMarkCompleted"
+        size="xs"
+        color="primary"
+        variant="soft"
+        :loading="actionPending"
+        :disabled="actionPending"
+        @click.stop="handleMarkCompleted"
+      >
+        <UIcon
+          name="lucide:check-circle"
+          class="mr-1 h-3.5 w-3.5"
+        />
+        Terminée
+      </UButton>
+
+      <!-- Status badge -->
+      <UBadge
+        :color="statusMeta.color"
+        variant="soft"
+      >
+        {{ statusMeta.label }}
+      </UBadge>
+    </div>
   </div>
 </template>
 
@@ -196,11 +215,25 @@ const props = withDefaults(
      * Temporal context for visual distinction.
      */
     temporalContext: 'past' | 'upcoming'
+    /**
+     * Show action buttons (mark completed, etc.)
+     */
+    showActions?: boolean
+    /**
+     * Disable actions (e.g. during API call)
+     */
+    actionPending?: boolean
   }>(),
   {
-    timezone: 'Europe/Paris'
+    timezone: 'Europe/Paris',
+    showActions: true,
+    actionPending: false
   }
 )
+
+const emit = defineEmits<{
+  (e: 'mark-completed', payload: { appointmentId: string }): void
+}>()
 
 const typeLabel = computed(() => getAppointmentTypeLabel(props.appointment.type))
 const statusMeta = computed(() => getAppointmentStatusMeta(props.appointment.status))
@@ -256,4 +289,26 @@ const cancellationInfo = computed(() => {
 
   return parts.length > 0 ? parts.join(' — ') : 'Annulé'
 })
+
+/**
+ * Can mark a consultation as completed when:
+ * - type = 'consultation'
+ * - status = 'scheduled'
+ * - paymentStatus = 'paid'
+ * - scheduledAt < now (date passée)
+ */
+const canMarkCompleted = computed(() => {
+  if (!props.showActions) return false
+  const apt = props.appointment
+  if (apt.type !== 'consultation') return false
+  if (apt.status !== 'scheduled') return false
+  if (apt.paymentStatus !== 'paid') return false
+  // Must be in the past
+  return new Date(apt.scheduledAt) < new Date()
+})
+
+function handleMarkCompleted() {
+  if (!canMarkCompleted.value || props.actionPending) return
+  emit('mark-completed', { appointmentId: props.appointment.id })
+}
 </script>

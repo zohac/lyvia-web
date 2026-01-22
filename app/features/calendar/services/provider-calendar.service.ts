@@ -8,7 +8,9 @@ import type {
   ListProviderAppointmentsResponse,
   ProviderAppointmentListItem,
   UpdateProviderAppointmentRequest,
-  UpdateProviderAppointmentResponse
+  UpdateProviderAppointmentResponse,
+  UpdateProviderAppointmentStatusRequest,
+  UpdateProviderAppointmentStatusResponse
 } from '../api/calendar.contract'
 
 export async function listProviderAppointments(
@@ -58,5 +60,15 @@ export async function cancelProviderAppointment(input: {
     method: 'POST',
     headers: { 'Idempotency-Key': input.idempotencyKey },
     body: input.body
+  })
+}
+
+export async function markProviderAppointmentCompleted(
+  appointmentId: ProviderAppointmentListItem['id'],
+  body: UpdateProviderAppointmentStatusRequest
+): Promise<UpdateProviderAppointmentStatusResponse> {
+  return await apiFetch<UpdateProviderAppointmentStatusResponse>(`/provider/appointments/${appointmentId}/status`, {
+    method: 'PATCH',
+    body
   })
 }

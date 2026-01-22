@@ -459,6 +459,44 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
     })
   }
 }
+
+async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
+  const result = await calendar.markAppointmentCompleted(payload.appointmentId)
+
+  if (result.ok) {
+    toast.add({
+      title: 'Consultation terminée',
+      description: 'La consultation a été marquée comme terminée.',
+      color: 'primary'
+    })
+    closeDrawer()
+    return
+  }
+
+  if (result.kind === 'not_paid') {
+    toast.add({
+      title: 'Paiement requis',
+      description: 'Le paiement doit être effectué avant de marquer la consultation comme terminée.',
+      color: 'error'
+    })
+    return
+  }
+
+  if (result.kind === 'forbidden') {
+    toast.add({
+      title: 'Accès non autorisé',
+      description: 'Vous n\'êtes pas autorisé à modifier ce rendez-vous.',
+      color: 'error'
+    })
+    return
+  }
+
+  toast.add({
+    title: 'Erreur',
+    description: result.message,
+    color: 'error'
+  })
+}
 </script>
 
 <template>
@@ -593,6 +631,7 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
       @update:open="(open) => { if (!open) closeDrawer() }"
       @edit="onEditAppointment"
       @request-cancel="onRequestCancelAppointment"
+      @mark-completed="onMarkCompletedAppointment"
     />
 
     <ProviderCalendarCreateAppointmentModal

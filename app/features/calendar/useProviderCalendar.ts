@@ -8,7 +8,8 @@ import type {
   ProviderCalendarAppointmentType,
   ProviderAppointmentListItem,
   UpdateProviderAppointmentRequest,
-  UpdateProviderAppointmentResponse
+  UpdateProviderAppointmentResponse,
+  UpdateProviderAppointmentStatusResponse
 } from './api/calendar.contract'
 import { extractFieldErrorsFromDetails, mapCalendarErrorToMessage } from './api/calendar-error'
 import { groupAppointmentsByLocalDay, sortAppointmentsByStartAt } from './domain/appointments'
@@ -18,6 +19,7 @@ import {
   cancelProviderAppointment,
   createProviderManualAppointment,
   listProviderAppointments,
+  markProviderAppointmentCompleted,
   updateProviderAppointment
 } from './services/provider-calendar.service'
 import { createUuidV4 } from '../../utils/uuid'
@@ -364,6 +366,40 @@ export async function useProviderCalendar() {
     }
   }
 
+  async function markAppointmentCompleted(
+    appointmentId: ProviderAppointmentListItem['id']
+  ): Promise<
+    | { ok: true, response: UpdateProviderAppointmentStatusResponse }
+    | { ok: false, kind: 'not_paid' | 'forbidden' | 'unknown', message: string }
+  > {
+    clearActionErrors()
+    actionPending.value = true
+    try {
+      const response = await markProviderAppointmentCompleted(appointmentId, { status: 'completed' })
+      await refresh({ revalidate: true })
+      return { ok: true, response }
+    } catch (err: unknown) {
+      const message = mapCalendarErrorToMessage(err)
+      actionErrorMessage.value = message
+
+      if (err instanceof ApiFetchError) {
+        actionFieldErrors.value = extractFieldErrorsFromDetails(err.apiError.details)
+
+        if (err.apiError.statusCode === 403) {
+          return { ok: false, kind: 'forbidden', message }
+        }
+
+        // Handle CONSULTATION_NOT_PAID error (422)
+        if (err.apiError.statusCode === 422 && err.apiError.code === 'CONSULTATION_NOT_PAID') {
+          return { ok: false, kind: 'not_paid', message }
+        }
+      }
+      return { ok: false, kind: 'unknown', message }
+    } finally {
+      actionPending.value = false
+    }
+  }
+
   watch(
     [() => providerActorId.value, () => range.value.from, () => range.value.to, () => filters.value.type, () => filters.value.status],
     () => {
@@ -411,6 +447,7 @@ export async function useProviderCalendar() {
     createAppointment,
     updateAppointment,
     cancelAppointment,
+    markAppointmentCompleted,
     goToday,
     goPrev,
     goNext

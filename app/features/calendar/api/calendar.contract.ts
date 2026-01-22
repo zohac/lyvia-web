@@ -119,3 +119,16 @@ export type CancelProviderAppointmentResponse = {
     alreadySent: boolean
   }
 }
+
+/**
+ * PATCH /provider/appointments/:id/status
+ * Mark a consultation as completed.
+ */
+export type UpdateProviderAppointmentStatusRequest = {
+  status: 'completed'
+}
+
+export type UpdateProviderAppointmentStatusResponse = {
+  appointmentId: string
+  status: ProviderCalendarAppointmentStatus
+}

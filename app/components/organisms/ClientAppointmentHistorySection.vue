@@ -102,6 +102,8 @@
               :appointment="apt"
               :timezone="timezone"
               temporal-context="upcoming"
+              :action-pending="actionPending"
+              @mark-completed="handleMarkCompleted"
             />
           </div>
         </template>
@@ -121,6 +123,8 @@
               :appointment="apt"
               :timezone="timezone"
               temporal-context="past"
+              :action-pending="actionPending"
+              @mark-completed="handleMarkCompleted"
             />
           </div>
         </template>
@@ -156,7 +160,9 @@ import type {
 } from '../../features/clients/api/clients.contract'
 import { partitionAppointmentsByTime } from '../../features/clients/domain/clients'
 import { getProviderClientAppointments } from '../../features/clients/services/provider-client-appointments.service'
+import { markProviderAppointmentCompleted } from '../../features/calendar/services/provider-calendar.service'
 import { mapProviderClientsErrorToMessage } from '../../features/clients/api/clients-error'
+import { ApiFetchError } from '../../services/api/api-error'
 import AppointmentFilters from '../molecules/AppointmentFilters.vue'
 import AppointmentLine from '../molecules/AppointmentLine.vue'
 
@@ -174,6 +180,7 @@ const props = withDefaults(
 
 const sectionId = useId()
 const isExpanded = ref(props.defaultExpanded)
+const toast = useToast()
 
 // Filters
 const typeFilter = ref<AppointmentType | undefined>(undefined)
@@ -185,6 +192,9 @@ const nextCursor = ref<string | null>(null)
 const loading = ref(true)
 const loadingMore = ref(false)
 const errorMessage = ref<string | null>(null)
+
+// Action state (mark completed)
+const actionPending = ref(false)
 
 // Pagination
 const PAGE_SIZE = 20
@@ -257,6 +267,38 @@ function handleStatusChange(value: AppointmentStatus | undefined): void {
 function handleLoadMore(): void {
   if (nextCursor.value) {
     fetchAppointments(nextCursor.value)
+  }
+}
+
+async function handleMarkCompleted(payload: { appointmentId: string }): Promise<void> {
+  if (actionPending.value) return
+  actionPending.value = true
+
+  try {
+    await markProviderAppointmentCompleted(payload.appointmentId, { status: 'completed' })
+    toast.add({
+      title: 'Consultation terminée',
+      description: 'La consultation a été marquée comme terminée.',
+      color: 'primary'
+    })
+    // Refresh the list to show updated status
+    await fetchAppointments()
+  } catch (err) {
+    if (err instanceof ApiFetchError && err.apiError.code === 'CONSULTATION_NOT_PAID') {
+      toast.add({
+        title: 'Paiement requis',
+        description: 'Le paiement doit être effectué avant de marquer la consultation comme terminée.',
+        color: 'error'
+      })
+    } else {
+      toast.add({
+        title: 'Erreur',
+        description: mapProviderClientsErrorToMessage(err, 'Impossible de marquer la consultation comme terminée.'),
+        color: 'error'
+      })
+    }
+  } finally {
+    actionPending.value = false
   }
 }
 
