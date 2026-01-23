@@ -94,12 +94,40 @@ export function getClientStatusMicrocopy(status: ProviderClientStatus): string {
 }
 
 /**
+ * Valid stages for 4-stage model.
+ */
+const VALID_STAGES: ProviderClientStage[] = ['discovery', 'lead', 'active', 'paused']
+
+/**
  * Derives client stage from computedStatus.
  * With 4-stage model, computedStatus === stage.
+ * Logs warning and defaults to 'discovery' for unknown values.
  */
 export function deriveStageFromStatus(computedStatus: ProviderClientStatus): ProviderClientStage {
-  // With 4-stage model, computedStatus is the stage
+  if (!VALID_STAGES.includes(computedStatus as ProviderClientStage)) {
+    console.warn(`[deriveStageFromStatus] Unknown status: ${computedStatus}, defaulting to 'discovery'`)
+    return 'discovery'
+  }
   return computedStatus
+}
+
+/**
+ * Returns Tailwind classes for client avatar based on status.
+ * Uses crepuscule (primary) for active clients to match design system.
+ */
+export function getClientAvatarClass(status: ProviderClientStatus): string {
+  switch (status) {
+    case 'discovery':
+      return 'bg-amber-100 text-amber-700'
+    case 'lead':
+      return 'bg-emerald-100 text-emerald-700'
+    case 'active':
+      return 'bg-crepuscule-100 text-crepuscule-700'
+    case 'paused':
+      return 'bg-stone-100 text-stone-700'
+    default:
+      return 'bg-stone-100 text-stone-700'
+  }
 }
 
 // ============================================================================

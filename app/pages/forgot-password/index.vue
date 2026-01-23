@@ -66,7 +66,7 @@
           size="xl"
           class="[&_input]:rounded-full"
           :ui="{
-            base: 'transition-all duration-200',
+            base: 'transition-all duration-200'
           }"
         >
           <template #leading>

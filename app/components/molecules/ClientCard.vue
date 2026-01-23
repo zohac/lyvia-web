@@ -93,6 +93,7 @@ import {
   formatClientName,
   getClientInitials,
   getClientStatusMeta,
+  getClientAvatarClass,
   formatNextAppointment,
   formatProgramMonth
 } from '../../features/clients/domain/clients'
@@ -116,18 +117,5 @@ const programLabel = computed(() => {
   return formatProgramMonth(props.client.currentProgramMonth)
 })
 
-const avatarClass = computed(() => {
-  switch (props.client.computedStatus) {
-    case 'discovery':
-      return 'bg-amber-100 text-amber-700'
-    case 'lead':
-      return 'bg-emerald-100 text-emerald-700'
-    case 'active':
-      return 'bg-blue-100 text-blue-700'
-    case 'paused':
-      return 'bg-stone-100 text-stone-700'
-    default:
-      return 'bg-stone-100 text-stone-700'
-  }
-})
+const avatarClass = computed(() => getClientAvatarClass(props.client.computedStatus))
 </script>

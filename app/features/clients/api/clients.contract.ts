@@ -52,6 +52,11 @@ export type ProviderClientListItem = {
   computedStatus: ProviderClientStatus
   stats: ProviderClientStats
   createdAt: string
+  /**
+   * Indicates if the client has a discovery appointment currently scheduled
+   * (not yet completed or cancelled). Used to prevent duplicate discovery bookings.
+   */
+  hasScheduledDiscovery: boolean
 }
 
 export type ProviderClientsPage = {
