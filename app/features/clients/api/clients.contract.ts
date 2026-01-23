@@ -179,6 +179,14 @@ export type ProviderClientDetailResponse = {
   program: ProviderClientDetailProgram
   stats: ProviderClientDetailStats
   computedStatus: ProviderClientStatus
+  /**
+   * When the client was paused (ISO 8601), null if not paused.
+   */
+  pausedAt: string | null
+  /**
+   * Reason for pausing the client, null if not paused or no reason provided.
+   */
+  pauseReason: string | null
   timezone: string
   appointments: ProviderClientDetailAppointment[]
   payments: ProviderClientDetailPayment[]

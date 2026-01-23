@@ -11,7 +11,7 @@ export async function listProviderClients(
 }
 
 /**
- * US-7: Pause a client (active → paused)
+ * US-7: Pause a client (any stage → paused)
  */
 export async function pauseClient(
   clientProfileId: string,
@@ -19,7 +19,7 @@ export async function pauseClient(
 ): Promise<void> {
   await apiFetch(`/provider/clients/${clientProfileId}/pause`, {
     method: 'POST',
-    body: reason ? { reason } : undefined
+    body: reason ? { pauseReason: reason } : undefined
   })
 }
 

@@ -145,6 +145,25 @@
               {{ currentStatusMicrocopy }}
             </p>
 
+            <!-- Pause reason (US-7) -->
+            <div
+              v-if="detail.computedStatus === 'paused' && detail.pauseReason"
+              class="rounded-lg border border-amber-200 bg-amber-50 p-3"
+            >
+              <p class="text-xs font-medium uppercase tracking-wider text-amber-700">
+                Motif de la pause
+              </p>
+              <p class="mt-1 text-sm text-amber-900">
+                {{ detail.pauseReason }}
+              </p>
+              <p
+                v-if="pausedAtLabel"
+                class="mt-1 text-xs text-amber-600"
+              >
+                Mise en pause {{ pausedAtLabel }}
+              </p>
+            </div>
+
             <!-- Stats -->
             <div class="divide-y divide-stone-100">
               <div class="py-3 first:pt-0">
@@ -216,9 +235,9 @@
               Appeler
             </UButton>
 
-            <!-- US-7: Pause/Reactivate actions -->
+            <!-- US-7: Pause/Reactivate actions (pause allowed from any stage except paused) -->
             <UButton
-              v-if="detail?.computedStatus === 'active'"
+              v-if="detail?.computedStatus && detail.computedStatus !== 'paused'"
               variant="soft"
               color="warning"
               block
@@ -332,6 +351,16 @@ const nextAppointmentLabel = computed(() => {
 // ============================================================================
 // US-7: Pause / Reactivate Client
 // ============================================================================
+
+const pausedAtLabel = computed(() => {
+  if (!detail.value?.pausedAt) return null
+  try {
+    const date = new Date(detail.value.pausedAt)
+    return `le ${date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`
+  } catch {
+    return null
+  }
+})
 
 const pauseModalOpen = ref(false)
 const pauseLoading = ref(false)
