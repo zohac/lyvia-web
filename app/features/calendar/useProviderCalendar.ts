@@ -238,7 +238,7 @@ export async function useProviderCalendar() {
     options: { idempotencyKey?: string } = {}
   ): Promise<
     | { ok: true, response: CreateProviderManualAppointmentResponse }
-    | { ok: false, kind: 'validation' | 'overlap' | 'unknown', message: string }
+    | { ok: false, kind: 'validation' | 'overlap' | 'forbidden' | 'conflict' | 'unknown', message: string, code?: string }
   > {
     clearActionErrors()
     actionPending.value = true
@@ -257,9 +257,21 @@ export async function useProviderCalendar() {
       if (err instanceof ApiFetchError) {
         actionFieldErrors.value = extractFieldErrorsFromDetails(err.apiError.details)
 
-        if (err.apiError.statusCode === 409 && err.apiError.code === 'APPOINTMENT_OVERLAP') {
-          await refresh({ revalidate: true })
-          return { ok: false, kind: 'overlap', message }
+        // US-4: Gates spécifiques (403)
+        if (err.apiError.statusCode === 403) {
+          return { ok: false, kind: 'forbidden', message, code: err.apiError.code }
+        }
+
+        // US-4: Conflict spécifique (409 - discovery déjà existant)
+        if (err.apiError.statusCode === 409) {
+          if (err.apiError.code === 'DISCOVERY_ALREADY_EXISTS') {
+            return { ok: false, kind: 'conflict', message, code: err.apiError.code }
+          }
+          // Overlap existant
+          if (err.apiError.code === 'APPOINTMENT_OVERLAP') {
+            await refresh({ revalidate: true })
+            return { ok: false, kind: 'overlap', message }
+          }
         }
 
         if (err.apiError.statusCode === 422 || err.apiError.code === 'VALIDATION_ERROR') {

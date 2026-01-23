@@ -62,12 +62,19 @@ const selectedKnownClientId = ref<string>('')
 const notes = ref<string>('')
 
 /**
- * Filtre les clients selon le type de RDV sélectionné :
- * - Discovery : stage='lead' et pas de discovery actif
- * - Consultation : stage='active'
+ * Filtre les clients selon le type de RDV sélectionné (modèle 4-stages).
+ *
+ * Discovery (replanification US-3) :
+ * - stage='lead' : discovery effectué ou annulé, en attente de décision
+ * - hasActiveDiscovery=false : pas de discovery scheduled/completed actif
+ * - Cas d'usage : provider planifie un nouveau discovery pour un lead
+ *
+ * Consultation :
+ * - stage='active' : client converti, accompagnement en cours
  */
 const inferredClients = computed(() => {
   if (type.value === 'discovery') {
+    // US-2: Clients éligibles pour discovery = stage 'lead' sans discovery actif
     return props.knownClients.filter(c => c.stage === 'lead' && !c.hasActiveDiscovery)
   }
   // Consultation : uniquement les clientes actives
@@ -326,7 +333,7 @@ function submit() {
               v-if="inferredClients.length === 0 && type === 'discovery'"
               class="text-xs text-amber-600"
             >
-              Aucun lead éligible pour un discovery. Les leads avec un discovery déjà planifié ou complété ne sont pas affichés.
+              Aucun lead éligible pour un discovery. Seuls les leads (discovery effectué ou annulé) sans discovery actif peuvent en obtenir un nouveau.
             </p>
             <p
               v-else-if="inferredClients.length === 0 && type === 'consultation'"

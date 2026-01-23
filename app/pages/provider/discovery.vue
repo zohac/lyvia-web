@@ -4,7 +4,6 @@
     <CallConclusionModal
       v-model:open="conclusionModalOpen"
       :client-name="conclusionClientName"
-      :default-convert-to-client="conclusionDefaultConvertToClient"
       :loading="conclusionLoading"
       :error="conclusionError"
       @submit="submitConclusion"
@@ -369,7 +368,6 @@
 
 <script setup lang="ts">
 import type {
-  ConvertDiscoveryToActiveClientResponse,
   DiscoveryAppointmentListItem,
   ListDiscoveryAppointmentsResponse,
   UpdateAppointmentStatusResponse
@@ -752,10 +750,6 @@ const conclusionClientName = computed(() => {
   return formatClientName(item)
 })
 
-const conclusionDefaultConvertToClient = computed(() => {
-  return conclusionTarget.value?.client.stage === 'lead'
-})
-
 const conclusionLoading = computed(() => {
   const targetId = conclusionTarget.value?.id
   return !!targetId && updatingId.value === targetId
@@ -799,22 +793,25 @@ async function requestUpdateAppointmentStatus(
   }
 }
 
-async function requestConvertDiscoveryLead(
+type BilanTargetStage = 'active' | 'lead' | 'paused'
+
+/**
+ * US-8: Appel au nouvel endpoint /bilan pour transition de stage.
+ */
+async function requestDiscoveryBilan(
   appointmentId: string,
-  conversionNote?: string
-): Promise<
-  | { ok: true, data: ConvertDiscoveryToActiveClientResponse }
-  | { ok: false, message: string }
-> {
+  targetStage: BilanTargetStage,
+  note?: string
+): Promise<{ ok: true } | { ok: false, message: string }> {
   try {
-    const response = await apiFetch<ConvertDiscoveryToActiveClientResponse>(
-      `/appointments/${appointmentId}/convert`,
+    await apiFetch(
+      `/appointments/${appointmentId}/bilan`,
       {
         method: 'POST',
-        body: conversionNote ? { conversionNote } : {}
+        body: { targetStage, note }
       }
     )
-    return { ok: true, data: response }
+    return { ok: true }
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
       return { ok: false, message: mapAppointmentErrorCodeToUserMessage(err.apiError.code) }
@@ -823,7 +820,10 @@ async function requestConvertDiscoveryLead(
   }
 }
 
-async function submitConclusion(payload: { convertToClient: boolean, conversionNote?: string }) {
+/**
+ * US-8: Handler pour le submit de la modal bilan à 3 options.
+ */
+async function submitConclusion(payload: { targetStage: BilanTargetStage, note?: string }) {
   const appointment = conclusionTarget.value
   if (!appointment) return
 
@@ -835,31 +835,25 @@ async function submitConclusion(payload: { convertToClient: boolean, conversionN
   updatingId.value = appointment.id
 
   try {
-    if (appointment.status !== 'completed') {
-      const statusResult = await requestUpdateAppointmentStatus(appointment.id, 'completed')
-      if (!statusResult.ok) {
-        conclusionError.value = statusResult.message
-        return
-      }
+    // Appeler le nouvel endpoint /bilan
+    const bilanResult = await requestDiscoveryBilan(
+      appointment.id,
+      payload.targetStage,
+      payload.note
+    )
+
+    if (!bilanResult.ok) {
+      conclusionError.value = bilanResult.message
+      return
     }
 
-    if (payload.convertToClient && appointment.client.stage === 'lead') {
-      const convertResult = await requestConvertDiscoveryLead(
-        appointment.id,
-        payload.conversionNote
-      )
-
-      if (!convertResult.ok) {
-        conclusionError.value = convertResult.message
-        return
-      }
-
-      conversionNotice.value = convertResult.data.alreadyActive
-        ? 'Cette cliente était déjà active.'
-        : 'Cliente activée avec succès.'
-    } else {
-      conversionNotice.value = 'Appel clôturé.'
+    // Messages de succès selon l'option choisie
+    const messages: Record<BilanTargetStage, string> = {
+      active: 'Cliente activée avec succès.',
+      lead: 'Cliente en attente de décision.',
+      paused: 'Cliente archivée.'
     }
+    conversionNotice.value = messages[payload.targetStage]
 
     await refresh()
     conclusionModalOpen.value = false

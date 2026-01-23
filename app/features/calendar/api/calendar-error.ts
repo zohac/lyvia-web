@@ -35,6 +35,28 @@ export function mapCalendarErrorToMessage(err: unknown, fallback = 'Une erreur e
     if (err.apiError.code === 'PRICE_PLAN_INACTIVE') {
       return 'Ce tarif n\'est plus disponible. Sélectionnez-en un autre.'
     }
+
+    // US-4: Messages spécifiques pour les gates de création RDV
+    if (err.apiError.code === 'CLIENT_NOT_CONVERTED') {
+      return 'Ce client doit d\'abord être converti après son appel découverte.'
+    }
+
+    if (err.apiError.code === 'DISCOVERY_NOT_ALLOWED_FOR_STAGE') {
+      return 'Ce client est déjà actif, vous pouvez créer une consultation.'
+    }
+
+    if (err.apiError.code === 'DISCOVERY_ALREADY_EXISTS') {
+      // Extraire la date si disponible dans details
+      const existingDate = err.apiError.details?.existingDiscoveryDate as string | undefined
+      if (existingDate) {
+        const formatted = new Date(existingDate).toLocaleDateString('fr-FR', {
+          day: 'numeric',
+          month: 'long'
+        })
+        return `Ce client a déjà un appel découverte planifié le ${formatted}.`
+      }
+      return 'Ce client a déjà un appel découverte planifié.'
+    }
   }
 
   return fallback

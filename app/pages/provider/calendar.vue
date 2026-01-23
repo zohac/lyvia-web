@@ -96,17 +96,6 @@ const createInitialDayKey = ref(getYmdInTimeZone(calendar.anchorDate.value, cale
 const createInitialMinutes = ref(9 * 60)
 const createIdempotencyKey = ref<string | null>(null)
 
-/**
- * Détecte si un client lead a déjà un discovery scheduled ou completed.
- */
-function hasActiveDiscovery(clientProfileId: string): boolean {
-  return calendar.sortedAppointments.value.some(
-    apt => apt.clientProfileId === clientProfileId
-      && apt.type === 'discovery'
-      && (apt.status === 'scheduled' || apt.status === 'completed')
-  )
-}
-
 const knownClients = computed(() => {
   return allClients.value.map((client) => {
     // Use stage if provided, otherwise derive from computedStatus
@@ -115,7 +104,8 @@ const knownClients = computed(() => {
       value: client.clientProfileId,
       label: `${client.firstname} ${client.lastname}`.trim(),
       stage,
-      hasActiveDiscovery: stage === 'lead' ? hasActiveDiscovery(client.clientProfileId) : false
+      // Use API field directly instead of computing from visible calendar appointments (fix [H1])
+      hasActiveDiscovery: client.hasScheduledDiscovery
     }
   })
 })
@@ -364,6 +354,38 @@ async function onCreateAppointmentSubmit(payload: { body: CreateProviderManualAp
     })
     createIdempotencyKey.value = null
     isCreateModalOpen.value = false
+    return
+  }
+
+  // US-4: Gérer les erreurs de gate avec actions suggérées
+  if (result.kind === 'forbidden' && result.code === 'CLIENT_NOT_CONVERTED') {
+    toast.add({
+      title: 'Client non converti',
+      description: 'Ce client doit d\'abord être converti après son appel découverte.',
+      color: 'warning',
+      actions: [{
+        label: 'Voir les discoveries',
+        onClick: () => { void navigateTo('/provider/discovery') }
+      }]
+    })
+    return
+  }
+
+  if (result.kind === 'forbidden' && result.code === 'DISCOVERY_NOT_ALLOWED_FOR_STAGE') {
+    toast.add({
+      title: 'Client déjà actif',
+      description: 'Ce client est déjà actif, vous pouvez créer une consultation.',
+      color: 'info'
+    })
+    return
+  }
+
+  if (result.kind === 'conflict' && result.code === 'DISCOVERY_ALREADY_EXISTS') {
+    toast.add({
+      title: 'Discovery déjà planifié',
+      description: result.message,
+      color: 'warning'
+    })
     return
   }
 

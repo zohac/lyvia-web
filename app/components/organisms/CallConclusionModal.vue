@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import SystemAlert from '../atoms/SystemAlert.vue'
 
+/**
+ * US-8: Modal bilan discovery à 3 options.
+ *
+ * Options:
+ * - Convertir (primary) → discovery → active
+ * - À suivre (outline) → discovery → lead
+ * - Sans suite (ghost) → discovery → paused
+ */
+
+export type BilanTargetStage = 'active' | 'lead' | 'paused'
+
 const props = withDefaults(
   defineProps<{
     open: boolean
     clientName: string
-    defaultConvertToClient?: boolean
     loading?: boolean
     error?: string | null
   }>(),
   {
-    defaultConvertToClient: false,
     loading: false,
     error: null
   }
@@ -18,27 +27,17 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (event: 'update:open', value: boolean): void
-  (
-    event: 'submit',
-    payload: { convertToClient: boolean, conversionNote?: string }
-  ): void
+  (event: 'submit', payload: { targetStage: BilanTargetStage, note?: string }): void
 }>()
 
 const conversionNote = ref('')
-const convertToClient = ref(props.defaultConvertToClient)
-const formId = 'call-conclusion-form'
 
 watch(
   () => props.open,
   (isOpen) => {
     if (!isOpen) return
     conversionNote.value = ''
-    convertToClient.value = props.defaultConvertToClient
   }
-)
-
-const primaryActionLabel = computed(() =>
-  convertToClient.value ? 'Terminer & Convertir' : 'Terminer sans suite'
 )
 
 function updateOpen(next: boolean) {
@@ -46,11 +45,11 @@ function updateOpen(next: boolean) {
   emit('update:open', next)
 }
 
-function submit() {
+function submitWithStage(stage: BilanTargetStage) {
   const note = conversionNote.value.trim()
   emit('submit', {
-    convertToClient: convertToClient.value,
-    conversionNote: note ? note : undefined
+    targetStage: stage,
+    note: note || undefined
   })
 }
 </script>
@@ -76,7 +75,7 @@ function submit() {
       Bilan avec <span class="font-bold not-italic">{{ clientName }}</span>
     </template>
     <template #description>
-      L’appel est terminé. Décidez de la suite.
+      L'appel est terminé. Décidez de la suite.
     </template>
 
     <template #body>
@@ -88,11 +87,7 @@ function submit() {
         :description="error"
       />
 
-      <form
-        :id="formId"
-        class="grid gap-6"
-        @submit.prevent="submit"
-      >
+      <div class="grid gap-6">
         <div>
           <label
             for="conversion-note"
@@ -103,53 +98,59 @@ function submit() {
           <UTextarea
             id="conversion-note"
             v-model="conversionNote"
-            placeholder="Impressions, besoins spécifiques, points de vigilance…"
+            placeholder="Impressions, besoins spécifiques, points de vigilance..."
             :rows="4"
             :disabled="loading"
+            :maxlength="1000"
             variant="none"
             class="w-full rounded-[var(--radius-md)] border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] px-4 py-3 text-sm text-[color:var(--color-brand-primary)] shadow-soft focus:outline-none focus:ring-2 focus:ring-[rgba(212,184,160,0.75)]"
           />
+          <p class="mt-1 text-right text-xs text-stone-400">
+            {{ conversionNote.length }}/1000
+          </p>
         </div>
-
-        <div class="flex flex-col justify-between gap-4 rounded-blob-d border border-[rgba(231,229,228,0.75)] bg-[color:var(--color-surface-highlight)] p-4 md:flex-row md:items-center">
-          <div class="min-w-0">
-            <span class="block font-bold text-[color:var(--color-brand-primary)]">
-              Convertir en cliente active ?
-            </span>
-            <span class="text-xs text-[color:var(--color-brand-secondary)]">
-              Donne accès à la prise de rendez-vous payants.
-            </span>
-          </div>
-          <USwitch
-            v-model="convertToClient"
-            size="lg"
-            color="primary"
-            :disabled="loading"
-            class="self-start md:self-auto"
-          />
-        </div>
-      </form>
+      </div>
     </template>
 
     <template #footer>
-      <div class="flex flex-wrap justify-end gap-3">
+      <div class="flex flex-wrap gap-3">
+        <!-- Sans suite - à gauche (ghost) -->
         <UButton
           color="neutral"
           variant="ghost"
           class="rounded-full"
           :disabled="loading"
-          @click="updateOpen(false)"
+          @click="submitWithStage('paused')"
         >
-          Annuler
+          Sans suite
         </UButton>
+
+        <!-- Spacer -->
+        <div class="flex-1" />
+
+        <!-- À suivre - outline -->
         <UButton
-          type="submit"
-          :form="formId"
+          color="neutral"
+          variant="outline"
+          class="rounded-full"
+          :disabled="loading"
+          @click="submitWithStage('lead')"
+        >
+          À suivre
+        </UButton>
+
+        <!-- Convertir - primary -->
+        <UButton
           color="primary"
           class="rounded-full px-6"
           :loading="loading"
+          @click="submitWithStage('active')"
         >
-          {{ primaryActionLabel }}
+          <UIcon
+            name="lucide:check"
+            class="mr-2 h-4 w-4"
+          />
+          Convertir
         </UButton>
       </div>
     </template>

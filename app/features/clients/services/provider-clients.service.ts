@@ -9,3 +9,27 @@ export async function listProviderClients(
     query: params
   })
 }
+
+/**
+ * US-7: Pause a client (active → paused)
+ */
+export async function pauseClient(
+  clientProfileId: string,
+  reason?: string
+): Promise<void> {
+  await apiFetch(`/provider/clients/${clientProfileId}/pause`, {
+    method: 'POST',
+    body: reason ? { reason } : undefined
+  })
+}
+
+/**
+ * US-7: Reactivate a client (paused → active)
+ */
+export async function reactivateClient(
+  clientProfileId: string
+): Promise<void> {
+  await apiFetch(`/provider/clients/${clientProfileId}/reactivate`, {
+    method: 'POST'
+  })
+}

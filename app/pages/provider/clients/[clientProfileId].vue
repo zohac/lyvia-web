@@ -215,24 +215,69 @@
               />
               Appeler
             </UButton>
+
+            <!-- US-7: Pause/Reactivate actions -->
+            <UButton
+              v-if="detail?.computedStatus === 'active'"
+              variant="soft"
+              color="warning"
+              block
+              class="justify-start"
+              :loading="pauseLoading"
+              @click="openPauseModal"
+            >
+              <UIcon
+                name="lucide:pause-circle"
+                class="mr-2 h-4 w-4"
+              />
+              Mettre en pause
+            </UButton>
+
+            <UButton
+              v-else-if="detail?.computedStatus === 'paused'"
+              variant="soft"
+              color="success"
+              block
+              class="justify-start"
+              :loading="reactivateLoading"
+              @click="handleReactivate"
+            >
+              <UIcon
+                name="lucide:play-circle"
+                class="mr-2 h-4 w-4"
+              />
+              Réactiver
+            </UButton>
           </div>
         </UCard>
       </aside>
     </div>
+
+    <!-- US-7: Pause confirmation modal -->
+    <ClientPauseModal
+      :open="pauseModalOpen"
+      :client-name="client ? formatClientName(client) : ''"
+      :loading="pauseLoading"
+      @update:open="pauseModalOpen = $event"
+      @confirm="handlePauseConfirm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useProviderClientDetail } from '../../../features/clients/useProviderClientDetail'
+import { pauseClient, reactivateClient } from '../../../features/clients/services/provider-clients.service'
 import {
   formatClientName,
   formatNextAppointment,
   getClientInitials,
   getClientStatusMeta,
-  getClientStatusMicrocopy
+  getClientStatusMicrocopy,
+  getClientAvatarClass
 } from '../../../features/clients/domain/clients'
 import ClientAppointmentHistorySection from '../../../components/organisms/ClientAppointmentHistorySection.vue'
 import ClientPaymentHistorySection from '../../../components/organisms/ClientPaymentHistorySection.vue'
+import ClientPauseModal from '../../../components/organisms/ClientPauseModal.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -250,7 +295,9 @@ if (!clientProfileId.value) {
   throw createError({ statusCode: 404, statusMessage: 'Cliente introuvable.' })
 }
 
-const { pending, errorMessage, detail } = await useProviderClientDetail(clientProfileId.value)
+const { pending, errorMessage, detail, refresh } = await useProviderClientDetail(clientProfileId.value)
+
+const toast = useToast()
 
 const client = computed(() => detail.value?.client ?? null)
 const timezoneLabel = computed(() => detail.value?.timezone ?? 'Europe/Paris')
@@ -258,19 +305,7 @@ const timezoneLabel = computed(() => detail.value?.timezone ?? 'Europe/Paris')
 // Avatar color based on status
 const avatarClass = computed(() => {
   if (!detail.value) return 'bg-stone-100 text-stone-700'
-
-  switch (detail.value.computedStatus) {
-    case 'discovery':
-      return 'bg-amber-100 text-amber-700'
-    case 'lead':
-      return 'bg-emerald-100 text-emerald-700'
-    case 'active':
-      return 'bg-blue-100 text-blue-700'
-    case 'paused':
-      return 'bg-stone-100 text-stone-700'
-    default:
-      return 'bg-stone-100 text-stone-700'
-  }
+  return getClientAvatarClass(detail.value.computedStatus)
 })
 
 // ============================================================================
@@ -293,4 +328,63 @@ const nextAppointmentLabel = computed(() => {
   if (!formatted) return 'Aucun rendez-vous planifié'
   return formatted
 })
+
+// ============================================================================
+// US-7: Pause / Reactivate Client
+// ============================================================================
+
+const pauseModalOpen = ref(false)
+const pauseLoading = ref(false)
+const reactivateLoading = ref(false)
+
+function openPauseModal() {
+  pauseModalOpen.value = true
+}
+
+async function handlePauseConfirm(reason: string) {
+  if (!clientProfileId.value) return
+  pauseLoading.value = true
+
+  try {
+    await pauseClient(clientProfileId.value, reason || undefined)
+    await refresh()
+    pauseModalOpen.value = false
+    toast.add({
+      title: 'Cliente mise en pause',
+      description: 'Elle n\'apparaîtra plus dans les clientes actives.',
+      color: 'primary'
+    })
+  } catch {
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de mettre la cliente en pause.',
+      color: 'error'
+    })
+  } finally {
+    pauseLoading.value = false
+  }
+}
+
+async function handleReactivate() {
+  if (!clientProfileId.value) return
+  reactivateLoading.value = true
+
+  try {
+    await reactivateClient(clientProfileId.value)
+    await refresh()
+    toast.add({
+      title: 'Cliente réactivée',
+      description: 'Elle apparaît à nouveau dans les clientes actives.',
+      color: 'primary'
+    })
+  } catch {
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de réactiver la cliente.',
+      color: 'error'
+    })
+  } finally {
+    reactivateLoading.value = false
+  }
+}
 </script>
