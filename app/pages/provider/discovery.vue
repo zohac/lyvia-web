@@ -49,6 +49,16 @@
       </div>
       <div class="flex items-center gap-3">
         <UButton
+          to="/provider/calendar?action=create&type=discovery"
+          color="primary"
+        >
+          <UIcon
+            name="lucide:plus"
+            class="mr-2 h-4 w-4"
+          />
+          Créer un appel
+        </UButton>
+        <UButton
           to="/provider/availability"
           variant="soft"
           color="neutral"

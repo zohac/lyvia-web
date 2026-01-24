@@ -43,8 +43,33 @@ async function loadAllClients() {
   }
 }
 
-// Load clients on mount
-loadAllClients()
+// Handle query params for opening create modal (e.g., ?action=create&type=discovery)
+const route = useRoute()
+const router = useRouter()
+
+onMounted(async () => {
+  // Load clients first (needed for pre-selection in modal)
+  await loadAllClients()
+
+  const action = route.query.action
+  const typeParam = route.query.type
+  const clientProfileIdParam = route.query.clientProfileId
+
+  if (action === 'create') {
+    const appointmentType = typeParam === 'discovery' ? 'discovery' : 'consultation'
+    const clientProfileId = typeof clientProfileIdParam === 'string' ? clientProfileIdParam : null
+
+    openCreateModal({
+      dayKey: getYmdInTimeZone(calendar.anchorDate.value, calendar.timeZone.value),
+      minutes: 9 * 60,
+      type: appointmentType,
+      clientProfileId
+    })
+
+    // Clean up query params
+    router.replace({ query: {} })
+  }
+})
 
 type DisplayTypeFilter = 'all' | ProviderCalendarAppointmentType
 
@@ -94,6 +119,8 @@ function onSelectAppointment(appointment: ProviderAppointmentListItem) {
 const isCreateModalOpen = ref(false)
 const createInitialDayKey = ref(getYmdInTimeZone(calendar.anchorDate.value, calendar.timeZone.value))
 const createInitialMinutes = ref(9 * 60)
+const createInitialType = ref<'discovery' | 'consultation'>('consultation')
+const createInitialClientProfileId = ref<string | null>(null)
 const createIdempotencyKey = ref<string | null>(null)
 
 const knownClients = computed(() => {
@@ -123,13 +150,15 @@ function setCreateModalOpen(next: boolean) {
   }
 }
 
-function openCreateModal(input: { dayKey: string, minutes: number }) {
+function openCreateModal(input: { dayKey: string, minutes: number, type?: 'discovery' | 'consultation', clientProfileId?: string | null }) {
   noticeMessage.value = null
   closeDrawer()
   calendar.clearActionErrors()
 
   createInitialDayKey.value = input.dayKey
   createInitialMinutes.value = input.minutes
+  createInitialType.value = input.type ?? 'consultation'
+  createInitialClientProfileId.value = input.clientProfileId ?? null
   lastInteractionDayKey.value = input.dayKey
   createIdempotencyKey.value = createUuidV4()
   isCreateModalOpen.value = true
@@ -661,6 +690,8 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
       :time-zone="calendar.timeZone.value"
       :initial-day-key="createInitialDayKey"
       :initial-minutes="createInitialMinutes"
+      :initial-type="createInitialType"
+      :initial-client-profile-id="createInitialClientProfileId"
       :known-clients="knownClients"
       :consultation-price-plans="Object.values(calendar.consultationPricePlansById.value)"
       :loading="calendar.actionPending.value"

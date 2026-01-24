@@ -17,6 +17,14 @@ const props = withDefaults(
     timeZone: string
     initialDayKey: string
     initialMinutes: number
+    /**
+     * Type de RDV pré-sélectionné à l'ouverture de la modale.
+     */
+    initialType?: ProviderCalendarAppointmentType
+    /**
+     * Client pré-sélectionné à l'ouverture de la modale.
+     */
+    initialClientProfileId?: string | null
     knownClients: ClientOption[]
     /**
      * Liste des price plans disponibles (chargés via useProviderCalendar).
@@ -27,6 +35,8 @@ const props = withDefaults(
     fieldErrors?: Record<string, string>
   }>(),
   {
+    initialType: 'consultation',
+    initialClientProfileId: null,
     consultationPricePlans: () => [],
     loading: false,
     error: null,
@@ -117,7 +127,7 @@ watch(
 
     dayKey.value = props.initialDayKey
     time.value = minutesToHHmm(props.initialMinutes)
-    type.value = 'consultation'
+    type.value = props.initialType
     notes.value = ''
     meetingLink.value = ''
     selectedKnownClientId.value = ''
@@ -125,13 +135,25 @@ watch(
     // Reset price plan selection
     pricePlanId.value = null
 
-    // Pre-select first active plan if only one
-    const activePlans = props.consultationPricePlans.filter(plan => plan.isActive)
-    if (activePlans.length === 1) {
-      pricePlanId.value = activePlans[0]!.id
+    // Pre-select first active plan if only one (for consultation)
+    if (props.initialType === 'consultation') {
+      const activePlans = props.consultationPricePlans.filter(plan => plan.isActive)
+      if (activePlans.length === 1) {
+        pricePlanId.value = activePlans[0]!.id
+      }
     }
 
-    if (inferredClients.value.length === 1) {
+    // Pre-select client if provided and exists in filtered list
+    if (props.initialClientProfileId) {
+      const matchingClient = inferredClients.value.find(c => c.value === props.initialClientProfileId)
+      if (matchingClient) {
+        clientProfileId.value = matchingClient.value
+        selectedKnownClientId.value = matchingClient.value
+      } else {
+        // Client exists but not in filtered list - still set the ID
+        clientProfileId.value = props.initialClientProfileId
+      }
+    } else if (inferredClients.value.length === 1) {
       clientProfileId.value = inferredClients.value[0]!.value
     } else {
       clientProfileId.value = ''

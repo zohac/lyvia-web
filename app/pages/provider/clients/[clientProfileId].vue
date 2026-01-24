@@ -64,7 +64,7 @@
             </div>
           </div>
           <UButton
-            to="/provider/calendar"
+            :to="`/provider/calendar?action=create&type=consultation&clientProfileId=${clientProfileId}`"
             color="primary"
           >
             <UIcon
