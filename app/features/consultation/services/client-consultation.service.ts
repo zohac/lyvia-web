@@ -12,6 +12,10 @@ import type {
   GetAppointmentPaymentContextResponse,
   CreateAssignedConsultationCheckoutRequest
 } from '../api/payment-context.contract'
+import type {
+  ListClientAppointmentsResponse,
+  ListClientAppointmentsQuery
+} from '../api/client-appointments.contract'
 
 export async function resolveTenantByHost(): Promise<PublicTenantResponse> {
   return await apiFetch<PublicTenantResponse>('/public/tenant', {
@@ -112,6 +116,26 @@ export async function createAssignedConsultationCheckout(
       method: 'POST',
       withAuth: true,
       body
+    }
+  )
+}
+
+/**
+ * List all appointments for the current client.
+ *
+ * Returns discovery calls and consultations with their status and payment info.
+ *
+ * @param query - Optional filters for type and status
+ */
+export async function listClientAppointments(
+  query?: ListClientAppointmentsQuery
+): Promise<ListClientAppointmentsResponse> {
+  return await apiFetch<ListClientAppointmentsResponse>(
+    '/client/appointments',
+    {
+      method: 'GET',
+      withAuth: true,
+      query: query as Record<string, string> | undefined
     }
   )
 }

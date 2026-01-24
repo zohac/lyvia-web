@@ -47,25 +47,100 @@
           @submit="handleRequestSubmit"
         />
 
-        <!-- History placeholder -->
-        <UCard class="bg-white">
-          <div class="flex items-start gap-4">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-stone-100">
+        <!-- Appointments History section -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="flex items-center gap-2 font-semibold text-stone-900">
               <UIcon
-                name="lucide:history"
-                class="h-6 w-6 text-stone-500"
+                name="lucide:calendar"
+                class="h-5 w-5 text-stone-500"
               />
-            </div>
-            <div>
-              <h3 class="font-semibold text-stone-900">
-                Historique des consultations
-              </h3>
-              <p class="mt-1 text-sm text-stone-500">
-                L'historique complet de vos consultations passées sera disponible prochainement.
+              Tous mes rendez-vous
+            </h2>
+            <UButton
+              v-if="!historyPending"
+              variant="ghost"
+              color="neutral"
+              size="xs"
+              @click="refreshHistory"
+            >
+              <UIcon
+                name="lucide:refresh-cw"
+                class="h-3.5 w-3.5"
+              />
+            </UButton>
+          </div>
+
+          <!-- Loading state -->
+          <div
+            v-if="historyPending"
+            class="space-y-3"
+          >
+            <USkeleton
+              v-for="i in 3"
+              :key="i"
+              class="h-20 rounded-xl"
+            />
+          </div>
+
+          <!-- Error state -->
+          <UAlert
+            v-else-if="historyError"
+            color="error"
+            variant="soft"
+            :description="historyError"
+            icon="i-lucide-alert-circle"
+          />
+
+          <!-- Empty state -->
+          <UCard
+            v-else-if="allAppointments.length === 0"
+            class="bg-white"
+          >
+            <div class="py-6 text-center">
+              <UIcon
+                name="lucide:calendar-check"
+                class="mx-auto h-10 w-10 text-stone-300"
+              />
+              <p class="mt-3 text-sm text-stone-500">
+                Aucun rendez-vous pour le moment.
               </p>
             </div>
-          </div>
-        </UCard>
+          </UCard>
+
+          <!-- Appointments list -->
+          <template v-else>
+            <!-- Upcoming appointments -->
+            <div
+              v-if="upcomingAppointments.length > 0"
+              class="space-y-3"
+            >
+              <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
+                À venir ({{ upcomingAppointments.length }})
+              </p>
+              <ClientAppointmentCard
+                v-for="appointment in upcomingAppointments"
+                :key="appointment.id"
+                :appointment="appointment"
+              />
+            </div>
+
+            <!-- Past appointments -->
+            <div
+              v-if="pastAppointments.length > 0"
+              class="space-y-3"
+            >
+              <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
+                Passés ({{ pastAppointments.length }})
+              </p>
+              <ClientAppointmentCard
+                v-for="appointment in pastAppointments"
+                :key="appointment.id"
+                :appointment="appointment"
+              />
+            </div>
+          </template>
+        </section>
       </div>
 
       <!-- Sidebar -->
@@ -119,6 +194,8 @@
 <script setup lang="ts">
 import type { RequestType, RequestReason } from '../../../components/organisms/ClientConsultationRequestModal.vue'
 import { useClientNextConsultation } from '../../../features/consultation/useClientNextConsultation'
+import { useClientAppointments } from '../../../features/consultation/useClientAppointments'
+import ClientAppointmentCard from '../../../components/molecules/ClientAppointmentCard.vue'
 
 definePageMeta({
   layout: 'client',
@@ -137,6 +214,18 @@ const {
   displayState: consultationState,
   refresh: refreshConsultation
 } = await useClientNextConsultation()
+
+/**
+ * Appointments history (all appointments)
+ */
+const {
+  pending: historyPending,
+  errorMessage: historyError,
+  appointments: allAppointments,
+  upcoming: upcomingAppointments,
+  past: pastAppointments,
+  refresh: refreshHistory
+} = await useClientAppointments()
 
 /**
  * RF5: Modal state for cancellation/reschedule requests
