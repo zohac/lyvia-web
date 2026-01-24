@@ -20,7 +20,7 @@ definePageMeta({
       </p>
     </header>
 
-    <div class="rounded-blob-c border border-[rgba(231,229,228,0.85)] bg-white/75 p-8 shadow-soft backdrop-blur">
+    <div class="rounded-3xl border border-[rgba(231,229,228,0.85)] bg-white/75 p-8 shadow-soft backdrop-blur">
       <div class="grid gap-4">
         <p class="text-sm text-[color:var(--color-brand-secondary)]">
           Si vous avez quitté Stripe par erreur, sélectionnez à nouveau un créneau puis relancez le paiement.

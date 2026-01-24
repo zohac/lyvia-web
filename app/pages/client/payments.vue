@@ -54,7 +54,7 @@
         />
       </div>
       <!-- Table skeleton -->
-      <UCard class="bg-white">
+      <UCard class="rounded-3xl bg-white">
         <div class="space-y-4">
           <USkeleton
             v-for="i in 5"
@@ -70,7 +70,7 @@
       <!-- Summary Cards -->
       <div class="grid gap-4 sm:grid-cols-3">
         <!-- Total transactions -->
-        <UCard class="bg-white">
+        <UCard class="rounded-3xl bg-white">
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-crepuscule-100">
               <UIcon
@@ -90,7 +90,7 @@
         </UCard>
 
         <!-- Total paid -->
-        <UCard class="bg-white">
+        <UCard class="rounded-3xl bg-white">
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100">
               <UIcon
@@ -110,7 +110,7 @@
         </UCard>
 
         <!-- Last payment -->
-        <UCard class="bg-white">
+        <UCard class="rounded-3xl bg-white">
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sunset-100">
               <UIcon
@@ -133,7 +133,7 @@
       <!-- Empty State -->
       <UCard
         v-if="list.payments.value.length === 0"
-        class="bg-white"
+        class="rounded-3xl bg-white"
       >
         <div class="py-12 text-center">
           <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
@@ -162,7 +162,7 @@
       <!-- Payments Table (Desktop) -->
       <UCard
         v-else
-        class="hidden bg-white md:block"
+        class="hidden rounded-3xl bg-white md:block"
       >
         <template #header>
           <div class="flex items-center justify-between">
@@ -300,7 +300,7 @@
         <UCard
           v-for="payment in formattedPayments"
           :key="payment.id"
-          class="bg-white"
+          class="rounded-3xl bg-white"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -381,7 +381,7 @@
       </div>
 
       <!-- Info Card -->
-      <UCard class="bg-gradient-to-br from-crepuscule-50 to-white">
+      <UCard class="rounded-3xl bg-gradient-to-br from-crepuscule-50 to-white">
         <div class="flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
             <UIcon

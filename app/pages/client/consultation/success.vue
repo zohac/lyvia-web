@@ -164,7 +164,7 @@ function retryPolling() {
 
       <div
         v-else
-        class="grid gap-6 rounded-blob-c border border-[rgba(231,229,228,0.85)] bg-white/75 p-10 shadow-floating backdrop-blur"
+        class="grid gap-6 rounded-3xl border border-[rgba(231,229,228,0.85)] bg-white/75 p-10 shadow-floating backdrop-blur"
       >
         <div
           v-if="showLoader"
@@ -235,14 +235,14 @@ function retryPolling() {
 
           <div
             v-if="poller.state.errorMessage"
-            class="rounded-blob-d border border-[rgba(239,68,68,0.18)] bg-[rgba(254,242,242,0.55)] p-4 text-sm text-[color:var(--color-brand-primary)]"
+            class="rounded-xl border border-[rgba(239,68,68,0.18)] bg-[rgba(254,242,242,0.55)] p-4 text-sm text-[color:var(--color-brand-primary)]"
           >
             {{ poller.state.errorMessage }}
           </div>
 
           <dl
             v-if="formattedWhen || formattedPrice"
-            class="grid gap-3 rounded-blob-a bg-[color:var(--color-surface-highlight)] p-5"
+            class="grid gap-3 rounded-3xl bg-[color:var(--color-surface-highlight)] p-5"
           >
             <div
               v-if="formattedWhen"

@@ -94,7 +94,7 @@ async function handleResume() {
         </div>
 
         <!-- Card skeleton -->
-        <div class="rounded-blob-a border border-white/60 bg-white/80 p-8 shadow-soft backdrop-blur-sm">
+        <div class="rounded-3xl border border-white/60 bg-white/80 p-8 shadow-soft backdrop-blur-sm">
           <div class="grid gap-6">
             <div class="grid gap-4">
               <div class="flex items-center gap-4">
@@ -121,7 +121,7 @@ async function handleResume() {
       v-else-if="payment.pageState.value.kind === 'missing_appointment_id'"
       class="relative z-10 mx-auto max-w-lg text-center"
     >
-      <div class="rounded-blob-a border border-[color:var(--color-error)]/20 bg-white/80 p-8 shadow-soft backdrop-blur-sm">
+      <div class="rounded-3xl border border-[color:var(--color-error)]/20 bg-white/80 p-8 shadow-soft backdrop-blur-sm">
         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--color-error)]/10">
           <Icon
             name="lucide:alert-circle"
@@ -155,7 +155,7 @@ async function handleResume() {
       v-else-if="payment.pageState.value.kind === 'already_paid'"
       class="relative z-10 mx-auto max-w-lg text-center"
     >
-      <div class="rounded-blob-a border border-[color:var(--color-success)]/20 bg-white/80 p-8 shadow-soft backdrop-blur-sm">
+      <div class="rounded-3xl border border-[color:var(--color-success)]/20 bg-white/80 p-8 shadow-soft backdrop-blur-sm">
         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--color-success)]/15">
           <Icon
             name="lucide:check-circle"
@@ -189,7 +189,7 @@ async function handleResume() {
       role="alert"
       aria-live="assertive"
     >
-      <div class="rounded-blob-a border border-[color:var(--color-error)]/20 bg-white/80 p-8 shadow-soft backdrop-blur-sm">
+      <div class="rounded-3xl border border-[color:var(--color-error)]/20 bg-white/80 p-8 shadow-soft backdrop-blur-sm">
         <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--color-error)]/10">
           <Icon
             name="lucide:alert-triangle"
@@ -246,7 +246,7 @@ async function handleResume() {
       </header>
 
       <!-- Payment Card -->
-      <div class="payment-card rounded-blob-a border border-white/60 bg-white/90 p-8 shadow-floating backdrop-blur-sm">
+      <div class="payment-card rounded-3xl border border-white/60 bg-white/90 p-8 shadow-floating backdrop-blur-sm">
         <!-- Pending Payment Notice -->
         <div
           v-if="payment.pageState.value.hasPendingPayment"
@@ -286,7 +286,7 @@ async function handleResume() {
           </div>
 
           <!-- Date & Time -->
-          <div class="flex items-center gap-4 rounded-blob-d border border-[color:var(--color-brand-subtle)]/60 bg-[color:var(--color-surface-highlight)]/50 p-4">
+          <div class="flex items-center gap-4 rounded-xl border border-[color:var(--color-brand-subtle)]/60 bg-[color:var(--color-surface-highlight)]/50 p-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
               <Icon
                 name="lucide:calendar"

@@ -179,7 +179,7 @@ function retry() {
 
     <div
       v-else-if="hasNoActivePlans"
-      class="grid gap-4 rounded-blob-d border border-[rgba(231,229,228,0.85)] bg-white/75 p-8 shadow-soft backdrop-blur"
+      class="grid gap-4 rounded-xl border border-[rgba(231,229,228,0.85)] bg-white/75 p-8 shadow-soft backdrop-blur"
       role="status"
       aria-live="polite"
     >
@@ -249,13 +249,13 @@ function retry() {
       role="status"
       aria-live="polite"
     >
-      <div class="h-44 rounded-blob-b bg-white/60 shadow-soft" />
-      <div class="h-72 rounded-blob-a bg-white/55 shadow-soft" />
+      <div class="h-44 rounded-3xl bg-white/60 shadow-soft" />
+      <div class="h-72 rounded-3xl bg-white/55 shadow-soft" />
     </div>
 
     <div
       v-else-if="state.availability && !canBook"
-      class="rounded-blob-d border border-[rgba(231,229,228,0.85)] bg-white/70 p-8 shadow-soft backdrop-blur"
+      class="rounded-xl border border-[rgba(231,229,228,0.85)] bg-white/70 p-8 shadow-soft backdrop-blur"
     >
       <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
         Réservation bloquée
@@ -306,7 +306,7 @@ function retry() {
 
         <div
           v-if="mustChoosePricePlan"
-          class="rounded-blob-d border border-[rgba(231,229,228,0.85)] bg-white/70 p-6 text-sm text-[color:var(--color-brand-secondary)] shadow-soft backdrop-blur"
+          class="rounded-xl border border-[rgba(231,229,228,0.85)] bg-white/70 p-6 text-sm text-[color:var(--color-brand-secondary)] shadow-soft backdrop-blur"
           role="status"
           aria-live="polite"
         >
@@ -329,7 +329,7 @@ function retry() {
       </div>
 
       <aside class="hidden lg:block">
-        <div class="sticky top-28 grid gap-5 rounded-blob-c border border-[rgba(231,229,228,0.85)] bg-white/75 p-6 shadow-soft backdrop-blur">
+        <div class="sticky top-28 grid gap-5 rounded-3xl border border-[rgba(231,229,228,0.85)] bg-white/75 p-6 shadow-soft backdrop-blur">
           <div class="grid gap-1">
             <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
               Récapitulatif
@@ -339,7 +339,7 @@ function retry() {
             </p>
           </div>
 
-          <dl class="grid gap-3 rounded-blob-a bg-[color:var(--color-surface-highlight)] p-5">
+          <dl class="grid gap-3 rounded-3xl bg-[color:var(--color-surface-highlight)] p-5">
             <div class="flex items-center justify-between gap-3">
               <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-brand-muted)]">
                 Tarif
@@ -399,14 +399,14 @@ function retry() {
 
           <div
             v-if="state.actionErrorMessage"
-            class="rounded-blob-d border border-[rgba(239,68,68,0.18)] bg-[rgba(254,242,242,0.6)] p-4 text-sm text-[color:var(--color-brand-primary)]"
+            class="rounded-xl border border-[rgba(239,68,68,0.18)] bg-[rgba(254,242,242,0.6)] p-4 text-sm text-[color:var(--color-brand-primary)]"
           >
             {{ state.actionErrorMessage }}
           </div>
 
           <ul
             v-if="actionFieldErrorEntries.length > 0"
-            class="grid gap-2 rounded-blob-d border border-[rgba(239,68,68,0.12)] bg-[rgba(254,242,242,0.55)] p-4 text-xs text-[color:var(--color-brand-primary)]"
+            class="grid gap-2 rounded-xl border border-[rgba(239,68,68,0.12)] bg-[rgba(254,242,242,0.55)] p-4 text-xs text-[color:var(--color-brand-primary)]"
           >
             <li
               v-for="[field, message] in actionFieldErrorEntries"
@@ -422,7 +422,7 @@ function retry() {
 
           <div
             v-if="state.actionErrorCode === 'PAYMENT_PENDING'"
-            class="rounded-blob-d border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]"
+            class="rounded-xl border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]"
           >
             Un paiement est déjà en cours pour ce créneau. Reprenez-le depuis votre espace Paiements.
             <ULink
@@ -440,7 +440,7 @@ function retry() {
 
           <div
             v-if="state.actionErrorCode === 'ONBOARDING_NOT_COMPLETED'"
-            class="rounded-blob-d border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]"
+            class="rounded-xl border border-[rgba(212,184,160,0.4)] bg-white/60 p-4 text-sm text-[color:var(--color-brand-secondary)]"
           >
             Un appel découverte est requis avant de pouvoir réserver une consultation.
             <ULink
@@ -458,7 +458,7 @@ function retry() {
         </div>
       </aside>
 
-      <div class="sticky bottom-4 z-10 rounded-blob-c border border-[rgba(231,229,228,0.85)] bg-white/85 p-4 shadow-floating backdrop-blur lg:hidden">
+      <div class="sticky bottom-4 z-10 rounded-3xl border border-[rgba(231,229,228,0.85)] bg-white/85 p-4 shadow-floating backdrop-blur lg:hidden">
         <div class="flex items-start justify-between gap-4">
           <div class="grid gap-1">
             <p class="text-xs font-bold text-[color:var(--color-brand-primary)]">
@@ -515,7 +515,7 @@ function retry() {
         role="status"
         aria-live="polite"
       >
-        <div class="grid max-w-sm gap-3 rounded-blob-c bg-white/90 p-8 text-center shadow-floating">
+        <div class="grid max-w-sm gap-3 rounded-3xl bg-white/90 p-8 text-center shadow-floating">
           <p class="text-xs font-bold uppercase tracking-[0.22em] text-[color:var(--color-brand-muted)]">
             Paiement sécurisé
           </p>
