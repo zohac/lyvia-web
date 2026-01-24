@@ -39,6 +39,7 @@ const dayKey = ref('')
 const time = ref('09:00')
 const pricePlanId = ref<string | null>(null)
 const notes = ref<string>('')
+const meetingLink = ref<string>('')
 
 const localValidationError = ref<string | null>(null)
 
@@ -129,6 +130,7 @@ watch(
     // Reset price plan selection (user can change it)
     pricePlanId.value = null
     notes.value = appointment.notes ?? ''
+    meetingLink.value = appointment.meetingLink ?? ''
   },
   { immediate: true }
 )
@@ -162,18 +164,20 @@ function submit() {
 
   const trimmedNotes = notes.value.trim()
 
-  // Consultation : envoie pricePlanId si changement de plan
+  // Consultation : envoie pricePlanId + meetingLink si changement de plan
   if (appointment.type === 'consultation') {
+    const trimmedMeetingLink = meetingLink.value.trim()
     emit('submit', {
       appointmentId: appointment.id,
       body: {
         startAt: utcStartAt,
         pricePlanId: pricePlanId.value ?? undefined,
-        notes: trimmedNotes ? trimmedNotes : null
+        notes: trimmedNotes ? trimmedNotes : null,
+        meetingLink: trimmedMeetingLink || null
       }
     })
   } else {
-    // Discovery : pas de pricePlanId
+    // Discovery : pas de pricePlanId ni meetingLink
     emit('submit', {
       appointmentId: appointment.id,
       body: {
@@ -363,6 +367,32 @@ function submit() {
                 class="text-xs font-bold text-red-600"
               >
                 {{ fieldErrors.notes }}
+              </p>
+            </div>
+
+            <!-- Lien visio (consultation uniquement) -->
+            <div
+              v-if="appointment?.type === 'consultation'"
+              class="grid gap-2"
+            >
+              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+                Lien visio
+                <span class="font-normal text-stone-400">(optionnel)</span>
+              </label>
+              <UInput
+                v-model="meetingLink"
+                type="url"
+                placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                :disabled="loading || !canEdit"
+              />
+              <p class="text-xs text-stone-500">
+                Ce lien sera inclus dans les emails de rappel.
+              </p>
+              <p
+                v-if="fieldErrors?.meetingLink"
+                class="text-xs font-bold text-red-600"
+              >
+                {{ fieldErrors.meetingLink }}
               </p>
             </div>
           </div>

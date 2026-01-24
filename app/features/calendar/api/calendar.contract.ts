@@ -44,6 +44,11 @@ export type ProviderAppointmentListItem = {
   firstname: string
   lastname: string
   clientStage: ProviderCalendarClientStage
+  /**
+   * Video meeting link (Google Meet, Zoom, Teams, etc.).
+   * Only applicable for consultations.
+   */
+  meetingLink: string | null
 }
 
 export type ListProviderAppointmentsQuery = {
@@ -75,9 +80,13 @@ export type CreateProviderManualAppointmentRequest = {
   | {
     type: 'consultation'
     /**
-       * Consultation only. The active price plan to apply.
-       */
+     * Consultation only. The active price plan to apply.
+     */
     pricePlanId: string
+    /**
+     * Video meeting link (Google Meet, Zoom, Teams, etc.).
+     */
+    meetingLink?: string | null
   }
 )
 
@@ -85,6 +94,23 @@ export type CreateProviderManualAppointmentResponse = {
   appointmentId: string
   startAt: string
   endAt: string
+  /**
+   * True when the appointment is payable (consultation).
+   */
+  paymentRequired: boolean
+  /**
+   * Payment status for the appointment.
+   */
+  paymentStatus: ProviderCalendarPaymentStatus
+  /**
+   * Price plan applied (consultation only).
+   */
+  pricePlanId: string | null
+  /**
+   * Video meeting link (Google Meet, Zoom, Teams, etc.).
+   * Only applicable for consultations.
+   */
+  meetingLink: string | null
 }
 
 export type UpdateProviderAppointmentRequest = {
@@ -94,6 +120,11 @@ export type UpdateProviderAppointmentRequest = {
    */
   pricePlanId?: string
   notes?: string | null
+  /**
+   * Video meeting link (Google Meet, Zoom, Teams, etc.).
+   * Only applicable for consultations.
+   */
+  meetingLink?: string | null
 }
 
 export type UpdateProviderAppointmentResponse = {
@@ -101,7 +132,11 @@ export type UpdateProviderAppointmentResponse = {
   startAt: string
   endAt: string
   durationMinutes: number
-  notes?: string | null
+  notes: string | null
+  /**
+   * Video meeting link (Google Meet, Zoom, Teams, etc.).
+   */
+  meetingLink: string | null
 }
 
 export type CancelProviderAppointmentRequest = {

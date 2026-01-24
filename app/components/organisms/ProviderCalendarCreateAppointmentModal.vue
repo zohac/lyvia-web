@@ -47,7 +47,7 @@ type ProviderCalendarCreateAppointmentBody = {
   notes?: string | null
 } & (
   | { type: 'discovery' }
-  | { type: 'consultation', pricePlanId: string }
+  | { type: 'consultation', pricePlanId: string, meetingLink?: string | null }
 )
 
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
@@ -60,6 +60,7 @@ const pricePlanId = ref<string | null>(null)
 const clientProfileId = ref<string>('')
 const selectedKnownClientId = ref<string>('')
 const notes = ref<string>('')
+const meetingLink = ref<string>('')
 
 /**
  * Filtre les clients selon le type de RDV sélectionné (modèle 4-stages).
@@ -118,6 +119,7 @@ watch(
     time.value = minutesToHHmm(props.initialMinutes)
     type.value = 'consultation'
     notes.value = ''
+    meetingLink.value = ''
     selectedKnownClientId.value = ''
 
     // Reset price plan selection
@@ -140,9 +142,10 @@ watch(
 watch(
   () => type.value,
   (next) => {
-    // Reset price plan selection when switching type
+    // Reset price plan and meeting link when switching type
     if (next === 'discovery') {
       pricePlanId.value = null
+      meetingLink.value = ''
     }
 
     // Reset client selection when type changes (filtered list changes)
@@ -180,14 +183,15 @@ function submit() {
       }
     })
   } else {
-    // Consultation : envoie pricePlanId (pas durationMinutes)
+    // Consultation : envoie pricePlanId + meetingLink (pas durationMinutes)
     if (!pricePlanId.value) return
 
     emit('submit', {
       body: {
         ...baseBody,
         type: 'consultation',
-        pricePlanId: pricePlanId.value
+        pricePlanId: pricePlanId.value,
+        meetingLink: meetingLink.value.trim() || null
       }
     })
   }
@@ -364,6 +368,33 @@ function submit() {
               class="text-xs font-bold text-red-600"
             >
               {{ fieldErrors.notes }}
+            </p>
+          </div>
+
+          <!-- Lien visio (consultation uniquement) -->
+          <div
+            v-if="type === 'consultation'"
+            class="grid gap-2"
+          >
+            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              Lien visio
+              <span class="font-normal text-stone-400">(optionnel)</span>
+            </label>
+            <UInput
+              v-model="meetingLink"
+              type="url"
+              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              :disabled="loading"
+            />
+            <p class="text-xs text-stone-500">
+              Ajoutez le lien maintenant pour éviter de l'oublier.
+              Il sera inclus dans l'email de confirmation.
+            </p>
+            <p
+              v-if="fieldErrors?.meetingLink"
+              class="text-xs font-bold text-red-600"
+            >
+              {{ fieldErrors.meetingLink }}
             </p>
           </div>
         </div>

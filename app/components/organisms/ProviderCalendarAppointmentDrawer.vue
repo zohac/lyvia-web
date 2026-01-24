@@ -175,6 +175,50 @@ const consultationPricingDetails = computed(() => {
     ? { price: formatCurrency(plan.amountCents), isActive: plan.isActive }
     : { price: null, isActive: null }
 })
+
+const toast = useToast()
+const meetingLinkCopied = ref(false)
+
+// Reset meetingLinkCopied when drawer closes or appointment changes
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (!isOpen) {
+      meetingLinkCopied.value = false
+    }
+  }
+)
+
+watch(
+  () => props.appointment?.id,
+  () => {
+    meetingLinkCopied.value = false
+  }
+)
+
+async function copyMeetingLink() {
+  const link = props.appointment?.meetingLink
+  if (!link) return
+
+  try {
+    await navigator.clipboard.writeText(link)
+    meetingLinkCopied.value = true
+    toast.add({
+      title: 'Lien copié',
+      color: 'success',
+      icon: 'i-lucide-check'
+    })
+    setTimeout(() => {
+      meetingLinkCopied.value = false
+    }, 2000)
+  } catch {
+    toast.add({
+      title: 'Impossible de copier le lien',
+      color: 'error',
+      icon: 'i-lucide-alert-circle'
+    })
+  }
+}
 </script>
 
 <template>
@@ -304,6 +348,48 @@ const consultationPricingDetails = computed(() => {
             >
               {{ consultationPricingDetails.price }}
             </p>
+          </div>
+        </section>
+
+        <!-- Lien visio (consultation uniquement) -->
+        <section
+          v-if="appointment.type === 'consultation' && appointment.meetingLink"
+          class="rounded-lg border border-stone-200 bg-stone-50 p-5"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              Lien visio
+            </h3>
+          </div>
+
+          <div class="mt-4 flex items-center gap-3">
+            <Icon
+              name="lucide:video"
+              size="18"
+              class="shrink-0 text-kaora-600"
+              aria-hidden="true"
+            />
+            <a
+              :href="appointment.meetingLink"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sm font-medium text-kaora-600 hover:underline"
+            >
+              Rejoindre la visio
+            </a>
+            <button
+              type="button"
+              class="inline-flex size-8 items-center justify-center rounded-full bg-white text-stone-500 ring-1 ring-stone-200 transition-all hover:bg-stone-50 hover:text-stone-700"
+              :disabled="actionPending"
+              @click="copyMeetingLink"
+            >
+              <Icon
+                :name="meetingLinkCopied ? 'lucide:check' : 'lucide:copy'"
+                size="14"
+                aria-hidden="true"
+              />
+              <span class="sr-only">Copier le lien</span>
+            </button>
           </div>
         </section>
 
