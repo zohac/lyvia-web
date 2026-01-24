@@ -33,3 +33,15 @@ export async function reactivateClient(
     method: 'POST'
   })
 }
+
+/**
+ * Convert a lead (discovery completed) to active client.
+ * @param appointmentId - The ID of the completed discovery appointment
+ */
+export async function convertLeadToActive(
+  appointmentId: string
+): Promise<void> {
+  await apiFetch(`/provider/appointments/${appointmentId}/convert`, {
+    method: 'POST'
+  })
+}

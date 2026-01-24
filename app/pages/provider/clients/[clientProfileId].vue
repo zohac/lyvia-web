@@ -235,6 +235,23 @@
               Appeler
             </UButton>
 
+            <!-- Convert lead to active client -->
+            <UButton
+              v-if="canConvert"
+              variant="soft"
+              color="primary"
+              block
+              class="justify-start"
+              :loading="convertLoading"
+              @click="handleConvert"
+            >
+              <UIcon
+                name="lucide:user-check"
+                class="mr-2 h-4 w-4"
+              />
+              Convertir en cliente
+            </UButton>
+
             <!-- US-7: Pause/Reactivate actions (pause allowed from any stage except paused) -->
             <UButton
               v-if="detail?.computedStatus && detail.computedStatus !== 'paused'"
@@ -285,7 +302,7 @@
 
 <script setup lang="ts">
 import { useProviderClientDetail } from '../../../features/clients/useProviderClientDetail'
-import { pauseClient, reactivateClient } from '../../../features/clients/services/provider-clients.service'
+import { pauseClient, reactivateClient, convertLeadToActive } from '../../../features/clients/services/provider-clients.service'
 import {
   formatClientName,
   formatNextAppointment,
@@ -365,6 +382,26 @@ const pausedAtLabel = computed(() => {
 const pauseModalOpen = ref(false)
 const pauseLoading = ref(false)
 const reactivateLoading = ref(false)
+const convertLoading = ref(false)
+
+/**
+ * Find the completed discovery appointment ID (needed for conversion).
+ * Returns the first discovery appointment with status 'completed'.
+ */
+const completedDiscoveryId = computed(() => {
+  if (!detail.value) return null
+  const discovery = detail.value.appointments.find(
+    apt => apt.type === 'discovery' && apt.status === 'completed'
+  )
+  return discovery?.id ?? null
+})
+
+/**
+ * Check if conversion is available (lead status + completed discovery exists).
+ */
+const canConvert = computed(() => {
+  return detail.value?.computedStatus === 'lead' && completedDiscoveryId.value !== null
+})
 
 function openPauseModal() {
   pauseModalOpen.value = true
@@ -414,6 +451,32 @@ async function handleReactivate() {
     })
   } finally {
     reactivateLoading.value = false
+  }
+}
+
+/**
+ * Convert lead to active client.
+ */
+async function handleConvert() {
+  if (!completedDiscoveryId.value) return
+  convertLoading.value = true
+
+  try {
+    await convertLeadToActive(completedDiscoveryId.value)
+    await refresh()
+    toast.add({
+      title: 'Cliente convertie',
+      description: 'Elle fait maintenant partie de vos clientes actives.',
+      color: 'primary'
+    })
+  } catch {
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de convertir la cliente.',
+      color: 'error'
+    })
+  } finally {
+    convertLoading.value = false
   }
 }
 </script>

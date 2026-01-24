@@ -7,10 +7,15 @@ import { apiFetch } from '../../../services/api/apiFetch'
 
 /**
  * Fetches the detail of a client profile for a provider.
+ * Includes appointments to support conversion flow (need discovery completed ID).
  */
 export async function getProviderClientDetail(clientProfileId: string): Promise<ProviderClientDetailResponse> {
   return await apiFetch<ProviderClientDetailResponse>(`/provider/clients/${clientProfileId}`, {
-    method: 'GET'
+    method: 'GET',
+    query: {
+      includeAppointments: 'true',
+      appointmentsLimit: 50
+    }
   })
 }
 
