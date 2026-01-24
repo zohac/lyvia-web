@@ -48,6 +48,23 @@
               {{ statusMeta.shortLabel }}
             </UBadge>
           </UTooltip>
+          <UTooltip
+            v-if="isDiscoveryCancelled"
+            text="Appel découverte annulé — à replanifier"
+          >
+            <UBadge
+              color="error"
+              variant="soft"
+              size="sm"
+              class="cursor-help"
+            >
+              <UIcon
+                name="lucide:calendar-x"
+                class="mr-1 h-3 w-3"
+              />
+              Annulé
+            </UBadge>
+          </UTooltip>
           <UBadge
             v-if="programLabel"
             color="neutral"
@@ -93,7 +110,8 @@ import {
   formatClientName,
   getClientInitials,
   getClientStatusMeta,
-  getClientAvatarClass,
+  getClientDisplayAvatarClass,
+  hasDiscoveryCancelled,
   formatNextAppointment,
   formatProgramMonth
 } from '../../features/clients/domain/clients'
@@ -104,7 +122,12 @@ const props = defineProps<{
 
 const clientName = computed(() => formatClientName(props.client))
 const initials = computed(() => getClientInitials(props.client))
+
+// Status meta (always shows base status: discovery, lead, active, paused)
 const statusMeta = computed(() => getClientStatusMeta(props.client.computedStatus))
+
+// Check if discovery is cancelled (to show additional badge)
+const isDiscoveryCancelled = computed(() => hasDiscoveryCancelled(props.client))
 
 const nextAppointment = computed(() =>
   formatNextAppointment(props.client.stats.nextAppointmentAt)
@@ -117,5 +140,6 @@ const programLabel = computed(() => {
   return formatProgramMonth(props.client.currentProgramMonth)
 })
 
-const avatarClass = computed(() => getClientAvatarClass(props.client.computedStatus))
+// Use avatar class that considers cancelled discovery state
+const avatarClass = computed(() => getClientDisplayAvatarClass(props.client))
 </script>

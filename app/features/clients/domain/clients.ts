@@ -21,7 +21,19 @@ type ClientIdentity = {
   lastname: string
 }
 
-const STATUS_LABELS: Record<ProviderClientStatus, { label: string, shortLabel: string, color: 'warning' | 'primary' | 'neutral' | 'success', icon: string, description: string }> = {
+/**
+ * Status metadata for display purposes.
+ * Used by getClientStatusMeta for standard status display.
+ */
+type StatusMeta = {
+  label: string
+  shortLabel: string
+  color: 'warning' | 'primary' | 'neutral' | 'success' | 'error'
+  icon: string
+  description: string
+}
+
+const STATUS_LABELS: Record<ProviderClientStatus, StatusMeta> = {
   // 4-stage model validated by PM (2026-01-21)
   discovery: {
     label: 'En découverte',
@@ -63,7 +75,7 @@ export function getClientInitials(client: ClientIdentity): string {
   return `${first}${last}`.toUpperCase() || 'CL'
 }
 
-export function getClientStatusMeta(status: ProviderClientStatus): { label: string, shortLabel: string, color: 'warning' | 'primary' | 'neutral' | 'success', icon: string, description: string } {
+export function getClientStatusMeta(status: ProviderClientStatus): StatusMeta {
   return STATUS_LABELS[status]
 }
 
@@ -91,6 +103,47 @@ export function formatProgramMonth(currentProgramMonth: number | null): string |
 
 export function getClientStatusMicrocopy(status: ProviderClientStatus): string {
   return STATUS_LABELS[status].description
+}
+
+// ============================================================================
+// Discovery Cancelled Detection (US - distinguish cancelled discoveries)
+// ============================================================================
+
+/**
+ * Metadata for cancelled discovery state.
+ * Shows error color to draw attention to clients needing replanification.
+ */
+const DISCOVERY_CANCELLED_META: StatusMeta = {
+  label: 'Discovery annulé',
+  shortLabel: 'Annulé',
+  color: 'error',
+  icon: 'lucide:calendar-x',
+  description: 'Appel découverte annulé — à replanifier'
+}
+
+/**
+ * Checks if a client is in discovery stage with a cancelled discovery.
+ * This indicates the discovery was cancelled and needs to be rescheduled.
+ */
+export function hasDiscoveryCancelled(client: {
+  computedStatus: ProviderClientStatus
+  hasScheduledDiscovery: boolean
+}): boolean {
+  return client.computedStatus === 'discovery' && !client.hasScheduledDiscovery
+}
+
+/**
+ * Returns display metadata for a client, considering cancelled discovery state.
+ * Use this instead of getClientStatusMeta when you need to distinguish cancelled discoveries.
+ */
+export function getClientDisplayMeta(client: {
+  computedStatus: ProviderClientStatus
+  hasScheduledDiscovery: boolean
+}): StatusMeta {
+  if (hasDiscoveryCancelled(client)) {
+    return DISCOVERY_CANCELLED_META
+  }
+  return STATUS_LABELS[client.computedStatus]
 }
 
 /**
@@ -128,6 +181,20 @@ export function getClientAvatarClass(status: ProviderClientStatus): string {
     default:
       return 'bg-stone-100 text-stone-700'
   }
+}
+
+/**
+ * Returns Tailwind classes for client avatar, considering cancelled discovery state.
+ * Use this instead of getClientAvatarClass when you need to distinguish cancelled discoveries.
+ */
+export function getClientDisplayAvatarClass(client: {
+  computedStatus: ProviderClientStatus
+  hasScheduledDiscovery: boolean
+}): string {
+  if (hasDiscoveryCancelled(client)) {
+    return 'bg-red-100 text-red-700'
+  }
+  return getClientAvatarClass(client.computedStatus)
 }
 
 // ============================================================================

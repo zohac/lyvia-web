@@ -37,45 +37,78 @@
     <!-- Stats cards - Interactive filters -->
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <!-- En découverte -->
-      <button
-        type="button"
-        class="group relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all duration-200"
+      <div
+        class="group relative overflow-hidden rounded-2xl border bg-white transition-all duration-200"
         :class="[
           statusFilter === 'discovery'
             ? 'border-amber-300 ring-2 ring-amber-200 shadow-md'
             : 'border-stone-200 hover:border-amber-200 hover:shadow-sm'
         ]"
-        @click="toggleFilter('discovery')"
       >
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-2">
-              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
-                <UIcon
-                  name="lucide:search"
-                  class="h-4.5 w-4.5 text-amber-600"
-                />
+        <button
+          type="button"
+          class="w-full p-5 text-left"
+          @click="toggleFilter('discovery')"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
+                  <UIcon
+                    name="lucide:search"
+                    class="h-4.5 w-4.5 text-amber-600"
+                  />
+                </div>
+                <span class="text-sm font-semibold text-stone-900">En découverte</span>
               </div>
-              <span class="text-sm font-semibold text-stone-900">En découverte</span>
+              <p class="mt-3 text-xs leading-relaxed text-stone-500">
+                Appel découverte planifié
+              </p>
             </div>
-            <p class="mt-3 text-xs leading-relaxed text-stone-500">
-              Appel découverte planifié
-            </p>
+            <span class="text-3xl font-bold tabular-nums text-amber-600">
+              {{ pending ? '—' : discoveryCount }}
+            </span>
           </div>
-          <span class="text-3xl font-bold tabular-nums text-amber-600">
-            {{ pending ? '—' : discoveryCount }}
-          </span>
-        </div>
-        <!-- Progress bar -->
-        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
-          <div
-            class="h-full rounded-full bg-amber-400 transition-all duration-500"
-            :style="{ width: progressWidth(discoveryCount) }"
+          <!-- Progress bar -->
+          <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+            <div
+              class="h-full rounded-full bg-amber-400 transition-all duration-500"
+              :style="{ width: progressWidth(discoveryCount) }"
+            />
+          </div>
+        </button>
+
+        <!-- Cancelled discoveries sub-filter -->
+        <button
+          v-if="discoveryCancelledCount > 0"
+          type="button"
+          class="flex w-full items-center justify-between border-t border-stone-100 px-5 py-2.5 text-left transition-colors"
+          :class="[
+            showCancelledOnly
+              ? 'bg-red-50'
+              : 'hover:bg-stone-50'
+          ]"
+          @click.stop="toggleCancelledFilter"
+        >
+          <div class="flex items-center gap-2">
+            <UIcon
+              name="lucide:calendar-x"
+              class="h-3.5 w-3.5 text-red-500"
+            />
+            <span class="text-xs font-medium text-red-600">
+              {{ discoveryCancelledCount }} annulé{{ discoveryCancelledCount > 1 ? 's' : '' }}
+            </span>
+          </div>
+          <UIcon
+            v-if="showCancelledOnly"
+            name="lucide:check"
+            class="h-3.5 w-3.5 text-red-500"
           />
-        </div>
+        </button>
+
         <!-- Selected indicator -->
         <div
-          v-if="statusFilter === 'discovery'"
+          v-if="statusFilter === 'discovery' && !showCancelledOnly"
           class="absolute right-3 top-3"
         >
           <UIcon
@@ -83,7 +116,7 @@
             class="h-5 w-5 text-amber-500"
           />
         </div>
-      </button>
+      </div>
 
       <!-- Leads -->
       <button
@@ -237,11 +270,11 @@
           class="w-full sm:w-72"
         />
         <UButton
-          v-if="statusFilter !== 'all'"
+          v-if="statusFilter !== 'all' || showCancelledOnly"
           variant="ghost"
           color="neutral"
           size="sm"
-          @click="statusFilter = 'all'"
+          @click="statusFilter = 'all'; showCancelledOnly = false"
         >
           <UIcon
             name="lucide:x"
@@ -253,7 +286,13 @@
       <p class="text-sm tabular-nums text-stone-500">
         <span class="font-semibold text-stone-900">{{ clients.length }}</span>
         cliente{{ clients.length > 1 ? 's' : '' }}
-        <span v-if="statusFilter !== 'all'">
+        <span
+          v-if="showCancelledOnly"
+          class="text-red-600"
+        >
+          · discovery annulés
+        </span>
+        <span v-else-if="statusFilter !== 'all'">
           · filtre actif
         </span>
         <span
@@ -362,6 +401,7 @@
 
 <script setup lang="ts">
 import { useProviderClients } from '../../../features/clients/useProviderClients'
+import { hasDiscoveryCancelled } from '../../../features/clients/domain/clients'
 import ClientCard from '../../../components/molecules/ClientCard.vue'
 
 definePageMeta({
@@ -373,7 +413,7 @@ definePageMeta({
 const {
   pending,
   errorMessage,
-  clients,
+  clients: rawClients,
   nextCursor,
   searchQuery,
   statusFilter,
@@ -383,30 +423,71 @@ const {
   loadMoreErrorMessage
 } = await useProviderClients()
 
-// Stats computed from clients list (4-stage model)
-const totalClients = computed(() => clients.value.length)
+// Local filter for cancelled discoveries (frontend-only refinement)
+const showCancelledOnly = ref(false)
 
-const discoveryCount = computed(() =>
-  clients.value.filter(c => c.computedStatus === 'discovery').length
+// Apply local filter for cancelled discoveries
+const clients = computed(() => {
+  if (!showCancelledOnly.value) return rawClients.value
+  // When showCancelledOnly is active, only show discovery clients with cancelled discovery
+  return rawClients.value.filter(c => hasDiscoveryCancelled(c))
+})
+
+// Stats computed from raw clients list (unfiltered for accurate counts)
+const totalClients = computed(() => rawClients.value.length)
+
+const discoveryClients = computed(() =>
+  rawClients.value.filter(c => c.computedStatus === 'discovery')
+)
+
+const discoveryCount = computed(() => discoveryClients.value.length)
+
+// Count of cancelled discoveries (discovery stage + no scheduled discovery)
+const discoveryCancelledCount = computed(() =>
+  discoveryClients.value.filter(c => !c.hasScheduledDiscovery).length
 )
 
 const leadCount = computed(() =>
-  clients.value.filter(c => c.computedStatus === 'lead').length
+  rawClients.value.filter(c => c.computedStatus === 'lead').length
 )
 
 const activeCount = computed(() =>
-  clients.value.filter(c => c.computedStatus === 'active').length
+  rawClients.value.filter(c => c.computedStatus === 'active').length
 )
 
 const pausedCount = computed(() =>
-  clients.value.filter(c => c.computedStatus === 'paused').length
+  rawClients.value.filter(c => c.computedStatus === 'paused').length
 )
 
 /**
  * Toggle filter on card click. If already selected, reset to 'all'.
+ * Also resets cancelled-only filter when switching away from discovery.
  */
 function toggleFilter(status: 'discovery' | 'lead' | 'active' | 'paused') {
-  statusFilter.value = statusFilter.value === status ? 'all' : status
+  if (statusFilter.value === status) {
+    statusFilter.value = 'all'
+    showCancelledOnly.value = false
+  } else {
+    statusFilter.value = status
+    // Reset cancelled filter when switching to a different status
+    if (status !== 'discovery') {
+      showCancelledOnly.value = false
+    }
+  }
+}
+
+/**
+ * Toggle cancelled-only filter. Also ensures discovery filter is active.
+ */
+function toggleCancelledFilter() {
+  if (showCancelledOnly.value) {
+    // Turn off cancelled filter
+    showCancelledOnly.value = false
+  } else {
+    // Turn on cancelled filter and ensure discovery is selected
+    statusFilter.value = 'discovery'
+    showCancelledOnly.value = true
+  }
 }
 
 /**
