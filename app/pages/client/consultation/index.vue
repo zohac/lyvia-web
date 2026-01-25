@@ -34,12 +34,14 @@
           @request-reschedule="openRescheduleModal"
         />
 
-        <!-- RF5: Modal demande annulation/report -->
+        <!-- US-2/US-3: Modal demande annulation/report -->
         <OrganismsClientConsultationRequestModal
           :open="requestModalOpen"
           :request-type="requestModalType"
           :scheduled-at="requestModalScheduledAt"
           :duration-minutes="requestModalDurationMinutes"
+          :can-request="requestModalCanRequest"
+          :has-pending-request="requestModalHasPendingRequest"
           :loading="requestModalLoading"
           :success="requestModalSuccess"
           :error="requestModalError"
@@ -193,8 +195,10 @@
 
 <script setup lang="ts">
 import type { RequestType, RequestReason } from '../../../components/organisms/ClientConsultationRequestModal.vue'
+import type { CancellationReason, RescheduleReason } from '../../../features/consultation/api/appointment-request.contract'
 import { useClientNextConsultation } from '../../../features/consultation/useClientNextConsultation'
 import { useClientAppointments } from '../../../features/consultation/useClientAppointments'
+import { requestCancellation, requestReschedule } from '../../../features/consultation/services/appointment-request.service'
 import ClientAppointmentCard from '../../../components/molecules/ClientAppointmentCard.vue'
 
 definePageMeta({
@@ -250,6 +254,30 @@ const requestModalDurationMinutes = computed(() => {
 })
 
 /**
+ * Whether the appointment is eligible for request (> 24h)
+ */
+const requestModalCanRequest = computed(() => {
+  if (consultationState.value?.kind !== 'payment_confirmed') return false
+  return consultationState.value.canRequest
+})
+
+/**
+ * Whether a request is already pending
+ */
+const requestModalHasPendingRequest = computed(() => {
+  if (consultationState.value?.kind !== 'payment_confirmed') return false
+  return consultationState.value.hasPendingRequest
+})
+
+/**
+ * Current appointment ID for API calls
+ */
+const currentAppointmentId = computed(() => {
+  if (consultationState.value?.kind !== 'payment_confirmed') return null
+  return consultationState.value.appointmentId
+})
+
+/**
  * Open cancel request modal
  */
 function openCancelModal(_appointmentId: string) {
@@ -270,21 +298,58 @@ function openRescheduleModal(_appointmentId: string) {
 }
 
 /**
- * Handle request submission
- *
- * V0: No backend endpoint - simulate success and show confirmation.
+ * Map API error codes to user-friendly messages
+ */
+function mapRequestErrorToMessage(error: unknown): string {
+  if (error && typeof error === 'object' && 'data' in error) {
+    const data = (error as { data?: { code?: string } }).data
+    switch (data?.code) {
+      case 'REQUEST_ALREADY_EXISTS':
+        return 'Une demande est déjà en cours pour ce rendez-vous.'
+      case 'TOO_CLOSE_TO_APPOINTMENT':
+        return 'Impossible : moins de 24h avant le rendez-vous. Contactez directement votre coach.'
+      case 'APPOINTMENT_NOT_CANCELLABLE':
+        return 'Ce rendez-vous ne peut pas faire l\'objet d\'une demande.'
+      case 'APPOINTMENT_NOT_FOUND':
+        return 'Rendez-vous introuvable.'
+      case 'APPOINTMENT_NOT_OWNED':
+        return 'Vous n\'êtes pas autorisé à modifier ce rendez-vous.'
+      default:
+        break
+    }
+  }
+  return 'Une erreur est survenue. Veuillez réessayer.'
+}
+
+/**
+ * Handle request submission (US-2 cancel, US-3 reschedule)
  */
 async function handleRequestSubmit(payload: {
   type: RequestType
   reason: RequestReason
   details: string | null
 }) {
+  const appointmentId = currentAppointmentId.value
+  if (!appointmentId) {
+    requestModalError.value = 'Rendez-vous non trouvé.'
+    return
+  }
+
   requestModalLoading.value = true
   requestModalError.value = null
 
   try {
-    // V0: Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800))
+    if (payload.type === 'cancel') {
+      await requestCancellation(appointmentId, {
+        reason: payload.reason as CancellationReason,
+        details: payload.details
+      })
+    } else {
+      await requestReschedule(appointmentId, {
+        reason: payload.reason as RescheduleReason,
+        details: payload.details
+      })
+    }
 
     requestModalSuccess.value = true
 
@@ -296,8 +361,11 @@ async function handleRequestSubmit(payload: {
       color: 'success',
       icon: 'i-lucide-check-circle'
     })
-  } catch {
-    requestModalError.value = 'Une erreur est survenue. Veuillez réessayer.'
+
+    // Refresh consultation state to update hasPendingRequest
+    await refreshConsultation()
+  } catch (error) {
+    requestModalError.value = mapRequestErrorToMessage(error)
   } finally {
     requestModalLoading.value = false
   }
