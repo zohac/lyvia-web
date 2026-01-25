@@ -207,13 +207,13 @@ function close() {
     :dismissible="!loading"
     :ui="{
       content: isFullScreen
-        ? 'bg-[var(--surface-elevated)]'
-        : 'rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-lg max-w-lg',
-      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[var(--border-subtle)]' : 'px-8 pt-8 pb-4',
+        ? 'bg-[var(--color-surface-elevated)]'
+        : 'rounded-2xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] shadow-lg max-w-lg',
+      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[var(--color-border-subtle)]' : 'px-8 pt-8 pb-4',
       body: isFullScreen ? 'px-6 pb-6 pt-4' : 'px-8 pb-6',
-      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[var(--border-subtle)]' : 'px-8 pb-8 pt-6',
-      title: 'font-serif text-2xl text-[var(--text-primary)]',
-      description: 'text-sm text-[var(--text-secondary)]'
+      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[var(--color-border-subtle)]' : 'px-8 pb-8 pt-6',
+      title: 'font-serif text-2xl text-[var(--color-text-primary)]',
+      description: 'text-sm text-[var(--color-text-secondary)]'
     }"
     :close="{ class: 'rounded-full' }"
     @update:open="updateOpen"
@@ -254,16 +254,16 @@ function close() {
               />
             </span>
             <div class="grid gap-1">
-              <p class="font-semibold text-[var(--text-primary)]">
+              <p class="font-semibold text-[var(--color-text-primary)]">
                 {{ successTitle }}
               </p>
-              <p class="text-sm text-[var(--text-secondary)]">
+              <p class="text-sm text-[var(--color-text-secondary)]">
                 {{ successMessage }}
               </p>
             </div>
           </div>
 
-          <p class="text-center text-xs text-[var(--text-muted)]">
+          <p class="text-center text-xs text-[var(--color-text-muted)]">
             <UIcon
               name="lucide:mail"
               class="mr-1 inline-block h-3.5 w-3.5"
@@ -309,20 +309,20 @@ function close() {
           <!-- Appointment Summary -->
           <div
             v-if="appointmentDisplay"
-            class="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-4"
+            class="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-muted)] p-4"
           >
             <div class="flex items-center gap-3">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-elevated)] shadow-sm">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-surface-elevated)] shadow-sm">
                 <UIcon
                   name="lucide:calendar"
-                  class="h-4.5 w-4.5 text-[var(--brand-accent)]"
+                  class="h-4.5 w-4.5 text-[var(--color-brand-accent)]"
                 />
               </div>
               <div>
-                <p class="text-sm font-semibold capitalize text-[var(--text-primary)]">
+                <p class="text-sm font-semibold capitalize text-[var(--color-text-primary)]">
                   {{ appointmentDisplay.date }}
                 </p>
-                <p class="text-xs text-[var(--text-muted)]">
+                <p class="text-xs text-[var(--color-text-muted)]">
                   {{ appointmentDisplay.timeRange }} ({{ appointmentDisplay.duration }})
                 </p>
               </div>
@@ -330,9 +330,9 @@ function close() {
           </div>
 
           <!-- Reason Selection -->
-          <div class="grid gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-5 shadow-sm">
+          <div class="grid gap-4 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] p-5 shadow-sm">
             <div class="grid gap-2">
-              <label class="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              <label class="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
                 Motif de votre demande
               </label>
               <USelect
@@ -344,7 +344,7 @@ function close() {
             </div>
 
             <div class="grid gap-2">
-              <label class="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              <label class="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-secondary)]">
                 Précisions (optionnel)
               </label>
               <UTextarea
@@ -355,7 +355,7 @@ function close() {
                   : 'Précisez vos disponibilités pour un nouveau créneau...'"
                 :disabled="loading"
               />
-              <p class="text-right text-xs text-[var(--text-muted)]">
+              <p class="text-right text-xs text-[var(--color-text-muted)]">
                 {{ details.length }}/500
               </p>
             </div>
@@ -367,7 +367,7 @@ function close() {
               name="lucide:info"
               class="mt-0.5 h-4.5 w-4.5 shrink-0 text-[var(--color-info)]"
             />
-            <p class="text-sm text-[var(--text-secondary)]">
+            <p class="text-sm text-[var(--color-text-secondary)]">
               <template v-if="requestType === 'cancel'">
                 L'annulation définitive sera confirmée par votre coach.
                 Les conditions de remboursement s'appliquent selon les délais prévus.
