@@ -49,7 +49,8 @@ function deriveDisplayState(response: GetNextClientConsultationResponse): Consul
       kind: 'payment_confirmed',
       appointmentId: response.appointmentId,
       scheduledAt: new Date(response.scheduledAt!),
-      durationMinutes: response.durationMinutes!
+      durationMinutes: response.durationMinutes!,
+      meetingLink: response.meetingLink
     }
   }
 

@@ -74,11 +74,12 @@ const awaitingPaymentDisplay = computed(() => {
  */
 const confirmedDisplay = computed(() => {
   if (props.displayState?.kind !== 'payment_confirmed') return null
-  const { scheduledAt, durationMinutes } = props.displayState
+  const { scheduledAt, durationMinutes, meetingLink } = props.displayState
   return {
     date: formatDateLong(scheduledAt),
     timeRange: formatTimeRange(scheduledAt, durationMinutes),
-    duration: `${durationMinutes} min`
+    duration: `${durationMinutes} min`,
+    meetingLink
   }
 })
 </script>
@@ -317,8 +318,24 @@ const confirmedDisplay = computed(() => {
         </div>
       </div>
 
-      <p class="text-sm text-stone-500">
-        Un email de confirmation avec le lien de visio vous a été envoyé.
+      <!-- Meeting link CTA or fallback message -->
+      <UButton
+        v-if="confirmedDisplay.meetingLink"
+        :href="confirmedDisplay.meetingLink"
+        target="_blank"
+        rel="noopener noreferrer"
+        color="primary"
+        variant="soft"
+        leading-icon="i-lucide-video"
+        trailing-icon="i-lucide-external-link"
+      >
+        Rejoindre la visio
+      </UButton>
+      <p
+        v-else
+        class="text-sm text-stone-500"
+      >
+        Le lien de visio vous sera envoyé par email.
       </p>
 
       <!-- RF5: Actions annulation / report -->

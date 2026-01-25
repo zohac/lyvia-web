@@ -67,6 +67,12 @@ export type GetNextClientConsultationResponse = {
    * Current payment status of the consultation.
    */
   paymentStatus: ConsultationPaymentStatus | null
+
+  /**
+   * Video conference meeting link (URL).
+   * Present when the provider has added a link for the consultation.
+   */
+  meetingLink: string | null
 }
 
 /**
@@ -90,4 +96,5 @@ export type ConsultationDashboardState
       appointmentId: string
       scheduledAt: Date
       durationMinutes: number
+      meetingLink: string | null
     }
