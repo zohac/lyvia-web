@@ -124,6 +124,8 @@
                 v-for="appointment in upcomingAppointments"
                 :key="appointment.id"
                 :appointment="appointment"
+                @request-cancel="openCancelModal($event, true)"
+                @request-reschedule="openRescheduleModal($event, true)"
               />
             </div>
 
@@ -139,6 +141,8 @@
                 v-for="appointment in pastAppointments"
                 :key="appointment.id"
                 :appointment="appointment"
+                @request-cancel="openCancelModal($event, true)"
+                @request-reschedule="openRescheduleModal($event, true)"
               />
             </div>
           </template>
@@ -232,7 +236,7 @@ const {
 } = await useClientAppointments()
 
 /**
- * RF5: Modal state for cancellation/reschedule requests
+ * US-2/US-3/US-4: Modal state for cancellation/reschedule requests
  */
 const requestModalOpen = ref(false)
 const requestModalType = ref<RequestType>('cancel')
@@ -241,46 +245,90 @@ const requestModalSuccess = ref(false)
 const requestModalError = ref<string | null>(null)
 
 /**
+ * US-4: Selected appointment from the list (null = use "Prochain RDV" from consultationState)
+ */
+const selectedAppointmentId = ref<string | null>(null)
+
+/**
+ * Find appointment by ID in the list
+ */
+function findAppointmentById(id: string) {
+  return allAppointments.value.find(apt => apt.id === id)
+}
+
+/**
+ * Computed: Current appointment for the modal (either from list or from consultationState)
+ */
+const currentAppointmentId = computed(() => {
+  if (selectedAppointmentId.value) return selectedAppointmentId.value
+  if (consultationState.value?.kind === 'payment_confirmed') {
+    return consultationState.value.appointmentId
+  }
+  return null
+})
+
+/**
  * Computed appointment details for modal
  */
 const requestModalScheduledAt = computed(() => {
-  if (consultationState.value?.kind !== 'payment_confirmed') return null
-  return consultationState.value.scheduledAt
+  if (selectedAppointmentId.value) {
+    const apt = findAppointmentById(selectedAppointmentId.value)
+    return apt ? new Date(apt.scheduledAt) : null
+  }
+  if (consultationState.value?.kind === 'payment_confirmed') {
+    return consultationState.value.scheduledAt
+  }
+  return null
 })
 
 const requestModalDurationMinutes = computed(() => {
-  if (consultationState.value?.kind !== 'payment_confirmed') return null
-  return consultationState.value.durationMinutes
+  if (selectedAppointmentId.value) {
+    const apt = findAppointmentById(selectedAppointmentId.value)
+    return apt?.durationMinutes ?? null
+  }
+  if (consultationState.value?.kind === 'payment_confirmed') {
+    return consultationState.value.durationMinutes
+  }
+  return null
 })
 
 /**
  * Whether the appointment is eligible for request (> 24h)
  */
 const requestModalCanRequest = computed(() => {
-  if (consultationState.value?.kind !== 'payment_confirmed') return false
-  return consultationState.value.canRequest
+  if (selectedAppointmentId.value) {
+    const apt = findAppointmentById(selectedAppointmentId.value)
+    if (!apt) return false
+    const hoursRemaining = (new Date(apt.scheduledAt).getTime() - Date.now()) / (1000 * 60 * 60)
+    return hoursRemaining > 24
+  }
+  if (consultationState.value?.kind === 'payment_confirmed') {
+    return consultationState.value.canRequest
+  }
+  return false
 })
 
 /**
  * Whether a request is already pending
  */
 const requestModalHasPendingRequest = computed(() => {
-  if (consultationState.value?.kind !== 'payment_confirmed') return false
-  return consultationState.value.hasPendingRequest
-})
-
-/**
- * Current appointment ID for API calls
- */
-const currentAppointmentId = computed(() => {
-  if (consultationState.value?.kind !== 'payment_confirmed') return null
-  return consultationState.value.appointmentId
+  if (selectedAppointmentId.value) {
+    const apt = findAppointmentById(selectedAppointmentId.value)
+    return apt?.hasPendingRequest ?? false
+  }
+  if (consultationState.value?.kind === 'payment_confirmed') {
+    return consultationState.value.hasPendingRequest
+  }
+  return false
 })
 
 /**
  * Open cancel request modal
+ * @param appointmentId - Appointment ID (from card or list)
+ * @param fromList - Whether opened from the appointments list (US-4)
  */
-function openCancelModal(_appointmentId: string) {
+function openCancelModal(appointmentId: string, fromList = false) {
+  selectedAppointmentId.value = fromList ? appointmentId : null
   requestModalType.value = 'cancel'
   requestModalSuccess.value = false
   requestModalError.value = null
@@ -289,8 +337,11 @@ function openCancelModal(_appointmentId: string) {
 
 /**
  * Open reschedule request modal
+ * @param appointmentId - Appointment ID (from card or list)
+ * @param fromList - Whether opened from the appointments list (US-4)
  */
-function openRescheduleModal(_appointmentId: string) {
+function openRescheduleModal(appointmentId: string, fromList = false) {
+  selectedAppointmentId.value = fromList ? appointmentId : null
   requestModalType.value = 'reschedule'
   requestModalSuccess.value = false
   requestModalError.value = null
@@ -362,8 +413,11 @@ async function handleRequestSubmit(payload: {
       icon: 'i-lucide-check-circle'
     })
 
-    // Refresh consultation state to update hasPendingRequest
-    await refreshConsultation()
+    // Refresh consultation state and appointments list to update hasPendingRequest
+    await Promise.all([
+      refreshConsultation(),
+      refreshHistory()
+    ])
   } catch (error) {
     requestModalError.value = mapRequestErrorToMessage(error)
   } finally {

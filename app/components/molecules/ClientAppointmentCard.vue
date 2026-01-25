@@ -25,14 +25,29 @@
       </div>
     </div>
 
-    <!-- Right: Status + Action -->
-    <div class="flex items-center gap-3">
+    <!-- Right: Status + Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Status badge -->
       <UBadge
         :color="statusBadge.color"
         variant="soft"
         size="sm"
       >
         {{ statusBadge.label }}
+      </UBadge>
+
+      <!-- US-4: Pending request badge -->
+      <UBadge
+        v-if="showPendingBadge"
+        color="warning"
+        variant="soft"
+        size="sm"
+      >
+        <UIcon
+          name="lucide:clock"
+          class="mr-1 h-3 w-3"
+        />
+        Demande en cours
       </UBadge>
 
       <!-- Payment CTA for unpaid consultations -->
@@ -60,6 +75,21 @@
         />
         Rejoindre
       </UButton>
+
+      <!-- US-4: Actions menu for eligible appointments -->
+      <UDropdownMenu
+        v-if="canShowActionsMenu"
+        :items="actionsMenuItems"
+        :content="{ align: 'end' }"
+      >
+        <UButton
+          icon="i-lucide-more-vertical"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          class="shrink-0"
+        />
+      </UDropdownMenu>
     </div>
   </div>
 </template>
@@ -69,6 +99,13 @@ import type { ClientAppointmentItem } from '../../features/consultation/api/clie
 
 const props = defineProps<{
   appointment: ClientAppointmentItem
+}>()
+
+const emit = defineEmits<{
+  /** Triggered when user requests cancellation */
+  requestCancel: [appointmentId: string]
+  /** Triggered when user requests reschedule */
+  requestReschedule: [appointmentId: string]
 }>()
 
 // Type labels
@@ -170,4 +207,59 @@ const showPayButton = computed(() =>
   && props.appointment.status === 'scheduled'
   && props.appointment.paymentStatus === 'unpaid'
 )
+
+/**
+ * US-4: Show pending request badge
+ */
+const showPendingBadge = computed(() => props.appointment.hasPendingRequest)
+
+/**
+ * US-4: Check if appointment is eligible for cancel/reschedule actions
+ * - consultation type (not discovery)
+ * - status = scheduled
+ * - paymentStatus = paid
+ * - scheduledAt > now + 24h
+ * - no pending request
+ */
+const canShowActionsMenu = computed(() => {
+  const apt = props.appointment
+
+  // Bloqué si demande en cours
+  if (apt.hasPendingRequest) return false
+
+  // Seulement consultations payées et scheduled
+  if (apt.type !== 'consultation') return false
+  if (apt.status !== 'scheduled') return false
+  if (apt.paymentStatus !== 'paid') return false
+
+  // Seulement si > 24h avant le RDV
+  const scheduled = new Date(apt.scheduledAt)
+  const hoursRemaining = (scheduled.getTime() - Date.now()) / (1000 * 60 * 60)
+  return hoursRemaining > 24
+})
+
+function handleRequestReschedule() {
+  emit('requestReschedule', props.appointment.id)
+}
+
+function handleRequestCancel() {
+  emit('requestCancel', props.appointment.id)
+}
+
+/**
+ * US-4: Actions menu items
+ */
+const actionsMenuItems = computed(() => [
+  {
+    label: 'Demander un report',
+    icon: 'i-lucide-calendar-clock',
+    onSelect: handleRequestReschedule
+  },
+  {
+    label: 'Demander une annulation',
+    icon: 'i-lucide-calendar-x',
+    class: 'text-red-600',
+    onSelect: handleRequestCancel
+  }
+])
 </script>

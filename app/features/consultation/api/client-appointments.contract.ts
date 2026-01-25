@@ -41,6 +41,8 @@ export type ClientAppointmentItem = {
   paymentStatus: ClientAppointmentPaymentStatus
   cancellationReason: ClientAppointmentCancellationReason | null
   meetingLink: string | null
+  /** True if there is a pending cancellation/reschedule request (US-4) */
+  hasPendingRequest: boolean
 }
 
 /**
