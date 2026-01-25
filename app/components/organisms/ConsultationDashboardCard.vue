@@ -74,12 +74,14 @@ const awaitingPaymentDisplay = computed(() => {
  */
 const confirmedDisplay = computed(() => {
   if (props.displayState?.kind !== 'payment_confirmed') return null
-  const { scheduledAt, durationMinutes, meetingLink } = props.displayState
+  const { scheduledAt, durationMinutes, meetingLink, canRequest, hasPendingRequest } = props.displayState
   return {
     date: formatDateLong(scheduledAt),
     timeRange: formatTimeRange(scheduledAt, durationMinutes),
     duration: `${durationMinutes} min`,
-    meetingLink
+    meetingLink,
+    canRequest,
+    hasPendingRequest
   }
 })
 </script>
@@ -338,27 +340,56 @@ const confirmedDisplay = computed(() => {
         Le lien de visio vous sera envoyé par email.
       </p>
 
-      <!-- RF5: Actions annulation / report -->
+      <!-- US-2/US-3: Actions annulation / report -->
       <div class="flex flex-wrap items-center gap-2 border-t border-stone-100 pt-4">
-        <UButton
-          variant="outline"
-          color="neutral"
-          size="xs"
-          leading-icon="i-lucide-calendar-clock"
-          @click="emit('requestReschedule', displayState.appointmentId)"
-        >
-          Demander un report
-        </UButton>
-        <UButton
-          variant="ghost"
-          color="neutral"
-          size="xs"
-          leading-icon="i-lucide-calendar-x"
-          class="text-stone-400 hover:text-red-600"
-          @click="emit('requestCancel', displayState.appointmentId)"
-        >
-          Demander une annulation
-        </UButton>
+        <!-- Pending request badge -->
+        <template v-if="confirmedDisplay.hasPendingRequest">
+          <UBadge
+            color="warning"
+            variant="subtle"
+            size="sm"
+          >
+            <UIcon
+              name="lucide:clock"
+              class="mr-1 h-3 w-3"
+            />
+            Demande en cours de traitement
+          </UBadge>
+        </template>
+
+        <!-- Too close to appointment message -->
+        <template v-else-if="!confirmedDisplay.canRequest">
+          <p class="text-xs text-stone-400">
+            <UIcon
+              name="lucide:info"
+              class="mr-1 inline h-3.5 w-3.5"
+            />
+            Moins de 24h avant le RDV — contactez directement votre coach.
+          </p>
+        </template>
+
+        <!-- Action buttons (when eligible) -->
+        <template v-else>
+          <UButton
+            variant="outline"
+            color="neutral"
+            size="xs"
+            leading-icon="i-lucide-calendar-clock"
+            @click="emit('requestReschedule', displayState.appointmentId)"
+          >
+            Demander un report
+          </UButton>
+          <UButton
+            variant="ghost"
+            color="neutral"
+            size="xs"
+            leading-icon="i-lucide-calendar-x"
+            class="text-stone-400 hover:text-red-600"
+            @click="emit('requestCancel', displayState.appointmentId)"
+          >
+            Demander une annulation
+          </UButton>
+        </template>
       </div>
     </div>
   </UCard>

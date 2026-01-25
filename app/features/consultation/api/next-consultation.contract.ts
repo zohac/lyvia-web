@@ -97,4 +97,8 @@ export type ConsultationDashboardState
       scheduledAt: Date
       durationMinutes: number
       meetingLink: string | null
+      /** Whether a request is pending (to be added by backend) */
+      hasPendingRequest: boolean
+      /** Whether appointment is eligible for request (> 24h) - computed locally */
+      canRequest: boolean
     }

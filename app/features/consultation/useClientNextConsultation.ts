@@ -45,12 +45,19 @@ function deriveDisplayState(response: GetNextClientConsultationResponse): Consul
 
   // Gate 3: Consultation is paid
   if (response.paymentStatus === 'paid') {
+    const scheduledAt = new Date(response.scheduledAt!)
+    const hoursUntil = (scheduledAt.getTime() - Date.now()) / (1000 * 60 * 60)
+
     return {
       kind: 'payment_confirmed',
       appointmentId: response.appointmentId,
-      scheduledAt: new Date(response.scheduledAt!),
+      scheduledAt,
       durationMinutes: response.durationMinutes!,
-      meetingLink: response.meetingLink
+      meetingLink: response.meetingLink,
+      // hasPendingRequest will be provided by backend in future, default to false
+      hasPendingRequest: false,
+      // Computed locally: can request if > 24h before appointment
+      canRequest: hoursUntil > 24
     }
   }
 

@@ -7,16 +7,25 @@
   - 'cancel' : Demande d'annulation
   - 'reschedule' : Demande de report
 
-  En V0, sans endpoint backend, affiche une confirmation que la demande sera traitée.
+  Contraintes :
+  - Rendez-vous > 24h : formulaire accessible
+  - Rendez-vous <= 24h : message "Contactez votre coach"
+  - Demande déjà pending : affichage d'un message informatif
 
-  @see Ticket RF5 - Front : demande annulation / report (client)
+  @see Ticket US-2, US-3 - Demandes d'annulation et report
 -->
 <script setup lang="ts">
 import SystemAlert from '../atoms/SystemAlert.vue'
+import {
+  type CancellationReason,
+  type RescheduleReason,
+  CANCELLATION_REASON_LABELS,
+  RESCHEDULE_REASON_LABELS
+} from '../../features/consultation/api/appointment-request.contract'
 
 export type RequestType = 'cancel' | 'reschedule'
 
-export type RequestReason = 'personal' | 'health' | 'other'
+export type RequestReason = CancellationReason | RescheduleReason
 
 const props = withDefaults(
   defineProps<{
@@ -24,11 +33,17 @@ const props = withDefaults(
     requestType: RequestType
     scheduledAt: Date | null
     durationMinutes: number | null
+    /** Whether the appointment is eligible for request (> 24h) */
+    canRequest?: boolean
+    /** Whether a request is already pending for this appointment */
+    hasPendingRequest?: boolean
     loading?: boolean
     success?: boolean
     error?: string | null
   }>(),
   {
+    canRequest: true,
+    hasPendingRequest: false,
     loading: false,
     success: false,
     error: null
@@ -43,14 +58,24 @@ const emit = defineEmits<{
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
 const isFullScreen = computed(() => !isDesktop.value)
 
-const reason = ref<RequestReason>('personal')
+const reason = ref<RequestReason>('schedule_conflict')
 const details = ref('')
 
-const reasonOptions = [
-  { label: 'Empêchement personnel', value: 'personal' as const },
-  { label: 'Problème de santé', value: 'health' as const },
-  { label: 'Autre motif', value: 'other' as const }
-]
+/**
+ * Computed reason options based on request type
+ */
+const reasonOptions = computed(() => {
+  if (props.requestType === 'cancel') {
+    return Object.entries(CANCELLATION_REASON_LABELS).map(([value, label]) => ({
+      label,
+      value: value as CancellationReason
+    }))
+  }
+  return Object.entries(RESCHEDULE_REASON_LABELS).map(([value, label]) => ({
+    label,
+    value: value as RescheduleReason
+  }))
+})
 
 const title = computed(() => {
   return props.requestType === 'cancel'
@@ -130,13 +155,20 @@ const isUpcoming = computed(() => {
   return props.scheduledAt.getTime() > Date.now()
 })
 
+/**
+ * Check if form can be submitted (all conditions met)
+ */
+const canSubmit = computed(() => {
+  return isUpcoming.value && props.canRequest && !props.hasPendingRequest
+})
+
 function updateOpen(value: boolean) {
   if (props.loading) return
   emit('update:open', value)
 }
 
 function resetForm() {
-  reason.value = 'personal'
+  reason.value = 'schedule_conflict'
   details.value = ''
 }
 
@@ -151,14 +183,14 @@ watch(
 
 function submit() {
   if (props.loading || props.success) return
-  if (!isUpcoming.value) return
+  if (!canSubmit.value) return
 
   const trimmedDetails = details.value.trim()
 
   emit('submit', {
     type: props.requestType,
     reason: reason.value,
-    details: trimmedDetails || null
+    details: trimmedDetails.length > 0 ? trimmedDetails.slice(0, 500) : null
   })
 }
 
@@ -259,6 +291,22 @@ function close() {
           variant="warning"
           title="Rendez-vous passé"
           description="Ce rendez-vous est déjà passé ou en cours. Vous ne pouvez pas demander de modification."
+        />
+
+        <!-- Pending Request Warning -->
+        <SystemAlert
+          v-else-if="hasPendingRequest"
+          variant="info"
+          title="Demande en cours"
+          description="Une demande est déjà en attente de traitement pour ce rendez-vous. Votre coach vous contactera prochainement."
+        />
+
+        <!-- Too Close to Appointment Warning (H-24) -->
+        <SystemAlert
+          v-else-if="!canRequest"
+          variant="warning"
+          title="Délai dépassé"
+          description="Les demandes d'annulation ou de report doivent être effectuées au moins 24 heures avant le rendez-vous. Contactez directement votre coach."
         />
 
         <!-- Form -->
@@ -369,7 +417,7 @@ function close() {
             :class="requestType === 'cancel'
               ? 'bg-[color:var(--color-error)] hover:bg-[rgba(239,68,68,0.9)]'
               : 'bg-[color:var(--color-brand-primary)]'"
-            :disabled="loading || !isUpcoming"
+            :disabled="loading || !canSubmit"
             @click="submit"
           >
             <Icon
