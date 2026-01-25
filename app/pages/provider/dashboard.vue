@@ -1,16 +1,10 @@
 <template>
   <div class="space-y-8">
     <!-- Page header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
-          Vue d'ensemble
-        </h1>
-        <p class="mt-1 text-stone-500">
-          {{ formattedToday }}
-        </p>
-      </div>
-    </header>
+    <MoleculesDashboardGreeting
+      subtitle="Vue d'ensemble"
+      show-date
+    />
 
     <!-- Stats row -->
     <div class="grid gap-4 sm:grid-cols-3">
@@ -334,17 +328,6 @@ definePageMeta({
   layout: 'provider',
   middleware: 'auth-provider',
   pageTitle: 'Vue d\'ensemble'
-})
-
-/**
- * Today's date formatting
- */
-const formattedToday = computed(() => {
-  return new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long'
-  }).format(new Date())
 })
 
 /**

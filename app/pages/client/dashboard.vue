@@ -1,24 +1,17 @@
 <template>
   <div class="space-y-8">
     <!-- Page header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
-          Bonjour, {{ displayName }}
-        </h1>
-        <p class="mt-1 text-stone-500">
-          Votre espace accompagnement
-        </p>
-      </div>
-
-      <UButton
-        to="/client/consultation"
-        color="primary"
-        trailing-icon="i-lucide-arrow-right"
-      >
-        Mes rendez-vous
-      </UButton>
-    </header>
+    <MoleculesDashboardGreeting subtitle="Votre espace accompagnement">
+      <template #actions>
+        <UButton
+          to="/client/consultation"
+          color="primary"
+          trailing-icon="i-lucide-arrow-right"
+        >
+          Mes rendez-vous
+        </UButton>
+      </template>
+    </MoleculesDashboardGreeting>
 
     <!-- Main content grid -->
     <div class="grid gap-6 lg:grid-cols-3">
@@ -256,7 +249,6 @@
 <script setup lang="ts">
 import type { RequestType, RequestReason } from '../../components/organisms/ClientConsultationRequestModal.vue'
 import type { ClientPaymentListItem } from '../../features/payments/api/client-payments.contract'
-import { useCurrentUser } from '../../features/auth/useCurrentUser'
 import { useClientNextConsultation, formatDateLong, formatPrice } from '../../features/consultation/useClientNextConsultation'
 import { listClientPayments } from '../../features/payments/services/client-payments.service'
 
@@ -267,9 +259,6 @@ definePageMeta({
 })
 
 const toast = useToast()
-const currentUser = useCurrentUser()
-
-const displayName = computed(() => currentUser.displayName.value)
 
 /**
  * Consultation state for dashboard card (RF6)
