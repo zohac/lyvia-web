@@ -12,6 +12,7 @@
   - Rendez-vous <= 24h : message "Contactez votre coach"
   - Demande déjà pending : affichage d'un message informatif
 
+  Design: Crépuscule v2.0
   @see Ticket US-2, US-3 - Demandes d'annulation et report
 -->
 <script setup lang="ts">
@@ -91,8 +92,8 @@ const description = computed(() => {
 
 const confirmLabel = computed(() => {
   return props.requestType === 'cancel'
-    ? `Envoyer ma demande d'annulation`
-    : `Envoyer ma demande de report`
+    ? 'Envoyer ma demande d\'annulation'
+    : 'Envoyer ma demande de report'
 })
 
 const successTitle = computed(() => {
@@ -103,8 +104,8 @@ const successTitle = computed(() => {
 
 const successMessage = computed(() => {
   return props.requestType === 'cancel'
-    ? `Votre demande d'annulation a bien été transmise. Votre coach vous contactera sous peu.`
-    : `Votre demande de report a bien été transmise. Votre coach vous proposera un nouveau créneau rapidement.`
+    ? 'Votre demande d\'annulation a bien été transmise. Votre coach vous contactera sous peu.'
+    : 'Votre demande de report a bien été transmise. Votre coach vous proposera un nouveau créneau rapidement.'
 })
 
 /**
@@ -206,14 +207,13 @@ function close() {
     :dismissible="!loading"
     :ui="{
       content: isFullScreen
-        ? 'bg-white/95 backdrop-blur-md'
-        : 'rounded-blob-c border border-white/70 bg-white/90 shadow-floating backdrop-blur-md max-w-lg',
-      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[rgba(231,229,228,0.7)]' : 'px-8 pt-8 pb-4',
+        ? 'bg-[var(--surface-elevated)]'
+        : 'rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] shadow-lg max-w-lg',
+      header: isFullScreen ? 'px-6 pt-6 pb-4 border-b border-[var(--border-subtle)]' : 'px-8 pt-8 pb-4',
       body: isFullScreen ? 'px-6 pb-6 pt-4' : 'px-8 pb-6',
-      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[rgba(231,229,228,0.7)]' : 'px-8 pb-8 pt-6',
-      title:
-        'font-serif italic text-2xl leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)]',
-      description: 'text-sm text-[color:var(--color-brand-secondary)]'
+      footer: isFullScreen ? 'px-6 pb-6 pt-4 border-t border-[var(--border-subtle)]' : 'px-8 pb-8 pt-6',
+      title: 'font-serif text-2xl text-[var(--text-primary)]',
+      description: 'text-sm text-[var(--text-secondary)]'
     }"
     :close="{ class: 'rounded-full' }"
     @update:open="updateOpen"
@@ -223,13 +223,12 @@ function close() {
         <span
           class="flex h-10 w-10 items-center justify-center rounded-xl"
           :class="requestType === 'cancel'
-            ? 'bg-[rgba(239,68,68,0.1)] text-[color:var(--color-error)]'
-            : 'bg-[rgba(59,130,246,0.1)] text-[color:rgb(59,130,246)]'"
+            ? 'bg-[var(--color-error-100)] text-[var(--color-error-500)]'
+            : 'bg-[rgba(91,123,158,0.1)] text-[var(--color-info)]'"
         >
-          <Icon
+          <UIcon
             :name="requestType === 'cancel' ? 'lucide:calendar-x' : 'lucide:calendar-clock'"
-            size="20"
-            aria-hidden="true"
+            class="h-5 w-5"
           />
         </span>
         <span>{{ title }}</span>
@@ -247,31 +246,27 @@ function close() {
           v-if="success"
           class="grid gap-4"
         >
-          <div class="flex items-start gap-4 rounded-blob-d border border-[rgba(34,197,94,0.2)] bg-[rgba(34,197,94,0.08)] p-5">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgba(34,197,94,0.15)]">
-              <Icon
+          <div class="flex items-start gap-4 rounded-xl border border-[var(--color-success-200)] bg-[var(--color-success-50)] p-5">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-success-100)]">
+              <UIcon
                 name="lucide:check"
-                size="20"
-                class="text-[color:var(--color-success)]"
-                aria-hidden="true"
+                class="h-5 w-5 text-[var(--color-success-600)]"
               />
             </span>
             <div class="grid gap-1">
-              <p class="font-semibold text-[color:var(--color-brand-primary)]">
+              <p class="font-semibold text-[var(--text-primary)]">
                 {{ successTitle }}
               </p>
-              <p class="text-sm text-[color:var(--color-brand-secondary)]">
+              <p class="text-sm text-[var(--text-secondary)]">
                 {{ successMessage }}
               </p>
             </div>
           </div>
 
-          <p class="text-center text-xs text-[color:var(--color-brand-muted)]">
-            <Icon
+          <p class="text-center text-xs text-[var(--text-muted)]">
+            <UIcon
               name="lucide:mail"
-              size="14"
-              class="mr-1 inline-block"
-              aria-hidden="true"
+              class="mr-1 inline-block h-3.5 w-3.5"
             />
             Vous recevrez un email de confirmation.
           </p>
@@ -314,22 +309,20 @@ function close() {
           <!-- Appointment Summary -->
           <div
             v-if="appointmentDisplay"
-            class="rounded-blob-d border border-[color:var(--color-brand-subtle)]/60 bg-[color:var(--color-surface-highlight)] p-4"
+            class="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-muted)] p-4"
           >
             <div class="flex items-center gap-3">
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
-                <Icon
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface-elevated)] shadow-sm">
+                <UIcon
                   name="lucide:calendar"
-                  size="18"
-                  class="text-[color:var(--color-brand-accent)]"
-                  aria-hidden="true"
+                  class="h-4.5 w-4.5 text-[var(--brand-accent)]"
                 />
               </div>
               <div>
-                <p class="text-sm font-semibold capitalize text-[color:var(--color-brand-primary)]">
+                <p class="text-sm font-semibold capitalize text-[var(--text-primary)]">
                   {{ appointmentDisplay.date }}
                 </p>
-                <p class="text-xs text-[color:var(--color-brand-muted)]">
+                <p class="text-xs text-[var(--text-muted)]">
                   {{ appointmentDisplay.timeRange }} ({{ appointmentDisplay.duration }})
                 </p>
               </div>
@@ -337,9 +330,9 @@ function close() {
           </div>
 
           <!-- Reason Selection -->
-          <div class="grid gap-4 rounded-blob-d border border-white/70 bg-white/70 p-5 shadow-soft">
+          <div class="grid gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-elevated)] p-5 shadow-sm">
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
                 Motif de votre demande
               </label>
               <USelect
@@ -351,31 +344,30 @@ function close() {
             </div>
 
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-[0.18em] text-[color:var(--color-brand-secondary)]">
+              <label class="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
                 Précisions (optionnel)
               </label>
               <UTextarea
                 v-model="details"
                 :rows="3"
-                variant="none"
                 :placeholder="requestType === 'cancel'
                   ? 'Ajoutez des informations utiles pour votre coach...'
                   : 'Précisez vos disponibilités pour un nouveau créneau...'"
-                class="w-full rounded-input border border-[rgba(231,229,228,0.9)] bg-[color:var(--color-surface-highlight)] p-3 text-sm text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-muted)] focus:ring-2 focus:ring-[color:var(--color-brand-solid)]"
                 :disabled="loading"
               />
+              <p class="text-right text-xs text-[var(--text-muted)]">
+                {{ details.length }}/500
+              </p>
             </div>
           </div>
 
           <!-- Info Notice -->
-          <div class="flex items-start gap-3 rounded-blob-d bg-[rgba(59,130,246,0.06)] p-4">
-            <Icon
+          <div class="flex items-start gap-3 rounded-xl bg-[rgba(91,123,158,0.08)] p-4">
+            <UIcon
               name="lucide:info"
-              size="18"
-              class="mt-0.5 shrink-0 text-[color:rgb(59,130,246)]"
-              aria-hidden="true"
+              class="mt-0.5 h-4.5 w-4.5 shrink-0 text-[var(--color-info)]"
             />
-            <p class="text-sm text-[color:var(--color-brand-secondary)]">
+            <p class="text-sm text-[var(--text-secondary)]">
               <template v-if="requestType === 'cancel'">
                 L'annulation définitive sera confirmée par votre coach.
                 Les conditions de remboursement s'appliquent selon les délais prévus.
@@ -392,49 +384,40 @@ function close() {
     <template #footer>
       <div class="flex flex-wrap justify-end gap-3">
         <template v-if="success">
-          <button
-            type="button"
-            class="inline-flex items-center justify-center rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
+          <UButton
+            color="primary"
+            class="rounded-full"
             @click="close"
           >
             Fermer
-          </button>
+          </UButton>
         </template>
 
         <template v-else>
-          <button
-            type="button"
-            class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] ring-1 ring-[rgba(231,229,228,0.8)] transition-base hover:bg-[rgba(231,229,228,0.25)] disabled:cursor-not-allowed disabled:opacity-60"
+          <UButton
+            color="neutral"
+            variant="outline"
+            class="rounded-full"
             :disabled="loading"
             @click="close"
           >
             Annuler
-          </button>
+          </UButton>
 
-          <button
-            type="button"
-            class="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating disabled:cursor-not-allowed disabled:opacity-60"
-            :class="requestType === 'cancel'
-              ? 'bg-[color:var(--color-error)] hover:bg-[rgba(239,68,68,0.9)]'
-              : 'bg-[color:var(--color-brand-primary)]'"
+          <UButton
+            :color="requestType === 'cancel' ? 'error' : 'primary'"
+            class="rounded-full"
             :disabled="loading || !canSubmit"
+            :loading="loading"
             @click="submit"
           >
-            <Icon
-              v-if="loading"
-              name="lucide:loader-2"
-              size="16"
-              class="animate-spin"
-              aria-hidden="true"
-            />
-            <Icon
-              v-else
+            <UIcon
+              v-if="!loading"
               :name="requestType === 'cancel' ? 'lucide:send' : 'lucide:calendar-clock'"
-              size="16"
-              aria-hidden="true"
+              class="mr-1.5 h-4 w-4"
             />
             {{ confirmLabel }}
-          </button>
+          </UButton>
         </template>
       </div>
     </template>
