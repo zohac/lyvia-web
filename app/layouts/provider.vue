@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useProviderStripeStatus } from '../features/stripe/useProviderStripeStatus'
+import { useProviderRequestsBadge } from '../features/provider-requests/useProviderRequestsBadge'
 
 useHead({
   meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
@@ -8,8 +9,14 @@ useHead({
 })
 
 const stripeStatus = useProviderStripeStatus()
+const requestsBadge = useProviderRequestsBadge()
 
-const navigation = {
+// Fetch pending requests count on mount
+onMounted(() => {
+  requestsBadge.refresh()
+})
+
+const navigation = computed(() => ({
   // Item principal toujours visible
   home: {
     label: 'Vue d\'ensemble',
@@ -47,6 +54,13 @@ const navigation = {
           to: '/provider/finance',
           icon: 'lucide:wallet',
           match: 'prefix' as const
+        },
+        {
+          label: 'Demandes',
+          to: '/provider/requests',
+          icon: 'lucide:inbox',
+          match: 'prefix' as const,
+          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null
         }
       ]
     },
@@ -82,7 +96,7 @@ const navigation = {
       ]
     }
   ]
-}
+}))
 </script>
 
 <template>

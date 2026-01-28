@@ -7,6 +7,7 @@ type NavItem = {
   to: string
   icon: string
   match?: 'exact' | 'prefix'
+  badge?: number | null
 }
 
 type NavGroup = {
@@ -300,6 +301,15 @@ watch(
                   <span class="min-w-0 truncate">
                     {{ item.label }}
                   </span>
+                  <UBadge
+                    v-if="item.badge && item.badge > 0"
+                    color="warning"
+                    variant="solid"
+                    size="xs"
+                    class="ml-auto"
+                  >
+                    {{ item.badge }}
+                  </UBadge>
                 </ULink>
               </li>
             </ul>
@@ -566,6 +576,15 @@ watch(
                     <span class="min-w-0 truncate">
                       {{ item.label }}
                     </span>
+                    <UBadge
+                      v-if="item.badge && item.badge > 0"
+                      color="warning"
+                      variant="solid"
+                      size="xs"
+                      class="ml-auto"
+                    >
+                      {{ item.badge }}
+                    </UBadge>
                   </ULink>
                 </li>
               </ul>

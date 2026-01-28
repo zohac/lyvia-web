@@ -2,6 +2,7 @@
 import ProviderPaymentsSection from '../../components/organisms/ProviderPaymentsSection.vue'
 import { useProviderFinance } from '../../features/finance/useProviderFinance'
 import { useProviderPayments } from '../../features/payments/useProviderPayments'
+import { useStripeLinks } from '../../features/stripe/useStripeLinks'
 
 definePageMeta({
   layout: 'provider',
@@ -22,6 +23,7 @@ const stripeReturnCookie = useCookie<string | null>('kaora_stripe_return', {
 
 const finance = await useProviderFinance()
 const payments = await useProviderPayments()
+const stripeLinks = useStripeLinks()
 
 const uiState = computed(() => finance.uiState.value)
 
@@ -183,18 +185,33 @@ async function refreshPayments() {
           Suivez vos fonds en attente et activez les virements vers votre banque.
         </p>
       </div>
-      <UButton
-        :loading="finance.pending.value"
-        variant="outline"
-        color="neutral"
-        @click="onRefresh"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          class="mr-2 h-4 w-4"
-        />
-        Actualiser
-      </UButton>
+      <div class="flex flex-wrap items-center gap-2">
+        <UButton
+          :to="stripeLinks.paymentsUrl"
+          target="_blank"
+          external
+          variant="outline"
+          color="neutral"
+        >
+          <UIcon
+            name="lucide:external-link"
+            class="mr-2 h-4 w-4"
+          />
+          Gérer sur Stripe
+        </UButton>
+        <UButton
+          :loading="finance.pending.value"
+          variant="outline"
+          color="neutral"
+          @click="onRefresh"
+        >
+          <UIcon
+            name="lucide:refresh-cw"
+            class="mr-2 h-4 w-4"
+          />
+          Actualiser
+        </UButton>
+      </div>
     </header>
 
     <!-- Error alerts -->

@@ -49,6 +49,11 @@ export type ProviderAppointmentListItem = {
    * Only applicable for consultations.
    */
   meetingLink: string | null
+  /**
+   * Stripe PaymentIntent ID for refund link.
+   * Only present for paid appointments.
+   */
+  stripePaymentIntentId?: string | null
 }
 
 export type ListProviderAppointmentsQuery = {

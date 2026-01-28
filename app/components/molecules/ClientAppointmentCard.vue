@@ -247,7 +247,7 @@ function handleRequestCancel() {
 }
 
 /**
- * US-4: Actions menu items
+ * US-4: Actions menu items for UDropdownMenu
  */
 const actionsMenuItems = computed(() => [
   {
@@ -256,9 +256,12 @@ const actionsMenuItems = computed(() => [
     onSelect: handleRequestReschedule
   },
   {
+    type: 'separator' as const
+  },
+  {
     label: 'Demander une annulation',
     icon: 'i-lucide-calendar-x',
-    class: 'text-red-600',
+    color: 'error' as const,
     onSelect: handleRequestCancel
   }
 ])

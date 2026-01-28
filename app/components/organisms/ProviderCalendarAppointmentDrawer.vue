@@ -3,6 +3,7 @@ import type { ProviderAppointmentListItem } from '../../features/calendar/api/ca
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationDrawerSummary, formatCurrency, getConsultationPricePlan } from '../../features/calendar/presentation/appointment-pricing'
+import { useStripeLinks } from '../../features/stripe/useStripeLinks'
 
 const props = withDefaults(
   defineProps<{
@@ -178,6 +179,25 @@ const consultationPricingDetails = computed(() => {
 
 const toast = useToast()
 const meetingLinkCopied = ref(false)
+const stripeLinks = useStripeLinks()
+
+/**
+ * Show refund button for cancelled + paid appointments
+ */
+const showRefundButton = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return false
+  return stripeLinks.canRefund(appointment)
+})
+
+/**
+ * Stripe refund URL
+ */
+const stripeRefundUrl = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return stripeLinks.paymentsUrl
+  return stripeLinks.getPaymentUrl(appointment.stripePaymentIntentId)
+})
 
 // Reset meetingLinkCopied when drawer closes or appointment changes
 watch(
@@ -486,6 +506,41 @@ async function copyMeetingLink() {
           <div class="mt-4 text-sm text-stone-500">
             <p class="opacity-90">
               L'annulation envoie une notification et libère le créneau (si applicable).
+            </p>
+          </div>
+        </section>
+
+        <!-- Remboursement (RDV annulé et payé uniquement) -->
+        <section
+          v-if="showRefundButton"
+          class="rounded-lg border border-amber-200 bg-amber-50 p-5"
+        >
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-700">
+              Remboursement
+            </h3>
+
+            <UButton
+              :to="stripeRefundUrl"
+              target="_blank"
+              external
+              variant="soft"
+              color="warning"
+              size="sm"
+            >
+              <Icon
+                name="lucide:external-link"
+                size="14"
+                class="mr-1.5"
+                aria-hidden="true"
+              />
+              Rembourser via Stripe
+            </UButton>
+          </div>
+
+          <div class="mt-4 text-sm text-amber-700">
+            <p class="opacity-90">
+              Ce rendez-vous a été annulé après paiement. Vous pouvez effectuer un remboursement total ou partiel via Stripe.
             </p>
           </div>
         </section>
