@@ -4,6 +4,7 @@ import CoachHeroProfile from '../organisms/CoachHeroProfile.vue'
 
 defineProps<{
   tenant: PublicTenantResponse
+  ctaTo: string
 }>()
 </script>
 
@@ -12,7 +13,7 @@ defineProps<{
     <!-- Hero - Dark cinematic -->
     <CoachHeroProfile
       :tenant="tenant"
-      :cta-to="`/c/${tenant.slug}/discovery`"
+      :cta-to="ctaTo"
     />
 
     <!-- Section: Manifeste - Full-width pull quote -->
@@ -293,7 +294,7 @@ defineProps<{
 
         <div class="mt-12">
           <UButton
-            :to="`/c/${tenant.slug}/discovery`"
+            :to="ctaTo"
             size="xl"
             class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-10 py-5 font-semibold text-white transition-all duration-300 hover:bg-transparent hover:text-[#f0b48f]"
           >
