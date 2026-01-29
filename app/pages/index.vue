@@ -16,17 +16,20 @@ definePageMeta({
 const requestUrl = useRequestURL()
 const hostname = computed(() => requestUrl.hostname.toLowerCase())
 
-const isPlatformDomain = computed(() => {
-  const platformHosts = new Set([
-    'localhost',
-    '127.0.0.1',
-    '0.0.0.0',
-    'kaora.app',
-    'www.kaora.app'
-  ])
+const runtimeConfig = useRuntimeConfig()
+const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
 
-  if (platformHosts.has(hostname.value)) return true
-  if (hostname.value.endsWith('.kaora.app')) return true
+const isPlatformDomain = computed(() => {
+  // Always allow localhost for local development
+  const devHosts = new Set(['localhost', '127.0.0.1', '0.0.0.0'])
+  if (devHosts.has(hostname.value)) return true
+
+  // Exact match (e.g., kaora.app or lyvia-web.vercel.app)
+  if (hostname.value === platformDomain) return true
+
+  // Subdomain match (e.g., www.kaora.app, staging.kaora.app)
+  if (hostname.value.endsWith(`.${platformDomain}`)) return true
+
   return false
 })
 

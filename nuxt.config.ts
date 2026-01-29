@@ -45,7 +45,11 @@ export default defineNuxtConfig({
     // Never fall back to the public runtime config (can be relative like `/api`).
     apiBase: process.env.NUXT_API_BASE_URL || 'http://localhost:3001',
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || '/api'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || '/api',
+      // Platform domain for tenant resolution (e.g., 'kaora.app').
+      // Requests from this domain (or subdomains) show the marketing landing page.
+      // Other domains are treated as white-label coach sites.
+      platformDomain: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN || 'kaora.app'
     }
   },
 
