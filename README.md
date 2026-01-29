@@ -43,7 +43,6 @@ Copier `.env.example` vers `.env` et configurer les variables.
 | Variable | Description | Exemple |
 |----------|-------------|---------|
 | `NUXT_API_BASE_URL` | URL upstream de l'API (utilisée par le proxy Nitro) | `http://api:3001` |
-| `NUXT_STRIPE_WEBHOOK_SECRET` | Secret webhook Stripe (vérification des signatures) | `whsec_xxx` |
 
 ### Configuration par environnement
 
