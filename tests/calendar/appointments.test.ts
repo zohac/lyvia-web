@@ -23,7 +23,8 @@ function appointment(id: string, startAt: string): ProviderAppointmentListItem {
     clientProfileId: 'cp1',
     firstname: 'Marie',
     lastname: 'Test',
-    clientStage: 'lead'
+    clientStage: 'lead',
+    meetingLink: null
   }
 }
 
