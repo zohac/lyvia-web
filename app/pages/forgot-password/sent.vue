@@ -138,11 +138,8 @@ definePageMeta({
   middleware: 'guest-only'
 })
 
-const route = useRoute()
-const email = computed(() => {
-  const value = route.query.email
-  return typeof value === 'string' ? value : ''
-})
+const emailState = useState<string | null>('forgot-password.email', () => null)
+const email = computed(() => emailState.value ?? '')
 
 const titleRef = ref<HTMLElement | null>(null)
 

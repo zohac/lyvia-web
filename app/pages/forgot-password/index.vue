@@ -155,6 +155,9 @@ async function onSubmit() {
 
   const email = form.email.trim()
 
+  const emailState = useState<string | null>('forgot-password.email', () => null)
+  emailState.value = email
+
   // Anti user-enumeration: we always proceed to the confirmation page.
   void apiFetch<ForgotPasswordResponse>('/auth/forgot-password', {
     method: 'POST',
@@ -164,8 +167,7 @@ async function onSubmit() {
 
   try {
     await navigateTo({
-      path: '/forgot-password/sent',
-      query: { email }
+      path: '/forgot-password/sent'
     })
   } finally {
     isSubmitting.value = false

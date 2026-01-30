@@ -55,7 +55,7 @@ export async function useProviderFinance() {
 
     try {
       const response = await startProviderStripeConnectOnboarding()
-      if (import.meta.client) {
+      if (import.meta.client && isValidStripeUrl(response.onboardingUrl)) {
         window.location.assign(response.onboardingUrl)
       }
     } catch (err) {

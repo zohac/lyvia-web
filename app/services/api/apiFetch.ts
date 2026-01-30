@@ -129,7 +129,7 @@ function getFetchErrorData(err: unknown): unknown {
  * Standardized API client for the whole frontend.
  *
  * - `baseURL` comes from `runtimeConfig.public.apiBase`
- * - `credentials: 'include'` is always enabled (refresh token cookie)
+ * - `credentials: 'include'` is set only when `withAuth` is true (refresh token cookie)
  * - errors are normalized to `ApiFetchError` with `ErrorResponse` support
  */
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
@@ -154,7 +154,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     return await contextFetch<T>(path, {
       ...fetchOptions,
       baseURL,
-      credentials: 'include',
+      credentials: withAuth ? 'include' : 'omit',
       headers
     })
   } catch (err: unknown) {

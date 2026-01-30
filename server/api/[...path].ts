@@ -1,4 +1,4 @@
-import { appendResponseHeader, defineEventHandler, getRequestHeader, getRequestURL, readRawBody, setResponseHeader, setResponseStatus } from 'h3'
+import { appendResponseHeader, createError, defineEventHandler, getRequestHeader, getRequestURL, readRawBody, setResponseHeader, setResponseStatus } from 'h3'
 
 const HOP_BY_HOP_HEADERS = new Set([
   'connection',
@@ -77,6 +77,11 @@ function splitSetCookieHeader(value: string): string[] {
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const upstreamBase = (config.apiBase as string | undefined) ?? 'http://localhost:3001'
+
+  const parsedBase = new URL(upstreamBase)
+  if (parsedBase.protocol !== 'http:' && parsedBase.protocol !== 'https:') {
+    throw createError({ statusCode: 500, message: 'Invalid upstream protocol' })
+  }
 
   const requestUrl = getRequestURL(event)
   const upstreamPath = requestUrl.pathname.replace(/^\/api(?=\/|$)/, '') || '/'
