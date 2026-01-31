@@ -30,6 +30,10 @@ export type AuthErrorCode
     | 'REFRESH_REUSED_OR_REVOKED'
     | 'PASSWORD_POLICY_FAILED'
     | 'INVALID_PASSWORD_RESET_TOKEN'
+    | 'INVALID_CURRENT_PASSWORD'
+    | 'SAME_PASSWORD'
+    | 'INVALID_OR_EXPIRED_TOKEN'
+    | 'EMAIL_ALREADY_TAKEN'
     | 'VALIDATION_ERROR'
 
 export function mapAuthErrorCodeToUserMessage(code: string): string {
@@ -44,6 +48,14 @@ export function mapAuthErrorCodeToUserMessage(code: string): string {
       return 'Le mot de passe ne respecte pas les exigences de sécurité.'
     case 'INVALID_PASSWORD_RESET_TOKEN':
       return 'Le lien de réinitialisation est invalide ou expiré. Demandez un nouveau lien.'
+    case 'INVALID_CURRENT_PASSWORD':
+      return 'Le mot de passe actuel est incorrect.'
+    case 'SAME_PASSWORD':
+      return 'Le nouveau mot de passe doit être différent de l\'ancien.'
+    case 'INVALID_OR_EXPIRED_TOKEN':
+      return 'Ce lien est invalide ou a expiré. Veuillez demander un nouveau lien de vérification.'
+    case 'EMAIL_ALREADY_TAKEN':
+      return 'Cette adresse email est déjà utilisée par un autre compte.'
     case 'VALIDATION_ERROR':
       return 'Veuillez vérifier les champs du formulaire.'
     default:

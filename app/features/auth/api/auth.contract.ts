@@ -90,3 +90,9 @@ export type ListSessionsResponse = {
 export type RevokeSessionResponse = {
   revoked: boolean
 }
+
+export type VerifyEmailChangeResponse = {
+  verified: true
+  newEmail: string
+  sessionsRevoked: true
+}

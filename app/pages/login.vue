@@ -30,13 +30,18 @@
 
     <!-- Alerts -->
     <div
-      v-if="resetSuccess || error"
+      v-if="resetSuccess || emailVerifiedSuccess || error"
       class="space-y-3"
     >
       <SystemAlert
         v-if="resetSuccess"
         variant="success"
         description="Votre mot de passe a été mis à jour. Vous pouvez vous connecter."
+      />
+      <SystemAlert
+        v-if="emailVerifiedSuccess"
+        variant="success"
+        description="Votre adresse email a été vérifiée. Vous pouvez vous connecter avec votre nouvelle adresse."
       />
       <SystemAlert
         v-if="error"
@@ -150,6 +155,7 @@ const showPassword = ref(false)
 const emailInputRef = ref<{ inputRef: { el: HTMLInputElement } } | null>(null)
 
 const resetSuccess = computed(() => route.query.reset === 'success')
+const emailVerifiedSuccess = computed(() => route.query['email-verified'] === 'success')
 
 const canSubmit = computed(() => {
   if (isSubmitting.value) return false
