@@ -57,6 +57,11 @@ export type ProviderClientListItem = {
    * (not yet completed or cancelled). Used to prevent duplicate discovery bookings.
    */
   hasScheduledDiscovery: boolean
+  /**
+   * Indicates if the client has an active discovery (scheduled or completed).
+   * Used by the calendar modal to determine discovery replanification eligibility.
+   */
+  hasActiveDiscovery: boolean
 }
 
 export type ProviderClientsPage = {
