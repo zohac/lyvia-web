@@ -27,3 +27,9 @@ export function getAppointmentNameClass(appointment: Pick<ProviderAppointmentLis
   if (appointment.status === 'cancelled') return 'line-through'
   return ''
 }
+
+export function getAppointmentStatusDotClass(appointment: Pick<ProviderAppointmentListItem, 'status'>): string | null {
+  if (appointment.status === 'cancelled') return 'bg-red-500'
+  if (appointment.status === 'completed') return 'bg-green-500'
+  return null
+}

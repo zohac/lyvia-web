@@ -2,7 +2,7 @@
 import type { ProviderAppointmentListItem } from '../../features/calendar/api/calendar.contract'
 import type { CalendarWeekDay } from '../../features/calendar/domain/range'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
-import { getAppointmentAccentClass, getAppointmentMetaClass, getAppointmentNameClass } from '../../features/calendar/presentation/appointment-style'
+import { getAppointmentAccentClass, getAppointmentMetaClass, getAppointmentNameClass, getAppointmentStatusDotClass } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationChipLabel } from '../../features/calendar/presentation/appointment-pricing'
 
@@ -97,6 +97,10 @@ function eventMetaClass(appointment: ProviderAppointmentListItem): string {
 
 function eventNameClass(appointment: ProviderAppointmentListItem): string {
   return getAppointmentNameClass(appointment)
+}
+
+function eventStatusDotClass(appointment: ProviderAppointmentListItem): string | null {
+  return getAppointmentStatusDotClass(appointment)
 }
 
 function eventLabel(appointment: ProviderAppointmentListItem): string {
@@ -275,7 +279,7 @@ watch(
             >
               <button
                 type="button"
-                class="h-full w-full overflow-hidden rounded-lg px-3 py-2 text-left text-xs font-bold shadow-sm transition-all hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
+                class="relative h-full w-full overflow-hidden rounded-lg px-3 py-2 text-left text-xs font-bold shadow-sm transition-all hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
                 :class="[
                   eventAccentClass(appointment),
                   eventMetaClass(appointment),
@@ -283,6 +287,12 @@ watch(
                 ]"
                 @click.stop="emit('select:appointment', appointment)"
               >
+                <span
+                  v-if="eventStatusDotClass(appointment)"
+                  class="absolute right-1.5 top-1.5 size-2 rounded-full"
+                  :class="eventStatusDotClass(appointment)"
+                  aria-hidden="true"
+                />
                 <div class="flex items-center justify-between gap-2">
                   <span class="truncate">
                     {{ eventLabel(appointment) }}
