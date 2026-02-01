@@ -154,7 +154,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     return await contextFetch<T>(path, {
       ...fetchOptions,
       baseURL,
-      credentials: withAuth ? 'include' : 'omit',
+      credentials: 'include',
       headers
     })
   } catch (err: unknown) {
