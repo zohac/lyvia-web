@@ -129,7 +129,8 @@ function getFetchErrorData(err: unknown): unknown {
  * Standardized API client for the whole frontend.
  *
  * - `baseURL` comes from `runtimeConfig.public.apiBase`
- * - `credentials: 'include'` is set only when `withAuth` is true (refresh token cookie)
+ * - `credentials: 'include'` is always set for same-origin cookie handling (httpOnly refresh token)
+ * - `withAuth` controls the `Authorization: Bearer` header and 401 retry, not credentials
  * - errors are normalized to `ApiFetchError` with `ErrorResponse` support
  */
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {

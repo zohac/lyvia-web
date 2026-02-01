@@ -59,7 +59,7 @@ export function useAuth() {
     const redirectPath = sanitizeInternalRedirectPath(input.redirectPath)
     const response = await apiFetch<LoginResponse>('/auth/login', {
       method: 'POST',
-      withAuth: false,
+      withAuth: false, // No Bearer header, but cookies are always sent (credentials: 'include')
       body: {
         email: input.email,
         password: input.password
@@ -77,7 +77,7 @@ export function useAuth() {
 
     const response = await apiFetch<RefreshResponse>('/auth/refresh', {
       method: 'POST',
-      withAuth: false,
+      withAuth: false, // No Bearer header, but cookies are always sent (credentials: 'include')
       retryOn401: false
     })
 

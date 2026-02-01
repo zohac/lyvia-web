@@ -43,6 +43,8 @@ export type ProviderAppointmentListItem = {
   clientProfileId: string
   firstname: string
   lastname: string
+  clientEmail: string
+  clientPhone: string
   clientStage: ProviderCalendarClientStage
   /**
    * Video meeting link (Google Meet, Zoom, Teams, etc.).
