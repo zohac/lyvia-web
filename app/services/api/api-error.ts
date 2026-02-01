@@ -32,6 +32,7 @@ export type AuthErrorCode
     | 'INVALID_PASSWORD_RESET_TOKEN'
     | 'INVALID_CURRENT_PASSWORD'
     | 'SAME_PASSWORD'
+    | 'SAME_EMAIL'
     | 'INVALID_OR_EXPIRED_TOKEN'
     | 'EMAIL_ALREADY_TAKEN'
     | 'VALIDATION_ERROR'
@@ -52,6 +53,8 @@ export function mapAuthErrorCodeToUserMessage(code: string): string {
       return 'Le mot de passe actuel est incorrect.'
     case 'SAME_PASSWORD':
       return 'Le nouveau mot de passe doit être différent de l\'ancien.'
+    case 'SAME_EMAIL':
+      return 'Cette adresse est déjà la vôtre.'
     case 'INVALID_OR_EXPIRED_TOKEN':
       return 'Ce lien est invalide ou a expiré. Veuillez demander un nouveau lien de vérification.'
     case 'EMAIL_ALREADY_TAKEN':
