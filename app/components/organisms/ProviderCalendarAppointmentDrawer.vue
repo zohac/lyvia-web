@@ -300,7 +300,10 @@ async function copyMeetingLink() {
           <h2 class="text-2xl font-semibold text-stone-900">
             {{ appointment.firstname }} {{ appointment.lastname }}
           </h2>
-          <div v-if="appointment.clientEmail || appointment.clientPhone" class="flex flex-wrap items-center gap-2 text-sm">
+          <div
+            v-if="appointment.clientEmail || appointment.clientPhone"
+            class="flex flex-wrap items-center gap-2 text-sm"
+          >
             <a
               v-if="appointment.clientEmail"
               :href="`mailto:${appointment.clientEmail}`"
@@ -309,7 +312,10 @@ async function copyMeetingLink() {
             >
               {{ appointment.clientEmail }}
             </a>
-            <span v-if="appointment.clientEmail && appointment.clientPhone" class="text-stone-300">&middot;</span>
+            <span
+              v-if="appointment.clientEmail && appointment.clientPhone"
+              class="text-stone-300"
+            >&middot;</span>
             <a
               v-if="appointment.clientPhone"
               :href="`tel:${appointment.clientPhone}`"
