@@ -42,11 +42,7 @@ export type ProviderClientListItem = {
   lastname: string
   email: string
   phone: string
-  /**
-   * Client stage (optional for backward compatibility).
-   * If not provided, derived from computedStatus.
-   */
-  stage?: ProviderClientStage
+  stage: ProviderClientStage
   onboardingCallDone: boolean
   currentProgramMonth: number | null
   computedStatus: ProviderClientStatus
@@ -175,11 +171,7 @@ export type ProviderClientDetailPayment = {
 
 export type ProviderClientDetailResponse = {
   client: ProviderClientDetailProfile
-  /**
-   * Client stage (optional for backward compatibility).
-   * If not provided, derived from computedStatus.
-   */
-  stage?: ProviderClientStage
+  stage: ProviderClientStage
   onboardingCallDone: boolean
   program: ProviderClientDetailProgram
   stats: ProviderClientDetailStats
