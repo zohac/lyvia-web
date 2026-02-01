@@ -24,7 +24,10 @@ test('buildConflictHighlight identifies overlapping appointment when possible', 
       clientProfileId: 'c1',
       firstname: 'Alice',
       lastname: 'Example',
-      clientStage: 'lead'
+      clientEmail: 'alice@example.com',
+      clientPhone: '0612345678',
+      clientStage: 'lead',
+      meetingLink: null
     }
   ]
 

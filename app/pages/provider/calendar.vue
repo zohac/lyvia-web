@@ -131,8 +131,7 @@ const knownClients = computed(() => {
       value: client.clientProfileId,
       label: `${client.firstname} ${client.lastname}`.trim(),
       stage,
-      // Use API field directly instead of computing from visible calendar appointments (fix [H1])
-      hasActiveDiscovery: client.hasScheduledDiscovery
+      hasActiveDiscovery: client.hasActiveDiscovery
     }
   })
 })

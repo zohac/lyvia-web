@@ -139,10 +139,7 @@ function persistState() {
     step: step.value,
     visibleMonth: visibleMonth.value.toISOString(),
     selectedDate: selectedDate.value,
-    selectedSlotStartAt: selectedSlotStartAt.value,
-    identity: identity.value,
-    consents: consents.value,
-    booking: booking.value
+    selectedSlotStartAt: selectedSlotStartAt.value
   }
   sessionStorage.setItem(storageKey, JSON.stringify(state))
 }
@@ -159,21 +156,17 @@ function restoreState() {
       visibleMonth: string
       selectedDate: string | null
       selectedSlotStartAt: string | null
-      identity: typeof identity.value
-      consents: typeof consents.value
-      booking: BookDiscoveryResponse | null
     }>
 
-    if (parsed.booking && typeof parsed.booking === 'object') booking.value = parsed.booking
     if (typeof parsed.step === 'number') step.value = sanitizeStep(parsed.step)
     if (typeof parsed.visibleMonth === 'string') visibleMonth.value = new Date(parsed.visibleMonth)
     if (typeof parsed.selectedDate === 'string' || parsed.selectedDate === null) selectedDate.value = parsed.selectedDate ?? null
     if (typeof parsed.selectedSlotStartAt === 'string' || parsed.selectedSlotStartAt === null)
       selectedSlotStartAt.value = parsed.selectedSlotStartAt ?? null
-    if (parsed.identity) identity.value = { ...identity.value, ...parsed.identity }
-    if (parsed.consents) consents.value = { ...consents.value, ...parsed.consents }
 
-    if (booking.value) step.value = 3
+    // PII (identity, consents, booking) are no longer persisted (WEB-005 security fix).
+    // If step was 3 (confirmation) but booking is not in memory, reset to step 1.
+    if (step.value === 3 && !booking.value) step.value = 1
   } catch {
     sessionStorage.removeItem(storageKey)
   }
@@ -264,11 +257,10 @@ watch(selectedDate, () => {
 })
 
 watch(
-  [step, selectedDate, selectedSlotStartAt, identity, consents],
+  [step, selectedDate, selectedSlotStartAt],
   () => {
     persistState()
-  },
-  { deep: true }
+  }
 )
 
 onMounted(() => {

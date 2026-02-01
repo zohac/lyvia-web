@@ -131,7 +131,7 @@ async function handleCheckout() {
     })
   }
 
-  if (import.meta.client) {
+  if (import.meta.client && isValidStripeUrl(response.stripe.checkoutUrl)) {
     window.location.assign(response.stripe.checkoutUrl)
   }
 }

@@ -38,6 +38,12 @@ const navigation = {
       defaultOpen: false,
       items: [
         {
+          label: 'Mon compte',
+          to: '/client/account',
+          icon: 'lucide:user',
+          match: 'prefix' as const
+        },
+        {
           label: 'Paiements',
           to: '/client/payments',
           icon: 'lucide:receipt',

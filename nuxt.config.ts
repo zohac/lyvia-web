@@ -14,14 +14,14 @@ export default defineNuxtConfig({
   },
 
   devtools: {
-    enabled: true
+    enabled: process.env.NODE_ENV === 'development'
   },
 
   vite: {
     // Dev-only: allow accessing Nuxt via custom local domains (e.g. `*.test`)
     // without Vite host-check returning 403.
     server: {
-      allowedHosts: true
+      allowedHosts: ['localhost', '127.0.0.1', '.test']
     }
   },
 
@@ -54,6 +54,14 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    '/**': {
+      headers: {
+        'Referrer-Policy': 'no-referrer',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+      }
+    },
     '/': { prerender: true },
     '/client/**': { ssr: false },
     '/provider/**': { ssr: false },

@@ -42,11 +42,7 @@ export type ProviderClientListItem = {
   lastname: string
   email: string
   phone: string
-  /**
-   * Client stage (optional for backward compatibility).
-   * If not provided, derived from computedStatus.
-   */
-  stage?: ProviderClientStage
+  stage: ProviderClientStage
   onboardingCallDone: boolean
   currentProgramMonth: number | null
   computedStatus: ProviderClientStatus
@@ -57,6 +53,11 @@ export type ProviderClientListItem = {
    * (not yet completed or cancelled). Used to prevent duplicate discovery bookings.
    */
   hasScheduledDiscovery: boolean
+  /**
+   * Indicates if the client has an active discovery (scheduled or completed).
+   * Used by the calendar modal to determine discovery replanification eligibility.
+   */
+  hasActiveDiscovery: boolean
 }
 
 export type ProviderClientsPage = {
@@ -170,11 +171,7 @@ export type ProviderClientDetailPayment = {
 
 export type ProviderClientDetailResponse = {
   client: ProviderClientDetailProfile
-  /**
-   * Client stage (optional for backward compatibility).
-   * If not provided, derived from computedStatus.
-   */
-  stage?: ProviderClientStage
+  stage: ProviderClientStage
   onboardingCallDone: boolean
   program: ProviderClientDetailProgram
   stats: ProviderClientDetailStats

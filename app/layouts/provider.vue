@@ -70,6 +70,12 @@ const navigation = computed(() => ({
       defaultOpen: false,
       items: [
         {
+          label: 'Mon compte',
+          to: '/provider/account',
+          icon: 'lucide:user',
+          match: 'prefix' as const
+        },
+        {
           label: 'Disponibilités',
           to: '/provider/availability',
           icon: 'lucide:calendar-clock',

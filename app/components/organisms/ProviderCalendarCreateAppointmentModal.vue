@@ -8,7 +8,7 @@ type ClientOption = {
   label: string
   value: string
   stage: 'discovery' | 'lead' | 'active' | 'paused'
-  hasActiveDiscovery?: boolean
+  hasActiveDiscovery: boolean
 }
 
 const props = withDefaults(
@@ -75,18 +75,19 @@ const meetingLink = ref<string>('')
 /**
  * Filtre les clients selon le type de RDV sélectionné (modèle 4-stages).
  *
- * Discovery (replanification US-3) :
- * - stage='lead' : discovery effectué ou annulé, en attente de décision
- * - hasActiveDiscovery=false : pas de discovery scheduled/completed actif
- * - Cas d'usage : provider planifie un nouveau discovery pour un lead
+ * Discovery (replanification) :
+ * - stage='lead' ou 'discovery' (discovery annulé) sans discovery actif (scheduled/completed)
+ * - Exclut les clients avec un discovery complété (bilan fait) même s'ils sont lead
  *
  * Consultation :
  * - stage='active' : client converti, accompagnement en cours
  */
 const inferredClients = computed(() => {
   if (type.value === 'discovery') {
-    // US-2: Clients éligibles pour discovery = stage 'lead' sans discovery actif
-    return props.knownClients.filter(c => c.stage === 'lead' && !c.hasActiveDiscovery)
+    // Clients éligibles : lead ou discovery (cancelled) sans discovery actif (scheduled/completed)
+    return props.knownClients.filter(c =>
+      (c.stage === 'lead' || c.stage === 'discovery') && !c.hasActiveDiscovery
+    )
   }
   // Consultation : uniquement les clientes actives
   return props.knownClients.filter(c => c.stage === 'active')
@@ -359,7 +360,7 @@ function submit() {
               v-if="inferredClients.length === 0 && type === 'discovery'"
               class="text-xs text-amber-600"
             >
-              Aucun lead éligible pour un discovery. Seuls les leads (discovery effectué ou annulé) sans discovery actif peuvent en obtenir un nouveau.
+              Aucun client éligible pour un discovery. Seuls les leads ou clients en découverte (discovery annulé) sans discovery actif peuvent en obtenir un nouveau.
             </p>
             <p
               v-else-if="inferredClients.length === 0 && type === 'consultation'"

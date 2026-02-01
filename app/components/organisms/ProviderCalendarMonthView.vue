@@ -3,7 +3,7 @@ import type { ProviderAppointmentListItem } from '../../features/calendar/api/ca
 import type { CalendarMonthCell } from '../../features/calendar/domain/range'
 import { buildMonthGrid } from '../../features/calendar/domain/range'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
-import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
+import { getAppointmentAccentClass, getAppointmentMetaClass, getAppointmentNameClass, getAppointmentStatusDotClass } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationChipLabel } from '../../features/calendar/presentation/appointment-pricing'
 
@@ -78,6 +78,14 @@ function eventAccentClass(appointment: ProviderAppointmentListItem): string {
 
 function eventMetaClass(appointment: ProviderAppointmentListItem): string {
   return getAppointmentMetaClass(appointment)
+}
+
+function eventNameClass(appointment: ProviderAppointmentListItem): string {
+  return getAppointmentNameClass(appointment)
+}
+
+function eventStatusDotClass(appointment: ProviderAppointmentListItem): string | null {
+  return getAppointmentStatusDotClass(appointment)
 }
 
 function appointmentChipLabel(appointment: ProviderAppointmentListItem): string {
@@ -193,8 +201,14 @@ function onSelectDay(dayKey: string) {
                       ]"
                       @click="onSelectAppointment(appointment)"
                     >
-                      <span class="truncate">
-                        {{ appointment.firstname }} {{ appointment.lastname }}
+                      <span class="flex items-center gap-1.5 truncate">
+                        <span
+                          v-if="eventStatusDotClass(appointment)"
+                          class="inline-block size-1.5 shrink-0 rounded-full"
+                          :class="eventStatusDotClass(appointment)"
+                          aria-hidden="true"
+                        />
+                        <span :class="eventNameClass(appointment)" class="truncate">{{ appointment.firstname }} {{ appointment.lastname }}</span>
                       </span>
                       <span class="shrink-0 opacity-90">
                         {{ formatTime(appointment.startAt) }}
@@ -219,8 +233,14 @@ function onSelectDay(dayKey: string) {
               ]"
               @click.stop="onSelectAppointment(appointment)"
             >
-              <span class="truncate">
-                {{ formatTime(appointment.startAt) }} · {{ appointment.firstname }}
+              <span class="flex items-center gap-1 truncate">
+                <span
+                  v-if="eventStatusDotClass(appointment)"
+                  class="inline-block size-1.5 shrink-0 rounded-full"
+                  :class="eventStatusDotClass(appointment)"
+                  aria-hidden="true"
+                />
+                <span :class="eventNameClass(appointment)" class="truncate">{{ formatTime(appointment.startAt) }} · {{ appointment.firstname }}</span>
               </span>
               <span class="max-w-[9rem] truncate text-right text-[11px] font-semibold opacity-90">
                 {{ appointmentChipLabel(appointment) }}

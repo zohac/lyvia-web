@@ -162,8 +162,21 @@ const criteriaId = 'new-password-criteria'
 
 const route = useRoute()
 const token = computed(() => {
+  // Priority: fragment (secure, not sent in HTTP Referer/logs), fallback to query (legacy links).
+  if (import.meta.client) {
+    const hash = window.location.hash || ''
+    const match = /^#token=(.+)$/.exec(hash)
+    if (match?.[1]) return decodeURIComponent(match[1])
+  }
   const value = route.query.token
   return typeof value === 'string' ? value : ''
+})
+
+// Clean token from URL bar after reading (removes hash fragment from browser history).
+onMounted(() => {
+  if (token.value && window.location.hash) {
+    window.history.replaceState(null, '', window.location.pathname)
+  }
 })
 
 const form = reactive({

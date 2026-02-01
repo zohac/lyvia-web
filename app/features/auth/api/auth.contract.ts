@@ -12,6 +12,8 @@
  * - `GET /auth/me`
  * - `POST /auth/forgot-password`
  * - `POST /auth/reset-password`
+ * - `POST /auth/change-password`
+ * - `POST /auth/request-email-change`
  * - `GET /auth/sessions`
  * - `POST /auth/sessions/:id/revoke`
  */
@@ -89,4 +91,30 @@ export type ListSessionsResponse = {
 
 export type RevokeSessionResponse = {
   revoked: boolean
+}
+
+export type ChangePasswordRequest = {
+  currentPassword: string
+  newPassword: string
+}
+
+export type ChangePasswordResponse = {
+  changed: boolean
+  sessionsRevoked: number
+}
+
+export type RequestEmailChangeRequest = {
+  newEmail: string
+  currentPassword: string
+}
+
+export type RequestEmailChangeResponse = {
+  accepted: boolean
+  message: string
+}
+
+export type VerifyEmailChangeResponse = {
+  verified: true
+  newEmail: string
+  sessionsRevoked: true
 }
