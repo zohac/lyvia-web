@@ -52,11 +52,21 @@ if (!isPlatformDomain.value && !tenant.value) {
 }
 
 useSeoMeta({
-  title: () => tenant.value?.brand.displayName ? `${tenant.value.brand.displayName} — Appel découverte` : 'Kaora — Coaching Platform',
+  title: () => tenant.value?.brand.displayName
+    ? `${tenant.value.brand.displayName} — Accompagnement global pour femmes en périménopause et ménopause`
+    : 'Kaora — Coaching Platform',
   description: () =>
     tenant.value
-      ? 'Réservez un appel découverte gratuit, sans engagement.'
-      : 'Réservez vos rendez-vous, payez en ligne en toute sécurité, et accédez à des contenus utiles — dans une interface apaisante pensée pour durer.'
+      ? 'Retrouvez équilibre, énergie et sérénité pendant la ménopause avec un accompagnement humain, global et personnalisé.'
+      : 'Réservez vos rendez-vous, payez en ligne en toute sécurité, et accédez à des contenus utiles — dans une interface apaisante pensée pour durer.',
+  ogTitle: () => tenant.value?.brand.displayName
+    ? `${tenant.value.brand.displayName} — Coaching bienveillant pour femmes en périménopause et ménopause`
+    : undefined,
+  ogDescription: () => tenant.value
+    ? 'Fatigue, insomnies, bouffées de chaleur ? Offrez-vous un accompagnement humain, global et gratuit.'
+    : undefined,
+  ogType: 'website',
+  twitterCard: 'summary_large_image'
 })
 
 watchEffect(() => {
@@ -69,8 +79,8 @@ watchEffect(() => {
       showBrandIcon: false,
       navLinks: [
         { label: 'L\'Essence', href: '#essence' },
-        { label: 'L\'Approche', href: '#approche' },
-        { label: 'Parcours', href: '#parcours' }
+        { label: 'Accompagnement', href: '#accompagnement' },
+        { label: 'Sophie', href: '#qui-suis-je' }
       ],
       loginLabel: 'Espace cliente',
       loginTo: '/login',

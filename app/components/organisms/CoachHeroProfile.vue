@@ -44,20 +44,20 @@ defineProps<{
 
             <!-- Main headline - extra large, editorial -->
             <h1 class="font-serif text-[clamp(3rem,8vw,6rem)] leading-[0.95] tracking-tight text-[#2d2438]">
-              <span class="block">Traverser</span>
-              <span class="block text-[#5b4b6e]">la ménopause</span>
+              <span class="block">Comprendre</span>
+              <span class="block text-[#5b4b6e]">la ménopause,</span>
               <span class="block">
-                avec
+                retrouver
                 <em class="relative font-normal not-italic">
-                  douceur
+                  l'équilibre
                   <span class="absolute -bottom-2 left-0 h-1 w-full bg-gradient-to-r from-[#d4956a] to-transparent" />
                 </em>
               </span>
             </h1>
 
             <!-- Subtle tagline -->
-            <p class="mt-10 max-w-md text-lg leading-relaxed text-[#4a4255]">
-              Un espace de transformation pour les femmes qui refusent de simplement "gérer" cette étape de leur vie.
+            <p class="mt-10 max-w-lg text-lg leading-relaxed text-[#4a4255]">
+              Un accompagnement global, humain et bienveillant pour traverser la ménopause avec plus de sérénité.
             </p>
 
             <!-- CTA - warm accent button -->
@@ -68,7 +68,7 @@ defineProps<{
                 class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-8 py-4 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#c47a4a] hover:shadow-lg"
               >
                 <span class="flex items-center gap-3">
-                  {{ ctaLabel ?? 'Réserver un appel' }}
+                  {{ ctaLabel ?? 'Réserver mon appel gratuit' }}
                   <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
                 </span>
               </UButton>
