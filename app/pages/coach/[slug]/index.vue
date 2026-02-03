@@ -43,8 +43,12 @@ const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 
 useSeoMeta({
-  title: () => `${tenant.value?.brand.displayName ?? 'Coach'} — Appel découverte`,
-  description: () => 'Réservez un appel découverte gratuit, sans engagement.'
+  title: () => `${tenant.value?.brand.displayName ?? 'Coach'} — Accompagnement global pour femmes en périménopause et ménopause`,
+  description: () => 'Retrouvez équilibre, énergie et sérénité pendant la ménopause avec un accompagnement humain, global et personnalisé.',
+  ogTitle: () => `${tenant.value?.brand.displayName ?? 'Coach'} — Coaching bienveillant pour femmes en périménopause et ménopause`,
+  ogDescription: () => 'Fatigue, insomnies, bouffées de chaleur ? Offrez-vous un accompagnement humain, global et gratuit.',
+  ogType: 'website',
+  twitterCard: 'summary_large_image'
 })
 
 watchEffect(() => {
@@ -56,8 +60,8 @@ watchEffect(() => {
     showBrandIcon: true,
     navLinks: [
       { label: 'L\'Essence', href: '#essence' },
-      { label: 'Guide', href: '#sophie' },
-      { label: 'Parcours', href: '#parcours' }
+      { label: 'Accompagnement', href: '#accompagnement' },
+      { label: 'Sophie', href: '#qui-suis-je' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',

@@ -208,7 +208,10 @@ function onSelectDay(dayKey: string) {
                           :class="eventStatusDotClass(appointment)"
                           aria-hidden="true"
                         />
-                        <span :class="eventNameClass(appointment)" class="truncate">{{ appointment.firstname }} {{ appointment.lastname }}</span>
+                        <span
+                          :class="eventNameClass(appointment)"
+                          class="truncate"
+                        >{{ appointment.firstname }} {{ appointment.lastname }}</span>
                       </span>
                       <span class="shrink-0 opacity-90">
                         {{ formatTime(appointment.startAt) }}
@@ -240,7 +243,10 @@ function onSelectDay(dayKey: string) {
                   :class="eventStatusDotClass(appointment)"
                   aria-hidden="true"
                 />
-                <span :class="eventNameClass(appointment)" class="truncate">{{ formatTime(appointment.startAt) }} · {{ appointment.firstname }}</span>
+                <span
+                  :class="eventNameClass(appointment)"
+                  class="truncate"
+                >{{ formatTime(appointment.startAt) }} · {{ appointment.firstname }}</span>
               </span>
               <span class="max-w-[9rem] truncate text-right text-[11px] font-semibold opacity-90">
                 {{ appointmentChipLabel(appointment) }}
