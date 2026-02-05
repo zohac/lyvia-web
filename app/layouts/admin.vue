@@ -38,6 +38,12 @@ const navigation = {
           match: 'exact' as const
         },
         {
+          label: 'Notifications',
+          to: '/admin/notification-logs',
+          icon: 'lucide:bell',
+          match: 'exact' as const
+        },
+        {
           label: 'Design System',
           to: '/admin/design-system',
           icon: 'lucide:file-sliders',

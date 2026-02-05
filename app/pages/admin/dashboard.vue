@@ -201,6 +201,7 @@
 import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
+import { getEventBadgeColor, getBadgeClasses } from '~/composables/useAdminBadges'
 
 definePageMeta({
   layout: 'admin',
@@ -267,17 +268,6 @@ const kpiCards = computed(() => {
   ]
 })
 
-// Event badge color based on event type prefix
-function getEventBadgeColor(eventType: string): 'success' | 'error' | 'info' | 'primary' | 'secondary' | 'warning' | 'neutral' {
-  if (eventType.startsWith('PAYMENT_')) return eventType.includes('FAILED') ? 'error' : 'success'
-  if (eventType.startsWith('APPOINTMENT_')) return 'info'
-  if (eventType.startsWith('CLIENT_')) return 'primary'
-  if (eventType.startsWith('PROVIDER_')) return 'secondary'
-  if (eventType.startsWith('STRIPE_')) return 'warning'
-  if (eventType.startsWith('AUTH_') || eventType.includes('PASSWORD') || eventType.includes('EMAIL_CHANGE')) return 'neutral'
-  return 'neutral'
-}
-
 // Format date for display
 function formatDate(dateString: string): string {
   const date = new Date(dateString)
@@ -320,18 +310,4 @@ const eventColumns: TableColumn<AdminLastEvent>[] = [
     }
   }
 ]
-
-// Badge color classes helper
-function getBadgeClasses(color: string): string {
-  const colorMap: Record<string, string> = {
-    success: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]',
-    error: 'bg-red-100 text-red-700',
-    info: 'bg-blue-100 text-blue-700',
-    primary: 'bg-[color:var(--ui-color-primary-100)] text-[color:var(--color-brand-solid)]',
-    secondary: 'bg-purple-100 text-purple-700',
-    warning: 'bg-amber-100 text-amber-700',
-    neutral: 'bg-gray-100 text-gray-600'
-  }
-  return colorMap[color] ?? 'bg-gray-100 text-gray-600'
-}
 </script>
