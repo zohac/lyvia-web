@@ -1,0 +1,558 @@
+<template>
+  <div>
+    <!-- Page Header -->
+    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
+      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
+
+      <div class="grid gap-2">
+        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
+          Business Logs
+        </h1>
+        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
+          Historique des événements métier de la plateforme
+        </p>
+      </div>
+
+      <NuxtLink
+        to="/admin/dashboard"
+        class="flex items-center gap-2 text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:text-[color:var(--color-brand-primary)]"
+      >
+        <UIcon
+          name="lucide:arrow-left"
+          size="16"
+        />
+        Retour au dashboard
+      </NuxtLink>
+    </section>
+
+    <!-- Filters -->
+    <section class="mb-8 space-y-4">
+      <!-- Row 1: Search + Event Type -->
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center">
+        <!-- Search -->
+        <div class="relative max-w-md flex-1">
+          <UIcon
+            name="lucide:search"
+            size="18"
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--color-brand-muted)]"
+          />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Rechercher dans les logs..."
+            autocomplete="off"
+            class="w-full rounded-full border border-[color:var(--color-brand-subtle)] bg-white py-3 pl-12 pr-4 text-sm text-[color:var(--color-brand-primary)] placeholder-[color:var(--color-brand-muted)] shadow-sm transition-shadow focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            @input="debouncedSearch"
+          >
+        </div>
+
+        <!-- Event Type Multi-Select -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-sm text-[color:var(--color-brand-muted)]">Types:</span>
+          <button
+            v-for="eventType in eventTypeOptions"
+            :key="eventType.value"
+            :class="[
+              'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
+              selectedEventTypes.includes(eventType.value)
+                ? `${eventType.activeClass} shadow-sm`
+                : 'border border-[color:var(--color-brand-subtle)] bg-white text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
+            ]"
+            @click="toggleEventType(eventType.value)"
+          >
+            {{ eventType.label }}
+          </button>
+          <button
+            v-if="selectedEventTypes.length > 0"
+            class="ml-1 text-xs text-[color:var(--color-brand-muted)] underline hover:text-[color:var(--color-brand-primary)]"
+            @click="clearEventTypes"
+          >
+            Effacer
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Date Range -->
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <label
+            for="dateFrom"
+            class="text-sm text-[color:var(--color-brand-muted)]"
+          >Du:</label>
+          <input
+            id="dateFrom"
+            v-model="dateFrom"
+            type="datetime-local"
+            autocomplete="off"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-white px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            @change="applyFilters"
+          >
+        </div>
+
+        <div class="flex items-center gap-2">
+          <label
+            for="dateTo"
+            class="text-sm text-[color:var(--color-brand-muted)]"
+          >Au:</label>
+          <input
+            id="dateTo"
+            v-model="dateTo"
+            type="datetime-local"
+            autocomplete="off"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-white px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            @change="applyFilters"
+          >
+        </div>
+
+        <button
+          v-if="dateFrom || dateTo"
+          class="text-xs text-[color:var(--color-brand-muted)] underline hover:text-[color:var(--color-brand-primary)]"
+          @click="clearDates"
+        >
+          Effacer dates
+        </button>
+      </div>
+    </section>
+
+    <!-- Logs Table -->
+    <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+      <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--ui-color-primary-100)] opacity-30 blur-[100px]" />
+
+      <!-- Loading State -->
+      <div
+        v-if="pending"
+        class="relative z-10 flex items-center justify-center py-20"
+      >
+        <UIcon
+          name="lucide:loader-2"
+          size="32"
+          class="animate-spin text-[color:var(--color-brand-muted)]"
+        />
+      </div>
+
+      <!-- Error State -->
+      <div
+        v-else-if="error"
+        class="relative z-10 p-8 text-center"
+      >
+        <UIcon
+          name="lucide:alert-circle"
+          size="48"
+          class="mx-auto mb-4 text-red-500"
+        />
+        <p class="text-lg font-medium text-red-800">
+          Erreur lors du chargement des logs
+        </p>
+        <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
+          {{ error?.message || 'Une erreur inattendue est survenue.' }}
+        </p>
+        <UButton
+          variant="outline"
+          color="neutral"
+          class="mt-4 rounded-full"
+          @click="() => refresh()"
+        >
+          <UIcon
+            name="lucide:refresh-cw"
+            size="16"
+          />
+          Réessayer
+        </UButton>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="!logs?.items?.length"
+        class="relative z-10 p-12 text-center"
+      >
+        <UIcon
+          name="lucide:scroll-text"
+          size="48"
+          class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
+        />
+        <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
+          Aucun log trouvé
+        </p>
+        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+          {{ hasActiveFilters ? 'Essayez avec d\'autres filtres.' : 'Aucun événement n\'a encore été enregistré.' }}
+        </p>
+      </div>
+
+      <!-- Table -->
+      <div
+        v-else
+        class="relative z-10"
+      >
+        <UTable
+          :data="logs.items"
+          :columns="columns"
+          class="[&_table]:border-separate [&_table]:border-spacing-0 [&_td]:border-b [&_td]:border-[color:var(--color-brand-subtle)]/50 [&_td]:bg-transparent [&_td]:px-6 [&_td]:py-4 [&_th]:border-b [&_th]:border-[color:var(--color-brand-subtle)] [&_th]:bg-[color:var(--color-surface-highlight)]/50 [&_th]:px-6 [&_th]:py-3 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[0.15em] [&_th]:text-[color:var(--color-brand-muted)] [&_tr:last-child_td]:border-b-0"
+        />
+
+        <!-- Pagination -->
+        <div
+          v-if="logs.page.nextCursor"
+          class="flex justify-center border-t border-[color:var(--color-brand-subtle)]/50 p-4"
+        >
+          <UButton
+            variant="outline"
+            color="neutral"
+            class="rounded-full"
+            :loading="loadingMore"
+            @click="loadMore"
+          >
+            <UIcon
+              name="lucide:chevron-down"
+              size="16"
+            />
+            Charger plus
+          </UButton>
+        </div>
+      </div>
+    </section>
+
+    <!-- Detail Drawer -->
+    <USlideover
+      v-model:open="drawerOpen"
+      side="right"
+      :title="selectedLog ? selectedLog.eventType : 'Détail du log'"
+    >
+      <template #body>
+        <div
+          v-if="detailPending"
+          class="flex items-center justify-center py-12"
+        >
+          <UIcon
+            name="lucide:loader-2"
+            size="32"
+            class="animate-spin text-[color:var(--color-brand-muted)]"
+          />
+        </div>
+
+        <div
+          v-else-if="detailError"
+          class="p-4 text-center"
+        >
+          <UIcon
+            name="lucide:alert-circle"
+            size="48"
+            class="mx-auto mb-4 text-red-500"
+          />
+          <p class="text-red-800">
+            Erreur lors du chargement du détail
+          </p>
+        </div>
+
+        <div
+          v-else-if="logDetail"
+          class="space-y-6 p-4"
+        >
+          <!-- Event Type Badge -->
+          <div>
+            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+              Type d'événement
+            </span>
+            <div class="mt-2">
+              <span :class="`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium ${getBadgeClasses(getEventBadgeColor(logDetail.eventType))}`">
+                {{ logDetail.eventType }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Date -->
+          <div>
+            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+              Date
+            </span>
+            <p class="mt-2 text-sm text-[color:var(--color-brand-primary)]">
+              {{ formatDate(logDetail.createdAt) }}
+            </p>
+          </div>
+
+          <!-- User ID -->
+          <div v-if="logDetail.userId">
+            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+              User ID
+            </span>
+            <p class="mt-2 font-mono text-xs text-[color:var(--color-brand-secondary)]">
+              {{ logDetail.userId }}
+            </p>
+          </div>
+
+          <!-- Log ID -->
+          <div>
+            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+              Log ID
+            </span>
+            <p class="mt-2 font-mono text-xs text-[color:var(--color-brand-secondary)]">
+              {{ logDetail.id }}
+            </p>
+          </div>
+
+          <!-- Metadata -->
+          <div>
+            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+              Metadata
+            </span>
+            <pre class="mt-2 max-h-96 overflow-auto rounded-lg bg-gray-50 p-4 text-xs text-[color:var(--color-brand-primary)]">{{ JSON.stringify(logDetail.metadata, null, 2) }}</pre>
+          </div>
+        </div>
+      </template>
+    </USlideover>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { h } from 'vue'
+import type { TableColumn } from '@nuxt/ui'
+import { apiFetch } from '~/services/api/apiFetch'
+
+definePageMeta({
+  layout: 'admin',
+  middleware: 'auth-admin',
+  pageTitle: 'Business Logs'
+})
+
+// Types
+type AdminBusinessLogListItem = {
+  id: string
+  eventType: string
+  userId: string | null
+  createdAt: string
+  metadataPreview: string
+}
+
+type ListBusinessLogsResponse = {
+  items: AdminBusinessLogListItem[]
+  page: {
+    limit: number
+    nextCursor: string | null
+  }
+}
+
+type AdminBusinessLogDetail = {
+  id: string
+  eventType: string
+  userId: string | null
+  metadata: Record<string, unknown>
+  createdAt: string
+}
+
+// Filters
+const searchQuery = ref('')
+const selectedEventTypes = ref<string[]>([])
+const dateFrom = ref('')
+const dateTo = ref('')
+const loadingMore = ref(false)
+
+// Drawer state
+const drawerOpen = ref(false)
+const selectedLog = ref<AdminBusinessLogListItem | null>(null)
+const logDetail = ref<AdminBusinessLogDetail | null>(null)
+const detailPending = ref(false)
+const detailError = ref<Error | null>(null)
+
+// Event type options with colors
+const eventTypeOptions = [
+  { value: 'PAYMENT_', label: 'Paiements', activeClass: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' },
+  { value: 'APPOINTMENT_', label: 'RDV', activeClass: 'bg-blue-100 text-blue-700' },
+  { value: 'CLIENT_', label: 'Clients', activeClass: 'bg-[color:var(--ui-color-primary-100)] text-[color:var(--color-brand-solid)]' },
+  { value: 'PROVIDER_', label: 'Providers', activeClass: 'bg-purple-100 text-purple-700' },
+  { value: 'STRIPE_', label: 'Stripe', activeClass: 'bg-amber-100 text-amber-700' },
+  { value: 'AUTH_', label: 'Auth', activeClass: 'bg-gray-100 text-gray-600' }
+]
+
+const hasActiveFilters = computed(() => {
+  return searchQuery.value.trim() !== ''
+    || selectedEventTypes.value.length > 0
+    || dateFrom.value !== ''
+    || dateTo.value !== ''
+})
+
+// API params
+const queryParams = computed(() => {
+  const params: Record<string, string | string[]> = { limit: '20' }
+  if (searchQuery.value.trim()) params.search = searchQuery.value.trim()
+  if (selectedEventTypes.value.length > 0) params.eventType = selectedEventTypes.value
+  if (dateFrom.value) params.dateFrom = new Date(dateFrom.value).toISOString()
+  if (dateTo.value) params.dateTo = new Date(dateTo.value).toISOString()
+  return params
+})
+
+// Fetch logs (no watch - manual refresh via debounce/filter handlers to avoid double-fetch)
+const { data: logs, pending, error, refresh } = await useAsyncData<ListBusinessLogsResponse>(
+  'admin-business-logs',
+  () => apiFetch<ListBusinessLogsResponse>('/admin/logs', { params: queryParams.value })
+)
+
+// Debounced search
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+function debouncedSearch() {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    refresh()
+  }, 300)
+}
+
+// Event type toggle
+function toggleEventType(prefix: string) {
+  const index = selectedEventTypes.value.indexOf(prefix)
+  if (index === -1) {
+    selectedEventTypes.value.push(prefix)
+  } else {
+    selectedEventTypes.value.splice(index, 1)
+  }
+  refresh()
+}
+
+function clearEventTypes() {
+  selectedEventTypes.value = []
+  refresh()
+}
+
+function clearDates() {
+  dateFrom.value = ''
+  dateTo.value = ''
+  refresh()
+}
+
+function applyFilters() {
+  refresh()
+}
+
+// Load more
+async function loadMore() {
+  if (!logs.value?.page.nextCursor || loadingMore.value) return
+
+  loadingMore.value = true
+  try {
+    const moreData = await apiFetch<ListBusinessLogsResponse>('/admin/logs', {
+      params: {
+        ...queryParams.value,
+        cursor: logs.value.page.nextCursor
+      }
+    })
+
+    if (logs.value) {
+      logs.value = {
+        items: [...logs.value.items, ...moreData.items],
+        page: moreData.page
+      }
+    }
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+// Format date for display
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+}
+
+// Event badge color based on event type prefix
+function getEventBadgeColor(eventType: string): 'success' | 'error' | 'info' | 'primary' | 'secondary' | 'warning' | 'neutral' {
+  if (eventType.startsWith('PAYMENT_')) return eventType.includes('FAILED') ? 'error' : 'success'
+  if (eventType.startsWith('APPOINTMENT_')) return 'info'
+  if (eventType.startsWith('CLIENT_')) return 'primary'
+  if (eventType.startsWith('PROVIDER_')) return 'secondary'
+  if (eventType.startsWith('STRIPE_')) return 'warning'
+  if (eventType.startsWith('AUTH_') || eventType.includes('PASSWORD') || eventType.includes('EMAIL_CHANGE')) return 'neutral'
+  return 'neutral'
+}
+
+// Badge color classes helper
+function getBadgeClasses(color: string): string {
+  const colorMap: Record<string, string> = {
+    success: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]',
+    error: 'bg-red-100 text-red-700',
+    info: 'bg-blue-100 text-blue-700',
+    primary: 'bg-[color:var(--ui-color-primary-100)] text-[color:var(--color-brand-solid)]',
+    secondary: 'bg-purple-100 text-purple-700',
+    warning: 'bg-amber-100 text-amber-700',
+    neutral: 'bg-gray-100 text-gray-600'
+  }
+  return colorMap[color] ?? 'bg-gray-100 text-gray-600'
+}
+
+// Open detail drawer
+async function openDetail(log: AdminBusinessLogListItem) {
+  selectedLog.value = log
+  drawerOpen.value = true
+  detailPending.value = true
+  detailError.value = null
+  logDetail.value = null
+
+  try {
+    logDetail.value = await apiFetch<AdminBusinessLogDetail>(`/admin/logs/${log.id}`)
+  } catch (e) {
+    detailError.value = e as Error
+  } finally {
+    detailPending.value = false
+  }
+}
+
+// Table columns
+const columns: TableColumn<AdminBusinessLogListItem>[] = [
+  {
+    accessorKey: 'createdAt',
+    header: 'Date',
+    cell: ({ row }) => {
+      return h('span', { class: 'text-sm text-[color:var(--color-brand-secondary)]' }, formatDate(row.original.createdAt))
+    }
+  },
+  {
+    accessorKey: 'eventType',
+    header: 'Type',
+    cell: ({ row }) => {
+      const color = getEventBadgeColor(row.original.eventType)
+      return h('span', {
+        class: `inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getBadgeClasses(color)}`
+      }, row.original.eventType)
+    }
+  },
+  {
+    accessorKey: 'metadataPreview',
+    header: 'Aperçu',
+    cell: ({ row }) => {
+      return h('span', {
+        class: 'max-w-xs truncate text-sm text-[color:var(--color-brand-muted)]',
+        title: row.original.metadataPreview
+      }, row.original.metadataPreview || '—')
+    }
+  },
+  {
+    id: 'actions',
+    header: '',
+    cell: ({ row }) => {
+      return h('button', {
+        class: 'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:bg-[color:var(--ui-color-primary-50)] hover:text-[color:var(--color-brand-primary)]',
+        onClick: () => openDetail(row.original)
+      }, [
+        h('span', {}, 'Détails'),
+        h('svg', {
+          'class': 'h-3.5 w-3.5',
+          'xmlns': 'http://www.w3.org/2000/svg',
+          'fill': 'none',
+          'viewBox': '0 0 24 24',
+          'stroke': 'currentColor',
+          'stroke-width': '2'
+        }, [
+          h('path', {
+            'stroke-linecap': 'round',
+            'stroke-linejoin': 'round',
+            'd': 'M9 5l7 7-7 7'
+          })
+        ])
+      ])
+    }
+  }
+]
+</script>

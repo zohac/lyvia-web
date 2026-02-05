@@ -29,8 +29,14 @@ const navigation = {
     {
       key: 'outils',
       label: 'Outils',
-      defaultOpen: false,
+      defaultOpen: true,
       items: [
+        {
+          label: 'Business Logs',
+          to: '/admin/logs',
+          icon: 'lucide:scroll-text',
+          match: 'exact' as const
+        },
         {
           label: 'Design System',
           to: '/admin/design-system',
