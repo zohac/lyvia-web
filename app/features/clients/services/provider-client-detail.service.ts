@@ -1,5 +1,6 @@
 import type {
   ProviderClientDetailResponse,
+  ResendActivationResponse,
   UpdateProviderClientProgramRequest,
   UpdateProviderClientProgramResponse
 } from '../api/clients.contract'
@@ -35,5 +36,19 @@ export async function updateProviderClientProgram(
       method: 'PATCH',
       body
     }
+  )
+}
+
+/**
+ * Resends the activation email to a non-activated client.
+ * @param clientProfileId - The client profile ID.
+ * @returns Whether the email was sent, or the account is already activated.
+ */
+export async function resendActivation(
+  clientProfileId: string
+): Promise<ResendActivationResponse> {
+  return await apiFetch<ResendActivationResponse>(
+    `/provider/clients/${clientProfileId}/resend-activation`,
+    { method: 'POST' }
   )
 }

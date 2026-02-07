@@ -177,6 +177,10 @@ export type ProviderClientDetailResponse = {
   stats: ProviderClientDetailStats
   computedStatus: ProviderClientStatus
   /**
+   * Whether the client has activated their account (logged in at least once).
+   */
+  isActivated: boolean
+  /**
    * When the client was paused (ISO 8601), null if not paused.
    */
   pausedAt: string | null
@@ -187,6 +191,14 @@ export type ProviderClientDetailResponse = {
   timezone: string
   appointments: ProviderClientDetailAppointment[]
   payments: ProviderClientDetailPayment[]
+}
+
+/**
+ * Response from resending activation email.
+ */
+export type ResendActivationResponse = {
+  sent: boolean
+  alreadyActivated?: boolean
 }
 
 // ============================================================================
