@@ -235,6 +235,23 @@
               Appeler
             </UButton>
 
+            <!-- Story 10.3: Resend activation email -->
+            <UButton
+              v-if="detail && !detail.isActivated && detail.stage === 'active'"
+              variant="soft"
+              color="secondary"
+              block
+              class="justify-start"
+              :loading="resendLoading"
+              @click="handleResendActivation"
+            >
+              <UIcon
+                name="lucide:send"
+                class="mr-2 h-4 w-4"
+              />
+              Renvoyer l'invitation
+            </UButton>
+
             <!-- Convert lead to active client -->
             <UButton
               v-if="canConvert"
@@ -303,6 +320,7 @@
 <script setup lang="ts">
 import { useProviderClientDetail } from '../../../features/clients/useProviderClientDetail'
 import { pauseClient, reactivateClient, convertLeadToActive } from '../../../features/clients/services/provider-clients.service'
+import { resendActivation } from '../../../features/clients/services/provider-client-detail.service'
 import {
   formatClientName,
   formatNextAppointment,
@@ -383,6 +401,7 @@ const pauseModalOpen = ref(false)
 const pauseLoading = ref(false)
 const reactivateLoading = ref(false)
 const convertLoading = ref(false)
+const resendLoading = ref(false)
 
 /**
  * Find the completed discovery appointment ID (needed for conversion).
@@ -402,6 +421,36 @@ const completedDiscoveryId = computed(() => {
 const canConvert = computed(() => {
   return detail.value?.computedStatus === 'lead' && completedDiscoveryId.value !== null
 })
+
+async function handleResendActivation() {
+  if (!clientProfileId.value) return
+  resendLoading.value = true
+
+  try {
+    const result = await resendActivation(clientProfileId.value)
+    if (result.alreadyActivated) {
+      toast.add({
+        title: 'Compte déjà activé',
+        description: 'Cette cliente a déjà activé son compte.',
+        color: 'primary'
+      })
+      await refresh()
+    } else if (result.sent) {
+      toast.add({
+        title: `Invitation envoyée à ${client.value?.firstname ?? 'la cliente'}`,
+        color: 'primary'
+      })
+    }
+  } catch {
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible d\'envoyer l\'invitation.',
+      color: 'error'
+    })
+  } finally {
+    resendLoading.value = false
+  }
+}
 
 function openPauseModal() {
   pauseModalOpen.value = true
