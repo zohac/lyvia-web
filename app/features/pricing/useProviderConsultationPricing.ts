@@ -161,6 +161,7 @@ export async function useProviderConsultationPricing() {
     updateFieldErrors,
     isPlanUpdating,
     clearUpdateError,
+    patchPlan,
     togglePlanActive,
     swapPlanSortOrder
   }

@@ -3,6 +3,7 @@ export type CreateConsultationPricePlanRequest = {
   durationMinutes: number
   amountCents: number
   sortOrder?: number
+  bufferAfterMinutes?: number
 }
 
 export type ConsultationPricePlanIdResponse = {
@@ -13,4 +14,5 @@ export type UpdateConsultationPricePlanRequest = {
   label?: string
   sortOrder?: number
   isActive?: boolean
+  bufferAfterMinutes?: number
 }

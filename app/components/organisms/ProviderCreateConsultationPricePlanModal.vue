@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { eurosToCents } from '../../features/pricing/domain/price'
+import { consultationBufferOptions } from '../../features/pricing/domain/buffer-options'
+import type { CreateConsultationPricePlanRequest } from '../../features/pricing/api/provider-consultation-pricing.contract'
 
 const props = withDefaults(
   defineProps<{
@@ -18,20 +20,25 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (event: 'update:open', value: boolean): void
-  (event: 'submit', payload: { body: ProviderCreateConsultationPricePlanBody }): void
+  (event: 'submit', payload: { body: CreateConsultationPricePlanRequest }): void
 }>()
-
-type ProviderCreateConsultationPricePlanBody = {
-  label: string
-  durationMinutes: number
-  amountCents: number
-  sortOrder?: number
-}
 
 const label = ref('')
 const durationMinutes = ref<number>(60)
 const priceEuros = ref<string>('')
 const sortOrder = ref<number | null>(null)
+const bufferAfterMinutes = ref(0)
+
+const bufferSummary = computed(() => {
+  const duration = durationMinutes.value
+  const buffer = bufferAfterMinutes.value
+  const total = duration + buffer
+  if (!Number.isFinite(duration) || duration <= 0) return null
+  if (buffer === 0) {
+    return `Chaque créneau réservera ${total} min (pas de pause après la consultation)`
+  }
+  return `Chaque créneau réservera ${total} min (${duration} min de consultation + ${buffer} min de pause)`
+})
 
 const localValidationError = computed(() => {
   if (!label.value.trim()) return 'Le libellé est obligatoire.'
@@ -52,6 +59,7 @@ watch(
     durationMinutes.value = 60
     priceEuros.value = ''
     sortOrder.value = props.suggestedSortOrder
+    bufferAfterMinutes.value = 0
   }
 )
 
@@ -72,7 +80,8 @@ function submit() {
       label: label.value.trim(),
       durationMinutes: Math.trunc(durationMinutes.value),
       amountCents: cents,
-      sortOrder: sortOrder.value === null ? undefined : Math.trunc(sortOrder.value)
+      sortOrder: sortOrder.value === null ? undefined : Math.trunc(sortOrder.value),
+      bufferAfterMinutes: bufferAfterMinutes.value
     }
   })
 }
@@ -158,6 +167,30 @@ function submit() {
             />
           </UFormField>
         </div>
+
+        <UFormField
+          label="Pause après la consultation"
+          :error="fieldErrors?.bufferAfterMinutes ?? undefined"
+        >
+          <USelect
+            v-model="bufferAfterMinutes"
+            :items="consultationBufferOptions"
+            value-key="value"
+            :disabled="loading"
+            class="w-full"
+          />
+          <template #hint>
+            <span class="text-sm text-stone-500">Temps de transition entre deux rendez-vous</span>
+          </template>
+        </UFormField>
+
+        <UAlert
+          v-if="bufferSummary"
+          color="info"
+          variant="soft"
+          :description="bufferSummary"
+          icon="i-lucide-info"
+        />
       </div>
     </template>
 

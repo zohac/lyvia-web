@@ -6,6 +6,7 @@ export type ConsultationPricePlan = {
   sortOrder: number
   durationMinutes: number
   amountCents: number
+  bufferAfterMinutes: number
   isActive: boolean
 }
 
