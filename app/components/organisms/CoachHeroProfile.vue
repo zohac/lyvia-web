@@ -81,14 +81,28 @@ defineProps<{
 
           <!-- Right column - Visual accent -->
           <div class="relative hidden lg:col-span-5 lg:flex lg:items-center lg:justify-end">
-            <!-- Abstract shape instead of photo placeholder -->
             <div class="relative">
-              <!-- Organic shape with gradient -->
+              <!-- Ghost shape - offset gradient shadow -->
               <div
-                class="h-[50vh] w-80 rounded-[40%_60%_70%_30%/40%_50%_60%_50%]"
-                style="background: linear-gradient(160deg, rgba(91, 75, 110, 0.15) 0%, rgba(212, 149, 106, 0.2) 100%);"
+                class="hero-photo-shape absolute h-[50vh] w-80 translate-x-4 translate-y-4 bg-gradient-to-br from-[#5b4b6e]/20 to-[#d4956a]/15"
+                aria-hidden="true"
               />
-              <!-- Overlapping accent -->
+              <!-- Photo in organic shape -->
+              <div class="hero-photo-shape relative h-[50vh] w-80 overflow-hidden shadow-2xl shadow-[#5b4b6e]/15">
+                <img
+                  src="/images/sophie_jouan.jpeg"
+                  alt="Sophie Jouan, coach spécialisée ménopause"
+                  class="h-full w-full object-cover object-top"
+                  decoding="async"
+                  loading="eager"
+                >
+                <!-- Soft gradient overlay on edges -->
+                <div
+                  class="pointer-events-none absolute inset-0"
+                  style="background: linear-gradient(160deg, rgba(91, 75, 110, 0.08) 0%, transparent 40%, rgba(212, 149, 106, 0.06) 100%);"
+                />
+              </div>
+              <!-- Overlapping accents -->
               <div
                 class="absolute -bottom-8 -left-12 h-32 w-32 rounded-full border border-[#5b4b6e]/20"
                 style="animation: pulse-slow 4s ease-in-out infinite;"
@@ -114,6 +128,10 @@ defineProps<{
 </template>
 
 <style scoped>
+.hero-photo-shape {
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+}
+
 @keyframes pulse-slow {
   0%, 100% {
     transform: scale(1);

@@ -75,6 +75,7 @@ watchEffect(() => {
       variant: 'white-label',
       layoutStyle: 'dock',
       brandLabel: tenant.value.brand.displayName || 'Votre coach',
+      brandLogoSrc: '/images/logo_aurea_menopause_inline.png',
       brandTo: '/',
       showBrandIcon: false,
       navLinks: [

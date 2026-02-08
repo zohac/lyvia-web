@@ -10,6 +10,7 @@ export type PublicHeaderState = {
   variant: PublicHeaderVariant
   layoutStyle: PublicHeaderLayoutStyle
   brandLabel: string
+  brandLogoSrc?: string
   brandTo: string
   showBrandIcon: boolean
   navLinks: PublicHeaderLink[]
