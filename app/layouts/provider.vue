@@ -82,9 +82,9 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
-          label: 'Tarifs',
-          to: '/provider/pricing/consultations',
-          icon: 'lucide:tags',
+          label: 'Créneaux & Tarifs',
+          to: '/provider/scheduling',
+          icon: 'lucide:clock',
           match: 'prefix' as const
         },
         {

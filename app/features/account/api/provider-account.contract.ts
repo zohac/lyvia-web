@@ -4,6 +4,8 @@ export type ProviderAccountResponse = {
   lastname: string
   bio: string | null
   specialties: string[]
+  defaultDiscoveryDurationMinutes: number
+  discoveryBufferAfterMinutes: number
   updatedAt?: string
 }
 
@@ -12,4 +14,6 @@ export type UpdateProviderAccountRequest = {
   lastname?: string
   bio?: string | null
   specialties?: string[]
+  defaultDiscoveryDurationMinutes?: number
+  discoveryBufferAfterMinutes?: number
 }

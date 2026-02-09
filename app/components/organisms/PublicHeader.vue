@@ -8,6 +8,9 @@ const isDockHeader = computed(() => headerState.value.layoutStyle === 'dock')
 const useKaoraLogoImage = computed(
   () => headerState.value.showBrandIcon && headerState.value.variant !== 'white-label'
 )
+const useCustomLogoImage = computed(
+  () => headerState.value.variant === 'white-label' && !!headerState.value.brandLogoSrc
+)
 </script>
 
 <template>
@@ -35,6 +38,14 @@ const useKaoraLogoImage = computed(
             <span class="sr-only">
               Kaora
             </span>
+          </template>
+          <template v-else-if="useCustomLogoImage">
+            <img
+              :src="headerState.brandLogoSrc"
+              :alt="headerState.brandLabel"
+              class="h-16 w-auto"
+              decoding="async"
+            >
           </template>
           <span
             v-else
@@ -104,6 +115,14 @@ const useKaoraLogoImage = computed(
             <span class="sr-only">
               Kaora
             </span>
+          </template>
+          <template v-else-if="useCustomLogoImage">
+            <img
+              :src="headerState.brandLogoSrc"
+              :alt="headerState.brandLabel"
+              class="h-16 w-auto"
+              decoding="async"
+            >
           </template>
           <span
             v-else

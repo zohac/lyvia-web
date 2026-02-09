@@ -222,13 +222,28 @@ const faqItems: AccordionItem[] = [
     >
       <div class="relative mx-auto max-w-7xl">
         <div class="grid gap-16 lg:grid-cols-12 lg:items-center">
-          <!-- Left - Photo placeholder -->
+          <!-- Left - Photo -->
           <div class="flex justify-center lg:col-span-5">
             <div class="relative">
+              <!-- Ghost shape - offset gradient shadow -->
               <div
-                class="h-[45vh] w-72 rounded-[40%_60%_70%_30%/40%_50%_60%_50%]"
-                style="background: linear-gradient(160deg, rgba(212, 149, 106, 0.25) 0%, rgba(91, 75, 110, 0.2) 100%);"
+                class="bio-photo-shape absolute h-[45vh] w-72 translate-x-4 translate-y-4 bg-gradient-to-br from-[#d4956a]/25 to-[#5b4b6e]/15"
+                aria-hidden="true"
               />
+              <div class="bio-photo-shape relative h-[45vh] w-72 overflow-hidden shadow-2xl shadow-black/20">
+                <img
+                  src="/images/sophie_jouan_2.jpeg"
+                  alt="Sophie Jouan"
+                  class="h-full w-full object-cover object-top"
+                  decoding="async"
+                  loading="lazy"
+                >
+                <!-- Subtle warm overlay -->
+                <div
+                  class="pointer-events-none absolute inset-0"
+                  style="background: linear-gradient(160deg, rgba(212, 149, 106, 0.1) 0%, transparent 50%, rgba(91, 75, 110, 0.08) 100%);"
+                />
+              </div>
               <div
                 class="absolute -bottom-6 -right-6 h-24 w-24 rounded-full border border-[#d4956a]/30"
                 style="animation: pulse-slow 4s ease-in-out infinite;"
@@ -403,6 +418,10 @@ const faqItems: AccordionItem[] = [
 </template>
 
 <style scoped>
+.bio-photo-shape {
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+}
+
 @keyframes pulse-slow {
   0%, 100% {
     transform: scale(1);

@@ -10,7 +10,7 @@ import type { ConsultationPricePlan } from '../../features/consultation/api/cons
  * Règles métier :
  * - Affiche uniquement les plans actifs (`isActive: true`)
  * - Tri par `sortOrder` ASC (ordre stable défini par le provider)
- * - Si aucun plan actif : affiche un empty state avec CTA vers /provider/pricing/consultations
+ * - Si aucun plan actif : affiche un empty state avec CTA vers /provider/scheduling
  */
 
 type PlanOption = {
@@ -120,7 +120,7 @@ function updateSelection(value: string) {
       </div>
 
       <ULink
-        to="/provider/pricing/consultations"
+        to="/provider/scheduling"
         class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-5 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-soft transition-base hover:shadow-floating"
       >
         <Icon
