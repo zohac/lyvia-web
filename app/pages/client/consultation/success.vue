@@ -278,7 +278,7 @@ function retryPolling() {
             <ULink
               v-if="statusLabel === 'confirmed'"
               to="/client/consultation"
-              class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
+              class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating focus-visible:text-white"
             >
               Voir mes rendez-vous
             </ULink>
@@ -287,7 +287,7 @@ function retryPolling() {
             <ULink
               v-else-if="statusLabel === 'timeout'"
               to="/client/dashboard"
-              class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
+              class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating focus-visible:text-white"
             >
               Retour au tableau de bord
             </ULink>
@@ -296,7 +296,7 @@ function retryPolling() {
             <ULink
               v-else-if="statusLabel === 'failed'"
               to="/client/consultation/choose-slot"
-              class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
+              class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating focus-visible:text-white"
             >
               Revenir au choix du créneau
             </ULink>
@@ -315,7 +315,7 @@ function retryPolling() {
             <ULink
               v-if="statusLabel === 'confirmed' || statusLabel === 'failed'"
               to="/client/dashboard"
-              class="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:bg-white"
+              class="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:bg-white hover:text-[color:var(--color-brand-primary)] focus-visible:text-[color:var(--color-brand-primary)]"
             >
               Retour au tableau de bord
             </ULink>

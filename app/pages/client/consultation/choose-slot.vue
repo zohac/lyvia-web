@@ -198,7 +198,7 @@ function retry() {
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <ULink
           :to="discoveryCtaPath"
-          class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
+          class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating focus-visible:text-white"
         >
           <Icon
             name="lucide:phone-call"
@@ -272,7 +272,7 @@ function retry() {
       <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <ULink
           :to="discoveryCtaPath"
-          class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating"
+          class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating focus-visible:text-white"
         >
           <Icon
             name="lucide:phone-call"
