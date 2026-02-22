@@ -121,7 +121,7 @@ function updateSelection(value: string) {
 
       <ULink
         to="/provider/scheduling"
-        class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-5 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-soft transition-base hover:shadow-floating"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[color:var(--color-accent-main)] px-5 text-sm font-bold text-[color:var(--color-accent-contrast)] shadow-soft transition-base hover:text-[color:var(--color-accent-contrast)] hover:shadow-floating focus-visible:text-[color:var(--color-accent-contrast)]"
       >
         <Icon
           name="lucide:plus"

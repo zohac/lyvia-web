@@ -40,19 +40,23 @@ const benefits = [
 const faqItems: AccordionItem[] = [
   {
     label: 'À quel moment commencer un accompagnement pour la ménopause ?',
-    content: 'Même si les premiers signes de la périménopause peuvent sembler anodins, c\'est souvent le bon moment pour commencer un accompagnement. Fatigue, sautes d\'humeur, troubles du sommeil ou prise de poids peuvent indiquer un déséquilibre hormonal naissant. Plus vous agissez tôt, plus vous pouvez vivre cette transition en douceur.'
+    content: 'Même si les premiers signes de la périménopause peuvent sembler anodins, c\'est souvent le bon moment pour commencer un accompagnement. Fatigue persistante, troubles du sommeil, sautes d\'humeur ou prise de poids peuvent indiquer un déséquilibre hormonal. Plus vous agissez tôt, plus vous pouvez traverser cette transition avec sérénité.'
   },
   {
     label: 'Est-ce que l\'accompagnement de Sophie est médical ?',
-    content: 'Non, il s\'agit d\'un accompagnement global non médical, centré sur le bien-être, l\'écoute et l\'équilibre du corps féminin. Sophie propose des repères concrets en alimentation, stress, sommeil, activité physique, ainsi qu\'un soutien émotionnel personnalisé. En cas de besoin, elle vous oriente vers un professionnel de santé.'
+    content: 'Non. Il s\'agit d\'un accompagnement global non médical, centré sur l\'équilibre de vie et le bien-être. Sophie propose des repères concrets en alimentation, gestion du stress, sommeil et mouvement, ainsi qu\'un soutien émotionnel personnalisé. En cas de besoin, elle vous orientera vers un professionnel de santé.'
+  },
+  {
+    label: 'Combien coûte un accompagnement avec Sophie ?',
+    content: 'L\'accompagnement commence par une séance bilan de 1h30 à 100\u00A0€, qui permet de faire le point sur votre situation, vos symptômes et vos objectifs.\n\nLes séances de suivi mensuelles de 45 minutes sont proposées à 80\u00A0€.\n\nUn minimum de 5 séances de suivi est recommandé afin de favoriser un mieux-être durable et des changements ancrés dans le temps. Cette approche progressive permet d\'accompagner le corps et l\'esprit avec douceur et cohérence.'
   },
   {
     label: 'L\'appel gratuit est-il vraiment sans engagement ?',
-    content: 'Oui, totalement. L\'appel découverte de 15 minutes est une première rencontre sans engagement. Il vous permet de poser vos questions, de partager ce que vous vivez, et de voir si l\'approche de Sophie vous convient. Aucune obligation de poursuivre ensuite.'
+    content: 'Oui, totalement. L\'appel découverte de 15 minutes est gratuit et sans engagement. Il vous permet d\'échanger avec Sophie, de poser vos questions et de voir si l\'accompagnement vous correspond.'
   },
   {
     label: 'Est-ce adapté si je suis déjà ménopausée depuis plusieurs années ?',
-    content: 'Oui, bien sûr. Même après la ménopause, il est possible de retrouver de l\'énergie, améliorer son confort de vie, et mieux comprendre son corps. L\'accompagnement s\'adapte à votre parcours, quel que soit le moment où vous le commencez.'
+    content: 'Oui. Même plusieurs années après la ménopause, il est possible de retrouver énergie, confort et équilibre. L\'accompagnement s\'adapte à votre parcours, quel que soit votre stade.'
   }
 ]
 </script>
@@ -372,7 +376,18 @@ const faqItems: AccordionItem[] = [
         <UAccordion
           :items="faqItems"
           aria-label="Questions fréquentes"
-        />
+        >
+          <template #content="{ item }">
+            <div class="pb-3.5 space-y-3 text-sm text-[#4a4255]">
+              <p
+                v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
+                :key="i"
+              >
+                {{ paragraph }}
+              </p>
+            </div>
+          </template>
+        </UAccordion>
       </div>
     </section>
 

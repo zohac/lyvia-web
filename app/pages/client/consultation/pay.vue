@@ -138,7 +138,7 @@ async function handleResume() {
         </p>
         <ULink
           to="/client/dashboard"
-          class="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating hover:brightness-110"
+          class="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating hover:brightness-110 focus-visible:text-white"
         >
           <Icon
             name="lucide:arrow-left"
@@ -175,7 +175,7 @@ async function handleResume() {
         </p>
         <ULink
           to="/client/dashboard"
-          class="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating hover:brightness-110"
+          class="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating hover:brightness-110 focus-visible:text-white"
         >
           Retour au tableau de bord
         </ULink>
@@ -219,7 +219,7 @@ async function handleResume() {
           </button>
           <ULink
             to="/client/dashboard"
-            class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:shadow-floating hover:brightness-110"
+            class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating hover:brightness-110 focus-visible:text-white"
           >
             Retour au tableau de bord
           </ULink>

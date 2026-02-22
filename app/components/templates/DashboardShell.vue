@@ -208,7 +208,7 @@ watch(
           class="group relative mb-6 flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200"
           :class="
             isItemActive(navigation.home)
-              ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md'
+              ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md hover:text-white focus-visible:text-white'
               : 'text-stone-600 hover:bg-stone-100 hover:text-[color:var(--color-crepuscule-800)]'
           "
           :aria-current="isItemActive(navigation.home) ? 'page' : undefined"
@@ -493,7 +493,7 @@ watch(
               class="group relative mb-6 flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200"
               :class="
                 isItemActive(navigation.home)
-                  ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md'
+                  ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md hover:text-white focus-visible:text-white'
                   : 'text-stone-600 hover:bg-stone-100 hover:text-[color:var(--color-crepuscule-800)]'
               "
               :aria-current="isItemActive(navigation.home) ? 'page' : undefined"

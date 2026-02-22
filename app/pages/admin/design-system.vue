@@ -1635,6 +1635,44 @@
                 </ULink>
               </div>
             </ComponentCard>
+
+            <ComponentCard
+              title="ULink en bouton"
+              description="Pattern CTA utilisé dans le flow consultation success."
+            >
+              <div class="space-y-4">
+                <p class="text-sm text-[color:var(--color-brand-muted)]">
+                  Référence: <code>app/pages/client/consultation/success.vue</code>
+                </p>
+
+                <div class="flex flex-wrap gap-3">
+                  <ULink
+                    to="#"
+                    class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating focus-visible:text-white"
+                  >
+                    CTA primaire
+                  </ULink>
+
+                  <ULink
+                    to="#"
+                    class="inline-flex items-center justify-center gap-2 rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:bg-white hover:text-[color:var(--color-brand-primary)] focus-visible:text-[color:var(--color-brand-primary)]"
+                  >
+                    CTA secondaire
+                  </ULink>
+
+                  <ULink
+                    to="#"
+                    class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-primary)] px-6 py-3 text-sm font-bold text-white shadow-soft transition-base hover:text-white hover:shadow-floating focus-visible:text-white"
+                  >
+                    <Icon
+                      name="lucide:arrow-right"
+                      size="16"
+                    />
+                    CTA avec icône
+                  </ULink>
+                </div>
+              </div>
+            </ComponentCard>
           </div>
         </template>
 
