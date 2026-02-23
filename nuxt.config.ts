@@ -62,7 +62,9 @@ export default defineNuxtConfig({
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
       }
     },
-    '/': { prerender: true },
+    // Home page is host-dependent (platform marketing vs white-label tenant),
+    // so it must stay dynamic at runtime.
+    '/': { prerender: false },
     '/client/**': { ssr: false },
     '/provider/**': { ssr: false },
     '/admin/**': { ssr: false }
