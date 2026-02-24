@@ -52,19 +52,14 @@ if (!isPlatformDomain.value && !tenant.value) {
 }
 
 useSeoMeta({
-  title: () => tenant.value?.brand.displayName
-    ? `${tenant.value.brand.displayName} — Accompagnement global pour femmes en périménopause et ménopause`
-    : 'Kaora — Coaching Platform',
+  title: () =>
+    'Kaora — Simplifiez vos accompagnements ménopause | Agenda, paiements, suivi client',
   description: () =>
-    tenant.value
-      ? 'Retrouvez équilibre, énergie et sérénité pendant la ménopause avec un accompagnement humain, global et personnalisé.'
-      : 'Réservez vos rendez-vous, payez en ligne en toute sécurité, et accédez à des contenus utiles — dans une interface apaisante pensée pour durer.',
-  ogTitle: () => tenant.value?.brand.displayName
-    ? `${tenant.value.brand.displayName} — Coaching bienveillant pour femmes en périménopause et ménopause`
-    : undefined,
-  ogDescription: () => tenant.value
-    ? 'Fatigue, insomnies, bouffées de chaleur ? Offrez-vous un accompagnement humain, global et gratuit.'
-    : undefined,
+    'Kaora aide les coachs ménopause et praticiennes du bien-être à fluidifier leurs accompagnements : page publique, agenda, paiements et ressources client, dans une expérience calme. Essai gratuit, sans carte bancaire.',
+  ogTitle: () =>
+    'Kaora — L’espace pro qui simplifie vos accompagnements ménopause',
+  ogDescription: () =>
+    'Page publique, agenda, paiements, ressources : Kaora structure votre pratique sans alourdir votre charge mentale. Essai gratuit, sans carte bancaire.',
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })
