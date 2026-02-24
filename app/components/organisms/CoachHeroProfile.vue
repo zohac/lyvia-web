@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import type { PublicTenantResponse } from '../../features/onboarding/api/onboarding.contract'
+import { usePublicHeaderState } from '../../features/public/state/public-header.state'
 
 defineProps<{
   tenant: PublicTenantResponse
   ctaTo: string
   ctaLabel?: string
 }>()
+
+const headerState = usePublicHeaderState()
+const heroTopOffsetClass = computed(() => {
+  if (headerState.value.layoutStyle !== 'dock') return undefined
+  return headerState.value.variant === 'white-label' ? 'pt-32' : 'pt-28'
+})
 </script>
 
 <template>
@@ -13,6 +20,7 @@ defineProps<{
   <section
     id="essence"
     class="relative flex min-h-[100svh] items-center overflow-hidden bg-[#f5f0eb]"
+    :class="heroTopOffsetClass"
   >
     <!-- Gradient atmosphere - soft warm accents -->
     <div
