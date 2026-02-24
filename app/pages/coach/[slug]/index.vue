@@ -43,10 +43,14 @@ const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 
 useSeoMeta({
-  title: () => `${tenant.value?.brand.displayName ?? 'Coach'} — Accompagnement global pour femmes en périménopause et ménopause`,
-  description: () => 'Retrouvez équilibre, énergie et sérénité pendant la ménopause avec un accompagnement humain, global et personnalisé.',
-  ogTitle: () => `${tenant.value?.brand.displayName ?? 'Coach'} — Coaching bienveillant pour femmes en périménopause et ménopause`,
-  ogDescription: () => 'Fatigue, insomnies, bouffées de chaleur ? Offrez-vous un accompagnement humain, global et gratuit.',
+  title: () =>
+    `${tenant.value?.brand.displayName ?? 'Coach'} — Accompagnement péri-ménopause & ménopause | Appel gratuit 15 min`,
+  description: () =>
+    'Fatigue, prise de poids, insomnies, bouffées de chaleur ? Sophie accompagne les femmes en péri-ménopause et ménopause avec une approche globale : alimentation, stress, sommeil et activité physique. Appel découverte gratuit 15 min, sans engagement.',
+  ogTitle: () =>
+    `${tenant.value?.brand.displayName ?? 'Coach'} — Coaching ménopause & péri-ménopause`,
+  ogDescription: () =>
+    'Vous traversez la péri-ménopause ou la ménopause ? Fatigue, insomnies, prise de poids, irritabilité… Bénéficiez d’un accompagnement global et personnalisé. Réservez votre appel gratuit de 15 min.',
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })
