@@ -51,15 +51,25 @@ if (!isPlatformDomain.value && !tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
+const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
+
 useSeoMeta({
   title: () =>
-    'Kaora — Simplifiez vos accompagnements ménopause | Agenda, paiements, suivi client',
+    isPlatformDomain.value
+      ? 'Kaora — Simplifiez vos accompagnements ménopause | Agenda, paiements, suivi client'
+      : `${whiteLabelBrandName.value} — Accompagnement péri-ménopause & ménopause | Appel gratuit 15 min`,
   description: () =>
-    'Kaora aide les coachs ménopause et praticiennes du bien-être à fluidifier leurs accompagnements : page publique, agenda, paiements et ressources client, dans une expérience calme. Essai gratuit, sans carte bancaire.',
+    isPlatformDomain.value
+      ? 'Kaora aide les coachs ménopause et praticiennes du bien-être à fluidifier leurs accompagnements : page publique, agenda, paiements et ressources client, dans une expérience calme. Essai gratuit, sans carte bancaire.'
+      : `${whiteLabelBrandName.value} accompagne les femmes en péri-ménopause et ménopause avec une approche globale : alimentation, stress, sommeil et activité physique. Appel découverte gratuit 15 min, sans engagement.`,
   ogTitle: () =>
-    'Kaora — L’espace pro qui simplifie vos accompagnements ménopause',
+    isPlatformDomain.value
+      ? 'Kaora — L’espace pro qui simplifie vos accompagnements ménopause'
+      : `${whiteLabelBrandName.value} — Coaching ménopause & péri-ménopause`,
   ogDescription: () =>
-    'Page publique, agenda, paiements, ressources : Kaora structure votre pratique sans alourdir votre charge mentale. Essai gratuit, sans carte bancaire.',
+    isPlatformDomain.value
+      ? 'Page publique, agenda, paiements, ressources : Kaora structure votre pratique sans alourdir votre charge mentale. Essai gratuit, sans carte bancaire.'
+      : 'Vous traversez la péri-ménopause ou la ménopause ? Fatigue, insomnies, prise de poids, irritabilité… Bénéficiez d’un accompagnement global et personnalisé. Réservez votre appel gratuit de 15 min.',
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })

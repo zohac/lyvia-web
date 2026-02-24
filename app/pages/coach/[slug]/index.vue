@@ -41,14 +41,15 @@ if (!tenant.value) {
 const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
+const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
 useSeoMeta({
   title: () =>
-    `${tenant.value?.brand.displayName ?? 'Coach'} — Accompagnement péri-ménopause & ménopause | Appel gratuit 15 min`,
+    `${brandName.value} — Accompagnement péri-ménopause & ménopause | Appel gratuit 15 min`,
   description: () =>
-    'Fatigue, prise de poids, insomnies, bouffées de chaleur ? Sophie accompagne les femmes en péri-ménopause et ménopause avec une approche globale : alimentation, stress, sommeil et activité physique. Appel découverte gratuit 15 min, sans engagement.',
+    `${brandName.value} accompagne les femmes en péri-ménopause et ménopause avec une approche globale : alimentation, stress, sommeil et activité physique. Appel découverte gratuit 15 min, sans engagement.`,
   ogTitle: () =>
-    `${tenant.value?.brand.displayName ?? 'Coach'} — Coaching ménopause & péri-ménopause`,
+    `${brandName.value} — Coaching ménopause & péri-ménopause`,
   ogDescription: () =>
     'Vous traversez la péri-ménopause ou la ménopause ? Fatigue, insomnies, prise de poids, irritabilité… Bénéficiez d’un accompagnement global et personnalisé. Réservez votre appel gratuit de 15 min.',
   ogType: 'website',
