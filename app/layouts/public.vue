@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { usePublicHeaderState } from '../features/public/state/public-header.state'
 import PublicFooter from '../components/organisms/PublicFooter.vue'
 import PublicHeader from '../components/organisms/PublicHeader.vue'
 
@@ -10,7 +9,6 @@ useHead({
 })
 
 const route = useRoute()
-const headerState = usePublicHeaderState()
 
 type PublicLayoutMeta = {
   hideHeader?: boolean
@@ -27,8 +25,6 @@ const publicLayout = computed<PublicLayoutMeta>(() => {
 const showHeader = computed(() => publicLayout.value.hideHeader !== true)
 const showFooter = computed(() => publicLayout.value.hideFooter !== true)
 const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
-
-const isDockHeader = computed(() => headerState.value.layoutStyle === 'dock')
 </script>
 
 <template>
@@ -38,14 +34,10 @@ const isDockHeader = computed(() => headerState.value.layoutStyle === 'dock')
     <main
       v-if="!isFullBleed"
       class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6"
-      :class="isDockHeader ? 'pt-28' : undefined"
     >
       <slot />
     </main>
-    <div
-      v-else
-      :class="isDockHeader ? 'pt-28' : undefined"
-    >
+    <div v-else>
       <slot />
     </div>
 
