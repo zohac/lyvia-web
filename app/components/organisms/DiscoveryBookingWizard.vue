@@ -71,6 +71,16 @@ function updateConsents(value: typeof consents.value) {
 }
 
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
+const isWhiteLabelTenant = computed(() => tenant.value?.brand.mode === 'custom_domain')
+const headerLogoSrc = computed(() =>
+  isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/kaora-logo.png'
+)
+const headerLogoAlt = computed(() =>
+  isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Kaora'
+)
+const headerLogoClass = computed(() =>
+  isWhiteLabelTenant.value ? 'h-14 w-auto' : 'h-10 w-auto'
+)
 const coachInitials = computed(() => {
   const value = coachName.value
   if (!value) return 'K'
@@ -425,9 +435,9 @@ async function submitBooking() {
         class="mb-6 inline-block"
       >
         <img
-          src="/images/kaora-logo.png"
-          alt="Kaora"
-          class="h-10 w-auto"
+          :src="headerLogoSrc"
+          :alt="headerLogoAlt"
+          :class="headerLogoClass"
           decoding="async"
         >
       </ULink>
