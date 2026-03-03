@@ -3,6 +3,7 @@ import type { PublicTenantResponse } from '../features/onboarding/api/onboarding
 import { ApiFetchError } from '../services/api/api-error'
 import { apiFetch } from '../services/api/apiFetch'
 import { setPublicHeader } from '../features/public/state/public-header.state'
+import { isPlatformHost } from '../features/public/domain/platform-host'
 import CoachPublicPageTemplate from '../components/templates/CoachPublicPageTemplate.vue'
 import MarketingLandingB2B from '../components/templates/MarketingLandingB2B.vue'
 
@@ -19,19 +20,7 @@ const hostname = computed(() => requestUrl.hostname.toLowerCase())
 const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
 
-const isPlatformDomain = computed(() => {
-  // Always allow localhost for local development
-  const devHosts = new Set(['localhost', '127.0.0.1', '0.0.0.0'])
-  if (devHosts.has(hostname.value)) return true
-
-  // Exact match (e.g., kaora.app or lyvia-web.vercel.app)
-  if (hostname.value === platformDomain) return true
-
-  // Subdomain match (e.g., www.kaora.app, staging.kaora.app)
-  if (hostname.value.endsWith(`.${platformDomain}`)) return true
-
-  return false
-})
+const isPlatformDomain = computed(() => isPlatformHost(hostname.value, platformDomain))
 
 const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
   try {

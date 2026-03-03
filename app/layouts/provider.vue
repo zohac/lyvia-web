@@ -2,11 +2,7 @@
 import { useProviderStripeStatus } from '../features/stripe/useProviderStripeStatus'
 import { useProviderRequestsBadge } from '../features/provider-requests/useProviderRequestsBadge'
 
-useHead({
-  meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
-  link: [{ rel: 'icon', href: '/favicon.ico' }],
-  htmlAttrs: { lang: 'fr' }
-})
+useCommonLayoutHead()
 
 const stripeStatus = useProviderStripeStatus()
 const requestsBadge = useProviderRequestsBadge()

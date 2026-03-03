@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
 
-useHead({
-  meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
-  link: [{ rel: 'icon', href: '/favicon.ico' }],
-  htmlAttrs: { lang: 'fr' }
-})
+useCommonLayoutHead()
 </script>
 
 <template>
