@@ -13,6 +13,7 @@
     "app/features/availability/domain/**/*.ts",
     "app/features/availability/api/availability.contract.ts",
     "app/features/consultation/domain/**/*.ts",
+    "app/features/public/domain/**/*.ts",
     "app/services/api/api-error.ts",
     "app/services/api/contracts/error-response.ts",
     "tests/types/**/*.d.ts",
