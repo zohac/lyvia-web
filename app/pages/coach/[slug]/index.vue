@@ -2,6 +2,8 @@
 import type { PublicTenantResponse } from '../../../features/onboarding/api/onboarding.contract'
 import { ApiFetchError } from '../../../services/api/api-error'
 import { apiFetch } from '../../../services/api/apiFetch'
+import { usePublicSeo } from '../../../features/seo/usePublicSeo'
+import { resolveCanonical } from '../../../features/seo/resolveCanonical'
 import { setPublicHeader } from '../../../features/public/state/public-header.state'
 import CoachPublicPageTemplate from '../../../components/templates/CoachPublicPageTemplate.vue'
 
@@ -43,17 +45,21 @@ const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
+const providerId = computed(() => tenant.value?.providerId)
+const { seo } = usePublicSeo('coach_profile', providerId)
+
 useSeoMeta({
-  title: () =>
-    `${brandName.value} — Accompagnement péri-ménopause & ménopause | Appel gratuit 15 min`,
-  description: () =>
-    `${brandName.value} accompagne les femmes en péri-ménopause et ménopause avec une approche globale : alimentation, stress, sommeil et activité physique. Appel découverte gratuit 15 min, sans engagement.`,
-  ogTitle: () =>
-    `${brandName.value} — Coaching ménopause & péri-ménopause`,
-  ogDescription: () =>
-    'Vous traversez la péri-ménopause ou la ménopause ? Fatigue, insomnies, prise de poids, irritabilité… Bénéficiez d’un accompagnement global et personnalisé. Réservez votre appel gratuit de 15 min.',
+  title: () => seo.value?.title ?? `${brandName.value} — Coach`,
+  description: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
+  ogTitle: () => seo.value?.title ?? `${brandName.value} — Coach`,
+  ogDescription: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
+  ogImage: () => seo.value?.ogImageUrl ?? undefined,
   ogType: 'website',
   twitterCard: 'summary_large_image'
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl) }]
 })
 
 watchEffect(() => {

@@ -5,8 +5,18 @@ declare const process: { env: Record<string, string | undefined> }
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@nuxtjs/seo'
   ],
+
+  site: {
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://kaora.fr',
+    name: 'Kaora'
+  },
+
+  ogImage: { enabled: false },
+  schemaOrg: { enabled: false },
+  linkChecker: { enabled: false },
 
   // Kaora Design System: Disable color mode entirely (light only)
   ui: {
