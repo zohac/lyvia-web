@@ -84,6 +84,12 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
+          label: 'SEO',
+          to: '/provider/seo',
+          icon: 'lucide:globe',
+          match: 'prefix' as const
+        },
+        {
           label: 'Contenus',
           to: '/provider/content',
           icon: 'lucide:file-text',
