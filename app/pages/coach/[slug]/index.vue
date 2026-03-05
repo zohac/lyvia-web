@@ -21,6 +21,9 @@ if (!slug.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
+const providerId = ref<string | undefined>()
+const { seo } = usePublicSeo('coach_profile', providerId)
+
 const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant:${slug.value}`, async () => {
   try {
     return await apiFetch<PublicTenantResponse>('/public/tenant', {
@@ -40,13 +43,12 @@ if (!tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
+providerId.value = tenant.value.providerId
+
 const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
-
-const providerId = computed(() => tenant.value?.providerId)
-const { seo } = usePublicSeo('coach_profile', providerId)
 
 useSeoMeta({
   title: () => seo.value?.title ?? `${brandName.value} — Coach`,

@@ -17,6 +17,9 @@ definePageMeta({
 const route = useRoute()
 const slug = computed(() => String(route.params.slug ?? '').trim())
 
+const providerId = ref<string | undefined>()
+const { seo } = usePublicSeo('coach_booking', providerId)
+
 const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant:${slug.value}`, async () => {
   try {
     return await apiFetch<PublicTenantResponse>('/public/tenant', {
@@ -32,9 +35,8 @@ const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant
   }
 })
 
-const providerId = computed(() => tenant.value?.providerId)
+providerId.value = tenant.value?.providerId
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
-const { seo } = usePublicSeo('coach_booking', providerId)
 
 useSeoMeta({
   title: () => seo.value?.title ?? `Réserver avec ${brandName.value}`,
