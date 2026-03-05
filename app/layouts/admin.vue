@@ -19,6 +19,12 @@ const navigation = {
           to: '/admin/providers',
           icon: 'lucide:users',
           match: 'prefix' as const
+        },
+        {
+          label: 'SEO',
+          to: '/admin/seo',
+          icon: 'lucide:globe',
+          match: 'exact' as const
         }
       ]
     },
