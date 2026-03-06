@@ -15,14 +15,12 @@ definePageMeta({
 })
 
 const route = useRoute()
+const origin = useRequestURL().origin
 const slug = computed(() => String(route.params.slug ?? '').trim())
 
 if (!slug.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
-
-const providerId = ref<string | undefined>()
-const { seo } = usePublicSeo('coach_profile', providerId)
 
 const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant:${slug.value}`, async () => {
   try {
@@ -43,7 +41,8 @@ if (!tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
-providerId.value = tenant.value.providerId
+const providerId = computed(() => tenant.value?.providerId)
+const { seo } = usePublicSeo('coach_profile', providerId)
 
 const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 
@@ -61,7 +60,7 @@ useSeoMeta({
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl) }]
+  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) }]
 })
 
 watchEffect(() => {
@@ -74,7 +73,7 @@ watchEffect(() => {
     navLinks: [
       { label: 'L\'Essence', href: '#essence' },
       { label: 'Accompagnement', href: '#accompagnement' },
-      { label: 'Sophie', href: '#qui-suis-je' }
+      { label: brandName.value, href: '#qui-suis-je' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',

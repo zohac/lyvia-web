@@ -4,10 +4,12 @@ import type { AccordionItem } from '@nuxt/ui'
 import type { PublicTenantResponse } from '../../features/onboarding/api/onboarding.contract'
 import CoachHeroProfile from '../organisms/CoachHeroProfile.vue'
 
-defineProps<{
+const props = defineProps<{
   tenant: PublicTenantResponse
   ctaTo: string
 }>()
+
+const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre coach')
 
 const pillars = [
   {
@@ -43,16 +45,16 @@ const faqItems: AccordionItem[] = [
     content: 'Même si les premiers signes de la périménopause peuvent sembler anodins, c\'est souvent le bon moment pour commencer un accompagnement. Fatigue persistante, troubles du sommeil, sautes d\'humeur ou prise de poids peuvent indiquer un déséquilibre hormonal. Plus vous agissez tôt, plus vous pouvez traverser cette transition avec sérénité.'
   },
   {
-    label: 'Est-ce que l\'accompagnement de Sophie est médical ?',
-    content: 'Non. Il s\'agit d\'un accompagnement global non médical, centré sur l\'équilibre de vie et le bien-être. Sophie propose des repères concrets en alimentation, gestion du stress, sommeil et mouvement, ainsi qu\'un soutien émotionnel personnalisé. En cas de besoin, elle vous orientera vers un professionnel de santé.'
+    label: `Est-ce que l'accompagnement de ${coachName.value} est médical ?`,
+    content: `Non. Il s'agit d'un accompagnement global non médical, centré sur l'équilibre de vie et le bien-être. ${coachName.value} propose des repères concrets en alimentation, gestion du stress, sommeil et mouvement, ainsi qu'un soutien émotionnel personnalisé. En cas de besoin, vous serez orienté(e) vers un professionnel de santé.`
   },
   {
-    label: 'Combien coûte un accompagnement avec Sophie ?',
-    content: 'L\'accompagnement commence par une séance bilan de 1h30 à 100\u00A0€, qui permet de faire le point sur votre situation, vos symptômes et vos objectifs.\n\nLes séances de suivi mensuelles de 45 minutes sont proposées à 80\u00A0€.\n\nUn minimum de 5 séances de suivi est recommandé afin de favoriser un mieux-être durable et des changements ancrés dans le temps. Cette approche progressive permet d\'accompagner le corps et l\'esprit avec douceur et cohérence.'
+    label: `Combien coûte un accompagnement avec ${coachName.value} ?`,
+    content: `L'accompagnement commence par une séance bilan de 1h30 à 100\u00A0€, qui permet de faire le point sur votre situation, vos symptômes et vos objectifs.\n\nLes séances de suivi mensuelles de 45 minutes sont proposées à 80\u00A0€.\n\nUn minimum de 5 séances de suivi est recommandé afin de favoriser un mieux-être durable et des changements ancrés dans le temps. Cette approche progressive permet d'accompagner le corps et l'esprit avec douceur et cohérence.`
   },
   {
-    label: 'L\'appel gratuit est-il vraiment sans engagement ?',
-    content: 'Oui, totalement. L\'appel découverte de 15 minutes est gratuit et sans engagement. Il vous permet d\'échanger avec Sophie, de poser vos questions et de voir si l\'accompagnement vous correspond.'
+    label: `L'appel gratuit est-il vraiment sans engagement ?`,
+    content: `Oui, totalement. L'appel découverte de 15 minutes est gratuit et sans engagement. Il vous permet d'échanger avec ${coachName.value}, de poser vos questions et de voir si l'accompagnement vous correspond.`
   },
   {
     label: 'Est-ce adapté si je suis déjà ménopausée depuis plusieurs années ?',
@@ -104,7 +106,7 @@ const faqItems: AccordionItem[] = [
 
           <p class="text-lg font-medium italic text-[#5b4b6e]">
             Il est temps de comprendre ce que vit votre corps
-            — et de vous offrir le soutien que vous méritez.
+            - et de vous offrir le soutien que vous méritez.
           </p>
         </div>
       </div>
@@ -153,7 +155,7 @@ const faqItems: AccordionItem[] = [
             class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-8 py-4 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#c47a4a] hover:shadow-lg"
           >
             <span class="flex items-center gap-3">
-              Réserver mon appel gratuit avec Sophie
+              Réserver mon appel gratuit avec {{ coachName }}
               <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
             </span>
           </UButton>
@@ -181,7 +183,7 @@ const faqItems: AccordionItem[] = [
 
         <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
           Une approche globale, personnalisée et respectueuse du corps féminin.
-          Sophie vous guide avec douceur à travers 4 axes essentiels.
+          {{ coachName }} vous guide avec douceur à travers 4 axes essentiels.
         </p>
 
         <!-- 4 Pillars grid -->
@@ -213,7 +215,7 @@ const faqItems: AccordionItem[] = [
             clarifier vos ressentis, et traverser cette étape en confiance.
           </p>
           <p class="mt-4 text-sm text-[#857d8c]">
-            En cas de besoin, Sophie vous orientera vers un professionnel de santé compétent.
+            En cas de besoin, {{ coachName }} vous orientera vers un professionnel de santé compétent.
           </p>
         </div>
       </div>
@@ -237,7 +239,7 @@ const faqItems: AccordionItem[] = [
               <div class="bio-photo-shape relative h-[45vh] w-72 overflow-hidden shadow-2xl shadow-black/20">
                 <img
                   src="/images/sophie_jouan_2.jpeg"
-                  alt="Sophie Jouan"
+                  :alt="coachName"
                   class="h-full w-full object-cover object-top"
                   decoding="async"
                   loading="lazy"
@@ -262,10 +264,10 @@ const faqItems: AccordionItem[] = [
             </span>
 
             <h2 class="font-serif text-4xl leading-tight text-white">
-              Je m'appelle Sophie
+              Je m'appelle {{ coachName }}
             </h2>
             <p class="mt-4 text-lg text-[#d4956a]">
-              Coach spécialisée dans l'accompagnement des femmes
+              Coach spécialisé(e) dans l'accompagnement des femmes
               pendant la périménopause et la ménopause.
             </p>
 
@@ -417,7 +419,7 @@ const faqItems: AccordionItem[] = [
             class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-10 py-5 font-semibold text-white transition-all duration-300 hover:bg-transparent hover:text-[#f0b48f]"
           >
             <span class="flex items-center gap-3">
-              Je prends rendez-vous avec Sophie
+              Je prends rendez-vous avec {{ coachName }}
               <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
             </span>
           </UButton>

@@ -15,10 +15,8 @@ definePageMeta({
 })
 
 const route = useRoute()
+const origin = useRequestURL().origin
 const slug = computed(() => String(route.params.slug ?? '').trim())
-
-const providerId = ref<string | undefined>()
-const { seo } = usePublicSeo('coach_booking', providerId)
 
 const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant:${slug.value}`, async () => {
   try {
@@ -35,7 +33,12 @@ const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant
   }
 })
 
-providerId.value = tenant.value?.providerId
+if (!tenant.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
+}
+
+const providerId = computed(() => tenant.value?.providerId)
+const { seo } = usePublicSeo('coach_booking', providerId)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
 useSeoMeta({
@@ -49,6 +52,7 @@ useSeoMeta({
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl) }]
+  titleTemplate: (title?: string) => title || '',
+  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) }]
 })
 </script>
