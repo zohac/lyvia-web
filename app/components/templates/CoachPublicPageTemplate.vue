@@ -59,6 +59,10 @@ const faqItems: AccordionItem[] = [
   {
     label: 'Est-ce adapté si je suis déjà ménopausée depuis plusieurs années ?',
     content: 'Oui. Même plusieurs années après la ménopause, il est possible de retrouver énergie, confort et équilibre. L\'accompagnement s\'adapte à votre parcours, quel que soit votre stade.'
+  },
+  {
+    label: 'Les accompagnements se font-ils en présentiel ou en visio ?',
+    content: `Tous les accompagnements se déroulent en visio. Basée à Valognes, près de Cherbourg, dans le Nord Cotentin (Manche, 50), ${coachName.value} accompagne des femmes partout en France. Pas besoin de vous déplacer : vous gagnez du temps et bénéficiez d'un accompagnement personnalisé, dans le confort de chez vous.`
   }
 ]
 </script>
@@ -267,27 +271,39 @@ const faqItems: AccordionItem[] = [
               Je m'appelle {{ coachName }}
             </h2>
             <p class="mt-4 text-lg text-[#d4956a]">
-              Coach spécialisé(e) dans l'accompagnement des femmes
-              pendant la périménopause et la ménopause.
+              Infirmière pendant 20 ans · Spécialiste de l'accompagnement
+              en périménopause et ménopause
             </p>
 
+            <!-- Badges localisation + visio -->
+            <div class="mt-6 flex flex-wrap gap-3">
+              <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
+                <span aria-hidden="true">&#x1F4CD;</span> Basée à Valognes · Nord Cotentin, Manche (50)
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
+                <span aria-hidden="true">&#x1F4BB;</span> Accompagnements 100% en visio · Toute la France
+              </span>
+            </div>
+
             <div class="mt-10 space-y-6 text-base leading-relaxed text-[#b9aac7]">
+              <p>
+                Infirmière pendant 20 ans, j'ai développé une solide expérience
+                de l'accompagnement humain, fondée sur l'écoute, l'empathie
+                et la compréhension des besoins de chacun.
+              </p>
               <p>
                 Comme beaucoup de femmes, j'ai traversé cette période sans trop
                 comprendre ce qui m'arrivait. Prise de poids soudaine, insomnies,
                 anxiété, chute d'énergie... Et des réponses médicales souvent vagues
-                ou inadaptées.
+                ou inadaptées. C'est en cherchant, en expérimentant, en me formant,
+                que j'ai compris ce qui fonctionne vraiment.
               </p>
               <p>
-                C'est en cherchant, en expérimentant, en me formant, que j'ai compris
-                ce qui fonctionne vraiment. Aujourd'hui, j'aide les femmes à retrouver
-                leur équilibre, leur confiance et leur joie de vivre à travers
-                un accompagnement global et profondément humain.
-              </p>
-              <p>
+                Cette expérience nourrit aujourd'hui ma façon d'accompagner les femmes
+                en périménopause et ménopause, avec attention, respect et bienveillance.
                 Ce que je propose, c'est un espace où l'on peut se dire les choses,
-                sans jugement. Un moment pour soi, pour comprendre son corps, écouter
-                ses besoins... et s'ouvrir à un second printemps.
+                sans jugement. Un moment pour soi, pour comprendre son corps
+                et écouter ses besoins.
               </p>
             </div>
           </div>
