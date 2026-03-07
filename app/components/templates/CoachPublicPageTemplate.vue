@@ -278,10 +278,20 @@ const faqItems: AccordionItem[] = [
             <!-- Badges localisation + visio -->
             <div class="mt-6 flex flex-wrap gap-3">
               <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
-                <span aria-hidden="true">&#x1F4CD;</span> Basée à Valognes · Nord Cotentin, Manche (50)
+                <UIcon
+                  name="lucide:map-pin"
+                  size="16"
+                  aria-hidden="true"
+                />
+                Basée à Valognes · Nord Cotentin, Manche (50)
               </span>
               <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
-                <span aria-hidden="true">&#x1F4BB;</span> Accompagnements 100% en visio · Toute la France
+                <UIcon
+                  name="lucide:video"
+                  size="16"
+                  aria-hidden="true"
+                />
+                Accompagnements 100% en visio · Toute la France
               </span>
             </div>
 
