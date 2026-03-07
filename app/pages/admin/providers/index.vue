@@ -1,200 +1,3 @@
-<template>
-  <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Providers
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Gestion des comptes Stripe Connect des coachs
-        </p>
-      </div>
-    </section>
-
-    <!-- Filters -->
-    <section class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <!-- Search -->
-      <div class="relative max-w-md flex-1">
-        <UIcon
-          name="lucide:search"
-          size="18"
-          class="absolute left-4 top-1/2 -translate-y-1/2 text-[color:var(--color-brand-muted)]"
-        />
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Rechercher par nom ou email..."
-          class="w-full rounded-full border border-[color:var(--color-brand-subtle)] bg-white py-3 pl-12 pr-4 text-sm text-[color:var(--color-brand-primary)] placeholder-[color:var(--color-brand-muted)] shadow-sm transition-shadow focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kaora-200)]"
-          @input="debouncedSearch"
-        >
-      </div>
-
-      <!-- Stripe Status Filter -->
-      <div class="flex items-center gap-3">
-        <span class="text-sm text-[color:var(--color-brand-muted)]">Statut Stripe:</span>
-        <div class="flex gap-2">
-          <button
-            v-for="filter in stripeStatusFilters"
-            :key="filter.value"
-            :class="[
-              'rounded-full px-4 py-2 text-sm font-medium transition-all',
-              stripeStatus === filter.value
-                ? 'bg-[color:var(--color-brand-solid)] text-white shadow-sm'
-                : 'border border-[color:var(--color-brand-subtle)] bg-white text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
-            ]"
-            @click="setStripeStatus(filter.value)"
-          >
-            {{ filter.label }}
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Providers Table -->
-    <section class="relative overflow-hidden rounded-blob-a border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-kaora-50)]/55 shadow-soft">
-      <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--color-kaora-100)] opacity-30 blur-[100px]" />
-
-      <!-- Loading State -->
-      <div
-        v-if="pending"
-        class="relative z-10 flex items-center justify-center py-20"
-      >
-        <UIcon
-          name="lucide:loader-2"
-          size="32"
-          class="animate-spin text-[color:var(--color-brand-muted)]"
-        />
-      </div>
-
-      <!-- Error State -->
-      <div
-        v-else-if="error"
-        class="relative z-10 p-8 text-center"
-      >
-        <UIcon
-          name="lucide:alert-circle"
-          size="48"
-          class="mx-auto mb-4 text-red-500"
-        />
-        <p class="text-lg font-medium text-red-800">
-          Erreur lors du chargement des providers
-        </p>
-        <UButton
-          variant="outline"
-          color="neutral"
-          class="mt-4 rounded-full"
-          @click="() => refresh()"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            size="16"
-          />
-          Réessayer
-        </UButton>
-      </div>
-
-      <!-- Empty State -->
-      <div
-        v-else-if="!providers?.items?.length"
-        class="relative z-10 p-12 text-center"
-      >
-        <UIcon
-          name="lucide:users"
-          size="48"
-          class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
-        />
-        <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
-          Aucun provider trouvé
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun provider n\'est encore inscrit.' }}
-        </p>
-      </div>
-
-      <!-- Table -->
-      <div
-        v-else
-        class="relative z-10"
-      >
-        <UTable
-          :data="providers.items"
-          :columns="columns"
-          class="[&_table]:border-separate [&_table]:border-spacing-0 [&_td]:border-b [&_td]:border-[color:var(--color-brand-subtle)]/50 [&_td]:bg-transparent [&_td]:px-6 [&_td]:py-4 [&_th]:border-b [&_th]:border-[color:var(--color-brand-subtle)] [&_th]:bg-[color:var(--color-surface-highlight)]/50 [&_th]:px-6 [&_th]:py-3 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[0.15em] [&_th]:text-[color:var(--color-brand-muted)] [&_tr:hover_td]:bg-[color:var(--color-kaora-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors"
-          @select="onRowSelect"
-        />
-
-        <!-- Pagination -->
-        <div
-          v-if="providers.page.nextCursor"
-          class="flex justify-center border-t border-[color:var(--color-brand-subtle)]/50 p-4"
-        >
-          <UButton
-            variant="outline"
-            color="neutral"
-            class="rounded-full"
-            :loading="loadingMore"
-            @click="loadMore"
-          >
-            <UIcon
-              name="lucide:chevron-down"
-              size="16"
-            />
-            Charger plus
-          </UButton>
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Access Card -->
-    <section class="mt-8 rounded-blob-b border border-[rgba(28,25,23,0.10)] bg-white/75 p-8 shadow-soft backdrop-blur">
-      <div class="grid gap-2">
-        <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-          Accès direct par ID
-        </h2>
-        <p class="text-sm text-[color:var(--color-brand-secondary)]">
-          Entrez l'ID d'un provider pour accéder directement à ses informations
-        </p>
-      </div>
-
-      <form
-        class="mt-6 flex gap-4"
-        @submit.prevent="goToProvider"
-      >
-        <div class="flex-1">
-          <input
-            v-model="providerIdInput"
-            type="text"
-            placeholder="00000000-0000-0000-0000-000000000000"
-            class="w-full rounded-full border border-[color:var(--color-brand-subtle)] bg-white/80 px-5 py-3 font-mono text-sm text-[color:var(--color-brand-primary)] placeholder-[color:var(--color-brand-muted)] backdrop-blur transition-all focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-kaora-200)]"
-          >
-        </div>
-        <UButton
-          type="submit"
-          color="primary"
-          :disabled="!isValidUuid"
-          class="rounded-full"
-        >
-          <UIcon
-            name="lucide:arrow-right"
-            size="18"
-          />
-          Voir
-        </UButton>
-      </form>
-
-      <p
-        v-if="providerIdInput && !isValidUuid"
-        class="mt-2 text-sm text-red-600"
-      >
-        Format UUID invalide
-      </p>
-    </section>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { h } from 'vue'
 import type { TableColumn, TableRow } from '@nuxt/ui'
@@ -333,9 +136,9 @@ const columns: TableColumn<AdminProviderListItem>[] = [
       const stripe = row.original.stripe
       if (!stripe.stripeAccountId) {
         return h('span', {
-          class: 'inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600'
+          class: 'inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-neutral-100)] px-2.5 py-1 text-xs font-medium text-[color:var(--color-neutral-600)]'
         }, [
-          h('span', { class: 'h-1.5 w-1.5 rounded-full bg-gray-400' }),
+          h('span', { class: 'h-1.5 w-1.5 rounded-full bg-[color:var(--color-neutral-400)]' }),
           'Non lié'
         ])
       }
@@ -387,3 +190,200 @@ function goToProvider() {
   }
 }
 </script>
+
+<template>
+  <div>
+    <!-- Page Header -->
+    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
+      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-crepuscule-600)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
+
+      <div class="grid gap-2">
+        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
+          Providers
+        </h1>
+        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
+          Gestion des comptes Stripe Connect des coachs
+        </p>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <!-- Search -->
+      <div class="max-w-md flex-1">
+        <UInput
+          v-model="searchQuery"
+          placeholder="Rechercher par nom ou email..."
+          icon="i-lucide-search"
+          size="lg"
+          class="w-full"
+          @input="debouncedSearch"
+        />
+      </div>
+
+      <!-- Stripe Status Filter -->
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-[color:var(--color-brand-muted)]">Statut Stripe :</span>
+        <div class="flex gap-2">
+          <button
+            v-for="filter in stripeStatusFilters"
+            :key="filter.value"
+            :class="[
+              'rounded-full px-4 py-2 text-sm font-medium transition-all',
+              stripeStatus === filter.value
+                ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-sm'
+                : 'border border-[color:var(--color-border-subtle)] bg-white text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-crepuscule-400)] hover:text-[color:var(--color-brand-primary)]'
+            ]"
+            @click="setStripeStatus(filter.value)"
+          >
+            {{ filter.label }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Providers Table -->
+    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-white shadow-soft">
+      <!-- Loading State -->
+      <div
+        v-if="pending"
+        class="flex items-center justify-center py-20"
+      >
+        <UIcon
+          name="lucide:loader-2"
+          size="32"
+          class="animate-spin text-[color:var(--color-brand-muted)]"
+        />
+      </div>
+
+      <!-- Error State -->
+      <div
+        v-else-if="error"
+        class="p-8 text-center"
+      >
+        <UIcon
+          name="lucide:alert-circle"
+          size="48"
+          class="mx-auto mb-4 text-red-500"
+        />
+        <p class="text-lg font-medium text-red-800">
+          Erreur lors du chargement des providers
+        </p>
+        <UButton
+          variant="outline"
+          color="neutral"
+          class="mt-4 rounded-full"
+          @click="() => refresh()"
+        >
+          <UIcon
+            name="lucide:refresh-cw"
+            size="16"
+          />
+          Réessayer
+        </UButton>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="!providers?.items?.length"
+        class="p-12 text-center"
+      >
+        <UIcon
+          name="lucide:users"
+          size="48"
+          class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
+        />
+        <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
+          Aucun provider trouvé
+        </p>
+        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun provider n\'est encore inscrit.' }}
+        </p>
+      </div>
+
+      <!-- Table -->
+      <div v-else>
+        <UTable
+          :data="providers.items"
+          :columns="columns"
+          class="[&_table]:border-separate [&_table]:border-spacing-0 [&_td]:border-b [&_td]:border-[color:var(--color-border-subtle)] [&_td]:bg-transparent [&_td]:px-6 [&_td]:py-4 [&_th]:border-b [&_th]:border-[color:var(--color-border-subtle)] [&_th]:bg-[color:var(--color-crepuscule-50)]/50 [&_th]:px-6 [&_th]:py-3 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[0.15em] [&_th]:text-[color:var(--color-brand-muted)] [&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors"
+          @select="onRowSelect"
+        />
+
+        <!-- Pagination -->
+        <div
+          v-if="providers.page.nextCursor"
+          class="flex justify-center border-t border-[color:var(--color-border-subtle)] p-4"
+        >
+          <UButton
+            variant="outline"
+            color="neutral"
+            class="rounded-full"
+            :loading="loadingMore"
+            @click="loadMore"
+          >
+            <UIcon
+              name="lucide:chevron-down"
+              size="16"
+            />
+            Charger plus
+          </UButton>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Access Card -->
+    <section class="mt-8 overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-8 shadow-soft backdrop-blur">
+      <div class="flex items-start gap-4">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
+          <UIcon
+            name="lucide:hash"
+            size="20"
+            class="text-[color:var(--color-crepuscule-600)]"
+          />
+        </div>
+        <div class="grid gap-1">
+          <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
+            Accès direct par ID
+          </h2>
+          <p class="text-sm text-[color:var(--color-brand-secondary)]">
+            Entrez l'ID d'un provider pour accéder directement à ses informations
+          </p>
+        </div>
+      </div>
+
+      <form
+        class="mt-6 flex gap-4"
+        @submit.prevent="goToProvider"
+      >
+        <div class="flex-1">
+          <UInput
+            v-model="providerIdInput"
+            placeholder="00000000-0000-0000-0000-000000000000"
+            size="lg"
+            class="w-full font-mono"
+          />
+        </div>
+        <UButton
+          type="submit"
+          color="primary"
+          :disabled="!isValidUuid"
+          class="rounded-full"
+        >
+          <UIcon
+            name="lucide:arrow-right"
+            size="18"
+          />
+          Voir
+        </UButton>
+      </form>
+
+      <p
+        v-if="providerIdInput && !isValidUuid"
+        class="mt-2 text-sm text-[color:var(--color-error-600)]"
+      >
+        Format UUID invalide
+      </p>
+    </section>
+  </div>
+</template>

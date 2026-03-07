@@ -61,12 +61,10 @@ async function saveSlug() {
   slugError.value = null
 
   try {
-    // Direct apiFetch to capture specific error codes (updateAccount swallows errors)
     await apiFetch<ProviderAccountResponse>('/provider/account', {
       method: 'PATCH',
       body: { slug: slugValue.value }
     })
-    // Re-sync composable state (watcher updates savedSlug automatically)
     await providerAccount.fetchAccount()
     toast.add({ title: 'URL mise à jour', color: 'success' })
   } catch (e: unknown) {
@@ -230,110 +228,153 @@ async function retryLoad() {
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl space-y-10">
-    <!-- Page header -->
-    <header>
-      <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
-        SEO
-      </h1>
-      <p class="mt-1 text-stone-500">
-        Optimisez le référencement de vos pages publiques
-      </p>
-    </header>
+  <div class="mx-auto max-w-3xl space-y-8">
+    <!-- Page Header -->
+    <section class="relative pl-6">
+      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
+      <div class="grid gap-2">
+        <h1 class="font-serif text-3xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] sm:text-4xl">
+          Référencement
+        </h1>
+        <p class="text-base font-medium text-[color:var(--color-brand-secondary)]">
+          Optimisez le SEO de vos pages publiques
+        </p>
+      </div>
+    </section>
 
     <!-- Global error + retry -->
     <div
       v-if="loadError"
-      class="space-y-4"
+      class="rounded-2xl border border-red-200 bg-red-50 p-8 text-center"
     >
-      <UAlert
-        color="error"
-        variant="soft"
-        title="Impossible de charger la configuration"
-        :description="loadError"
-        icon="i-lucide-alert-circle"
+      <UIcon
+        name="lucide:alert-circle"
+        size="48"
+        class="mx-auto mb-4 text-red-500"
       />
-      <div class="flex justify-center">
-        <UButton
-          color="neutral"
-          variant="soft"
-          :loading="isLoading"
-          @click="retryLoad"
-        >
-          Réessayer
-        </UButton>
-      </div>
+      <p class="text-lg font-medium text-red-800">
+        Impossible de charger la configuration
+      </p>
+      <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
+        {{ loadError }}
+      </p>
+      <UButton
+        color="neutral"
+        variant="outline"
+        class="mt-6 rounded-full"
+        :loading="isLoading"
+        @click="retryLoad"
+      >
+        <UIcon
+          name="lucide:refresh-cw"
+          size="16"
+        />
+        Réessayer
+      </UButton>
     </div>
 
     <!-- Loading skeleton -->
     <div
       v-else-if="isLoading"
-      class="space-y-8"
+      class="space-y-6"
     >
-      <USkeleton class="h-48 w-full rounded-lg" />
-      <USkeleton class="h-64 w-full rounded-lg" />
-      <USkeleton class="h-64 w-full rounded-lg" />
+      <div
+        v-for="i in 3"
+        :key="i"
+        class="h-48 animate-pulse rounded-2xl border border-[color:var(--color-border-subtle)] bg-white/75 p-8"
+      >
+        <div class="h-6 w-48 rounded bg-[color:var(--color-brand-subtle)]" />
+        <div class="mt-6 space-y-4">
+          <div class="h-10 rounded bg-[color:var(--color-brand-subtle)]" />
+          <div class="h-20 rounded bg-[color:var(--color-brand-subtle)]" />
+        </div>
+      </div>
     </div>
 
     <template v-else>
-      <!-- ═══════════════════════════════════════════ -->
-      <!-- Section 1 — Coach-slug                     -->
-      <!-- ═══════════════════════════════════════════ -->
-      <section class="space-y-4">
-        <h2 class="text-xl font-semibold text-stone-900">
-          URL de votre profil
-        </h2>
+      <!-- Section 1 — Coach-slug -->
+      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+        <div class="mb-6 flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
+            <UIcon
+              name="lucide:link"
+              size="20"
+              class="text-[color:var(--color-crepuscule-600)]"
+            />
+          </div>
+          <div>
+            <h2 class="font-serif text-xl italic text-[color:var(--color-brand-primary)] sm:text-2xl">
+              URL de votre profil
+            </h2>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Personnalisez l'adresse de votre page publique
+            </p>
+          </div>
+        </div>
 
-        <UFormField
-          label="Coach-slug"
-          hint="Lettres minuscules, chiffres et tirets uniquement"
-          :error="slugFormatError ?? slugError ?? undefined"
-        >
-          <UInput
-            v-model="slugValue"
-            placeholder="sophie-coach-bien-etre"
-            class="w-full sm:w-96"
-          />
-        </UFormField>
-
-        <p class="text-sm text-stone-500">
-          Votre profil sera accessible à :
-          <span class="font-medium text-stone-700">{{ host }}/coach/{{ slugValue }}</span>
-        </p>
-
-        <div class="flex justify-end">
-          <UButton
-            color="primary"
-            :loading="slugSaving"
-            :disabled="!isSlugDirty || !!slugFormatError"
-            @click="saveSlug"
+        <div class="space-y-4">
+          <UFormField
+            label="Coach-slug"
+            hint="minuscules, chiffres et tirets"
+            :error="slugFormatError ?? slugError ?? undefined"
           >
-            Enregistrer
-          </UButton>
+            <UInput
+              v-model="slugValue"
+              placeholder="sophie-coach-bien-etre"
+              class="w-full sm:w-96"
+            />
+          </UFormField>
+
+          <div class="rounded-xl bg-[color:var(--color-crepuscule-50)] px-4 py-3">
+            <p class="text-sm text-[color:var(--color-brand-secondary)]">
+              Votre profil sera accessible à :
+            </p>
+            <p class="mt-1 font-mono text-sm font-medium text-[color:var(--color-brand-primary)]">
+              {{ host }}/coach/{{ slugValue || '...' }}
+            </p>
+          </div>
+
+          <div class="flex justify-end">
+            <UButton
+              color="primary"
+              :loading="slugSaving"
+              :disabled="!isSlugDirty || !!slugFormatError"
+              @click="saveSlug"
+            >
+              Enregistrer
+            </UButton>
+          </div>
         </div>
       </section>
 
-      <USeparator />
-
-      <!-- ═══════════════════════════════════════════ -->
-      <!-- Section 2 — Page profil SEO                -->
-      <!-- ═══════════════════════════════════════════ -->
-      <section class="space-y-4">
-        <div class="flex items-center gap-2">
-          <h2 class="text-xl font-semibold text-stone-900">
-            Page profil
-          </h2>
-          <UBadge
-            v-if="profileEntry?.hasAdminOverride"
-            color="warning"
-            variant="subtle"
-          >
-            Géré par l'admin
-          </UBadge>
+      <!-- Section 2 — Page profil SEO -->
+      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+        <div class="mb-6 flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
+            <UIcon
+              name="lucide:user"
+              size="20"
+              class="text-[color:var(--color-crepuscule-600)]"
+            />
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h2 class="font-serif text-xl italic text-[color:var(--color-brand-primary)] sm:text-2xl">
+                Page profil
+              </h2>
+              <UBadge
+                v-if="profileEntry?.hasAdminOverride"
+                color="warning"
+                variant="subtle"
+              >
+                Géré par l'admin
+              </UBadge>
+            </div>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Métadonnées SEO de /coach/{{ savedSlug }}
+            </p>
+          </div>
         </div>
-        <p class="text-sm text-stone-500">
-          Métadonnées SEO de votre page /coach/{{ savedSlug }}
-        </p>
 
         <UAlert
           v-if="profileEntry?.hasAdminOverride"
@@ -342,90 +383,100 @@ async function retryLoad() {
           title="Gestion centralisée"
           description="Les métadonnées de cette page sont gérées par l'administrateur."
           icon="i-lucide-shield"
+          class="mb-6"
         />
 
-        <UFormField label="Titre SEO">
-          <template #hint>
-            {{ profileTitle?.length ?? 0 }}/70
-          </template>
-          <UInput
-            v-model="profileTitle"
-            :disabled="profileEntry?.hasAdminOverride"
-            maxlength="70"
-            class="w-full"
+        <div class="space-y-4">
+          <UFormField label="Titre SEO">
+            <template #hint>
+              {{ profileTitle?.length ?? 0 }}/70
+            </template>
+            <UInput
+              v-model="profileTitle"
+              :disabled="profileEntry?.hasAdminOverride"
+              maxlength="70"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Description SEO">
+            <template #hint>
+              {{ profileDescription?.length ?? 0 }}/160
+            </template>
+            <UTextarea
+              v-model="profileDescription"
+              :disabled="profileEntry?.hasAdminOverride"
+              maxlength="160"
+              :rows="3"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="URL image OG">
+            <UInput
+              v-model="profileOgImage"
+              :disabled="profileEntry?.hasAdminOverride"
+              placeholder="https://..."
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="URL canonique">
+            <UInput
+              v-model="profileCanonical"
+              :disabled="profileEntry?.hasAdminOverride"
+              placeholder="/coach/votre-slug"
+              class="w-full"
+            />
+          </UFormField>
+
+          <MoleculesGooglePreview
+            :title="profileTitle || `${providerAccount.account.value?.firstname ?? ''} ${providerAccount.account.value?.lastname ?? ''} — Coach`"
+            :description="profileDescription || providerAccount.account.value?.bio || ''"
+            :url="`${host}/coach/${savedSlug}`"
           />
-        </UFormField>
 
-        <UFormField label="Description SEO">
-          <template #hint>
-            {{ profileDescription?.length ?? 0 }}/160
-          </template>
-          <UTextarea
-            v-model="profileDescription"
-            :disabled="profileEntry?.hasAdminOverride"
-            maxlength="160"
-            :rows="3"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="URL image OG">
-          <UInput
-            v-model="profileOgImage"
-            :disabled="profileEntry?.hasAdminOverride"
-            placeholder="https://..."
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="URL canonique">
-          <UInput
-            v-model="profileCanonical"
-            :disabled="profileEntry?.hasAdminOverride"
-            placeholder="/coach/votre-slug"
-            class="w-full"
-          />
-        </UFormField>
-
-        <MoleculesGooglePreview
-          :title="profileTitle || `${providerAccount.account.value?.firstname ?? ''} ${providerAccount.account.value?.lastname ?? ''} — Coach`"
-          :description="profileDescription || providerAccount.account.value?.bio || ''"
-          :url="`${host}/coach/${savedSlug}`"
-        />
-
-        <div class="flex justify-end">
-          <UButton
-            color="primary"
-            :loading="profileSaving"
-            :disabled="!isProfileDirty || profileEntry?.hasAdminOverride"
-            @click="saveProfile"
-          >
-            Enregistrer
-          </UButton>
+          <div class="flex justify-end">
+            <UButton
+              color="primary"
+              :loading="profileSaving"
+              :disabled="!isProfileDirty || profileEntry?.hasAdminOverride"
+              @click="saveProfile"
+            >
+              Enregistrer
+            </UButton>
+          </div>
         </div>
       </section>
 
-      <USeparator />
-
-      <!-- ═══════════════════════════════════════════ -->
-      <!-- Section 3 — Page booking SEO               -->
-      <!-- ═══════════════════════════════════════════ -->
-      <section class="space-y-4">
-        <div class="flex items-center gap-2">
-          <h2 class="text-xl font-semibold text-stone-900">
-            Page réservation
-          </h2>
-          <UBadge
-            v-if="bookingEntry?.hasAdminOverride"
-            color="warning"
-            variant="subtle"
-          >
-            Géré par l'admin
-          </UBadge>
+      <!-- Section 3 — Page booking SEO -->
+      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+        <div class="mb-6 flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
+            <UIcon
+              name="lucide:calendar-check"
+              size="20"
+              class="text-[color:var(--color-crepuscule-600)]"
+            />
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <h2 class="font-serif text-xl italic text-[color:var(--color-brand-primary)] sm:text-2xl">
+                Page réservation
+              </h2>
+              <UBadge
+                v-if="bookingEntry?.hasAdminOverride"
+                color="warning"
+                variant="subtle"
+              >
+                Géré par l'admin
+              </UBadge>
+            </div>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Métadonnées SEO de /coach/{{ savedSlug }}/onboarding/discovery
+            </p>
+          </div>
         </div>
-        <p class="text-sm text-stone-500">
-          Métadonnées SEO de votre page /coach/{{ savedSlug }}/onboarding/discovery
-        </p>
 
         <UAlert
           v-if="bookingEntry?.hasAdminOverride"
@@ -434,66 +485,69 @@ async function retryLoad() {
           title="Gestion centralisée"
           description="Les métadonnées de cette page sont gérées par l'administrateur."
           icon="i-lucide-shield"
+          class="mb-6"
         />
 
-        <UFormField label="Titre SEO">
-          <template #hint>
-            {{ bookingTitle?.length ?? 0 }}/70
-          </template>
-          <UInput
-            v-model="bookingTitle"
-            :disabled="bookingEntry?.hasAdminOverride"
-            maxlength="70"
-            class="w-full"
+        <div class="space-y-4">
+          <UFormField label="Titre SEO">
+            <template #hint>
+              {{ bookingTitle?.length ?? 0 }}/70
+            </template>
+            <UInput
+              v-model="bookingTitle"
+              :disabled="bookingEntry?.hasAdminOverride"
+              maxlength="70"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Description SEO">
+            <template #hint>
+              {{ bookingDescription?.length ?? 0 }}/160
+            </template>
+            <UTextarea
+              v-model="bookingDescription"
+              :disabled="bookingEntry?.hasAdminOverride"
+              maxlength="160"
+              :rows="3"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="URL image OG">
+            <UInput
+              v-model="bookingOgImage"
+              :disabled="bookingEntry?.hasAdminOverride"
+              placeholder="https://..."
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="URL canonique">
+            <UInput
+              v-model="bookingCanonical"
+              :disabled="bookingEntry?.hasAdminOverride"
+              placeholder="/coach/votre-slug/onboarding/discovery"
+              class="w-full"
+            />
+          </UFormField>
+
+          <MoleculesGooglePreview
+            :title="bookingTitle || `Réserver — ${providerAccount.account.value?.firstname ?? ''} ${providerAccount.account.value?.lastname ?? ''}`"
+            :description="bookingDescription || 'Réservez votre séance découverte gratuite'"
+            :url="`${host}/coach/${savedSlug}/onboarding/discovery`"
           />
-        </UFormField>
 
-        <UFormField label="Description SEO">
-          <template #hint>
-            {{ bookingDescription?.length ?? 0 }}/160
-          </template>
-          <UTextarea
-            v-model="bookingDescription"
-            :disabled="bookingEntry?.hasAdminOverride"
-            maxlength="160"
-            :rows="3"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="URL image OG">
-          <UInput
-            v-model="bookingOgImage"
-            :disabled="bookingEntry?.hasAdminOverride"
-            placeholder="https://..."
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="URL canonique">
-          <UInput
-            v-model="bookingCanonical"
-            :disabled="bookingEntry?.hasAdminOverride"
-            placeholder="/coach/votre-slug/onboarding/discovery"
-            class="w-full"
-          />
-        </UFormField>
-
-        <MoleculesGooglePreview
-          :title="bookingTitle || `Réserver — ${providerAccount.account.value?.firstname ?? ''} ${providerAccount.account.value?.lastname ?? ''}`"
-          :description="bookingDescription || 'Réservez votre séance découverte gratuite'"
-          :url="`${host}/coach/${savedSlug}/onboarding/discovery`"
-        />
-
-        <div class="flex justify-end">
-          <UButton
-            color="primary"
-            :loading="bookingSaving"
-            :disabled="!isBookingDirty || bookingEntry?.hasAdminOverride"
-            @click="saveBooking"
-          >
-            Enregistrer
-          </UButton>
+          <div class="flex justify-end">
+            <UButton
+              color="primary"
+              :loading="bookingSaving"
+              :disabled="!isBookingDirty || bookingEntry?.hasAdminOverride"
+              @click="saveBooking"
+            >
+              Enregistrer
+            </UButton>
+          </div>
         </div>
       </section>
     </template>

@@ -1,31 +1,248 @@
+<script setup lang="ts">
+import type { TabsItem } from '@nuxt/ui'
+import type { SeoFieldValues } from '~/types/seo.types'
+import { apiFetch } from '~/services/api/apiFetch'
+import { mapRequirementKeyToMessage } from '~/features/finance/domain/finance-state'
+import AdminSeoForm from '~/components/organisms/AdminSeoForm.vue'
+
+definePageMeta({
+  layout: 'admin',
+  middleware: 'auth-admin',
+  pageTitle: 'Détail Provider'
+})
+
+const route = useRoute()
+const toast = useToast()
+const providerId = computed(() => route.params.id as string)
+
+// ──────────────────────────────────────────────
+// Types
+// ──────────────────────────────────────────────
+
+type AdminProviderStripeStatus = {
+  providerId: string
+  timezone: string
+  stripe: {
+    stripeAccountId: string | null
+    chargesEnabled: boolean
+    payoutsEnabled: boolean
+    detailsSubmitted: boolean
+    requirementsDue: string[]
+    requirementsEventuallyDue: string[]
+    requirementsPastDue: string[]
+    disabledReason: string | null
+    onboardingCompletedAt: string | null
+  }
+  debug: {
+    requirementsDueCount: number
+    lastWebhookAt: string | null
+  }
+}
+
+type AdminSeoEntry = {
+  targetType: string
+  targetId: string | null
+  label: string
+  providerConfig: SeoFieldValues | null
+  adminConfig: SeoFieldValues | null
+  resolvedConfig: SeoFieldValues
+}
+
+// ──────────────────────────────────────────────
+// Data fetching
+// ──────────────────────────────────────────────
+
+const { data: provider, pending, error, refresh } = await useAsyncData<AdminProviderStripeStatus>(
+  `admin-provider-${providerId.value}`,
+  () => apiFetch<AdminProviderStripeStatus>(`/admin/providers/${providerId.value}/stripe/status`)
+)
+
+const { data: allSeoEntries, status: seoStatus, refresh: refreshSeo } = await useAsyncData<AdminSeoEntry[]>(
+  `admin-seo-provider-${providerId.value}`,
+  () => apiFetch<AdminSeoEntry[]>('/admin/seo')
+)
+
+// ──────────────────────────────────────────────
+// Computed
+// ──────────────────────────────────────────────
+
+const providerSeoEntries = computed(() =>
+  allSeoEntries.value?.filter(e => e.targetId === providerId.value) ?? []
+)
+
+const providerDisplayName = computed(() => {
+  const entry = providerSeoEntries.value[0]
+  return entry ? entry.label.split(' — ')[0] : null
+})
+
+const stripeStatusInfo = computed(() => {
+  const s = provider.value?.stripe
+  if (!s?.stripeAccountId) return { label: 'Stripe non lié', color: 'neutral' as const, dot: 'bg-[color:var(--color-neutral-400)]' }
+  if (s.chargesEnabled && s.payoutsEnabled) return { label: 'Stripe actif', color: 'success' as const, dot: 'bg-[color:var(--color-success-500)]' }
+  if (s.requirementsPastDue.length > 0) return { label: 'Stripe bloqué', color: 'error' as const, dot: 'bg-red-500' }
+  if (s.requirementsDue.length > 0) return { label: `Stripe : ${s.requirementsDue.length} action${s.requirementsDue.length > 1 ? 's' : ''}`, color: 'warning' as const, dot: 'bg-amber-500' }
+  return { label: 'Stripe en cours', color: 'neutral' as const, dot: 'bg-[color:var(--color-neutral-400)]' }
+})
+
+// ──────────────────────────────────────────────
+// Tabs
+// ──────────────────────────────────────────────
+
+const tabItems = [
+  { label: 'Stripe Connect', icon: 'i-lucide-credit-card', slot: 'stripe' as const },
+  { label: 'Référencement', icon: 'i-lucide-globe', slot: 'seo' as const }
+] satisfies TabsItem[]
+
+// ──────────────────────────────────────────────
+// Actions dropdown
+// ──────────────────────────────────────────────
+
+const syncPending = ref(false)
+
+const actionItems = computed(() => [
+  [
+    {
+      label: 'Synchroniser Stripe',
+      icon: 'i-lucide-refresh-cw',
+      disabled: !provider.value?.stripe.stripeAccountId || syncPending.value,
+      onSelect: onSyncStripe
+    },
+    ...(provider.value?.stripe.stripeAccountId
+      ? [{
+          label: 'Stripe Dashboard',
+          icon: 'i-lucide-external-link',
+          onSelect: () => window.open(
+            `https://dashboard.stripe.com/connect/accounts/${provider.value!.stripe.stripeAccountId}`,
+            '_blank'
+          )
+        }]
+      : []
+    )
+  ],
+  [
+    {
+      label: 'Rafraîchir tout',
+      icon: 'i-lucide-rotate-cw',
+      onSelect: () => {
+        refresh()
+        refreshSeo()
+      }
+    }
+  ]
+])
+
+// ──────────────────────────────────────────────
+// Stripe sync
+// ──────────────────────────────────────────────
+
+async function onSyncStripe() {
+  syncPending.value = true
+  try {
+    await apiFetch(`/admin/providers/${providerId.value}/stripe/sync`, { method: 'POST' })
+    toast.add({ title: 'Synchronisation Stripe réussie', color: 'success' })
+    await refresh()
+  } catch (err) {
+    toast.add({
+      title: 'Erreur de synchronisation',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    syncPending.value = false
+  }
+}
+
+// ──────────────────────────────────────────────
+// SEO save / restore
+// ──────────────────────────────────────────────
+
+const seoSavingMap = ref<Record<string, boolean>>({})
+
+async function saveSeo(targetType: string, patch: SeoFieldValues) {
+  seoSavingMap.value[targetType] = true
+  try {
+    await apiFetch(`/admin/seo/${targetType}/${providerId.value}`, { method: 'PUT', body: patch })
+    toast.add({ title: 'Métadonnées SEO mises à jour', color: 'success' })
+    await refreshSeo()
+  } catch {
+    toast.add({ title: 'Erreur lors de la sauvegarde', color: 'error' })
+  } finally {
+    seoSavingMap.value[targetType] = false
+  }
+}
+
+const seoRestoringMap = ref<Record<string, boolean>>({})
+
+async function confirmRestoreSeo(targetType: string) {
+  if (!window.confirm('Supprimer l\'override admin ? Les valeurs du provider seront restaurées.')) return
+
+  seoRestoringMap.value[targetType] = true
+  try {
+    await apiFetch(`/admin/seo/${targetType}/${providerId.value}/override`, { method: 'DELETE' })
+    toast.add({ title: 'Override supprimé', color: 'success' })
+    await refreshSeo()
+  } catch {
+    toast.add({ title: 'Erreur lors de la suppression', color: 'error' })
+  } finally {
+    seoRestoringMap.value[targetType] = false
+  }
+}
+
+// ──────────────────────────────────────────────
+// SEO slideover
+// ──────────────────────────────────────────────
+
+const seoSlideoverOpen = ref(false)
+const selectedSeoEntry = ref<AdminSeoEntry | null>(null)
+
+function openSeoEntry(entry: AdminSeoEntry) {
+  selectedSeoEntry.value = entry
+  seoSlideoverOpen.value = true
+}
+
+// ──────────────────────────────────────────────
+// Utilities
+// ──────────────────────────────────────────────
+
+function formatDate(isoString: string): string {
+  return new Intl.DateTimeFormat('fr-FR', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }).format(new Date(isoString))
+}
+
+function truncateSeo(text: string | null, max: number): string {
+  if (!text) return '—'
+  return text.length > max ? text.slice(0, max) + '...' : text
+}
+
+const SEO_TARGET_LABELS: Record<string, string> = {
+  coach_profile: 'Page profil',
+  coach_booking: 'Page réservation'
+}
+
+const SEO_TARGET_ICONS: Record<string, string> = {
+  coach_profile: 'i-lucide-user',
+  coach_booking: 'i-lucide-calendar-check'
+}
+</script>
+
 <template>
-  <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
+  <div class="mx-auto max-w-5xl">
+    <!-- Back link -->
+    <NuxtLink
+      to="/admin/providers"
+      class="group mb-6 inline-flex items-center gap-2 text-sm text-[color:var(--color-brand-muted)] transition-colors hover:text-[color:var(--color-brand-primary)]"
+    >
+      <UIcon
+        name="lucide:arrow-left"
+        size="16"
+        class="transition-transform group-hover:-translate-x-1"
+      />
+      Retour aux providers
+    </NuxtLink>
 
-      <div class="grid gap-2">
-        <NuxtLink
-          to="/admin/providers"
-          class="group mb-2 inline-flex items-center gap-2 text-sm text-[color:var(--color-brand-muted)] transition-colors hover:text-[color:var(--color-brand-primary)]"
-        >
-          <UIcon
-            name="lucide:arrow-left"
-            size="16"
-            class="transition-transform group-hover:-translate-x-1"
-          />
-          Retour aux providers
-        </NuxtLink>
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Détail Provider
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Gestion et synchronisation Stripe Connect
-        </p>
-      </div>
-    </section>
-
-    <!-- Loading State -->
+    <!-- Loading -->
     <div
       v-if="pending"
       class="flex items-center justify-center py-20"
@@ -37,10 +254,10 @@
       />
     </div>
 
-    <!-- Error State -->
+    <!-- Error -->
     <div
       v-else-if="error"
-      class="rounded-blob-b border border-red-200 bg-red-50 p-8 text-center"
+      class="rounded-2xl border border-red-200 bg-red-50 p-8 text-center"
     >
       <UIcon
         name="lucide:alert-circle"
@@ -59,160 +276,111 @@
     </div>
 
     <!-- Content -->
-    <div
-      v-else-if="provider"
-      class="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-10"
-    >
-      <!-- Main Content -->
-      <div class="space-y-8 lg:col-span-8">
-        <!-- Provider Info Card -->
-        <section class="relative overflow-hidden rounded-blob-a border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-kaora-50)]/55 p-8 shadow-soft">
-          <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--color-kaora-100)] opacity-45 blur-[100px]" />
-
-          <div class="relative z-10">
-            <div class="flex items-start justify-between gap-4">
-              <div class="grid gap-2">
-                <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-                  Informations
-                </h2>
-                <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                  Données du provider depuis la base de données
-                </p>
-              </div>
-              <span class="inline-flex items-center gap-2 rounded-full bg-[rgba(212,184,160,0.15)] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[color:var(--color-brand-accent)]">
-                <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-brand-accent)]" />
-                {{ provider.timezone }}
-              </span>
+    <template v-else-if="provider">
+      <!-- Header Card -->
+      <section class="rounded-2xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-crepuscule-50)]/55 p-6 shadow-soft sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start gap-4">
+            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--color-crepuscule-100)]">
+              <UIcon
+                name="lucide:user"
+                size="28"
+                class="text-[color:var(--color-crepuscule-600)]"
+              />
             </div>
 
-            <dl class="mt-6 grid gap-4 sm:grid-cols-2">
-              <div class="rounded-2xl bg-white/60 p-4 backdrop-blur">
-                <dt class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                  Provider ID
-                </dt>
-                <dd class="mt-1 font-mono text-sm text-[color:var(--color-brand-primary)]">
-                  {{ provider.providerId }}
-                </dd>
-              </div>
-              <div class="rounded-2xl bg-white/60 p-4 backdrop-blur">
-                <dt class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                  Timezone
-                </dt>
-                <dd class="mt-1 text-sm text-[color:var(--color-brand-primary)]">
+            <div>
+              <h1 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)] sm:text-3xl">
+                {{ providerDisplayName || 'Provider' }}
+              </h1>
+
+              <!-- Badges -->
+              <div class="mt-2 flex flex-wrap items-center gap-2">
+                <span
+                  :class="[
+                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
+                    stripeStatusInfo.color === 'success' ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' : '',
+                    stripeStatusInfo.color === 'error' ? 'bg-red-100 text-red-700' : '',
+                    stripeStatusInfo.color === 'warning' ? 'bg-amber-100 text-amber-700' : '',
+                    stripeStatusInfo.color === 'neutral' ? 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]' : ''
+                  ]"
+                >
+                  <span
+                    :class="['h-1.5 w-1.5 rounded-full', stripeStatusInfo.dot]"
+                  />
+                  {{ stripeStatusInfo.label }}
+                </span>
+
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-[rgba(212,184,160,0.15)] px-2.5 py-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-accent)]">
                   {{ provider.timezone }}
-                </dd>
+                </span>
               </div>
-            </dl>
-          </div>
-        </section>
 
-        <!-- Stripe Connect Card -->
-        <section class="relative overflow-hidden rounded-blob-b border border-[rgba(28,25,23,0.10)] bg-white/75 p-8 shadow-soft backdrop-blur">
-          <div class="flex items-start justify-between gap-4">
-            <div class="grid gap-2">
-              <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
-                Stripe Connect
-              </h2>
-              <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                Statut du compte Connect Express du provider
-              </p>
+              <!-- IDs -->
+              <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-muted)]">
+                <span>
+                  ID : <span class="font-mono">{{ provider.providerId }}</span>
+                </span>
+                <span v-if="provider.stripe.stripeAccountId">
+                  Stripe : <span class="font-mono">{{ provider.stripe.stripeAccountId }}</span>
+                </span>
+              </div>
             </div>
+          </div>
 
-            <!-- Sync Button -->
+          <!-- Actions -->
+          <UDropdownMenu :items="actionItems">
             <UButton
-              color="primary"
-              variant="solid"
+              variant="outline"
+              color="neutral"
               size="sm"
-              :loading="syncPending"
-              :disabled="!provider.stripe.stripeAccountId"
               class="rounded-full"
-              @click="onSyncStripe"
-            >
-              <UIcon
-                name="lucide:refresh-cw"
-                size="16"
-                :class="{ 'animate-spin': syncPending }"
-              />
-              <span class="hidden sm:inline">Synchroniser</span>
-            </UButton>
-          </div>
+              icon="i-lucide-more-vertical"
+              :loading="syncPending"
+            />
+          </UDropdownMenu>
+        </div>
+      </section>
 
-          <!-- Success Toast -->
-          <Transition
-            enter-active-class="transition duration-300 ease-out"
-            enter-from-class="opacity-0 translate-y-2"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-active-class="transition duration-200 ease-in"
-            leave-from-class="opacity-100 translate-y-0"
-            leave-to-class="opacity-0 translate-y-2"
-          >
-            <div
-              v-if="syncSuccess"
-              class="mt-4 flex items-center gap-2 rounded-full bg-[color:var(--color-success-100)] px-4 py-2 text-sm font-medium text-[color:var(--color-success-700)]"
-            >
-              <UIcon
-                name="lucide:check-circle"
-                size="16"
-              />
-              Synchronisation réussie — données mises à jour depuis Stripe
-            </div>
-          </Transition>
-
-          <!-- Sync Error -->
-          <Transition
-            enter-active-class="transition duration-300 ease-out"
-            enter-from-class="opacity-0 translate-y-2"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-active-class="transition duration-200 ease-in"
-            leave-from-class="opacity-100 translate-y-0"
-            leave-to-class="opacity-0 translate-y-2"
-          >
-            <div
-              v-if="syncError"
-              class="mt-4 flex items-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700"
-            >
-              <UIcon
-                name="lucide:alert-triangle"
-                size="16"
-                class="flex-shrink-0"
-              />
-              {{ syncError }}
-            </div>
-          </Transition>
-
+      <!-- Tabs -->
+      <UTabs
+        :items="tabItems"
+        variant="link"
+        class="mt-8 w-full gap-6"
+        :ui="{
+          trigger: 'grow'
+        }"
+      >
+        <!-- ═══════════════════════════════════════ -->
+        <!-- Tab: Stripe Connect                    -->
+        <!-- ═══════════════════════════════════════ -->
+        <template #stripe>
           <!-- No Stripe Account -->
           <div
             v-if="!provider.stripe.stripeAccountId"
-            class="mt-6 rounded-2xl border border-dashed border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-highlight)]/50 p-6 text-center"
+            class="rounded-2xl border border-dashed border-[color:var(--color-brand-subtle)] bg-[color:var(--color-crepuscule-50)]/50 p-12 text-center"
           >
             <UIcon
               name="lucide:link-2-off"
-              size="32"
-              class="mx-auto mb-3 text-[color:var(--color-brand-muted)]"
+              size="48"
+              class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
             />
-            <p class="text-sm text-[color:var(--color-brand-secondary)]">
-              Aucun compte Stripe Connect lié à ce provider
+            <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
+              Aucun compte Stripe Connect
+            </p>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Ce provider n'a pas encore lié de compte Stripe.
             </p>
           </div>
 
-          <!-- Stripe Data Grid -->
+          <!-- Stripe Data -->
           <div
             v-else
-            class="mt-6 space-y-6"
+            class="space-y-6"
           >
-            <!-- Account ID -->
-            <div class="rounded-2xl bg-[color:var(--color-surface-highlight)]/50 p-4">
-              <dt class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                Account ID
-              </dt>
-              <dd class="mt-1 font-mono text-sm text-[color:var(--color-brand-primary)]">
-                {{ provider.stripe.stripeAccountId }}
-              </dd>
-            </div>
-
             <!-- Status Grid -->
             <div class="grid gap-4 sm:grid-cols-3">
-              <div class="rounded-2xl bg-white p-4 shadow-sm">
+              <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
                 <dt class="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
                   Charges
                 </dt>
@@ -236,7 +404,7 @@
                 </dd>
               </div>
 
-              <div class="rounded-2xl bg-white p-4 shadow-sm">
+              <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
                 <dt class="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
                   Payouts
                 </dt>
@@ -260,7 +428,7 @@
                 </dd>
               </div>
 
-              <div class="rounded-2xl bg-white p-4 shadow-sm">
+              <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
                 <dt class="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
                   Details
                 </dt>
@@ -286,113 +454,100 @@
             </div>
 
             <!-- Disabled Reason -->
-            <div
+            <UAlert
               v-if="provider.stripe.disabledReason"
-              class="rounded-2xl border border-red-300 bg-red-50 p-4"
-            >
-              <dt class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-red-700">
-                <UIcon
-                  name="lucide:alert-octagon"
-                  size="14"
-                />
-                Compte désactivé
-              </dt>
-              <dd class="font-mono text-xs text-red-800">
-                {{ provider.stripe.disabledReason }}
-              </dd>
-            </div>
+              color="error"
+              variant="soft"
+              icon="i-lucide-alert-octagon"
+              title="Compte désactivé"
+              :description="provider.stripe.disabledReason"
+            />
 
-            <!-- Requirements Past Due (Critical) -->
+            <!-- Requirements Past Due -->
             <div
               v-if="provider.stripe.requirementsPastDue.length > 0"
-              class="rounded-2xl border border-red-200 bg-red-50 p-4"
+              class="rounded-xl border border-red-200 bg-red-50 p-5"
             >
-              <dt class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-red-700">
+              <h3 class="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-red-700">
                 <UIcon
                   name="lucide:alert-triangle"
                   size="14"
                 />
                 Requirements Past Due ({{ provider.stripe.requirementsPastDue.length }})
-              </dt>
-              <dd>
-                <ul class="space-y-2">
-                  <li
-                    v-for="req in provider.stripe.requirementsPastDue"
-                    :key="req"
-                  >
-                    <p class="text-sm text-red-800">
-                      {{ mapRequirementKeyToMessage(req) }}
-                    </p>
-                    <p class="font-mono text-xs text-red-600/70">
-                      {{ req }}
-                    </p>
-                  </li>
-                </ul>
-              </dd>
+              </h3>
+              <ul class="space-y-2">
+                <li
+                  v-for="req in provider.stripe.requirementsPastDue"
+                  :key="req"
+                >
+                  <p class="text-sm text-red-800">
+                    {{ mapRequirementKeyToMessage(req) }}
+                  </p>
+                  <p class="font-mono text-xs text-red-600/70">
+                    {{ req }}
+                  </p>
+                </li>
+              </ul>
             </div>
 
             <!-- Requirements Currently Due -->
             <div
               v-if="provider.stripe.requirementsDue.length > 0"
-              class="rounded-2xl border border-amber-200 bg-amber-50 p-4"
+              class="rounded-xl border border-amber-200 bg-amber-50 p-5"
             >
-              <dt class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-amber-700">
+              <h3 class="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-amber-700">
                 <UIcon
                   name="lucide:alert-circle"
                   size="14"
                 />
                 Requirements Due ({{ provider.stripe.requirementsDue.length }})
-              </dt>
-              <dd>
-                <ul class="space-y-2">
-                  <li
-                    v-for="req in provider.stripe.requirementsDue"
-                    :key="req"
-                  >
-                    <p class="text-sm text-amber-800">
-                      {{ mapRequirementKeyToMessage(req) }}
-                    </p>
-                    <p class="font-mono text-xs text-amber-600/70">
-                      {{ req }}
-                    </p>
-                  </li>
-                </ul>
-              </dd>
+              </h3>
+              <ul class="space-y-2">
+                <li
+                  v-for="req in provider.stripe.requirementsDue"
+                  :key="req"
+                >
+                  <p class="text-sm text-amber-800">
+                    {{ mapRequirementKeyToMessage(req) }}
+                  </p>
+                  <p class="font-mono text-xs text-amber-600/70">
+                    {{ req }}
+                  </p>
+                </li>
+              </ul>
             </div>
 
             <!-- Requirements Eventually Due -->
             <div
               v-if="provider.stripe.requirementsEventuallyDue.length > 0"
-              class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-highlight)]/50 p-4"
+              class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-crepuscule-50)]/50 p-5"
             >
-              <dt class="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+              <h3 class="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
                 <UIcon
                   name="lucide:info"
                   size="14"
                 />
                 Requirements Eventually Due ({{ provider.stripe.requirementsEventuallyDue.length }})
-              </dt>
-              <dd>
-                <ul class="space-y-2">
-                  <li
-                    v-for="req in provider.stripe.requirementsEventuallyDue"
-                    :key="req"
-                  >
-                    <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                      {{ mapRequirementKeyToMessage(req) }}
-                    </p>
-                    <p class="font-mono text-xs text-[color:var(--color-brand-muted)]">
-                      {{ req }}
-                    </p>
-                  </li>
-                </ul>
-              </dd>
+              </h3>
+              <ul class="space-y-2">
+                <li
+                  v-for="req in provider.stripe.requirementsEventuallyDue"
+                  :key="req"
+                >
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    {{ mapRequirementKeyToMessage(req) }}
+                  </p>
+                  <p class="font-mono text-xs text-[color:var(--color-brand-muted)]">
+                    {{ req }}
+                  </p>
+                </li>
+              </ul>
             </div>
 
             <!-- Onboarding Completed -->
             <div
               v-if="provider.stripe.onboardingCompletedAt"
-              class="rounded-2xl bg-[color:var(--color-success-50)] p-4"
+              class="rounded-xl bg-[color:var(--color-success-50)] p-4"
             >
               <dt class="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-success-700)]">
                 Onboarding complété
@@ -401,147 +556,165 @@
                 {{ formatDate(provider.stripe.onboardingCompletedAt) }}
               </dd>
             </div>
-          </div>
-        </section>
-      </div>
 
-      <!-- Sidebar -->
-      <aside class="space-y-8 lg:col-span-4">
-        <!-- Debug Info -->
-        <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-white/75 p-8 shadow-soft backdrop-blur">
-          <p class="text-xs font-bold uppercase tracking-[0.24em] text-[color:var(--color-brand-muted)]">
-            Debug
-          </p>
-          <dl class="mt-4 space-y-4 text-sm">
-            <div>
-              <dt class="text-[color:var(--color-brand-muted)]">
-                Requirements count
-              </dt>
-              <dd class="font-mono text-[color:var(--color-brand-primary)]">
-                {{ provider.debug.requirementsDueCount }}
-              </dd>
+            <!-- Debug info -->
+            <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-crepuscule-50)]/30 p-4">
+              <p class="mb-3 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+                Debug
+              </p>
+              <div class="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+                <div>
+                  <span class="text-[color:var(--color-brand-muted)]">Requirements count : </span>
+                  <span class="font-mono text-[color:var(--color-brand-primary)]">{{ provider.debug.requirementsDueCount }}</span>
+                </div>
+                <div>
+                  <span class="text-[color:var(--color-brand-muted)]">Dernier webhook : </span>
+                  <span class="font-mono text-[color:var(--color-brand-primary)]">{{ provider.debug.lastWebhookAt ? formatDate(provider.debug.lastWebhookAt) : '—' }}</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <dt class="text-[color:var(--color-brand-muted)]">
-                Dernier webhook
-              </dt>
-              <dd class="font-mono text-[color:var(--color-brand-primary)]">
-                {{ provider.debug.lastWebhookAt ? formatDate(provider.debug.lastWebhookAt) : '—' }}
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        <!-- Actions -->
-        <div class="rounded-blob-d border border-[rgba(231,229,228,0.8)] bg-white/75 p-8 shadow-soft backdrop-blur">
-          <p class="text-xs font-bold uppercase tracking-[0.24em] text-[color:var(--color-brand-muted)]">
-            Actions
-          </p>
-          <div class="mt-4 space-y-3">
-            <UButton
-              v-if="provider.stripe.stripeAccountId"
-              variant="outline"
-              color="neutral"
-              block
-              class="justify-start rounded-full"
-              :href="`https://dashboard.stripe.com/connect/accounts/${provider.stripe.stripeAccountId}`"
-              target="_blank"
-            >
-              <UIcon
-                name="lucide:external-link"
-                size="16"
-              />
-              Voir sur Stripe Dashboard
-            </UButton>
-            <UButton
-              variant="ghost"
-              color="neutral"
-              block
-              class="justify-start rounded-full"
-              @click="() => refresh()"
-            >
-              <UIcon
-                name="lucide:refresh-cw"
-                size="16"
-              />
-              Rafraîchir les données
-            </UButton>
           </div>
-        </div>
-      </aside>
-    </div>
+        </template>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- Tab: SEO                               -->
+        <!-- ═══════════════════════════════════════ -->
+        <template #seo>
+          <!-- Loading SEO -->
+          <div
+            v-if="seoStatus === 'pending'"
+            class="space-y-3"
+          >
+            <div
+              v-for="i in 2"
+              :key="i"
+              class="h-20 animate-pulse rounded-2xl border border-[color:var(--color-border-subtle)] bg-white/75"
+            />
+          </div>
+
+          <!-- Empty SEO -->
+          <div
+            v-else-if="providerSeoEntries.length === 0"
+            class="rounded-2xl border border-dashed border-[color:var(--color-brand-subtle)] bg-[color:var(--color-crepuscule-50)]/50 p-12 text-center"
+          >
+            <UIcon
+              name="lucide:globe"
+              size="48"
+              class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
+            />
+            <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
+              Aucune configuration SEO
+            </p>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Ce provider n'a pas encore de pages publiques avec métadonnées SEO.
+            </p>
+          </div>
+
+          <!-- SEO Entries — List -->
+          <div
+            v-else
+            class="overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 shadow-soft backdrop-blur"
+          >
+            <button
+              v-for="(entry, index) in providerSeoEntries"
+              :key="entry.targetType"
+              :class="[
+                'flex w-full items-center gap-4 px-6 py-4 text-left transition-colors hover:bg-[color:var(--color-crepuscule-50)]/60',
+                index < providerSeoEntries.length - 1 ? 'border-b border-[color:var(--color-border-subtle)]' : ''
+              ]"
+              @click="openSeoEntry(entry)"
+            >
+              <!-- Icon -->
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
+                <UIcon
+                  :name="SEO_TARGET_ICONS[entry.targetType] ?? 'i-lucide-file-text'"
+                  size="20"
+                  class="text-[color:var(--color-crepuscule-600)]"
+                />
+              </div>
+
+              <!-- Content -->
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-serif text-base italic text-[color:var(--color-brand-primary)]">
+                    {{ SEO_TARGET_LABELS[entry.targetType] ?? entry.targetType }}
+                  </span>
+                  <UBadge
+                    v-if="entry.adminConfig"
+                    color="warning"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    Override
+                  </UBadge>
+                </div>
+                <p class="mt-0.5 truncate text-sm text-[color:var(--color-brand-secondary)]">
+                  {{ truncateSeo(entry.resolvedConfig.title, 60) }}
+                </p>
+                <p class="truncate text-xs text-[color:var(--color-brand-muted)]">
+                  {{ entry.resolvedConfig.canonicalUrl || '—' }}
+                </p>
+              </div>
+
+              <!-- Chevron -->
+              <UIcon
+                name="lucide:chevron-right"
+                size="18"
+                class="shrink-0 text-[color:var(--color-brand-muted)]"
+              />
+            </button>
+          </div>
+
+          <!-- SEO Slideover -->
+          <USlideover
+            v-model:open="seoSlideoverOpen"
+            :title="selectedSeoEntry ? (SEO_TARGET_LABELS[selectedSeoEntry.targetType] ?? selectedSeoEntry.targetType) : ''"
+            :description="selectedSeoEntry?.resolvedConfig.canonicalUrl ?? ''"
+            :ui="{ content: 'sm:max-w-xl', body: 'space-y-6' }"
+          >
+            <template #body>
+              <template v-if="selectedSeoEntry">
+                <!-- Provider config info -->
+                <UAlert
+                  v-if="selectedSeoEntry.providerConfig"
+                  color="info"
+                  variant="soft"
+                  icon="i-lucide-user"
+                >
+                  <template #title>
+                    Config provider
+                  </template>
+                  <template #description>
+                    {{ selectedSeoEntry.providerConfig.title || '—' }} · {{ truncateSeo(selectedSeoEntry.providerConfig.description, 80) }}
+                  </template>
+                </UAlert>
+
+                <!-- Form -->
+                <AdminSeoForm
+                  :admin-config="selectedSeoEntry.adminConfig"
+                  :resolved-config="selectedSeoEntry.resolvedConfig"
+                  :saving="seoSavingMap[selectedSeoEntry.targetType]"
+                  @save="(patch) => saveSeo(selectedSeoEntry!.targetType, patch)"
+                />
+              </template>
+            </template>
+
+            <template #footer>
+              <UButton
+                v-if="selectedSeoEntry?.adminConfig"
+                color="warning"
+                variant="outline"
+                size="sm"
+                class="w-full"
+                :loading="selectedSeoEntry ? seoRestoringMap[selectedSeoEntry.targetType] : false"
+                @click="selectedSeoEntry && confirmRestoreSeo(selectedSeoEntry.targetType)"
+              >
+                Restaurer les valeurs du provider
+              </UButton>
+            </template>
+          </USlideover>
+        </template>
+      </UTabs>
+    </template>
   </div>
 </template>
-
-<script setup lang="ts">
-import { apiFetch } from '~/services/api/apiFetch'
-import { mapRequirementKeyToMessage } from '~/features/finance/domain/finance-state'
-
-definePageMeta({
-  layout: 'admin',
-  middleware: 'auth-admin',
-  pageTitle: 'Détail Provider'
-})
-
-const route = useRoute()
-const providerId = computed(() => route.params.id as string)
-
-type AdminProviderStripeStatus = {
-  providerId: string
-  timezone: string
-  stripe: {
-    stripeAccountId: string | null
-    chargesEnabled: boolean
-    payoutsEnabled: boolean
-    detailsSubmitted: boolean
-    requirementsDue: string[]
-    requirementsEventuallyDue: string[]
-    requirementsPastDue: string[]
-    disabledReason: string | null
-    onboardingCompletedAt: string | null
-  }
-  debug: {
-    requirementsDueCount: number
-    lastWebhookAt: string | null
-  }
-}
-
-const { data: provider, pending, error, refresh } = await useAsyncData<AdminProviderStripeStatus>(
-  `admin-provider-${providerId.value}`,
-  () => apiFetch<AdminProviderStripeStatus>(`/admin/providers/${providerId.value}/stripe/status`)
-)
-
-const syncPending = ref(false)
-const syncSuccess = ref(false)
-const syncError = ref<string | null>(null)
-
-async function onSyncStripe() {
-  syncPending.value = true
-  syncSuccess.value = false
-  syncError.value = null
-
-  try {
-    await apiFetch(`/admin/providers/${providerId.value}/stripe/sync`, {
-      method: 'POST'
-    })
-    syncSuccess.value = true
-    await refresh()
-
-    // Auto-hide success message after 5s
-    setTimeout(() => {
-      syncSuccess.value = false
-    }, 5000)
-  } catch (err) {
-    syncError.value = err instanceof Error ? err.message : 'Erreur lors de la synchronisation'
-  } finally {
-    syncPending.value = false
-  }
-}
-
-function formatDate(isoString: string): string {
-  return new Intl.DateTimeFormat('fr-FR', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(new Date(isoString))
-}
-</script>
