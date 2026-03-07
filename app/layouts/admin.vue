@@ -46,6 +46,12 @@ const navigation = {
           match: 'exact' as const
         },
         {
+          label: 'Analytics',
+          to: '/admin/analytics',
+          icon: 'lucide:bar-chart-3',
+          match: 'exact' as const
+        },
+        {
           label: 'Design System',
           to: '/admin/design-system',
           icon: 'lucide:file-sliders',

@@ -3,6 +3,7 @@ import type { PublicTenantResponse } from '../../../features/onboarding/api/onbo
 import { ApiFetchError } from '../../../services/api/api-error'
 import { apiFetch } from '../../../services/api/apiFetch'
 import { usePublicSeo } from '../../../features/seo/usePublicSeo'
+import { usePageTracking } from '../../../features/analytics/usePageTracking'
 import { resolveCanonical } from '../../../features/seo/resolveCanonical'
 import { setPublicHeader } from '../../../features/public/state/public-header.state'
 import CoachPublicPageTemplate from '../../../components/templates/CoachPublicPageTemplate.vue'
@@ -43,6 +44,8 @@ if (!tenant.value) {
 
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_profile', providerId)
+
+usePageTracking(providerId)
 
 const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 

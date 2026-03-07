@@ -7,6 +7,7 @@ import type { PublicTenantResponse } from '../../../../features/onboarding/api/o
 import { ApiFetchError } from '../../../../services/api/api-error'
 import { apiFetch } from '../../../../services/api/apiFetch'
 import { usePublicSeo } from '../../../../features/seo/usePublicSeo'
+import { usePageTracking } from '../../../../features/analytics/usePageTracking'
 import { resolveCanonical } from '../../../../features/seo/resolveCanonical'
 import DiscoveryBookingWizard from '~/components/organisms/DiscoveryBookingWizard.vue'
 
@@ -39,6 +40,8 @@ if (!tenant.value) {
 
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_booking', providerId)
+
+usePageTracking(providerId)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
 useSeoMeta({

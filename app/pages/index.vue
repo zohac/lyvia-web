@@ -6,6 +6,7 @@ import { setPublicHeader } from '../features/public/state/public-header.state'
 import { isPlatformHost } from '../features/public/domain/platform-host'
 import { usePublicSeo } from '../features/seo/usePublicSeo'
 import { resolveCanonical } from '../features/seo/resolveCanonical'
+import { usePageTracking } from '../features/analytics/usePageTracking'
 import CoachPublicPageTemplate from '../components/templates/CoachPublicPageTemplate.vue'
 import MarketingLandingB2B from '../components/templates/MarketingLandingB2B.vue'
 
@@ -45,6 +46,9 @@ if (!isPlatformDomain.value && !tenant.value) {
 
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_profile', providerId)
+
+// Tracking page views for white-label coach pages (custom domain)
+usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.value))
 
 const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
