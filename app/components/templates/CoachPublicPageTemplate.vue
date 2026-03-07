@@ -62,7 +62,7 @@ const faqItems: AccordionItem[] = [
   },
   {
     label: 'Les accompagnements se font-ils en présentiel ou en visio ?',
-    content: `Tous les accompagnements se déroulent en visio. Basée à Valognes, près de Cherbourg, dans le Nord Cotentin (Manche, 50), ${coachName.value} accompagne des femmes partout en France. Pas besoin de vous déplacer : vous gagnez du temps et bénéficiez d'un accompagnement personnalisé, dans le confort de chez vous.`
+    content: `Tous les accompagnements se déroulent en visio. Basée à Valognes, près de Cherbourg, dans le Nord Cotentin (Manche, 50), ${coachName.value} accompagne des femmes partout en France. Pas besoin de vous déplacer : vous gagnez du temps et bénéficiez d'un accompagnement personnalisé, de chez vous.`
   }
 ]
 </script>

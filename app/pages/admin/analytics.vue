@@ -194,7 +194,9 @@ import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import KpiCard from '~/components/molecules/KpiCard.vue'
 import { formatKpiValue } from '~/features/analytics/helpers/format-kpi'
+import { ANALYTICS_PERIOD_OPTIONS } from '~/features/analytics/api/analytics.contract'
 import type { AnalyticsPeriod, KpiWithDelta } from '~/features/analytics/api/analytics.contract'
+import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
 import { apiFetch } from '~/services/api/apiFetch'
 
 definePageMeta({
@@ -242,12 +244,7 @@ type AdminAnalyticsResponse = {
 const selectedPeriod = ref<AnalyticsPeriod>('month')
 const searchQuery = ref('')
 
-const periodOptions: Array<{ label: string, value: AnalyticsPeriod }> = [
-  { label: 'Aujourd\'hui', value: 'day' },
-  { label: '7 jours', value: 'week' },
-  { label: '30 jours', value: 'month' },
-  { label: '3 mois', value: 'quarter' }
-]
+const periodOptions = ANALYTICS_PERIOD_OPTIONS
 
 // ── Data fetching ──
 
@@ -281,9 +278,9 @@ const filteredTenantStats = computed(() => {
   )
 })
 
-// ── Table styling (admin pattern) ──
+// ── Table styling (admin pattern — shared) ──
 
-const tableClasses = '[&_table]:border-separate [&_table]:border-spacing-0 [&_td]:border-b [&_td]:border-[color:var(--color-brand-subtle)]/50 [&_td]:bg-transparent [&_td]:px-6 [&_td]:py-4 [&_th]:border-b [&_th]:border-[color:var(--color-brand-subtle)] [&_th]:bg-[color:var(--color-surface-highlight)]/50 [&_th]:px-6 [&_th]:py-3 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[0.15em] [&_th]:text-[color:var(--color-brand-muted)] [&_tr:last-child_td]:border-b-0'
+const tableClasses = ADMIN_TABLE_CLASSES
 
 // ── Top providers table columns ──
 
@@ -344,7 +341,7 @@ const tenantStatsColumns: TableColumn<TenantStatEntry>[] = [
   {
     accessorKey: 'discoveryBooked',
     header: 'Discovery',
-    cell: ({ row }) => h('span', {}, String(row.original.discoveryBooked))
+    cell: ({ row }) => h('span', {}, formatKpiValue(row.original.discoveryBooked))
   },
   {
     accessorKey: 'revenue',

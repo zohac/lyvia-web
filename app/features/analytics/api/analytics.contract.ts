@@ -18,9 +18,18 @@ export type TrackPageViewRequest = {
   browser?: string
 }
 
-// ── Provider Analytics Dashboard ──
+// ── Shared Analytics ──
 
 export type AnalyticsPeriod = 'day' | 'week' | 'month' | 'quarter'
+
+export const ANALYTICS_PERIOD_OPTIONS: Array<{ label: string, value: AnalyticsPeriod }> = [
+  { label: 'Aujourd\'hui', value: 'day' },
+  { label: '7 jours', value: 'week' },
+  { label: '30 jours', value: 'month' },
+  { label: '3 mois', value: 'quarter' }
+]
+
+// ── Provider Analytics Dashboard ──
 
 /**
  * Matches OpenAPI schema: KpiWithDeltaDto

@@ -4,7 +4,7 @@ import FunnelChart from '~/components/molecules/FunnelChart.vue'
 import SourcesList from '~/components/molecules/SourcesList.vue'
 import DevicesList from '~/components/molecules/DevicesList.vue'
 import { useProviderAnalytics } from '~/features/analytics/useProviderAnalytics'
-import type { AnalyticsPeriod } from '~/features/analytics/api/analytics.contract'
+import { ANALYTICS_PERIOD_OPTIONS } from '~/features/analytics/api/analytics.contract'
 
 definePageMeta({
   layout: 'provider',
@@ -15,12 +15,7 @@ definePageMeta({
 const analytics = useProviderAnalytics()
 await analytics.fetchAnalytics()
 
-const periodOptions: Array<{ label: string, value: AnalyticsPeriod }> = [
-  { label: 'Aujourd\'hui', value: 'day' },
-  { label: '7 jours', value: 'week' },
-  { label: '30 jours', value: 'month' },
-  { label: '3 mois', value: 'quarter' }
-]
+const periodOptions = ANALYTICS_PERIOD_OPTIONS
 
 const isEmpty = computed(() => {
   if (!analytics.data.value) return true
