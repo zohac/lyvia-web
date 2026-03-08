@@ -52,6 +52,12 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
+          label: 'Analytics',
+          to: '/provider/analytics',
+          icon: 'lucide:bar-chart-3',
+          match: 'prefix' as const
+        },
+        {
           label: 'Demandes',
           to: '/provider/requests',
           icon: 'lucide:inbox',
@@ -81,6 +87,12 @@ const navigation = computed(() => ({
           label: 'Créneaux & Tarifs',
           to: '/provider/scheduling',
           icon: 'lucide:clock',
+          match: 'prefix' as const
+        },
+        {
+          label: 'SEO',
+          to: '/provider/seo',
+          icon: 'lucide:globe',
           match: 'prefix' as const
         },
         {

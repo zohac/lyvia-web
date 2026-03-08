@@ -186,7 +186,7 @@
         <UTable
           :data="logs.items"
           :columns="columns"
-          class="[&_table]:border-separate [&_table]:border-spacing-0 [&_td]:border-b [&_td]:border-[color:var(--color-brand-subtle)]/50 [&_td]:bg-transparent [&_td]:px-6 [&_td]:py-4 [&_th]:border-b [&_th]:border-[color:var(--color-brand-subtle)] [&_th]:bg-[color:var(--color-surface-highlight)]/50 [&_th]:px-6 [&_th]:py-3 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[0.15em] [&_th]:text-[color:var(--color-brand-muted)] [&_tr:last-child_td]:border-b-0"
+          :class="ADMIN_TABLE_CLASSES"
         />
 
         <!-- Pagination -->
@@ -307,6 +307,7 @@ import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import { getEventBadgeColor, getBadgeClasses } from '~/composables/useAdminBadges'
+import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
 
 definePageMeta({
   layout: 'admin',

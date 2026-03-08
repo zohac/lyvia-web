@@ -5,8 +5,19 @@ declare const process: { env: Record<string, string | undefined> }
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@nuxtjs/seo'
   ],
+
+  site: {
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://kaora.fr',
+    name: 'Kaora'
+  },
+
+  ogImage: { enabled: false },
+  schemaOrg: { enabled: false },
+  linkChecker: { enabled: false },
+  robots: { enabled: false },
 
   // Kaora Design System: Disable color mode entirely (light only)
   ui: {
@@ -56,7 +67,7 @@ export default defineNuxtConfig({
   routeRules: {
     '/**': {
       headers: {
-        'Referrer-Policy': 'no-referrer',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
@@ -65,6 +76,13 @@ export default defineNuxtConfig({
     // Home page is host-dependent (platform marketing vs white-label tenant),
     // so it must stay dynamic at runtime.
     '/': { prerender: false },
+    '/coach/**': {
+      headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' }
+    },
+    '/legal/**': {
+      prerender: true,
+      headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400' }
+    },
     '/client/**': { ssr: false },
     '/provider/**': { ssr: false },
     '/admin/**': { ssr: false }

@@ -19,6 +19,18 @@ const navigation = {
           to: '/admin/providers',
           icon: 'lucide:users',
           match: 'prefix' as const
+        },
+        {
+          label: 'Clients',
+          to: '/admin/clients',
+          icon: 'lucide:contact',
+          match: 'prefix' as const
+        },
+        {
+          label: 'SEO',
+          to: '/admin/seo',
+          icon: 'lucide:globe',
+          match: 'exact' as const
         }
       ]
     },
@@ -37,6 +49,12 @@ const navigation = {
           label: 'Notifications',
           to: '/admin/notification-logs',
           icon: 'lucide:bell',
+          match: 'exact' as const
+        },
+        {
+          label: 'Analytics',
+          to: '/admin/analytics',
+          icon: 'lucide:bar-chart-3',
           match: 'exact' as const
         },
         {

@@ -196,6 +196,91 @@
           </div>
         </UCard>
 
+        <!-- Edit form card (Story 14-2) -->
+        <UCard
+          v-if="client"
+          class="bg-white"
+        >
+          <template #header>
+            <h2 class="font-semibold text-stone-900">
+              Informations
+            </h2>
+          </template>
+
+          <div class="space-y-4">
+            <UFormField
+              label="Prénom"
+              :error="editErrors.firstName"
+            >
+              <UInput
+                v-model="editForm.firstName"
+                class="w-full"
+                autocomplete="given-name"
+              />
+            </UFormField>
+
+            <UFormField
+              label="Nom"
+              :error="editErrors.lastName"
+            >
+              <UInput
+                v-model="editForm.lastName"
+                class="w-full"
+                autocomplete="family-name"
+              />
+            </UFormField>
+
+            <UFormField
+              label="Email"
+              :error="editErrors.email"
+            >
+              <UInput
+                v-model="editForm.email"
+                type="email"
+                class="w-full"
+                autocomplete="email"
+              />
+            </UFormField>
+
+            <UFormField label="Téléphone">
+              <UInput
+                v-model="editForm.phone"
+                type="tel"
+                class="w-full"
+                autocomplete="tel"
+              />
+            </UFormField>
+
+            <UAlert
+              v-if="editDirty && editForm.email !== initialEditForm.email"
+              color="info"
+              variant="soft"
+              icon="i-lucide-mail"
+              title="Changement d'email"
+              description="Le client recevra un email de vérification à la nouvelle adresse."
+            />
+
+            <div class="flex items-center gap-3">
+              <UButton
+                color="primary"
+                :loading="editSaving"
+                :disabled="!editDirty || editHasErrors"
+                @click="saveClientProfile"
+              >
+                Enregistrer
+              </UButton>
+              <UButton
+                v-if="editDirty"
+                variant="outline"
+                color="neutral"
+                @click="resetEditForm"
+              >
+                Annuler
+              </UButton>
+            </div>
+          </div>
+        </UCard>
+
         <!-- Quick actions card -->
         <UCard
           v-if="client"
@@ -319,8 +404,9 @@
 
 <script setup lang="ts">
 import { useProviderClientDetail } from '../../../features/clients/useProviderClientDetail'
-import { pauseClient, reactivateClient, convertLeadToActive } from '../../../features/clients/services/provider-clients.service'
+import { pauseClient, reactivateClient, convertLeadToActive, updateProviderClient } from '../../../features/clients/services/provider-clients.service'
 import { resendActivation } from '../../../features/clients/services/provider-client-detail.service'
+import { validateClientFields } from '../../../utils/validate-client-fields'
 import {
   formatClientName,
   formatNextAppointment,
@@ -382,6 +468,82 @@ const nextAppointmentLabel = computed(() => {
   if (!formatted) return 'Aucun rendez-vous planifié'
   return formatted
 })
+
+// ============================================================================
+// Edit form (Story 14-2)
+// ============================================================================
+
+const editForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: ''
+})
+
+const initialEditForm = ref({ firstName: '', lastName: '', email: '', phone: '' })
+
+function resetEditForm() {
+  if (!client.value) return
+  const c = client.value
+  const values = {
+    firstName: c.firstname,
+    lastName: c.lastname,
+    email: c.email,
+    phone: c.phone ?? ''
+  }
+  Object.assign(editForm, values)
+  initialEditForm.value = { ...values }
+}
+
+watch(client, () => resetEditForm(), { immediate: true })
+
+const editDirty = computed(() => {
+  const i = initialEditForm.value
+  return editForm.firstName !== i.firstName
+    || editForm.lastName !== i.lastName
+    || editForm.email !== i.email
+    || editForm.phone !== i.phone
+})
+
+const editErrors = computed(() => validateClientFields(editForm))
+
+const editHasErrors = computed(() => Object.keys(editErrors.value).length > 0)
+const editSaving = ref(false)
+
+async function saveClientProfile() {
+  if (!editDirty.value || editHasErrors.value || !clientProfileId.value) return
+
+  const changedFields: Record<string, string> = {}
+  const i = initialEditForm.value
+  if (editForm.firstName !== i.firstName) changedFields.firstName = editForm.firstName.trim()
+  if (editForm.lastName !== i.lastName) changedFields.lastName = editForm.lastName.trim()
+  if (editForm.email !== i.email) changedFields.email = editForm.email.trim()
+  if (editForm.phone !== i.phone) changedFields.phone = editForm.phone.trim()
+
+  if (Object.keys(changedFields).length === 0) return
+
+  editSaving.value = true
+  try {
+    await updateProviderClient(clientProfileId.value, changedFields)
+
+    const emailChanged = 'email' in changedFields
+    toast.add({
+      title: 'Informations mises à jour',
+      description: emailChanged ? 'Le client recevra un email de vérification à la nouvelle adresse.' : undefined,
+      color: 'success'
+    })
+
+    await refresh()
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors de la mise à jour',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    editSaving.value = false
+  }
+}
 
 // ============================================================================
 // US-7: Pause / Reactivate Client

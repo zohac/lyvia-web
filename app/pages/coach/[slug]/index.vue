@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import type { PublicTenantResponse } from '../../../features/onboarding/api/onboarding.contract'
-import { ApiFetchError } from '../../../services/api/api-error'
-import { apiFetch } from '../../../services/api/apiFetch'
-import { setPublicHeader } from '../../../features/public/state/public-header.state'
-import CoachPublicPageTemplate from '../../../components/templates/CoachPublicPageTemplate.vue'
+import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
+import { ApiFetchError } from '~/services/api/api-error'
+import { apiFetch } from '~/services/api/apiFetch'
+import { usePublicSeo } from '~/features/seo/usePublicSeo'
+import { usePageTracking } from '~/features/analytics/usePageTracking'
+import { resolveCanonical } from '~/features/seo/resolveCanonical'
+import { setPublicHeader } from '~/features/public/state/public-header.state'
+import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
+import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 
 definePageMeta({
   layout: 'public',
@@ -13,6 +17,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const origin = useRequestURL().origin
 const slug = computed(() => String(route.params.slug ?? '').trim())
 
 if (!slug.value) {
@@ -38,22 +43,28 @@ if (!tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
+const providerId = computed(() => tenant.value?.providerId)
+const { seo } = usePublicSeo('coach_profile', providerId)
+
+usePageTracking(providerId)
+
 const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
 useSeoMeta({
-  title: () =>
-    `${brandName.value} — Accompagnement péri-ménopause & ménopause | Appel gratuit 15 min`,
-  description: () =>
-    `${brandName.value} accompagne les femmes en péri-ménopause et ménopause avec une approche globale : alimentation, stress, sommeil et activité physique. Appel découverte gratuit 15 min, sans engagement.`,
-  ogTitle: () =>
-    `${brandName.value} — Coaching ménopause & péri-ménopause`,
-  ogDescription: () =>
-    'Vous traversez la péri-ménopause ou la ménopause ? Fatigue, insomnies, prise de poids, irritabilité… Bénéficiez d’un accompagnement global et personnalisé. Réservez votre appel gratuit de 15 min.',
+  title: () => seo.value?.title ?? `${brandName.value} — Coach`,
+  description: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
+  ogTitle: () => seo.value?.title ?? `${brandName.value} — Coach`,
+  ogDescription: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
+  ogImage: () => seo.value?.ogImageUrl ?? undefined,
   ogType: 'website',
   twitterCard: 'summary_large_image'
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) }]
 })
 
 watchEffect(() => {
@@ -66,7 +77,7 @@ watchEffect(() => {
     navLinks: [
       { label: 'L\'Essence', href: '#essence' },
       { label: 'Accompagnement', href: '#accompagnement' },
-      { label: 'Sophie', href: '#qui-suis-je' }
+      { label: brandName.value, href: '#qui-suis-je' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',
@@ -77,7 +88,12 @@ watchEffect(() => {
 </script>
 
 <template>
+  <CoachUnavailableTemplate
+    v-if="tenant && !tenant.isActive"
+    :coach-name="tenant.brand.displayName"
+  />
   <CoachPublicPageTemplate
+    v-else
     :tenant="requiredTenant"
     :cta-to="ctaTo"
   />

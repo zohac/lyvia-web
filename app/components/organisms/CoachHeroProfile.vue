@@ -47,7 +47,7 @@ const heroTopOffsetClass = computed(() => {
           <div class="flex flex-col justify-center lg:col-span-7">
             <!-- Coach name as subtle label -->
             <p class="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[#d4956a]">
-              {{ tenant.brand.displayName }}
+              {{ tenant.brand.displayName }} - EI
             </p>
 
             <!-- Main headline - extra large, editorial -->
@@ -99,7 +99,7 @@ const heroTopOffsetClass = computed(() => {
               <div class="hero-photo-shape relative h-[50vh] w-80 overflow-hidden shadow-2xl shadow-[#5b4b6e]/15">
                 <img
                   src="/images/sophie_jouan.jpeg"
-                  alt="Sophie Jouan, coach spécialisée ménopause"
+                  :alt="`${tenant.brand.displayName}, coach spécialisé(e) ménopause`"
                   class="h-full w-full object-cover object-top"
                   decoding="async"
                   loading="eager"

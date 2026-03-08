@@ -1,7 +1,7 @@
 import * as assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { isPlatformHost } from '../../app/features/public/domain/platform-host'
+import { isPlatformHost } from '../../shared/utils/platform-host'
 
 test('isPlatformHost: matches exact platform domain', () => {
   assert.equal(isPlatformHost('kaora.app', 'kaora.app'), true)
@@ -30,4 +30,10 @@ test('isPlatformHost: normalizes casing and surrounding spaces', () => {
 
 test('isPlatformHost: empty hostname falls back to platform behavior', () => {
   assert.equal(isPlatformHost('', 'kaora.app'), true)
+})
+
+test('isPlatformHost: strips port before comparison (server-side hosts)', () => {
+  assert.equal(isPlatformHost('localhost:3000', 'kaora.app'), true)
+  assert.equal(isPlatformHost('kaora.app:443', 'kaora.app'), true)
+  assert.equal(isPlatformHost('sophiejouan.test:3000', 'kaora.app'), false)
 })

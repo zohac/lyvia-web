@@ -1,4 +1,10 @@
-import type { ListProviderClientsParams, ListProviderClientsResponse } from '../api/clients.contract'
+import type {
+  CreateClientByProviderRequest,
+  ListProviderClientsParams,
+  ListProviderClientsResponse,
+  ProviderClientResponse,
+  UpdateClientByProviderRequest
+} from '../api/clients.contract'
 import { apiFetch } from '../../../services/api/apiFetch'
 
 export async function listProviderClients(
@@ -43,5 +49,30 @@ export async function convertLeadToActive(
 ): Promise<void> {
   await apiFetch(`/provider/appointments/${appointmentId}/convert`, {
     method: 'POST'
+  })
+}
+
+/**
+ * Story 14-1: Create a new client as a provider.
+ */
+export async function createProviderClient(
+  body: CreateClientByProviderRequest
+): Promise<ProviderClientResponse> {
+  return await apiFetch<ProviderClientResponse>('/provider/clients', {
+    method: 'POST',
+    body
+  })
+}
+
+/**
+ * Story 14-1: Update an existing client as a provider.
+ */
+export async function updateProviderClient(
+  clientProfileId: string,
+  body: UpdateClientByProviderRequest
+): Promise<ProviderClientResponse> {
+  return await apiFetch<ProviderClientResponse>(`/provider/clients/${clientProfileId}`, {
+    method: 'PATCH',
+    body
   })
 }

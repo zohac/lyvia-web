@@ -48,7 +48,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function getContextualFetch(): typeof $fetch {
   if (import.meta.server) {
     try {
-      return useRequestFetch()
+      return useRequestFetch() as typeof $fetch
     } catch {
       // Fallback if called outside request context
       return $fetch

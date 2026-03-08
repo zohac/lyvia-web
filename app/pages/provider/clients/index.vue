@@ -10,18 +10,30 @@
           Cliquez sur une carte pour filtrer par statut.
         </p>
       </div>
-      <UButton
-        :loading="pending"
-        variant="outline"
-        color="neutral"
-        @click="refresh"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          class="mr-2 h-4 w-4"
-        />
-        Actualiser
-      </UButton>
+      <div class="flex items-center gap-3">
+        <UButton
+          :loading="pending"
+          variant="outline"
+          color="neutral"
+          @click="refresh"
+        >
+          <UIcon
+            name="lucide:refresh-cw"
+            class="mr-2 h-4 w-4"
+          />
+          Actualiser
+        </UButton>
+        <UButton
+          color="primary"
+          @click="createDrawerOpen = true"
+        >
+          <UIcon
+            name="lucide:user-plus"
+            class="mr-2 h-4 w-4"
+          />
+          Nouvelle cliente
+        </UButton>
+      </div>
     </header>
 
     <!-- Error alert -->
@@ -396,6 +408,12 @@
         class="w-full max-w-md"
       />
     </div>
+
+    <!-- Create Client Drawer -->
+    <ProviderClientCreateDrawer
+      v-model:open="createDrawerOpen"
+      @created="refresh"
+    />
   </div>
 </template>
 
@@ -403,6 +421,7 @@
 import { useProviderClients } from '../../../features/clients/useProviderClients'
 import { hasDiscoveryCancelled } from '../../../features/clients/domain/clients'
 import ClientCard from '../../../components/molecules/ClientCard.vue'
+import ProviderClientCreateDrawer from '../../../components/organisms/ProviderClientCreateDrawer.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -422,6 +441,9 @@ const {
   loadMorePending,
   loadMoreErrorMessage
 } = await useProviderClients()
+
+// Create drawer
+const createDrawerOpen = ref(false)
 
 // Local filter for cancelled discoveries (frontend-only refinement)
 const showCancelledOnly = ref(false)
