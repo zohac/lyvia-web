@@ -1,6 +1,6 @@
 import { defineEventHandler, getRequestHost, getRequestProtocol, setResponseHeader } from 'h3'
 
-const DEV_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0'])
+import { isPlatformHost } from '~~/shared/utils/platform-host'
 
 const DISALLOW_COMMON = [
   '/client/',
@@ -13,15 +13,6 @@ const DISALLOW_COMMON = [
   '/forgot-password'
 ]
 
-function isPlatformDomain(host: string, platformDomain: string): boolean {
-  const h = host.toLowerCase().replace(/:\d+$/, '')
-  if (!h) return true
-  if (DEV_HOSTS.has(h)) return true
-  const pd = platformDomain.toLowerCase()
-  if (!pd) return false
-  return h === pd || h.endsWith(`.${pd}`)
-}
-
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig()
   const platformDomain = config.public.platformDomain as string || 'kaora.app'
@@ -32,7 +23,7 @@ export default defineEventHandler((event) => {
 
   const disallowPaths = [...DISALLOW_COMMON]
 
-  if (!isPlatformDomain(host, platformDomain)) {
+  if (!isPlatformHost(host, platformDomain)) {
     disallowPaths.push('/coaches')
   }
 
@@ -46,5 +37,5 @@ export default defineEventHandler((event) => {
 
   setResponseHeader(event, 'content-type', 'text/plain; charset=utf-8')
   setResponseHeader(event, 'cache-control', 'public, max-age=3600')
-  return lines.join('\n')
+  return lines.join('\n') + '\n'
 })

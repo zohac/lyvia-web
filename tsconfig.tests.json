@@ -16,6 +16,7 @@
     "app/features/public/domain/**/*.ts",
     "app/features/analytics/helpers/**/*.ts",
     "app/features/analytics/api/**/*.ts",
+    "shared/utils/**/*.ts",
     "app/utils/**/*.ts",
     "app/services/api/api-error.ts",
     "app/services/api/contracts/error-response.ts",
