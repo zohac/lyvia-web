@@ -2,7 +2,6 @@
 import { h } from 'vue'
 import type { TableColumn, TableRow } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
-import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
 import { filterPillClasses } from '~/features/admin/admin-filter-pills'
 import { formatDateShort } from '~/composables/useDateFormat'
@@ -43,68 +42,11 @@ type ListProvidersResponse = {
   }
 }
 
-const toast = useToast()
+// Creation drawer
+const showCreateDrawer = ref(false)
 
-// Creation modal
-const showCreateModal = ref(false)
-const createLoading = ref(false)
-const createForm = reactive({
-  firstName: '',
-  lastName: '',
-  email: '',
-  slug: '',
-  siret: '',
-  legalIdentifier: ''
-})
-
-const createErrors = computed(() => {
-  const errors: Record<string, string> = {}
-  if (!createForm.firstName.trim()) errors.firstName = 'Requis'
-  if (!createForm.lastName.trim()) errors.lastName = 'Requis'
-  if (!createForm.email.trim()) errors.email = 'Requis'
-  else if (!EMAIL_REGEX.test(createForm.email)) errors.email = 'Email invalide'
-  if (!createForm.slug.trim()) errors.slug = 'Requis'
-  else if (createForm.slug.length < 3 || createForm.slug.length > 60) errors.slug = 'Entre 3 et 60 caractères'
-  else if (!SLUG_REGEX.test(createForm.slug)) errors.slug = 'Lettres minuscules, chiffres et tirets uniquement'
-  if (createForm.siret && !SIRET_REGEX.test(createForm.siret)) errors.siret = 'Format SIREN (9) ou SIRET (14) invalide'
-  return errors
-})
-
-const canCreate = computed(() => Object.keys(createErrors.value).length === 0 && createForm.firstName.trim())
-
-function resetCreateForm() {
-  createForm.firstName = ''
-  createForm.lastName = ''
-  createForm.email = ''
-  createForm.slug = ''
-  createForm.siret = ''
-  createForm.legalIdentifier = ''
-}
-
-async function submitCreate() {
-  if (!canCreate.value || createLoading.value) return
-  createLoading.value = true
-  try {
-    const body: Record<string, string> = {
-      firstName: createForm.firstName.trim(),
-      lastName: createForm.lastName.trim(),
-      email: createForm.email.trim(),
-      slug: createForm.slug.trim()
-    }
-    if (createForm.siret.trim()) body.siret = createForm.siret.trim()
-    if (createForm.legalIdentifier.trim()) body.legalIdentifier = createForm.legalIdentifier.trim()
-
-    const result = await apiFetch<{ id: string }>('/admin/providers', { method: 'POST', body })
-    toast.add({ title: 'Provider créé', description: 'Email d\'activation envoyé.', color: 'success' })
-    showCreateModal.value = false
-    resetCreateForm()
-    router.push(`/admin/providers/${result.id}`)
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Erreur lors de la création'
-    toast.add({ title: 'Erreur', description: message, color: 'error' })
-  } finally {
-    createLoading.value = false
-  }
+function onProviderCreated(id: string) {
+  router.push(`/admin/providers/${id}`)
 }
 
 // Filters
@@ -276,7 +218,7 @@ function goToProvider() {
       <UButton
         color="primary"
         class="rounded-full"
-        @click="showCreateModal = true"
+        @click="showCreateDrawer = true"
       >
         <UIcon
           name="lucide:plus"
@@ -461,131 +403,10 @@ function goToProvider() {
       </p>
     </section>
 
-    <!-- Create Provider Modal -->
-    <UModal
-      :open="showCreateModal"
-      @update:open="(v: boolean) => { showCreateModal = v; if (!v) resetCreateForm() }"
-    >
-      <template #header>
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-crepuscule-100)]">
-            <UIcon
-              name="lucide:user-plus"
-              size="20"
-              class="text-[color:var(--color-crepuscule-600)]"
-            />
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold text-[color:var(--color-brand-primary)]">
-              Nouveau provider
-            </h3>
-            <p class="text-sm text-[color:var(--color-brand-muted)]">
-              Un email d'activation sera envoyé
-            </p>
-          </div>
-        </div>
-      </template>
-
-      <template #body>
-        <form
-          class="space-y-4"
-          @submit.prevent="submitCreate"
-        >
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField
-              label="Prénom"
-              :error="createForm.firstName ? createErrors.firstName : undefined"
-            >
-              <UInput
-                v-model="createForm.firstName"
-                placeholder="Sophie"
-                class="w-full"
-              />
-            </UFormField>
-
-            <UFormField
-              label="Nom"
-              :error="createForm.lastName ? createErrors.lastName : undefined"
-            >
-              <UInput
-                v-model="createForm.lastName"
-                placeholder="Martin"
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-
-          <UFormField
-            label="Email"
-            :error="createForm.email ? createErrors.email : undefined"
-          >
-            <UInput
-              v-model="createForm.email"
-              type="email"
-              placeholder="sophie@example.com"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField
-            label="Slug"
-            :error="createForm.slug ? createErrors.slug : undefined"
-            hint="URL publique : /coach/{slug}"
-          >
-            <UInput
-              v-model="createForm.slug"
-              placeholder="sophie-martin"
-              class="w-full font-mono"
-            />
-          </UFormField>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <UFormField
-              label="SIRET / SIREN"
-              :error="createForm.siret ? createErrors.siret : undefined"
-              hint="Optionnel"
-            >
-              <UInput
-                v-model="createForm.siret"
-                placeholder="12345678901234"
-                class="w-full font-mono"
-              />
-            </UFormField>
-
-            <UFormField
-              label="Identifiant légal"
-              hint="Optionnel"
-            >
-              <UInput
-                v-model="createForm.legalIdentifier"
-                placeholder="TVA, RNA..."
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-        </form>
-      </template>
-
-      <template #footer>
-        <div class="flex justify-end gap-3">
-          <UButton
-            variant="outline"
-            color="neutral"
-            :disabled="createLoading"
-            @click="showCreateModal = false"
-          >
-            Annuler
-          </UButton>
-          <UButton
-            color="primary"
-            :loading="createLoading"
-            :disabled="!canCreate"
-            @click="submitCreate"
-          >
-            Créer le provider
-          </UButton>
-        </div>
-      </template>
-    </UModal>
+    <!-- Create Provider Drawer -->
+    <OrganismsAdminProviderCreateDrawer
+      v-model:open="showCreateDrawer"
+      @created="onProviderCreated"
+    />
   </div>
 </template>
