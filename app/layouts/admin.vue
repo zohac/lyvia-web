@@ -21,6 +21,12 @@ const navigation = {
           match: 'prefix' as const
         },
         {
+          label: 'Clients',
+          to: '/admin/clients',
+          icon: 'lucide:contact',
+          match: 'prefix' as const
+        },
+        {
           label: 'SEO',
           to: '/admin/seo',
           icon: 'lucide:globe',
