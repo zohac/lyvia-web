@@ -4,6 +4,7 @@ import type { TableColumn, TableRow } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
+import { filterPillClasses } from '~/features/admin/admin-filter-pills'
 import { formatDateShort } from '~/composables/useDateFormat'
 import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
 
@@ -306,12 +307,8 @@ function goToProvider() {
           <button
             v-for="filter in stripeStatusFilters"
             :key="filter.value"
-            :class="[
-              'rounded-full px-4 py-2 text-sm font-medium transition-all',
-              stripeStatus === filter.value
-                ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-sm'
-                : 'border border-[color:var(--color-border-subtle)] bg-white text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-crepuscule-400)] hover:text-[color:var(--color-brand-primary)]'
-            ]"
+            type="button"
+            :class="filterPillClasses(stripeStatus === filter.value)"
             @click="setStripeStatus(filter.value)"
           >
             {{ filter.label }}
