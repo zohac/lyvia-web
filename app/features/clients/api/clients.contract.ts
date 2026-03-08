@@ -202,6 +202,47 @@ export type ResendActivationResponse = {
 }
 
 // ============================================================================
+// Provider Client Create / Update (Story 14-1)
+// ============================================================================
+
+/**
+ * Request body for creating a client as a provider.
+ */
+export type CreateClientByProviderRequest = {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+}
+
+/**
+ * Request body for updating a client as a provider.
+ * All fields optional — only changed fields should be sent.
+ */
+export type UpdateClientByProviderRequest = {
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string
+}
+
+/**
+ * Response from creating or updating a client as a provider.
+ * (verified against OpenAPI ProviderClientResponseDto)
+ */
+export type ProviderClientResponse = {
+  id: string
+  userId: string
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  stage: ProviderClientStage
+  isActive: boolean
+  createdAt: string
+}
+
+// ============================================================================
 // Update Program Month (D3 / D5-b)
 // ============================================================================
 
