@@ -22,9 +22,14 @@ export default defineEventHandler(async (event) => {
     ]
   }
 
-  const providers = await $fetch<Array<{ slug: string, updatedAt: string }>>(
-    `${apiBase}/public/sitemap/providers`
-  )
+  let providers: Array<{ slug: string, updatedAt: string }> = []
+  try {
+    providers = await $fetch<Array<{ slug: string, updatedAt: string }>>(
+      `${apiBase}/public/sitemap/providers`
+    )
+  } catch {
+    // API unreachable — return static-only sitemap to avoid 500 on /sitemap.xml
+  }
 
   const coachUrls = providers.flatMap(p => [
     { loc: `/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.8 },

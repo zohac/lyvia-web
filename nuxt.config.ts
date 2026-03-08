@@ -19,6 +19,7 @@ export default defineNuxtConfig({
   linkChecker: { enabled: false },
   robots: { enabled: false },
   sitemap: {
+    cacheMaxAgeSeconds: 3600,
     sources: ['/api/__sitemap__/urls'],
     xslColumns: [
       { label: 'URL', width: '65%' },
