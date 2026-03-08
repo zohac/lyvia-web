@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import type { PublicTenantResponse } from '../features/onboarding/api/onboarding.contract'
-import { ApiFetchError } from '../services/api/api-error'
-import { apiFetch } from '../services/api/apiFetch'
-import { setPublicHeader } from '../features/public/state/public-header.state'
-import { isPlatformHost } from '../features/public/domain/platform-host'
-import { usePublicSeo } from '../features/seo/usePublicSeo'
-import { resolveCanonical } from '../features/seo/resolveCanonical'
-import { usePageTracking } from '../features/analytics/usePageTracking'
-import CoachPublicPageTemplate from '../components/templates/CoachPublicPageTemplate.vue'
-import MarketingLandingB2B from '../components/templates/MarketingLandingB2B.vue'
+import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
+import { ApiFetchError } from '~/services/api/api-error'
+import { apiFetch } from '~/services/api/apiFetch'
+import { setPublicHeader } from '~/features/public/state/public-header.state'
+import { isPlatformHost } from '~/features/public/domain/platform-host'
+import { usePublicSeo } from '~/features/seo/usePublicSeo'
+import { resolveCanonical } from '~/features/seo/resolveCanonical'
+import { usePageTracking } from '~/features/analytics/usePageTracking'
+import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
+import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
+import MarketingLandingB2B from '~/components/templates/MarketingLandingB2B.vue'
 
 definePageMeta({
   layout: 'public',
@@ -122,12 +123,16 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div v-if="tenant">
-    <CoachPublicPageTemplate
-      :tenant="tenant"
-      cta-to="/onboarding/discovery"
-    />
-  </div>
+  <CoachUnavailableTemplate
+    v-if="tenant && !tenant.isActive"
+    :coach-name="tenant.brand.displayName"
+  />
+
+  <CoachPublicPageTemplate
+    v-else-if="tenant"
+    :tenant="tenant"
+    cta-to="/onboarding/discovery"
+  />
 
   <MarketingLandingB2B v-else />
 </template>

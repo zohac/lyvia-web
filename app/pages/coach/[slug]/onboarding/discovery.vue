@@ -1,5 +1,12 @@
 <template>
-  <DiscoveryBookingWizard :slug="slug" />
+  <CoachUnavailableTemplate
+    v-if="tenant && !tenant.isActive"
+    :coach-name="tenant.brand.displayName"
+  />
+  <DiscoveryBookingWizard
+    v-else
+    :slug="slug"
+  />
 </template>
 
 <script setup lang="ts">
@@ -10,6 +17,7 @@ import { usePublicSeo } from '../../../../features/seo/usePublicSeo'
 import { usePageTracking } from '../../../../features/analytics/usePageTracking'
 import { resolveCanonical } from '../../../../features/seo/resolveCanonical'
 import DiscoveryBookingWizard from '~/components/organisms/DiscoveryBookingWizard.vue'
+import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 
 definePageMeta({
   layout: 'focus'

@@ -21,6 +21,7 @@ export type PublicTenantResponse = {
   providerId: string
   slug: string
   timezone: string
+  isActive: boolean
   brand: TenantBrand
 }
 

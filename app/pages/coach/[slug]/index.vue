@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import type { PublicTenantResponse } from '../../../features/onboarding/api/onboarding.contract'
-import { ApiFetchError } from '../../../services/api/api-error'
-import { apiFetch } from '../../../services/api/apiFetch'
-import { usePublicSeo } from '../../../features/seo/usePublicSeo'
-import { usePageTracking } from '../../../features/analytics/usePageTracking'
-import { resolveCanonical } from '../../../features/seo/resolveCanonical'
-import { setPublicHeader } from '../../../features/public/state/public-header.state'
-import CoachPublicPageTemplate from '../../../components/templates/CoachPublicPageTemplate.vue'
+import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
+import { ApiFetchError } from '~/services/api/api-error'
+import { apiFetch } from '~/services/api/apiFetch'
+import { usePublicSeo } from '~/features/seo/usePublicSeo'
+import { usePageTracking } from '~/features/analytics/usePageTracking'
+import { resolveCanonical } from '~/features/seo/resolveCanonical'
+import { setPublicHeader } from '~/features/public/state/public-header.state'
+import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
+import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 
 definePageMeta({
   layout: 'public',
@@ -87,7 +88,12 @@ watchEffect(() => {
 </script>
 
 <template>
+  <CoachUnavailableTemplate
+    v-if="tenant && !tenant.isActive"
+    :coach-name="tenant.brand.displayName"
+  />
   <CoachPublicPageTemplate
+    v-else
     :tenant="requiredTenant"
     :cta-to="ctaTo"
   />

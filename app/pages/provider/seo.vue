@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { useProviderAccount } from '../../features/account/useProviderAccount'
-import { useProviderSeo } from '../../features/seo/useProviderSeo'
-import { apiFetch } from '../../services/api/apiFetch'
-import type { ProviderAccountResponse } from '../../features/account/api/provider-account.contract'
-import MoleculesGooglePreview from '../../components/molecules/GooglePreview.vue'
+import { useProviderAccount } from '~/features/account/useProviderAccount'
+import { useProviderSeo } from '~/features/seo/useProviderSeo'
+import { apiFetch } from '~/services/api/apiFetch'
+import type { ProviderAccountResponse } from '~/features/account/api/provider-account.contract'
+import { SLUG_REGEX } from '~/utils/validation-regex'
+import MoleculesGooglePreview from '~/components/molecules/GooglePreview.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -39,10 +40,9 @@ const slugError = ref<string | null>(null)
 const savedSlug = ref(providerAccount.account.value?.slug ?? '')
 const isSlugDirty = computed(() => slugValue.value !== savedSlug.value)
 
-const SLUG_REGEX = /^[a-z0-9-]+$/
 const slugFormatError = computed(() => {
   if (!slugValue.value || SLUG_REGEX.test(slugValue.value)) return null
-  return 'Format invalide. Utilisez des lettres minuscules, chiffres et tirets.'
+  return 'Format invalide. Utilisez des lettres minuscules, chiffres et tirets (ex: marie-dupont).'
 })
 
 watch(

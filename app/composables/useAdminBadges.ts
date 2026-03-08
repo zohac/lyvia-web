@@ -70,6 +70,26 @@ export function getNotificationStatusLabel(status: string): string {
 }
 
 /**
+ * Base classes for status badges with dot indicator
+ */
+export const STATUS_BADGE_BASE = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium'
+export const STATUS_DOT_BASE = 'h-1.5 w-1.5 rounded-full'
+
+export type StatusBadgeVariant = 'success' | 'error' | 'warning' | 'neutral'
+
+const STATUS_BADGE_VARIANTS: Record<StatusBadgeVariant, { badge: string, dot: string }> = {
+  success: { badge: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]', dot: 'bg-[color:var(--color-success-500)]' },
+  error: { badge: 'bg-red-100 text-red-700', dot: 'bg-red-500' },
+  warning: { badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+  neutral: { badge: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]', dot: 'bg-[color:var(--color-neutral-400)]' }
+}
+
+export function getStatusBadgeClasses(variant: StatusBadgeVariant): { badge: string, dot: string } {
+  const v = STATUS_BADGE_VARIANTS[variant]
+  return { badge: `${STATUS_BADGE_BASE} ${v.badge}`, dot: `${STATUS_DOT_BASE} ${v.dot}` }
+}
+
+/**
  * Composable that returns all badge helper functions
  */
 export function useAdminBadges() {
@@ -78,6 +98,7 @@ export function useAdminBadges() {
     getBadgeClasses,
     getNotificationStatusBadgeClasses,
     getNotificationTypeBadgeClasses,
-    getNotificationStatusLabel
+    getNotificationStatusLabel,
+    getStatusBadgeClasses
   }
 }

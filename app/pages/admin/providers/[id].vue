@@ -3,7 +3,11 @@ import type { TabsItem } from '@nuxt/ui'
 import type { SeoFieldValues } from '~/types/seo.types'
 import { apiFetch } from '~/services/api/apiFetch'
 import { mapRequirementKeyToMessage } from '~/features/finance/domain/finance-state'
+import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
+import { formatDateTime } from '~/composables/useDateFormat'
+import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
 import AdminSeoForm from '~/components/organisms/AdminSeoForm.vue'
+import ProviderDeactivationModal from '~/components/organisms/ProviderDeactivationModal.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -16,7 +20,7 @@ const toast = useToast()
 const providerId = computed(() => route.params.id as string)
 
 // ──────────────────────────────────────────────
-// Types
+// Types (verified against OpenAPI DTOs)
 // ──────────────────────────────────────────────
 
 type AdminProviderStripeStatus = {
@@ -48,19 +52,60 @@ type AdminSeoEntry = {
   resolvedConfig: SeoFieldValues
 }
 
+type AdminProviderDetail = {
+  id: string
+  userId: string
+  firstName: string
+  lastName: string
+  email: string
+  slug: string | null
+  siret: string | null
+  legalIdentifier: string | null
+  isActive: boolean
+  activatedAt: string | null
+  clientsCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+type DeactivationImpact = {
+  activeClientsCount: number
+  scheduledAppointmentsCount: number
+  pendingPaymentsCount: number
+  canDeactivate: boolean
+}
+
 // ──────────────────────────────────────────────
-// Data fetching
+// Data fetching (parallel — Epic 11 action #3)
 // ──────────────────────────────────────────────
 
-const { data: provider, pending, error, refresh } = await useAsyncData<AdminProviderStripeStatus>(
-  `admin-provider-${providerId.value}`,
-  () => apiFetch<AdminProviderStripeStatus>(`/admin/providers/${providerId.value}/stripe/status`)
-)
+const [
+  { data: provider, pending: stripePending, error: stripeError, refresh: refreshStripe },
+  { data: detail, pending: detailPending, error: detailError, refresh: refreshDetail },
+  { data: allSeoEntries, status: seoStatus, refresh: refreshSeo }
+] = await Promise.all([
+  useAsyncData<AdminProviderStripeStatus>(
+    `admin-provider-${providerId.value}`,
+    () => apiFetch<AdminProviderStripeStatus>(`/admin/providers/${providerId.value}/stripe/status`)
+  ),
+  useAsyncData<AdminProviderDetail>(
+    `admin-provider-detail-${providerId.value}`,
+    () => apiFetch<AdminProviderDetail>(`/admin/providers/${providerId.value}/detail`)
+  ),
+  useAsyncData<AdminSeoEntry[]>(
+    `admin-seo-provider-${providerId.value}`,
+    () => apiFetch<AdminSeoEntry[]>('/admin/seo')
+  )
+])
 
-const { data: allSeoEntries, status: seoStatus, refresh: refreshSeo } = await useAsyncData<AdminSeoEntry[]>(
-  `admin-seo-provider-${providerId.value}`,
-  () => apiFetch<AdminSeoEntry[]>('/admin/seo')
-)
+const pending = computed(() => stripePending.value || detailPending.value)
+const error = computed(() => stripeError.value || detailError.value)
+
+function refreshAll() {
+  refreshStripe()
+  refreshDetail()
+  refreshSeo()
+}
 
 // ──────────────────────────────────────────────
 // Computed
@@ -70,18 +115,39 @@ const providerSeoEntries = computed(() =>
   allSeoEntries.value?.filter(e => e.targetId === providerId.value) ?? []
 )
 
-const providerDisplayName = computed(() => {
+const displayName = computed((): string => {
+  if (detail.value) return `${detail.value.firstName} ${detail.value.lastName}`
   const entry = providerSeoEntries.value[0]
-  return entry ? entry.label.split(' — ')[0] : null
+  return entry ? (entry.label.split(' — ')[0] ?? 'Provider') : 'Provider'
 })
 
 const stripeStatusInfo = computed(() => {
   const s = provider.value?.stripe
-  if (!s?.stripeAccountId) return { label: 'Stripe non lié', color: 'neutral' as const, dot: 'bg-[color:var(--color-neutral-400)]' }
-  if (s.chargesEnabled && s.payoutsEnabled) return { label: 'Stripe actif', color: 'success' as const, dot: 'bg-[color:var(--color-success-500)]' }
-  if (s.requirementsPastDue.length > 0) return { label: 'Stripe bloqué', color: 'error' as const, dot: 'bg-red-500' }
-  if (s.requirementsDue.length > 0) return { label: `Stripe : ${s.requirementsDue.length} action${s.requirementsDue.length > 1 ? 's' : ''}`, color: 'warning' as const, dot: 'bg-amber-500' }
-  return { label: 'Stripe en cours', color: 'neutral' as const, dot: 'bg-[color:var(--color-neutral-400)]' }
+  let variant: 'neutral' | 'success' | 'error' | 'warning' = 'neutral'
+  let label = 'Stripe non lié'
+  if (s?.stripeAccountId) {
+    if (s.chargesEnabled && s.payoutsEnabled) {
+      variant = 'success'
+      label = 'Stripe actif'
+    } else if (s.requirementsPastDue.length > 0) {
+      variant = 'error'
+      label = 'Stripe bloqué'
+    } else if (s.requirementsDue.length > 0) {
+      variant = 'warning'
+      label = `Stripe : ${s.requirementsDue.length} action${s.requirementsDue.length > 1 ? 's' : ''}`
+    } else {
+      label = 'Stripe en cours'
+    }
+  }
+  const cls = getStatusBadgeClasses(variant)
+  return { label, badge: cls.badge, dot: cls.dot }
+})
+
+const activeStatusInfo = computed(() => {
+  if (!detail.value) return null
+  const variant = detail.value.isActive ? 'success' as const : 'error' as const
+  const s = getStatusBadgeClasses(variant)
+  return { label: detail.value.isActive ? 'Actif' : 'Désactivé', badge: s.badge, dot: s.dot }
 })
 
 // ──────────────────────────────────────────────
@@ -89,9 +155,175 @@ const stripeStatusInfo = computed(() => {
 // ──────────────────────────────────────────────
 
 const tabItems = [
+  { label: 'Profil', icon: 'i-lucide-user', slot: 'profil' as const },
   { label: 'Stripe Connect', icon: 'i-lucide-credit-card', slot: 'stripe' as const },
   { label: 'Référencement', icon: 'i-lucide-globe', slot: 'seo' as const }
 ] satisfies TabsItem[]
+
+// ──────────────────────────────────────────────
+// Profile edit form
+// ──────────────────────────────────────────────
+
+const editForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  slug: '',
+  siret: '',
+  legalIdentifier: ''
+})
+
+const initialForm = ref({ firstName: '', lastName: '', email: '', slug: '', siret: '', legalIdentifier: '' })
+
+function resetForm() {
+  if (!detail.value) return
+  const d = detail.value
+  const values = {
+    firstName: d.firstName,
+    lastName: d.lastName,
+    email: d.email,
+    slug: d.slug ?? '',
+    siret: d.siret ?? '',
+    legalIdentifier: d.legalIdentifier ?? ''
+  }
+  Object.assign(editForm, values)
+  initialForm.value = { ...values }
+}
+
+watch(detail, () => resetForm(), { immediate: true })
+
+const isDirty = computed(() => {
+  const i = initialForm.value
+  return editForm.firstName !== i.firstName
+    || editForm.lastName !== i.lastName
+    || editForm.email !== i.email
+    || editForm.slug !== i.slug
+    || editForm.siret !== i.siret
+    || editForm.legalIdentifier !== i.legalIdentifier
+})
+
+const formErrors = computed(() => {
+  const errors: Record<string, string> = {}
+  if (!editForm.firstName.trim()) errors.firstName = 'Le prénom est requis'
+  if (!editForm.lastName.trim()) errors.lastName = 'Le nom est requis'
+  if (!editForm.email.trim()) errors.email = 'L\'email est requis'
+  else if (!EMAIL_REGEX.test(editForm.email)) errors.email = 'Format email invalide'
+  if (editForm.slug && !SLUG_REGEX.test(editForm.slug)) errors.slug = 'Format slug invalide (kebab-case, ex: marie-dupont)'
+  if (editForm.slug && (editForm.slug.length < 3 || editForm.slug.length > 60)) errors.slug = 'Le slug doit faire entre 3 et 60 caractères'
+  if (editForm.siret && !SIRET_REGEX.test(editForm.siret)) errors.siret = 'Format SIRET invalide (9 ou 14 chiffres)'
+  return errors
+})
+
+const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
+
+const saving = ref(false)
+
+async function saveProfile() {
+  if (!isDirty.value || hasErrors.value) return
+
+  const changedFields: Record<string, string> = {}
+  const i = initialForm.value
+  if (editForm.firstName !== i.firstName) changedFields.firstName = editForm.firstName.trim()
+  if (editForm.lastName !== i.lastName) changedFields.lastName = editForm.lastName.trim()
+  if (editForm.email !== i.email) changedFields.email = editForm.email.trim()
+  if (editForm.slug !== i.slug) changedFields.slug = editForm.slug.trim()
+  if (editForm.siret !== i.siret) changedFields.siret = editForm.siret.trim()
+  if (editForm.legalIdentifier !== i.legalIdentifier) changedFields.legalIdentifier = editForm.legalIdentifier.trim()
+
+  if (Object.keys(changedFields).length === 0) return
+
+  saving.value = true
+  try {
+    await apiFetch(`/admin/providers/${providerId.value}`, {
+      method: 'PATCH',
+      body: changedFields
+    })
+
+    const emailChanged = 'email' in changedFields
+    toast.add({
+      title: 'Provider mis à jour',
+      description: emailChanged ? 'Un email de vérification sera envoyé à la nouvelle adresse.' : undefined,
+      color: 'success'
+    })
+
+    await refreshDetail()
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors de la mise à jour',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    saving.value = false
+  }
+}
+
+// ──────────────────────────────────────────────
+// Deactivation flow
+// ──────────────────────────────────────────────
+
+const deactivationModalOpen = ref(false)
+const deactivationImpact = ref<DeactivationImpact | null>(null)
+const deactivating = ref(false)
+
+async function openDeactivationModal() {
+  deactivationImpact.value = null
+  deactivationModalOpen.value = true
+
+  try {
+    deactivationImpact.value = await apiFetch<DeactivationImpact>(
+      `/admin/providers/${providerId.value}/deactivation-impact`
+    )
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors du chargement de l\'impact',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+    deactivationModalOpen.value = false
+  }
+}
+
+async function confirmDeactivation() {
+  deactivating.value = true
+  try {
+    await apiFetch(`/admin/providers/${providerId.value}/deactivate`, { method: 'PATCH' })
+    toast.add({ title: 'Provider désactivé', color: 'success' })
+    deactivationModalOpen.value = false
+    await refreshDetail()
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors de la désactivation',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    deactivating.value = false
+  }
+}
+
+// ──────────────────────────────────────────────
+// Reactivation
+// ──────────────────────────────────────────────
+
+const reactivating = ref(false)
+
+async function reactivateProvider() {
+  reactivating.value = true
+  try {
+    await apiFetch(`/admin/providers/${providerId.value}/reactivate`, { method: 'PATCH' })
+    toast.add({ title: 'Provider réactivé', color: 'success' })
+    await refreshDetail()
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors de la réactivation',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    reactivating.value = false
+  }
+}
 
 // ──────────────────────────────────────────────
 // Actions dropdown
@@ -123,10 +355,7 @@ const actionItems = computed(() => [
     {
       label: 'Rafraîchir tout',
       icon: 'i-lucide-rotate-cw',
-      onSelect: () => {
-        refresh()
-        refreshSeo()
-      }
+      onSelect: refreshAll
     }
   ]
 ])
@@ -140,7 +369,7 @@ async function onSyncStripe() {
   try {
     await apiFetch(`/admin/providers/${providerId.value}/stripe/sync`, { method: 'POST' })
     toast.add({ title: 'Synchronisation Stripe réussie', color: 'success' })
-    await refresh()
+    await refreshStripe()
   } catch (err) {
     toast.add({
       title: 'Erreur de synchronisation',
@@ -172,9 +401,18 @@ async function saveSeo(targetType: string, patch: SeoFieldValues) {
 }
 
 const seoRestoringMap = ref<Record<string, boolean>>({})
+const seoRestoreConfirmOpen = ref(false)
+const seoRestoreTargetType = ref<string | null>(null)
 
-async function confirmRestoreSeo(targetType: string) {
-  if (!window.confirm('Supprimer l\'override admin ? Les valeurs du provider seront restaurées.')) return
+function promptRestoreSeo(targetType: string) {
+  seoRestoreTargetType.value = targetType
+  seoRestoreConfirmOpen.value = true
+}
+
+async function confirmRestoreSeo() {
+  const targetType = seoRestoreTargetType.value
+  if (!targetType) return
+  seoRestoreConfirmOpen.value = false
 
   seoRestoringMap.value[targetType] = true
   try {
@@ -203,13 +441,6 @@ function openSeoEntry(entry: AdminSeoEntry) {
 // ──────────────────────────────────────────────
 // Utilities
 // ──────────────────────────────────────────────
-
-function formatDate(isoString: string): string {
-  return new Intl.DateTimeFormat('fr-FR', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  }).format(new Date(isoString))
-}
 
 function truncateSeo(text: string | null, max: number): string {
   if (!text) return '—'
@@ -291,23 +522,25 @@ const SEO_TARGET_ICONS: Record<string, string> = {
 
             <div>
               <h1 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)] sm:text-3xl">
-                {{ providerDisplayName || 'Provider' }}
+                {{ displayName }}
               </h1>
 
               <!-- Badges -->
               <div class="mt-2 flex flex-wrap items-center gap-2">
+                <!-- Active status badge -->
                 <span
-                  :class="[
-                    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
-                    stripeStatusInfo.color === 'success' ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' : '',
-                    stripeStatusInfo.color === 'error' ? 'bg-red-100 text-red-700' : '',
-                    stripeStatusInfo.color === 'warning' ? 'bg-amber-100 text-amber-700' : '',
-                    stripeStatusInfo.color === 'neutral' ? 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]' : ''
-                  ]"
+                  v-if="activeStatusInfo"
+                  :class="activeStatusInfo.badge"
                 >
-                  <span
-                    :class="['h-1.5 w-1.5 rounded-full', stripeStatusInfo.dot]"
-                  />
+                  <span :class="activeStatusInfo.dot" />
+                  {{ activeStatusInfo.label }}
+                </span>
+
+                <!-- Stripe badge -->
+                <span
+                  :class="stripeStatusInfo.badge"
+                >
+                  <span :class="stripeStatusInfo.dot" />
                   {{ stripeStatusInfo.label }}
                 </span>
 
@@ -351,6 +584,209 @@ const SEO_TARGET_ICONS: Record<string, string> = {
           trigger: 'grow'
         }"
       >
+        <!-- ═══════════════════════════════════════ -->
+        <!-- Tab: Profil                            -->
+        <!-- ═══════════════════════════════════════ -->
+        <template #profil>
+          <div
+            v-if="detailPending"
+            class="space-y-4"
+          >
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="h-16 animate-pulse rounded-xl border border-[color:var(--color-border-subtle)] bg-white/75"
+            />
+          </div>
+
+          <div
+            v-else-if="detail"
+            class="space-y-6"
+          >
+            <!-- Info cards -->
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
+                <dt class="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+                  Clients
+                </dt>
+                <dd class="text-2xl font-semibold text-[color:var(--color-brand-primary)]">
+                  {{ detail.clientsCount }}
+                </dd>
+              </div>
+              <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
+                <dt class="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+                  Inscription
+                </dt>
+                <dd class="text-sm text-[color:var(--color-brand-secondary)]">
+                  {{ formatDateTime(detail.createdAt) }}
+                </dd>
+              </div>
+              <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
+                <dt class="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+                  Activation
+                </dt>
+                <dd class="text-sm text-[color:var(--color-brand-secondary)]">
+                  {{ detail.activatedAt ? formatDateTime(detail.activatedAt) : 'Non activé' }}
+                </dd>
+              </div>
+            </div>
+
+            <!-- Edit form -->
+            <section class="rounded-2xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-crepuscule-50)]/55 p-6 shadow-soft">
+              <h2 class="mb-6 font-serif text-xl italic text-[color:var(--color-brand-primary)]">
+                Informations
+              </h2>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <UFormField
+                  label="Prénom"
+                  :error="formErrors.firstName"
+                >
+                  <UInput
+                    v-model="editForm.firstName"
+                    class="w-full"
+                    autocomplete="given-name"
+                  />
+                </UFormField>
+
+                <UFormField
+                  label="Nom"
+                  :error="formErrors.lastName"
+                >
+                  <UInput
+                    v-model="editForm.lastName"
+                    class="w-full"
+                    autocomplete="family-name"
+                  />
+                </UFormField>
+
+                <UFormField
+                  label="Email"
+                  :error="formErrors.email"
+                >
+                  <UInput
+                    v-model="editForm.email"
+                    type="email"
+                    class="w-full"
+                    autocomplete="email"
+                  />
+                </UFormField>
+
+                <UFormField
+                  label="Slug"
+                  :error="formErrors.slug"
+                >
+                  <UInput
+                    v-model="editForm.slug"
+                    placeholder="marie-dupont"
+                    class="w-full"
+                  />
+                </UFormField>
+
+                <UFormField
+                  label="SIRET"
+                  :error="formErrors.siret"
+                >
+                  <UInput
+                    v-model="editForm.siret"
+                    placeholder="12345678901234"
+                    class="w-full font-mono"
+                  />
+                </UFormField>
+
+                <UFormField
+                  label="Identifiant légal"
+                  :error="formErrors.legalIdentifier"
+                >
+                  <UInput
+                    v-model="editForm.legalIdentifier"
+                    placeholder="FR12345678901"
+                    class="w-full font-mono"
+                  />
+                </UFormField>
+              </div>
+
+              <UAlert
+                v-if="isDirty && editForm.email !== initialForm.email"
+                color="info"
+                variant="soft"
+                icon="i-lucide-mail"
+                title="Changement d'email"
+                description="Un email de vérification sera envoyé à la nouvelle adresse."
+                class="mt-4"
+              />
+
+              <div class="mt-6 flex items-center gap-3">
+                <UButton
+                  color="primary"
+                  :loading="saving"
+                  :disabled="!isDirty || hasErrors"
+                  @click="saveProfile"
+                >
+                  Enregistrer
+                </UButton>
+                <UButton
+                  v-if="isDirty"
+                  variant="outline"
+                  color="neutral"
+                  @click="resetForm"
+                >
+                  Annuler
+                </UButton>
+              </div>
+            </section>
+
+            <!-- Deactivation / Reactivation -->
+            <section class="rounded-2xl border border-[color:var(--color-border-subtle)] bg-white p-6">
+              <h2 class="mb-4 font-serif text-xl italic text-[color:var(--color-brand-primary)]">
+                Statut du compte
+              </h2>
+
+              <div
+                v-if="detail.isActive"
+                class="flex items-center justify-between"
+              >
+                <div>
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    Ce provider est actuellement <strong class="text-[color:var(--color-success-700)]">actif</strong>.
+                  </p>
+                  <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
+                    La désactivation masquera sa page publique et empêchera les nouvelles réservations.
+                  </p>
+                </div>
+                <UButton
+                  color="error"
+                  variant="outline"
+                  @click="openDeactivationModal"
+                >
+                  Désactiver
+                </UButton>
+              </div>
+
+              <div
+                v-else
+                class="flex items-center justify-between"
+              >
+                <div>
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    Ce provider est actuellement <strong class="text-red-700">désactivé</strong>.
+                  </p>
+                  <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
+                    La réactivation rendra sa page publique à nouveau visible.
+                  </p>
+                </div>
+                <UButton
+                  color="success"
+                  :loading="reactivating"
+                  @click="reactivateProvider"
+                >
+                  Réactiver
+                </UButton>
+              </div>
+            </section>
+          </div>
+        </template>
+
         <!-- ═══════════════════════════════════════ -->
         <!-- Tab: Stripe Connect                    -->
         <!-- ═══════════════════════════════════════ -->
@@ -553,7 +989,7 @@ const SEO_TARGET_ICONS: Record<string, string> = {
                 Onboarding complété
               </dt>
               <dd class="text-sm text-[color:var(--color-success-800)]">
-                {{ formatDate(provider.stripe.onboardingCompletedAt) }}
+                {{ formatDateTime(provider.stripe.onboardingCompletedAt) }}
               </dd>
             </div>
 
@@ -569,7 +1005,7 @@ const SEO_TARGET_ICONS: Record<string, string> = {
                 </div>
                 <div>
                   <span class="text-[color:var(--color-brand-muted)]">Dernier webhook : </span>
-                  <span class="font-mono text-[color:var(--color-brand-primary)]">{{ provider.debug.lastWebhookAt ? formatDate(provider.debug.lastWebhookAt) : '—' }}</span>
+                  <span class="font-mono text-[color:var(--color-brand-primary)]">{{ provider.debug.lastWebhookAt ? formatDateTime(provider.debug.lastWebhookAt) : '—' }}</span>
                 </div>
               </div>
             </div>
@@ -707,7 +1143,7 @@ const SEO_TARGET_ICONS: Record<string, string> = {
                 size="sm"
                 class="w-full"
                 :loading="selectedSeoEntry ? seoRestoringMap[selectedSeoEntry.targetType] : false"
-                @click="selectedSeoEntry && confirmRestoreSeo(selectedSeoEntry.targetType)"
+                @click="selectedSeoEntry && promptRestoreSeo(selectedSeoEntry.targetType)"
               >
                 Restaurer les valeurs du provider
               </UButton>
@@ -716,5 +1152,57 @@ const SEO_TARGET_ICONS: Record<string, string> = {
         </template>
       </UTabs>
     </template>
+
+    <!-- SEO Restore Confirmation Modal -->
+    <UModal
+      :open="seoRestoreConfirmOpen"
+      @update:open="(v: boolean) => { seoRestoreConfirmOpen = v }"
+    >
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+            <UIcon
+              name="lucide:alert-triangle"
+              size="20"
+              class="text-amber-600"
+            />
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[color:var(--color-brand-primary)]">
+              Supprimer l'override admin
+            </h3>
+            <p class="text-sm text-[color:var(--color-brand-muted)]">
+              Les valeurs du provider seront restaurées.
+            </p>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton
+            variant="outline"
+            color="neutral"
+            @click="seoRestoreConfirmOpen = false"
+          >
+            Annuler
+          </UButton>
+          <UButton
+            color="warning"
+            @click="confirmRestoreSeo"
+          >
+            Confirmer la suppression
+          </UButton>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Deactivation Modal -->
+    <ProviderDeactivationModal
+      v-model:open="deactivationModalOpen"
+      :provider-name="displayName"
+      :loading="deactivating"
+      :impact="deactivationImpact"
+      @confirm="confirmDeactivation"
+    />
   </div>
 </template>

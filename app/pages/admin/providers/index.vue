@@ -2,6 +2,10 @@
 import { h } from 'vue'
 import type { TableColumn, TableRow } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
+import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
+import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
+import { formatDateShort } from '~/composables/useDateFormat'
+import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
 
 definePageMeta({
   layout: 'admin',
@@ -19,6 +23,7 @@ type AdminProviderListItem = {
   userId: string
   displayName: string
   email: string
+  isActive: boolean
   createdAt: string
   stripe: {
     stripeAccountId: string | null
@@ -34,6 +39,70 @@ type ListProvidersResponse = {
   page: {
     limit: number
     nextCursor: string | null
+  }
+}
+
+const toast = useToast()
+
+// Creation modal
+const showCreateModal = ref(false)
+const createLoading = ref(false)
+const createForm = reactive({
+  firstName: '',
+  lastName: '',
+  email: '',
+  slug: '',
+  siret: '',
+  legalIdentifier: ''
+})
+
+const createErrors = computed(() => {
+  const errors: Record<string, string> = {}
+  if (!createForm.firstName.trim()) errors.firstName = 'Requis'
+  if (!createForm.lastName.trim()) errors.lastName = 'Requis'
+  if (!createForm.email.trim()) errors.email = 'Requis'
+  else if (!EMAIL_REGEX.test(createForm.email)) errors.email = 'Email invalide'
+  if (!createForm.slug.trim()) errors.slug = 'Requis'
+  else if (createForm.slug.length < 3 || createForm.slug.length > 60) errors.slug = 'Entre 3 et 60 caractères'
+  else if (!SLUG_REGEX.test(createForm.slug)) errors.slug = 'Lettres minuscules, chiffres et tirets uniquement'
+  if (createForm.siret && !SIRET_REGEX.test(createForm.siret)) errors.siret = 'Format SIREN (9) ou SIRET (14) invalide'
+  return errors
+})
+
+const canCreate = computed(() => Object.keys(createErrors.value).length === 0 && createForm.firstName.trim())
+
+function resetCreateForm() {
+  createForm.firstName = ''
+  createForm.lastName = ''
+  createForm.email = ''
+  createForm.slug = ''
+  createForm.siret = ''
+  createForm.legalIdentifier = ''
+}
+
+async function submitCreate() {
+  if (!canCreate.value || createLoading.value) return
+  createLoading.value = true
+  try {
+    const body: Record<string, string> = {
+      firstName: createForm.firstName.trim(),
+      lastName: createForm.lastName.trim(),
+      email: createForm.email.trim(),
+      slug: createForm.slug.trim()
+    }
+    if (createForm.siret.trim()) body.siret = createForm.siret.trim()
+    if (createForm.legalIdentifier.trim()) body.legalIdentifier = createForm.legalIdentifier.trim()
+
+    const result = await apiFetch<{ id: string }>('/admin/providers', { method: 'POST', body })
+    toast.add({ title: 'Provider créé', description: 'Email d\'activation envoyé.', color: 'success' })
+    showCreateModal.value = false
+    resetCreateForm()
+    router.push(`/admin/providers/${result.id}`)
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erreur lors de la création'
+    toast.add({ title: 'Erreur', description: message, color: 'error' })
+  } finally {
+    createLoading.value = false
   }
 }
 
@@ -119,6 +188,18 @@ const columns: TableColumn<AdminProviderListItem>[] = [
     }
   },
   {
+    id: 'accountStatus',
+    header: 'Compte',
+    cell: ({ row }) => {
+      const active = row.original.isActive
+      const s = getStatusBadgeClasses(active ? 'success' : 'error')
+      return h('span', { class: s.badge }, [
+        h('span', { class: s.dot }),
+        active ? 'Actif' : 'Désactivé'
+      ])
+    }
+  },
+  {
     accessorKey: 'stripe.stripeAccountId',
     header: 'Stripe Account',
     cell: ({ row }) => {
@@ -134,45 +215,30 @@ const columns: TableColumn<AdminProviderListItem>[] = [
     header: 'Statut',
     cell: ({ row }) => {
       const stripe = row.original.stripe
-      if (!stripe.stripeAccountId) {
-        return h('span', {
-          class: 'inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-neutral-100)] px-2.5 py-1 text-xs font-medium text-[color:var(--color-neutral-600)]'
-        }, [
-          h('span', { class: 'h-1.5 w-1.5 rounded-full bg-[color:var(--color-neutral-400)]' }),
-          'Non lié'
-        ])
+      let variant: 'neutral' | 'success' | 'warning' | 'error' = 'neutral'
+      let label = 'Non lié'
+      if (stripe.stripeAccountId) {
+        if (stripe.chargesEnabled && stripe.payoutsEnabled) {
+          variant = 'success'
+          label = 'Actif'
+        } else if (stripe.requirementsDueCount > 0) {
+          variant = 'warning'
+          label = `${stripe.requirementsDueCount} action${stripe.requirementsDueCount > 1 ? 's' : ''}`
+        } else {
+          variant = 'error'
+          label = 'Bloqué'
+        }
       }
-      if (stripe.chargesEnabled && stripe.payoutsEnabled) {
-        return h('span', {
-          class: 'inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-success-100)] px-2.5 py-1 text-xs font-medium text-[color:var(--color-success-700)]'
-        }, [
-          h('span', { class: 'h-1.5 w-1.5 rounded-full bg-[color:var(--color-success-500)]' }),
-          'Actif'
-        ])
-      }
-      if (stripe.requirementsDueCount > 0) {
-        return h('span', {
-          class: 'inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-700'
-        }, [
-          h('span', { class: 'h-1.5 w-1.5 rounded-full bg-amber-500' }),
-          `${stripe.requirementsDueCount} action${stripe.requirementsDueCount > 1 ? 's' : ''}`
-        ])
-      }
-      return h('span', {
-        class: 'inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700'
-      }, [
-        h('span', { class: 'h-1.5 w-1.5 rounded-full bg-red-500' }),
-        'Bloqué'
-      ])
+      const s = getStatusBadgeClasses(variant)
+      return h('span', { class: s.badge }, [h('span', { class: s.dot }), label])
     }
   },
   {
     accessorKey: 'createdAt',
     header: 'Inscription',
     cell: ({ row }) => {
-      const date = new Date(row.original.createdAt)
       return h('span', { class: 'text-sm text-[color:var(--color-brand-secondary)]' },
-        date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+        formatDateShort(row.original.createdAt)
       )
     }
   }
@@ -202,9 +268,21 @@ function goToProvider() {
           Providers
         </h1>
         <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Gestion des comptes Stripe Connect des coachs
+          Gestion des comptes coachs
         </p>
       </div>
+
+      <UButton
+        color="primary"
+        class="rounded-full"
+        @click="showCreateModal = true"
+      >
+        <UIcon
+          name="lucide:plus"
+          size="18"
+        />
+        Nouveau provider
+      </UButton>
     </section>
 
     <!-- Filters -->
@@ -306,7 +384,7 @@ function goToProvider() {
         <UTable
           :data="providers.items"
           :columns="columns"
-          class="[&_table]:border-separate [&_table]:border-spacing-0 [&_td]:border-b [&_td]:border-[color:var(--color-border-subtle)] [&_td]:bg-transparent [&_td]:px-6 [&_td]:py-4 [&_th]:border-b [&_th]:border-[color:var(--color-border-subtle)] [&_th]:bg-[color:var(--color-crepuscule-50)]/50 [&_th]:px-6 [&_th]:py-3 [&_th]:text-xs [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[0.15em] [&_th]:text-[color:var(--color-brand-muted)] [&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors"
+          :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
           @select="onRowSelect"
         />
 
@@ -385,5 +463,132 @@ function goToProvider() {
         Format UUID invalide
       </p>
     </section>
+
+    <!-- Create Provider Modal -->
+    <UModal
+      :open="showCreateModal"
+      @update:open="(v: boolean) => { showCreateModal = v; if (!v) resetCreateForm() }"
+    >
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-crepuscule-100)]">
+            <UIcon
+              name="lucide:user-plus"
+              size="20"
+              class="text-[color:var(--color-crepuscule-600)]"
+            />
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[color:var(--color-brand-primary)]">
+              Nouveau provider
+            </h3>
+            <p class="text-sm text-[color:var(--color-brand-muted)]">
+              Un email d'activation sera envoyé
+            </p>
+          </div>
+        </div>
+      </template>
+
+      <template #body>
+        <form
+          class="space-y-4"
+          @submit.prevent="submitCreate"
+        >
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UFormField
+              label="Prénom"
+              :error="createForm.firstName && createErrors.firstName"
+            >
+              <UInput
+                v-model="createForm.firstName"
+                placeholder="Sophie"
+                class="w-full"
+              />
+            </UFormField>
+
+            <UFormField
+              label="Nom"
+              :error="createForm.lastName && createErrors.lastName"
+            >
+              <UInput
+                v-model="createForm.lastName"
+                placeholder="Martin"
+                class="w-full"
+              />
+            </UFormField>
+          </div>
+
+          <UFormField
+            label="Email"
+            :error="createForm.email && createErrors.email"
+          >
+            <UInput
+              v-model="createForm.email"
+              type="email"
+              placeholder="sophie@example.com"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            label="Slug"
+            :error="createForm.slug && createErrors.slug"
+            hint="URL publique : /coach/{slug}"
+          >
+            <UInput
+              v-model="createForm.slug"
+              placeholder="sophie-martin"
+              class="w-full font-mono"
+            />
+          </UFormField>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UFormField
+              label="SIRET / SIREN"
+              :error="createForm.siret && createErrors.siret"
+              hint="Optionnel"
+            >
+              <UInput
+                v-model="createForm.siret"
+                placeholder="12345678901234"
+                class="w-full font-mono"
+              />
+            </UFormField>
+
+            <UFormField
+              label="Identifiant légal"
+              hint="Optionnel"
+            >
+              <UInput
+                v-model="createForm.legalIdentifier"
+                placeholder="TVA, RNA..."
+                class="w-full"
+              />
+            </UFormField>
+          </div>
+        </form>
+      </template>
+
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton
+            variant="outline"
+            color="neutral"
+            :disabled="createLoading"
+            @click="showCreateModal = false"
+          >
+            Annuler
+          </UButton>
+          <UButton
+            color="primary"
+            :loading="createLoading"
+            :disabled="!canCreate"
+            @click="submitCreate"
+          >
+            Créer le provider
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

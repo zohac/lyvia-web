@@ -1,5 +1,9 @@
 <template>
-  <DiscoveryBookingWizard />
+  <CoachUnavailableTemplate
+    v-if="tenant && !tenant.isActive"
+    :coach-name="tenant.brand.displayName"
+  />
+  <DiscoveryBookingWizard v-else />
 </template>
 
 <script setup lang="ts">
@@ -7,6 +11,7 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import { apiFetch } from '~/services/api/apiFetch'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import DiscoveryBookingWizard from '~/components/organisms/DiscoveryBookingWizard.vue'
+import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 
 definePageMeta({
   layout: 'focus'
