@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EMAIL_REGEX } from '~/utils/validation-regex'
+import { validateClientFields } from '~/utils/validate-client-fields'
 import { createProviderClient } from '~/features/clients/services/provider-clients.service'
 
 const props = defineProps<{
@@ -26,14 +26,7 @@ const form = reactive({
 
 const saving = ref(false)
 
-const formErrors = computed(() => {
-  const errors: Record<string, string> = {}
-  if (!form.firstName.trim()) errors.firstName = 'Le prénom est requis'
-  if (!form.lastName.trim()) errors.lastName = 'Le nom est requis'
-  if (!form.email.trim()) errors.email = 'L\'email est requis'
-  else if (!EMAIL_REGEX.test(form.email)) errors.email = 'Format email invalide'
-  return errors
-})
+const formErrors = computed(() => validateClientFields(form))
 
 const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
 
@@ -45,7 +38,7 @@ function resetForm() {
 }
 
 // Auto-focus firstName on drawer open
-const firstNameRef = ref<HTMLInputElement | null>(null)
+const firstNameRef = ref<{ focus: () => void } | null>(null)
 watch(() => props.open, (open) => {
   if (open) {
     resetForm()

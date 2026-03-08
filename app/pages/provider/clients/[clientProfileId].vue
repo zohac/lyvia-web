@@ -406,7 +406,7 @@
 import { useProviderClientDetail } from '../../../features/clients/useProviderClientDetail'
 import { pauseClient, reactivateClient, convertLeadToActive, updateProviderClient } from '../../../features/clients/services/provider-clients.service'
 import { resendActivation } from '../../../features/clients/services/provider-client-detail.service'
-import { EMAIL_REGEX } from '../../../utils/validation-regex'
+import { validateClientFields } from '../../../utils/validate-client-fields'
 import {
   formatClientName,
   formatNextAppointment,
@@ -505,14 +505,7 @@ const editDirty = computed(() => {
     || editForm.phone !== i.phone
 })
 
-const editErrors = computed(() => {
-  const errors: Record<string, string> = {}
-  if (!editForm.firstName.trim()) errors.firstName = 'Le prénom est requis'
-  if (!editForm.lastName.trim()) errors.lastName = 'Le nom est requis'
-  if (!editForm.email.trim()) errors.email = 'L\'email est requis'
-  else if (!EMAIL_REGEX.test(editForm.email)) errors.email = 'Format email invalide'
-  return errors
-})
+const editErrors = computed(() => validateClientFields(editForm))
 
 const editHasErrors = computed(() => Object.keys(editErrors.value).length > 0)
 const editSaving = ref(false)

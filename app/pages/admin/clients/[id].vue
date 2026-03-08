@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { apiFetch } from '~/services/api/apiFetch'
-import { EMAIL_REGEX } from '~/utils/validation-regex'
+import { validateClientFields } from '~/utils/validate-client-fields'
 import { formatDateTime } from '~/composables/useDateFormat'
 import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
 import { type ClientStage, STAGE_LABELS, STAGE_VARIANT } from '~/utils/client-stage'
@@ -108,14 +108,7 @@ const isDirty = computed(() => {
     || editForm.phone !== i.phone
 })
 
-const formErrors = computed(() => {
-  const errors: Record<string, string> = {}
-  if (!editForm.firstName.trim()) errors.firstName = 'Le prénom est requis'
-  if (!editForm.lastName.trim()) errors.lastName = 'Le nom est requis'
-  if (!editForm.email.trim()) errors.email = 'L\'email est requis'
-  else if (!EMAIL_REGEX.test(editForm.email)) errors.email = 'Format email invalide'
-  return errors
-})
+const formErrors = computed(() => validateClientFields(editForm))
 
 const hasErrors = computed(() => Object.keys(formErrors.value).length > 0)
 
