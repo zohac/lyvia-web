@@ -494,7 +494,7 @@ function goToProvider() {
           <div class="grid gap-4 sm:grid-cols-2">
             <UFormField
               label="Prénom"
-              :error="createForm.firstName && createErrors.firstName"
+              :error="createForm.firstName ? createErrors.firstName : undefined"
             >
               <UInput
                 v-model="createForm.firstName"
@@ -505,7 +505,7 @@ function goToProvider() {
 
             <UFormField
               label="Nom"
-              :error="createForm.lastName && createErrors.lastName"
+              :error="createForm.lastName ? createErrors.lastName : undefined"
             >
               <UInput
                 v-model="createForm.lastName"
@@ -517,7 +517,7 @@ function goToProvider() {
 
           <UFormField
             label="Email"
-            :error="createForm.email && createErrors.email"
+            :error="createForm.email ? createErrors.email : undefined"
           >
             <UInput
               v-model="createForm.email"
@@ -529,7 +529,7 @@ function goToProvider() {
 
           <UFormField
             label="Slug"
-            :error="createForm.slug && createErrors.slug"
+            :error="createForm.slug ? createErrors.slug : undefined"
             hint="URL publique : /coach/{slug}"
           >
             <UInput
@@ -542,7 +542,7 @@ function goToProvider() {
           <div class="grid gap-4 sm:grid-cols-2">
             <UFormField
               label="SIRET / SIREN"
-              :error="createForm.siret && createErrors.siret"
+              :error="createForm.siret ? createErrors.siret : undefined"
               hint="Optionnel"
             >
               <UInput

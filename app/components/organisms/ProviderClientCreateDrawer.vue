@@ -111,7 +111,7 @@ async function handleSubmit() {
       <div class="space-y-4">
         <UFormField
           label="Prénom"
-          :error="formErrors.firstName"
+          :error="form.firstName ? formErrors.firstName : undefined"
           required
         >
           <UInput
@@ -125,7 +125,7 @@ async function handleSubmit() {
 
         <UFormField
           label="Nom"
-          :error="formErrors.lastName"
+          :error="form.lastName ? formErrors.lastName : undefined"
           required
         >
           <UInput
@@ -138,7 +138,7 @@ async function handleSubmit() {
 
         <UFormField
           label="Email"
-          :error="formErrors.email"
+          :error="form.email ? formErrors.email : undefined"
           required
         >
           <UInput
