@@ -18,6 +18,14 @@ export default defineNuxtConfig({
   schemaOrg: { enabled: false },
   linkChecker: { enabled: false },
   robots: { enabled: false },
+  sitemap: {
+    sources: ['/api/__sitemap__/urls'],
+    xslColumns: [
+      { label: 'URL', width: '65%' },
+      { label: 'Last Modified', select: 'sitemap:lastmod', width: '20%' },
+      { label: 'Priority', select: 'sitemap:priority', width: '15%' }
+    ]
+  },
 
   // Kaora Design System: Disable color mode entirely (light only)
   ui: {
