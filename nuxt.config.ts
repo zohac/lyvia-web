@@ -18,6 +18,15 @@ export default defineNuxtConfig({
   schemaOrg: { enabled: false },
   linkChecker: { enabled: false },
   robots: { enabled: false },
+  sitemap: {
+    cacheMaxAgeSeconds: 3600,
+    sources: ['/api/__sitemap__/urls'],
+    xslColumns: [
+      { label: 'URL', width: '65%' },
+      { label: 'Last Modified', select: 'sitemap:lastmod', width: '20%' },
+      { label: 'Priority', select: 'sitemap:priority', width: '15%' }
+    ]
+  },
 
   // Kaora Design System: Disable color mode entirely (light only)
   ui: {
@@ -76,6 +85,13 @@ export default defineNuxtConfig({
     // Home page is host-dependent (platform marketing vs white-label tenant),
     // so it must stay dynamic at runtime.
     '/': { prerender: false },
+    // Auth pages: noindex (no SEO value, user-specific)
+    '/login': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
+    '/reset-password': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
+    '/verify-email': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
+    '/forgot-password/**': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
+    // Generic discovery page without slug — noindex
+    '/onboarding/discovery': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
     '/coach/**': {
       headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' }
     },

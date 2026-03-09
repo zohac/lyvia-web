@@ -16,12 +16,14 @@ const title = ref(props.adminConfig?.title ?? '')
 const description = ref(props.adminConfig?.description ?? '')
 const ogImageUrl = ref(props.adminConfig?.ogImageUrl ?? '')
 const canonicalUrl = ref(props.adminConfig?.canonicalUrl ?? '')
+const robots = ref(props.adminConfig?.robots ?? '')
 
 const saved = ref({
   title: title.value,
   description: description.value,
   ogImageUrl: ogImageUrl.value,
-  canonicalUrl: canonicalUrl.value
+  canonicalUrl: canonicalUrl.value,
+  robots: robots.value
 })
 
 const isDirty = computed(() =>
@@ -29,18 +31,27 @@ const isDirty = computed(() =>
   || description.value !== saved.value.description
   || ogImageUrl.value !== saved.value.ogImageUrl
   || canonicalUrl.value !== saved.value.canonicalUrl
+  || robots.value !== saved.value.robots
 )
 
 const previewTitle = computed(() => title.value || props.resolvedConfig.title || '')
 const previewDescription = computed(() => description.value || props.resolvedConfig.description || '')
 const previewUrl = computed(() => canonicalUrl.value || props.resolvedConfig.canonicalUrl || '')
 
+const ROBOTS_OPTIONS = [
+  { label: 'Par défaut (index, follow)', value: '' },
+  { label: 'index, follow', value: 'index,follow' },
+  { label: 'noindex, follow', value: 'noindex,follow' },
+  { label: 'noindex, nofollow', value: 'noindex,nofollow' }
+]
+
 function handleSave() {
   emit('save', {
     title: title.value || null,
     description: description.value || null,
     ogImageUrl: ogImageUrl.value || null,
-    canonicalUrl: canonicalUrl.value || null
+    canonicalUrl: canonicalUrl.value || null,
+    robots: robots.value || null
   })
 }
 
@@ -49,11 +60,13 @@ function syncFromConfig(adminConfig: SeoFieldValues | null) {
   description.value = adminConfig?.description ?? ''
   ogImageUrl.value = adminConfig?.ogImageUrl ?? ''
   canonicalUrl.value = adminConfig?.canonicalUrl ?? ''
+  robots.value = adminConfig?.robots ?? ''
   saved.value = {
     title: title.value,
     description: description.value,
     ogImageUrl: ogImageUrl.value,
-    canonicalUrl: canonicalUrl.value
+    canonicalUrl: canonicalUrl.value,
+    robots: robots.value
   }
 }
 
@@ -100,6 +113,15 @@ watch(() => props.adminConfig, (newConfig) => {
         v-model="canonicalUrl"
         placeholder="/coach/slug"
         class="w-full"
+      />
+    </UFormField>
+
+    <UFormField label="Directive robots">
+      <USelect
+        v-model="robots"
+        :items="ROBOTS_OPTIONS"
+        value-key="value"
+        class="w-full sm:w-64"
       />
     </UFormField>
 

@@ -9,6 +9,10 @@ useSeoMeta({
   title: 'Conditions Générales d\'Utilisation - Kaora',
   description: 'Conditions générales d\'utilisation de la plateforme Kaora.'
 })
+
+useHead({
+  link: [{ rel: 'canonical', href: `${useRequestURL().origin}/legal/cgu` }]
+})
 </script>
 
 <template>

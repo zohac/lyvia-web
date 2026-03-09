@@ -1,0 +1,41 @@
+import { defineEventHandler, getRequestHost } from 'h3'
+
+import { getDomainContext } from '#shared/utils/domain-context'
+import { LEGAL_PAGES } from '#shared/utils/legal-pages'
+
+export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig()
+  const platformDomain = (config.public.platformDomain as string) || 'kaora.app'
+  const apiBase = (config.apiBase as string) || 'http://localhost:3001'
+  const host = getRequestHost(event)
+
+  const ctx = getDomainContext(host, platformDomain)
+
+  if (!ctx.isPlatform) {
+    return [
+      { loc: '/', changefreq: 'weekly' as const, priority: 1.0 },
+      { loc: '/onboarding/discovery', changefreq: 'weekly' as const, priority: 0.6 },
+      ...LEGAL_PAGES
+    ]
+  }
+
+  let providers: Array<{ slug: string, updatedAt: string }> = []
+  try {
+    providers = await $fetch<Array<{ slug: string, updatedAt: string }>>(
+      `${apiBase}/public/sitemap/providers`
+    )
+  } catch {
+    // API unreachable — return static-only sitemap to avoid 500 on /sitemap.xml
+  }
+
+  const coachUrls = providers.flatMap(p => [
+    { loc: `/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.8 },
+    { loc: `/coach/${p.slug}/onboarding/discovery`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.6 }
+  ])
+
+  return [
+    { loc: '/', changefreq: 'weekly' as const, priority: 1.0 },
+    ...LEGAL_PAGES,
+    ...coachUrls
+  ]
+})

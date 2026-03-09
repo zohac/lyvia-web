@@ -4,6 +4,7 @@ export type ProviderSeoEntry = {
   description: string | null
   ogImageUrl: string | null
   canonicalUrl: string | null
+  robots: string | null
   hasAdminOverride: boolean
 }
 
@@ -12,4 +13,5 @@ export type UpsertProviderSeoRequest = {
   description?: string | null
   ogImageUrl?: string | null
   canonicalUrl?: string | null
+  robots?: string | null
 }

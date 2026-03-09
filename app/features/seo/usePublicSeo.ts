@@ -20,5 +20,9 @@ export function usePublicSeo(targetType: string, targetId: MaybeRefOrGetter<stri
     { watch: [() => toValue(targetId)] }
   )
 
+  useSeoMeta({
+    robots: () => seo.value?.robots ?? undefined
+  })
+
   return { seo: readonly(seo), pending: readonly(pending), error: readonly(error) }
 }

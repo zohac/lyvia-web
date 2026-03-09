@@ -9,6 +9,10 @@ useSeoMeta({
   title: 'Politique de confidentialité - Kaora',
   description: 'Politique de confidentialité et protection des données personnelles de la plateforme Kaora.'
 })
+
+useHead({
+  link: [{ rel: 'canonical', href: `${useRequestURL().origin}/legal/confidentialite` }]
+})
 </script>
 
 <template>

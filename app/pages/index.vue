@@ -3,9 +3,8 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
-import { isPlatformHost } from '~/features/public/domain/platform-host'
+import { isPlatformHost } from '#shared/utils/platform-host'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
-import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
@@ -77,7 +76,15 @@ useSeoMeta({
 
 useHead({
   titleTemplate: (title?: string) => isPlatformDomain.value ? `${title} | Kaora` : (title || ''),
-  link: [{ rel: 'canonical', href: () => !isPlatformDomain.value ? resolveCanonical(seo.value?.canonicalUrl, origin) : undefined }]
+  link: [{
+    rel: 'canonical',
+    href: () => {
+      // Both platform and white-label home: canonical is self-referencing
+      // The API fallback returns /coach/{slug} which is correct for /coach/[slug]
+      // but not for the home page — override with origin root
+      return `${origin}/`
+    }
+  }]
 })
 
 watchEffect(() => {
