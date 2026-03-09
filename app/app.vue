@@ -2,7 +2,7 @@
 import CookieConsentBanner from './components/organisms/CookieConsentBanner.vue'
 import { useGlobalSchemaOrg } from '~/features/seo/useGlobalSchemaOrg'
 
-useGlobalSchemaOrg()
+await useGlobalSchemaOrg()
 </script>
 
 <template>

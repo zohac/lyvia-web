@@ -1,8 +1,12 @@
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
+// isPlatformHost used directly (only isPlatform needed here, not robotsDisallowPaths).
+// getDomainContext would be overkill — standardize in T2.3 if more context is needed.
 import { isPlatformHost } from '#shared/utils/platform-host'
 import { apiFetch } from '~/services/api/apiFetch'
 
-export function useGlobalSchemaOrg() {
+// No unit test for this composable: useSchemaOrg/useAsyncData require full Nuxt runtime mocks.
+// Detection logic is covered by tests/shared/platform-host.test.ts.
+export async function useGlobalSchemaOrg() {
   const requestUrl = useRequestURL()
   const origin = requestUrl.origin
   const hostname = requestUrl.hostname.toLowerCase()
@@ -27,8 +31,9 @@ export function useGlobalSchemaOrg() {
     return
   }
 
-  // White-label: fetch tenant data for Person schema
-  const { data: tenant } = useAsyncData<PublicTenantResponse | null>('global-schema-tenant', async () => {
+  // White-label: fetch tenant data for Person schema.
+  // Reuses the same cache key as index.vue to avoid a duplicate HTTP request.
+  const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
     try {
       return await apiFetch<PublicTenantResponse>('/public/tenant', {
         method: 'GET',
@@ -44,6 +49,7 @@ export function useGlobalSchemaOrg() {
   useSchemaOrg([
     definePerson({
       name: () => coachName.value,
+      jobTitle: 'Spécialiste accompagnement ménopause',
       url: origin
     }),
     defineWebSite({
