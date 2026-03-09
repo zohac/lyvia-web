@@ -1,12 +1,7 @@
 import { defineEventHandler, getRequestHost } from 'h3'
 
 import { getDomainContext } from '~~/shared/utils/domain-context'
-
-const LEGAL_PAGES = [
-  { loc: '/legal/cgu', changefreq: 'monthly' as const, priority: 0.3 },
-  { loc: '/legal/confidentialite', changefreq: 'monthly' as const, priority: 0.3 },
-  { loc: '/legal/mentions-legales', changefreq: 'monthly' as const, priority: 0.3 }
-]
+import { LEGAL_PAGES } from '~~/shared/utils/legal-pages'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()

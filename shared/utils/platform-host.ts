@@ -1,12 +1,12 @@
 const DEV_PLATFORM_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0'])
 
-function normalize(value: string): string {
+export function normalizeHostname(value: string): string {
   return value.trim().toLowerCase().replace(/:\d+$/, '')
 }
 
 export function isPlatformHost(hostname: string, platformDomain: string): boolean {
-  const normalizedHost = normalize(hostname)
-  const normalizedPlatformDomain = normalize(platformDomain)
+  const normalizedHost = normalizeHostname(hostname)
+  const normalizedPlatformDomain = normalizeHostname(platformDomain)
 
   if (!normalizedHost) return true
   if (DEV_PLATFORM_HOSTS.has(normalizedHost)) return true

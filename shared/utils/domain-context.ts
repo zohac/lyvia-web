@@ -1,9 +1,9 @@
-import { isPlatformHost } from './platform-host'
+import { isPlatformHost, normalizeHostname } from './platform-host'
 
 export interface DomainContext {
   isPlatform: boolean
   hostname: string
-  robotsDisallowPaths: string[]
+  robotsDisallowPaths: readonly string[]
 }
 
 const DISALLOW_AUTH = [
@@ -15,13 +15,9 @@ const DISALLOW_AUTH = [
   '/reset-password',
   '/verify-email',
   '/forgot-password'
-]
+] as const
 
-const DISALLOW_WHITE_LABEL_EXTRA = ['/coaches']
-
-function normalizeHostname(value: string): string {
-  return value.trim().toLowerCase().replace(/:\d+$/, '')
-}
+const DISALLOW_WHITE_LABEL_EXTRA = ['/coaches'] as const
 
 export function getDomainContext(
   hostname: string,

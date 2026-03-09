@@ -2,20 +2,17 @@ import * as assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { getDomainContext } from '../../shared/utils/domain-context'
+import { LEGAL_PAGES } from '../../shared/utils/legal-pages'
 
 const PLATFORM = 'kaora.app'
-
-const LEGAL_PAGES = [
-  { loc: '/legal/cgu', changefreq: 'monthly' as const, priority: 0.3 },
-  { loc: '/legal/confidentialite', changefreq: 'monthly' as const, priority: 0.3 },
-  { loc: '/legal/mentions-legales', changefreq: 'monthly' as const, priority: 0.3 }
-]
 
 const MOCK_PROVIDERS = [
   { slug: 'sophie-jouan', updatedAt: '2026-03-01T00:00:00.000Z' },
   { slug: 'marie-dupont', updatedAt: '2026-03-02T00:00:00.000Z' }
 ]
 
+// Tests the domain-context contract as used by the sitemap handler — not a handler integration test.
+// The h3 event wiring (defineEventHandler, $fetch) is not exercised here.
 interface SitemapEntry {
   loc: string
   changefreq?: string

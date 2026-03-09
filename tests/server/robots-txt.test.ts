@@ -5,6 +5,8 @@ import { getDomainContext } from '../../shared/utils/domain-context'
 
 const PLATFORM = 'kaora.app'
 
+// Tests the domain-context contract as used by the robots.txt handler — not a handler integration test.
+// The h3 event wiring (getRequestHost, setResponseHeader) is not exercised here.
 function buildRobotsTxt(host: string, protocol = 'https'): string {
   const origin = `${protocol}://${host}`
   const ctx = getDomainContext(host, PLATFORM)
