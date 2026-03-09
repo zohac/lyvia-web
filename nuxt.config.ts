@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   },
 
   ogImage: { enabled: false },
-  schemaOrg: { enabled: false },
+  schemaOrg: { enabled: true },
   linkChecker: { enabled: false },
   robots: { enabled: false },
   sitemap: {
@@ -47,6 +47,10 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      meta: [
+        { property: 'og:locale', content: 'fr_FR' },
+        { property: 'og:site_name', content: 'Kaora' }
+      ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
