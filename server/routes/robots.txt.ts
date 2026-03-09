@@ -1,17 +1,6 @@
 import { defineEventHandler, getRequestHost, getRequestProtocol, setResponseHeader } from 'h3'
 
-import { isPlatformHost } from '~~/shared/utils/platform-host'
-
-const DISALLOW_COMMON = [
-  '/client/',
-  '/provider/',
-  '/admin/',
-  '/api/',
-  '/login',
-  '/reset-password',
-  '/verify-email',
-  '/forgot-password'
-]
+import { getDomainContext } from '~~/shared/utils/domain-context'
 
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig()
@@ -21,16 +10,12 @@ export default defineEventHandler((event) => {
   const protocol = getRequestProtocol(event)
   const origin = `${protocol}://${host}`
 
-  const disallowPaths = [...DISALLOW_COMMON]
-
-  if (!isPlatformHost(host, platformDomain)) {
-    disallowPaths.push('/coaches')
-  }
+  const ctx = getDomainContext(host, platformDomain)
 
   const lines = [
     'User-agent: *',
     'Allow: /',
-    ...disallowPaths.map(p => `Disallow: ${p}`),
+    ...ctx.robotsDisallowPaths.map(p => `Disallow: ${p}`),
     '',
     `Sitemap: ${origin}/sitemap.xml`
   ]

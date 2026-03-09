@@ -1,6 +1,6 @@
 import { defineEventHandler, getRequestHost } from 'h3'
 
-import { isPlatformHost } from '~~/shared/utils/platform-host'
+import { getDomainContext } from '~~/shared/utils/domain-context'
 
 const LEGAL_PAGES = [
   { loc: '/legal/cgu', changefreq: 'monthly' as const, priority: 0.3 },
@@ -14,7 +14,9 @@ export default defineEventHandler(async (event) => {
   const apiBase = (config.apiBase as string) || 'http://localhost:3001'
   const host = getRequestHost(event)
 
-  if (!isPlatformHost(host, platformDomain)) {
+  const ctx = getDomainContext(host, platformDomain)
+
+  if (!ctx.isPlatform) {
     return [
       { loc: '/', changefreq: 'weekly' as const, priority: 1.0 },
       { loc: '/onboarding/discovery', changefreq: 'weekly' as const, priority: 0.6 },
