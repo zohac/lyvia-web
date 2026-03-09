@@ -77,7 +77,12 @@ useSeoMeta({
 
 useHead({
   titleTemplate: (title?: string) => isPlatformDomain.value ? `${title} | Kaora` : (title || ''),
-  link: [{ rel: 'canonical', href: () => !isPlatformDomain.value ? resolveCanonical(seo.value?.canonicalUrl, origin) : undefined }]
+  link: [{
+    rel: 'canonical',
+    href: () => isPlatformDomain.value
+      ? `${origin}/`
+      : resolveCanonical(seo.value?.canonicalUrl, origin)
+  }]
 })
 
 watchEffect(() => {

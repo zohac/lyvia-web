@@ -11,4 +11,5 @@ export type PublicSeoResponse = {
   description: string | null
   ogImageUrl: string | null
   canonicalUrl: string | null
+  robots: string | null
 }

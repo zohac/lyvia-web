@@ -9,6 +9,10 @@ useSeoMeta({
   title: 'Mentions légales - Kaora',
   description: 'Mentions légales de la plateforme Kaora.'
 })
+
+useHead({
+  link: [{ rel: 'canonical', href: `${useRequestURL().origin}/legal/mentions-legales` }]
+})
 </script>
 
 <template>
