@@ -1,4 +1,4 @@
-import { isPlatformHost } from '~~/shared/utils/platform-host'
+import { isPlatformHost } from '#shared/utils/platform-host'
 
 const PLATFORM_FAVICON = '/favicon.ico'
 const WHITE_LABEL_FAVICON = '/favicon-aurea.ico'

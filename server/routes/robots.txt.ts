@@ -1,6 +1,6 @@
 import { defineEventHandler, getRequestHost, getRequestProtocol, setResponseHeader } from 'h3'
 
-import { getDomainContext } from '~~/shared/utils/domain-context'
+import { getDomainContext } from '#shared/utils/domain-context'
 
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig()

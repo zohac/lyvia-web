@@ -1,7 +1,7 @@
 import { defineEventHandler, getRequestHost } from 'h3'
 
-import { getDomainContext } from '~~/shared/utils/domain-context'
-import { LEGAL_PAGES } from '~~/shared/utils/legal-pages'
+import { getDomainContext } from '#shared/utils/domain-context'
+import { LEGAL_PAGES } from '#shared/utils/legal-pages'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()

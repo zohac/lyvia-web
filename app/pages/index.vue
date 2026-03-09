@@ -3,7 +3,7 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
-import { isPlatformHost } from '~~/shared/utils/platform-host'
+import { isPlatformHost } from '#shared/utils/platform-host'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
