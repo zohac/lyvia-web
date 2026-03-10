@@ -1,9 +1,11 @@
 <template>
-  <CoachUnavailableTemplate
-    v-if="tenant && !tenant.isActive"
-    :coach-name="tenant.brand.displayName"
-  />
-  <DiscoveryBookingWizard v-else />
+  <template v-if="tenant">
+    <CoachUnavailableTemplate
+      v-if="!tenant.isActive"
+      :coach-name="tenant.brand.displayName"
+    />
+    <DiscoveryBookingWizard v-else />
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -45,18 +47,22 @@ const { seo } = usePublicSeo('coach_booking', providerId)
 usePageTracking(providerId)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
+// Keep in sync with coach/[slug]/onboarding/discovery.vue
+const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/onboarding/discovery`
+
 useSeoMeta({
   title: () => seo.value?.title ?? `Réserver avec ${brandName.value}`,
   description: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte`,
   ogTitle: () => seo.value?.title ?? `Réserver avec ${brandName.value}`,
   ogDescription: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte`,
   ogImage: () => seo.value?.ogImageUrl ?? undefined,
+  ogUrl: canonicalHref,
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })
 
 useHead({
   titleTemplate: (title?: string) => title || '',
-  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/onboarding/discovery` }]
+  link: [{ rel: 'canonical', href: canonicalHref }]
 })
 </script>

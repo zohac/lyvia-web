@@ -53,18 +53,21 @@ const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
+const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}`
+
 useSeoMeta({
   title: () => seo.value?.title ?? `${brandName.value} — Coach`,
   description: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
   ogTitle: () => seo.value?.title ?? `${brandName.value} — Coach`,
   ogDescription: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
   ogImage: () => seo.value?.ogImageUrl ?? undefined,
+  ogUrl: canonicalHref,
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}` }]
+  link: [{ rel: 'canonical', href: canonicalHref }]
 })
 
 watchEffect(() => {
