@@ -64,6 +64,6 @@ useSeoMeta({
 
 useHead({
   titleTemplate: (title?: string) => title || '',
-  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) }]
+  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}/onboarding/discovery` }]
 })
 </script>

@@ -64,7 +64,7 @@ useSeoMeta({
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) }]
+  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}` }]
 })
 
 watchEffect(() => {
