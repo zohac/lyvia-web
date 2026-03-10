@@ -31,20 +31,10 @@ export async function useGlobalSchemaOrg() {
     return
   }
 
-  // White-label: fetch tenant data for Person schema.
-  // Reuses the same cache key as index.vue to avoid a duplicate HTTP request.
-  const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
-    try {
-      return await apiFetch<PublicTenantResponse>('/public/tenant', {
-        method: 'GET',
-        withAuth: false
-      })
-    } catch {
-      return null
-    }
-  }, { default: () => null })
-
-  const coachName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
+  // White-label: register all composables BEFORE any await to preserve Nuxt context.
+  // After await useAsyncData, the Nuxt instance context is lost and composable calls fail
+  // with "composable called outside of setup function". Reactive refs bridge the gap.
+  const coachName = ref('Coach')
 
   useSchemaOrg([
     definePerson({
@@ -61,5 +51,23 @@ export async function useGlobalSchemaOrg() {
   // Override og:site_name for white-label (static "Kaora" set in nuxt.config.ts)
   useSeoMeta({
     ogSiteName: () => coachName.value
+  })
+
+  // Fetch tenant data AFTER composable registration.
+  // Reuses the same cache key as index.vue to avoid a duplicate HTTP request.
+  const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
+    try {
+      return await apiFetch<PublicTenantResponse>('/public/tenant', {
+        method: 'GET',
+        withAuth: false
+      })
+    } catch {
+      return null
+    }
+  }, { default: () => null })
+
+  // Update ref reactively — schemas and og:site_name pick up the new value
+  watchEffect(() => {
+    coachName.value = tenant.value?.brand.displayName?.trim() || 'Coach'
   })
 }
