@@ -438,7 +438,6 @@ async function submitBooking() {
           :src="headerLogoSrc"
           :alt="headerLogoAlt"
           :class="headerLogoClass"
-          decoding="async"
           loading="eager"
         />
       </ULink>

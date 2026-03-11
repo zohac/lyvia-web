@@ -33,7 +33,6 @@ const useCustomLogoImage = computed(
               alt=""
               class="h-7 w-auto sm:h-8"
               aria-hidden="true"
-              decoding="async"
               loading="eager"
             />
             <span class="sr-only">
@@ -45,7 +44,6 @@ const useCustomLogoImage = computed(
               :src="headerState.brandLogoSrc"
               :alt="headerState.brandLabel"
               class="h-16 w-auto"
-              decoding="async"
               loading="eager"
             />
           </template>
@@ -112,7 +110,6 @@ const useCustomLogoImage = computed(
               alt=""
               class="h-8 w-auto sm:h-9"
               aria-hidden="true"
-              decoding="async"
               loading="eager"
             />
             <span class="sr-only">
@@ -124,7 +121,6 @@ const useCustomLogoImage = computed(
               :src="headerState.brandLogoSrc"
               :alt="headerState.brandLabel"
               class="h-16 w-auto"
-              decoding="async"
               loading="eager"
             />
           </template>

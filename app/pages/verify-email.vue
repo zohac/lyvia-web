@@ -10,7 +10,6 @@
           src="/images/kaora-logo.png"
           alt="Kaora"
           class="h-10 w-auto"
-          decoding="async"
           loading="eager"
         />
       </ULink>

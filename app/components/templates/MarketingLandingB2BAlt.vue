@@ -155,7 +155,7 @@
                 src="/images/marketing-dashboard-mockup.svg"
                 class="w-full rounded-lg"
                 alt="Interface Kaora"
-                loading="lazy"
+                loading="eager"
               />
             </div>
 
