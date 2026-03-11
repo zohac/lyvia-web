@@ -12,6 +12,7 @@
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
+import { useBookingSchemaOrg } from '~/features/seo/useBookingSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import DiscoveryBookingWizard from '~/components/organisms/DiscoveryBookingWizard.vue'
@@ -44,8 +45,13 @@ if (!tenant.value) {
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_booking', providerId)
 
-usePageTracking(providerId)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
+
+// Schema.org: Service + BreadcrumbList (AC-4: white-label booking)
+// slug used for URL construction only — not used in white-label paths
+useBookingSchemaOrg(tenant.value.slug, () => brandName.value, { isPlatform: false })
+
+usePageTracking(providerId)
 
 // Keep in sync with coach/[slug]/onboarding/discovery.vue
 const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/onboarding/discovery`

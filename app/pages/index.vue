@@ -5,6 +5,7 @@ import { apiFetch } from '~/services/api/apiFetch'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
 import { isPlatformHost } from '#shared/utils/platform-host'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
+import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
@@ -46,6 +47,12 @@ if (!isPlatformDomain.value && !tenant.value) {
 
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_profile', providerId)
+
+// Schema.org: Person + ProfessionalService (AC-2: white-label coach, no breadcrumb)
+// Only inject on white-label — platform home is B2B marketing (global schema from app.vue)
+if (!isPlatformDomain.value && tenant.value?.slug) {
+  await useCoachSchemaOrg(tenant.value.slug, { isPlatform: false })
+}
 
 // Tracking page views for white-label coach pages (custom domain)
 usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.value))

@@ -3,6 +3,7 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
+import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
@@ -45,6 +46,9 @@ if (!tenant.value) {
 
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_profile', providerId)
+
+// Schema.org: Person + ProfessionalService + BreadcrumbList (AC-1: platform coach)
+await useCoachSchemaOrg(slug.value, { isPlatform: true })
 
 usePageTracking(providerId)
 
