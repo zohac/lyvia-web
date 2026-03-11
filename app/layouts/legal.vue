@@ -13,12 +13,13 @@ useCommonLayoutHead()
           class="inline-flex items-center gap-2"
           aria-label="Retour à l'accueil Kaora"
         >
-          <img
+          <NuxtImg
             src="/images/kaora-logo.png"
             alt=""
             class="h-6 w-auto"
             aria-hidden="true"
-          >
+            loading="eager"
+          />
           <span class="sr-only">Kaora</span>
         </NuxtLink>
 

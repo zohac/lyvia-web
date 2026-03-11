@@ -28,24 +28,26 @@ const useCustomLogoImage = computed(
           aria-label="Accueil"
         >
           <template v-if="useKaoraLogoImage">
-            <img
+            <NuxtImg
               src="/images/kaora-logo.png"
               alt=""
               class="h-7 w-auto sm:h-8"
               aria-hidden="true"
               decoding="async"
-            >
+              loading="eager"
+            />
             <span class="sr-only">
               Kaora
             </span>
           </template>
           <template v-else-if="useCustomLogoImage">
-            <img
+            <NuxtImg
               :src="headerState.brandLogoSrc"
               :alt="headerState.brandLabel"
               class="h-16 w-auto"
               decoding="async"
-            >
+              loading="eager"
+            />
           </template>
           <span
             v-else
@@ -105,24 +107,26 @@ const useCustomLogoImage = computed(
           aria-label="Accueil"
         >
           <template v-if="useKaoraLogoImage">
-            <img
+            <NuxtImg
               src="/images/kaora-logo.png"
               alt=""
               class="h-8 w-auto sm:h-9"
               aria-hidden="true"
               decoding="async"
-            >
+              loading="eager"
+            />
             <span class="sr-only">
               Kaora
             </span>
           </template>
           <template v-else-if="useCustomLogoImage">
-            <img
+            <NuxtImg
               :src="headerState.brandLogoSrc"
               :alt="headerState.brandLabel"
               class="h-16 w-auto"
               decoding="async"
-            >
+              loading="eager"
+            />
           </template>
           <span
             v-else

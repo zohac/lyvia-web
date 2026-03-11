@@ -6,12 +6,13 @@
         aria-label="Retour à l'accueil"
         class="mb-12 inline-flex w-fit items-center justify-center"
       >
-        <img
+        <NuxtImg
           src="/images/kaora-logo.png"
           alt="Kaora"
           class="h-10 w-auto"
           decoding="async"
-        >
+          loading="eager"
+        />
       </ULink>
 
       <h1 class="font-serif text-4xl font-bold leading-tight text-[#221d28]">

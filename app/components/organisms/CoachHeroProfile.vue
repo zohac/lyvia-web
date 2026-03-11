@@ -97,13 +97,13 @@ const heroTopOffsetClass = computed(() => {
               />
               <!-- Photo in organic shape -->
               <div class="hero-photo-shape relative h-[50vh] w-80 overflow-hidden shadow-2xl shadow-[#5b4b6e]/15">
-                <img
+                <NuxtImg
                   src="/images/sophie_jouan.jpeg"
-                  :alt="`${tenant.brand.displayName}, coach spécialisé(e) ménopause`"
+                  :alt="`${tenant.brand.displayName}, spécialiste accompagnement ménopause`"
                   class="h-full w-full object-cover object-top"
-                  decoding="async"
                   loading="eager"
-                >
+                  fetchpriority="high"
+                />
                 <!-- Soft gradient overlay on edges -->
                 <div
                   class="pointer-events-none absolute inset-0"

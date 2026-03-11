@@ -151,12 +151,12 @@
           <div class="relative w-full max-w-md hero-mockup">
             <div class="absolute -inset-4 bg-gradient-to-br from-[#d4b8a0]/20 via-transparent to-[#b5c0a3]/10 rounded-2xl blur-2xl" />
             <div class="relative bg-[#1c1917] rounded-xl p-2 border border-[#292524]">
-              <img
+              <NuxtImg
                 src="/images/marketing-dashboard-mockup.svg"
                 class="w-full rounded-lg"
                 alt="Interface Kaora"
                 loading="lazy"
-              >
+              />
             </div>
 
             <!-- Floating stat card -->
@@ -211,12 +211,12 @@
             <div class="relative">
               <div class="absolute -inset-8 bg-[#d4b8a0]/5 rounded-3xl -z-10" />
               <div class="bg-[#1c1917] rounded-xl p-2 border border-[#292524]">
-                <img
+                <NuxtImg
                   src="/images/marketing-screen-calendar.svg"
                   class="w-full rounded-lg"
                   alt="Calendrier Kaora"
                   loading="lazy"
-                >
+                />
               </div>
             </div>
 
@@ -344,12 +344,12 @@
               </div>
               <div class="lg:col-span-6">
                 <div class="bg-[#1c1917] rounded-xl p-2 border border-[#292524]">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-calendar.svg"
                     class="w-full rounded-lg opacity-80"
                     alt="Configuration"
                     loading="lazy"
-                  >
+                  />
                 </div>
               </div>
             </div>
@@ -372,12 +372,12 @@
               </div>
               <div class="lg:col-span-6">
                 <div class="bg-[#1c1917] rounded-xl p-2 border border-[#292524]">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-payments.svg"
                     class="w-full rounded-lg opacity-80"
                     alt="Automatisation"
                     loading="lazy"
-                  >
+                  />
                 </div>
               </div>
             </div>
@@ -400,12 +400,12 @@
               </div>
               <div class="lg:col-span-6">
                 <div class="bg-[#1c1917] rounded-xl p-2 border border-[#292524]">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-library.svg"
                     class="w-full rounded-lg opacity-80"
                     alt="Ressources"
                     loading="lazy"
-                  >
+                  />
                 </div>
               </div>
             </div>

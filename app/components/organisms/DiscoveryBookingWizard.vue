@@ -434,12 +434,13 @@ async function submitBooking() {
         aria-label="Retour à l'accueil"
         class="mb-6 inline-block"
       >
-        <img
+        <NuxtImg
           :src="headerLogoSrc"
           :alt="headerLogoAlt"
           :class="headerLogoClass"
           decoding="async"
-        >
+          loading="eager"
+        />
       </ULink>
 
       <h1 class="font-serif text-3xl font-normal text-neutral-900 sm:text-4xl">

@@ -1,6 +1,7 @@
 import * as assert from 'node:assert/strict'
 import test, { describe } from 'node:test'
 
+import type { Ref } from 'vue'
 import {
   buildCoachUrls,
   buildBookingBreadcrumbItems,
@@ -60,9 +61,9 @@ describe('buildBookingBreadcrumbItems', () => {
 // --- mapProfileToSchemaRefs ---
 
 describe('mapProfileToSchemaRefs', () => {
-  // Minimal ref implementation for testing (no Vue dependency)
-  function createRef<T>(initial: T) {
-    return { value: initial }
+  // Minimal ref implementation for testing (no Vue runtime needed)
+  function createRef<T>(initial: T): Ref<T> {
+    return { value: initial } as Ref<T>
   }
 
   function createRefs() {
@@ -90,7 +91,7 @@ describe('mapProfileToSchemaRefs', () => {
 
   test('maps all profile fields to refs', () => {
     const refs = createRefs()
-    mapProfileToSchemaRefs(fullProfile, refs as any)
+    mapProfileToSchemaRefs(fullProfile, refs)
 
     assert.equal(refs.name.value, 'Sophie Jouan')
     assert.equal(refs.bio.value, 'Coach certifiée en nutrition')
@@ -100,7 +101,7 @@ describe('mapProfileToSchemaRefs', () => {
 
   test('null profile: keeps default ref values (fetch failed gracefully)', () => {
     const refs = createRefs()
-    mapProfileToSchemaRefs(null, refs as any)
+    mapProfileToSchemaRefs(null, refs)
 
     assert.equal(refs.name.value, 'Coach')
     assert.equal(refs.bio.value, undefined)
@@ -110,28 +111,28 @@ describe('mapProfileToSchemaRefs', () => {
 
   test('empty displayName: falls back to "Coach"', () => {
     const refs = createRefs()
-    mapProfileToSchemaRefs({ ...fullProfile, displayName: '' }, refs as any)
+    mapProfileToSchemaRefs({ ...fullProfile, displayName: '' }, refs)
 
     assert.equal(refs.name.value, 'Coach')
   })
 
   test('null bio: ref stays undefined', () => {
     const refs = createRefs()
-    mapProfileToSchemaRefs({ ...fullProfile, bio: null }, refs as any)
+    mapProfileToSchemaRefs({ ...fullProfile, bio: null }, refs)
 
     assert.equal(refs.bio.value, undefined)
   })
 
   test('null imageUrl: ref stays undefined', () => {
     const refs = createRefs()
-    mapProfileToSchemaRefs({ ...fullProfile, imageUrl: null }, refs as any)
+    mapProfileToSchemaRefs({ ...fullProfile, imageUrl: null }, refs)
 
     assert.equal(refs.imageUrl.value, undefined)
   })
 
   test('empty specialties: ref stays empty array', () => {
     const refs = createRefs()
-    mapProfileToSchemaRefs({ ...fullProfile, specialties: [] }, refs as any)
+    mapProfileToSchemaRefs({ ...fullProfile, specialties: [] }, refs)
 
     assert.deepStrictEqual(refs.specialties.value, [])
   })

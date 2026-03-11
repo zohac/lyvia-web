@@ -149,12 +149,12 @@
               <div class="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-br from-[#b9aac7] to-[#f0b48f] opacity-50 blur-[40px]" />
 
               <div class="overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-2xl backdrop-blur-sm">
-                <img
+                <NuxtImg
                   src="/images/marketing-dashboard-mockup.svg"
                   class="w-full rounded-2xl"
                   alt="Interface Kaora"
                   loading="eager"
-                >
+                />
               </div>
             </div>
           </div>
@@ -190,12 +190,12 @@
             <div class="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-40 blur-[30px]" />
 
             <div class="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-xl backdrop-blur-sm">
-              <img
+              <NuxtImg
                 src="/images/marketing-screen-calendar.svg"
                 class="w-full rounded-2xl"
                 alt="Agenda Kaora"
                 loading="lazy"
-              >
+              />
             </div>
 
             <!-- Quote card floating -->
@@ -329,12 +329,12 @@
               </div>
               <div class="order-1 lg:order-2">
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-calendar.svg"
                     class="w-full rounded-xl"
                     alt="Configuration"
                     loading="lazy"
-                  >
+                  />
                 </div>
               </div>
             </div>
@@ -355,12 +355,12 @@
               </div>
               <div class="order-1">
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-payments.svg"
                     class="w-full rounded-xl"
                     alt="Automatisation"
                     loading="lazy"
-                  >
+                  />
                 </div>
               </div>
             </div>
@@ -381,12 +381,12 @@
               </div>
               <div class="order-1 lg:order-2">
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-library.svg"
                     class="w-full rounded-xl"
                     alt="Expérience client"
                     loading="lazy"
-                  >
+                  />
                 </div>
               </div>
             </div>

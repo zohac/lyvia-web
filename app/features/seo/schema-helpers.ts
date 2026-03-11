@@ -8,7 +8,7 @@ export function buildCoachUrls(
   origin: string,
   slug: string,
   isPlatform: boolean
-): { coachUrl: string; bookingUrl: string } {
+): { coachUrl: string, bookingUrl: string } {
   return isPlatform
     ? {
         coachUrl: `${origin}/coach/${slug}`,
@@ -31,7 +31,7 @@ export function buildBookingBreadcrumbItems(
   slug: string,
   displayName: () => string,
   isPlatform: boolean
-): Array<{ name: string | (() => string); item: string }> {
+): Array<{ name: string | (() => string), item: string }> {
   if (isPlatform) {
     return [
       { name: 'Accueil', item: `${origin}/` },

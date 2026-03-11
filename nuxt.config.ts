@@ -6,6 +6,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
+    '@nuxt/image',
     '@nuxtjs/seo'
   ],
 
@@ -49,7 +50,11 @@ export default defineNuxtConfig({
     head: {
       meta: [
         { property: 'og:locale', content: 'fr_FR' },
-        { property: 'og:site_name', content: 'Kaora' }
+        { property: 'og:site_name', content: 'Kaora' },
+        { property: 'og:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://kaora.fr'}/images/og-default.png` },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:type', content: 'image/png' }
       ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },

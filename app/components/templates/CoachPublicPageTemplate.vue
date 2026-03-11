@@ -241,13 +241,12 @@ const faqItems: AccordionItem[] = [
                 aria-hidden="true"
               />
               <div class="bio-photo-shape relative h-[45vh] w-72 overflow-hidden shadow-2xl shadow-black/20">
-                <img
+                <NuxtImg
                   src="/images/sophie_jouan_2.jpeg"
                   :alt="coachName"
                   class="h-full w-full object-cover object-top"
-                  decoding="async"
                   loading="lazy"
-                >
+                />
                 <!-- Subtle warm overlay -->
                 <div
                   class="pointer-events-none absolute inset-0"
