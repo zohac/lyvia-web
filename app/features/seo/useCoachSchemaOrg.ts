@@ -1,5 +1,7 @@
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
+import { getDomainContext } from '#shared/utils/domain-context'
 import { apiFetch } from '~/services/api/apiFetch'
+import { buildCoachUrls, mapProfileToSchemaRefs } from '~/features/seo/schema-helpers'
 
 /**
  * Injects Person + ProfessionalService + BreadcrumbList schemas for coach pages.
@@ -8,19 +10,15 @@ import { apiFetch } from '~/services/api/apiFetch'
  * Reactive refs bridge post-await data updates into the schema nodes.
  *
  * @param slug - Coach slug (API fetch + URL construction)
- * @param options.isPlatform - Platform domain vs white-label
  */
-export async function useCoachSchemaOrg(
-  slug: string,
-  options: { isPlatform: boolean }
-) {
-  const origin = useRequestURL().origin
-  const { isPlatform } = options
+export async function useCoachSchemaOrg(slug: string) {
+  const requestUrl = useRequestURL()
+  const origin = requestUrl.origin
+  const runtimeConfig = useRuntimeConfig()
+  const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
+  const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
 
-  const coachUrl = isPlatform ? `${origin}/coach/${slug}` : `${origin}/`
-  const bookingUrl = isPlatform
-    ? `${origin}/coach/${slug}/onboarding/discovery`
-    : `${origin}/onboarding/discovery`
+  const { coachUrl, bookingUrl } = buildCoachUrls(origin, slug, isPlatform)
 
   // Reactive refs — registered BEFORE await to preserve Nuxt context
   const name = ref('Coach')
@@ -28,7 +26,8 @@ export async function useCoachSchemaOrg(
   const imageUrl = ref<string | undefined>(undefined)
   const specialties = ref<string[]>([])
 
-  // Person schema (AC-1, AC-2)
+  // Person schema (AC-1, AC-2) — single source of Person data on white-label
+  // (useGlobalSchemaOrg no longer injects Person to avoid duplicates)
   useSchemaOrg([
     definePerson({
       name: () => name.value,
@@ -40,20 +39,17 @@ export async function useCoachSchemaOrg(
     })
   ])
 
-  // ProfessionalService — uses defineLocalBusiness with @type override (AC-1, AC-2)
-  // ProfessionalService extends LocalBusiness in Schema.org hierarchy
-  useSchemaOrg([
-    defineLocalBusiness({
-      '@type': 'ProfessionalService',
-      'name': () => `${name.value} — Accompagnement Ménopause`,
-      'serviceType': 'Accompagnement périménopause et ménopause',
-      'areaServed': 'France',
-      'availableChannel': {
-        '@type': 'ServiceChannel',
-        'serviceUrl': bookingUrl
-      }
-    })
-  ])
+  // ProfessionalService as raw JSON-LD (AC-1, AC-2)
+  // Raw object avoids defineLocalBusiness injecting unwanted LocalBusiness defaults
+  // (address, geo, openingHours). availableChannel omitted — it's a Service property,
+  // not valid on ProfessionalService (schema.org).
+  useSchemaOrg([{
+    '@type': 'ProfessionalService',
+    'name': () => `${name.value} — Accompagnement Ménopause`,
+    'serviceType': 'Accompagnement périménopause et ménopause',
+    'areaServed': 'France',
+    'url': bookingUrl
+  }])
 
   // BreadcrumbList — platform only (AC-1: Accueil > {displayName})
   // White-label: page racine, pas de breadcrumb (AC-2)
@@ -86,12 +82,6 @@ export async function useCoachSchemaOrg(
 
   // Update refs reactively — schemas pick up new values automatically
   watchEffect(() => {
-    const p = profile.value
-    if (!p) return
-
-    name.value = p.displayName || 'Coach'
-    if (p.bio) bio.value = p.bio
-    if (p.imageUrl) imageUrl.value = p.imageUrl
-    if (p.specialties.length > 0) specialties.value = p.specialties
+    mapProfileToSchemaRefs(profile.value, { name, bio, imageUrl, specialties })
   })
 }

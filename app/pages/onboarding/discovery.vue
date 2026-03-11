@@ -47,9 +47,8 @@ const { seo } = usePublicSeo('coach_booking', providerId)
 
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
-// Schema.org: Service + BreadcrumbList (AC-4: white-label booking)
-// slug used for URL construction only — not used in white-label paths
-useBookingSchemaOrg(tenant.value.slug, () => brandName.value, { isPlatform: false })
+// Schema.org: Service + BreadcrumbList (AC-4)
+useBookingSchemaOrg(tenant.value.slug, () => brandName.value)
 
 usePageTracking(providerId)
 

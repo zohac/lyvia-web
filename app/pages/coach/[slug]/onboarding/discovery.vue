@@ -52,8 +52,8 @@ const { seo } = usePublicSeo('coach_booking', providerId)
 
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
-// Schema.org: Service + BreadcrumbList (AC-3: platform booking)
-useBookingSchemaOrg(slug.value, () => brandName.value, { isPlatform: true })
+// Schema.org: Service + BreadcrumbList (AC-3)
+useBookingSchemaOrg(slug.value, () => brandName.value)
 
 usePageTracking(providerId)
 

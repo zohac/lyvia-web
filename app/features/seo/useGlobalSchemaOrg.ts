@@ -1,11 +1,8 @@
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
-// isPlatformHost used directly (only isPlatform needed here, not robotsDisallowPaths).
-// getDomainContext would be overkill — standardize in T2.3 if more context is needed.
-import { isPlatformHost } from '#shared/utils/platform-host'
+import { getDomainContext } from '#shared/utils/domain-context'
 import { apiFetch } from '~/services/api/apiFetch'
 
-// No unit test for this composable: useSchemaOrg/useAsyncData require full Nuxt runtime mocks.
-// Detection logic is covered by tests/shared/platform-host.test.ts.
+// Detection logic is covered by tests/shared/platform-host.test.ts + domain-context.test.ts.
 export async function useGlobalSchemaOrg() {
   const requestUrl = useRequestURL()
   const origin = requestUrl.origin
@@ -13,7 +10,7 @@ export async function useGlobalSchemaOrg() {
 
   const runtimeConfig = useRuntimeConfig()
   const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
-  const isPlatform = isPlatformHost(hostname, platformDomain)
+  const { isPlatform } = getDomainContext(hostname, platformDomain)
 
   if (isPlatform) {
     useSchemaOrg([
@@ -31,17 +28,12 @@ export async function useGlobalSchemaOrg() {
     return
   }
 
-  // White-label: register all composables BEFORE any await to preserve Nuxt context.
-  // After await useAsyncData, the Nuxt instance context is lost and composable calls fail
-  // with "composable called outside of setup function". Reactive refs bridge the gap.
+  // White-label: register WebSite BEFORE await to preserve Nuxt context.
+  // Person schema is NOT injected here — useCoachSchemaOrg (T2.3) is the single source
+  // for Person data on coach pages (with enriched profile: bio, specialties, image).
   const coachName = ref('Coach')
 
   useSchemaOrg([
-    definePerson({
-      name: () => coachName.value,
-      jobTitle: 'Spécialiste accompagnement ménopause',
-      url: origin
-    }),
     defineWebSite({
       name: () => coachName.value,
       inLanguage: 'fr-FR'
@@ -66,7 +58,7 @@ export async function useGlobalSchemaOrg() {
     }
   }, { default: () => null })
 
-  // Update ref reactively — schemas and og:site_name pick up the new value
+  // Update ref reactively — WebSite name and og:site_name pick up the new value
   watchEffect(() => {
     coachName.value = tenant.value?.brand.displayName?.trim() || 'Coach'
   })

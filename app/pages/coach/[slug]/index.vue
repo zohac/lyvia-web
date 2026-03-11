@@ -47,8 +47,8 @@ if (!tenant.value) {
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_profile', providerId)
 
-// Schema.org: Person + ProfessionalService + BreadcrumbList (AC-1: platform coach)
-await useCoachSchemaOrg(slug.value, { isPlatform: true })
+// Schema.org: Person + ProfessionalService + BreadcrumbList (AC-1)
+await useCoachSchemaOrg(slug.value)
 
 usePageTracking(providerId)
 

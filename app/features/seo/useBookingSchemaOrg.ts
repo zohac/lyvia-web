@@ -1,19 +1,21 @@
+import { getDomainContext } from '#shared/utils/domain-context'
+import { buildBookingBreadcrumbItems } from '~/features/seo/schema-helpers'
+
 /**
  * Injects Service + BreadcrumbList schemas for booking/discovery pages.
  *
- * All useSchemaOrg() calls happen BEFORE any await to preserve Nuxt context.
- *
- * @param slug - Coach slug (URL construction)
- * @param displayName - Coach display name (for breadcrumb)
- * @param options.isPlatform - Platform domain vs white-label
+ * @param slug - Coach slug (URL construction for platform breadcrumb)
+ * @param displayName - Coach display name getter (for breadcrumb)
  */
 export function useBookingSchemaOrg(
   slug: string,
-  displayName: () => string,
-  options: { isPlatform: boolean }
+  displayName: () => string
 ) {
-  const origin = useRequestURL().origin
-  const { isPlatform } = options
+  const requestUrl = useRequestURL()
+  const origin = requestUrl.origin
+  const runtimeConfig = useRuntimeConfig()
+  const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
+  const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
 
   // Service schema — Appel découverte gratuit (AC-3, AC-4)
   useSchemaOrg([
@@ -30,26 +32,8 @@ export function useBookingSchemaOrg(
   ])
 
   // BreadcrumbList (AC-3, AC-4)
-  if (isPlatform) {
-    // Plateforme: Accueil > {displayName} > Appel découverte
-    useSchemaOrg([
-      defineBreadcrumb({
-        itemListElement: [
-          { name: 'Accueil', item: `${origin}/` },
-          { name: displayName, item: `${origin}/coach/${slug}` },
-          { name: 'Appel découverte', item: `${origin}/coach/${slug}/onboarding/discovery` }
-        ]
-      })
-    ])
-  } else {
-    // White-label: Accueil > Appel découverte
-    useSchemaOrg([
-      defineBreadcrumb({
-        itemListElement: [
-          { name: 'Accueil', item: `${origin}/` },
-          { name: 'Appel découverte', item: `${origin}/onboarding/discovery` }
-        ]
-      })
-    ])
-  }
+  const items = buildBookingBreadcrumbItems(origin, slug, displayName, isPlatform)
+  useSchemaOrg([
+    defineBreadcrumb({ itemListElement: items })
+  ])
 }

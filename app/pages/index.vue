@@ -51,7 +51,7 @@ const { seo } = usePublicSeo('coach_profile', providerId)
 // Schema.org: Person + ProfessionalService (AC-2: white-label coach, no breadcrumb)
 // Only inject on white-label — platform home is B2B marketing (global schema from app.vue)
 if (!isPlatformDomain.value && tenant.value?.slug) {
-  await useCoachSchemaOrg(tenant.value.slug, { isPlatform: false })
+  await useCoachSchemaOrg(tenant.value.slug)
 }
 
 // Tracking page views for white-label coach pages (custom domain)
