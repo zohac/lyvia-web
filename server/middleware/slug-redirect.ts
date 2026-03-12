@@ -1,7 +1,8 @@
 import { defineEventHandler, getRequestURL, sendRedirect } from 'h3'
 
 export default defineEventHandler(async (event) => {
-  const path = getRequestURL(event).pathname
+  const url = getRequestURL(event)
+  const path = url.pathname
   if (!path.startsWith('/coach/')) return
 
   const slug = path.split('/')[2]
@@ -15,8 +16,16 @@ export default defineEventHandler(async (event) => {
       `${apiBase}/public/slug-redirect/${encodeURIComponent(slug)}`
     )
     const rest = path.slice(`/coach/${slug}`.length)
-    return sendRedirect(event, `/coach/${result.newSlug}${rest}`, 301)
-  } catch {
-    // 404 = no redirect needed, continue to page
+    return sendRedirect(event, `/coach/${result.newSlug}${rest}${url.search}`, 301)
+  } catch (err: unknown) {
+    if (
+      err
+      && typeof err === 'object'
+      && 'statusCode' in err
+      && (err as { statusCode: number }).statusCode === 404
+    ) {
+      return
+    }
+    console.warn('[slug-redirect] API error:', err)
   }
 })
