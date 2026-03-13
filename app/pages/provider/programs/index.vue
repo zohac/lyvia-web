@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ProgramResponse } from '../../../features/programs/api/programs.contract'
 import { listMyPrograms } from '../../../features/programs/services/provider-programs.service'
+import { PROGRAM_STATUS_META, formatProgramInstallments } from '../../../features/programs/domain/programs'
 import { formatCurrency } from '../../../features/analytics/helpers/format-kpi'
 
 definePageMeta({
@@ -31,23 +32,12 @@ async function loadPrograms() {
 
 onMounted(() => loadPrograms())
 
-const STATUS_META: Record<ProgramResponse['status'], { label: string, color: 'neutral' | 'success' | 'warning' }> = {
-  draft: { label: 'Brouillon', color: 'warning' },
-  active: { label: 'Actif', color: 'success' },
-  inactive: { label: 'Inactif', color: 'neutral' }
-}
-
 function formatSessions(program: ProgramResponse): string {
   return `${program.totalSessions} séances · ${program.sessionDurationMinutes} min`
 }
 
 function formatValidity(program: ProgramResponse): string {
   return `${program.validityMonths} mois`
-}
-
-function formatInstallments(program: ProgramResponse): string | null {
-  if (!program.allowInstallments || !program.installmentCount || !program.monthlyPriceCents) return null
-  return `ou ${formatCurrency(program.monthlyPriceCents)}/mois × ${program.installmentCount}`
 }
 </script>
 
@@ -119,11 +109,11 @@ function formatInstallments(program: ProgramResponse): string | null {
                 {{ program.name }}
               </h3>
               <UBadge
-                :color="STATUS_META[program.status].color"
+                :color="PROGRAM_STATUS_META[program.status].color"
                 variant="soft"
                 size="sm"
               >
-                {{ STATUS_META[program.status].label }}
+                {{ PROGRAM_STATUS_META[program.status].label }}
               </UBadge>
             </div>
             <p class="mt-1 line-clamp-2 text-sm text-stone-500">
@@ -143,10 +133,10 @@ function formatInstallments(program: ProgramResponse): string | null {
               {{ formatCurrency(program.priceCents) }}
             </p>
             <p
-              v-if="formatInstallments(program)"
+              v-if="formatProgramInstallments(program)"
               class="mt-1 text-xs text-stone-400"
             >
-              {{ formatInstallments(program) }}
+              {{ formatProgramInstallments(program) }}
             </p>
           </div>
         </div>

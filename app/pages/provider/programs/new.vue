@@ -67,16 +67,10 @@ async function handleSubmit() {
       gracePeriodDays: form.gracePeriodDays,
       priceCents: form.priceCents,
       sessionDurationMinutes: form.sessionDurationMinutes,
-      sortOrder: form.sortOrder
-    }
-
-    if (form.allowInstallments && form.installmentCount) {
-      payload.allowInstallments = true
-      payload.installmentCount = form.installmentCount
-    }
-
-    if (form.discoveryGate) {
-      payload.discoveryGate = true
+      sortOrder: form.sortOrder,
+      allowInstallments: form.allowInstallments,
+      installmentCount: form.allowInstallments ? form.installmentCount : undefined,
+      discoveryGate: form.discoveryGate
     }
 
     const program = await createProgram(payload)

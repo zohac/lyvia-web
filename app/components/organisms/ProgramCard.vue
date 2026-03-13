@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PublicProgramListItem } from '../../features/programs/api/programs.contract'
+import { formatProgramInstallments } from '../../features/programs/domain/programs'
 import { formatCurrency } from '../../features/analytics/helpers/format-kpi'
 
 const props = defineProps<{
@@ -8,10 +9,7 @@ const props = defineProps<{
   isAuthenticated: boolean
 }>()
 
-function formatInstallments(): string | null {
-  if (!props.program.allowInstallments || !props.program.installmentCount || !props.program.monthlyPriceCents) return null
-  return `ou ${formatCurrency(props.program.monthlyPriceCents)}/mois en ${props.program.installmentCount} mensualités`
-}
+const installmentsLabel = computed(() => formatProgramInstallments(props.program))
 
 /**
  * CTA logic based on discovery gate + auth state.
@@ -72,10 +70,10 @@ const cta = computed(() => {
         {{ formatCurrency(program.priceCents) }}
       </p>
       <p
-        v-if="formatInstallments()"
+        v-if="installmentsLabel"
         class="mt-1 text-sm text-[#857d8c]"
       >
-        {{ formatInstallments() }}
+        {{ installmentsLabel }}
       </p>
     </div>
 

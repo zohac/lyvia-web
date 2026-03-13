@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ProgramResponse } from '../../../features/programs/api/programs.contract'
 import { getMyProgram, activateProgram, deactivateProgram } from '../../../features/programs/services/provider-programs.service'
+import { PROGRAM_STATUS_META, formatProgramInstallments } from '../../../features/programs/domain/programs'
 import { formatCurrency } from '../../../features/analytics/helpers/format-kpi'
 
 definePageMeta({
@@ -33,11 +34,17 @@ async function loadProgram() {
 
 onMounted(() => loadProgram())
 
-const STATUS_META: Record<ProgramResponse['status'], { label: string, color: 'neutral' | 'success' | 'warning' }> = {
-  draft: { label: 'Brouillon', color: 'warning' },
-  active: { label: 'Actif', color: 'success' },
-  inactive: { label: 'Inactif', color: 'neutral' }
-}
+const dateFmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' })
+
+const formattedCreatedAt = computed(() => {
+  if (!program.value) return ''
+  return dateFmt.format(new Date(program.value.createdAt))
+})
+
+const installmentsLabel = computed(() => {
+  if (!program.value) return null
+  return formatProgramInstallments(program.value)
+})
 
 async function handleActivate() {
   if (actionPending.value || !program.value) return
@@ -73,11 +80,6 @@ async function handleDeactivate() {
   } finally {
     actionPending.value = false
   }
-}
-
-function formatInstallments(p: ProgramResponse): string | null {
-  if (!p.allowInstallments || !p.installmentCount || !p.monthlyPriceCents) return null
-  return `${formatCurrency(p.monthlyPriceCents)}/mois × ${p.installmentCount} mensualités`
 }
 </script>
 
@@ -123,13 +125,13 @@ function formatInstallments(p: ProgramResponse): string | null {
       <div class="flex items-center justify-between rounded-xl border border-stone-200 bg-white p-5">
         <div class="flex items-center gap-3">
           <UBadge
-            :color="STATUS_META[program.status].color"
+            :color="PROGRAM_STATUS_META[program.status].color"
             variant="soft"
           >
-            {{ STATUS_META[program.status].label }}
+            {{ PROGRAM_STATUS_META[program.status].label }}
           </UBadge>
           <span class="text-sm text-stone-500">
-            Créé le {{ new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(program.createdAt)) }}
+            Créé le {{ formattedCreatedAt }}
           </span>
         </div>
 
@@ -201,10 +203,10 @@ function formatInstallments(p: ProgramResponse): string | null {
                 {{ formatCurrency(program.priceCents) }}
               </p>
               <p
-                v-if="formatInstallments(program)"
+                v-if="installmentsLabel"
                 class="text-xs text-stone-400"
               >
-                {{ formatInstallments(program) }}
+                {{ installmentsLabel }}
               </p>
             </div>
           </div>

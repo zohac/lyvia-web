@@ -3,9 +3,9 @@ import type { AccordionItem } from '@nuxt/ui'
 
 import type { PublicTenantResponse } from '../../features/onboarding/api/onboarding.contract'
 import type { PublicProgramListItem } from '../../features/programs/api/programs.contract'
+import { listPublicPrograms } from '../../features/programs/services/public-programs.service'
 import CoachHeroProfile from '../organisms/CoachHeroProfile.vue'
 import ProgramCard from '../organisms/ProgramCard.vue'
-import { apiFetch } from '../../services/api/apiFetch'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -16,11 +16,7 @@ const auth = useAuth()
 
 const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>('public-programs', async () => {
   try {
-    const response = await apiFetch<{ programs: PublicProgramListItem[] }>('/public/programs', {
-      method: 'GET',
-      withAuth: false
-    })
-    return response.programs
+    return await listPublicPrograms()
   } catch {
     return []
   }
