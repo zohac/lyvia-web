@@ -1,11 +1,11 @@
 <template>
-  <template v-if="tenant">
+  <div v-if="tenant">
     <CoachUnavailableTemplate
       v-if="!tenant.isActive"
       :coach-name="tenant.brand.displayName"
     />
     <DiscoveryBookingWizard v-else />
-  </template>
+  </div>
 </template>
 
 <script setup lang="ts">
