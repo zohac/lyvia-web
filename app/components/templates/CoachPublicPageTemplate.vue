@@ -2,12 +2,29 @@
 import type { AccordionItem } from '@nuxt/ui'
 
 import type { PublicTenantResponse } from '../../features/onboarding/api/onboarding.contract'
+import type { PublicProgramListItem } from '../../features/programs/api/programs.contract'
 import CoachHeroProfile from '../organisms/CoachHeroProfile.vue'
+import ProgramCard from '../organisms/ProgramCard.vue'
+import { apiFetch } from '../../services/api/apiFetch'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
   ctaTo: string
 }>()
+
+const auth = useAuth()
+
+const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>('public-programs', async () => {
+  try {
+    const response = await apiFetch<{ programs: PublicProgramListItem[] }>('/public/programs', {
+      method: 'GET',
+      withAuth: false
+    })
+    return response.programs
+  } catch {
+    return []
+  }
+}, { default: () => [] })
 
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre coach')
 
@@ -163,6 +180,38 @@ const faqItems: AccordionItem[] = [
               <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
             </span>
           </UButton>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Programmes d'accompagnement -->
+    <section
+      v-if="publicPrograms.length > 0"
+      id="programmes"
+      class="bg-white px-6 py-32 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-16 text-center">
+          <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]">
+            Programmes
+          </span>
+          <h2 class="font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+            Des accompagnements pensés
+            <span class="block text-[#5b4b6e]">pour vous</span>
+          </h2>
+          <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
+            Choisissez le programme adapté à vos besoins et avancez à votre rythme.
+          </p>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <ProgramCard
+            v-for="prog in publicPrograms"
+            :key="prog.id"
+            :program="prog"
+            :booking-url="ctaTo"
+            :is-authenticated="auth.isAuthenticated()"
+          />
         </div>
       </div>
     </section>
