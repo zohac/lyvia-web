@@ -15,7 +15,8 @@ defineEmits<{
 const filterOptions = [
   { label: 'Tous', value: 'all' },
   { label: 'Discovery', value: 'discovery' },
-  { label: 'Consultation', value: 'consultation' }
+  { label: 'Consultation', value: 'consultation' },
+  { label: 'Suivi gratuit', value: 'free_followup' }
 ]
 
 function isFilterActive(value: DisplayTypeFilter) {
@@ -26,6 +27,7 @@ function getFilterButtonClasses(value: DisplayTypeFilter, active: boolean) {
   if (!active) return 'text-stone-600 hover:text-stone-900'
   if (value === 'discovery') return 'bg-amber-100 text-amber-800'
   if (value === 'consultation') return 'bg-crepuscule-100 text-crepuscule-800'
+  if (value === 'free_followup') return 'bg-emerald-100 text-emerald-800'
   return 'bg-stone-200 text-stone-800'
 }
 </script>

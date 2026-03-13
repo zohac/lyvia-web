@@ -56,7 +56,12 @@ onMounted(async () => {
   const clientProfileIdParam = route.query.clientProfileId
 
   if (action === 'create') {
-    const appointmentType = typeParam === 'discovery' ? 'discovery' : 'consultation'
+    const appointmentType: ProviderCalendarAppointmentType
+      = typeParam === 'discovery'
+        ? 'discovery'
+        : typeParam === 'free_followup'
+          ? 'free_followup'
+          : 'consultation'
     const clientProfileId = typeof clientProfileIdParam === 'string' ? clientProfileIdParam : null
 
     openCreateModal({
@@ -119,7 +124,7 @@ function onSelectAppointment(appointment: ProviderAppointmentListItem) {
 const isCreateModalOpen = ref(false)
 const createInitialDayKey = ref(getYmdInTimeZone(calendar.anchorDate.value, calendar.timeZone.value))
 const createInitialMinutes = ref(9 * 60)
-const createInitialType = ref<'discovery' | 'consultation'>('consultation')
+const createInitialType = ref<ProviderCalendarAppointmentType>('consultation')
 const createInitialClientProfileId = ref<string | null>(null)
 const createIdempotencyKey = ref<string | null>(null)
 
@@ -149,7 +154,7 @@ function setCreateModalOpen(next: boolean) {
   }
 }
 
-function openCreateModal(input: { dayKey: string, minutes: number, type?: 'discovery' | 'consultation', clientProfileId?: string | null }) {
+function openCreateModal(input: { dayKey: string, minutes: number, type?: ProviderCalendarAppointmentType, clientProfileId?: string | null }) {
   noticeMessage.value = null
   closeDrawer()
   calendar.clearActionErrors()
@@ -424,11 +429,13 @@ async function onCreateAppointmentSubmit(payload: { body: CreateProviderManualAp
       color: 'warning'
     })
 
-    // Calculate duration from pricePlanId for consultation
+    // Calculate duration based on appointment type
     let durationMinutes = 15 // default for discovery
     if (payload.body.type === 'consultation') {
       const plan = calendar.consultationPricePlansById.value[payload.body.pricePlanId]
       durationMinutes = plan?.durationMinutes ?? 60
+    } else if (payload.body.type === 'free_followup') {
+      durationMinutes = payload.body.durationMinutes
     }
 
     triggerConflictHighlight({
@@ -479,6 +486,8 @@ async function onEditAppointmentSubmit(payload: { appointmentId: string, body: U
       let durationMinutes = baseAppointment?.durationMinutes ?? 60
       if (baseAppointment?.type === 'discovery') {
         durationMinutes = 15
+      } else if (baseAppointment?.type === 'free_followup') {
+        durationMinutes = baseAppointment.durationMinutes
       } else if (payload.body.pricePlanId) {
         const plan = calendar.consultationPricePlansById.value[payload.body.pricePlanId]
         durationMinutes = plan?.durationMinutes ?? durationMinutes

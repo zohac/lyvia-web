@@ -81,7 +81,8 @@ export type ListProviderClientsParams = {
 /**
  * Appointment type for provider client detail.
  */
-export type AppointmentType = 'discovery' | 'consultation'
+// verified against OpenAPI spec
+export type AppointmentType = 'discovery' | 'consultation' | 'free_followup'
 
 /**
  * Appointment status.
@@ -91,7 +92,8 @@ export type AppointmentStatus = 'scheduled' | 'cancelled' | 'completed'
 /**
  * Payment status for an appointment.
  */
-export type AppointmentPaymentStatus = 'not_required' | 'unpaid' | 'paid'
+// verified against OpenAPI spec
+export type AppointmentPaymentStatus = 'not_required' | 'unpaid' | 'paid' | 'covered_by_program'
 
 /**
  * Role that cancelled an appointment.

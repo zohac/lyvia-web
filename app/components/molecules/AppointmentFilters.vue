@@ -64,7 +64,8 @@ const emit = defineEmits<{
 const typeOptions = [
   { label: 'Tous les types', value: 'all' },
   { label: 'Découverte', value: 'discovery' },
-  { label: 'Consultation', value: 'consultation' }
+  { label: 'Consultation', value: 'consultation' },
+  { label: 'Suivi gratuit', value: 'free_followup' }
 ]
 
 const statusOptions = [

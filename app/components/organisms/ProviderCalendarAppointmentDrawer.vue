@@ -271,7 +271,7 @@ async function copyMeetingLink() {
               class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold"
               :class="accentClasses(appointment)"
             >
-              {{ appointment.type === 'consultation' ? 'Consultation' : 'Discovery' }}
+              {{ appointment.type === 'consultation' ? 'Consultation' : appointment.type === 'free_followup' ? 'Suivi gratuit' : 'Discovery' }}
             </span>
 
             <span
@@ -396,9 +396,9 @@ async function copyMeetingLink() {
           </div>
         </section>
 
-        <!-- Lien visio (consultation uniquement) -->
+        <!-- Lien visio (consultation + suivi gratuit) -->
         <section
-          v-if="appointment.type === 'consultation' && appointment.meetingLink"
+          v-if="(appointment.type === 'consultation' || appointment.type === 'free_followup') && appointment.meetingLink"
           class="rounded-lg border border-stone-200 bg-stone-50 p-5"
         >
           <div class="flex items-center justify-between gap-4">
