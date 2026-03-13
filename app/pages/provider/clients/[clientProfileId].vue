@@ -108,6 +108,114 @@
 
       <!-- Sidebar (1 col) -->
       <aside class="space-y-6 lg:order-first lg:order-last">
+        <!-- Quick actions card (first for mobile visibility) -->
+        <UCard
+          v-if="client"
+          class="bg-white"
+        >
+          <template #header>
+            <h2 class="font-semibold text-stone-900">
+              Actions rapides
+            </h2>
+          </template>
+
+          <div class="space-y-2">
+            <UButton
+              :href="`mailto:${client.email}`"
+              variant="soft"
+              color="neutral"
+              block
+              class="justify-start"
+            >
+              <UIcon
+                name="lucide:mail"
+                class="mr-2 h-4 w-4"
+              />
+              Envoyer un email
+            </UButton>
+            <UButton
+              :href="`tel:${client.phone}`"
+              variant="soft"
+              color="neutral"
+              block
+              class="justify-start"
+            >
+              <UIcon
+                name="lucide:phone"
+                class="mr-2 h-4 w-4"
+              />
+              Appeler
+            </UButton>
+
+            <!-- Story 10.3: Resend activation email -->
+            <UButton
+              v-if="detail && !detail.isActivated && detail.stage === 'active'"
+              variant="soft"
+              color="secondary"
+              block
+              class="justify-start"
+              :loading="resendLoading"
+              @click="handleResendActivation"
+            >
+              <UIcon
+                name="lucide:send"
+                class="mr-2 h-4 w-4"
+              />
+              Renvoyer l'invitation
+            </UButton>
+
+            <!-- Convert lead to active client -->
+            <UButton
+              v-if="canConvert"
+              variant="soft"
+              color="primary"
+              block
+              class="justify-start"
+              :loading="convertLoading"
+              @click="handleConvert"
+            >
+              <UIcon
+                name="lucide:user-check"
+                class="mr-2 h-4 w-4"
+              />
+              Convertir en cliente
+            </UButton>
+
+            <!-- US-7: Pause/Reactivate actions (pause allowed from any stage except paused) -->
+            <UButton
+              v-if="detail?.computedStatus && detail.computedStatus !== 'paused'"
+              variant="soft"
+              color="warning"
+              block
+              class="justify-start"
+              :loading="pauseLoading"
+              @click="openPauseModal"
+            >
+              <UIcon
+                name="lucide:pause-circle"
+                class="mr-2 h-4 w-4"
+              />
+              Mettre en pause
+            </UButton>
+
+            <UButton
+              v-else-if="detail?.computedStatus === 'paused'"
+              variant="soft"
+              color="success"
+              block
+              class="justify-start"
+              :loading="reactivateLoading"
+              @click="handleReactivate"
+            >
+              <UIcon
+                name="lucide:play-circle"
+                class="mr-2 h-4 w-4"
+              />
+              Réactiver
+            </UButton>
+          </div>
+        </UCard>
+
         <!-- Synthesis card -->
         <UCard class="bg-white">
           <template #header>
@@ -278,114 +386,6 @@
                 Annuler
               </UButton>
             </div>
-          </div>
-        </UCard>
-
-        <!-- Quick actions card -->
-        <UCard
-          v-if="client"
-          class="bg-white"
-        >
-          <template #header>
-            <h2 class="font-semibold text-stone-900">
-              Actions rapides
-            </h2>
-          </template>
-
-          <div class="space-y-2">
-            <UButton
-              :href="`mailto:${client.email}`"
-              variant="soft"
-              color="neutral"
-              block
-              class="justify-start"
-            >
-              <UIcon
-                name="lucide:mail"
-                class="mr-2 h-4 w-4"
-              />
-              Envoyer un email
-            </UButton>
-            <UButton
-              :href="`tel:${client.phone}`"
-              variant="soft"
-              color="neutral"
-              block
-              class="justify-start"
-            >
-              <UIcon
-                name="lucide:phone"
-                class="mr-2 h-4 w-4"
-              />
-              Appeler
-            </UButton>
-
-            <!-- Story 10.3: Resend activation email -->
-            <UButton
-              v-if="detail && !detail.isActivated && detail.stage === 'active'"
-              variant="soft"
-              color="secondary"
-              block
-              class="justify-start"
-              :loading="resendLoading"
-              @click="handleResendActivation"
-            >
-              <UIcon
-                name="lucide:send"
-                class="mr-2 h-4 w-4"
-              />
-              Renvoyer l'invitation
-            </UButton>
-
-            <!-- Convert lead to active client -->
-            <UButton
-              v-if="canConvert"
-              variant="soft"
-              color="primary"
-              block
-              class="justify-start"
-              :loading="convertLoading"
-              @click="handleConvert"
-            >
-              <UIcon
-                name="lucide:user-check"
-                class="mr-2 h-4 w-4"
-              />
-              Convertir en cliente
-            </UButton>
-
-            <!-- US-7: Pause/Reactivate actions (pause allowed from any stage except paused) -->
-            <UButton
-              v-if="detail?.computedStatus && detail.computedStatus !== 'paused'"
-              variant="soft"
-              color="warning"
-              block
-              class="justify-start"
-              :loading="pauseLoading"
-              @click="openPauseModal"
-            >
-              <UIcon
-                name="lucide:pause-circle"
-                class="mr-2 h-4 w-4"
-              />
-              Mettre en pause
-            </UButton>
-
-            <UButton
-              v-else-if="detail?.computedStatus === 'paused'"
-              variant="soft"
-              color="success"
-              block
-              class="justify-start"
-              :loading="reactivateLoading"
-              @click="handleReactivate"
-            >
-              <UIcon
-                name="lucide:play-circle"
-                class="mr-2 h-4 w-4"
-              />
-              Réactiver
-            </UButton>
           </div>
         </UCard>
       </aside>
