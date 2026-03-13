@@ -3,6 +3,7 @@ import type { ProviderAppointmentListItem } from '../../features/calendar/api/ca
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationDrawerSummary, formatCurrency, getConsultationPricePlan } from '../../features/calendar/presentation/appointment-pricing'
+import { getAppointmentTypeLabel } from '../../features/clients/domain/clients'
 import { useStripeLinks } from '../../features/stripe/useStripeLinks'
 
 const props = withDefaults(
@@ -271,7 +272,7 @@ async function copyMeetingLink() {
               class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold"
               :class="accentClasses(appointment)"
             >
-              {{ appointment.type === 'consultation' ? 'Consultation' : appointment.type === 'free_followup' ? 'Suivi gratuit' : 'Discovery' }}
+              {{ getAppointmentTypeLabel(appointment.type) }}
             </span>
 
             <span

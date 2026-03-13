@@ -14,7 +14,7 @@ defineEmits<{
 
 const filterOptions = [
   { label: 'Tous', value: 'all' },
-  { label: 'Discovery', value: 'discovery' },
+  { label: 'Découverte', value: 'discovery' },
   { label: 'Consultation', value: 'consultation' },
   { label: 'Suivi gratuit', value: 'free_followup' }
 ]

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProviderAppointmentListItem, ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
+import type { CreateProviderManualAppointmentRequest, ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
 import type { ConsultationPricePlan } from '../../features/consultation/api/consultation.contract'
 import { minutesToHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
 import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
@@ -46,20 +46,9 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (event: 'update:open', value: boolean): void
-  (event: 'submit', payload: { body: ProviderCalendarCreateAppointmentBody }): void
+  (event: 'submit', payload: { body: CreateProviderManualAppointmentRequest }): void
   (event: 'reset'): void
 }>()
-
-type ProviderCalendarCreateAppointmentBody = {
-  type: ProviderCalendarAppointmentType
-  startAt: string
-  clientProfileId: ProviderAppointmentListItem['clientProfileId']
-  notes?: string | null
-} & (
-  | { type: 'discovery' }
-  | { type: 'consultation', pricePlanId: string, meetingLink?: string | null }
-  | { type: 'free_followup', durationMinutes: number, meetingLink?: string | null }
-)
 
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
 const isFullScreen = computed(() => !isDesktop.value)
@@ -73,6 +62,12 @@ const selectedKnownClientId = ref<string>('')
 const notes = ref<string>('')
 const meetingLink = ref<string>('')
 const freeFollowupDurationMinutes = ref<number>(30)
+
+/** Duration options 5-120, step 5 (AC-3 spec). */
+const durationOptions = Array.from({ length: 24 }, (_, i) => {
+  const v = (i + 1) * 5
+  return { label: `${v} min`, value: v }
+})
 
 /**
  * Filtre les clients selon le type de RDV sélectionné (modèle 4-stages).
@@ -114,11 +109,16 @@ const startAt = computed(() => {
   return iso
 })
 
+const MEETING_LINK_REGEX = /^https?:\/\//
+
 const localValidationError = computed(() => {
   if (!startAt.value) return 'Date ou heure invalide.'
   if (!clientProfileId.value.trim()) return 'Sélectionnez une cliente.'
   if (type.value === 'consultation' && !pricePlanId.value) {
     return 'Sélectionnez un tarif de consultation.'
+  }
+  if (meetingLink.value.trim() && !MEETING_LINK_REGEX.test(meetingLink.value.trim())) {
+    return 'Le lien visio doit commencer par http:// ou https://.'
   }
   return null
 })
@@ -336,14 +336,7 @@ function submit() {
             >
               <USelect
                 v-model="freeFollowupDurationMinutes"
-                :items="[
-                  { label: '15 min', value: 15 },
-                  { label: '30 min', value: 30 },
-                  { label: '45 min', value: 45 },
-                  { label: '60 min', value: 60 },
-                  { label: '90 min', value: 90 },
-                  { label: '120 min', value: 120 }
-                ]"
+                :items="durationOptions"
                 :disabled="loading"
               />
             </div>
