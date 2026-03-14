@@ -98,6 +98,12 @@
           :timezone="timezoneLabel"
         />
 
+        <!-- Subscriptions section (X3.3) -->
+        <ClientSubscriptionsSection
+          v-if="clientProfileId && detail?.stage === 'active'"
+          :client-profile-id="clientProfileId"
+        />
+
         <!-- Payments section -->
         <ClientPaymentHistorySection
           v-if="clientProfileId"
@@ -417,6 +423,7 @@ import {
 } from '../../../features/clients/domain/clients'
 import ClientAppointmentHistorySection from '../../../components/organisms/ClientAppointmentHistorySection.vue'
 import ClientPaymentHistorySection from '../../../components/organisms/ClientPaymentHistorySection.vue'
+import ClientSubscriptionsSection from '../../../components/organisms/ClientSubscriptionsSection.vue'
 import ClientPauseModal from '../../../components/organisms/ClientPauseModal.vue'
 
 definePageMeta({

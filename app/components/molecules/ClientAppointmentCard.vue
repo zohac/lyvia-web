@@ -109,9 +109,12 @@ const emit = defineEmits<{
 }>()
 
 // Type labels
-const typeLabel = computed(() =>
-  props.appointment.type === 'discovery' ? 'Appel découverte' : 'Consultation'
-)
+const TYPE_LABELS: Record<string, string> = {
+  discovery: 'Appel découverte',
+  consultation: 'Consultation',
+  free_followup: 'Suivi gratuit'
+}
+const typeLabel = computed(() => TYPE_LABELS[props.appointment.type] ?? 'Rendez-vous')
 
 // Formatted date
 const formattedDate = computed(() => {
@@ -136,6 +139,9 @@ const statusBadge = computed(() => {
     case 'scheduled':
       if (props.appointment.paymentStatus === 'unpaid') {
         return { label: 'À payer', color: 'warning' as const }
+      }
+      if (props.appointment.paymentStatus === 'covered_by_program') {
+        return { label: 'Couvert', color: 'success' as const }
       }
       return { label: 'À venir', color: 'primary' as const }
     case 'completed':

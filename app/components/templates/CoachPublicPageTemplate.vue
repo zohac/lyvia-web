@@ -6,6 +6,7 @@ import type { PublicProgramListItem } from '../../features/programs/api/programs
 import { listPublicPrograms } from '../../features/programs/services/public-programs.service'
 import CoachHeroProfile from '../organisms/CoachHeroProfile.vue'
 import ProgramCard from '../organisms/ProgramCard.vue'
+import ProgramCheckoutModal from '../organisms/ProgramCheckoutModal.vue'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -23,6 +24,15 @@ const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>('pu
 }, { default: () => [] })
 
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre coach')
+
+// X3.3: Program checkout modal state
+const checkoutModalOpen = ref(false)
+const selectedProgram = ref<PublicProgramListItem | null>(null)
+
+function handleProgramCheckout(program: PublicProgramListItem) {
+  selectedProgram.value = program
+  checkoutModalOpen.value = true
+}
 
 const pillars = [
   {
@@ -207,6 +217,7 @@ const faqItems: AccordionItem[] = [
             :program="prog"
             :booking-url="ctaTo"
             :is-authenticated="auth.isAuthenticated()"
+            @checkout="handleProgramCheckout"
           />
         </div>
       </div>
@@ -501,6 +512,12 @@ const faqItems: AccordionItem[] = [
         </p>
       </div>
     </section>
+    <!-- X3.3: Program checkout modal -->
+    <ProgramCheckoutModal
+      :open="checkoutModalOpen"
+      :program="selectedProgram"
+      @update:open="checkoutModalOpen = $event"
+    />
   </div>
 </template>
 

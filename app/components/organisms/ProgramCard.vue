@@ -9,21 +9,26 @@ const props = defineProps<{
   isAuthenticated: boolean
 }>()
 
+const emit = defineEmits<{
+  (e: 'checkout', program: PublicProgramListItem): void
+}>()
+
 const installmentsLabel = computed(() => formatProgramInstallments(props.program))
 
 /**
  * CTA logic based on discovery gate + auth state.
  *
  * discovery_gate: true  + not authenticated → "Prendre un appel découverte" → booking
- * discovery_gate: true  + authenticated     → "Choisir ce programme" (placeholder X3)
+ * discovery_gate: true  + authenticated     → "Choisir ce programme" → emit checkout
  * discovery_gate: false + not authenticated → "Choisir ce programme" → login
- * discovery_gate: false + authenticated     → "Choisir ce programme" (placeholder X3)
+ * discovery_gate: false + authenticated     → "Choisir ce programme" → emit checkout
  */
 const cta = computed(() => {
   if (props.program.discoveryGate && !props.isAuthenticated) {
     return {
       label: 'Prendre un appel découverte',
       to: props.bookingUrl,
+      action: null as (() => void) | null,
       disabled: false
     }
   }
@@ -32,15 +37,17 @@ const cta = computed(() => {
     return {
       label: 'Choisir ce programme',
       to: '/login',
+      action: null as (() => void) | null,
       disabled: false
     }
   }
 
-  // Authenticated — placeholder for checkout (X3)
+  // Authenticated → open checkout modal
   return {
     label: 'Choisir ce programme',
     to: undefined,
-    disabled: true
+    action: () => emit('checkout', props.program),
+    disabled: false
   }
 })
 </script>
@@ -99,6 +106,7 @@ const cta = computed(() => {
         color="primary"
         block
         class="rounded-full"
+        @click="cta.action?.()"
       >
         {{ cta.label }}
       </UButton>
