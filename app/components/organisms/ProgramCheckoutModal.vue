@@ -31,6 +31,7 @@ const toast = useToast()
 const selectedMode = ref<ProgramCheckoutPaymentMode>('one_time')
 const loading = ref(false)
 const errorMessage = ref<string | null>(null)
+const sessionExpired = ref(false)
 
 const installmentsLabel = computed(() => {
   if (!props.program) return null
@@ -47,6 +48,7 @@ watch(() => props.open, (next) => {
     selectedMode.value = 'one_time'
     loading.value = false
     errorMessage.value = null
+    sessionExpired.value = false
   }
 })
 
@@ -78,11 +80,22 @@ async function handleCheckout() {
     })
 
     if (typeof window !== 'undefined' && response.checkoutSessionUrl) {
+      // Safety timeout: reset loading if navigation didn't happen (popup blocker, etc.)
+      setTimeout(() => {
+        loading.value = false
+      }, 10_000)
       window.location.assign(response.checkoutSessionUrl)
+    } else {
+      errorMessage.value = 'Impossible de démarrer le paiement. Veuillez réessayer.'
+      loading.value = false
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Une erreur est survenue'
+    const isSessionExpired = err instanceof Error && 'statusCode' in err && (err as { statusCode: number }).statusCode === 401
+    const message = isSessionExpired
+      ? 'Votre session a expiré. Veuillez vous reconnecter.'
+      : err instanceof Error ? err.message : 'Une erreur est survenue'
     errorMessage.value = message
+    sessionExpired.value = isSessionExpired
     toast.add({
       title: 'Erreur',
       description: message,
@@ -176,13 +189,26 @@ async function handleCheckout() {
         </div>
 
         <!-- Error -->
-        <UAlert
+        <div
           v-if="errorMessage"
-          color="error"
-          variant="soft"
-          :description="errorMessage"
-          icon="i-lucide-alert-circle"
-        />
+          class="space-y-3"
+        >
+          <UAlert
+            color="error"
+            variant="soft"
+            :description="errorMessage"
+            icon="i-lucide-alert-circle"
+          />
+          <UButton
+            v-if="sessionExpired"
+            to="/login"
+            color="primary"
+            variant="soft"
+            block
+          >
+            Se reconnecter
+          </UButton>
+        </div>
       </div>
     </template>
 

@@ -7,6 +7,7 @@
  */
 import { useClientSubscriptions } from '../../features/programs/useClientSubscriptions'
 import { formatCurrency } from '../../features/analytics/helpers/format-kpi'
+import { formatDateShort } from '../../composables/useDateFormat'
 import SubscriptionStatusBadge from '../molecules/SubscriptionStatusBadge.vue'
 import SessionsProgress from '../molecules/SessionsProgress.vue'
 
@@ -17,18 +18,6 @@ const props = defineProps<{
 const { subscriptions, loading, error, load } = useClientSubscriptions(props.clientProfileId)
 
 onMounted(() => load())
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    })
-  } catch {
-    return iso
-  }
-}
 </script>
 
 <template>
@@ -93,7 +82,7 @@ function formatDate(iso: string): string {
             <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500">
               <span>{{ formatCurrency(sub.snapshotPriceCents) }}</span>
               <span>{{ sub.snapshotValidityMonths }} mois</span>
-              <span>Expire {{ formatDate(sub.expiresAt) }}</span>
+              <span>Expire {{ formatDateShort(sub.expiresAt) }}</span>
             </div>
           </div>
         </div>

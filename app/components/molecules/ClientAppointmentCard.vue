@@ -157,7 +157,9 @@ const statusBadge = computed(() => {
 const iconName = computed(() => {
   if (props.appointment.status === 'cancelled') return 'lucide:calendar-x'
   if (props.appointment.status === 'completed') return 'lucide:check-circle'
-  return props.appointment.type === 'discovery' ? 'lucide:phone' : 'lucide:calendar'
+  if (props.appointment.type === 'discovery') return 'lucide:phone'
+  if (props.appointment.type === 'free_followup') return 'lucide:heart-handshake'
+  return 'lucide:calendar'
 })
 
 // Icon styling

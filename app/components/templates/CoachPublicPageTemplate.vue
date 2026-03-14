@@ -23,7 +23,9 @@ const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>('pu
   }
 }, { default: () => [] })
 
+const route = useRoute()
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre coach')
+const currentPath = computed(() => route.fullPath)
 
 // X3.3: Program checkout modal state
 const checkoutModalOpen = ref(false)
@@ -217,6 +219,7 @@ const faqItems: AccordionItem[] = [
             :program="prog"
             :booking-url="ctaTo"
             :is-authenticated="auth.isAuthenticated()"
+            :current-path="currentPath"
             @checkout="handleProgramCheckout"
           />
         </div>

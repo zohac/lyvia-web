@@ -7,6 +7,7 @@ const props = defineProps<{
   program: PublicProgramListItem
   bookingUrl: string
   isAuthenticated: boolean
+  currentPath?: string
 }>()
 
 const emit = defineEmits<{
@@ -34,9 +35,10 @@ const cta = computed(() => {
   }
 
   if (!props.isAuthenticated) {
+    const redirect = props.currentPath ? encodeURIComponent(`${props.currentPath}#programmes`) : ''
     return {
       label: 'Choisir ce programme',
-      to: '/login',
+      to: redirect ? `/login?redirect=${redirect}` : '/login',
       action: null as (() => void) | null,
       disabled: false
     }
