@@ -80,6 +80,34 @@ async function handleCheckout() {
     })
 
     if (typeof window !== 'undefined' && response.checkoutSessionUrl) {
+      // Store program metadata in sessionStorage before redirecting to Stripe.
+      // The success page reads this to display program summary.
+      // Extract session ID from the success return URL (session_id={CHECKOUT_SESSION_ID} replaced by Stripe)
+      // or from the Stripe checkout URL itself (contains cs_xxx in the path).
+      try {
+        const csMatch = response.checkoutSessionUrl.match(/cs_[a-zA-Z0-9_]+/)
+        const sessionIdFromUrl = csMatch ? csMatch[0] : null
+        if (sessionIdFromUrl) {
+          const metaToStore = {
+            programId: props.program.id,
+            programName: props.program.name,
+            totalSessions: props.program.totalSessions,
+            sessionDurationMinutes: props.program.sessionDurationMinutes,
+            validityMonths: props.program.validityMonths,
+            amountCents: props.program.priceCents,
+            paymentMode: selectedMode.value,
+            installmentCount: selectedMode.value === 'installments' ? props.program.installmentCount : undefined,
+            currency: 'EUR' as const
+          }
+          window.sessionStorage.setItem(
+            `kaora_program_checkout:${sessionIdFromUrl}`,
+            JSON.stringify(metaToStore)
+          )
+        }
+      } catch {
+        // Non-blocking: success page works without stored meta
+      }
+
       // Safety timeout: reset loading if navigation didn't happen (popup blocker, etc.)
       setTimeout(() => {
         loading.value = false

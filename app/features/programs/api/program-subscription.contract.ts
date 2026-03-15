@@ -2,10 +2,7 @@
  * Program subscription contracts (provider view of client subscriptions).
  *
  * Source of truth: PRD Feature X2 — FR-X2-13 + data model.
- * Endpoint: GET /provider/clients/:id/subscriptions (pending backend implementation).
- *
- * Note: verified against OpenAPI spec — endpoint not yet available,
- * types created from PRD specification for frontend preparation.
+ * Endpoint: GET /provider/clients/:id/subscriptions
  */
 
 // ============================================================================
