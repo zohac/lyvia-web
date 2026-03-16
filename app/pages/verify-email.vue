@@ -7,7 +7,7 @@
         class="mb-12 inline-flex w-fit items-center justify-center"
       >
         <NuxtImg
-          src="/images/kaora-logo.png"
+          src="/images/keova-logo.png"
           alt="Keova"
           class="h-10 w-auto"
           loading="eager"
