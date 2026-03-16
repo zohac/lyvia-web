@@ -3,7 +3,7 @@ import test from 'node:test'
 
 import { getDomainContext } from '../../shared/utils/domain-context'
 
-const PLATFORM = 'kaora.app'
+const PLATFORM = 'keova.fr'
 
 // Tests the domain-context contract as used by the robots.txt handler — not a handler integration test.
 // The h3 event wiring (getRequestHost, setResponseHeader) is not exercised here.
@@ -25,13 +25,13 @@ function buildRobotsTxt(host: string, protocol = 'https'): string {
 // --- platform ---
 
 test('robots.txt platform: contains User-agent and Allow', () => {
-  const output = buildRobotsTxt('kaora.app')
+  const output = buildRobotsTxt('keova.fr')
   assert.ok(output.includes('User-agent: *'))
   assert.ok(output.includes('Allow: /'))
 })
 
 test('robots.txt platform: disallows auth paths', () => {
-  const output = buildRobotsTxt('kaora.app')
+  const output = buildRobotsTxt('keova.fr')
   assert.ok(output.includes('Disallow: /client/'))
   assert.ok(output.includes('Disallow: /provider/'))
   assert.ok(output.includes('Disallow: /admin/'))
@@ -43,13 +43,13 @@ test('robots.txt platform: disallows auth paths', () => {
 })
 
 test('robots.txt platform: does NOT disallow /coaches', () => {
-  const output = buildRobotsTxt('kaora.app')
+  const output = buildRobotsTxt('keova.fr')
   assert.equal(output.includes('Disallow: /coaches'), false)
 })
 
 test('robots.txt platform: sitemap points to platform domain', () => {
-  const output = buildRobotsTxt('kaora.app')
-  assert.ok(output.includes('Sitemap: https://kaora.app/sitemap.xml'))
+  const output = buildRobotsTxt('keova.fr')
+  assert.ok(output.includes('Sitemap: https://keova.fr/sitemap.xml'))
 })
 
 // --- white-label ---

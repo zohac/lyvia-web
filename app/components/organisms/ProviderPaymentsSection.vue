@@ -78,7 +78,7 @@ function openReceipt(url: string) {
             Paiements
           </h3>
           <p class="mt-1 text-sm text-stone-500">
-            Montants, commission Kaora et reçus
+            Montants, commission Keova et reçus
           </p>
         </div>
         <UButton

@@ -6,8 +6,8 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Politique de confidentialité - Kaora',
-  description: 'Politique de confidentialité et protection des données personnelles de la plateforme Kaora.'
+  title: 'Politique de confidentialité - Keova',
+  description: 'Politique de confidentialité et protection des données personnelles de la plateforme Keova.'
 })
 
 useHead({
@@ -23,7 +23,7 @@ useHead({
   >
     <h2>1. Introduction</h2>
     <p>
-      La protection de vos données personnelles est une priorité pour <strong>Kaora</strong>.
+      La protection de vos données personnelles est une priorité pour <strong>Keova</strong>.
       Cette politique de confidentialité vous informe sur la manière dont nous collectons,
       utilisons et protégeons vos données personnelles conformément au Règlement Général
       sur la Protection des Données (RGPD) et à la loi Informatique et Libertés.
@@ -34,9 +34,9 @@ useHead({
       Le responsable du traitement des données personnelles est :
     </p>
     <ul>
-      <li><strong>Kaora SAS</strong></li>
+      <li><strong>Keova SAS</strong></li>
       <li>Adresse : [À compléter]</li>
-      <li>Email : dpo@kaora.fr</li>
+      <li>Email : dpo@keova.fr</li>
     </ul>
 
     <h2>3. Données collectées</h2>
@@ -132,7 +132,7 @@ useHead({
       <li><strong>Droit de retirer votre consentement :</strong> à tout moment pour les traitements basés sur le consentement</li>
     </ul>
     <p>
-      Pour exercer ces droits, contactez-nous à : <strong>dpo@kaora.fr</strong>
+      Pour exercer ces droits, contactez-nous à : <strong>dpo@keova.fr</strong>
     </p>
 
     <h2>10. Cookies</h2>
@@ -179,8 +179,8 @@ useHead({
       Pour toute question relative à cette politique ou à vos données personnelles :
     </p>
     <ul>
-      <li><strong>Email :</strong> dpo@kaora.fr</li>
-      <li><strong>Courrier :</strong> Kaora SAS - Protection des données - [Adresse]</li>
+      <li><strong>Email :</strong> dpo@keova.fr</li>
+      <li><strong>Courrier :</strong> Keova SAS - Protection des données - [Adresse]</li>
     </ul>
   </LegalPageContent>
 </template>

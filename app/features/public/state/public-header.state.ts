@@ -23,7 +23,7 @@ export type PublicHeaderState = {
 const DEFAULT_HEADER_STATE: PublicHeaderState = {
   variant: 'marketing',
   layoutStyle: 'bar',
-  brandLabel: 'Kaora',
+  brandLabel: 'Keova',
   brandTo: '/',
   showBrandIcon: true,
   navLinks: [
@@ -33,7 +33,7 @@ const DEFAULT_HEADER_STATE: PublicHeaderState = {
   ],
   loginLabel: 'Se connecter',
   loginTo: '/login',
-  ctaLabel: 'Essayer Kaora',
+  ctaLabel: 'Essayer Keova',
   ctaTo: '/login'
 }
 

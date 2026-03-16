@@ -6,8 +6,8 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Conditions Générales d\'Utilisation - Kaora',
-  description: 'Conditions générales d\'utilisation de la plateforme Kaora.'
+  title: 'Conditions Générales d\'Utilisation - Keova',
+  description: 'Conditions générales d\'utilisation de la plateforme Keova.'
 })
 
 useHead({
@@ -24,11 +24,11 @@ useHead({
     <h2>1. Objet</h2>
     <p>
       Les présentes Conditions Générales d'Utilisation (CGU) ont pour objet de définir
-      les modalités d'accès et d'utilisation de la plateforme <strong>Kaora</strong>,
-      accessible à l'adresse kaora.fr et ses sous-domaines.
+      les modalités d'accès et d'utilisation de la plateforme <strong>Keova</strong>,
+      accessible à l'adresse keova.fr et ses sous-domaines.
     </p>
     <p>
-      Kaora est une plateforme de mise en relation entre des professionnels du coaching
+      Keova est une plateforme de mise en relation entre des professionnels du coaching
       (ci-après « les Coachs ») et des particuliers souhaitant bénéficier de leurs services
       (ci-après « les Clients »).
     </p>
@@ -80,10 +80,10 @@ useHead({
     </p>
 
     <h2>6. Responsabilités</h2>
-    <h3>6.1 Responsabilité de Kaora</h3>
+    <h3>6.1 Responsabilité de Keova</h3>
     <p>
-      Kaora agit en qualité d'intermédiaire technique et n'est pas partie aux contrats
-      conclus entre les Coachs et les Clients. Kaora ne peut être tenue responsable
+      Keova agit en qualité d'intermédiaire technique et n'est pas partie aux contrats
+      conclus entre les Coachs et les Clients. Keova ne peut être tenue responsable
       du contenu des prestations fournies par les Coachs.
     </p>
     <h3>6.2 Responsabilité des utilisateurs</h3>
@@ -110,7 +110,7 @@ useHead({
 
     <h2>9. Modification des CGU</h2>
     <p>
-      Kaora se réserve le droit de modifier les présentes CGU à tout moment.
+      Keova se réserve le droit de modifier les présentes CGU à tout moment.
       Les utilisateurs seront informés de toute modification substantielle.
       La poursuite de l'utilisation de la plateforme après modification
       vaut acceptation des nouvelles CGU.
@@ -120,7 +120,7 @@ useHead({
     <p>
       Les présentes CGU sont régies par le droit français. En cas de litige,
       une solution amiable sera recherchée. À défaut, les tribunaux compétents
-      seront ceux du ressort du siège social de Kaora.
+      seront ceux du ressort du siège social de Keova.
     </p>
 
     <h2>11. Contact</h2>
@@ -128,7 +128,7 @@ useHead({
       Pour toute question relative aux présentes CGU, vous pouvez nous contacter :
     </p>
     <ul>
-      <li><strong>Email :</strong> contact@kaora.fr</li>
+      <li><strong>Email :</strong> contact@keova.fr</li>
     </ul>
   </LegalPageContent>
 </template>

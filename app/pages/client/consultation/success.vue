@@ -20,7 +20,7 @@ type StoredCheckoutMeta = {
 }
 
 function buildCheckoutStorageKey(sessionId: string): string {
-  return `kaora_consultation_checkout:${sessionId}`
+  return `keova_consultation_checkout:${sessionId}`
 }
 
 function readStoredMeta(sessionId: string): StoredCheckoutMeta | null {
@@ -173,8 +173,8 @@ function retryPolling() {
           aria-live="polite"
         >
           <img
-            src="/images/kaora-logo.png"
-            alt="Kaora"
+            src="/images/keova-logo.png"
+            alt="Keova"
             class="h-12 w-auto animate-pulse opacity-90"
           >
           <h1 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)] sm:text-3xl">

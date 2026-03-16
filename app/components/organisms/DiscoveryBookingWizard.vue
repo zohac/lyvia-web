@@ -73,10 +73,10 @@ function updateConsents(value: typeof consents.value) {
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
 const isWhiteLabelTenant = computed(() => tenant.value?.brand.mode === 'custom_domain')
 const headerLogoSrc = computed(() =>
-  isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/kaora-logo.png'
+  isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/keova-logo.png'
 )
 const headerLogoAlt = computed(() =>
-  isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Kaora'
+  isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Keova'
 )
 const headerLogoClass = computed(() =>
   isWhiteLabelTenant.value ? 'h-14 w-auto' : 'h-10 w-auto'

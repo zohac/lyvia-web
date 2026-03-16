@@ -13,7 +13,7 @@
           </span>
         </div>
         <span class="font-serif text-2xl tracking-tight text-[#3d3250]">
-          Kaora
+          Keova
         </span>
       </ULink>
 

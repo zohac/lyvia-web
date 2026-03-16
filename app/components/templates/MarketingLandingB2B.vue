@@ -30,7 +30,7 @@
             <div class="flex items-center gap-4">
               <span class="h-[2px] w-12 rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#d4956a]" />
               <span class="text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-                Kaora Studio
+                Keova Studio
               </span>
             </div>
 
@@ -50,7 +50,7 @@
 
             <!-- Description -->
             <p class="max-w-md text-lg leading-relaxed text-[#4a4255]">
-              Kaora réunit agenda, paiements et suivi client dans une expérience calme — pensée pour les métiers du soin,
+              Keova réunit agenda, paiements et suivi client dans une expérience calme — pensée pour les métiers du soin,
               pas pour les dashboards bruyants.
             </p>
 
@@ -152,7 +152,7 @@
                 <NuxtImg
                   src="/images/marketing-dashboard-mockup.svg"
                   class="w-full rounded-2xl"
-                  alt="Interface Kaora"
+                  alt="Interface Keova"
                   loading="eager"
                 />
               </div>
@@ -193,7 +193,7 @@
               <NuxtImg
                 src="/images/marketing-screen-calendar.svg"
                 class="w-full rounded-2xl"
-                alt="Agenda Kaora"
+                alt="Agenda Keova"
                 loading="lazy"
               />
             </div>
@@ -216,7 +216,7 @@
               <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
               <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
                 L'atelier
-                <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">Kaora</span>
+                <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">Keova</span>
               </h2>
             </div>
 
@@ -226,7 +226,7 @@
             </p>
 
             <p class="text-[#857d8c]">
-              Chaque détail vise à réduire la charge mentale. Vous gardez la relation, Kaora garde la structure.
+              Chaque détail vise à réduire la charge mentale. Vous gardez la relation, Keova garde la structure.
             </p>
 
             <UButton
@@ -455,7 +455,7 @@
                 class="mb-3 size-8 text-[#e89560]"
               />
               <p class="font-serif text-lg italic leading-relaxed text-[#4a4255]">
-                "Kaora a rendu mon parcours client plus fluide. C'est simple, doux, efficace."
+                "Keova a rendu mon parcours client plus fluide. C'est simple, doux, efficace."
               </p>
             </div>
           </div>
@@ -504,7 +504,7 @@
         </h2>
 
         <p class="mx-auto mt-6 max-w-lg text-lg text-[#b9aac7]">
-          Rejoignez les professionnelles qui ont choisi Kaora pour se concentrer sur l'essentiel : accompagner.
+          Rejoignez les professionnelles qui ont choisi Keova pour se concentrer sur l'essentiel : accompagner.
         </p>
 
         <div class="mt-10">

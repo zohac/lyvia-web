@@ -20,13 +20,13 @@ import {
 // =============================================================================
 
 test('buildCheckoutReturnUrls: uses platform domain correctly', () => {
-  const urls = buildCheckoutReturnUrls('https://kaora.app')
+  const urls = buildCheckoutReturnUrls('https://keova.fr')
 
   assert.equal(
     urls.success,
-    `https://kaora.app/client/consultation/success?session_id=${CHECKOUT_SESSION_ID_PLACEHOLDER}`
+    `https://keova.fr/client/consultation/success?session_id=${CHECKOUT_SESSION_ID_PLACEHOLDER}`
   )
-  assert.equal(urls.cancel, 'https://kaora.app/client/consultation/cancelled')
+  assert.equal(urls.cancel, 'https://keova.fr/client/consultation/cancelled')
 })
 
 test('buildCheckoutReturnUrls: uses custom domain correctly (RF7 white-label)', () => {
@@ -60,13 +60,13 @@ test('buildCheckoutReturnUrls: handles subdomains correctly', () => {
 })
 
 test('buildCheckoutReturnUrls: handles ports correctly', () => {
-  const urls = buildCheckoutReturnUrls('https://dev.kaora.app:8443')
+  const urls = buildCheckoutReturnUrls('https://dev.keova.fr:8443')
 
   assert.equal(
     urls.success,
-    `https://dev.kaora.app:8443/client/consultation/success?session_id=${CHECKOUT_SESSION_ID_PLACEHOLDER}`
+    `https://dev.keova.fr:8443/client/consultation/success?session_id=${CHECKOUT_SESSION_ID_PLACEHOLDER}`
   )
-  assert.equal(urls.cancel, 'https://dev.kaora.app:8443/client/consultation/cancelled')
+  assert.equal(urls.cancel, 'https://dev.keova.fr:8443/client/consultation/cancelled')
 })
 
 test('buildCheckoutReturnUrls: allows custom success path', () => {
@@ -168,12 +168,12 @@ test('DEFAULT_CONSULTATION_PATHS has expected values', () => {
 // RF7 DoD compliance tests
 // =============================================================================
 
-test('RF7 DoD: no hardcoded kaora.app in return URLs', () => {
-  // Using a custom domain should NOT produce kaora.app URLs
+test('RF7 DoD: no hardcoded keova.fr in return URLs', () => {
+  // Using a custom domain should NOT produce keova.fr URLs
   const urls = buildCheckoutReturnUrls('https://custom-domain.com')
 
-  assert.equal(urls.success.includes('kaora.app'), false)
-  assert.equal(urls.cancel.includes('kaora.app'), false)
+  assert.equal(urls.success.includes('keova.fr'), false)
+  assert.equal(urls.cancel.includes('keova.fr'), false)
 })
 
 test('RF7 DoD: no hardcoded localhost in return URLs', () => {

@@ -6,8 +6,8 @@ definePageMeta({
 })
 
 useSeoMeta({
-  title: 'Mentions légales - Kaora',
-  description: 'Mentions légales de la plateforme Kaora.'
+  title: 'Mentions légales - Keova',
+  description: 'Mentions légales de la plateforme Keova.'
 })
 
 useHead({
@@ -23,10 +23,10 @@ useHead({
   >
     <h2>1. Éditeur du site</h2>
     <p>
-      Le site <strong>Kaora</strong> est édité par :
+      Le site <strong>Keova</strong> est édité par :
     </p>
     <ul>
-      <li><strong>Raison sociale :</strong> Kaora SAS</li>
+      <li><strong>Raison sociale :</strong> Keova SAS</li>
       <li><strong>Forme juridique :</strong> Société par Actions Simplifiée</li>
       <li><strong>Capital social :</strong> [À compléter]</li>
       <li><strong>Siège social :</strong> [Adresse à compléter]</li>
@@ -52,8 +52,8 @@ useHead({
 
     <h2>4. Propriété intellectuelle</h2>
     <p>
-      L'ensemble du contenu du site Kaora (textes, images, graphismes, logo, icônes, etc.)
-      est la propriété exclusive de Kaora SAS ou de ses partenaires. Toute reproduction,
+      L'ensemble du contenu du site Keova (textes, images, graphismes, logo, icônes, etc.)
+      est la propriété exclusive de Keova SAS ou de ses partenaires. Toute reproduction,
       représentation, modification, publication ou adaptation de tout ou partie des éléments
       du site est interdite sans autorisation écrite préalable.
     </p>
@@ -73,7 +73,7 @@ useHead({
       Pour toute question concernant ces mentions légales, vous pouvez nous contacter :
     </p>
     <ul>
-      <li><strong>Email :</strong> contact@kaora.fr</li>
+      <li><strong>Email :</strong> contact@keova.fr</li>
       <li><strong>Adresse :</strong> [Adresse à compléter]</li>
     </ul>
   </LegalPageContent>

@@ -3,7 +3,7 @@ import test from 'node:test'
 
 import { getDomainContext } from '../../shared/utils/domain-context'
 
-const PLATFORM = 'kaora.app'
+const PLATFORM = 'keova.fr'
 
 const AUTH_PATHS = [
   '/client/',
@@ -19,16 +19,16 @@ const AUTH_PATHS = [
 // --- platform detection ---
 
 test('getDomainContext: exact platform domain → isPlatform true', () => {
-  const ctx = getDomainContext('kaora.app', PLATFORM)
+  const ctx = getDomainContext('keova.fr', PLATFORM)
   assert.equal(ctx.isPlatform, true)
 })
 
-test('getDomainContext: subdomain www.kaora.app → isPlatform true', () => {
-  assert.equal(getDomainContext('www.kaora.app', PLATFORM).isPlatform, true)
+test('getDomainContext: subdomain www.keova.fr → isPlatform true', () => {
+  assert.equal(getDomainContext('www.keova.fr', PLATFORM).isPlatform, true)
 })
 
-test('getDomainContext: subdomain staging.kaora.app → isPlatform true', () => {
-  assert.equal(getDomainContext('staging.kaora.app', PLATFORM).isPlatform, true)
+test('getDomainContext: subdomain staging.keova.fr → isPlatform true', () => {
+  assert.equal(getDomainContext('staging.keova.fr', PLATFORM).isPlatform, true)
 })
 
 test('getDomainContext: localhost variants → isPlatform true', () => {
@@ -51,15 +51,15 @@ test('getDomainContext: empty hostname → isPlatform true (safe fallback)', () 
 })
 
 test('getDomainContext: mixed casing → normalized hostname', () => {
-  const ctx = getDomainContext('  WWW.KAORA.APP  ', PLATFORM)
+  const ctx = getDomainContext('  WWW.KEOVA.FR  ', PLATFORM)
   assert.equal(ctx.isPlatform, true)
-  assert.equal(ctx.hostname, 'www.kaora.app')
+  assert.equal(ctx.hostname, 'www.keova.fr')
 })
 
 // --- hostname normalization ---
 
 test('getDomainContext: strips port from hostname', () => {
-  assert.equal(getDomainContext('kaora.app:443', PLATFORM).hostname, 'kaora.app')
+  assert.equal(getDomainContext('keova.fr:443', PLATFORM).hostname, 'keova.fr')
 })
 
 test('getDomainContext: trims whitespace', () => {
@@ -73,7 +73,7 @@ test('getDomainContext: lowercases hostname', () => {
 // --- robotsDisallowPaths ---
 
 test('getDomainContext: platform has auth paths only, no /coaches', () => {
-  const ctx = getDomainContext('kaora.app', PLATFORM)
+  const ctx = getDomainContext('keova.fr', PLATFORM)
   assert.deepStrictEqual(ctx.robotsDisallowPaths, AUTH_PATHS)
 })
 

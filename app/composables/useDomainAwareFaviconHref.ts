@@ -8,7 +8,7 @@ export function useDomainAwareFaviconHref() {
   const runtimeConfig = useRuntimeConfig()
 
   const hostname = requestUrl.hostname || ''
-  const platformDomain = String(runtimeConfig.public.platformDomain || 'kaora.app')
+  const platformDomain = String(runtimeConfig.public.platformDomain || 'keova.fr')
 
   return computed(() =>
     isPlatformHost(hostname, platformDomain) ? PLATFORM_FAVICON : WHITE_LABEL_FAVICON

@@ -43,7 +43,7 @@ export const DEFAULT_CONSULTATION_PATHS = {
  * ensuring that checkout returns work correctly on custom domains (white-label).
  *
  * **Critical for RF7 compliance:**
- * - Never hardcode domain names (kaora.app, localhost, etc.)
+ * - Never hardcode domain names (keova.fr, localhost, etc.)
  * - Always use the current origin from the browser
  *
  * @param origin - The origin to use for building URLs (e.g., "https://sophie-coaching.com")
@@ -52,8 +52,8 @@ export const DEFAULT_CONSULTATION_PATHS = {
  *
  * @example
  * // Platform domain
- * buildCheckoutReturnUrls('https://kaora.app')
- * // => { success: 'https://kaora.app/client/consultation/success?session_id={CHECKOUT_SESSION_ID}', cancel: 'https://kaora.app/client/consultation/cancelled' }
+ * buildCheckoutReturnUrls('https://keova.fr')
+ * // => { success: 'https://keova.fr/client/consultation/success?session_id={CHECKOUT_SESSION_ID}', cancel: 'https://keova.fr/client/consultation/cancelled' }
  *
  * @example
  * // Custom domain (white-label)
