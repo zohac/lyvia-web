@@ -29,7 +29,7 @@ const useCustomLogoImage = computed(
         >
           <template v-if="useKeovaLogoImage">
             <NuxtImg
-              src="/images/kaora-logo.png"
+              src="/images/keova-logo.png"
               alt=""
               class="h-7 w-auto sm:h-8"
               aria-hidden="true"
@@ -106,7 +106,7 @@ const useCustomLogoImage = computed(
         >
           <template v-if="useKeovaLogoImage">
             <NuxtImg
-              src="/images/kaora-logo.png"
+              src="/images/keova-logo.png"
               alt=""
               class="h-8 w-auto sm:h-9"
               aria-hidden="true"

@@ -17,7 +17,7 @@ export async function useGlobalSchemaOrg() {
       defineOrganization({
         name: 'Keova',
         url: origin,
-        logo: `${origin}/images/kaora-logo.png`,
+        logo: `${origin}/images/keova-logo.png`,
         description: 'Trouvez votre spécialiste ménopause et périménopause'
       }),
       defineWebSite({
