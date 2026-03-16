@@ -73,7 +73,7 @@ function updateConsents(value: typeof consents.value) {
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
 const isWhiteLabelTenant = computed(() => tenant.value?.brand.mode === 'custom_domain')
 const headerLogoSrc = computed(() =>
-  isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/keova-logo.png'
+  isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/kaora-logo.png'
 )
 const headerLogoAlt = computed(() =>
   isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Keova'

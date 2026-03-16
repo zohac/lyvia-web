@@ -182,7 +182,7 @@ watch(
         >
           <template v-if="useKeovaLogoImage">
             <img
-              src="/images/keova-logo.png"
+              src="/images/kaora-logo.png"
               alt=""
               class="h-7 w-auto opacity-95"
               aria-hidden="true"
@@ -454,7 +454,7 @@ watch(
 
               <template v-if="useKeovaLogoImage">
                 <img
-                  src="/images/keova-logo.png"
+                  src="/images/kaora-logo.png"
                   alt=""
                   class="h-7 w-auto opacity-95"
                   aria-hidden="true"
