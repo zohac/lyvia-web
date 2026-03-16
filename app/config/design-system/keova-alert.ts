@@ -2,8 +2,8 @@
  * Keova Design System — Alert / Toast Component Configuration
  *
  * Aligned with design system spec:
- * @see docs/03_uiux/keova/design system/Keova Design System — Notifications - Toasts.md
- * @see docs/03_uiux/keova/exemples/toasts.html
+ * @see docs/03_uiux/kaora/design system/Kaora Design System — Notifications - Toasts.md
+ * @see docs/03_uiux/kaora/exemples/toasts.html
  *
  * Intent system:
  * - Success: Action réussie (sage green)

@@ -8,7 +8,7 @@ export default defineAppConfig({
     //   - secondary: keova (accents/links → keova-700 text/border)
     //
     // @see app/config/design-system/keova-colors.ts
-    // @see docs/03_uiux/keova/COLOR_SYSTEM.md
+    // @see docs/03_uiux/kaora/COLOR_SYSTEM.md
     // =========================================================================
     // colors: keovaColors,
 

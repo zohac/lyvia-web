@@ -14,8 +14,8 @@
  *
  * ## Design System Reference
  *
- * @see docs/03_uiux/keova/COLOR_SYSTEM.md
- * @see docs/03_uiux/keova/exemples/design-system.css
+ * @see docs/03_uiux/kaora/COLOR_SYSTEM.md
+ * @see docs/03_uiux/kaora/exemples/design-system.css
  *
  * @architecture Clean Architecture — Configuration Layer
  * @author Remy Chopoya

@@ -41,9 +41,9 @@
  * ║  └─────────────────────────────────────────────────────────────────────────┘ ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  *
- * @see docs/03_uiux/keova/design system/Keova Design System — Dropdown - Filters.md
- * @see docs/03_uiux/keova/exemples/dropdown-filters.html
- * @see docs/03_uiux/keova/exemples/design-system.css (lines 1166-1368)
+ * @see docs/03_uiux/kaora/design system/Kaora Design System — Dropdown - Filters.md
+ * @see docs/03_uiux/kaora/exemples/dropdown-filters.html
+ * @see docs/03_uiux/kaora/exemples/design-system.css (lines 1166-1368)
  * @see https://ui.nuxt.com/components/select (Nuxt UI v4 Select documentation)
  *
  * Source of truth: .filter-trigger, .dropdown-panel, .dropdown-item classes

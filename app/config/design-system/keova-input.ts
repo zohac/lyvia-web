@@ -19,7 +19,7 @@
  * ║  └─────────────────────────────────────────────────────────────────────────┘ ║
  * ╚══════════════════════════════════════════════════════════════════════════════╝
  *
- * @see docs/03_uiux/keova/design system/Keova Design System — Dropdown - Filters.md
+ * @see docs/03_uiux/kaora/design system/Kaora Design System — Dropdown - Filters.md
  * @see https://ui.nuxt.com/components/input (Nuxt UI v4 Input documentation)
  *
  * @architecture Clean Architecture — Configuration Layer
