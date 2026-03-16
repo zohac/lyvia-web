@@ -11,8 +11,8 @@ export default defineNuxtConfig({
   ],
 
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://kaora.fr',
-    name: 'Kaora'
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.fr',
+    name: 'Keova'
   },
 
   ogImage: { enabled: false },
@@ -29,7 +29,7 @@ export default defineNuxtConfig({
     ]
   },
 
-  // Kaora Design System: Disable color mode entirely (light only)
+  // Keova Design System: Disable color mode entirely (light only)
   ui: {
     colorMode: false
   },
@@ -50,8 +50,8 @@ export default defineNuxtConfig({
     head: {
       meta: [
         { property: 'og:locale', content: 'fr_FR' },
-        { property: 'og:site_name', content: 'Kaora' },
-        { property: 'og:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://kaora.fr'}/images/og-default.png` },
+        { property: 'og:site_name', content: 'Keova' },
+        { property: 'og:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.fr'}/images/og-default.png` },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         { property: 'og:image:type', content: 'image/png' }
@@ -75,10 +75,10 @@ export default defineNuxtConfig({
     apiBase: process.env.NUXT_API_BASE_URL || 'http://localhost:3001',
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || '/api',
-      // Platform domain for tenant resolution (e.g., 'kaora.app').
+      // Platform domain for tenant resolution (e.g., 'keova.fr').
       // Requests from this domain (or subdomains) show the marketing landing page.
       // Other domains are treated as white-label coach sites.
-      platformDomain: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN || 'kaora.app'
+      platformDomain: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN || 'keova.fr'
     }
   },
 

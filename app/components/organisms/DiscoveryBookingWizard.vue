@@ -76,7 +76,7 @@ const headerLogoSrc = computed(() =>
   isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/kaora-logo.png'
 )
 const headerLogoAlt = computed(() =>
-  isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Kaora'
+  isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Keova'
 )
 const headerLogoClass = computed(() =>
   isWhiteLabelTenant.value ? 'h-14 w-auto' : 'h-10 w-auto'

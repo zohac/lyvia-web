@@ -5,7 +5,7 @@ import { LEGAL_PAGES } from '#shared/utils/legal-pages'
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
-  const platformDomain = (config.public.platformDomain as string) || 'kaora.app'
+  const platformDomain = (config.public.platformDomain as string) || 'keova.fr'
   const apiBase = (config.apiBase as string) || 'http://localhost:3001'
   const host = getRequestHost(event)
 

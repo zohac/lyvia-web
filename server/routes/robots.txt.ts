@@ -4,7 +4,7 @@ import { getDomainContext } from '#shared/utils/domain-context'
 
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig()
-  const platformDomain = config.public.platformDomain as string || 'kaora.app'
+  const platformDomain = config.public.platformDomain as string || 'keova.fr'
 
   const host = getRequestHost(event)
   const protocol = getRequestProtocol(event)

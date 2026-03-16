@@ -23,7 +23,7 @@ const origin = requestUrl.origin
 const hostname = computed(() => requestUrl.hostname.toLowerCase())
 
 const runtimeConfig = useRuntimeConfig()
-const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
+const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
 
 const isPlatformDomain = computed(() => isPlatformHost(hostname.value, platformDomain))
 
@@ -62,19 +62,19 @@ const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim
 useSeoMeta({
   title: () =>
     isPlatformDomain.value
-      ? 'Kaora - Simplifiez vos accompagnements ménopause | Agenda, paiements, suivi client'
+      ? 'Keova - Simplifiez vos accompagnements ménopause | Agenda, paiements, suivi client'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   description: () =>
     isPlatformDomain.value
-      ? 'Kaora aide les coachs ménopause et praticiennes du bien-être à fluidifier leurs accompagnements : page publique, agenda, paiements et ressources client, dans une expérience calme. Essai gratuit, sans carte bancaire.'
+      ? 'Keova aide les coachs ménopause et praticiennes du bien-être à fluidifier leurs accompagnements : page publique, agenda, paiements et ressources client, dans une expérience calme. Essai gratuit, sans carte bancaire.'
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogTitle: () =>
     isPlatformDomain.value
-      ? 'Kaora - L\u2019espace pro qui simplifie vos accompagnements ménopause'
+      ? 'Keova - L\u2019espace pro qui simplifie vos accompagnements ménopause'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   ogDescription: () =>
     isPlatformDomain.value
-      ? 'Page publique, agenda, paiements, ressources : Kaora structure votre pratique sans alourdir votre charge mentale. Essai gratuit, sans carte bancaire.'
+      ? 'Page publique, agenda, paiements, ressources : Keova structure votre pratique sans alourdir votre charge mentale. Essai gratuit, sans carte bancaire.'
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogImage: () => !isPlatformDomain.value ? seo.value?.ogImageUrl ?? undefined : undefined,
   ogType: 'website',
@@ -82,7 +82,7 @@ useSeoMeta({
 })
 
 useHead({
-  titleTemplate: (title?: string) => isPlatformDomain.value ? `${title} | Kaora` : (title || ''),
+  titleTemplate: (title?: string) => isPlatformDomain.value ? `${title} | Keova` : (title || ''),
   link: [{
     rel: 'canonical',
     href: () => {
@@ -120,7 +120,7 @@ watchEffect(() => {
   setPublicHeader({
     variant: 'marketing',
     layoutStyle: 'dock',
-    brandLabel: 'Kaora',
+    brandLabel: 'Keova',
     brandTo: '/',
     showBrandIcon: true,
     navLinks: [
@@ -130,7 +130,7 @@ watchEffect(() => {
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',
-    ctaLabel: 'Essayer Kaora',
+    ctaLabel: 'Essayer Keova',
     ctaTo: '/login'
   })
 })

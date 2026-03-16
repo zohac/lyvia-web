@@ -12,48 +12,48 @@ import type { PublicProviderProfile } from '../../app/features/seo/api/public-pr
 // --- buildCoachUrls ---
 
 describe('buildCoachUrls', () => {
-  const origin = 'https://kaora.fr'
+  const origin = 'https://keova.fr'
   const slug = 'sophie-jouan'
 
   test('platform: returns /coach/{slug} URLs', () => {
     const result = buildCoachUrls(origin, slug, true)
-    assert.equal(result.coachUrl, 'https://kaora.fr/coach/sophie-jouan')
-    assert.equal(result.bookingUrl, 'https://kaora.fr/coach/sophie-jouan/onboarding/discovery')
+    assert.equal(result.coachUrl, 'https://keova.fr/coach/sophie-jouan')
+    assert.equal(result.bookingUrl, 'https://keova.fr/coach/sophie-jouan/onboarding/discovery')
   })
 
   test('white-label: returns root URLs', () => {
     const result = buildCoachUrls(origin, slug, false)
-    assert.equal(result.coachUrl, 'https://kaora.fr/')
-    assert.equal(result.bookingUrl, 'https://kaora.fr/onboarding/discovery')
+    assert.equal(result.coachUrl, 'https://keova.fr/')
+    assert.equal(result.bookingUrl, 'https://keova.fr/onboarding/discovery')
   })
 })
 
 // --- buildBookingBreadcrumbItems ---
 
 describe('buildBookingBreadcrumbItems', () => {
-  const origin = 'https://kaora.fr'
+  const origin = 'https://keova.fr'
   const slug = 'sophie-jouan'
   const displayName = () => 'Sophie Jouan'
 
   test('platform: 3-level breadcrumb (Accueil > displayName > Appel découverte)', () => {
     const items = buildBookingBreadcrumbItems(origin, slug, displayName, true)
     assert.equal(items.length, 3)
-    assert.deepStrictEqual(items[0], { name: 'Accueil', item: 'https://kaora.fr/' })
+    assert.deepStrictEqual(items[0], { name: 'Accueil', item: 'https://keova.fr/' })
     assert.equal(items[1].name, displayName)
-    assert.equal(items[1].item, 'https://kaora.fr/coach/sophie-jouan')
+    assert.equal(items[1].item, 'https://keova.fr/coach/sophie-jouan')
     assert.deepStrictEqual(items[2], {
       name: 'Appel découverte',
-      item: 'https://kaora.fr/coach/sophie-jouan/onboarding/discovery'
+      item: 'https://keova.fr/coach/sophie-jouan/onboarding/discovery'
     })
   })
 
   test('white-label: 2-level breadcrumb (Accueil > Appel découverte)', () => {
     const items = buildBookingBreadcrumbItems(origin, slug, displayName, false)
     assert.equal(items.length, 2)
-    assert.deepStrictEqual(items[0], { name: 'Accueil', item: 'https://kaora.fr/' })
+    assert.deepStrictEqual(items[0], { name: 'Accueil', item: 'https://keova.fr/' })
     assert.deepStrictEqual(items[1], {
       name: 'Appel découverte',
-      item: 'https://kaora.fr/onboarding/discovery'
+      item: 'https://keova.fr/onboarding/discovery'
     })
   })
 })

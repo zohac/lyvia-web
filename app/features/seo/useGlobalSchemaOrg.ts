@@ -9,19 +9,19 @@ export async function useGlobalSchemaOrg() {
   const hostname = requestUrl.hostname.toLowerCase()
 
   const runtimeConfig = useRuntimeConfig()
-  const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
+  const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
   const { isPlatform } = getDomainContext(hostname, platformDomain)
 
   if (isPlatform) {
     useSchemaOrg([
       defineOrganization({
-        name: 'Kaora',
+        name: 'Keova',
         url: origin,
         logo: `${origin}/images/logo_kaora.png`,
         description: 'Trouvez votre spécialiste ménopause et périménopause'
       }),
       defineWebSite({
-        name: 'Kaora',
+        name: 'Keova',
         inLanguage: 'fr-FR'
       })
     ])
@@ -40,7 +40,7 @@ export async function useGlobalSchemaOrg() {
     })
   ])
 
-  // Override og:site_name for white-label (static "Kaora" set in nuxt.config.ts)
+  // Override og:site_name for white-label (static "Keova" set in nuxt.config.ts)
   useSeoMeta({
     ogSiteName: () => coachName.value
   })

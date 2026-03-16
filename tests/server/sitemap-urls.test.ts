@@ -4,7 +4,7 @@ import test from 'node:test'
 import { getDomainContext } from '../../shared/utils/domain-context'
 import { LEGAL_PAGES } from '../../shared/utils/legal-pages'
 
-const PLATFORM = 'kaora.app'
+const PLATFORM = 'keova.fr'
 
 const MOCK_PROVIDERS = [
   { slug: 'sophie-jouan', updatedAt: '2026-03-01T00:00:00.000Z' },
@@ -46,12 +46,12 @@ function buildSitemapUrls(host: string, providers: Array<{ slug: string, updated
 // --- platform ---
 
 test('sitemap platform: includes home page', () => {
-  const urls = buildSitemapUrls('kaora.app', MOCK_PROVIDERS)
+  const urls = buildSitemapUrls('keova.fr', MOCK_PROVIDERS)
   assert.ok(urls.some(u => u.loc === '/'))
 })
 
 test('sitemap platform: includes legal pages', () => {
-  const urls = buildSitemapUrls('kaora.app', MOCK_PROVIDERS)
+  const urls = buildSitemapUrls('keova.fr', MOCK_PROVIDERS)
   const locs = urls.map(u => u.loc)
   assert.ok(locs.includes('/legal/cgu'))
   assert.ok(locs.includes('/legal/confidentialite'))
@@ -59,34 +59,34 @@ test('sitemap platform: includes legal pages', () => {
 })
 
 test('sitemap platform: includes coach profile pages for each provider', () => {
-  const urls = buildSitemapUrls('kaora.app', MOCK_PROVIDERS)
+  const urls = buildSitemapUrls('keova.fr', MOCK_PROVIDERS)
   const locs = urls.map(u => u.loc)
   assert.ok(locs.includes('/coach/sophie-jouan'))
   assert.ok(locs.includes('/coach/marie-dupont'))
 })
 
 test('sitemap platform: includes coach booking pages', () => {
-  const urls = buildSitemapUrls('kaora.app', MOCK_PROVIDERS)
+  const urls = buildSitemapUrls('keova.fr', MOCK_PROVIDERS)
   const locs = urls.map(u => u.loc)
   assert.ok(locs.includes('/coach/sophie-jouan/onboarding/discovery'))
   assert.ok(locs.includes('/coach/marie-dupont/onboarding/discovery'))
 })
 
 test('sitemap platform: coach pages have lastmod from provider updatedAt', () => {
-  const urls = buildSitemapUrls('kaora.app', MOCK_PROVIDERS)
+  const urls = buildSitemapUrls('keova.fr', MOCK_PROVIDERS)
   const sophie = urls.find(u => u.loc === '/coach/sophie-jouan')
   assert.equal(sophie?.lastmod, '2026-03-01T00:00:00.000Z')
 })
 
 test('sitemap platform: does NOT include generic /onboarding/discovery', () => {
-  const urls = buildSitemapUrls('kaora.app', MOCK_PROVIDERS)
+  const urls = buildSitemapUrls('keova.fr', MOCK_PROVIDERS)
   assert.equal(urls.some(u => u.loc === '/onboarding/discovery'), false)
 })
 
 // --- platform with no providers ---
 
 test('sitemap platform no providers: includes home and legal, no coach pages', () => {
-  const urls = buildSitemapUrls('kaora.app', [])
+  const urls = buildSitemapUrls('keova.fr', [])
   const locs = urls.map(u => u.loc)
   assert.ok(locs.includes('/'))
   assert.ok(locs.includes('/legal/cgu'))

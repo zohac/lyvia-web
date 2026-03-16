@@ -15,7 +15,7 @@
           <div class="w-10 h-10 rounded-full bg-[#d4b8a0] flex items-center justify-center">
             <span class="font-display text-[#0a0a09] text-lg font-semibold">K</span>
           </div>
-          <span class="font-display text-xl tracking-tight">Kaora</span>
+          <span class="font-display text-xl tracking-tight">Keova</span>
         </div>
         <nav class="hidden md:flex items-center gap-8 text-sm tracking-wide text-[#a8a29e]">
           <a
@@ -154,7 +154,7 @@
               <NuxtImg
                 src="/images/marketing-dashboard-mockup.svg"
                 class="w-full rounded-lg"
-                alt="Interface Kaora"
+                alt="Interface Keova"
                 loading="eager"
               />
             </div>
@@ -214,7 +214,7 @@
                 <NuxtImg
                   src="/images/marketing-screen-calendar.svg"
                   class="w-full rounded-lg"
-                  alt="Calendrier Kaora"
+                  alt="Calendrier Keova"
                   loading="lazy"
                 />
               </div>
@@ -482,7 +482,7 @@
                 </div>
               </div>
               <p class="font-display text-xl italic text-[#a8a29e] leading-relaxed">
-                "Kaora a rendu mon parcours client plus fluide. C'est simple, doux, efficace."
+                "Keova a rendu mon parcours client plus fluide. C'est simple, doux, efficace."
               </p>
             </div>
           </div>
@@ -562,10 +562,10 @@
           <div class="w-8 h-8 rounded-full bg-[#d4b8a0] flex items-center justify-center">
             <span class="font-display text-[#0a0a09] text-sm font-semibold">K</span>
           </div>
-          <span class="font-display text-lg tracking-tight">Kaora</span>
+          <span class="font-display text-lg tracking-tight">Keova</span>
         </div>
         <p class="text-sm text-[#78716c]">
-          © 2025 Kaora Studio. L'écrin digital pour vos accompagnements.
+          © 2025 Keova Studio. L'écrin digital pour vos accompagnements.
         </p>
       </div>
     </footer>
@@ -575,7 +575,7 @@
 <script setup lang="ts">
 // Meta for this alternative landing page
 useHead({
-  title: 'Kaora — L\'écrin digital pour vos accompagnements',
+  title: 'Keova — L\'écrin digital pour vos accompagnements',
   meta: [
     { name: 'description', content: 'Agenda, paiements et suivi client réunis dans une expérience calme — pensée pour les métiers du soin.' }
   ]
@@ -584,7 +584,7 @@ useHead({
 
 <style scoped>
 /* =============================================================================
- * KAORA LANDING B2B — ALTERNATIVE VERSION
+ * KEOVA LANDING B2B — ALTERNATIVE VERSION
  * =============================================================================
  * Direction esthétique : Éditorial Moderniste / Dark Luxury
  *

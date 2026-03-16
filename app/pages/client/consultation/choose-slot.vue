@@ -90,7 +90,7 @@ type StoredCheckoutMeta = {
 }
 
 function buildCheckoutStorageKey(sessionId: string): string {
-  return `kaora_consultation_checkout:${sessionId}`
+  return `keova_consultation_checkout:${sessionId}`
 }
 
 function storeCheckoutMeta(sessionId: string, meta: StoredCheckoutMeta) {

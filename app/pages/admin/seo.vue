@@ -60,7 +60,7 @@ const TARGET_TYPE_ICONS: Record<string, string> = {
           SEO Plateforme
         </h1>
         <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Métadonnées des pages Kaora (accueil, mentions légales)
+          Métadonnées des pages Keova (accueil, mentions légales)
         </p>
       </div>
     </section>

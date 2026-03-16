@@ -1,5 +1,5 @@
 /**
- * Public tenant onboarding contracts (Feature A / Kaora).
+ * Public tenant onboarding contracts (Feature A / Keova).
  *
  * Sources of truth:
  * - `repositories/lyvia-api/openapi.yaml`

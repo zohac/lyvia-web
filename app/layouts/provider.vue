@@ -121,7 +121,7 @@ const navigation = computed(() => ({
 
 <template>
   <DashboardShell
-    brand-label="Kaora"
+    brand-label="Keova"
     brand-to="/provider/dashboard"
     sidebar-label="Coach"
     :navigation="navigation"

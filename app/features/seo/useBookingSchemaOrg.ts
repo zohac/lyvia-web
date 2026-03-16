@@ -14,7 +14,7 @@ export function useBookingSchemaOrg(
   const requestUrl = useRequestURL()
   const origin = requestUrl.origin
   const runtimeConfig = useRuntimeConfig()
-  const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
+  const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
   const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
 
   // Service schema — Appel découverte gratuit (AC-3, AC-4)

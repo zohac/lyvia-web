@@ -15,7 +15,7 @@ export async function useCoachSchemaOrg(slug: string) {
   const requestUrl = useRequestURL()
   const origin = requestUrl.origin
   const runtimeConfig = useRuntimeConfig()
-  const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
+  const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
   const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
 
   const { coachUrl, bookingUrl } = buildCoachUrls(origin, slug, isPlatform)

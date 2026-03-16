@@ -22,7 +22,7 @@ type StoredProgramCheckoutMeta = {
 }
 
 function buildCheckoutStorageKey(sessionId: string): string {
-  return `kaora_program_checkout:${sessionId}`
+  return `keova_program_checkout:${sessionId}`
 }
 
 function readStoredMeta(sessionId: string): StoredProgramCheckoutMeta | null {
@@ -159,7 +159,7 @@ function retryPolling() {
         >
           <img
             src="/images/kaora-logo.png"
-            alt="Kaora"
+            alt="Keova"
             class="h-12 w-auto animate-pulse opacity-90"
           >
           <h1 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)] sm:text-3xl">

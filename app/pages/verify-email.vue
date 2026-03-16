@@ -8,7 +8,7 @@
       >
         <NuxtImg
           src="/images/kaora-logo.png"
-          alt="Kaora"
+          alt="Keova"
           class="h-10 w-auto"
           loading="eager"
         />

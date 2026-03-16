@@ -100,7 +100,7 @@ async function handleCheckout() {
             currency: 'EUR' as const
           }
           window.sessionStorage.setItem(
-            `kaora_program_checkout:${sessionIdFromUrl}`,
+            `keova_program_checkout:${sessionIdFromUrl}`,
             JSON.stringify(metaToStore)
           )
         }

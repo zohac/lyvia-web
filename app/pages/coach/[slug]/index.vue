@@ -78,7 +78,7 @@ watchEffect(() => {
   setPublicHeader({
     variant: 'coach',
     layoutStyle: 'dock',
-    brandLabel: 'Kaora',
+    brandLabel: 'Keova',
     brandTo: '/',
     showBrandIcon: true,
     navLinks: [

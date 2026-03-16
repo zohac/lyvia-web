@@ -12,7 +12,7 @@
             <div class="flex items-center gap-3">
               <span class="inline-flex items-center gap-2 rounded-full bg-[rgba(212,184,160,0.15)] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[color:var(--color-brand-accent)]">
                 <span class="h-1.5 w-1.5 rounded-full bg-[color:var(--color-brand-accent)]" />
-                Kaora DS
+                Keova DS
               </span>
               <span class="text-xs text-[color:var(--color-brand-muted)]">
                 v1.0 • Nuxt UI 4
@@ -23,7 +23,7 @@
               <span class="italic text-[color:var(--color-brand-accent)]">System</span>
             </h1>
             <p class="max-w-md text-base text-[color:var(--color-brand-secondary)]">
-              Documentation interactive des composants Kaora.
+              Documentation interactive des composants Keova.
               Organic Luxury Theme pour Nuxt UI v4.
             </p>
           </div>
@@ -1688,7 +1688,7 @@
               <!-- Brand Colors -->
               <ComponentCard
                 title="Brand Colors"
-                description="Couleurs de marque Kaora"
+                description="Couleurs de marque Keova"
               >
                 <div class="space-y-3">
                   <ColorSwatch
@@ -1819,7 +1819,7 @@
       <div class="mx-auto max-w-7xl px-6 py-8 lg:px-8">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p class="text-sm text-[color:var(--color-brand-muted)]">
-            Kaora Design System — Organic Luxury Theme
+            Keova Design System — Organic Luxury Theme
           </p>
           <p class="text-xs text-[color:var(--color-brand-muted)]">
             docs/03_uiux/kaora/COLOR_SYSTEM.md
@@ -1834,9 +1834,9 @@
 import type { TabsItem } from '@nuxt/ui'
 
 /**
- * Kaora Design System — Complete Component Showcase
+ * Keova Design System — Complete Component Showcase
  *
- * Interactive documentation for all Kaora design system components.
+ * Interactive documentation for all Keova design system components.
  * Organized by component type with live examples and variants.
  *
  * @architecture Clean Architecture — Presentation Layer
@@ -1902,7 +1902,7 @@ const tabsWithBadgeItems = [
 
 const buttonColors = [
   { value: 'primary', title: 'Primary (Stone-900)', description: 'CTA principaux — stone-900 (#1c1917)' },
-  { value: 'secondary', title: 'Secondary (Kaora-700)', description: 'Accents de marque — kaora-700 (#7a6251)' },
+  { value: 'secondary', title: 'Secondary (Keova-700)', description: 'Accents de marque — keova-700 (#7a6251)' },
   { value: 'neutral', title: 'Neutral (Stone)', description: 'Actions neutres — stone palette' },
   { value: 'success', title: 'Success (Sage Green)', description: 'États positifs — sage green (#b5c0a3)' },
   { value: 'warning', title: 'Warning (Amber)', description: 'Alertes — amber tone' },

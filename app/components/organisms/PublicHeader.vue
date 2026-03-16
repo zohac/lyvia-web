@@ -5,7 +5,7 @@ const headerState = usePublicHeaderState()
 
 const showNavLinks = computed(() => headerState.value.navLinks.length > 0)
 const isDockHeader = computed(() => headerState.value.layoutStyle === 'dock')
-const useKaoraLogoImage = computed(
+const useKeovaLogoImage = computed(
   () => headerState.value.showBrandIcon && headerState.value.variant !== 'white-label'
 )
 const useCustomLogoImage = computed(
@@ -27,7 +27,7 @@ const useCustomLogoImage = computed(
           class="inline-flex items-center gap-2 transition-all duration-300"
           aria-label="Accueil"
         >
-          <template v-if="useKaoraLogoImage">
+          <template v-if="useKeovaLogoImage">
             <NuxtImg
               src="/images/kaora-logo.png"
               alt=""
@@ -36,7 +36,7 @@ const useCustomLogoImage = computed(
               loading="eager"
             />
             <span class="sr-only">
-              Kaora
+              Keova
             </span>
           </template>
           <template v-else-if="useCustomLogoImage">
@@ -104,7 +104,7 @@ const useCustomLogoImage = computed(
           class="inline-flex items-center gap-3 transition-all duration-300"
           aria-label="Accueil"
         >
-          <template v-if="useKaoraLogoImage">
+          <template v-if="useKeovaLogoImage">
             <NuxtImg
               src="/images/kaora-logo.png"
               alt=""
@@ -113,7 +113,7 @@ const useCustomLogoImage = computed(
               loading="eager"
             />
             <span class="sr-only">
-              Kaora
+              Keova
             </span>
           </template>
           <template v-else-if="useCustomLogoImage">

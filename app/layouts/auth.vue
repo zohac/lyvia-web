@@ -109,10 +109,10 @@ useCommonLayoutHead()
               class="mb-4 size-8 text-[#d4956a]"
             />
             <p class="font-serif text-2xl leading-relaxed text-white/90">
-              La simplicité est un luxe. Kaora vous aide à la préserver.
+              La simplicité est un luxe. Keova vous aide à la préserver.
             </p>
             <p class="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-white/50">
-              Kaora — Calm Tech
+              Keova — Calm Tech
             </p>
           </div>
 
