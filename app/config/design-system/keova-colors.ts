@@ -1,12 +1,12 @@
 /**
- * Kaora Design System — Color Configuration
+ * Keova Design System — Color Configuration
  *
  * Defines semantic color roles for Nuxt UI v4 components.
  *
  * ## Semantic Mapping
  *
  * - **primary**: Main CTA color (stone-900 for dark backgrounds)
- * - **secondary**: Accent/brand color (kaora-700 for warm highlights)
+ * - **secondary**: Accent/brand color (keova-700 for warm highlights)
  * - **neutral**: Neutral gray scale (stone palette)
  * - **success**: Positive state (sage green)
  * - **warning**: Attention state (amber)
@@ -14,13 +14,13 @@
  *
  * ## Design System Reference
  *
- * @see docs/03_uiux/kaora/COLOR_SYSTEM.md
- * @see docs/03_uiux/kaora/exemples/design-system.css
+ * @see docs/03_uiux/keova/COLOR_SYSTEM.md
+ * @see docs/03_uiux/keova/exemples/design-system.css
  *
  * @architecture Clean Architecture — Configuration Layer
  * @author Remy Chopoya
  */
-export const kaoraColors = {
+export const keovaColors = {
   // =========================================================================
   // SEMANTIC COLORS — Role-based palette mapping
   // =========================================================================
@@ -35,9 +35,9 @@ export const kaoraColors = {
   /**
    * Secondary/accent color
    * Used for links, outlined buttons, and brand highlights
-   * Renders as kaora-700 (#7a6251)
+   * Renders as keova-700 (#7a6251)
    */
-  secondary: 'kaora',
+  secondary: 'keova',
 
   /**
    * Neutral gray scale
@@ -71,4 +71,4 @@ export const kaoraColors = {
 /**
  * Type-safe color keys
  */
-export type KaoraColorKey = keyof typeof kaoraColors
+export type KeovaColorKey = keyof typeof keovaColors
