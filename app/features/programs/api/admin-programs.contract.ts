@@ -61,6 +61,12 @@ export type AdminProviderSubscriptionsResponse = {
 // Admin Program Analytics (platform-wide KPIs)
 // ============================================================================
 
+export type ActiveProgramsByProviderItem = {
+  providerId: string
+  providerName: string
+  activeProgramsCount: number
+}
+
 export type AdminProgramAnalytics = {
   activePrograms: number
   activeSubscriptions: number
@@ -71,4 +77,6 @@ export type AdminProgramAnalytics = {
   totalRevenueCents: number
   totalCommissionCents: number
   completionRate: number
+  paymentFailureRate: number
+  activeProgramsByProvider: ActiveProgramsByProviderItem[]
 }
