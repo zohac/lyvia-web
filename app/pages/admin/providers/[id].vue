@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
 import type { SeoFieldValues } from '~/types/seo.types'
+import type { AdminProgramItem, AdminSubscriptionItem } from '~/features/programs/api/admin-programs.contract'
 import { apiFetch } from '~/services/api/apiFetch'
+import { listAdminProviderPrograms, listAdminProviderSubscriptions } from '~/features/programs/services/admin-programs.service'
 import { mapRequirementKeyToMessage } from '~/features/finance/domain/finance-state'
 import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
-import { formatDateTime } from '~/composables/useDateFormat'
+import { formatDateTime, formatDateShort } from '~/composables/useDateFormat'
 import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
+import { formatCurrency } from '~/features/analytics/helpers/format-kpi'
+// SUBSCRIPTION_STATUS_META used via SubscriptionStatusBadge component
 import AdminSeoForm from '~/components/organisms/AdminSeoForm.vue'
 import ProviderDeactivationModal from '~/components/organisms/ProviderDeactivationModal.vue'
+import SubscriptionStatusBadge from '~/components/molecules/SubscriptionStatusBadge.vue'
+import SessionsProgress from '~/components/molecules/SessionsProgress.vue'
 
 definePageMeta({
   layout: 'admin',
@@ -157,8 +163,47 @@ const activeStatusInfo = computed(() => {
 const tabItems = [
   { label: 'Profil', icon: 'i-lucide-user', slot: 'profil' as const },
   { label: 'Stripe Connect', icon: 'i-lucide-credit-card', slot: 'stripe' as const },
+  { label: 'Offres', icon: 'i-lucide-package', slot: 'programs' as const },
   { label: 'Référencement', icon: 'i-lucide-globe', slot: 'seo' as const }
 ] satisfies TabsItem[]
+
+// ──────────────────────────────────────────────
+// Programs & subscriptions (X4.3)
+// ──────────────────────────────────────────────
+
+const adminPrograms = ref<AdminProgramItem[]>([])
+const adminSubscriptions = ref<AdminSubscriptionItem[]>([])
+const programsLoading = ref(false)
+const programsError = ref<string | null>(null)
+let programsLoadedForProvider = ''
+
+async function loadPrograms() {
+  const id = providerId.value
+  if (!id || programsLoadedForProvider === id) return
+  programsLoading.value = true
+  programsError.value = null
+  try {
+    const [prg, sub] = await Promise.all([
+      listAdminProviderPrograms(id),
+      listAdminProviderSubscriptions(id)
+    ])
+    adminPrograms.value = prg.programs
+    adminSubscriptions.value = sub.subscriptions
+    programsLoadedForProvider = id
+  } catch {
+    programsError.value = 'Impossible de charger les programmes.'
+    adminPrograms.value = []
+    adminSubscriptions.value = []
+  } finally {
+    programsLoading.value = false
+  }
+}
+
+const PROGRAM_STATUS_META: Record<string, { label: string, color: string }> = {
+  draft: { label: 'Brouillon', color: 'neutral' },
+  active: { label: 'Actif', color: 'success' },
+  inactive: { label: 'Inactif', color: 'error' }
+}
 
 // ──────────────────────────────────────────────
 // Profile edit form
@@ -1015,6 +1060,143 @@ const SEO_TARGET_ICONS: Record<string, string> = {
         <!-- ═══════════════════════════════════════ -->
         <!-- Tab: SEO                               -->
         <!-- ═══════════════════════════════════════ -->
+        <!-- ═══════════════════════════════════════ -->
+        <!-- Tab: Offres (X4.3)                    -->
+        <!-- ═══════════════════════════════════════ -->
+        <template #programs>
+          <div @vue:mounted="loadPrograms()">
+            <!-- Loading -->
+            <div
+              v-if="programsLoading"
+              class="space-y-4"
+            >
+              <div
+                v-for="i in 3"
+                :key="i"
+                class="h-16 animate-pulse rounded-xl border border-[color:var(--color-border-subtle)] bg-white/75"
+              />
+            </div>
+
+            <!-- Error -->
+            <UAlert
+              v-else-if="programsError"
+              color="error"
+              variant="soft"
+              :description="programsError"
+              icon="i-lucide-alert-circle"
+            />
+
+            <!-- Content -->
+            <div
+              v-else
+              class="space-y-8"
+            >
+              <!-- Programmes section -->
+              <section>
+                <h3 class="mb-4 text-lg font-semibold text-stone-800">
+                  Programmes
+                </h3>
+
+                <p
+                  v-if="adminPrograms.length === 0"
+                  class="text-sm text-stone-500"
+                >
+                  Aucun programme créé.
+                </p>
+
+                <div
+                  v-else
+                  class="space-y-3"
+                >
+                  <div
+                    v-for="prog in adminPrograms"
+                    :key="prog.id"
+                    class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4"
+                  >
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          <p class="truncate font-medium text-stone-900">
+                            {{ prog.name }}
+                          </p>
+                          <UBadge
+                            :color="(PROGRAM_STATUS_META[prog.status]?.color as 'success' | 'error' | 'neutral') ?? 'neutral'"
+                            variant="soft"
+                            size="sm"
+                          >
+                            {{ PROGRAM_STATUS_META[prog.status]?.label ?? prog.status }}
+                          </UBadge>
+                        </div>
+                        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500">
+                          <span>{{ formatCurrency(prog.priceCents) }}</span>
+                          <span>{{ prog.totalSessions }} séances</span>
+                          <span>{{ prog.validityMonths }} mois</span>
+                          <span>{{ prog.sessionDurationMinutes }} min/séance</span>
+                          <span v-if="prog.allowInstallments && prog.installmentCount">
+                            {{ prog.installmentCount }}x mensualités
+                          </span>
+                        </div>
+                      </div>
+                      <div class="text-right text-sm">
+                        <span class="font-medium text-stone-700">{{ prog.activeSubscriptionsCount }}</span>
+                        <span class="ml-1 text-stone-500">souscr. actives</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Souscriptions section -->
+              <section>
+                <h3 class="mb-4 text-lg font-semibold text-stone-800">
+                  Souscriptions
+                </h3>
+
+                <p
+                  v-if="adminSubscriptions.length === 0"
+                  class="text-sm text-stone-500"
+                >
+                  Aucune souscription.
+                </p>
+
+                <div
+                  v-else
+                  class="space-y-3"
+                >
+                  <div
+                    v-for="sub in adminSubscriptions"
+                    :key="sub.id"
+                    class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4"
+                  >
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          <p class="truncate font-medium text-stone-900">
+                            {{ sub.snapshotName }}
+                          </p>
+                          <SubscriptionStatusBadge :status="sub.status" />
+                        </div>
+                        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500">
+                          <span>{{ sub.clientFirstName }} {{ sub.clientLastName }}</span>
+                          <span>{{ formatCurrency(sub.snapshotPriceCents) }}</span>
+                          <span>{{ sub.paymentMode === 'installments' ? 'Mensualités' : 'Comptant' }}</span>
+                          <span>Expire {{ formatDateShort(sub.expiresAt) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-3">
+                      <SessionsProgress
+                        :sessions-used="sub.sessionsUsed"
+                        :total-sessions="sub.snapshotTotalSessions"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </template>
+
         <template #seo>
           <!-- Loading SEO -->
           <div
