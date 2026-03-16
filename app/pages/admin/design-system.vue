@@ -3,7 +3,7 @@
     <!-- Hero Header -->
     <header class="relative overflow-hidden border-b border-[rgba(212,184,160,0.2)]">
       <!-- Decorative gradient blob -->
-      <div class="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gradient-to-br from-[color:var(--color-kaora-100)] via-[color:var(--color-kaora-50)] to-transparent opacity-60 blur-[100px]" />
+      <div class="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gradient-to-br from-[color:var(--color-keova-100)] via-[color:var(--color-keova-50)] to-transparent opacity-60 blur-[100px]" />
       <div class="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-gradient-to-tr from-[color:var(--color-stone-100)] to-transparent opacity-40 blur-[80px]" />
 
       <div class="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
@@ -767,7 +767,7 @@
               </p>
 
               <!-- Panel wrap for glass demo -->
-              <div class="rounded-blob-b bg-gradient-to-br from-[color:var(--color-kaora-100)] via-[color:var(--color-stone-100)] to-[color:var(--color-kaora-50)] p-8">
+              <div class="rounded-blob-b bg-gradient-to-br from-[color:var(--color-keova-100)] via-[color:var(--color-stone-100)] to-[color:var(--color-keova-50)] p-8">
                 <div class="grid gap-6 lg:grid-cols-2">
                   <!-- Glass Sidebar -->
                   <UCard

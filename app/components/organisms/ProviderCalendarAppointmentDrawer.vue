@@ -412,14 +412,14 @@ async function copyMeetingLink() {
             <Icon
               name="lucide:video"
               size="18"
-              class="shrink-0 text-kaora-600"
+              class="shrink-0 text-keova-600"
               aria-hidden="true"
             />
             <a
               :href="appointment.meetingLink"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-sm font-medium text-kaora-600 hover:underline"
+              class="text-sm font-medium text-keova-600 hover:underline"
             >
               Rejoindre la visio
             </a>

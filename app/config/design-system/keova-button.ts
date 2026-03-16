@@ -1,5 +1,5 @@
 /**
- * Kaora Design System — Button Component Configuration
+ * Keova Design System — Button Component Configuration
  *
  * CRITICAL: Uses explicit CSS variables instead of Nuxt UI utility classes
  * to ensure correct color rendering aligned with design system spec.
@@ -8,7 +8,7 @@
  * @author Remy Chopoya
  */
 
-export const kaoraButton = {
+export const keovaButton = {
   slots: {
     base: [
       // Layout
@@ -181,15 +181,15 @@ export const kaoraButton = {
     },
 
     // =========================================================================
-    // SECONDARY (KAORA-700) — BRAND ACCENT
+    // SECONDARY (KEOVA-700) — BRAND ACCENT
     // =========================================================================
     {
       color: 'secondary',
       variant: 'solid',
       class: [
-        'bg-[color:var(--color-brand-accent)]', // kaora-700 (#7a6251)
+        'bg-[color:var(--color-brand-accent)]', // keova-700 (#7a6251)
         'text-white',
-        'hover:bg-[color:var(--color-kaora-800)]',
+        'hover:bg-[color:var(--color-keova-800)]',
         'focus-visible:outline-[color:var(--color-brand-accent)]',
         'active:scale-[0.98]'
       ].join(' ')
