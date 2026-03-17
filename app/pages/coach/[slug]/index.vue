@@ -55,15 +55,18 @@ await useCoachSchemaOrg(slug.value)
 usePageTracking(providerId)
 
 // OG image: Satori generation when no custom image (Story U1.3)
+// Specialties sourced from the enriched profile fetched by useCoachSchemaOrg
 const requestUrl = useRequestURL()
 const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
 const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
 
+const { data: coachProfile } = useNuxtData<{ specialties?: string[] }>(`public-provider-profile:${slug.value}`)
+
 const ogStrategy = computed(() => resolveOgImageStrategy({
   customOgImageUrl: seo.value?.ogImageUrl,
   displayName: tenant.value?.brand.displayName ?? 'Coach',
-  specialties: [], // tenant doesn't carry specialties; Satori uses fallback 'ménopause'
+  specialties: coachProfile.value?.specialties ?? [],
   domain: requestUrl.host,
   isPlatform
 }))

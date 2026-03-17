@@ -99,4 +99,56 @@ describe('resolveOgImageStrategy', () => {
 
     assert.equal(result.kind, 'satori')
   })
+
+  // --- Page-level wiring simulation (CR1 Finding #3) ---
+
+  test('wiring: custom image from seo_metadata takes priority over Satori', () => {
+    const seoOgImageUrl = 'https://cdn.example.com/custom-og.png'
+    const result = resolveOgImageStrategy({
+      customOgImageUrl: seoOgImageUrl,
+      displayName: 'Sophie Jouan',
+      specialties: ['naturopathie'],
+      domain: 'keova.fr',
+      isPlatform: true
+    })
+
+    assert.equal(result.kind, 'custom')
+    if (result.kind === 'custom') {
+      assert.equal(result.url, seoOgImageUrl)
+    }
+  })
+
+  test('wiring: real specialties from profile are used (not fallback)', () => {
+    const result = resolveOgImageStrategy({
+      customOgImageUrl: null,
+      displayName: 'Sophie Jouan',
+      specialties: ['sophrologie', 'yoga'],
+      domain: 'keova.fr',
+      isPlatform: true
+    })
+
+    assert.equal(result.kind, 'satori')
+    if (result.kind === 'satori') {
+      assert.equal(result.props.speciality, 'sophrologie')
+    }
+  })
+
+  test('wiring: all Satori props are set correctly for defineOgImage spread', () => {
+    const result = resolveOgImageStrategy({
+      customOgImageUrl: null,
+      displayName: 'Marie Dupont',
+      specialties: ['nutrition'],
+      domain: 'sophie-jouan.fr',
+      isPlatform: false
+    })
+
+    assert.equal(result.kind, 'satori')
+    if (result.kind === 'satori') {
+      assert.equal(result.props.component, 'CoachProfile')
+      assert.equal(result.props.displayName, 'Marie Dupont')
+      assert.equal(result.props.speciality, 'nutrition')
+      assert.equal(result.props.domain, 'sophie-jouan.fr')
+      assert.equal(result.props.isPlatform, false)
+    }
+  })
 })

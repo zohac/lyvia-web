@@ -110,6 +110,10 @@ export default defineNuxtConfig({
     '/coach/**': {
       headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' }
     },
+    // OG image generation route (Satori) — cache 1h, revalidate 24h (Story U1.3)
+    '/__og_image__/**': {
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
+    },
     '/legal/**': {
       prerender: true,
       headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400' }
