@@ -26,7 +26,7 @@ const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 const hasAttemptedSubmit = ref(false)
 
-// --- Specialty options (labels UI → slugs backend) ---
+// --- Specialty options (labels UI -> slugs backend) ---
 const specialtyOptions = [
   { value: 'naturopathie', label: 'Naturopathie' },
   { value: 'sophrologie', label: 'Sophrologie' },
@@ -105,6 +105,8 @@ async function handleSubmit() {
     isSubmitting.value = false
   }
 }
+
+const isDark = computed(() => props.mode === 'inline')
 </script>
 
 <template>
@@ -113,128 +115,313 @@ async function handleSubmit() {
     v-if="isSubmitted && mode === 'inline'"
     class="animate-fade-in-up text-center"
   >
-    <div class="mx-auto mb-4 grid size-16 place-items-center rounded-full bg-gradient-to-br from-[#4ade80]/20 to-[#4a8b6e]/20">
+    <div class="mx-auto mb-6 grid size-20 place-items-center rounded-full bg-gradient-to-br from-[#4ade80]/20 to-[#4a8b6e]/20 ring-2 ring-[#4ade80]/30">
       <UIcon
         name="i-lucide-check-circle"
-        class="size-8 text-[#4ade80]"
+        class="size-10 text-[#4ade80]"
       />
     </div>
-    <h3 class="font-serif text-2xl text-white">
+    <h3 class="font-serif text-3xl text-white">
       Vous êtes sur la liste
     </h3>
-    <p class="mx-auto mt-2 max-w-md text-[#b9aac7]">
-      Nous vous contacterons en priorité dès qu'une place se libère. Vérifiez vos spams si besoin.
+    <p class="mx-auto mt-3 max-w-md text-base leading-relaxed text-[#d7cfdf]">
+      Nous vous contacterons en priorité dès qu'une place se libère.
+      Vérifiez vos spams si besoin.
+    </p>
+    <p class="mt-6 text-sm text-[#9685ab]">
+      En attendant, découvrez comment Sophie Jouan utilise Keova
+      <a
+        href="https://sophie-jouan.fr"
+        target="_blank"
+        rel="noopener"
+        class="font-medium text-[#f0b48f] underline-offset-2 hover:underline"
+      >sophie-jouan.fr &rarr;</a>
     </p>
   </div>
 
   <!-- Form -->
   <form
     v-else
-    class="flex flex-col gap-4"
+    :class="[
+      'waitlist-form flex flex-col gap-5',
+      isDark ? 'waitlist-form--dark' : 'waitlist-form--light'
+    ]"
     @submit.prevent="handleSubmit"
   >
+    <!-- Row: Prénom + Nom -->
     <div class="grid gap-4 sm:grid-cols-2">
-      <UFormField
-        label="Prénom"
-        :error="formErrors.firstName"
-        required
-      >
-        <UInput
+      <div class="form-group">
+        <label class="form-label">
+          Prénom <span class="text-[#e89560]">*</span>
+        </label>
+        <input
           v-model="form.firstName"
+          type="text"
           placeholder="Sophie"
-          :color="formErrors.firstName ? 'error' : undefined"
-          class="w-full"
-        />
-      </UFormField>
+          :class="['form-input', formErrors.firstName ? 'form-input--error' : '']"
+        >
+        <p
+          v-if="formErrors.firstName"
+          class="form-error"
+        >
+          {{ formErrors.firstName }}
+        </p>
+      </div>
 
-      <UFormField
-        label="Nom"
-        :error="formErrors.lastName"
-        required
-      >
-        <UInput
+      <div class="form-group">
+        <label class="form-label">
+          Nom <span class="text-[#e89560]">*</span>
+        </label>
+        <input
           v-model="form.lastName"
+          type="text"
           placeholder="Jouan"
-          :color="formErrors.lastName ? 'error' : undefined"
-          class="w-full"
-        />
-      </UFormField>
+          :class="['form-input', formErrors.lastName ? 'form-input--error' : '']"
+        >
+        <p
+          v-if="formErrors.lastName"
+          class="form-error"
+        >
+          {{ formErrors.lastName }}
+        </p>
+      </div>
     </div>
 
-    <UFormField
-      label="Email professionnel"
-      :error="formErrors.email"
-      required
-    >
-      <UInput
+    <!-- Email -->
+    <div class="form-group">
+      <label class="form-label">
+        Email professionnel <span class="text-[#e89560]">*</span>
+      </label>
+      <input
         v-model="form.email"
         type="email"
         placeholder="sophie@moncoaching.fr"
-        :color="formErrors.email ? 'error' : undefined"
-        class="w-full"
-      />
-    </UFormField>
+        :class="['form-input', formErrors.email ? 'form-input--error' : '']"
+      >
+      <p
+        v-if="formErrors.email"
+        class="form-error"
+      >
+        {{ formErrors.email }}
+      </p>
+    </div>
 
-    <UFormField
-      label="Votre domaine de pratique"
-      :error="formErrors.specialty"
-      required
-    >
-      <USelect
+    <!-- Spécialité -->
+    <div class="form-group">
+      <label class="form-label">
+        Votre domaine de pratique <span class="text-[#e89560]">*</span>
+      </label>
+      <select
         v-model="form.specialty"
-        :items="specialtyOptions"
-        placeholder="Choisir..."
-        value-key="value"
-        class="w-full"
-      />
-    </UFormField>
+        :class="['form-input form-select', formErrors.specialty ? 'form-input--error' : '', !form.specialty ? 'text-[#857d8c]' : '']"
+      >
+        <option
+          value=""
+          disabled
+        >
+          Choisir...
+        </option>
+        <option
+          v-for="opt in specialtyOptions"
+          :key="opt.value"
+          :value="opt.value"
+        >
+          {{ opt.label }}
+        </option>
+      </select>
+      <p
+        v-if="formErrors.specialty"
+        class="form-error"
+      >
+        {{ formErrors.specialty }}
+      </p>
+    </div>
 
-    <UFormField
-      label="En quelques mots"
-      hint="(facultatif)"
-    >
-      <UTextarea
+    <!-- Message -->
+    <div class="form-group">
+      <div class="flex items-baseline justify-between">
+        <label class="form-label">En quelques mots</label>
+        <span :class="['text-xs', isDark ? 'text-[#857d8c]' : 'text-[#b9aac7]']">(facultatif)</span>
+      </div>
+      <textarea
         v-model="form.message"
         placeholder="Ex : je jongle entre 4 outils et je cherche à simplifier..."
-        :rows="3"
-        :maxlength="500"
-        class="w-full"
+        rows="3"
+        maxlength="500"
+        class="form-input resize-none"
       />
-      <template #help>
-        <span class="text-xs text-[#857d8c]">{{ form.message?.length || 0 }}/500</span>
-      </template>
-    </UFormField>
+      <div class="flex justify-end">
+        <span :class="['text-xs', isDark ? 'text-[#9685ab]' : 'text-[#b9aac7]']">{{ form.message?.length || 0 }}/500</span>
+      </div>
+    </div>
 
-    <UButton
+    <!-- Submit -->
+    <button
       type="submit"
-      size="lg"
-      :loading="isSubmitting"
       :disabled="isSubmitting"
-      class="mt-2 w-full rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+      class="cta-submit group relative mt-1 w-full overflow-hidden rounded-full py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl disabled:pointer-events-none disabled:opacity-60"
     >
-      {{ isSubmitting ? 'Envoi en cours...' : 'Demander ma place' }}
-      <UIcon
-        v-if="!isSubmitting"
-        name="i-lucide-arrow-right"
-        class="ml-1 size-4"
-      />
-    </UButton>
+      <span class="cta-submit-bg absolute inset-0" />
+      <span class="relative z-10 flex items-center justify-center gap-2">
+        <UIcon
+          v-if="isSubmitting"
+          name="i-lucide-loader-2"
+          class="size-5 animate-spin"
+        />
+        {{ isSubmitting ? 'Envoi en cours...' : 'Demander ma place' }}
+        <UIcon
+          v-if="!isSubmitting"
+          name="i-lucide-arrow-right"
+          class="size-5 transition-transform duration-300 group-hover:translate-x-1"
+        />
+      </span>
+    </button>
 
-    <p class="text-center text-xs text-[#857d8c]">
+    <!-- Trust copy -->
+    <p :class="['text-center text-xs', isDark ? 'text-[#9685ab]' : 'text-[#857d8c]']">
       Jamais de spam. Données hébergées en France. Conforme RGPD.
     </p>
   </form>
 </template>
 
 <style scoped>
+/* =================================================================================================
+ * WAITLIST FORM — SHARED
+ * ================================================================================================= */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.form-input:focus {
+  ring: none;
+}
+
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23857d8c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
+}
+
+.form-error {
+  font-size: 0.75rem;
+  color: #f87171;
+  margin-top: 0.125rem;
+}
+
+/* CTA submit button */
+.cta-submit-bg {
+  background: linear-gradient(135deg, #d4956a 0%, #e89560 50%, #d4956a 100%);
+  background-size: 200% 100%;
+  transition: background-position 0.5s;
+}
+
+.cta-submit:hover .cta-submit-bg {
+  background-position: 100% center;
+}
+
+/* =================================================================================================
+ * DARK VARIANT (inline on dark background)
+ * ================================================================================================= */
+
+.waitlist-form--dark .form-label {
+  color: #f0edf3;
+}
+
+.waitlist-form--dark .form-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #f5f3f7;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.waitlist-form--dark .form-input::placeholder {
+  color: rgba(185, 170, 199, 0.6);
+}
+
+.waitlist-form--dark .form-input:focus {
+  border-color: #d4956a;
+  box-shadow: 0 0 0 3px rgba(212, 149, 106, 0.2);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.waitlist-form--dark .form-input--error {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
+}
+
+.waitlist-form--dark .form-select option {
+  background: #352c44;
+  color: #f5f3f7;
+}
+
+/* =================================================================================================
+ * LIGHT VARIANT (modal)
+ * ================================================================================================= */
+
+.waitlist-form--light .form-label {
+  color: #3d3250;
+}
+
+.waitlist-form--light .form-input {
+  background: #f8f6fa;
+  border: 1.5px solid #ebe7ef;
+  color: #221d28;
+}
+
+.waitlist-form--light .form-input::placeholder {
+  color: #b9aac7;
+}
+
+.waitlist-form--light .form-input:focus {
+  border-color: #5b4b6e;
+  box-shadow: 0 0 0 3px rgba(91, 75, 110, 0.12);
+  background: #ffffff;
+}
+
+.waitlist-form--light .form-input--error {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.1);
+}
+
+.waitlist-form--light .form-select option {
+  background: #ffffff;
+  color: #221d28;
+}
+
+/* =================================================================================================
+ * ANIMATIONS
+ * ================================================================================================= */
+
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
