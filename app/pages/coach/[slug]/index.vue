@@ -5,6 +5,7 @@ import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
 import { resolveOgImageStrategy } from '~/features/seo/og-image-helpers'
+import { buildCoachBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
@@ -84,6 +85,9 @@ const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
+// U1.4b: Visible breadcrumbs
+const breadcrumbItems = computed(() => buildCoachBreadcrumbs(brandName.value, isPlatform))
+
 const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}`
 
 useSeoMeta({
@@ -126,9 +130,11 @@ watchEffect(() => {
     v-if="tenant && !tenant.isActive"
     :coach-name="tenant.brand.displayName"
   />
-  <CoachPublicPageTemplate
-    v-else
-    :tenant="requiredTenant"
-    :cta-to="ctaTo"
-  />
+  <div v-else>
+    <AtomsBreadcrumbNav :items="breadcrumbItems" />
+    <CoachPublicPageTemplate
+      :tenant="requiredTenant"
+      :cta-to="ctaTo"
+    />
+  </div>
 </template>

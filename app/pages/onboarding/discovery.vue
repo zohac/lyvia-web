@@ -5,6 +5,7 @@
       :coach-name="tenant.brand.displayName"
     />
     <div v-else>
+      <AtomsBreadcrumbNav :items="bookingBreadcrumbs" />
       <DiscoveryBookingWizard />
       <!-- U1.4a: Medical disclaimer (YMYL obligation) -->
       <AtomsMedicalDisclaimer />
@@ -19,6 +20,7 @@ import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useBookingSchemaOrg } from '~/features/seo/useBookingSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
+import { buildBookingBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
 import DiscoveryBookingWizard from '~/components/organisms/DiscoveryBookingWizard.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 
@@ -55,6 +57,11 @@ const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coa
 useBookingSchemaOrg(tenant.value.slug, () => brandName.value)
 
 usePageTracking(providerId)
+
+// U1.4b: Visible breadcrumbs — white-label (no coach intermediary)
+const bookingBreadcrumbs = computed(() =>
+  buildBookingBreadcrumbs(brandName.value, tenant.value?.slug ?? '', false)
+)
 
 // Keep in sync with coach/[slug]/onboarding/discovery.vue
 const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/onboarding/discovery`
