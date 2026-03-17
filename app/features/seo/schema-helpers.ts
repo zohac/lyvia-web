@@ -84,3 +84,34 @@ export function mapProfileToSchemaRefs(
 
   if (profile.city) refs.city.value = profile.city
 }
+
+/**
+ * Builds a Schema.org PostalAddress for Person.address from the provider city.
+ * Returns undefined when no city — keeps JSON-LD clean.
+ *
+ * Convention 5: pure helper testable for composable SEO logic.
+ */
+export function buildPersonAddress(
+  city: string | undefined
+): { '@type': string, 'addressLocality': string } | undefined {
+  if (!city) return undefined
+  return { '@type': 'PostalAddress', 'addressLocality': city }
+}
+
+/**
+ * Builds Schema.org EducationalOccupationalCredential items for Person.hasCredential.
+ * Returns undefined when no credentials — keeps JSON-LD clean.
+ *
+ * Convention 5: pure helper testable for composable SEO logic.
+ */
+export function buildCredentialSchemaItems(
+  credentials: Array<{ title: string, institution?: string, year?: number }>
+): Array<Record<string, unknown>> | undefined {
+  if (credentials.length === 0) return undefined
+  return credentials.map(c => ({
+    '@type': 'EducationalOccupationalCredential',
+    'credentialCategory': c.title,
+    ...(c.institution ? { recognizedBy: { '@type': 'Organization', 'name': c.institution } } : {}),
+    ...(c.year ? { dateCreated: String(c.year) } : {})
+  }))
+}

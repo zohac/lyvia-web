@@ -5,6 +5,8 @@ import type { Ref } from 'vue'
 import {
   buildCoachUrls,
   buildBookingBreadcrumbItems,
+  buildPersonAddress,
+  buildCredentialSchemaItems,
   mapProfileToSchemaRefs
 } from '../../app/features/seo/schema-helpers'
 import type { PublicProviderProfile } from '../../app/features/seo/api/public-provider-profile.contract'
@@ -206,5 +208,69 @@ describe('mapProfileToSchemaRefs', () => {
     mapProfileToSchemaRefs({ ...fullProfile, socialLinks: {} }, refs)
 
     assert.deepStrictEqual(refs.sameAs.value, [])
+  })
+})
+
+// --- buildPersonAddress (Story U1.1 — CR3) ---
+
+describe('buildPersonAddress', () => {
+  test('returns PostalAddress with addressLocality when city provided', () => {
+    const result = buildPersonAddress('Paris')
+    assert.deepStrictEqual(result, {
+      '@type': 'PostalAddress',
+      'addressLocality': 'Paris'
+    })
+  })
+
+  test('returns undefined when city is undefined', () => {
+    assert.equal(buildPersonAddress(undefined), undefined)
+  })
+
+  test('returns undefined when city is empty string', () => {
+    assert.equal(buildPersonAddress(''), undefined)
+  })
+})
+
+// --- buildCredentialSchemaItems (Story U1.1 — CR3) ---
+
+describe('buildCredentialSchemaItems', () => {
+  test('returns EducationalOccupationalCredential items', () => {
+    const result = buildCredentialSchemaItems([
+      { title: 'DU Naturopathie', institution: 'ISUPNAT', year: 2020 }
+    ])
+    assert.deepStrictEqual(result, [{
+      '@type': 'EducationalOccupationalCredential',
+      'credentialCategory': 'DU Naturopathie',
+      'recognizedBy': { '@type': 'Organization', 'name': 'ISUPNAT' },
+      'dateCreated': '2020'
+    }])
+  })
+
+  test('omits institution when not provided', () => {
+    const result = buildCredentialSchemaItems([{ title: 'Formation coaching' }])
+    assert.ok(result)
+    assert.equal(result![0].credentialCategory, 'Formation coaching')
+    assert.equal(result![0].recognizedBy, undefined)
+  })
+
+  test('omits year when not provided', () => {
+    const result = buildCredentialSchemaItems([{ title: 'Certification' }])
+    assert.ok(result)
+    assert.equal(result![0].dateCreated, undefined)
+  })
+
+  test('returns undefined for empty credentials', () => {
+    assert.equal(buildCredentialSchemaItems([]), undefined)
+  })
+
+  test('handles multiple credentials', () => {
+    const result = buildCredentialSchemaItems([
+      { title: 'DU A' },
+      { title: 'DU B', institution: 'Univ', year: 2021 }
+    ])
+    assert.ok(result)
+    assert.equal(result!.length, 2)
+    assert.equal(result![0].credentialCategory, 'DU A')
+    assert.equal(result![1].credentialCategory, 'DU B')
   })
 })

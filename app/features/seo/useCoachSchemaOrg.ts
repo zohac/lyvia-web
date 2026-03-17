@@ -1,7 +1,7 @@
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { apiFetch } from '~/services/api/apiFetch'
-import { buildCoachUrls, mapProfileToSchemaRefs } from '~/features/seo/schema-helpers'
+import { buildCoachUrls, buildCredentialSchemaItems, buildPersonAddress, mapProfileToSchemaRefs } from '~/features/seo/schema-helpers'
 
 /**
  * Injects Person + ProfessionalService + BreadcrumbList schemas for coach pages.
@@ -46,20 +46,12 @@ export async function useCoachSchemaOrg(slug: string) {
 
   // hasCredential + address as raw JSON-LD (no defineXxx helper available)
   // Person.address.addressLocality for E-E-A-T locality (Story U1.1 — CR2)
+  // Logic extracted into pure helpers (Convention 5) for testability
   useSchemaOrg([{
     '@type': 'Person',
     '@id': coachUrl,
-    'hasCredential': () => credentials.value.length > 0
-      ? credentials.value.map(c => ({
-          '@type': 'EducationalOccupationalCredential',
-          'credentialCategory': c.title,
-          ...(c.institution ? { recognizedBy: { '@type': 'Organization', 'name': c.institution } } : {}),
-          ...(c.year ? { dateCreated: String(c.year) } : {})
-        }))
-      : undefined,
-    'address': () => city.value
-      ? { '@type': 'PostalAddress', 'addressLocality': city.value }
-      : undefined
+    'hasCredential': () => buildCredentialSchemaItems(credentials.value),
+    'address': () => buildPersonAddress(city.value)
   }])
 
   // ProfessionalService as raw JSON-LD (AC-1, AC-2)
