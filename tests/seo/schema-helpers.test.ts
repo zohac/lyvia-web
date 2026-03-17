@@ -71,7 +71,10 @@ describe('mapProfileToSchemaRefs', () => {
       name: createRef('Coach'),
       bio: createRef<string | undefined>(undefined),
       imageUrl: createRef<string | undefined>(undefined),
-      specialties: createRef<string[]>([])
+      specialties: createRef<string[]>([]),
+      credentials: createRef<Array<{ title: string, institution?: string, year?: number }>>([]),
+      sameAs: createRef<string[]>([]),
+      city: createRef<string | undefined>(undefined)
     }
   }
 
@@ -86,7 +89,12 @@ describe('mapProfileToSchemaRefs', () => {
     imageUrl: 'https://cdn.example.com/photo.jpg',
     discoveryDurationMinutes: 15,
     discoveryBufferAfterMinutes: 15,
-    isActive: true
+    isActive: true,
+    longBio: null,
+    credentials: [],
+    city: null,
+    region: null,
+    socialLinks: {}
   }
 
   test('maps all profile fields to refs', () => {
@@ -107,6 +115,9 @@ describe('mapProfileToSchemaRefs', () => {
     assert.equal(refs.bio.value, undefined)
     assert.equal(refs.imageUrl.value, undefined)
     assert.deepStrictEqual(refs.specialties.value, [])
+    assert.deepStrictEqual(refs.credentials.value, [])
+    assert.deepStrictEqual(refs.sameAs.value, [])
+    assert.equal(refs.city.value, undefined)
   })
 
   test('empty displayName: falls back to "Coach"', () => {
@@ -135,5 +146,65 @@ describe('mapProfileToSchemaRefs', () => {
     mapProfileToSchemaRefs({ ...fullProfile, specialties: [] }, refs)
 
     assert.deepStrictEqual(refs.specialties.value, [])
+  })
+
+  // --- E-E-A-T fields (Story U1.1) ---
+
+  test('maps credentials to refs', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs({
+      ...fullProfile,
+      credentials: [
+        { title: 'DU Naturopathie', institution: 'ISUPNAT', year: 2020 }
+      ]
+    }, refs)
+
+    assert.deepStrictEqual(refs.credentials.value, [
+      { title: 'DU Naturopathie', institution: 'ISUPNAT', year: 2020 }
+    ])
+  })
+
+  test('maps social links to sameAs array', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs({
+      ...fullProfile,
+      socialLinks: {
+        linkedin: 'https://linkedin.com/in/sophie',
+        instagram: 'https://instagram.com/sophie'
+      }
+    }, refs)
+
+    assert.deepStrictEqual(refs.sameAs.value, [
+      'https://linkedin.com/in/sophie',
+      'https://instagram.com/sophie'
+    ])
+  })
+
+  test('maps city to ref', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs({ ...fullProfile, city: 'Paris' }, refs)
+
+    assert.equal(refs.city.value, 'Paris')
+  })
+
+  test('null city: ref stays undefined', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs({ ...fullProfile, city: null }, refs)
+
+    assert.equal(refs.city.value, undefined)
+  })
+
+  test('empty credentials: ref stays empty', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs({ ...fullProfile, credentials: [] }, refs)
+
+    assert.deepStrictEqual(refs.credentials.value, [])
+  })
+
+  test('empty social links: sameAs stays empty', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs({ ...fullProfile, socialLinks: {} }, refs)
+
+    assert.deepStrictEqual(refs.sameAs.value, [])
   })
 })

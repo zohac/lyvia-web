@@ -25,9 +25,13 @@ export async function useCoachSchemaOrg(slug: string) {
   const bio = ref<string | undefined>(undefined)
   const imageUrl = ref<string | undefined>(undefined)
   const specialties = ref<string[]>([])
+  const credentials = ref<Array<{ title: string, institution?: string, year?: number }>>([])
+  const sameAs = ref<string[]>([])
+  const city = ref<string | undefined>(undefined)
 
   // Person schema (AC-1, AC-2) — single source of Person data on white-label
   // (useGlobalSchemaOrg no longer injects Person to avoid duplicates)
+  // E-E-A-T: hasCredential, sameAs, locality (Story U1.1)
   useSchemaOrg([
     definePerson({
       name: () => name.value,
@@ -35,19 +39,35 @@ export async function useCoachSchemaOrg(slug: string) {
       url: coachUrl,
       image: () => imageUrl.value,
       description: () => bio.value,
-      knowsAbout: () => specialties.value
+      knowsAbout: () => specialties.value,
+      sameAs: sameAs as unknown as string[]
     })
   ])
+
+  // hasCredential as raw JSON-LD (no defineXxx helper available)
+  useSchemaOrg([{
+    '@type': 'Person',
+    '@id': coachUrl,
+    'hasCredential': () => credentials.value.length > 0
+      ? credentials.value.map(c => ({
+          '@type': 'EducationalOccupationalCredential',
+          'credentialCategory': c.title,
+          ...(c.institution ? { recognizedBy: { '@type': 'Organization', 'name': c.institution } } : {}),
+          ...(c.year ? { dateCreated: String(c.year) } : {})
+        }))
+      : undefined
+  }])
 
   // ProfessionalService as raw JSON-LD (AC-1, AC-2)
   // Raw object avoids defineLocalBusiness injecting unwanted LocalBusiness defaults
   // (address, geo, openingHours). availableChannel omitted — it's a Service property,
   // not valid on ProfessionalService (schema.org).
+  // E-E-A-T: areaServed uses city when available (Story U1.1)
   useSchemaOrg([{
     '@type': 'ProfessionalService',
     'name': () => `${name.value} — Accompagnement Ménopause`,
     'serviceType': 'Accompagnement périménopause et ménopause',
-    'areaServed': 'France',
+    'areaServed': () => city.value || 'France',
     'url': bookingUrl
   }])
 
@@ -82,6 +102,6 @@ export async function useCoachSchemaOrg(slug: string) {
 
   // Update refs reactively — schemas pick up new values automatically
   watchEffect(() => {
-    mapProfileToSchemaRefs(profile.value, { name, bio, imageUrl, specialties })
+    mapProfileToSchemaRefs(profile.value, { name, bio, imageUrl, specialties, credentials, sameAs, city })
   })
 }
