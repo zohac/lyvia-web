@@ -51,3 +51,38 @@ describe('buildLegalBreadcrumbs', () => {
     assert.equal(items[1].to, undefined)
   })
 })
+
+// --- AC-6: UI/Schema.org synchronization (CR1) ---
+
+describe('AC-6 breadcrumb sync', () => {
+  test('coach breadcrumb label matches Schema.org BreadcrumbList structure', () => {
+    const displayName = 'Sophie Jouan'
+    const uiItems = buildCoachBreadcrumbs(displayName, true)
+
+    // Schema.org BreadcrumbList (from useCoachSchemaOrg): Accueil > {displayName}
+    // UI must match: same hierarchy, same labels
+    assert.equal(uiItems.length, 2)
+    assert.equal(uiItems[0].label, 'Accueil')
+    assert.equal(uiItems[1].label, displayName)
+  })
+
+  test('booking breadcrumb labels match Schema.org structure (platform)', () => {
+    const displayName = 'Sophie Jouan'
+    const uiItems = buildBookingBreadcrumbs(displayName, 'sophie-jouan', true)
+
+    // Schema.org (from useBookingSchemaOrg): Accueil > {displayName} > Appel découverte
+    assert.equal(uiItems.length, 3)
+    assert.equal(uiItems[0].label, 'Accueil')
+    assert.equal(uiItems[1].label, displayName)
+    assert.equal(uiItems[2].label, 'Appel découverte')
+  })
+
+  test('booking breadcrumb labels match Schema.org structure (white-label)', () => {
+    const uiItems = buildBookingBreadcrumbs('Sophie Jouan', 'sophie-jouan', false)
+
+    // Schema.org (from useBookingSchemaOrg WL): Accueil > Appel découverte
+    assert.equal(uiItems.length, 2)
+    assert.equal(uiItems[0].label, 'Accueil')
+    assert.equal(uiItems[1].label, 'Appel découverte')
+  })
+})

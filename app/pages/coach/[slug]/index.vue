@@ -62,7 +62,7 @@ const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
 const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
 
-const { data: coachProfile } = useNuxtData<{ specialties?: string[] }>(`public-provider-profile:${slug.value}`)
+const { data: coachProfile } = useNuxtData<{ specialties?: string[], displayName?: string }>(`public-provider-profile:${slug.value}`)
 
 const ogStrategy = computed(() => resolveOgImageStrategy({
   customOgImageUrl: seo.value?.ogImageUrl,
@@ -85,8 +85,10 @@ const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
-// U1.4b: Visible breadcrumbs
-const breadcrumbItems = computed(() => buildCoachBreadcrumbs(brandName.value, isPlatform))
+// U1.4b: Visible breadcrumbs — use coachProfile.displayName (same source as Schema.org BreadcrumbList)
+// to guarantee AC-6 synchronization between UI breadcrumbs and JSON-LD
+const breadcrumbDisplayName = computed(() => coachProfile.value?.displayName || brandName.value)
+const breadcrumbItems = computed(() => buildCoachBreadcrumbs(breadcrumbDisplayName.value, isPlatform))
 
 const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}`
 
