@@ -4,6 +4,8 @@ import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
+import { resolveOgImageStrategy } from '~/features/seo/og-image-helpers'
+import { getDomainContext } from '#shared/utils/domain-context'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
@@ -52,6 +54,28 @@ await useCoachSchemaOrg(slug.value)
 
 usePageTracking(providerId)
 
+// OG image: Satori generation when no custom image (Story U1.3)
+const requestUrl = useRequestURL()
+const runtimeConfig = useRuntimeConfig()
+const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
+const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
+
+const ogStrategy = computed(() => resolveOgImageStrategy({
+  customOgImageUrl: seo.value?.ogImageUrl,
+  displayName: tenant.value?.brand.displayName ?? 'Coach',
+  specialties: [], // tenant doesn't carry specialties; Satori uses fallback 'ménopause'
+  domain: requestUrl.host,
+  isPlatform
+}))
+
+// OG image: Satori generation via CoachProfile component (Story U1.3)
+// Custom OG from seo_metadata takes priority (handled in useSeoMeta ogImage below)
+if (ogStrategy.value.kind === 'satori') {
+  defineOgImage({
+    ...ogStrategy.value.props
+  } as Record<string, unknown>)
+}
+
 const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
@@ -64,7 +88,7 @@ useSeoMeta({
   description: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
   ogTitle: () => seo.value?.title ?? `${brandName.value} — Coach`,
   ogDescription: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
-  ogImage: () => seo.value?.ogImageUrl ?? undefined,
+  ogImage: () => ogStrategy.value.kind === 'custom' ? ogStrategy.value.url : undefined,
   ogUrl: canonicalHref,
   ogType: 'website',
   twitterCard: 'summary_large_image'

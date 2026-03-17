@@ -15,7 +15,13 @@ export default defineNuxtConfig({
     name: 'Keova'
   },
 
-  ogImage: { enabled: false },
+  ogImage: {
+    enabled: true,
+    defaults: {
+      width: 1200,
+      height: 630
+    }
+  },
   schemaOrg: { enabled: true },
   linkChecker: { enabled: false },
   robots: { enabled: false },
