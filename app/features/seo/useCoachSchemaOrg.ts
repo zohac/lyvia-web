@@ -44,7 +44,8 @@ export async function useCoachSchemaOrg(slug: string) {
     })
   ])
 
-  // hasCredential as raw JSON-LD (no defineXxx helper available)
+  // hasCredential + address as raw JSON-LD (no defineXxx helper available)
+  // Person.address.addressLocality for E-E-A-T locality (Story U1.1 — CR2)
   useSchemaOrg([{
     '@type': 'Person',
     '@id': coachUrl,
@@ -55,6 +56,9 @@ export async function useCoachSchemaOrg(slug: string) {
           ...(c.institution ? { recognizedBy: { '@type': 'Organization', 'name': c.institution } } : {}),
           ...(c.year ? { dateCreated: String(c.year) } : {})
         }))
+      : undefined,
+    'address': () => city.value
+      ? { '@type': 'PostalAddress', 'addressLocality': city.value }
       : undefined
   }])
 
