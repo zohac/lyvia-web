@@ -1,3 +1,23 @@
+<script setup lang="ts">
+// Import explicite obligatoire — pathPrefix Nuxt auto-import renommerait en OrganismsWaitlistForm (retro Epic 11)
+import WaitlistForm from '~/components/organisms/WaitlistForm.vue'
+
+const isWaitlistModalOpen = ref(false)
+
+// --- Comparatif outils fragmentés ---
+const fragmentedTools = [
+  { name: 'Calendly', icon: 'i-lucide-calendar' },
+  { name: 'Stripe', icon: 'i-lucide-credit-card' },
+  { name: 'Excel', icon: 'i-lucide-table' },
+  { name: 'WordPress', icon: 'i-lucide-globe' },
+  { name: 'Gmail', icon: 'i-lucide-mail' }
+]
+
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+}
+</script>
+
 <template>
   <div class="relative min-h-screen overflow-hidden bg-[#f8f6fa]">
     <!-- Ambient gradient mesh background -->
@@ -5,19 +25,17 @@
       aria-hidden="true"
       class="pointer-events-none fixed inset-0 -z-10"
     >
-      <!-- Primary gradient orb - top left -->
       <div
         class="absolute -left-[20%] -top-[10%] h-[70vh] w-[70vh] rounded-full opacity-60"
         style="background: radial-gradient(circle at 30% 30%, rgba(122, 107, 142, 0.4), rgba(91, 75, 110, 0.15) 50%, transparent 70%); filter: blur(80px);"
       />
-      <!-- Accent gradient orb - bottom right -->
       <div
         class="absolute -bottom-[20%] -right-[10%] h-[80vh] w-[80vh] rounded-full opacity-50"
         style="background: radial-gradient(circle at 70% 70%, rgba(212, 149, 106, 0.35), rgba(232, 149, 96, 0.1) 50%, transparent 70%); filter: blur(100px);"
       />
     </div>
 
-    <!-- Hero Section -->
+    <!-- ====================== HERO SECTION ====================== -->
     <section
       id="essence"
       class="relative min-h-screen px-6 pb-24 pt-32 sm:px-12 lg:px-20"
@@ -25,44 +43,48 @@
       <div class="mx-auto max-w-7xl">
         <div class="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
           <!-- Content -->
-          <div class="relative z-10 flex flex-col gap-8">
-            <!-- Eyebrow with decorative line -->
+          <div class="animate-section relative z-10 flex flex-col gap-8">
+            <!-- Eyebrow beta -->
             <div class="flex items-center gap-4">
               <span class="h-[2px] w-12 rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#d4956a]" />
               <span class="text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-                Keova Studio
+                Beta privée — Places limitées
               </span>
             </div>
 
-            <!-- Main headline with gradient accent -->
+            <!-- Main headline -->
             <h1 class="font-serif text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] text-[#221d28]">
-              L'écrin digital
+              Votre espace pro
               <br>
               <span class="relative inline-block">
-                pour vos
+                pour accompagner
                 <span class="absolute -bottom-2 left-0 h-3 w-full -skew-x-6 bg-gradient-to-r from-[#e89560] to-[#d4956a] opacity-30" />
               </span>
               <br>
               <span class="bg-gradient-to-r from-[#5b4b6e] to-[#d4956a] bg-clip-text text-transparent">
-                accompagnements
+                les femmes en ménopause
               </span>.
             </h1>
 
             <!-- Description -->
             <p class="max-w-md text-lg leading-relaxed text-[#4a4255]">
-              Keova réunit agenda, paiements et suivi client dans une expérience calme — pensée pour les métiers du soin,
-              pas pour les dashboards bruyants.
+              Keova réunit agenda, paiements et suivi client dans une expérience calme
+              — pensée pour les métiers du soin, pas pour les dashboards bruyants.
+            </p>
+            <p class="max-w-md text-sm text-[#857d8c]">
+              Keova est en beta privée avec un nombre limité de praticiennes.
+              Inscrivez-vous pour être prévenue de l'ouverture.
             </p>
 
             <!-- CTAs -->
-            <div class="flex flex-col gap-4 pt-4 sm:flex-row">
+            <div class="flex flex-col gap-4 pt-2 sm:flex-row">
               <UButton
-                to="/login"
                 size="xl"
                 class="group relative overflow-hidden rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c] px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+                @click="isWaitlistModalOpen = true"
               >
                 <span class="relative z-10 flex items-center gap-2">
-                  Créer mon espace pro
+                  Rejoindre la liste d'attente
                   <UIcon
                     name="i-lucide-arrow-right"
                     class="size-5 transition-transform duration-300 group-hover:translate-x-1"
@@ -71,10 +93,10 @@
               </UButton>
 
               <UButton
-                to="#atelier"
                 size="xl"
                 variant="ghost"
                 class="group rounded-full border-2 border-[#d7cfdf] px-8 py-4 font-semibold text-[#4d3f5c] transition-all duration-300 hover:border-[#9685ab] hover:bg-[#f5f3f7]"
+                @click="scrollTo('atelier')"
               >
                 <UIcon
                   name="i-lucide-play-circle"
@@ -84,13 +106,21 @@
               </UButton>
             </div>
 
-            <!-- Trust badges with hover effect -->
-            <div class="flex flex-wrap gap-3 pt-2">
+            <!-- Login link discret -->
+            <NuxtLink
+              to="/login"
+              class="self-start text-sm text-[#857d8c] underline-offset-2 transition-colors duration-200 hover:text-[#5b4b6e] hover:underline"
+            >
+              Déjà inscrite ? Se connecter
+            </NuxtLink>
+
+            <!-- Trust badges -->
+            <div class="flex flex-wrap gap-3">
               <span class="rounded-full border border-[#d7cfdf] bg-white/60 px-4 py-2 text-sm font-medium text-[#4d3f5c] backdrop-blur-sm transition-all duration-300 hover:border-[#f0b48f] hover:bg-white">
-                Essai gratuit
+                Beta privée
               </span>
               <span class="rounded-full border border-[#d7cfdf] bg-white/60 px-4 py-2 text-sm font-medium text-[#4d3f5c] backdrop-blur-sm transition-all duration-300 hover:border-[#f0b48f] hover:bg-white">
-                Sans carte bancaire
+                Places limitées
               </span>
               <span class="rounded-full border border-[#d7cfdf] bg-white/60 px-4 py-2 text-sm font-medium text-[#4d3f5c] backdrop-blur-sm transition-all duration-300 hover:border-[#f0b48f] hover:bg-white">
                 White-label
@@ -98,9 +128,9 @@
             </div>
           </div>
 
-          <!-- Hero Visual - Floating dashboard mockup -->
+          <!-- Hero Visual -->
           <div class="relative flex items-center justify-center lg:justify-end">
-            <!-- Decorative floating elements -->
+            <!-- Floating elements -->
             <div class="animate-float absolute -left-8 top-1/4 z-20 hidden lg:block">
               <div class="rounded-2xl border border-white/50 bg-white/80 p-4 shadow-xl backdrop-blur-md">
                 <div class="flex items-center gap-3">
@@ -143,16 +173,13 @@
               </div>
             </div>
 
-            <!-- Main dashboard card -->
             <div class="relative w-full max-w-lg">
-              <!-- Glow effect behind card -->
               <div class="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-br from-[#b9aac7] to-[#f0b48f] opacity-50 blur-[40px]" />
-
               <div class="overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-2xl backdrop-blur-sm">
                 <NuxtImg
                   src="/images/marketing-dashboard-mockup.svg"
                   class="w-full rounded-2xl"
-                  alt="Interface Keova"
+                  alt="Interface Keova — agenda, paiements et suivi client"
                   loading="eager"
                 />
               </div>
@@ -163,9 +190,7 @@
         <!-- Scroll indicator -->
         <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
           <div class="flex flex-col items-center gap-2 text-[#9685ab]">
-            <span class="text-xs font-medium uppercase tracking-widest">
-              Explorer
-            </span>
+            <span class="text-xs font-medium uppercase tracking-widest">Explorer</span>
             <div class="relative h-8 w-5 rounded-full border-2 border-current">
               <div
                 class="absolute left-1/2 top-1.5 h-2 w-1 -translate-x-1/2 rounded-full bg-current"
@@ -177,18 +202,71 @@
       </div>
     </section>
 
-    <!-- Atelier Section -->
+    <!-- ====================== POURQUOI KEOVA ====================== -->
+    <section
+      id="pourquoi"
+      class="animate-section relative px-6 py-32 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-4xl text-center">
+        <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
+        <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
+          Moins d'onglets.
+          <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">Plus de présence.</span>
+        </h2>
+
+        <div class="mt-16 flex flex-col items-center gap-8 lg:flex-row lg:justify-center">
+          <!-- 5 outils fragmentés -->
+          <div class="flex flex-wrap justify-center gap-4">
+            <div
+              v-for="tool in fragmentedTools"
+              :key="tool.name"
+              class="flex flex-col items-center gap-2 rounded-2xl border border-[#ebe7ef] bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+            >
+              <UIcon
+                :name="tool.icon"
+                class="size-8 text-[#857d8c]"
+              />
+              <span class="text-xs text-[#857d8c]">{{ tool.name }}</span>
+            </div>
+          </div>
+
+          <!-- Flèche -->
+          <UIcon
+            name="i-lucide-arrow-right"
+            class="hidden size-8 text-[#d4956a] lg:block"
+          />
+          <UIcon
+            name="i-lucide-arrow-down"
+            class="size-8 text-[#d4956a] lg:hidden"
+          />
+
+          <!-- Bloc Keova -->
+          <div class="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-[#5b4b6e] to-[#4d3f5c] p-6 text-white shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <UIcon
+              name="i-lucide-sparkles"
+              class="size-10"
+            />
+            <span class="text-lg font-semibold">Keova</span>
+            <span class="text-sm opacity-80">Tout-en-un</span>
+          </div>
+        </div>
+
+        <p class="mt-8 text-lg text-[#857d8c]">
+          5 outils, 5 abonnements &rarr; 1 seul espace
+        </p>
+      </div>
+    </section>
+
+    <!-- ====================== ATELIER SECTION ====================== -->
     <section
       id="atelier"
-      class="relative bg-gradient-to-b from-transparent via-[#f0edf3] to-transparent px-6 py-32 sm:px-12 lg:px-20"
+      class="animate-section relative bg-gradient-to-b from-transparent via-[#f0edf3] to-transparent px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-6xl">
         <div class="flex flex-col items-center gap-16 lg:flex-row lg:gap-20">
-          <!-- Image with decorative frame -->
+          <!-- Image -->
           <div class="relative w-full lg:w-1/2">
-            <!-- Decorative accent -->
             <div class="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-40 blur-[30px]" />
-
             <div class="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-xl backdrop-blur-sm">
               <NuxtImg
                 src="/images/marketing-screen-calendar.svg"
@@ -197,8 +275,6 @@
                 loading="lazy"
               />
             </div>
-
-            <!-- Quote card floating -->
             <div class="animate-float-slow absolute -bottom-6 -right-6 max-w-xs rounded-2xl border border-white/50 bg-white/90 p-5 shadow-lg backdrop-blur-md lg:-right-12">
               <UIcon
                 name="i-lucide-quote"
@@ -215,8 +291,8 @@
             <div>
               <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
               <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
-                L'atelier
-                <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">Keova</span>
+                Un outil pensé pour les
+                <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">spécialistes ménopause</span>
               </h2>
             </div>
 
@@ -230,12 +306,12 @@
             </p>
 
             <UButton
-              to="/login"
               variant="link"
               class="group -ml-2 self-start text-[#5b4b6e] hover:text-[#c47a4a]"
+              @click="scrollTo('waitlist')"
             >
               <span class="flex items-center gap-2 font-semibold">
-                Découvrir l'expérience
+                Rejoindre la beta
                 <UIcon
                   name="i-lucide-arrow-right"
                   class="size-4 transition-transform duration-300 group-hover:translate-x-1"
@@ -243,7 +319,7 @@
               </span>
             </UButton>
 
-            <!-- Feature cards with hover effect -->
+            <!-- Feature cards -->
             <div class="grid gap-4 pt-4">
               <div class="group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6 transition-all duration-300 hover:border-[#d7cfdf] hover:shadow-lg">
                 <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0 transition-opacity duration-300 group-hover:opacity-20" />
@@ -290,13 +366,12 @@
       </div>
     </section>
 
-    <!-- Parcours Section -->
+    <!-- ====================== PARCOURS SECTION ====================== -->
     <section
       id="parcours"
-      class="relative px-6 py-32 sm:px-12 lg:px-20"
+      class="animate-section relative px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-6xl">
-        <!-- Section header -->
         <div class="mb-20 text-center">
           <span class="mb-4 inline-block bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
             Le parcours
@@ -307,9 +382,7 @@
           </h2>
         </div>
 
-        <!-- Journey steps with connecting line -->
         <div class="relative">
-          <!-- Connecting gradient line -->
           <div class="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-[#d7cfdf] via-[#f0b48f] to-[#d7cfdf] lg:block" />
 
           <div class="grid gap-12 lg:gap-24">
@@ -332,7 +405,7 @@
                   <NuxtImg
                     src="/images/marketing-screen-calendar.svg"
                     class="w-full rounded-xl"
-                    alt="Configuration"
+                    alt="Configuration agenda"
                     loading="lazy"
                   />
                 </div>
@@ -358,7 +431,7 @@
                   <NuxtImg
                     src="/images/marketing-screen-payments.svg"
                     class="w-full rounded-xl"
-                    alt="Automatisation"
+                    alt="Automatisation paiements"
                     loading="lazy"
                   />
                 </div>
@@ -395,139 +468,112 @@
       </div>
     </section>
 
-    <!-- Testimonials Section -->
-    <section class="relative bg-gradient-to-b from-transparent via-[#f5f3f7] to-transparent px-6 py-32 sm:px-12 lg:px-20">
-      <div class="mx-auto max-w-6xl">
-        <div class="mb-16 text-center">
-          <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
-            Échos de
-            <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">métamorphoses</span>
-          </h2>
+    <!-- ====================== CASE STUDY SOPHIE ====================== -->
+    <section class="animate-section relative bg-gradient-to-b from-transparent via-[#f5f3f7] to-transparent px-6 py-32 sm:px-12 lg:px-20">
+      <div class="mx-auto max-w-4xl">
+        <!-- Badge -->
+        <div class="mb-8 text-center">
+          <span class="inline-block rounded-full bg-[#fbeade] px-4 py-2 text-sm font-semibold text-[#a3603e]">
+            Première spécialiste vérifiée sur Keova
+          </span>
         </div>
 
-        <div class="grid gap-8 md:grid-cols-3">
-          <!-- Testimonial 1 -->
-          <div class="group relative overflow-hidden rounded-3xl bg-white p-8 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <div class="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-[#9685ab] to-[#e89560] opacity-0 transition-opacity duration-300 group-hover:opacity-30" />
-            <div class="relative">
-              <div class="mb-6 flex items-center gap-4">
-                <div class="grid size-14 place-items-center rounded-full bg-gradient-to-br from-[#d7cfdf] to-[#ebe7ef] text-xl font-bold text-[#4d3f5c]">
-                  I
-                </div>
-                <div>
-                  <p class="font-semibold text-[#3d3250]">
-                    Isabelle
-                  </p>
-                  <span class="inline-block rounded-full bg-[#ebe7ef] px-3 py-1 text-xs font-medium text-[#5b4b6e]">
-                    Coach
-                  </span>
-                </div>
-              </div>
-              <UIcon
-                name="i-lucide-quote"
-                class="mb-3 size-8 text-[#e89560]"
-              />
-              <p class="font-serif text-lg italic leading-relaxed text-[#4a4255]">
-                "Enfin un outil qui ne me donne pas l'impression de gérer une usine."
-              </p>
+        <div class="overflow-hidden rounded-3xl bg-white p-8 shadow-xl transition-all duration-500 hover:shadow-2xl lg:p-12">
+          <div class="flex flex-col items-center gap-8 lg:flex-row lg:gap-12">
+            <!-- Avatar initiales -->
+            <div class="grid size-24 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#d7cfdf] to-[#ebe7ef] text-3xl font-bold text-[#4d3f5c] transition-transform duration-500 hover:scale-105">
+              SJ
             </div>
-          </div>
 
-          <!-- Testimonial 2 - Featured -->
-          <div class="group relative overflow-hidden rounded-3xl bg-white p-8 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl md:-mt-4 md:mb-4">
-            <div class="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-[#e89560] to-[#9685ab] opacity-0 transition-opacity duration-300 group-hover:opacity-30" />
-            <div class="relative">
-              <div class="mb-6 flex items-center gap-4">
-                <div class="grid size-14 place-items-center rounded-full bg-gradient-to-br from-[#f6d2bc] to-[#fbeade] text-xl font-bold text-[#a3603e]">
-                  C
-                </div>
-                <div>
-                  <p class="font-semibold text-[#3d3250]">
-                    Claire
-                  </p>
-                  <span class="inline-block rounded-full bg-[#fbeade] px-3 py-1 text-xs font-medium text-[#c47a4a]">
-                    Naturopathe
-                  </span>
-                </div>
-              </div>
+            <div class="flex-1">
+              <!-- Citation -->
               <UIcon
                 name="i-lucide-quote"
-                class="mb-3 size-8 text-[#e89560]"
+                class="mb-3 size-8 text-[#d4956a]"
               />
-              <p class="font-serif text-lg italic leading-relaxed text-[#4a4255]">
-                "Keova a rendu mon parcours client plus fluide. C'est simple, doux, efficace."
-              </p>
-            </div>
-          </div>
+              <blockquote class="font-serif text-xl italic leading-relaxed text-[#4a4255]">
+                &laquo;&nbsp;Keova a remplacé mes 5 outils par un seul espace calme.&nbsp;&raquo;
+              </blockquote>
 
-          <!-- Testimonial 3 -->
-          <div class="group relative overflow-hidden rounded-3xl bg-white p-8 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
-            <div class="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-[#9685ab] to-[#e89560] opacity-0 transition-opacity duration-300 group-hover:opacity-30" />
-            <div class="relative">
-              <div class="mb-6 flex items-center gap-4">
-                <div class="grid size-14 place-items-center rounded-full bg-gradient-to-br from-[#d7cfdf] to-[#ebe7ef] text-xl font-bold text-[#4d3f5c]">
-                  V
-                </div>
-                <div>
-                  <p class="font-semibold text-[#3d3250]">
-                    Véronique
-                  </p>
-                  <span class="inline-block rounded-full bg-[#ebe7ef] px-3 py-1 text-xs font-medium text-[#5b4b6e]">
-                    Thérapeute
-                  </span>
-                </div>
-              </div>
-              <UIcon
-                name="i-lucide-quote"
-                class="mb-3 size-8 text-[#e89560]"
-              />
-              <p class="font-serif text-lg italic leading-relaxed text-[#4a4255]">
-                "Une interface premium, mais surtout apaisante. Mes clientes le sentent."
+              <p class="mt-4 font-semibold text-[#3d3250]">
+                Sophie Jouan
               </p>
+              <p class="text-sm text-[#857d8c]">
+                Sophrologue spécialisée ménopause
+              </p>
+
+              <!-- Comparatif avant/après -->
+              <div class="mt-6 flex flex-wrap items-center gap-3">
+                <span class="rounded-full bg-[#ebe7ef] px-3 py-1 text-xs text-[#857d8c]">Calendly</span>
+                <span class="rounded-full bg-[#ebe7ef] px-3 py-1 text-xs text-[#857d8c]">Stripe</span>
+                <span class="rounded-full bg-[#ebe7ef] px-3 py-1 text-xs text-[#857d8c]">Excel</span>
+                <span class="rounded-full bg-[#ebe7ef] px-3 py-1 text-xs text-[#857d8c]">WordPress</span>
+                <span class="rounded-full bg-[#ebe7ef] px-3 py-1 text-xs text-[#857d8c]">Gmail</span>
+                <UIcon
+                  name="i-lucide-arrow-right"
+                  class="size-5 text-[#d4956a]"
+                />
+                <span class="rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c] px-4 py-1 text-xs font-semibold text-white">
+                  Keova
+                </span>
+              </div>
+
+              <!-- Lien -->
+              <a
+                href="https://sophie-jouan.fr"
+                target="_blank"
+                rel="noopener"
+                class="mt-4 inline-flex items-center gap-1 text-sm text-[#5b4b6e] transition-colors duration-200 hover:text-[#c47a4a]"
+              >
+                Découvrir le site de Sophie
+                <UIcon
+                  name="i-lucide-external-link"
+                  class="size-3"
+                />
+              </a>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Final CTA Section -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-[#3d3250] via-[#352c44] to-[#221d28] px-6 py-32 sm:px-12 lg:px-20">
+    <!-- ====================== WAITLIST SECTION ====================== -->
+    <section
+      id="waitlist"
+      class="animate-section relative overflow-hidden bg-gradient-to-br from-[#3d3250] via-[#352c44] to-[#221d28] px-6 py-32 sm:px-12 lg:px-20"
+    >
       <!-- Accent orbs -->
       <div class="absolute -left-[10%] top-1/2 h-[50vh] w-[50vh] -translate-y-1/2 rounded-full bg-[#7a6b8e] opacity-30 blur-[60px]" />
       <div class="absolute -right-[10%] top-1/2 h-[40vh] w-[40vh] -translate-y-1/2 rounded-full bg-[#d4956a] opacity-20 blur-[60px]" />
 
-      <div class="relative mx-auto max-w-3xl text-center">
+      <div class="relative mx-auto max-w-2xl text-center">
         <h2 class="font-serif text-4xl leading-tight text-white lg:text-5xl">
-          Prête à simplifier
-          <br>
-          <span class="bg-gradient-to-r from-[#e89560] to-[#f0b48f] bg-clip-text text-transparent">votre pratique</span> ?
+          Rejoindre la
+          <span class="bg-gradient-to-r from-[#e89560] to-[#f0b48f] bg-clip-text text-transparent">beta</span>
         </h2>
-
-        <p class="mx-auto mt-6 max-w-lg text-lg text-[#b9aac7]">
-          Rejoignez les professionnelles qui ont choisi Keova pour se concentrer sur l'essentiel : accompagner.
+        <p class="mx-auto mt-4 max-w-lg text-lg text-[#b9aac7]">
+          Inscrivez-vous pour être prévenue dès qu'une place se libère.
         </p>
 
         <div class="mt-10">
-          <UButton
-            to="/login"
-            size="xl"
-            class="group rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-10 py-5 font-semibold text-white shadow-2xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-12px_rgba(212,149,106,0.4)]"
-          >
-            <span class="flex items-center gap-3">
-              Commencer gratuitement
-              <UIcon
-                name="i-lucide-sparkles"
-                class="size-5 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110"
-              />
-            </span>
-          </UButton>
+          <WaitlistForm mode="inline" />
         </div>
-
-        <p class="mt-6 text-sm text-[#9685ab]">
-          Essai gratuit · Sans carte bancaire · Configuration en 5 minutes
-        </p>
       </div>
     </section>
+
+    <!-- ====================== WAITLIST MODAL ====================== -->
+    <UModal
+      v-model:open="isWaitlistModalOpen"
+      title="Rejoindre la beta Keova"
+      description="Votre demande reste confidentielle. Aucun engagement."
+    >
+      <template #body>
+        <WaitlistForm
+          mode="modal"
+          @submitted="isWaitlistModalOpen = false"
+        />
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -542,6 +588,11 @@
 
 .animate-float-slow {
   animation: float 8s ease-in-out 1s infinite;
+}
+
+/* Subtle section reveal on scroll via CSS (no JS IntersectionObserver needed for v1) */
+.animate-section {
+  animation: sectionReveal 0.8s ease-out both;
 }
 
 @keyframes float {
@@ -561,6 +612,17 @@
   50% {
     transform: translateX(-50%) translateY(8px);
     opacity: 0.5;
+  }
+}
+
+@keyframes sectionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

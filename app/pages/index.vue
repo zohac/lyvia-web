@@ -62,19 +62,19 @@ const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim
 useSeoMeta({
   title: () =>
     isPlatformDomain.value
-      ? 'Keova - Simplifiez vos accompagnements ménopause | Agenda, paiements, suivi client'
+      ? 'Keova \u2014 Espace pro sp\u00e9cialistes m\u00e9nopause | Beta priv\u00e9e'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   description: () =>
     isPlatformDomain.value
-      ? 'Keova aide les coachs ménopause et praticiennes du bien-être à fluidifier leurs accompagnements : page publique, agenda, paiements et ressources client, dans une expérience calme. Essai gratuit, sans carte bancaire.'
+      ? 'Beta priv\u00e9e \u2014 rejoignez la liste d\u2019attente. Keova simplifie les accompagnements m\u00e9nopause : agenda, paiements, suivi client dans un espace con\u00e7u pour les sp\u00e9cialistes.'
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogTitle: () =>
     isPlatformDomain.value
-      ? 'Keova - L\u2019espace pro qui simplifie vos accompagnements ménopause'
+      ? 'Keova \u2014 L\u2019espace pro con\u00e7u pour les sp\u00e9cialistes m\u00e9nopause'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   ogDescription: () =>
     isPlatformDomain.value
-      ? 'Page publique, agenda, paiements, ressources : Keova structure votre pratique sans alourdir votre charge mentale. Essai gratuit, sans carte bancaire.'
+      ? 'Beta priv\u00e9e \u2014 rejoignez la liste d\u2019attente. Keova simplifie les accompagnements m\u00e9nopause.'
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogImage: () => !isPlatformDomain.value ? seo.value?.ogImageUrl ?? undefined : undefined,
   ogType: 'website',
@@ -126,12 +126,12 @@ watchEffect(() => {
     navLinks: [
       { label: 'L\'Essence', href: '#essence' },
       { label: 'Atelier', href: '#atelier' },
-      { label: 'Parcours', href: '#parcours' }
+      { label: 'Pourquoi Keova', href: '#pourquoi' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',
-    ctaLabel: 'Essayer Keova',
-    ctaTo: '/login'
+    ctaLabel: 'Rejoindre la beta',
+    ctaTo: '#waitlist'
   })
 })
 </script>
