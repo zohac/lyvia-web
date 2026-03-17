@@ -521,6 +521,8 @@ const faqItems: AccordionItem[] = [
       :program="selectedProgram"
       @update:open="checkoutModalOpen = $event"
     />
+    <!-- U1.4a: Medical disclaimer (YMYL obligation) -->
+    <AtomsMedicalDisclaimer />
   </div>
 </template>
 

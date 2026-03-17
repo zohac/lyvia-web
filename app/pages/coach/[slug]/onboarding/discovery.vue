@@ -3,10 +3,11 @@
     v-if="tenant && !tenant.isActive"
     :coach-name="tenant.brand.displayName"
   />
-  <DiscoveryBookingWizard
-    v-else
-    :slug="slug"
-  />
+  <div v-else>
+    <DiscoveryBookingWizard :slug="slug" />
+    <!-- U1.4a: Medical disclaimer (YMYL obligation) -->
+    <AtomsMedicalDisclaimer />
+  </div>
 </template>
 
 <script setup lang="ts">
