@@ -557,7 +557,10 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== CASE STUDY SOPHIE ====================== -->
-    <section class="relative bg-gradient-to-b from-transparent via-[#f5f3f7] to-transparent px-6 py-32 sm:px-12 lg:px-20">
+    <section
+      id="temoignage"
+      class="relative bg-gradient-to-b from-transparent via-[#f5f3f7] to-transparent px-6 py-32 sm:px-12 lg:px-20"
+    >
       <div class="mx-auto max-w-4xl">
         <!-- Badge -->
         <div

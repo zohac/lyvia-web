@@ -124,9 +124,9 @@ watchEffect(() => {
     brandTo: '/',
     showBrandIcon: true,
     navLinks: [
-      { label: 'L\'Essence', href: '#essence' },
-      { label: 'Atelier', href: '#atelier' },
-      { label: 'Pourquoi Keova', href: '#pourquoi' }
+      { label: 'Pourquoi Keova', href: '#pourquoi' },
+      { label: 'L\'atelier', href: '#atelier' },
+      { label: 'Témoignage', href: '#temoignage' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',
