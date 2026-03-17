@@ -4,7 +4,11 @@
       v-if="!tenant.isActive"
       :coach-name="tenant.brand.displayName"
     />
-    <DiscoveryBookingWizard v-else />
+    <div v-else>
+      <DiscoveryBookingWizard />
+      <!-- U1.4a: Medical disclaimer (YMYL obligation) -->
+      <AtomsMedicalDisclaimer />
+    </div>
   </div>
 </template>
 
