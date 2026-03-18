@@ -24,7 +24,8 @@ const form = reactive({
   lastName: '',
   email: '',
   specialty: undefined as WaitlistSpecialty | undefined,
-  message: ''
+  message: '',
+  legalConsent: false
 })
 
 const isSubmitting = ref(false)
@@ -99,13 +100,13 @@ async function handleSubmit() {
         lastName: form.lastName.trim(),
         email: form.email.trim(),
         specialty: form.specialty,
+        legalConsent: true,
         ...(form.message?.trim() ? { message: form.message.trim() } : {})
       }
     })
 
     toast.add({
-      title: 'Inscription reçue',
-      description: `Merci${form.firstName.trim() ? ` ${form.firstName.trim()}` : ''}\u00A0! Nous vous contacterons dès qu'une place se libère.`,
+      title: `Merci ! Nous vous contacterons dès qu'une place se libère.`,
       color: 'success'
     })
 
@@ -117,8 +118,7 @@ async function handleSubmit() {
   } catch (err: unknown) {
     if (err instanceof ApiFetchError && err.apiError.statusCode === 429) {
       toast.add({
-        title: 'Trop de tentatives',
-        description: 'Réessayez plus tard.',
+        title: 'Trop de tentatives. Réessayez plus tard.',
         color: 'error'
       })
     } else {
@@ -256,6 +256,26 @@ async function handleSubmit() {
         class="w-full"
       />
     </UFormField>
+
+    <!-- Consentement RGPD -->
+    <div class="flex items-start gap-3">
+      <UCheckbox
+        v-model="form.legalConsent"
+        :disabled="isSubmitting"
+        :ui="isDark ? { base: 'mt-0.5 border-white/30' } : { base: 'mt-0.5' }"
+      />
+      <label
+        :class="['text-sm leading-relaxed', isDark ? 'text-[#b9aac7]' : 'text-[#857d8c]']"
+      >
+        J'accepte que mes données soient utilisées pour me recontacter dans le cadre de la beta Keova.
+        <a
+          href="/legal/confidentialite"
+          target="_blank"
+          rel="noopener"
+          :class="['font-medium underline-offset-2 hover:underline', isDark ? 'text-[#f0b48f]' : 'text-[#5b4b6e]']"
+        >Politique de confidentialité</a>
+      </label>
+    </div>
 
     <!-- Submit — branded CTA -->
     <button

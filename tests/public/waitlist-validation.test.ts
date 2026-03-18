@@ -8,11 +8,12 @@ import {
 } from '../../app/features/waitlist/waitlist-validation'
 
 const validForm = {
-  firstName: 'Sophie',
-  lastName: 'Jouan',
-  email: 'sophie@moncoaching.fr',
+  firstName: 'Marie',
+  lastName: 'Dupont',
+  email: 'marie@monactivite.fr',
   specialty: 'naturopathie',
-  message: ''
+  message: '',
+  legalConsent: true
 }
 
 // ── validateWaitlistForm ──
@@ -97,6 +98,16 @@ describe('validateWaitlistForm', () => {
     const errors = validateWaitlistForm({ ...validForm, message: '' })
     assert.strictEqual(errors.message, undefined)
   })
+
+  it('returns legalConsent error when false', () => {
+    const errors = validateWaitlistForm({ ...validForm, legalConsent: false })
+    assert.ok(errors.legalConsent)
+  })
+
+  it('accepts legalConsent when true', () => {
+    const errors = validateWaitlistForm({ ...validForm, legalConsent: true })
+    assert.strictEqual(errors.legalConsent, undefined)
+  })
 })
 
 // ── isWaitlistFormValid ──
@@ -132,6 +143,14 @@ describe('isWaitlistFormValid', () => {
 
   it('returns true with valid message', () => {
     assert.strictEqual(isWaitlistFormValid({ ...validForm, message: 'Je suis naturopathe' }), true)
+  })
+
+  it('returns false when legalConsent is false', () => {
+    assert.strictEqual(isWaitlistFormValid({ ...validForm, legalConsent: false }), false)
+  })
+
+  it('returns true when legalConsent is true', () => {
+    assert.strictEqual(isWaitlistFormValid({ ...validForm, legalConsent: true }), true)
   })
 })
 

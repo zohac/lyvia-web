@@ -13,6 +13,7 @@ export interface WaitlistFormData {
   email: string
   specialty: string | undefined
   message: string
+  legalConsent: boolean
 }
 
 export interface WaitlistFormErrors {
@@ -21,6 +22,7 @@ export interface WaitlistFormErrors {
   email?: string
   specialty?: string
   message?: string
+  legalConsent?: string
 }
 
 export function validateWaitlistForm(form: WaitlistFormData): WaitlistFormErrors {
@@ -35,13 +37,16 @@ export function validateWaitlistForm(form: WaitlistFormData): WaitlistFormErrors
     errors.lastName = 'Entre 2 et 50 caractères'
   }
   if (!form.email.trim() || !EMAIL_REGEX.test(form.email.trim())) {
-    errors.email = 'Format invalide — ex\u00A0: sophie@moncoaching.fr'
+    errors.email = 'Format invalide — ex\u00A0: marie@monactivite.fr'
   }
   if (!form.specialty) {
     errors.specialty = 'Indiquez votre domaine'
   }
   if (form.message && form.message.length > 500) {
     errors.message = 'Maximum 500 caractères'
+  }
+  if (!form.legalConsent) {
+    errors.legalConsent = 'Le consentement est obligatoire'
   }
 
   return errors
@@ -58,4 +63,5 @@ export function isWaitlistFormValid(form: WaitlistFormData): boolean {
     && EMAIL_REGEX.test(form.email.trim())
     && !!form.specialty
     && (!form.message || form.message.length <= 500)
+    && form.legalConsent
 }
