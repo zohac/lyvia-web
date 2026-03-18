@@ -42,9 +42,11 @@ test('robots.txt platform: disallows auth paths', () => {
   assert.ok(output.includes('Disallow: /forgot-password'))
 })
 
-test('robots.txt platform: does NOT disallow /coaches', () => {
+test('robots.txt platform (legacy b2b): disallows /coaches and /coach/', () => {
   const output = buildRobotsTxt('keova.fr')
-  assert.equal(output.includes('Disallow: /coaches'), false)
+  // Legacy 2-param mode: platform = b2b → disallows /coaches and /coach/
+  assert.ok(output.includes('Disallow: /coaches'))
+  assert.ok(output.includes('Disallow: /coach/'))
 })
 
 test('robots.txt platform: sitemap points to platform domain', () => {
@@ -72,9 +74,10 @@ test('robots.txt white-label: sitemap points to white-label domain', () => {
 
 // --- localhost ---
 
-test('robots.txt localhost: treated as platform, no /coaches disallowed', () => {
+test('robots.txt localhost: treated as platform (legacy b2b), disallows /coaches', () => {
   const output = buildRobotsTxt('localhost:3000', 'http')
-  assert.equal(output.includes('Disallow: /coaches'), false)
+  // Legacy 2-param mode: localhost = b2b → disallows /coaches
+  assert.ok(output.includes('Disallow: /coaches'))
 })
 
 test('robots.txt localhost: sitemap points to localhost', () => {

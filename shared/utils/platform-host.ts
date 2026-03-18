@@ -4,14 +4,23 @@ export function normalizeHostname(value: string): string {
   return value.trim().toLowerCase().replace(/:\d+$/, '')
 }
 
-export function isPlatformHost(hostname: string, platformDomain: string): boolean {
+export function isPlatformHost(
+  hostname: string,
+  platformDomain: string,
+  platformDomainB2B?: string
+): boolean {
   const normalizedHost = normalizeHostname(hostname)
-  const normalizedPlatformDomain = normalizeHostname(platformDomain)
 
   if (!normalizedHost) return true
   if (DEV_PLATFORM_HOSTS.has(normalizedHost)) return true
-  if (!normalizedPlatformDomain) return false
-  if (normalizedHost === normalizedPlatformDomain) return true
 
-  return normalizedHost.endsWith(`.${normalizedPlatformDomain}`)
+  const d1 = normalizeHostname(platformDomain)
+  if (d1 && (normalizedHost === d1 || normalizedHost.endsWith(`.${d1}`))) return true
+
+  if (platformDomainB2B) {
+    const d2 = normalizeHostname(platformDomainB2B)
+    if (d2 && (normalizedHost === d2 || normalizedHost.endsWith(`.${d2}`))) return true
+  }
+
+  return false
 }
