@@ -62,19 +62,19 @@ const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim
 useSeoMeta({
   title: () =>
     isPlatformDomain.value
-      ? 'Keova \u2014 L\u2019espace pro pour sp\u00e9cialistes m\u00e9nopause et bien-\u00eatre | Beta priv\u00e9e'
+      ? 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   description: () =>
     isPlatformDomain.value
-      ? 'Beta priv\u00e9e \u2014 rejoignez la liste d\u2019attente. Keova simplifie les accompagnements m\u00e9nopause : agenda, paiements, suivi client dans un espace con\u00e7u pour les sp\u00e9cialistes.'
+      ? 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause : agenda, paiements, suivi client dans un espace conçu pour les spécialistes.'
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogTitle: () =>
     isPlatformDomain.value
-      ? 'Keova \u2014 L\u2019espace pro pour sp\u00e9cialistes m\u00e9nopause et bien-\u00eatre | Beta priv\u00e9e'
+      ? 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   ogDescription: () =>
     isPlatformDomain.value
-      ? 'Beta priv\u00e9e \u2014 rejoignez la liste d\u2019attente. Keova simplifie les accompagnements m\u00e9nopause.'
+      ? 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause.'
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogImage: () => !isPlatformDomain.value ? seo.value?.ogImageUrl ?? undefined : undefined,
   ogType: 'website',
@@ -82,7 +82,6 @@ useSeoMeta({
 })
 
 useHead({
-  titleTemplate: (title?: string) => isPlatformDomain.value ? (title || '') : (title || ''),
   link: [{
     rel: 'canonical',
     href: () => {
