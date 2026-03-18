@@ -280,7 +280,7 @@ async function handleSubmit() {
     <!-- Submit — branded CTA -->
     <button
       type="submit"
-      :disabled="isSubmitting"
+      :disabled="!canSubmit || isSubmitting"
       class="cta-submit group relative mt-1 w-full overflow-hidden rounded-full py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl disabled:pointer-events-none disabled:opacity-60"
     >
       <span class="cta-submit-bg absolute inset-0" />
