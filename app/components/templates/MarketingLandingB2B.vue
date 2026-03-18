@@ -685,97 +685,30 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== WAITLIST MODAL ====================== -->
-    <Teleport to="body">
-      <Transition name="modal">
-        <div
-          v-if="isWaitlistModalOpen"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4"
-        >
-          <!-- Backdrop -->
-          <div
-            class="absolute inset-0 bg-[#221d28]/60 backdrop-blur-sm"
-            @click="isWaitlistModalOpen = false"
-          />
-
-          <!-- Modal card -->
-          <div class="modal-card relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl">
-            <!-- Gradient header band -->
-            <div class="relative overflow-hidden bg-gradient-to-r from-[#5b4b6e] via-[#7a6b8e] to-[#5b4b6e] px-8 pb-6 pt-8">
-              <div
-                class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#d4956a] opacity-20 blur-[40px]"
-                aria-hidden="true"
-              />
-              <button
-                class="absolute right-4 top-4 grid size-8 place-items-center rounded-full text-white/70 transition-all duration-200 hover:bg-white/10 hover:text-white"
-                @click="isWaitlistModalOpen = false"
-              >
-                <UIcon
-                  name="i-lucide-x"
-                  class="size-5"
-                />
-              </button>
-              <h3 class="font-serif text-2xl text-white">
-                Rejoindre la beta
-                <span class="bg-gradient-to-r from-[#f0b48f] to-[#e89560] bg-clip-text text-transparent">Keova</span>
-              </h3>
-              <p class="mt-1 text-sm text-[#d7cfdf]">
-                Votre demande reste confidentielle. Aucun engagement.
-              </p>
-            </div>
-
-            <!-- Form body -->
-            <div class="px-8 py-6">
-              <WaitlistForm
-                mode="modal"
-                @submitted="isWaitlistModalOpen = false"
-              />
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <UModal
+      v-model:open="isWaitlistModalOpen"
+      title="Rejoindre la beta Keova"
+      description="Votre demande reste confidentielle. Aucun engagement."
+      :ui="{
+        content: 'rounded-2xl border border-[#ebe7ef] bg-white shadow-xl max-w-lg',
+        header: 'px-8 pt-8 pb-4',
+        body: 'px-8 pb-8',
+        title: 'font-serif text-2xl text-[#3d3250]',
+        description: 'text-sm text-[#857d8c]'
+      }"
+      :close="{ class: 'rounded-full' }"
+    >
+      <template #body>
+        <WaitlistForm
+          mode="modal"
+          @submitted="isWaitlistModalOpen = false"
+        />
+      </template>
+    </UModal>
   </div>
 </template>
 
 <style scoped>
-/* =================================================================================================
- * MODAL TRANSITIONS
- * ================================================================================================= */
-
-.modal-enter-active {
-  transition: opacity 0.3s ease;
-}
-
-.modal-enter-active .modal-card {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-}
-
-.modal-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.modal-leave-active .modal-card {
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.modal-enter-from {
-  opacity: 0;
-}
-
-.modal-enter-from .modal-card {
-  opacity: 0;
-  transform: translateY(24px) scale(0.96);
-}
-
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-leave-to .modal-card {
-  opacity: 0;
-  transform: translateY(12px) scale(0.98);
-}
-
 /* =================================================================================================
  * ANIMATIONS
  * ================================================================================================= */

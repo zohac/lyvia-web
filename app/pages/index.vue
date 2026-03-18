@@ -62,7 +62,7 @@ const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim
 useSeoMeta({
   title: () =>
     isPlatformDomain.value
-      ? 'Keova \u2014 Espace pro sp\u00e9cialistes m\u00e9nopause | Beta priv\u00e9e'
+      ? 'Keova \u2014 L\u2019espace pro pour sp\u00e9cialistes m\u00e9nopause et bien-\u00eatre | Beta priv\u00e9e'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   description: () =>
     isPlatformDomain.value
@@ -70,7 +70,7 @@ useSeoMeta({
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogTitle: () =>
     isPlatformDomain.value
-      ? 'Keova \u2014 L\u2019espace pro con\u00e7u pour les sp\u00e9cialistes m\u00e9nopause'
+      ? 'Keova \u2014 L\u2019espace pro pour sp\u00e9cialistes m\u00e9nopause et bien-\u00eatre | Beta priv\u00e9e'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   ogDescription: () =>
     isPlatformDomain.value
@@ -82,7 +82,7 @@ useSeoMeta({
 })
 
 useHead({
-  titleTemplate: (title?: string) => isPlatformDomain.value ? `${title} | Keova` : (title || ''),
+  titleTemplate: (title?: string) => isPlatformDomain.value ? (title || '') : (title || ''),
   link: [{
     rel: 'canonical',
     href: () => {

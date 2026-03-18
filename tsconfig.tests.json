@@ -17,6 +17,7 @@
     "app/features/analytics/helpers/**/*.ts",
     "app/features/analytics/api/**/*.ts",
     "app/features/seo/schema-helpers.ts",
+    "app/features/waitlist/**/*.ts",
     "app/features/seo/api/public-provider-profile.contract.ts",
     "shared/utils/**/*.ts",
     "app/utils/**/*.ts",
