@@ -60,23 +60,29 @@ const isDark = computed(() => props.mode === 'inline')
 
 // --- Nuxt UI :ui overrides for dark variant (inline on dark bg) ---
 const darkInputUi = {
-  base: 'rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+  base: 'w-full rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
 }
-const lightUi = { base: 'rounded-xl' }
+const lightUi = { base: 'w-full rounded-xl' }
 const inputUi = computed(() => isDark.value ? darkInputUi : lightUi)
 
 const darkSelectUi = {
-  base: 'rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+  base: 'w-full rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
 }
 const selectUi = computed(() => isDark.value ? darkSelectUi : lightUi)
 
 const darkTextareaUi = {
-  base: 'rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm resize-none focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+  base: 'w-full rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm resize-none focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
 }
 const textareaUi = computed(() => isDark.value ? darkTextareaUi : lightUi)
 
-const darkFormFieldUi = { label: 'text-[#f0edf3] font-semibold', error: 'text-[#fca5a5]', hint: 'text-[#9685ab]' }
-const formFieldUi = computed(() => isDark.value ? darkFormFieldUi : {})
+const darkFormFieldUi = {
+  root: 'w-full',
+  label: 'text-[#f0edf3] font-semibold',
+  error: 'text-[#fca5a5]',
+  hint: 'text-[#9685ab]'
+}
+const lightFormFieldUi = { root: 'w-full' }
+const formFieldUi = computed(() => isDark.value ? darkFormFieldUi : lightFormFieldUi)
 
 // --- Soumission ---
 async function handleSubmit() {
@@ -150,22 +156,22 @@ async function handleSubmit() {
     <p class="mt-6 text-sm text-[#9685ab]">
       En attendant, découvrez comment Sophie Jouan utilise Keova
       <a
-        href="https://sophie-jouan.fr"
+        href="https://sophiejouan.fr"
         target="_blank"
         rel="noopener"
         class="font-medium text-[#f0b48f] underline-offset-2 hover:underline"
-      >sophie-jouan.fr &rarr;</a>
+      >sophiejouan.fr &rarr;</a>
     </p>
   </div>
 
   <!-- Form -->
   <form
     v-else
-    class="flex flex-col gap-5"
+    class="flex w-full flex-col gap-5"
     @submit.prevent="handleSubmit"
   >
     <!-- Row: Prénom + Nom -->
-    <div class="grid gap-4 sm:grid-cols-2">
+    <div class="grid w-full gap-4 sm:grid-cols-2">
       <UFormField
         label="Prénom"
         :error="formErrors.firstName"
@@ -178,6 +184,7 @@ async function handleSubmit() {
           :maxlength="50"
           :disabled="isSubmitting"
           :ui="inputUi"
+          class="w-full"
         />
       </UFormField>
 
@@ -193,6 +200,7 @@ async function handleSubmit() {
           :maxlength="50"
           :disabled="isSubmitting"
           :ui="inputUi"
+          class="w-full"
         />
       </UFormField>
     </div>
@@ -210,6 +218,7 @@ async function handleSubmit() {
         placeholder="sophie@moncoaching.fr"
         :disabled="isSubmitting"
         :ui="inputUi"
+        class="w-full"
       />
     </UFormField>
 
@@ -227,6 +236,7 @@ async function handleSubmit() {
         placeholder="Choisir..."
         :disabled="isSubmitting"
         :ui="selectUi"
+        class="w-full"
       />
     </UFormField>
 
@@ -243,6 +253,7 @@ async function handleSubmit() {
         :maxlength="500"
         :disabled="isSubmitting"
         :ui="textareaUi"
+        class="w-full"
       />
     </UFormField>
 
@@ -270,7 +281,7 @@ async function handleSubmit() {
 
     <!-- Trust copy -->
     <p :class="['text-center text-xs', isDark ? 'text-[#9685ab]' : 'text-[#857d8c]']">
-      Jamais de spam. Donnees hebergees en France. Conforme RGPD.
+      Jamais de spam. Données hébergées en France. Conforme RGPD.
     </p>
   </form>
 </template>

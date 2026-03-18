@@ -626,7 +626,7 @@ function scrollTo(id: string) {
 
               <!-- Lien -->
               <a
-                href="https://sophie-jouan.fr"
+                href="https://sophiejouan.fr"
                 target="_blank"
                 rel="noopener"
                 class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:text-[#c47a4a]"
