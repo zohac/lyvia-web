@@ -14,7 +14,7 @@ const toast = useToast()
 const route = useRoute()
 const router = useRouter()
 
-const stripeReturnCookie = useCookie<string | null>('kaora_stripe_return', {
+const stripeReturnCookie = useCookie<string | null>('keova_stripe_return', {
   default: () => null,
   sameSite: 'lax',
   maxAge: 10 * 60,
@@ -102,13 +102,13 @@ watch(
 function clearStripeReturnFlag() {
   stripeReturnCookie.value = null
   if (import.meta.client) {
-    window.sessionStorage.removeItem('kaora_stripe_return')
+    window.sessionStorage.removeItem('keova_stripe_return')
   }
 }
 
 async function handleStripeReturnIfNeeded() {
   const hasSessionFlag = import.meta.client
-    ? window.sessionStorage.getItem('kaora_stripe_return') === '1'
+    ? window.sessionStorage.getItem('keova_stripe_return') === '1'
     : false
 
   const shouldHandle = Boolean(stripeReturnCookie.value) || hasStripeReturnQuery.value || hasSessionFlag
@@ -163,7 +163,7 @@ async function onConnect() {
   finance.clearActionError()
   stripeReturnCookie.value = '1'
   if (import.meta.client) {
-    window.sessionStorage.setItem('kaora_stripe_return', '1')
+    window.sessionStorage.setItem('keova_stripe_return', '1')
   }
   await finance.startConnect()
 }

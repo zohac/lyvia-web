@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProviderAppointmentListItem, ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
+import type { CreateProviderManualAppointmentRequest, ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
 import type { ConsultationPricePlan } from '../../features/consultation/api/consultation.contract'
 import { minutesToHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
 import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
@@ -46,19 +46,9 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (event: 'update:open', value: boolean): void
-  (event: 'submit', payload: { body: ProviderCalendarCreateAppointmentBody }): void
+  (event: 'submit', payload: { body: CreateProviderManualAppointmentRequest }): void
   (event: 'reset'): void
 }>()
-
-type ProviderCalendarCreateAppointmentBody = {
-  type: ProviderCalendarAppointmentType
-  startAt: string
-  clientProfileId: ProviderAppointmentListItem['clientProfileId']
-  notes?: string | null
-} & (
-  | { type: 'discovery' }
-  | { type: 'consultation', pricePlanId: string, meetingLink?: string | null }
-)
 
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
 const isFullScreen = computed(() => !isDesktop.value)
@@ -71,6 +61,13 @@ const clientProfileId = ref<string>('')
 const selectedKnownClientId = ref<string>('')
 const notes = ref<string>('')
 const meetingLink = ref<string>('')
+const freeFollowupDurationMinutes = ref<number>(30)
+
+/** Duration options 5-120, step 5 (AC-3 spec). */
+const durationOptions = Array.from({ length: 24 }, (_, i) => {
+  const v = (i + 1) * 5
+  return { label: `${v} min`, value: v }
+})
 
 /**
  * Filtre les clients selon le type de RDV sélectionné (modèle 4-stages).
@@ -79,7 +76,7 @@ const meetingLink = ref<string>('')
  * - stage='lead' ou 'discovery' (discovery annulé) sans discovery actif (scheduled/completed)
  * - Exclut les clients avec un discovery complété (bilan fait) même s'ils sont lead
  *
- * Consultation :
+ * Consultation / Free followup :
  * - stage='active' : client converti, accompagnement en cours
  */
 const inferredClients = computed(() => {
@@ -89,15 +86,16 @@ const inferredClients = computed(() => {
       (c.stage === 'lead' || c.stage === 'discovery') && !c.hasActiveDiscovery
     )
   }
-  // Consultation : uniquement les clientes actives
+  // Consultation + free_followup : uniquement les clientes actives
   return props.knownClients.filter(c => c.stage === 'active')
 })
 
 /**
- * Durée calculée depuis le price plan sélectionné (consultation) ou fixe (discovery).
+ * Durée calculée depuis le price plan sélectionné (consultation), le sélecteur (free_followup), ou fixe (discovery).
  */
 const computedDurationMinutes = computed<number>(() => {
   if (type.value === 'discovery') return 15
+  if (type.value === 'free_followup') return freeFollowupDurationMinutes.value
   const selectedPlan = props.consultationPricePlans.find(plan => plan.id === pricePlanId.value)
   return selectedPlan?.durationMinutes ?? 60
 })
@@ -111,11 +109,16 @@ const startAt = computed(() => {
   return iso
 })
 
+const MEETING_LINK_REGEX = /^https?:\/\//
+
 const localValidationError = computed(() => {
   if (!startAt.value) return 'Date ou heure invalide.'
   if (!clientProfileId.value.trim()) return 'Sélectionnez une cliente.'
   if (type.value === 'consultation' && !pricePlanId.value) {
     return 'Sélectionnez un tarif de consultation.'
+  }
+  if (meetingLink.value.trim() && !MEETING_LINK_REGEX.test(meetingLink.value.trim())) {
+    return 'Le lien visio doit commencer par http:// ou https://.'
   }
   return null
 })
@@ -169,6 +172,9 @@ watch(
     if (next === 'discovery') {
       pricePlanId.value = null
       meetingLink.value = ''
+    } else if (next === 'free_followup') {
+      pricePlanId.value = null
+      freeFollowupDurationMinutes.value = 30
     }
 
     // Reset client selection when type changes (filtered list changes)
@@ -203,6 +209,15 @@ function submit() {
       body: {
         ...baseBody,
         type: 'discovery'
+      }
+    })
+  } else if (type.value === 'free_followup') {
+    emit('submit', {
+      body: {
+        ...baseBody,
+        type: 'free_followup',
+        durationMinutes: freeFollowupDurationMinutes.value,
+        meetingLink: meetingLink.value.trim() || null
       }
     })
   } else {
@@ -259,7 +274,8 @@ function submit() {
               v-model="type"
               :items="[
                 { label: 'Consultation', value: 'consultation' },
-                { label: 'Discovery', value: 'discovery' }
+                { label: 'Discovery', value: 'discovery' },
+                { label: 'Suivi gratuit', value: 'free_followup' }
               ]"
               :disabled="loading"
             />
@@ -309,12 +325,25 @@ function submit() {
             :error="fieldErrors?.pricePlanId"
           />
 
-          <!-- Durée (affichage read-only) -->
+          <!-- Durée — sélecteur pour free_followup, read-only sinon -->
           <div class="grid gap-2">
             <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
               Durée
             </label>
-            <div class="flex items-center gap-3">
+            <div
+              v-if="type === 'free_followup'"
+              class="flex items-center gap-3"
+            >
+              <USelect
+                v-model="freeFollowupDurationMinutes"
+                :items="durationOptions"
+                :disabled="loading"
+              />
+            </div>
+            <div
+              v-else
+              class="flex items-center gap-3"
+            >
               <span
                 class="inline-flex items-center rounded-full bg-stone-100 px-4 py-2 text-sm font-bold text-stone-900 ring-1 ring-stone-200"
               >
@@ -363,10 +392,10 @@ function submit() {
               Aucun client éligible pour un discovery. Seuls les leads ou clients en découverte (discovery annulé) sans discovery actif peuvent en obtenir un nouveau.
             </p>
             <p
-              v-else-if="inferredClients.length === 0 && type === 'consultation'"
+              v-else-if="inferredClients.length === 0 && (type === 'consultation' || type === 'free_followup')"
               class="text-xs text-amber-600"
             >
-              Aucune cliente active éligible pour une consultation. Convertissez d'abord un lead après son appel découverte.
+              Aucune cliente active éligible. Convertissez d'abord un lead après son appel découverte.
             </p>
             <p
               v-if="fieldErrors?.clientProfileId"
@@ -394,9 +423,9 @@ function submit() {
             </p>
           </div>
 
-          <!-- Lien visio (consultation uniquement) -->
+          <!-- Lien visio (consultation + suivi gratuit) -->
           <div
-            v-if="type === 'consultation'"
+            v-if="type === 'consultation' || type === 'free_followup'"
             class="grid gap-2"
           >
             <label class="text-xs font-bold uppercase tracking-wider text-stone-500">

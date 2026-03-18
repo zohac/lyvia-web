@@ -3,6 +3,7 @@ import type { ProviderAppointmentListItem } from '../../features/calendar/api/ca
 import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationDrawerSummary, formatCurrency, getConsultationPricePlan } from '../../features/calendar/presentation/appointment-pricing'
+import { getAppointmentTypeLabel } from '../../features/clients/domain/clients'
 import { useStripeLinks } from '../../features/stripe/useStripeLinks'
 
 const props = withDefaults(
@@ -271,7 +272,7 @@ async function copyMeetingLink() {
               class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold"
               :class="accentClasses(appointment)"
             >
-              {{ appointment.type === 'consultation' ? 'Consultation' : 'Discovery' }}
+              {{ getAppointmentTypeLabel(appointment.type) }}
             </span>
 
             <span
@@ -396,9 +397,9 @@ async function copyMeetingLink() {
           </div>
         </section>
 
-        <!-- Lien visio (consultation uniquement) -->
+        <!-- Lien visio (consultation + suivi gratuit) -->
         <section
-          v-if="appointment.type === 'consultation' && appointment.meetingLink"
+          v-if="(appointment.type === 'consultation' || appointment.type === 'free_followup') && appointment.meetingLink"
           class="rounded-lg border border-stone-200 bg-stone-50 p-5"
         >
           <div class="flex items-center justify-between gap-4">
@@ -411,14 +412,14 @@ async function copyMeetingLink() {
             <Icon
               name="lucide:video"
               size="18"
-              class="shrink-0 text-kaora-600"
+              class="shrink-0 text-keova-600"
               aria-hidden="true"
             />
             <a
               :href="appointment.meetingLink"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-sm font-medium text-kaora-600 hover:underline"
+              class="text-sm font-medium text-keova-600 hover:underline"
             >
               Rejoindre la visio
             </a>

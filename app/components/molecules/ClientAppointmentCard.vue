@@ -109,9 +109,12 @@ const emit = defineEmits<{
 }>()
 
 // Type labels
-const typeLabel = computed(() =>
-  props.appointment.type === 'discovery' ? 'Appel découverte' : 'Consultation'
-)
+const TYPE_LABELS: Record<string, string> = {
+  discovery: 'Appel découverte',
+  consultation: 'Consultation',
+  free_followup: 'Suivi gratuit'
+}
+const typeLabel = computed(() => TYPE_LABELS[props.appointment.type] ?? 'Rendez-vous')
 
 // Formatted date
 const formattedDate = computed(() => {
@@ -137,6 +140,9 @@ const statusBadge = computed(() => {
       if (props.appointment.paymentStatus === 'unpaid') {
         return { label: 'À payer', color: 'warning' as const }
       }
+      if (props.appointment.paymentStatus === 'covered_by_program') {
+        return { label: 'Couvert', color: 'success' as const }
+      }
       return { label: 'À venir', color: 'primary' as const }
     case 'completed':
       return { label: 'Terminé', color: 'success' as const }
@@ -151,7 +157,9 @@ const statusBadge = computed(() => {
 const iconName = computed(() => {
   if (props.appointment.status === 'cancelled') return 'lucide:calendar-x'
   if (props.appointment.status === 'completed') return 'lucide:check-circle'
-  return props.appointment.type === 'discovery' ? 'lucide:phone' : 'lucide:calendar'
+  if (props.appointment.type === 'discovery') return 'lucide:phone'
+  if (props.appointment.type === 'free_followup') return 'lucide:heart-handshake'
+  return 'lucide:calendar'
 })
 
 // Icon styling

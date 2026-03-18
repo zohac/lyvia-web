@@ -1,5 +1,5 @@
 /**
- * Kaora Design System — Alert / Toast Component Configuration
+ * Keova Design System — Alert / Toast Component Configuration
  *
  * Aligned with design system spec:
  * @see docs/03_uiux/kaora/design system/Kaora Design System — Notifications - Toasts.md
@@ -7,7 +7,7 @@
  *
  * Intent system:
  * - Success: Action réussie (sage green)
- * - Info: Information système (kaora accent)
+ * - Info: Information système (keova accent)
  * - Warning: Attention préventive (amber)
  * - Error: Échec d'action (red, persistant)
  *
@@ -15,7 +15,7 @@
  * @author Remy Chopoya
  */
 
-export const kaoraAlert = {
+export const keovaAlert = {
   slots: {
     // =========================================================================
     // ROOT (.toast from toasts.html line 49-61)
@@ -102,7 +102,7 @@ export const kaoraAlert = {
     // COLOR VARIANTS (Intent system)
     // =========================================================================
     color: {
-      // Primary (Kaora accent)
+      // Primary (Keova accent)
       primary: '',
       // Secondary
       secondary: '',
@@ -194,7 +194,7 @@ export const kaoraAlert = {
 
     // =========================================================================
     // INFO VARIANTS (.toast--info from toasts.html)
-    // Icon: rgba(212, 184, 160, 0.35) bg (Kaora accent), primary text
+    // Icon: rgba(212, 184, 160, 0.35) bg (Keova accent), primary text
     // =========================================================================
     {
       color: 'info',
@@ -311,7 +311,7 @@ export const kaoraAlert = {
     },
 
     // =========================================================================
-    // PRIMARY VARIANTS (Kaora brand)
+    // PRIMARY VARIANTS (Keova brand)
     // =========================================================================
     {
       color: 'primary',

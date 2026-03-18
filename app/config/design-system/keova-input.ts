@@ -1,9 +1,9 @@
 /**
- * Kaora Design System — Input Component Configuration
+ * Keova Design System — Input Component Configuration
  *
- * This file configures the Nuxt UI v4 UInput component with Kaora's organic luxury
+ * This file configures the Nuxt UI v4 UInput component with Keova's organic luxury
  * aesthetic. The configuration uses Tailwind Variants to define slots, variants,
- * and compound variants that transform the default input into Kaora-styled fields.
+ * and compound variants that transform the default input into Keova-styled fields.
  *
  * ╔══════════════════════════════════════════════════════════════════════════════╗
  * ║  NUXT UI v4 INPUT ARCHITECTURE                                               ║
@@ -26,7 +26,7 @@
  * @author Remy Chopoya
  */
 
-export const kaoraInput = {
+export const keovaInput = {
   /**
    * ═══════════════════════════════════════════════════════════════════════════
    * SLOTS — Target specific parts of the Input component
@@ -55,18 +55,18 @@ export const kaoraInput = {
      * HTML: <input class="w-full rounded-full ..." />
      *
      * Design notes:
-     * - rounded-full: Kaora signature pill shape
+     * - rounded-full: Keova signature pill shape
      * - border-stone-900/10: Subtle warm border
      * - bg-[--color-surface-card]: Organic cream background
      * - placeholder text uses muted brand color
-     * - Focus ring uses warm amber tones (Kaora accent)
+     * - Focus ring uses warm amber tones (Keova accent)
      *
      * @see design-system.css .filter-trigger (lines 1166-1193)
      */
     base: [
       // Layout & sizing
       'w-full',
-      // Shape — Kaora signature pill/rounded form
+      // Shape — Keova signature pill/rounded form
       'rounded-full',
       // Border — Subtle warm stone border
       'border border-stone-900/10',
@@ -252,7 +252,7 @@ export const kaoraInput = {
      */
     variant: {
       /**
-       * outline: Default Kaora input style
+       * outline: Default Keova input style
        * - Card surface background
        * - Subtle stone border
        * - Shadow elevation
@@ -382,7 +382,7 @@ export const kaoraInput = {
     /**
      * Outline variant hover/focus states
      * - Elevates shadow on hover
-     * - Warm amber focus ring (Kaora signature)
+     * - Warm amber focus ring (Keova signature)
      */
     {
       variant: 'outline',
@@ -520,7 +520,7 @@ export const kaoraInput = {
     size: 'md',
     /** Default color: primary — Warm amber focus ring */
     color: 'primary',
-    /** Default variant: outline — Standard Kaora input appearance */
+    /** Default variant: outline — Standard Keova input appearance */
     variant: 'outline'
   }
 }

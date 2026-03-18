@@ -1,56 +1,56 @@
 export default defineAppConfig({
   ui: {
     // =========================================================================
-    // COLORS — Kaora Design System (Semantic Mapping)
+    // COLORS — Keova Design System (Semantic Mapping)
     // =========================================================================
     // Aligned with design system spec:
     //   - primary: stone (CTA → stone-900 background + white text)
-    //   - secondary: kaora (accents/links → kaora-700 text/border)
+    //   - secondary: keova (accents/links → keova-700 text/border)
     //
-    // @see app/config/design-system/kaora-colors.ts
+    // @see app/config/design-system/keova-colors.ts
     // @see docs/03_uiux/kaora/COLOR_SYSTEM.md
     // =========================================================================
-    // colors: kaoraColors,
+    // colors: keovaColors,
 
     // =========================================================================
     // BUTTON — Organic Luxury Theme
     // =========================================================================
-    // button: kaoraButton,
+    // button: keovaButton,
 
     // =========================================================================
     // BADGE — Organic Luxury Theme
     // =========================================================================
-    // badge: kaoraBadge,
+    // badge: keovaBadge,
 
     // =========================================================================
     // CARD — Organic Luxury Theme
     // =========================================================================
 
-    // link: kaoraLink,
+    // link: keovaLink,
 
     // =========================================================================
     // CARD — Organic Luxury Theme
     // =========================================================================
-    // card: kaoraCard,
+    // card: keovaCard,
 
     // =========================================================================
     // INPUT — Organic Luxury Theme
     // =========================================================================
-    // input: kaoraInput,
+    // input: keovaInput,
 
     // =========================================================================
     // ALERT — Organic Luxury Theme
     // =========================================================================
-    // alert: kaoraAlert,
+    // alert: keovaAlert,
 
     // =========================================================================
     // SELECT — Organic Luxury Theme
     // =========================================================================
-    // select: kaoraSelect,
+    // select: keovaSelect,
 
     // =========================================================================
     // Tabs — Organic Luxury Theme
     // =========================================================================
-    // tabs: kaoraTabs
+    // tabs: keovaTabs
   }
 })

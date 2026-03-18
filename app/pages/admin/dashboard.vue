@@ -9,7 +9,7 @@
           Administration
         </h1>
         <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Supervisez la plateforme Kaora et les opérations.
+          Supervisez la plateforme Keova et les opérations.
         </p>
       </div>
     </section>

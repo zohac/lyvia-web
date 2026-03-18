@@ -15,7 +15,7 @@ const currentYear = new Date().getFullYear()
 
       <footer class="flex flex-col items-center gap-4 pt-10 text-center text-xs text-[color:var(--color-brand-muted)]">
         <LegalFooterLinks />
-        <p>© {{ currentYear }} Kaora</p>
+        <p>© {{ currentYear }} Keova</p>
       </footer>
     </div>
   </div>

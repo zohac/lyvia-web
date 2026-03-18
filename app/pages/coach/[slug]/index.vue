@@ -3,6 +3,10 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
+import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
+import { resolveOgImageStrategy } from '~/features/seo/og-image-helpers'
+import { buildCoachBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
+import { getDomainContext } from '#shared/utils/domain-context'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
@@ -46,32 +50,68 @@ if (!tenant.value) {
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_profile', providerId)
 
+// Schema.org: Person + ProfessionalService + BreadcrumbList (AC-1)
+await useCoachSchemaOrg(slug.value)
+
 usePageTracking(providerId)
+
+// OG image: Satori generation when no custom image (Story U1.3)
+// Specialties sourced from the enriched profile fetched by useCoachSchemaOrg
+const requestUrl = useRequestURL()
+const runtimeConfig = useRuntimeConfig()
+const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
+const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
+
+const { data: coachProfile } = useNuxtData<{ specialties?: string[], displayName?: string }>(`public-provider-profile:${slug.value}`)
+
+const ogStrategy = computed(() => resolveOgImageStrategy({
+  customOgImageUrl: seo.value?.ogImageUrl,
+  displayName: tenant.value?.brand.displayName ?? 'Coach',
+  specialties: coachProfile.value?.specialties ?? [],
+  domain: requestUrl.host,
+  isPlatform
+}))
+
+// OG image: Satori generation via CoachProfile component (Story U1.3)
+// Custom OG from seo_metadata takes priority (handled in useSeoMeta ogImage below)
+if (ogStrategy.value.kind === 'satori') {
+  defineOgImage({
+    ...ogStrategy.value.props
+  } as Record<string, unknown>)
+}
 
 const requiredTenant = computed(() => tenant.value as PublicTenantResponse)
 
 const ctaTo = computed(() => `/coach/${tenant.value?.slug ?? slug.value}/onboarding/discovery`)
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
+// U1.4b: Visible breadcrumbs — use coachProfile.displayName (same source as Schema.org BreadcrumbList)
+// to guarantee AC-6 synchronization between UI breadcrumbs and JSON-LD
+const breadcrumbDisplayName = computed(() => coachProfile.value?.displayName || brandName.value)
+const breadcrumbItems = computed(() => buildCoachBreadcrumbs(breadcrumbDisplayName.value, isPlatform))
+
+const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}`
+
 useSeoMeta({
   title: () => seo.value?.title ?? `${brandName.value} — Coach`,
   description: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
   ogTitle: () => seo.value?.title ?? `${brandName.value} — Coach`,
   ogDescription: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
-  ogImage: () => seo.value?.ogImageUrl ?? undefined,
+  ogImage: () => ogStrategy.value.kind === 'custom' ? ogStrategy.value.url : undefined,
+  ogUrl: canonicalHref,
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: () => resolveCanonical(seo.value?.canonicalUrl, origin) }]
+  link: [{ rel: 'canonical', href: canonicalHref }]
 })
 
 watchEffect(() => {
   setPublicHeader({
     variant: 'coach',
     layoutStyle: 'dock',
-    brandLabel: 'Kaora',
+    brandLabel: 'Keova',
     brandTo: '/',
     showBrandIcon: true,
     navLinks: [
@@ -92,9 +132,11 @@ watchEffect(() => {
     v-if="tenant && !tenant.isActive"
     :coach-name="tenant.brand.displayName"
   />
-  <CoachPublicPageTemplate
-    v-else
-    :tenant="requiredTenant"
-    :cta-to="ctaTo"
-  />
+  <div v-else>
+    <AtomsBreadcrumbNav :items="breadcrumbItems" />
+    <CoachPublicPageTemplate
+      :tenant="requiredTenant"
+      :cta-to="ctaTo"
+    />
+  </div>
 </template>

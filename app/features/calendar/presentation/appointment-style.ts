@@ -2,6 +2,7 @@ import type { ProviderAppointmentListItem } from '../api/calendar.contract'
 
 export function getAppointmentAccentClass(appointment: Pick<ProviderAppointmentListItem, 'type'>): string {
   if (appointment.type === 'consultation') return 'bg-crepuscule-500 text-white'
+  if (appointment.type === 'free_followup') return 'bg-emerald-500 text-white'
   return 'bg-amber-500 text-amber-900'
 }
 

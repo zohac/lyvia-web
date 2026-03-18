@@ -6,7 +6,7 @@ const headerState = usePublicHeaderState()
 const currentYear = new Date().getFullYear()
 
 const footerLine = computed(() => {
-  if (headerState.value.variant === 'coach') return 'Propulsé par Kaora'
+  if (headerState.value.variant === 'coach') return 'Propulsé par Keova'
   if (headerState.value.variant === 'marketing') return 'Fait avec soin pour les pros du soin.'
   return null
 })
@@ -16,7 +16,7 @@ const footerLine = computed(() => {
   <footer class="border-t border-[color:var(--color-brand-subtle)]">
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-10 text-center text-sm text-[color:var(--color-brand-muted)] sm:px-6">
       <p class="font-semibold uppercase tracking-widest">
-        © {{ currentYear }} {{ headerState.variant === 'white-label' ? headerState.brandLabel : 'Kaora' }}
+        © {{ currentYear }} {{ headerState.variant === 'white-label' ? headerState.brandLabel : 'Keova' }}
       </p>
       <p v-if="footerLine">
         {{ footerLine }}

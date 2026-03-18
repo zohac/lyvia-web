@@ -7,7 +7,7 @@
 /**
  * Appointment type.
  */
-export type ClientAppointmentType = 'discovery' | 'consultation'
+export type ClientAppointmentType = 'discovery' | 'consultation' | 'free_followup'
 
 /**
  * Appointment status.
@@ -17,7 +17,7 @@ export type ClientAppointmentStatus = 'scheduled' | 'cancelled' | 'completed'
 /**
  * Payment status.
  */
-export type ClientAppointmentPaymentStatus = 'not_required' | 'unpaid' | 'paid'
+export type ClientAppointmentPaymentStatus = 'not_required' | 'unpaid' | 'paid' | 'covered_by_program'
 
 /**
  * Cancellation reason.

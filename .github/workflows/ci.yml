@@ -50,3 +50,6 @@ jobs:
         run: pnpm run contract:check
         env:
           LYVIA_API_PATH: ${{ github.workspace }}/lyvia-api
+
+      - name: Build (validates Nitro bundling & import resolution)
+        run: pnpm build

@@ -1,4 +1,4 @@
-export const kaoraBadge = {
+export const keovaBadge = {
   slots: {
     base: 'font-medium inline-flex items-center',
     label: 'truncate',

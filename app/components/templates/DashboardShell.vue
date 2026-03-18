@@ -41,10 +41,10 @@ const currentUser = useCurrentUser()
 const isLoggingOut = ref(false)
 const isMobileNavOpen = ref(false)
 
-const useKaoraLogoImage = computed(() => props.brandLabel === 'Kaora')
+const useKeovaLogoImage = computed(() => props.brandLabel === 'Keova')
 
 // Collapsed state management with localStorage persistence
-const STORAGE_KEY = 'kaora-nav-collapsed'
+const STORAGE_KEY = 'keova-nav-collapsed'
 
 function getInitialCollapsedState(): Record<string, boolean> {
   if (import.meta.server) return {}
@@ -169,7 +169,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-[100svh] w-full bg-[color:var(--color-surface-page)] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[color:var(--color-kaora-50)]/55 via-[color:var(--color-surface-page)] to-[color:var(--color-surface-page)] selection:bg-[rgba(212,184,160,0.35)]">
+  <div class="flex h-[100svh] w-full bg-[color:var(--color-surface-page)] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[color:var(--color-keova-50)]/55 via-[color:var(--color-surface-page)] to-[color:var(--color-surface-page)] selection:bg-[rgba(212,184,160,0.35)]">
     <aside
       class="fixed left-0 top-0 z-30 hidden h-full w-72 flex-col border-r border-[rgba(231,229,228,0.5)] bg-white/60 backdrop-blur-xl md:flex"
       aria-label="Navigation principale"
@@ -180,9 +180,9 @@ watch(
           :aria-label="brandLabel"
           :to="brandTo"
         >
-          <template v-if="useKaoraLogoImage">
+          <template v-if="useKeovaLogoImage">
             <img
-              src="/images/kaora-logo.png"
+              src="/images/keova-logo.png"
               alt=""
               class="h-7 w-auto opacity-95"
               aria-hidden="true"
@@ -380,7 +380,7 @@ watch(
 
           <div class="hidden items-center text-sm font-semibold text-[color:var(--color-brand-muted)] md:flex">
             <span class="cursor-default">
-              Kaora
+              Keova
             </span>
             <UIcon
               name="lucide:chevron-right"
@@ -413,7 +413,7 @@ watch(
         <div class="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 text-center">
           <LegalFooterLinks />
           <p class="text-xs text-[color:var(--color-brand-muted)]">
-            © {{ new Date().getFullYear() }} Kaora
+            © {{ new Date().getFullYear() }} Keova
           </p>
         </div>
       </footer>
@@ -452,9 +452,9 @@ watch(
                 />
               </div>
 
-              <template v-if="useKaoraLogoImage">
+              <template v-if="useKeovaLogoImage">
                 <img
-                  src="/images/kaora-logo.png"
+                  src="/images/keova-logo.png"
                   alt=""
                   class="h-7 w-auto opacity-95"
                   aria-hidden="true"

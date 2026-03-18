@@ -6,16 +6,23 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
+    '@nuxt/image',
     '@nuxtjs/seo'
   ],
 
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://kaora.fr',
-    name: 'Kaora'
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.fr',
+    name: 'Keova'
   },
 
-  ogImage: { enabled: false },
-  schemaOrg: { enabled: false },
+  ogImage: {
+    enabled: true,
+    defaults: {
+      width: 1200,
+      height: 630
+    }
+  },
+  schemaOrg: { enabled: true },
   linkChecker: { enabled: false },
   robots: { enabled: false },
   sitemap: {
@@ -28,7 +35,7 @@ export default defineNuxtConfig({
     ]
   },
 
-  // Kaora Design System: Disable color mode entirely (light only)
+  // Keova Design System: Disable color mode entirely (light only)
   ui: {
     colorMode: false
   },
@@ -47,6 +54,14 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      meta: [
+        { property: 'og:locale', content: 'fr_FR' },
+        { property: 'og:site_name', content: 'Keova' },
+        { property: 'og:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.fr'}/images/og-default.png` },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:type', content: 'image/png' }
+      ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
@@ -66,10 +81,10 @@ export default defineNuxtConfig({
     apiBase: process.env.NUXT_API_BASE_URL || 'http://localhost:3001',
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE_URL || '/api',
-      // Platform domain for tenant resolution (e.g., 'kaora.app').
+      // Platform domain for tenant resolution (e.g., 'keova.fr').
       // Requests from this domain (or subdomains) show the marketing landing page.
       // Other domains are treated as white-label coach sites.
-      platformDomain: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN || 'kaora.app'
+      platformDomain: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN || 'keova.fr'
     }
   },
 
@@ -94,6 +109,10 @@ export default defineNuxtConfig({
     '/onboarding/discovery': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
     '/coach/**': {
       headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' }
+    },
+    // OG image generation route (Satori) — cache 1h, revalidate 24h (Story U1.3)
+    '/__og_image__/**': {
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
     },
     '/legal/**': {
       prerender: true,

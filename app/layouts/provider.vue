@@ -46,6 +46,12 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
+          label: 'Programmes',
+          to: '/provider/programs',
+          icon: 'lucide:package',
+          match: 'prefix' as const
+        },
+        {
           label: 'Finance',
           to: '/provider/finance',
           icon: 'lucide:wallet',
@@ -115,7 +121,7 @@ const navigation = computed(() => ({
 
 <template>
   <DashboardShell
-    brand-label="Kaora"
+    brand-label="Keova"
     brand-to="/provider/dashboard"
     sidebar-label="Coach"
     :navigation="navigation"

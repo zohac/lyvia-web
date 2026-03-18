@@ -1,5 +1,5 @@
 /**
- * Kaora Design System — Cards (Organic / Glass / Ops)
+ * Keova Design System — Cards (Organic / Glass / Ops)
  *
  * 3 familles de cards:
  * - organic: contenu principal (80% du produit)
@@ -23,7 +23,7 @@
  *
  * Shape: utiliser class="rounded-blob-a|b|c|d" sur le composant
  */
-export const kaoraCard = {
+export const keovaCard = {
   slots: {
     root: [
       'relative',

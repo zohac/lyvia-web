@@ -203,7 +203,8 @@ export function getClientDisplayAvatarClass(client: {
 
 const APPOINTMENT_TYPE_LABELS: Record<AppointmentType, string> = {
   discovery: 'Appel découverte',
-  consultation: 'Consultation'
+  consultation: 'Consultation',
+  free_followup: 'Suivi gratuit'
 }
 
 const APPOINTMENT_STATUS_META: Record<AppointmentStatus, { label: string, color: 'warning' | 'primary' | 'neutral' | 'success' | 'error' }> = {
@@ -215,7 +216,8 @@ const APPOINTMENT_STATUS_META: Record<AppointmentStatus, { label: string, color:
 const APPOINTMENT_PAYMENT_STATUS_LABELS: Record<AppointmentPaymentStatus, string> = {
   not_required: 'Non requis',
   unpaid: 'Non payé',
-  paid: 'Payé'
+  paid: 'Payé',
+  covered_by_program: 'Couvert par programme'
 }
 
 const CANCELLATION_REASON_LABELS: Record<CancellationReason, string> = {
@@ -402,7 +404,7 @@ export function getNotificationChannelLabel(channel: NotificationChannel): strin
  * Returns what has been sent and what is expected.
  */
 export function getAppointmentNotificationSummary(
-  appointment: { type: 'discovery' | 'consultation', status: 'scheduled' | 'cancelled' | 'completed', notifications?: NotificationLogItem[] }
+  appointment: { type: AppointmentType, status: 'scheduled' | 'cancelled' | 'completed', notifications?: NotificationLogItem[] }
 ): { confirmationSent: boolean, remindersSent: string[], allExpectedSent: boolean } {
   const notifications = appointment.notifications ?? []
   const sentChannels = new Set(notifications.filter(n => n.status === 'sent').map(n => n.channel))

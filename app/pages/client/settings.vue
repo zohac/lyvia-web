@@ -46,7 +46,7 @@ async function handleSmsToggle(value: boolean) {
     >
       <div class="flex flex-col items-center gap-4">
         <div class="relative h-10 w-10">
-          <div class="absolute inset-0 animate-ping rounded-full bg-[color:var(--color-kaora-200)] opacity-75" />
+          <div class="absolute inset-0 animate-ping rounded-full bg-[color:var(--color-keova-200)] opacity-75" />
           <div class="relative h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--color-brand-subtle)] border-t-[color:var(--color-brand-primary)]" />
         </div>
         <p class="text-sm text-[color:var(--color-brand-muted)]">

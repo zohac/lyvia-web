@@ -1,10 +1,10 @@
 /**
- * Kaora Design System — Tabs (Segmented / ButtonGroup)
+ * Keova Design System — Tabs (Segmented / ButtonGroup)
  *
  * Composant pour choix rapides, comparatifs et mutuellement exclusifs.
  *
  * Typologies (Nuxt UI supporte uniquement):
- * - pill (défaut): Style segmented Kaora — pill container + pill items
+ * - pill (défaut): Style segmented Keova — pill container + pill items
  * - link: Style underline classique pour navigation secondaire
  *
  * Tailles (accessibilité & Fitts Law):
@@ -17,13 +17,13 @@
  * - hover: fond clair subtil (rgba(255,255,255,0.85))
  * - active/selected: background white + shadow-card + border
  * - disabled: opacity 55%
- * - focus-visible: ring Kaora
+ * - focus-visible: ring Keova
  *
  * Règle UX:
  * - 2 à 5 options maximum
  * - Un Segmented change un état, il ne déclenche pas une action
  */
-export const kaoraTabs = {
+export const keovaTabs = {
   /**
    * SLOTS
    * -----
@@ -40,7 +40,7 @@ export const kaoraTabs = {
     /**
      * list: Conteneur des triggers (le "bar" de tabs)
      * C'est la zone visuelle qui regroupe tous les boutons de tab.
-     * En mode pill Kaora: fond stone-100, border, rounded-full, shadow.
+     * En mode pill Keova: fond stone-100, border, rounded-full, shadow.
      */
     list: [
       'relative', // Nécessaire pour positionner l'indicator en absolute
@@ -75,7 +75,7 @@ export const kaoraTabs = {
       'justify-center', // Centrage horizontal (utile en mode full-width)
       'min-w-0', // Permet au texte de tronquer si trop long
       'gap-2', // Espace entre icon/label/badge
-      'font-bold', // Kaora: texte bold pour les triggers
+      'font-bold', // Keova: texte bold pour les triggers
       'leading-none', // Pas d'interligne supplémentaire
       'border', // Border toujours présent (transparent par défaut)
       'border-transparent', // Invisible par défaut, visible quand actif
@@ -92,7 +92,7 @@ export const kaoraTabs = {
       'data-[state=active]:bg-[color:var(--color-surface-card)]', // Fond blanc
       'data-[state=active]:border-[color:var(--color-brand-subtle)]', // Border visible
       'data-[state=active]:text-[color:var(--color-brand-primary)]', // Texte noir
-      'data-[state=active]:shadow-[var(--shadow-card)]', // Shadow Kaora
+      'data-[state=active]:shadow-[var(--shadow-card)]', // Shadow Keova
 
       // === DISABLED STATE ===
       'disabled:opacity-55', // Opacité réduite
@@ -101,7 +101,7 @@ export const kaoraTabs = {
 
       // === FOCUS VISIBLE (accessibilité clavier) ===
       'focus-visible:outline-none', // Pas d'outline natif
-      'focus-visible:ring-4', // Ring Kaora
+      'focus-visible:ring-4', // Ring Keova
       'focus-visible:ring-[color:var(--color-field-ring)]', // Couleur du ring
 
       // === ACTIVE PRESS (feedback tactile) ===
@@ -139,7 +139,7 @@ export const kaoraTabs = {
      * trailingBadge: Badge affiché APRÈS le label
      * Défini via la prop `badge` sur chaque TabsItem.
      * Ex: { label: 'Messages', badge: '12' }
-     * Stylé selon Kaora: pill fond kaora translucide.
+     * Stylé selon Keova: pill fond keova translucide.
      */
     trailingBadge: [
       'shrink-0', // Ne rétrécit pas
@@ -152,7 +152,7 @@ export const kaoraTabs = {
       'rounded-full', // Forme pill
       'text-xs', // Petite taille de texte
       'font-bold', // Texte bold
-      // "bg-[rgba(212,184,160,0.35)]", // Fond kaora translucide (DS Kaora)
+      // "bg-[rgba(212,184,160,0.35)]", // Fond keova translucide (DS Keova)
       'text-[color:var(--color-brand-primary)]' // Texte noir
     ].join(' '),
 
@@ -179,7 +179,7 @@ export const kaoraTabs = {
   variants: {
     /**
      * color: Couleur sémantique (utilisé pour les compoundVariants)
-     * En Kaora, on utilise principalement "primary" (défaut).
+     * En Keova, on utilise principalement "primary" (défaut).
      * Les autres couleurs peuvent être utilisées pour des cas spéciaux.
      */
     color: {
@@ -194,12 +194,12 @@ export const kaoraTabs = {
 
     /**
      * variant: Style visuel du tabs
-     * - pill: Style segmented Kaora (défaut) — container arrondi avec fond
+     * - pill: Style segmented Keova (défaut) — container arrondi avec fond
      * - link: Style underline classique — ligne sous le tab actif
      */
     variant: {
       /**
-       * Pill: Style segmented Kaora (défaut)
+       * Pill: Style segmented Keova (défaut)
        * Container avec fond stone-100, border stone-200, shadow-card, rounded-full.
        * Les triggers grandissent pour remplir l'espace (grow).
        */
@@ -209,7 +209,7 @@ export const kaoraTabs = {
           'border', // Border visible
           'border-[color:var(--color-brand-subtle)]', // Border stone-200
           'rounded-full', // Container pill
-          'shadow-[var(--shadow-card)]' // Shadow Kaora
+          'shadow-[var(--shadow-card)]' // Shadow Keova
         ].join(' '),
         trigger: 'grow', // Chaque trigger occupe l'espace disponible équitablement
         indicator: 'rounded-full' // L'indicator est aussi pill
@@ -357,7 +357,7 @@ export const kaoraTabs = {
    */
   defaultVariants: {
     color: 'primary', // Couleur par défaut
-    variant: 'pill', // Style segmented Kaora par défaut
+    variant: 'pill', // Style segmented Keova par défaut
     size: 'md' // Taille 40px par défaut
   }
 }

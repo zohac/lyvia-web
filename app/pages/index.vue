@@ -5,6 +5,7 @@ import { apiFetch } from '~/services/api/apiFetch'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
 import { isPlatformHost } from '#shared/utils/platform-host'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
+import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
@@ -22,7 +23,7 @@ const origin = requestUrl.origin
 const hostname = computed(() => requestUrl.hostname.toLowerCase())
 
 const runtimeConfig = useRuntimeConfig()
-const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'kaora.app'
+const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
 
 const isPlatformDomain = computed(() => isPlatformHost(hostname.value, platformDomain))
 
@@ -47,6 +48,12 @@ if (!isPlatformDomain.value && !tenant.value) {
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_profile', providerId)
 
+// Schema.org: Person + ProfessionalService (AC-2: white-label coach, no breadcrumb)
+// Only inject on white-label — platform home is B2B marketing (global schema from app.vue)
+if (!isPlatformDomain.value && tenant.value?.slug) {
+  await useCoachSchemaOrg(tenant.value.slug)
+}
+
 // Tracking page views for white-label coach pages (custom domain)
 usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.value))
 
@@ -55,19 +62,19 @@ const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim
 useSeoMeta({
   title: () =>
     isPlatformDomain.value
-      ? 'Kaora - Simplifiez vos accompagnements ménopause | Agenda, paiements, suivi client'
+      ? 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   description: () =>
     isPlatformDomain.value
-      ? 'Kaora aide les coachs ménopause et praticiennes du bien-être à fluidifier leurs accompagnements : page publique, agenda, paiements et ressources client, dans une expérience calme. Essai gratuit, sans carte bancaire.'
+      ? 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause : agenda, paiements, suivi client dans un espace conçu pour les spécialistes.'
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogTitle: () =>
     isPlatformDomain.value
-      ? 'Kaora - L\u2019espace pro qui simplifie vos accompagnements ménopause'
+      ? 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   ogDescription: () =>
     isPlatformDomain.value
-      ? 'Page publique, agenda, paiements, ressources : Kaora structure votre pratique sans alourdir votre charge mentale. Essai gratuit, sans carte bancaire.'
+      ? 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause.'
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogImage: () => !isPlatformDomain.value ? seo.value?.ogImageUrl ?? undefined : undefined,
   ogType: 'website',
@@ -75,7 +82,6 @@ useSeoMeta({
 })
 
 useHead({
-  titleTemplate: (title?: string) => isPlatformDomain.value ? `${title} | Kaora` : (title || ''),
   link: [{
     rel: 'canonical',
     href: () => {
@@ -113,18 +119,18 @@ watchEffect(() => {
   setPublicHeader({
     variant: 'marketing',
     layoutStyle: 'dock',
-    brandLabel: 'Kaora',
+    brandLabel: 'Keova',
     brandTo: '/',
     showBrandIcon: true,
     navLinks: [
-      { label: 'L\'Essence', href: '#essence' },
-      { label: 'Atelier', href: '#atelier' },
-      { label: 'Parcours', href: '#parcours' }
+      { label: 'Pourquoi Keova', href: '#pourquoi' },
+      { label: 'L\'atelier', href: '#atelier' },
+      { label: 'Témoignage', href: '#temoignage' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',
-    ctaLabel: 'Essayer Kaora',
-    ctaTo: '/login'
+    ctaLabel: 'Rejoindre la beta',
+    ctaTo: '#waitlist'
   })
 })
 </script>

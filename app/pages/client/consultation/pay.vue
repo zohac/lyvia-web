@@ -75,7 +75,7 @@ async function handleResume() {
       class="pointer-events-none absolute inset-0 overflow-hidden"
       aria-hidden="true"
     >
-      <div class="absolute left-1/2 top-0 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-[color:var(--color-kaora-100)] to-transparent opacity-30 blur-[100px]" />
+      <div class="absolute left-1/2 top-0 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-[color:var(--color-keova-100)] to-transparent opacity-30 blur-[100px]" />
     </div>
 
     <!-- Loading State -->
@@ -272,7 +272,7 @@ async function handleResume() {
         <div class="grid gap-5">
           <!-- Label & Type -->
           <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-kaora-100)]/50 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-accent)]">
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-keova-100)]/50 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-accent)]">
               <Icon
                 name="lucide:video"
                 size="14"
@@ -427,14 +427,14 @@ async function handleResume() {
           aria-label="Redirection vers le paiement sécurisé"
         >
           <!-- Gradient backdrop -->
-          <div class="absolute inset-0 bg-gradient-to-br from-[color:var(--color-surface-page)] via-[color:var(--color-kaora-50)] to-[color:var(--color-surface-page)]" />
+          <div class="absolute inset-0 bg-gradient-to-br from-[color:var(--color-surface-page)] via-[color:var(--color-keova-50)] to-[color:var(--color-surface-page)]" />
           <div class="absolute inset-0 backdrop-blur-md" />
 
           <!-- Content -->
           <div class="relative z-10 px-6 text-center">
             <!-- Animated shield icon with pulse ring -->
             <div class="checkout-icon-wrapper relative mx-auto mb-6">
-              <div class="absolute inset-0 animate-pulse-ring rounded-3xl bg-[color:var(--color-kaora-200)]/50" />
+              <div class="absolute inset-0 animate-pulse-ring rounded-3xl bg-[color:var(--color-keova-200)]/50" />
               <div class="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-floating">
                 <Icon
                   name="lucide:shield-check"
@@ -556,9 +556,9 @@ async function handleResume() {
   border-radius: 9999px;
   background: linear-gradient(
     135deg,
-    var(--color-kaora-300) 0%,
-    var(--color-kaora-200) 50%,
-    var(--color-kaora-300) 100%
+    var(--color-keova-300) 0%,
+    var(--color-keova-200) 50%,
+    var(--color-keova-300) 100%
   );
   opacity: 0;
   z-index: -1;

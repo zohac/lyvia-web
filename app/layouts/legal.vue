@@ -11,15 +11,16 @@ useCommonLayoutHead()
         <NuxtLink
           to="/"
           class="inline-flex items-center gap-2"
-          aria-label="Retour à l'accueil Kaora"
+          aria-label="Retour à l'accueil Keova"
         >
-          <img
-            src="/images/kaora-logo.png"
+          <NuxtImg
+            src="/images/keova-logo.png"
             alt=""
             class="h-6 w-auto"
             aria-hidden="true"
-          >
-          <span class="sr-only">Kaora</span>
+            loading="eager"
+          />
+          <span class="sr-only">Keova</span>
         </NuxtLink>
 
         <NuxtLink
@@ -41,7 +42,7 @@ useCommonLayoutHead()
       <div class="mx-auto flex w-full max-w-4xl flex-col gap-4 px-4 py-8 text-center sm:px-6">
         <LegalFooterLinks />
         <p class="text-xs text-[color:var(--color-brand-muted)]">
-          © {{ new Date().getFullYear() }} Kaora. Tous droits réservés.
+          © {{ new Date().getFullYear() }} Keova. Tous droits réservés.
         </p>
       </div>
     </footer>

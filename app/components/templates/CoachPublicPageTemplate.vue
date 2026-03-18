@@ -2,14 +2,39 @@
 import type { AccordionItem } from '@nuxt/ui'
 
 import type { PublicTenantResponse } from '../../features/onboarding/api/onboarding.contract'
+import type { PublicProgramListItem } from '../../features/programs/api/programs.contract'
+import { listPublicPrograms } from '../../features/programs/services/public-programs.service'
 import CoachHeroProfile from '../organisms/CoachHeroProfile.vue'
+import ProgramCard from '../organisms/ProgramCard.vue'
+import ProgramCheckoutModal from '../organisms/ProgramCheckoutModal.vue'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
   ctaTo: string
 }>()
 
+const auth = useAuth()
+
+const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>('public-programs', async () => {
+  try {
+    return await listPublicPrograms()
+  } catch {
+    return []
+  }
+}, { default: () => [] })
+
+const route = useRoute()
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre coach')
+const currentPath = computed(() => route.fullPath)
+
+// X3.3: Program checkout modal state
+const checkoutModalOpen = ref(false)
+const selectedProgram = ref<PublicProgramListItem | null>(null)
+
+function handleProgramCheckout(program: PublicProgramListItem) {
+  selectedProgram.value = program
+  checkoutModalOpen.value = true
+}
 
 const pillars = [
   {
@@ -167,6 +192,40 @@ const faqItems: AccordionItem[] = [
       </div>
     </section>
 
+    <!-- Section: Programmes d'accompagnement -->
+    <section
+      v-if="publicPrograms.length > 0"
+      id="programmes"
+      class="bg-white px-6 py-32 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-7xl">
+        <div class="mb-16 text-center">
+          <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]">
+            Programmes
+          </span>
+          <h2 class="font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+            Des accompagnements pensés
+            <span class="block text-[#5b4b6e]">pour vous</span>
+          </h2>
+          <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
+            Choisissez le programme adapté à vos besoins et avancez à votre rythme.
+          </p>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <ProgramCard
+            v-for="prog in publicPrograms"
+            :key="prog.id"
+            :program="prog"
+            :booking-url="ctaTo"
+            :is-authenticated="auth.isAuthenticated()"
+            :current-path="currentPath"
+            @checkout="handleProgramCheckout"
+          />
+        </div>
+      </div>
+    </section>
+
     <!-- Section: Les 4 Piliers de l'accompagnement -->
     <section
       id="accompagnement"
@@ -241,13 +300,12 @@ const faqItems: AccordionItem[] = [
                 aria-hidden="true"
               />
               <div class="bio-photo-shape relative h-[45vh] w-72 overflow-hidden shadow-2xl shadow-black/20">
-                <img
+                <NuxtImg
                   src="/images/sophie_jouan_2.jpeg"
                   :alt="coachName"
                   class="h-full w-full object-cover object-top"
-                  decoding="async"
                   loading="lazy"
-                >
+                />
                 <!-- Subtle warm overlay -->
                 <div
                   class="pointer-events-none absolute inset-0"
@@ -457,6 +515,14 @@ const faqItems: AccordionItem[] = [
         </p>
       </div>
     </section>
+    <!-- X3.3: Program checkout modal -->
+    <ProgramCheckoutModal
+      :open="checkoutModalOpen"
+      :program="selectedProgram"
+      @update:open="checkoutModalOpen = $event"
+    />
+    <!-- U1.4a: Medical disclaimer (YMYL obligation) -->
+    <AtomsMedicalDisclaimer />
   </div>
 </template>
 

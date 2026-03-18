@@ -1,9 +1,9 @@
-export const kaoraLink = {
+export const keovaLink = {
   base: 'focus-visible:outline-primary',
   variants: {
     active: {
-      true: 'text-[color:var(--color-kaora-500)]',
-      false: 'text-[color:var(--color-kaora-800)]'
+      true: 'text-[color:var(--color-keova-500)]',
+      false: 'text-[color:var(--color-keova-800)]'
     },
     disabled: {
       true: 'cursor-not-allowed opacity-75'
@@ -13,7 +13,7 @@ export const kaoraLink = {
     {
       active: false,
       disabled: false,
-      class: ['hover:text-[color:var(--color-kaora-600)]', 'transition-colors']
+      class: ['hover:text-[color:var(--color-keova-600)]', 'transition-colors']
     }
   ]
 }

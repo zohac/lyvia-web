@@ -1,9 +1,9 @@
 /**
- * Kaora Design System — Select Component Configuration
+ * Keova Design System — Select Component Configuration
  *
- * This file configures the Nuxt UI v4 USelect component with Kaora's organic luxury
+ * This file configures the Nuxt UI v4 USelect component with Keova's organic luxury
  * aesthetic. The configuration uses Tailwind Variants to define slots, variants,
- * and compound variants that transform the default select into Kaora-styled dropdowns.
+ * and compound variants that transform the default select into Keova-styled dropdowns.
  *
  * ╔══════════════════════════════════════════════════════════════════════════════╗
  * ║  NUXT UI v4 SELECT ARCHITECTURE                                              ║
@@ -52,7 +52,7 @@
  * @author Remy Chopoya
  */
 
-export const kaoraSelect = {
+export const keovaSelect = {
   /**
    * ═══════════════════════════════════════════════════════════════════════════
    * SLOTS — Target specific parts of the Select component
@@ -75,7 +75,7 @@ export const kaoraSelect = {
      * HTML: <button class="relative group rounded-full ..." />
      *
      * Design notes:
-     * - rounded-full: Kaora signature pill shape
+     * - rounded-full: Keova signature pill shape
      * - border-stone-900/10: Subtle warm border
      * - font-semibold: Bolder text for filter prominence
      * - group class: Enables child hover states
@@ -202,7 +202,7 @@ export const kaoraSelect = {
      * Design notes:
      * - max-h-60: Limits height for scrolling
      * - w-(--reka-select-trigger-width): Matches trigger width (Reka UI variable)
-     * - rounded-[1.25rem]: Kaora signature rounded corners
+     * - rounded-[1.25rem]: Keova signature rounded corners
      * - shadow-floating: Elevated floating effect
      * - p-[0.85rem]: Generous internal padding
      *
@@ -596,7 +596,7 @@ export const kaoraSelect = {
      */
     variant: {
       /**
-       * outline: Default Kaora select style (.filter-trigger--ops line 1220-1224)
+       * outline: Default Keova select style (.filter-trigger--ops line 1220-1224)
        * - Card surface background
        * - Subtle stone border
        * - Shadow elevation
@@ -743,7 +743,7 @@ export const kaoraSelect = {
      * Outline variant hover/focus states
      * Based on .filter-trigger:hover, :focus (line 1200-1210)
      * - Elevates shadow on hover
-     * - Warm amber focus ring (Kaora signature)
+     * - Warm amber focus ring (Keova signature)
      */
     {
       variant: 'outline',
@@ -803,7 +803,7 @@ export const kaoraSelect = {
     // =========================================================================
 
     /**
-     * Primary color focus ring (warm Kaora ring)
+     * Primary color focus ring (warm Keova ring)
      */
     {
       color: 'primary',
@@ -903,7 +903,7 @@ export const kaoraSelect = {
     size: 'md',
     /** Default color: primary — Warm amber focus ring */
     color: 'primary',
-    /** Default variant: outline — Standard Kaora select appearance */
+    /** Default variant: outline — Standard Keova select appearance */
     variant: 'outline'
   }
 }

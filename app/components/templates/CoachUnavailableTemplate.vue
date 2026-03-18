@@ -40,7 +40,7 @@ defineProps<{
         </NuxtLink>
 
         <a
-          href="mailto:contact@kaora.app"
+          href="mailto:contact@keova.fr"
           class="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-subtle)] px-6 py-3 text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:border-[color:var(--color-crepuscule-400)] hover:text-[color:var(--color-brand-primary)]"
         >
           <UIcon

@@ -73,10 +73,10 @@ function updateConsents(value: typeof consents.value) {
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
 const isWhiteLabelTenant = computed(() => tenant.value?.brand.mode === 'custom_domain')
 const headerLogoSrc = computed(() =>
-  isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/kaora-logo.png'
+  isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/keova-logo.png'
 )
 const headerLogoAlt = computed(() =>
-  isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Kaora'
+  isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Keova'
 )
 const headerLogoClass = computed(() =>
   isWhiteLabelTenant.value ? 'h-14 w-auto' : 'h-10 w-auto'
@@ -434,12 +434,12 @@ async function submitBooking() {
         aria-label="Retour à l'accueil"
         class="mb-6 inline-block"
       >
-        <img
+        <NuxtImg
           :src="headerLogoSrc"
           :alt="headerLogoAlt"
           :class="headerLogoClass"
-          decoding="async"
-        >
+          loading="eager"
+        />
       </ULink>
 
       <h1 class="font-serif text-3xl font-normal text-neutral-900 sm:text-4xl">

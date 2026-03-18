@@ -6,11 +6,13 @@
  * - `repositories/lyvia-api/src/features/appointments/presentation/provider-appointments.controller.ts`
  */
 
-export type ProviderCalendarAppointmentType = 'discovery' | 'consultation'
+// verified against OpenAPI spec
+export type ProviderCalendarAppointmentType = 'discovery' | 'consultation' | 'free_followup'
 
 export type ProviderCalendarAppointmentStatus = 'scheduled' | 'cancelled' | 'completed'
 
-export type ProviderCalendarPaymentStatus = 'not_required' | 'unpaid' | 'paid'
+// verified against OpenAPI spec
+export type ProviderCalendarPaymentStatus = 'not_required' | 'unpaid' | 'paid' | 'covered_by_program'
 
 export type ProviderCalendarAppointmentSource = 'client_booking' | 'provider_manual' | 'admin'
 
@@ -90,6 +92,17 @@ export type CreateProviderManualAppointmentRequest = {
      * Consultation only. The active price plan to apply.
      */
     pricePlanId: string
+    /**
+     * Video meeting link (Google Meet, Zoom, Teams, etc.).
+     */
+    meetingLink?: string | null
+  }
+  | {
+    type: 'free_followup'
+    /**
+     * Duration in minutes (5-120, step of 5).
+     */
+    durationMinutes: number
     /**
      * Video meeting link (Google Meet, Zoom, Teams, etc.).
      */
