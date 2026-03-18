@@ -123,6 +123,15 @@ export default defineNuxtConfig({
     '/admin/**': { ssr: false }
   },
 
+  nitro: {
+    // Force-inline unhead into the server bundle.
+    // Without this, Nitro externalizes it to .output/server/node_modules/
+    // which gets stripped by Scalingo's "Pruning devDependencies" step.
+    externals: {
+      inline: ['unhead']
+    }
+  },
+
   compatibilityDate: '2025-01-15',
 
   eslint: {
