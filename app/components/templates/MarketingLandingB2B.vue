@@ -690,14 +690,29 @@ function scrollTo(id: string) {
       title="Rejoindre la beta Keova"
       description="Votre demande reste confidentielle. Aucun engagement."
       :ui="{
-        content: 'rounded-2xl border border-[#ebe7ef] bg-white shadow-xl max-w-lg',
-        header: 'px-8 pt-8 pb-4',
-        body: 'px-8 pb-8',
-        title: 'font-serif text-2xl text-[#3d3250]',
-        description: 'text-sm text-[#857d8c]'
+        content: 'rounded-3xl border border-[#ebe7ef] bg-white shadow-2xl max-w-lg overflow-hidden',
+        header: 'relative overflow-hidden bg-gradient-to-r from-[#5b4b6e] via-[#7a6b8e] to-[#5b4b6e] px-8 pt-8 pb-6',
+        body: 'px-8 pb-8 pt-6',
+        title: 'font-serif text-2xl text-white',
+        description: 'text-sm text-[#d7cfdf]',
+        close: 'text-white/70 hover:text-white hover:bg-white/10 rounded-full'
       }"
-      :close="{ class: 'rounded-full' }"
     >
+      <template #header>
+        <!-- Ambient glow in header -->
+        <div
+          class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#d4956a] opacity-20 blur-[40px]"
+          aria-hidden="true"
+        />
+        <h3 class="relative font-serif text-2xl text-white">
+          Rejoindre la beta
+          <span class="bg-gradient-to-r from-[#f0b48f] to-[#e89560] bg-clip-text text-transparent">Keova</span>
+        </h3>
+        <p class="relative mt-1 text-sm text-[#d7cfdf]">
+          Votre demande reste confidentielle. Aucun engagement.
+        </p>
+      </template>
+
       <template #body>
         <WaitlistForm
           mode="modal"

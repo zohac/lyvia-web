@@ -55,6 +55,29 @@ const canSubmit = computed(() =>
   isWaitlistFormValid(form) && !isSubmitting.value
 )
 
+// --- Dark mode (inline on dark bg) ---
+const isDark = computed(() => props.mode === 'inline')
+
+// --- Nuxt UI :ui overrides for dark variant (inline on dark bg) ---
+const darkInputUi = {
+  base: 'rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+}
+const lightUi = { base: 'rounded-xl' }
+const inputUi = computed(() => isDark.value ? darkInputUi : lightUi)
+
+const darkSelectUi = {
+  base: 'rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+}
+const selectUi = computed(() => isDark.value ? darkSelectUi : lightUi)
+
+const darkTextareaUi = {
+  base: 'rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm resize-none focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+}
+const textareaUi = computed(() => isDark.value ? darkTextareaUi : lightUi)
+
+const darkFormFieldUi = { label: 'text-[#f0edf3] font-semibold', error: 'text-[#fca5a5]', hint: 'text-[#9685ab]' }
+const formFieldUi = computed(() => isDark.value ? darkFormFieldUi : {})
+
 // --- Soumission ---
 async function handleSubmit() {
   hasAttemptedSubmit.value = true
@@ -146,6 +169,7 @@ async function handleSubmit() {
       <UFormField
         label="Prénom"
         :error="formErrors.firstName"
+        :ui="formFieldUi"
         required
       >
         <UInput
@@ -153,12 +177,14 @@ async function handleSubmit() {
           placeholder="Sophie"
           :maxlength="50"
           :disabled="isSubmitting"
+          :ui="inputUi"
         />
       </UFormField>
 
       <UFormField
         label="Nom"
         :error="formErrors.lastName"
+        :ui="formFieldUi"
         required
       >
         <UInput
@@ -166,6 +192,7 @@ async function handleSubmit() {
           placeholder="Jouan"
           :maxlength="50"
           :disabled="isSubmitting"
+          :ui="inputUi"
         />
       </UFormField>
     </div>
@@ -174,6 +201,7 @@ async function handleSubmit() {
     <UFormField
       label="Email professionnel"
       :error="formErrors.email"
+      :ui="formFieldUi"
       required
     >
       <UInput
@@ -181,6 +209,7 @@ async function handleSubmit() {
         type="email"
         placeholder="sophie@moncoaching.fr"
         :disabled="isSubmitting"
+        :ui="inputUi"
       />
     </UFormField>
 
@@ -188,6 +217,7 @@ async function handleSubmit() {
     <UFormField
       label="Votre domaine de pratique"
       :error="formErrors.specialty"
+      :ui="formFieldUi"
       required
     >
       <USelect
@@ -196,6 +226,7 @@ async function handleSubmit() {
         value-key="value"
         placeholder="Choisir..."
         :disabled="isSubmitting"
+        :ui="selectUi"
       />
     </UFormField>
 
@@ -203,6 +234,7 @@ async function handleSubmit() {
     <UFormField
       label="En quelques mots"
       :hint="form.message ? `${form.message.length}/500` : undefined"
+      :ui="formFieldUi"
     >
       <UTextarea
         v-model="form.message"
@@ -210,29 +242,52 @@ async function handleSubmit() {
         :rows="3"
         :maxlength="500"
         :disabled="isSubmitting"
+        :ui="textareaUi"
       />
     </UFormField>
 
-    <!-- Submit -->
-    <UButton
+    <!-- Submit — branded CTA -->
+    <button
       type="submit"
-      block
-      size="xl"
-      :loading="isSubmitting"
       :disabled="isSubmitting"
-      class="mt-1"
+      class="cta-submit group relative mt-1 w-full overflow-hidden rounded-full py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl disabled:pointer-events-none disabled:opacity-60"
     >
-      {{ isSubmitting ? 'Envoi en cours...' : 'Demander ma place' }}
-    </UButton>
+      <span class="cta-submit-bg absolute inset-0" />
+      <span class="relative z-10 flex items-center justify-center gap-2">
+        <UIcon
+          v-if="isSubmitting"
+          name="i-lucide-loader-2"
+          class="size-5 animate-spin"
+        />
+        {{ isSubmitting ? 'Envoi en cours...' : 'Demander ma place' }}
+        <UIcon
+          v-if="!isSubmitting"
+          name="i-lucide-arrow-right"
+          class="size-5 transition-transform duration-300 group-hover:translate-x-1"
+        />
+      </span>
+    </button>
 
     <!-- Trust copy -->
-    <p class="text-center text-xs text-[color:var(--ui-text-dimmed)]">
-      Jamais de spam. Données hébergées en France. Conforme RGPD.
+    <p :class="['text-center text-xs', isDark ? 'text-[#9685ab]' : 'text-[#857d8c]']">
+      Jamais de spam. Donnees hebergees en France. Conforme RGPD.
     </p>
   </form>
 </template>
 
 <style scoped>
+/* CTA submit — sunset gradient with hover animation */
+.cta-submit-bg {
+  background: linear-gradient(135deg, #d4956a 0%, #e89560 50%, #d4956a 100%);
+  background-size: 200% 100%;
+  transition: background-position 0.5s;
+}
+
+.cta-submit:hover .cta-submit-bg {
+  background-position: 100% center;
+}
+
+/* Confirmation animation */
 .animate-fade-in-up {
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
