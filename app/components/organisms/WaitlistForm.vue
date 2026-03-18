@@ -180,7 +180,7 @@ async function handleSubmit() {
       >
         <UInput
           v-model="form.firstName"
-          placeholder="Sophie"
+          placeholder="Marie"
           :maxlength="50"
           :disabled="isSubmitting"
           :ui="inputUi"
@@ -196,7 +196,7 @@ async function handleSubmit() {
       >
         <UInput
           v-model="form.lastName"
-          placeholder="Jouan"
+          placeholder="Dupont"
           :maxlength="50"
           :disabled="isSubmitting"
           :ui="inputUi"
@@ -215,7 +215,7 @@ async function handleSubmit() {
       <UInput
         v-model="form.email"
         type="email"
-        placeholder="sophie@moncoaching.fr"
+        placeholder="marie@monactivite.fr"
         :disabled="isSubmitting"
         :ui="inputUi"
         class="w-full"
