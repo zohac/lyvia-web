@@ -183,3 +183,16 @@ test('getDomainContext [tri-modal]: white-label has auth paths + /coaches', () =
   const ctx = getDomainContext('sophie-jouan.fr', PLATFORM, PLATFORM_B2B)
   assert.deepStrictEqual([...ctx.robotsDisallowPaths], [...AUTH_PATHS, '/coaches'])
 })
+
+test('getDomainContext [tri-modal]: empty B2B domain behaves like legacy mode', () => {
+  const platformCtx = getDomainContext('keova.fr', PLATFORM, '')
+  assert.equal(platformCtx.role, 'b2b')
+  assert.equal(platformCtx.isPlatform, true)
+  assert.equal(platformCtx.isB2B, true)
+  assert.equal(platformCtx.isB2C, false)
+
+  const whiteLabelCtx = getDomainContext('sophie-jouan.fr', PLATFORM, '')
+  assert.equal(whiteLabelCtx.role, 'white-label')
+  assert.equal(whiteLabelCtx.isPlatform, false)
+  assert.equal(whiteLabelCtx.isWhiteLabel, true)
+})
