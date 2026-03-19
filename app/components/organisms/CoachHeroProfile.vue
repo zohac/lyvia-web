@@ -83,10 +83,16 @@ const initials = computed(() => {
               {{ heroSubtitle }}
             </p>
 
-            <!-- Tagline -->
+            <!-- Tagline — specifique (M9: format + differenciateur + promesse) -->
             <p class="mt-8 max-w-lg text-lg leading-relaxed text-[#4a4255]">
-              Un accompagnement global, humain et bienveillant pour traverser
-              la ménopause avec plus de sérénité.
+              <template v-if="credentials.length">
+                Accompagnement individuel en visio pour reprendre
+                le contrôle de vos symptômes et retrouver votre énergie.
+              </template>
+              <template v-else>
+                Un accompagnement personnalisé pour traverser
+                la ménopause avec plus de sérénité.
+              </template>
             </p>
 
             <!-- CTA + reassurance (AC-2) -->

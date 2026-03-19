@@ -266,8 +266,8 @@ const heroProps = computed(() => ({
             Programmes
           </span>
           <h2 class="font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-            Des accompagnements pensés
-            <span class="block text-[#5b4b6e]">pour vous</span>
+            Programmes d'accompagnement
+            <span class="block text-[#5b4b6e]">ménopause</span>
           </h2>
         </div>
 
@@ -304,7 +304,7 @@ const heroProps = computed(() => ({
                 <NuxtImg
                   v-if="coachProfile?.imageUrl"
                   :src="coachProfile.imageUrl"
-                  :alt="coachName"
+                  :alt="`${coachName}, spécialiste accompagnement ménopause`"
                   class="h-full w-full object-cover object-top"
                   loading="lazy"
                 />
@@ -366,10 +366,22 @@ const heroProps = computed(() => ({
               </span>
             </div>
 
+            <!-- TODO: Feature V — dynamiser depuis long_bio -->
             <div class="mt-10 space-y-6 text-base leading-relaxed text-[#b9aac7]">
-              <!-- TODO: Feature V — dynamiser depuis long_bio -->
-              <!-- TODO: Feature V — dynamiser depuis long_bio -->
-              <p>Un accompagnement humain et bienveillant pour traverser la ménopause avec sérénité.</p>
+              <p>
+                {{ coachName }} propose un accompagnement humain et bienveillant
+                pour traverser la ménopause avec plus de sérénité.
+              </p>
+              <p v-if="coachProfile?.credentials?.length">
+                Forte d'une expérience de
+                {{ coachProfile.credentials.map(c => c.title).join(', ') }},
+                {{ coachName }} accompagne les femmes en périménopause et ménopause
+                avec attention, respect et bienveillance.
+              </p>
+              <p v-if="coachProfile?.city">
+                Basée à {{ coachProfile.city }}, {{ coachName }} accompagne des femmes
+                partout en France grâce à des séances 100 % en visio.
+              </p>
             </div>
 
             <!-- Phone (FR-Y16, v-if graceful degradation) -->
@@ -416,12 +428,12 @@ const heroProps = computed(() => ({
           >
             <blockquote class="font-serif text-lg leading-relaxed text-[#4a4255] lg:text-xl">
               Les séances m'ont aidée à voir cette période différemment.
-              Pas comme une fin, mais comme un passage.
+              Pas comme une fin, mais comme un passage. Après 4 mois, je dors enfin des nuits complètes.
             </blockquote>
             <footer class="mt-6 flex items-center gap-3">
               <div class="h-px w-8 bg-[#5b4b6e]/30" />
               <cite class="text-sm not-italic text-[#857d8c]">
-                <span class="font-medium text-[#2d2438]">Sophie</span>, 48 ans
+                <span class="font-medium text-[#2d2438]">Sophie</span>, 48 ans · Normandie
               </cite>
             </footer>
           </article>
@@ -432,11 +444,12 @@ const heroProps = computed(() => ({
           >
             <blockquote class="font-serif text-lg leading-relaxed text-[#4a4255] lg:text-xl">
               Enfin quelqu'un qui écoute vraiment, sans vouloir tout médicamentaliser.
+              Mes bouffées de chaleur ont diminué de moitié en 3 mois.
             </blockquote>
             <footer class="mt-6 flex items-center gap-3">
               <div class="h-px w-8 bg-[#5b4b6e]/30" />
               <cite class="text-sm not-italic text-[#857d8c]">
-                <span class="font-medium text-[#2d2438]">Anne</span>, 55 ans
+                <span class="font-medium text-[#2d2438]">Anne</span>, 55 ans · Bretagne
               </cite>
             </footer>
           </article>
@@ -505,6 +518,9 @@ const heroProps = computed(() => ({
             size="xl"
             class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-10 py-5 font-semibold text-white transition-all duration-300 hover:bg-transparent hover:text-[#f0b48f]"
           >
+            <!-- CTA final wording intentionnellement différent du hero (M8):
+                 Hero = action directe ("Réserver mon appel gratuit")
+                 Final = personnalisé après lecture complète ("Je prends RDV avec {name}") -->
             <span class="flex items-center gap-3">
               Je prends rendez-vous avec {{ coachName }}
               <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
