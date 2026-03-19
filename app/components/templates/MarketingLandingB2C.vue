@@ -87,19 +87,19 @@ function scrollTo(id: string) {
     <!-- ==================== HERO ==================== -->
     <section class="relative px-4 pb-24 pt-32 sm:pb-36 sm:pt-44">
       <div class="mx-auto max-w-3xl text-center">
-        <!-- Eyebrow -->
-        <div class="mb-8 inline-flex items-center gap-2.5 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-5 py-2">
+        <!-- Eyebrow — appear stagger 0ms -->
+        <div class="hero-appear mb-8 inline-flex items-center gap-2.5 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-5 py-2.5 shadow-sm">
           <span class="size-2 rounded-full bg-[#d4956a] animate-pulse" />
           <span class="text-sm font-semibold tracking-wide text-[#b07a4a]">Accompagnement ménopause</span>
         </div>
 
-        <!-- H1 — keyword emphasis via organic underline -->
-        <h1 class="font-serif text-[2.75rem] leading-[1.08] tracking-tight text-[#3d3250] sm:text-6xl lg:text-[4.25rem]">
+        <!-- H1 — appear stagger 120ms -->
+        <h1 class="hero-appear stagger-1 font-serif text-[2.75rem] leading-[1.08] tracking-tight text-[#3d3250] sm:text-6xl lg:text-[4.25rem]">
           Trouvez votre
           <span class="relative inline-block">
             <span class="relative z-10">spécialiste</span>
             <svg
-              class="absolute -bottom-1 left-0 w-full"
+              class="hero-underline absolute -bottom-1 left-0 w-full"
               viewBox="0 0 200 12"
               preserveAspectRatio="none"
               aria-hidden="true"
@@ -108,9 +108,9 @@ function scrollTo(id: string) {
                 d="M2 8 Q50 2 100 7 T198 5"
                 fill="none"
                 stroke="#d4956a"
-                stroke-width="4"
+                stroke-width="4.5"
                 stroke-linecap="round"
-                opacity="0.4"
+                opacity="0.45"
               />
             </svg>
           </span>
@@ -118,16 +118,17 @@ function scrollTo(id: string) {
           ménopause
         </h1>
 
-        <p class="mx-auto mt-8 max-w-lg text-lg leading-relaxed text-[#6b6177] sm:text-xl">
+        <!-- Subtitle — appear stagger 240ms -->
+        <p class="hero-appear stagger-2 mx-auto mt-8 max-w-lg text-lg leading-relaxed text-[#6b6177] sm:text-xl">
           Accompagnement personnalisé par des professionnelles vérifiées.
           <br class="hidden sm:block">
           Périménopause, ménopause : <strong class="font-semibold text-[#3d3250]">vous n'êtes pas seule.</strong>
         </p>
 
-        <!-- CTA -->
-        <div class="mt-10">
+        <!-- CTA — appear stagger 400ms -->
+        <div class="hero-appear stagger-3 mt-10">
           <button
-            class="group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#5b4b6e] via-[#6d5c82] to-[#7a6b8e] px-9 py-4 text-base font-semibold text-white shadow-lg shadow-[#5b4b6e]/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#5b4b6e]/30"
+            class="group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#5b4b6e] via-[#6d5c82] to-[#7a6b8e] px-9 py-4 text-base font-semibold text-white shadow-lg shadow-[#5b4b6e]/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#5b4b6e]/30 active:scale-[0.98]"
             @click="scrollTo('specialistes')"
           >
             <span class="relative z-10 flex items-center gap-2.5">
@@ -140,8 +141,8 @@ function scrollTo(id: string) {
           </button>
         </div>
 
-        <!-- Social proof -->
-        <div class="mt-16 inline-flex items-center gap-3 rounded-full bg-white/60 px-5 py-2.5 shadow-sm backdrop-blur-sm">
+        <!-- Social proof — appear stagger 600ms -->
+        <div class="hero-appear stagger-4 mt-16 inline-flex items-center gap-3 rounded-full bg-white/60 px-5 py-2.5 shadow-sm backdrop-blur-sm">
           <div class="flex -space-x-1.5">
             <span class="grid size-7 place-items-center rounded-full bg-gradient-to-br from-[#d4956a] to-[#e89560] text-[10px] font-bold text-white ring-2 ring-white">10</span>
             <span class="grid size-7 place-items-center rounded-full bg-gradient-to-br from-[#5b4b6e] to-[#7a6b8e] text-[10px] font-bold text-white ring-2 ring-white">M+</span>
@@ -386,6 +387,38 @@ function scrollTo(id: string) {
 </template>
 
 <style scoped>
+/* Hero staggered appear — 21st.dev inspired */
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-appear {
+  animation: appear 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.stagger-1 { animation-delay: 120ms; }
+.stagger-2 { animation-delay: 240ms; }
+.stagger-3 { animation-delay: 400ms; }
+.stagger-4 { animation-delay: 600ms; }
+
+/* SVG underline draw */
+@keyframes draw-underline {
+  from { stroke-dashoffset: 300; }
+  to { stroke-dashoffset: 0; }
+}
+
+.hero-underline path {
+  stroke-dasharray: 300;
+  animation: draw-underline 1s ease-out 0.5s backwards;
+}
+
+/* Ambient mesh drift */
 @keyframes drift-slow {
   0%, 100% { transform: translate(0, 0); }
   33% { transform: translate(15px, -10px); }
@@ -404,5 +437,19 @@ function scrollTo(id: string) {
 
 .animate-drift-slow-reverse {
   animation: drift-slow-reverse 25s ease-in-out infinite;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-appear,
+  .hero-underline path,
+  .animate-drift-slow,
+  .animate-drift-slow-reverse {
+    animation: none;
+  }
+  .hero-appear {
+    opacity: 1;
+    transform: none;
+  }
 }
 </style>

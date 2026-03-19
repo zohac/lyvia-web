@@ -49,45 +49,72 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <!-- Confirmation -->
+  <!-- Confirmation state -->
   <div
     v-if="isSubmitted"
-    class="text-center"
+    class="newsletter-confirmed flex flex-col items-center gap-3 text-center"
   >
-    <UIcon
-      name="i-lucide-check-circle"
-      class="mx-auto size-10 text-emerald-500"
-    />
-    <p class="mt-3 text-base font-medium text-[#3d3250]">
+    <div class="grid size-14 place-items-center rounded-full bg-emerald-500/20 ring-2 ring-emerald-400/30">
+      <UIcon
+        name="i-lucide-check-circle"
+        class="size-7 text-emerald-400"
+      />
+    </div>
+    <p class="text-lg font-semibold text-white">
       Vous êtes inscrite !
     </p>
-    <p class="mt-1 text-sm text-[#857d8c]">
+    <p class="text-sm text-[#c4bdd0]">
       Vérifiez vos spams si vous ne recevez rien.
     </p>
   </div>
 
-  <!-- Form -->
+  <!-- Form — inline input+button inside a pill container -->
   <form
     v-else
-    class="flex flex-col items-center gap-3 sm:flex-row"
+    class="flex items-center rounded-xl bg-white/95 p-1.5 shadow-lg backdrop-blur-sm transition-shadow duration-300 focus-within:shadow-xl sm:rounded-full"
     @submit.prevent="handleSubmit"
   >
-    <UInput
-      v-model="email"
-      type="email"
-      placeholder="Votre adresse email"
-      :disabled="isSubmitting"
-      class="w-full sm:flex-1"
-    />
-    <UButton
+    <div class="relative flex-1">
+      <UIcon
+        name="i-lucide-mail"
+        class="absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[#b5adc0]"
+      />
+      <input
+        v-model="email"
+        type="email"
+        placeholder="Votre adresse email"
+        :disabled="isSubmitting"
+        class="w-full rounded-lg bg-transparent py-3 pl-11 pr-3 text-sm text-[#3d3250] outline-none placeholder:text-[#b5adc0] disabled:opacity-50 sm:rounded-full"
+      >
+    </div>
+    <button
       type="submit"
-      :loading="isSubmitting"
-      :disabled="!canSubmit"
-      color="primary"
-      size="md"
-      class="w-full shrink-0 sm:w-auto"
+      :disabled="!canSubmit || isSubmitting"
+      class="shrink-0 cursor-pointer rounded-lg bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:from-[#4a3d5e] hover:to-[#6d5c82] hover:shadow-md disabled:pointer-events-none disabled:opacity-50 sm:rounded-full"
     >
-      S'inscrire
-    </UButton>
+      <UIcon
+        v-if="isSubmitting"
+        name="i-lucide-loader-2"
+        class="size-5 animate-spin"
+      />
+      <span v-else>S'inscrire</span>
+    </button>
   </form>
 </template>
+
+<style scoped>
+.newsletter-confirmed {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
