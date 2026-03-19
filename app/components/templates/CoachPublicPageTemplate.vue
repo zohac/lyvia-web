@@ -35,6 +35,8 @@ const { data: coachProfile } = useNuxtData<{
   specialties?: string[]
   displayName?: string
   credentials?: Array<{ title: string, institution?: string, year?: number, verified?: boolean }>
+  bio?: string | null
+  longBio?: string | null
   city?: string | null
   imageUrl?: string | null
   publicPhone?: string | null
@@ -366,12 +368,27 @@ const heroProps = computed(() => ({
               </span>
             </div>
 
-            <!-- TODO: Feature V — dynamiser depuis long_bio -->
             <div class="mt-10 space-y-6 text-base leading-relaxed text-[#b9aac7]">
-              <p>
-                {{ coachName }} propose un accompagnement humain et bienveillant
-                pour traverser la ménopause avec plus de sérénité.
-              </p>
+              <!-- Priority: longBio (markdown-like paragraphs) → bio (short) → fallback -->
+              <template v-if="coachProfile?.longBio">
+                <p
+                  v-for="(paragraph, i) in coachProfile.longBio.split('\n\n').filter(Boolean)"
+                  :key="i"
+                >
+                  {{ paragraph }}
+                </p>
+              </template>
+              <template v-else-if="coachProfile?.bio">
+                <p>{{ coachProfile.bio }}</p>
+              </template>
+              <template v-else>
+                <p>
+                  {{ coachName }} propose un accompagnement humain et bienveillant
+                  pour traverser la ménopause avec plus de sérénité.
+                </p>
+              </template>
+
+              <!-- Supplementary credentials + city (always shown if available, after bio) -->
               <p v-if="coachProfile?.credentials?.length">
                 Forte d'une expérience de
                 {{ coachProfile.credentials.map(c => c.title).join(', ') }},
