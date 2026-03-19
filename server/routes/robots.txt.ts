@@ -5,12 +5,13 @@ import { getDomainContext } from '#shared/utils/domain-context'
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig()
   const platformDomain = config.public.platformDomain as string || 'keova.fr'
+  const platformDomainB2B = (config.public.platformDomainB2B as string) || ''
 
   const host = getRequestHost(event)
   const protocol = getRequestProtocol(event)
   const origin = `${protocol}://${host}`
 
-  const ctx = getDomainContext(host, platformDomain)
+  const ctx = getDomainContext(host, platformDomain, platformDomainB2B || undefined)
 
   const lines = [
     'User-agent: *',

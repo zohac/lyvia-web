@@ -84,7 +84,10 @@ export default defineNuxtConfig({
       // Platform domain for tenant resolution (e.g., 'keova.fr').
       // Requests from this domain (or subdomains) show the marketing landing page.
       // Other domains are treated as white-label coach sites.
-      platformDomain: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN || 'keova.fr'
+      platformDomain: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN || 'keova.fr',
+      // B2B platform domain (e.g., 'keova.app'). When set, enables tri-modal
+      // domain context: B2C (platformDomain) / B2B (this) / white-label.
+      platformDomainB2B: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN_B2B || ''
     }
   },
 
