@@ -120,9 +120,9 @@ watchEffect(() => {
     brandTo: '/',
     showBrandIcon: true,
     navLinks: [
-      { label: 'L\'Essence', href: '#essence' },
+      { label: 'Mon approche', href: '#essence' },
       { label: 'Accompagnement', href: '#accompagnement' },
-      { label: brandName.value, href: '#qui-suis-je' }
+      { label: 'Qui suis-je', href: '#qui-suis-je' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',

@@ -119,9 +119,9 @@ watchEffect(() => {
       brandTo: '/',
       showBrandIcon: false,
       navLinks: [
-        { label: 'L\'Essence', href: '#essence' },
+        { label: 'Mon approche', href: '#essence' },
         { label: 'Accompagnement', href: '#accompagnement' },
-        { label: coachName, href: '#qui-suis-je' }
+        { label: 'Qui suis-je', href: '#qui-suis-je' }
       ],
       loginLabel: 'Espace cliente',
       loginTo: '/login',
