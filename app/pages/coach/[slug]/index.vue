@@ -92,8 +92,10 @@ const breadcrumbDisplayName = computed(() => coachProfile.value?.displayName || 
 const breadcrumbItems = computed(() => buildCoachBreadcrumbs(breadcrumbDisplayName.value, isPlatform))
 
 // Canonical cross-domaine: coach pages accessed via keova.app point to keova.fr (SEO reference domain)
+// On B2B, force canonical to keova.fr regardless of any absolute canonical in seo_metadata (CR1-RFU-1)
 const canonicalOrigin = isB2B ? `https://${platformDomain}` : origin
-const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, canonicalOrigin) ?? `${canonicalOrigin}/coach/${slug.value}`
+const b2bCanonical = `${canonicalOrigin}/coach/${slug.value}`
+const canonicalHref = () => isB2B ? b2bCanonical : (resolveCanonical(seo.value?.canonicalUrl, canonicalOrigin) ?? b2bCanonical)
 
 useSeoMeta({
   title: () => seo.value?.title ?? `${brandName.value} — Coach`,

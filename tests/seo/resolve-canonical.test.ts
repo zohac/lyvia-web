@@ -89,3 +89,43 @@ test('canonical fallback pattern: platform profile uses DB value when configured
   const result = resolveCanonical(dbCanonical, origin) ?? `${origin}/coach/${slug}`
   assert.equal(result, 'https://keova.fr/coach/sophie-jouan')
 })
+
+// --- B2B cross-domaine canonical (MD.2b CR1-RFU-1) ---
+// On B2B, the page forces canonical to keova.fr regardless of seo_metadata content.
+// This mirrors the exact logic in coach/[slug]/index.vue.
+
+test('B2B canonical: forced to keova.fr even when seo_metadata has no canonical', () => {
+  const isB2B = true
+  const platformDomain = 'keova.fr'
+  const slug = 'sophie-jouan'
+  const canonicalOrigin = isB2B ? `https://${platformDomain}` : 'https://keova.app'
+  const b2bCanonical = `${canonicalOrigin}/coach/${slug}`
+  const seoCanonical: string | null = null
+
+  const result = isB2B ? b2bCanonical : (resolveCanonical(seoCanonical, canonicalOrigin) ?? b2bCanonical)
+  assert.equal(result, 'https://keova.fr/coach/sophie-jouan')
+})
+
+test('B2B canonical: forced to keova.fr even when seo_metadata has absolute keova.app URL', () => {
+  const isB2B = true
+  const platformDomain = 'keova.fr'
+  const slug = 'sophie-jouan'
+  const canonicalOrigin = isB2B ? `https://${platformDomain}` : 'https://keova.app'
+  const b2bCanonical = `${canonicalOrigin}/coach/${slug}`
+  const seoCanonical = 'https://keova.app/coach/sophie-jouan'
+
+  const result = isB2B ? b2bCanonical : (resolveCanonical(seoCanonical, canonicalOrigin) ?? b2bCanonical)
+  assert.equal(result, 'https://keova.fr/coach/sophie-jouan')
+})
+
+test('non-B2B canonical: respects absolute seo_metadata canonical', () => {
+  const isB2B = false
+  const platformDomain = 'keova.fr'
+  const slug = 'sophie-jouan'
+  const canonicalOrigin = isB2B ? `https://${platformDomain}` : 'https://keova.fr'
+  const b2bCanonical = `${canonicalOrigin}/coach/${slug}`
+  const seoCanonical = 'https://sophie-jouan.fr/'
+
+  const result = isB2B ? b2bCanonical : (resolveCanonical(seoCanonical, canonicalOrigin) ?? b2bCanonical)
+  assert.equal(result, 'https://sophie-jouan.fr/')
+})
