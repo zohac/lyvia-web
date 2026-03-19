@@ -109,8 +109,8 @@ export default defineNuxtConfig({
     '/reset-password': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
     '/verify-email': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
     '/forgot-password/**': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
-    // Generic discovery page without slug — noindex
-    '/onboarding/discovery': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
+    // Note: /onboarding/discovery is indexable on white-label (coach booking page).
+    // On platform, robots.txt already blocks it. No noindex routeRule needed.
     '/coach/**': {
       headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' }
     },
