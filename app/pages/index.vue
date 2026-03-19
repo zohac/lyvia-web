@@ -184,6 +184,7 @@ watchEffect(() => {
   <CoachPublicPageTemplate
     v-else-if="tenant"
     :tenant="tenant"
+    :seo-title="seo?.title ?? null"
     cta-to="/onboarding/discovery"
   />
 

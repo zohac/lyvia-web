@@ -12,6 +12,7 @@ import ProgramCheckoutModal from '~/components/organisms/ProgramCheckoutModal.vu
 const props = defineProps<{
   tenant: PublicTenantResponse
   ctaTo: string
+  seoTitle?: string | null
 }>()
 
 const auth = useAuth()
@@ -117,7 +118,7 @@ onMounted(() => {
 // Hero props (typed, pattern P-Y2)
 const heroProps = computed(() => ({
   displayName: coachName.value,
-  seoTitle: null as string | null, // Populated by usePublicSeo in parent page
+  seoTitle: props.seoTitle ?? null,
   credentials: coachProfile.value?.credentials ?? [],
   city: coachProfile.value?.city ?? null,
   profilePhotoUrl: coachProfile.value?.imageUrl ?? null,

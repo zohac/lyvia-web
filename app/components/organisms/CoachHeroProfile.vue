@@ -175,19 +175,17 @@ const initials = computed(() => {
 </template>
 
 <style scoped>
+/* Shape — scoped, not an animation */
 .hero-photo-shape {
   border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
 }
 
-.hero-label {
-  animation: labelSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+/* Classes consuming centralized @keyframes from main.css (P-Y3) */
+.hero-label { animation: label-slide 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.accent-ring { animation: accent-pulse 4s ease-in-out infinite; }
+.scroll-indicator { animation: scroll-fade 2s ease-in-out infinite; }
 
-@keyframes labelSlide {
-  from { opacity: 0; transform: translateX(-12px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
+/* CTA glow — scoped effect, not a keyframe */
 .hero-cta { position: relative; }
 .hero-cta::after {
   content: '';
@@ -201,21 +199,4 @@ const initials = computed(() => {
   z-index: -1;
 }
 .hero-cta:hover::after { opacity: 1; }
-
-.accent-ring { animation: accentPulse 4s ease-in-out infinite; }
-@keyframes accentPulse {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.1); opacity: 0.3; }
-}
-
-.scroll-indicator { animation: scrollFade 2s ease-in-out infinite; }
-@keyframes scrollFade {
-  0%, 100% { opacity: 0.3; transform: scaleY(1); }
-  50% { opacity: 0.8; transform: scaleY(1.2); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-label, .accent-ring, .scroll-indicator, .hero-cta::after { animation: none; }
-  .hero-label { opacity: 1; transform: none; }
-}
 </style>
