@@ -2,6 +2,9 @@
 import type { FeaturedProvider } from '~/components/organisms/SpecialistCard.vue'
 import SpecialistCard from '~/components/organisms/SpecialistCard.vue'
 import NewsletterForm from '~/components/organisms/NewsletterForm.vue'
+import { useScrollReveal } from '~/composables/useScrollReveal'
+
+const { reveal } = useScrollReveal()
 
 // OG image B2C — override global fallback (AC-9, AC-10)
 useSeoMeta({
@@ -152,13 +155,16 @@ function scrollTo(id: string) {
       </div>
     </section>
 
-    <!-- ==================== ÉDUCATION ==================== -->
+    <!-- ==================== ACTE 2 — ÉDUCATION ==================== -->
     <section
       id="education"
       class="relative px-4 py-24 sm:py-32"
     >
       <div class="mx-auto max-w-5xl">
-        <div class="mx-auto max-w-2xl text-center">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal mx-auto max-w-2xl text-center"
+        >
           <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Comprendre</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
             Pourquoi un accompagnement ?
@@ -168,12 +174,13 @@ function scrollTo(id: string) {
           </p>
         </div>
 
-        <!-- Pillar cards — organic biophilic style -->
+        <!-- Pillar cards — staggered scroll reveal, alternating directions -->
         <div class="mt-16 grid gap-5 sm:grid-cols-2">
           <div
-            v-for="p in pillars"
+            v-for="(p, i) in pillars"
             :key="p.num"
-            class="group relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(91,75,110,0.1)]"
+            v-bind="reveal({ delay: i * 120 })"
+            :class="['scroll-reveal group relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(91,75,110,0.1)]', i % 2 === 0 ? 'reveal-from-left' : 'reveal-from-right']"
           >
             <!-- Organic corner accent -->
             <div
@@ -216,7 +223,10 @@ function scrollTo(id: string) {
       />
 
       <div class="mx-auto max-w-5xl">
-        <div class="mx-auto max-w-2xl text-center">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal mx-auto max-w-2xl text-center"
+        >
           <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Accompagnement</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
             Nos spécialistes
@@ -231,8 +241,10 @@ function scrollTo(id: string) {
           class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
           <SpecialistCard
-            v-for="prov in providers"
+            v-for="(prov, i) in providers"
             :key="prov.slug"
+            v-bind="reveal({ delay: i * 150 })"
+            class="scroll-reveal"
             :provider="prov"
           />
         </div>
@@ -240,7 +252,8 @@ function scrollTo(id: string) {
         <!-- Empty state — inviting, not sterile -->
         <div
           v-else
-          class="mt-14 rounded-3xl border border-dashed border-[#d4956a]/20 bg-white/50 px-8 py-20 text-center backdrop-blur-sm"
+          v-bind="reveal()"
+          class="scroll-reveal mt-14 rounded-3xl border border-dashed border-[#d4956a]/20 bg-white/50 px-8 py-20 text-center backdrop-blur-sm"
         >
           <div class="mx-auto mb-6 grid size-20 place-items-center rounded-full bg-gradient-to-br from-[#f5f0fa] to-[#ebe4f3]">
             <UIcon
@@ -264,7 +277,10 @@ function scrollTo(id: string) {
       class="relative px-4 py-24 sm:py-32"
     >
       <div class="mx-auto max-w-4xl">
-        <div class="mx-auto max-w-2xl text-center">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal mx-auto max-w-2xl text-center"
+        >
           <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Identifier</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
             Symptômes courants
@@ -274,12 +290,13 @@ function scrollTo(id: string) {
           </p>
         </div>
 
-        <!-- Symptom cards — bigger, with description -->
+        <!-- Symptom cards — staggered scale-in reveal -->
         <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div
-            v-for="s in symptoms"
+            v-for="(s, i) in symptoms"
             :key="s.label"
-            class="group flex items-start gap-4 rounded-2xl border border-white/70 bg-white/70 p-5 shadow-[0_2px_16px_rgba(0,0,0,0.03)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(91,75,110,0.08)]"
+            v-bind="reveal({ delay: i * 100 })"
+            class="scroll-reveal reveal-scale group flex items-start gap-4 rounded-2xl border border-white/70 bg-white/70 p-5 shadow-[0_2px_16px_rgba(0,0,0,0.03)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(91,75,110,0.08)]"
           >
             <div class="grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#d4956a]/12 to-[#e89560]/8">
               <UIcon
@@ -300,9 +317,12 @@ function scrollTo(id: string) {
       </div>
     </section>
 
-    <!-- ==================== NEWSLETTER ==================== -->
+    <!-- ==================== ACTE 5 — NEWSLETTER ==================== -->
     <section class="relative px-4 py-24 sm:py-32">
-      <div class="mx-auto max-w-3xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#3d3250] via-[#4a3d5e] to-[#5b4b6e] p-10 shadow-2xl shadow-[#3d3250]/20 sm:p-14">
+      <div
+        v-bind="reveal()"
+        class="scroll-reveal reveal-clip mx-auto max-w-3xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#3d3250] via-[#4a3d5e] to-[#5b4b6e] p-10 shadow-2xl shadow-[#3d3250]/20 sm:p-14"
+      >
         <!-- Decorative glows -->
         <div
           aria-hidden="true"
@@ -439,6 +459,43 @@ function scrollTo(id: string) {
   animation: drift-slow-reverse 25s ease-in-out infinite;
 }
 
+/* ========= SCROLLTELLING — IntersectionObserver driven ========= */
+
+/* Base: fade up (default) */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}
+
+/* Variant: slide from left (education cards — even) */
+.scroll-reveal.reveal-from-left {
+  transform: translateX(-40px) translateY(0);
+}
+
+/* Variant: slide from right (education cards — odd) */
+.scroll-reveal.reveal-from-right {
+  transform: translateX(40px) translateY(0);
+}
+
+/* Variant: scale in (symptom pills) */
+.scroll-reveal.reveal-scale {
+  transform: scale(0.9) translateY(0);
+}
+
+/* Variant: clip reveal (newsletter dark section) */
+.scroll-reveal.reveal-clip {
+  transform: translateY(48px);
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .hero-appear,
@@ -450,6 +507,11 @@ function scrollTo(id: string) {
   .hero-appear {
     opacity: 1;
     transform: none;
+  }
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
 </style>
