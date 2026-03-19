@@ -3,13 +3,14 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
-import { isPlatformHost } from '#shared/utils/platform-host'
+import { getDomainContext } from '#shared/utils/domain-context'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 import MarketingLandingB2B from '~/components/templates/MarketingLandingB2B.vue'
+import MarketingLandingB2C from '~/components/templates/MarketingLandingB2C.vue'
 
 definePageMeta({
   layout: 'public',
@@ -24,8 +25,10 @@ const hostname = computed(() => requestUrl.hostname.toLowerCase())
 
 const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
+const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
 
-const isPlatformDomain = computed(() => isPlatformHost(hostname.value, platformDomain))
+const ctx = computed(() => getDomainContext(hostname.value, platformDomain, platformDomainB2B || undefined))
+const isPlatformDomain = computed(() => ctx.value.isPlatform)
 
 const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
   try {
@@ -59,22 +62,34 @@ usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.v
 
 const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
+const b2bTitle = 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
+const b2bDescription = 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause : agenda, paiements, suivi client dans un espace conçu pour les spécialistes.'
+const b2cTitle = 'Keova — Trouvez votre spécialiste ménopause et périménopause'
+const b2cDescription = 'Découvrez des spécialistes vérifiées pour un accompagnement ménopause personnalisé. Alimentation, stress, sommeil, mouvement. Séance découverte gratuite.'
+
+function platformTitle() {
+  return ctx.value.isB2C ? b2cTitle : b2bTitle
+}
+function platformDescription() {
+  return ctx.value.isB2C ? b2cDescription : b2bDescription
+}
+
 useSeoMeta({
   title: () =>
     isPlatformDomain.value
-      ? 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
+      ? platformTitle()
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   description: () =>
     isPlatformDomain.value
-      ? 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause : agenda, paiements, suivi client dans un espace conçu pour les spécialistes.'
+      ? platformDescription()
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogTitle: () =>
     isPlatformDomain.value
-      ? 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
+      ? platformTitle()
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   ogDescription: () =>
     isPlatformDomain.value
-      ? 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause.'
+      ? platformDescription()
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogImage: () => !isPlatformDomain.value ? seo.value?.ogImageUrl ?? undefined : undefined,
   ogType: 'website',
@@ -146,6 +161,8 @@ watchEffect(() => {
     :tenant="tenant"
     cta-to="/onboarding/discovery"
   />
+
+  <MarketingLandingB2C v-else-if="ctx.isB2C" />
 
   <MarketingLandingB2B v-else />
 </template>

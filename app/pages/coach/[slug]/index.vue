@@ -60,7 +60,8 @@ usePageTracking(providerId)
 const requestUrl = useRequestURL()
 const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
-const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
+const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
+const { isPlatform, isB2B } = getDomainContext(requestUrl.hostname, platformDomain, platformDomainB2B || undefined)
 
 const { data: coachProfile } = useNuxtData<{ specialties?: string[], displayName?: string }>(`public-provider-profile:${slug.value}`)
 
@@ -90,7 +91,9 @@ const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coa
 const breadcrumbDisplayName = computed(() => coachProfile.value?.displayName || brandName.value)
 const breadcrumbItems = computed(() => buildCoachBreadcrumbs(breadcrumbDisplayName.value, isPlatform))
 
-const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}`
+// Canonical cross-domaine: coach pages accessed via keova.app point to keova.fr (SEO reference domain)
+const canonicalOrigin = isB2B ? `https://${platformDomain}` : origin
+const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, canonicalOrigin) ?? `${canonicalOrigin}/coach/${slug.value}`
 
 useSeoMeta({
   title: () => seo.value?.title ?? `${brandName.value} — Coach`,
