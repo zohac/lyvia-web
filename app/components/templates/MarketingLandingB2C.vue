@@ -123,7 +123,7 @@ function scrollTo(id: string) {
 
         <!-- Subtitle — appear stagger 240ms -->
         <p class="hero-appear stagger-2 mx-auto mt-8 max-w-lg text-lg leading-relaxed text-[#6b6177] sm:text-xl">
-          Accompagnement personnalisé par des professionnelles vérifiées.
+          Accompagnement personnalisé par des spécialistes vérifiées.
           <br class="hidden sm:block">
           Périménopause, ménopause : <strong class="font-semibold text-[#3d3250]">vous n'êtes pas seule.</strong>
         </p>

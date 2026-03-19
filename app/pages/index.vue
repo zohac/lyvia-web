@@ -65,7 +65,7 @@ const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim
 const b2bTitle = 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
 const b2bDescription = 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause : agenda, paiements, suivi client dans un espace conçu pour les spécialistes.'
 const b2cTitle = 'Keova — Trouvez votre spécialiste ménopause et périménopause'
-const b2cDescription = 'Découvrez des spécialistes vérifiées pour un accompagnement ménopause personnalisé. Alimentation, stress, sommeil, mouvement. Séance découverte gratuite.'
+const b2cDescription = 'Découvrez des spécialistes vérifiées pour un accompagnement ménopause personnalisé. Périménopause, ménopause : trouvez votre spécialiste.'
 
 function platformTitle() {
   return ctx.value.isB2C ? b2cTitle : b2bTitle
