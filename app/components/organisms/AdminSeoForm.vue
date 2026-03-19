@@ -16,7 +16,8 @@ const title = ref(props.adminConfig?.title ?? '')
 const description = ref(props.adminConfig?.description ?? '')
 const ogImageUrl = ref(props.adminConfig?.ogImageUrl ?? '')
 const canonicalUrl = ref(props.adminConfig?.canonicalUrl ?? '')
-const robots = ref(props.adminConfig?.robots ?? '')
+const ROBOTS_DEFAULT = '_default'
+const robots = ref(props.adminConfig?.robots ?? ROBOTS_DEFAULT)
 
 const saved = ref({
   title: title.value,
@@ -39,7 +40,7 @@ const previewDescription = computed(() => description.value || props.resolvedCon
 const previewUrl = computed(() => canonicalUrl.value || props.resolvedConfig.canonicalUrl || '')
 
 const ROBOTS_OPTIONS = [
-  { label: 'Par défaut (index, follow)', value: '' },
+  { label: 'Par défaut (index, follow)', value: ROBOTS_DEFAULT },
   { label: 'index, follow', value: 'index,follow' },
   { label: 'noindex, follow', value: 'noindex,follow' },
   { label: 'noindex, nofollow', value: 'noindex,nofollow' }
@@ -51,7 +52,7 @@ function handleSave() {
     description: description.value || null,
     ogImageUrl: ogImageUrl.value || null,
     canonicalUrl: canonicalUrl.value || null,
-    robots: robots.value || null
+    robots: robots.value === ROBOTS_DEFAULT ? null : (robots.value || null)
   })
 }
 
@@ -60,7 +61,7 @@ function syncFromConfig(adminConfig: SeoFieldValues | null) {
   description.value = adminConfig?.description ?? ''
   ogImageUrl.value = adminConfig?.ogImageUrl ?? ''
   canonicalUrl.value = adminConfig?.canonicalUrl ?? ''
-  robots.value = adminConfig?.robots ?? ''
+  robots.value = adminConfig?.robots ?? ROBOTS_DEFAULT
   saved.value = {
     title: title.value,
     description: description.value,

@@ -6,19 +6,31 @@ import { LEGAL_PAGES } from '#shared/utils/legal-pages'
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const platformDomain = (config.public.platformDomain as string) || 'keova.fr'
+  const platformDomainB2B = (config.public.platformDomainB2B as string) || ''
   const apiBase = (config.apiBase as string) || 'http://localhost:3001'
   const host = getRequestHost(event)
 
-  const ctx = getDomainContext(host, platformDomain)
+  const ctx = getDomainContext(host, platformDomain, platformDomainB2B || undefined)
+  const origin = `https://${ctx.hostname}`
 
-  if (!ctx.isPlatform) {
+  // White-label: coach-scoped sitemap
+  if (ctx.isWhiteLabel) {
     return [
-      { loc: '/', changefreq: 'weekly' as const, priority: 1.0 },
-      { loc: '/onboarding/discovery', changefreq: 'weekly' as const, priority: 0.6 },
-      ...LEGAL_PAGES
+      { loc: `${origin}/`, changefreq: 'weekly' as const, priority: 1.0 },
+      { loc: `${origin}/onboarding/discovery`, changefreq: 'weekly' as const, priority: 0.6 },
+      ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` }))
     ]
   }
 
+  // B2B (keova.app): minimal sitemap — landing only
+  if (ctx.isB2B) {
+    return [
+      { loc: `${origin}/`, changefreq: 'weekly' as const, priority: 1.0 },
+      ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` }))
+    ]
+  }
+
+  // B2C (keova.fr): full sitemap with coach pages
   let providers: Array<{ slug: string, updatedAt: string }> = []
   try {
     providers = await $fetch<Array<{ slug: string, updatedAt: string }>>(
@@ -29,13 +41,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const coachUrls = providers.flatMap(p => [
-    { loc: `/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.8 },
-    { loc: `/coach/${p.slug}/onboarding/discovery`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.6 }
+    { loc: `${origin}/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.8 },
+    { loc: `${origin}/coach/${p.slug}/onboarding/discovery`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.6 }
   ])
 
   return [
-    { loc: '/', changefreq: 'weekly' as const, priority: 1.0 },
-    ...LEGAL_PAGES,
+    { loc: `${origin}/`, changefreq: 'weekly' as const, priority: 1.0 },
+    ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` })),
     ...coachUrls
   ]
 })
