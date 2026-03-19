@@ -33,7 +33,7 @@ async function handleSubmit() {
   } catch (err: unknown) {
     if (err instanceof ApiFetchError && err.apiError.statusCode === 429) {
       toast.add({
-        title: 'Trop de tentatives. Réessayez plus tard.',
+        title: 'Trop de tentatives.',
         color: 'error'
       })
     } else {

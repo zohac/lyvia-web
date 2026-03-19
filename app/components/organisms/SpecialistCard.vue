@@ -123,6 +123,7 @@ const profileUrl = computed(() =>
         :to="profileUrl"
         :external="!!provider.customDomain"
         :target="provider.customDomain ? '_blank' : undefined"
+        :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
         class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] py-3 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:from-[#4a3d5e] hover:to-[#6d5c82] hover:shadow-lg"
       >
         <span>Voir le profil</span>
