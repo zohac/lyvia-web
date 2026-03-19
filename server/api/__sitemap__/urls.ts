@@ -22,11 +22,10 @@ export default defineEventHandler(async (event) => {
     ]
   }
 
-  // B2B (keova.app): minimal sitemap — landing only
+  // B2B (keova.app): minimal sitemap — landing only (AC-3)
   if (ctx.isB2B) {
     return [
-      { loc: `${origin}/`, changefreq: 'weekly' as const, priority: 1.0 },
-      ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` }))
+      { loc: `${origin}/`, changefreq: 'monthly' as const, priority: 1.0 }
     ]
   }
 

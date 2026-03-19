@@ -60,8 +60,7 @@ function buildSitemapUrlsTriModal(host: string, providers: Array<{ slug: string,
 
   if (ctx.isB2B) {
     return [
-      { loc: `${origin}/`, changefreq: 'weekly', priority: 1.0 },
-      ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` }))
+      { loc: `${origin}/`, changefreq: 'monthly', priority: 1.0 }
     ]
   }
 
@@ -155,14 +154,12 @@ test('sitemap white-label: exactly 5 entries (home + discovery + 3 legal)', () =
 
 // --- TRI-MODAL MODE (3 params — absolute URLs) ---
 
-test('sitemap B2B (tri-modal): returns only home + legal with absolute URLs', () => {
+test('sitemap B2B (tri-modal): returns only landing with monthly changefreq (AC-3)', () => {
   const urls = buildSitemapUrlsTriModal('keova.app', MOCK_PROVIDERS)
-  const locs = urls.map(u => u.loc)
-  assert.ok(locs.includes('https://keova.app/'))
-  assert.ok(locs.includes('https://keova.app/legal/cgu'))
-  assert.ok(locs.includes('https://keova.app/legal/confidentialite'))
-  assert.ok(locs.includes('https://keova.app/legal/mentions-legales'))
-  assert.equal(urls.length, 4)
+  assert.equal(urls.length, 1)
+  assert.equal(urls[0].loc, 'https://keova.app/')
+  assert.equal(urls[0].changefreq, 'monthly')
+  assert.equal(urls[0].priority, 1.0)
 })
 
 test('sitemap B2B (tri-modal): does NOT include coach pages', () => {
