@@ -23,38 +23,38 @@ const providers = computed(() => featuredData.value?.providers ?? [])
 
 // --- Symptômes teaser (hardcodés V1 — dynamiques quand Epic U2 arrive) ---
 const symptoms = [
-  { label: 'Bouffées de chaleur', icon: 'i-lucide-flame' },
-  { label: 'Troubles du sommeil', icon: 'i-lucide-moon' },
-  { label: 'Prise de poids', icon: 'i-lucide-scale' },
-  { label: 'Fatigue', icon: 'i-lucide-battery-low' },
-  { label: 'Anxiété', icon: 'i-lucide-cloud-rain' }
+  { label: 'Bouffées de chaleur', icon: 'i-lucide-flame', desc: 'Vagues de chaleur soudaines' },
+  { label: 'Troubles du sommeil', icon: 'i-lucide-moon', desc: 'Insomnies et réveils nocturnes' },
+  { label: 'Prise de poids', icon: 'i-lucide-scale', desc: 'Changements métaboliques' },
+  { label: 'Fatigue', icon: 'i-lucide-battery-low', desc: 'Épuisement persistant' },
+  { label: 'Anxiété', icon: 'i-lucide-cloud-rain', desc: 'Stress et inquiétudes' }
 ]
 
-// --- Éducation blocs ---
-const educationBlocs = [
+// --- Éducation pillars ---
+const pillars = [
   {
+    num: '01',
     title: 'Ce n\'est pas dans votre tête',
-    text: '77 % des femmes ne font pas le lien entre leurs symptômes et la ménopause. Bouffées de chaleur, insomnie, fatigue, anxiété — ce sont des symptômes réels.',
-    icon: 'i-lucide-brain',
-    accent: 'from-[#d4956a]/20 to-[#e89560]/10'
+    text: '77 % des femmes ne font pas le lien entre leurs symptômes et la ménopause. Bouffées de chaleur, insomnie, fatigue, anxiété — ce sont des symptômes réels qui méritent d\'être reconnus.',
+    icon: 'i-lucide-brain'
   },
   {
+    num: '02',
     title: 'Un accompagnement sur mesure',
-    text: 'Chaque femme vit la ménopause différemment. Un accompagnement personnalisé tient compte de votre quotidien, votre alimentation, votre stress.',
-    icon: 'i-lucide-heart-handshake',
-    accent: 'from-[#7a6b8e]/20 to-[#5b4b6e]/10'
+    text: 'Chaque femme vit la ménopause différemment. Un accompagnement personnalisé tient compte de votre quotidien, votre alimentation, votre stress — pas un protocole générique.',
+    icon: 'i-lucide-heart-handshake'
   },
   {
+    num: '03',
     title: 'Des spécialistes vérifiées',
-    text: 'Les spécialistes sur Keova sont des professionnelles du bien-être formées et vérifiées. Pas du coaching généraliste.',
-    icon: 'i-lucide-shield-check',
-    accent: 'from-[#d4956a]/20 to-[#e89560]/10'
+    text: 'Les spécialistes sur Keova sont des professionnelles du bien-être formées et vérifiées. Pas du coaching généraliste — de l\'expertise ciblée.',
+    icon: 'i-lucide-shield-check'
   },
   {
+    num: '04',
     title: 'Au-delà du médical',
-    text: 'L\'accompagnement ménopause complète le suivi médical. Alimentation, gestion du stress, sommeil, mouvement — les 4 piliers.',
-    icon: 'i-lucide-leaf',
-    accent: 'from-[#7a6b8e]/20 to-[#5b4b6e]/10'
+    text: 'L\'accompagnement ménopause complète le suivi médical. Alimentation, gestion du stress, sommeil, mouvement — les 4 piliers d\'un bien-être durable.',
+    icon: 'i-lucide-leaf'
   }
 ]
 
@@ -65,59 +65,72 @@ function scrollTo(id: string) {
 
 <template>
   <div class="relative min-h-screen overflow-hidden bg-[#faf8f6]">
-    <!-- ==================== AMBIENT MESH ==================== -->
+    <!-- ========= AMBIENT MESH (fixed, organic biophilic) ========= -->
     <div
       aria-hidden="true"
       class="pointer-events-none fixed inset-0 -z-10"
     >
       <div
-        class="absolute -left-[20%] -top-[10%] h-[80vh] w-[80vh] rounded-full opacity-50 animate-pulse-slow"
-        style="background: radial-gradient(circle at 30% 30%, rgba(212, 149, 106, 0.45), rgba(232, 149, 96, 0.12) 50%, transparent 70%); filter: blur(100px);"
+        class="absolute -left-[20%] -top-[8%] h-[80vh] w-[80vh] rounded-full animate-drift-slow"
+        style="background: radial-gradient(circle at 30% 40%, rgba(212,149,106,0.35), rgba(232,149,96,0.08) 55%, transparent 75%); filter: blur(100px);"
       />
       <div
-        class="absolute -bottom-[15%] -right-[15%] h-[70vh] w-[70vh] rounded-full opacity-40"
-        style="background: radial-gradient(circle at 70% 70%, rgba(122, 107, 142, 0.4), rgba(91, 75, 110, 0.1) 50%, transparent 70%); filter: blur(100px);"
+        class="absolute -bottom-[12%] -right-[15%] h-[70vh] w-[70vh] rounded-full animate-drift-slow-reverse"
+        style="background: radial-gradient(circle at 60% 60%, rgba(122,107,142,0.3), rgba(91,75,110,0.06) 55%, transparent 75%); filter: blur(110px);"
       />
       <div
-        class="absolute left-1/2 top-1/4 h-[50vh] w-[70vh] -translate-x-1/2 rounded-full opacity-20"
-        style="background: radial-gradient(ellipse, rgba(212, 149, 106, 0.25), transparent 70%); filter: blur(120px);"
+        class="absolute left-[40%] top-[20%] h-[40vh] w-[55vh] -translate-x-1/2 rounded-full opacity-25"
+        style="background: radial-gradient(ellipse, rgba(212,149,106,0.2), transparent 70%); filter: blur(120px);"
       />
     </div>
 
     <!-- ==================== HERO ==================== -->
-    <section class="relative px-4 pb-20 pt-28 sm:pb-32 sm:pt-40">
+    <section class="relative px-4 pb-24 pt-32 sm:pb-36 sm:pt-44">
       <div class="mx-auto max-w-3xl text-center">
         <!-- Eyebrow -->
-        <div class="mb-8 inline-flex items-center gap-2 rounded-full bg-[#d4956a]/10 px-4 py-2 text-sm font-medium text-[#c07d4e]">
-          <span class="size-1.5 rounded-full bg-[#d4956a] animate-pulse" />
-          Accompagnement ménopause
+        <div class="mb-8 inline-flex items-center gap-2.5 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-5 py-2">
+          <span class="size-2 rounded-full bg-[#d4956a] animate-pulse" />
+          <span class="text-sm font-semibold tracking-wide text-[#b07a4a]">Accompagnement ménopause</span>
         </div>
 
-        <h1 class="font-serif text-5xl leading-[1.1] tracking-tight text-[#3d3250] sm:text-6xl lg:text-7xl">
+        <!-- H1 — keyword emphasis via organic underline -->
+        <h1 class="font-serif text-[2.75rem] leading-[1.08] tracking-tight text-[#3d3250] sm:text-6xl lg:text-[4.25rem]">
           Trouvez votre
-          <span class="relative">
+          <span class="relative inline-block">
             <span class="relative z-10">spécialiste</span>
-            <span
-              class="absolute -bottom-1 left-0 -z-0 h-3 w-full rounded-full bg-[#d4956a]/25"
+            <svg
+              class="absolute -bottom-1 left-0 w-full"
+              viewBox="0 0 200 12"
+              preserveAspectRatio="none"
               aria-hidden="true"
-            />
+            >
+              <path
+                d="M2 8 Q50 2 100 7 T198 5"
+                fill="none"
+                stroke="#d4956a"
+                stroke-width="4"
+                stroke-linecap="round"
+                opacity="0.4"
+              />
+            </svg>
           </span>
-          <br>
+          <br class="sm:hidden">
           ménopause
         </h1>
 
-        <p class="mx-auto mt-8 max-w-xl text-lg leading-relaxed text-[#6b6177] sm:text-xl">
-          Accompagnement personnalisé par des spécialistes vérifiées.
+        <p class="mx-auto mt-8 max-w-lg text-lg leading-relaxed text-[#6b6177] sm:text-xl">
+          Accompagnement personnalisé par des professionnelles vérifiées.
           <br class="hidden sm:block">
           Périménopause, ménopause : <strong class="font-semibold text-[#3d3250]">vous n'êtes pas seule.</strong>
         </p>
 
-        <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <!-- CTA -->
+        <div class="mt-10">
           <button
-            class="group relative overflow-hidden rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-8 py-4 text-base font-semibold text-white shadow-lg shadow-[#5b4b6e]/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#5b4b6e]/30"
+            class="group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#5b4b6e] via-[#6d5c82] to-[#7a6b8e] px-9 py-4 text-base font-semibold text-white shadow-lg shadow-[#5b4b6e]/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#5b4b6e]/30"
             @click="scrollTo('specialistes')"
           >
-            <span class="relative z-10 flex items-center gap-2">
+            <span class="relative z-10 flex items-center gap-2.5">
               Découvrir nos spécialistes
               <UIcon
                 name="i-lucide-arrow-down"
@@ -127,19 +140,13 @@ function scrollTo(id: string) {
           </button>
         </div>
 
-        <!-- Social proof stat -->
-        <div class="mt-14 flex items-center justify-center gap-3">
-          <div class="flex -space-x-2">
-            <div class="grid size-8 place-items-center rounded-full bg-gradient-to-br from-[#d4956a] to-[#e89560] text-xs font-bold text-white ring-2 ring-[#faf8f6]">
-              10
-            </div>
-            <div class="grid size-8 place-items-center rounded-full bg-gradient-to-br from-[#5b4b6e] to-[#7a6b8e] text-xs font-bold text-white ring-2 ring-[#faf8f6]">
-              M
-            </div>
+        <!-- Social proof -->
+        <div class="mt-16 inline-flex items-center gap-3 rounded-full bg-white/60 px-5 py-2.5 shadow-sm backdrop-blur-sm">
+          <div class="flex -space-x-1.5">
+            <span class="grid size-7 place-items-center rounded-full bg-gradient-to-br from-[#d4956a] to-[#e89560] text-[10px] font-bold text-white ring-2 ring-white">10</span>
+            <span class="grid size-7 place-items-center rounded-full bg-gradient-to-br from-[#5b4b6e] to-[#7a6b8e] text-[10px] font-bold text-white ring-2 ring-white">M+</span>
           </div>
-          <p class="text-sm text-[#857d8c]">
-            Plus de 10 millions de femmes en France traversent la ménopause
-          </p>
+          <span class="text-sm text-[#6b6177]">de femmes traversent la ménopause en France</span>
         </div>
       </div>
     </section>
@@ -147,47 +154,47 @@ function scrollTo(id: string) {
     <!-- ==================== ÉDUCATION ==================== -->
     <section
       id="education"
-      class="relative px-4 py-20 sm:py-28"
+      class="relative px-4 py-24 sm:py-32"
     >
       <div class="mx-auto max-w-5xl">
         <div class="mx-auto max-w-2xl text-center">
-          <p class="text-sm font-medium uppercase tracking-widest text-[#d4956a]">
-            Comprendre
-          </p>
-          <h2 class="mt-3 font-serif text-3xl text-[#3d3250] sm:text-4xl lg:text-5xl">
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Comprendre</span>
+          <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
             Pourquoi un accompagnement ?
           </h2>
-          <p class="mt-4 text-[#857d8c]">
+          <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
             La ménopause n'est pas une maladie. C'est une transition naturelle qui mérite un soutien adapté.
           </p>
         </div>
 
-        <div class="mt-14 grid gap-5 sm:grid-cols-2">
+        <!-- Pillar cards — organic biophilic style -->
+        <div class="mt-16 grid gap-5 sm:grid-cols-2">
           <div
-            v-for="(bloc, i) in educationBlocs"
-            :key="bloc.title"
-            class="group relative overflow-hidden rounded-3xl border border-white/60 bg-white/80 p-7 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            v-for="p in pillars"
+            :key="p.num"
+            class="group relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(91,75,110,0.1)]"
           >
-            <!-- Accent gradient corner -->
+            <!-- Organic corner accent -->
             <div
-              :class="['absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br opacity-60 transition-opacity duration-300 group-hover:opacity-100', bloc.accent]"
+              class="absolute -right-6 -top-6 size-28 rounded-full bg-gradient-to-br from-[#d4956a]/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
               aria-hidden="true"
             />
             <div class="relative">
-              <div class="mb-5 grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#f5f0fa] to-[#ebe4f3]">
-                <UIcon
-                  :name="bloc.icon"
-                  class="size-7 text-[#5b4b6e]"
-                />
+              <!-- Icon + number row -->
+              <div class="mb-6 flex items-center justify-between">
+                <div class="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#f5f0fa] to-[#ebe4f3] shadow-sm">
+                  <UIcon
+                    :name="p.icon"
+                    class="size-7 text-[#5b4b6e]"
+                  />
+                </div>
+                <span class="font-serif text-3xl font-light text-[#d4956a]/30">{{ p.num }}</span>
               </div>
-              <span class="mb-2 block text-xs font-bold uppercase tracking-wider text-[#d4956a]">
-                {{ String(i + 1).padStart(2, '0') }}
-              </span>
-              <h3 class="font-serif text-xl text-[#3d3250] lg:text-2xl">
-                {{ bloc.title }}
+              <h3 class="font-serif text-xl leading-snug text-[#3d3250] lg:text-[1.35rem]">
+                {{ p.title }}
               </h3>
-              <p class="mt-3 text-sm leading-relaxed text-[#6b6177]">
-                {{ bloc.text }}
+              <p class="mt-3 text-[0.9rem] leading-relaxed text-[#6b6177]">
+                {{ p.text }}
               </p>
             </div>
           </div>
@@ -198,55 +205,53 @@ function scrollTo(id: string) {
     <!-- ==================== SPÉCIALISTES ==================== -->
     <section
       id="specialistes"
-      class="relative overflow-hidden px-4 py-20 sm:py-28"
+      class="relative px-4 py-24 sm:py-32"
     >
-      <!-- Section background -->
+      <!-- Subtle section bg -->
       <div
         aria-hidden="true"
-        class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-[#f5f0fa]/30 to-white"
+        class="pointer-events-none absolute inset-0 -z-10"
+        style="background: linear-gradient(180deg, transparent, rgba(122,107,142,0.04) 30%, rgba(122,107,142,0.04) 70%, transparent);"
       />
 
       <div class="mx-auto max-w-5xl">
         <div class="mx-auto max-w-2xl text-center">
-          <p class="text-sm font-medium uppercase tracking-widest text-[#d4956a]">
-            Accompagnement
-          </p>
-          <h2 class="mt-3 font-serif text-3xl text-[#3d3250] sm:text-4xl lg:text-5xl">
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Accompagnement</span>
+          <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
             Nos spécialistes
           </h2>
-          <p class="mt-4 text-[#857d8c]">
+          <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
             Des professionnelles formées à l'accompagnement de la ménopause et de la périménopause.
           </p>
         </div>
 
-        <!-- Grid de cartes -->
         <div
           v-if="providers.length"
           class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
           <SpecialistCard
-            v-for="p in providers"
-            :key="p.slug"
-            :provider="p"
+            v-for="prov in providers"
+            :key="prov.slug"
+            :provider="prov"
           />
         </div>
 
-        <!-- Empty state -->
+        <!-- Empty state — inviting, not sterile -->
         <div
           v-else
-          class="mt-14 rounded-3xl border border-dashed border-[#d7cfdf] bg-white/50 px-8 py-16 text-center backdrop-blur-sm"
+          class="mt-14 rounded-3xl border border-dashed border-[#d4956a]/20 bg-white/50 px-8 py-20 text-center backdrop-blur-sm"
         >
-          <div class="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-[#f5f0fa]">
+          <div class="mx-auto mb-6 grid size-20 place-items-center rounded-full bg-gradient-to-br from-[#f5f0fa] to-[#ebe4f3]">
             <UIcon
-              name="i-lucide-users"
-              class="size-8 text-[#7a6b8e]"
+              name="i-lucide-sparkles"
+              class="size-9 text-[#7a6b8e]"
             />
           </div>
-          <p class="font-serif text-xl text-[#3d3250]">
+          <p class="font-serif text-2xl text-[#3d3250]">
             Nos spécialistes arrivent bientôt
           </p>
-          <p class="mt-2 text-sm text-[#857d8c]">
-            Inscrivez-vous à la newsletter pour être prévenue.
+          <p class="mt-3 text-sm text-[#857d8c]">
+            Inscrivez-vous à la newsletter pour être prévenue du lancement.
           </p>
         </div>
       </div>
@@ -255,59 +260,70 @@ function scrollTo(id: string) {
     <!-- ==================== SYMPTÔMES ==================== -->
     <section
       id="symptomes"
-      class="relative px-4 py-20 sm:py-28"
+      class="relative px-4 py-24 sm:py-32"
     >
       <div class="mx-auto max-w-4xl">
         <div class="mx-auto max-w-2xl text-center">
-          <p class="text-sm font-medium uppercase tracking-widest text-[#d4956a]">
-            Identifier
-          </p>
-          <h2 class="mt-3 font-serif text-3xl text-[#3d3250] sm:text-4xl lg:text-5xl">
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Identifier</span>
+          <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
             Symptômes courants
           </h2>
-          <p class="mt-4 text-[#857d8c]">
-            La ménopause se manifeste de nombreuses façons. Les reconnaître, c'est le premier pas.
+          <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
+            La ménopause se manifeste de nombreuses façons. Les reconnaître, c'est le premier pas vers un mieux-être.
           </p>
         </div>
-        <div class="mt-12 flex flex-wrap justify-center gap-3">
+
+        <!-- Symptom cards — bigger, with description -->
+        <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div
             v-for="s in symptoms"
             :key="s.label"
-            class="group flex items-center gap-3 rounded-2xl border border-white/60 bg-white/80 px-6 py-4 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+            class="group flex items-start gap-4 rounded-2xl border border-white/70 bg-white/70 p-5 shadow-[0_2px_16px_rgba(0,0,0,0.03)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(91,75,110,0.08)]"
           >
-            <div class="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-[#d4956a]/15 to-[#e89560]/10">
+            <div class="grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#d4956a]/12 to-[#e89560]/8">
               <UIcon
                 :name="s.icon"
-                class="size-5 text-[#d4956a]"
+                class="size-6 text-[#d4956a]"
               />
             </div>
-            <span class="text-sm font-semibold text-[#3d3250]">{{ s.label }}</span>
+            <div>
+              <p class="font-semibold text-[#3d3250]">
+                {{ s.label }}
+              </p>
+              <p class="mt-0.5 text-sm text-[#857d8c]">
+                {{ s.desc }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ==================== NEWSLETTER ==================== -->
-    <section class="relative px-4 py-20 sm:py-28">
-      <!-- Dark section -->
-      <div class="mx-auto max-w-3xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#3d3250] via-[#4d3f5c] to-[#5b4b6e] p-10 shadow-2xl sm:p-14">
-        <!-- Decorative glow -->
+    <section class="relative px-4 py-24 sm:py-32">
+      <div class="mx-auto max-w-3xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#3d3250] via-[#4a3d5e] to-[#5b4b6e] p-10 shadow-2xl shadow-[#3d3250]/20 sm:p-14">
+        <!-- Decorative glows -->
         <div
           aria-hidden="true"
-          class="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full opacity-30"
-          style="background: radial-gradient(circle, rgba(212, 149, 106, 0.5), transparent 70%); filter: blur(60px);"
+          class="pointer-events-none absolute -right-12 -top-12 size-56 rounded-full opacity-30"
+          style="background: radial-gradient(circle, rgba(212,149,106,0.5), transparent 70%); filter: blur(50px);"
+        />
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute -bottom-8 -left-8 size-40 rounded-full opacity-20"
+          style="background: radial-gradient(circle, rgba(122,107,142,0.6), transparent 70%); filter: blur(40px);"
         />
         <div class="relative text-center">
           <h2 class="font-serif text-3xl text-white sm:text-4xl">
             Recevez nos conseils ménopause
           </h2>
-          <p class="mt-3 text-[#c4bdd0]">
-            Guides, témoignages et actualités — 1 email par semaine, sans spam.
+          <p class="mt-4 text-base leading-relaxed text-[#c4bdd0]">
+            Guides pratiques, témoignages et actualités — 1 email par semaine, sans spam.
           </p>
-          <div class="mx-auto mt-8 max-w-md">
+          <div class="mx-auto mt-10 max-w-md">
             <NewsletterForm />
           </div>
-          <p class="mt-5 text-xs text-[#9685ab]">
+          <p class="mt-6 text-xs text-[#9685ab]">
             Données hébergées en France. Conforme RGPD. Désinscription en un clic.
           </p>
         </div>
@@ -318,36 +334,41 @@ function scrollTo(id: string) {
     <AtomsMedicalDisclaimer />
 
     <!-- ==================== FOOTER B2C ==================== -->
-    <footer class="border-t border-[#e8e2ed]/60 bg-[#faf8f6] px-4 py-12">
-      <div class="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
-        <p class="font-serif text-2xl text-[#3d3250]">
+    <footer class="border-t border-[#e8e2ed]/50 bg-[#faf8f6] px-4 py-14">
+      <div class="mx-auto flex max-w-5xl flex-col items-center gap-7 text-center">
+        <!-- Brand -->
+        <p class="font-serif text-2xl tracking-tight text-[#3d3250]">
           Keova
         </p>
+
+        <!-- Legal nav -->
         <nav class="flex flex-wrap justify-center gap-5 text-sm text-[#857d8c]">
           <NuxtLink
             to="/legal/cgu"
-            class="transition-colors hover:text-[#5b4b6e]"
+            class="transition-colors duration-200 hover:text-[#5b4b6e]"
           >
             CGU
           </NuxtLink>
           <NuxtLink
             to="/legal/mentions-legales"
-            class="transition-colors hover:text-[#5b4b6e]"
+            class="transition-colors duration-200 hover:text-[#5b4b6e]"
           >
             Mentions légales
           </NuxtLink>
           <NuxtLink
             to="/legal/confidentialite"
-            class="transition-colors hover:text-[#5b4b6e]"
+            class="transition-colors duration-200 hover:text-[#5b4b6e]"
           >
             Confidentialité
           </NuxtLink>
         </nav>
+
+        <!-- Cross-domain CTA -->
         <a
           href="https://keova.app"
           target="_blank"
           rel="noopener"
-          class="inline-flex items-center gap-1.5 rounded-full bg-[#d4956a]/10 px-5 py-2 text-sm font-medium text-[#c07d4e] transition-colors hover:bg-[#d4956a]/20"
+          class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-6 py-2.5 text-sm font-semibold text-[#b07a4a] transition-colors duration-200 hover:bg-[#d4956a]/15"
         >
           Vous êtes praticienne ? Rejoignez Keova
           <UIcon
@@ -355,6 +376,7 @@ function scrollTo(id: string) {
             class="size-4"
           />
         </a>
+
         <p class="text-xs text-[#b5adc0]">
           &copy; {{ new Date().getFullYear() }} Keova
         </p>
@@ -364,12 +386,23 @@ function scrollTo(id: string) {
 </template>
 
 <style scoped>
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.35; }
+@keyframes drift-slow {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(15px, -10px); }
+  66% { transform: translate(-10px, 8px); }
 }
 
-.animate-pulse-slow {
-  animation: pulse-slow 8s ease-in-out infinite;
+@keyframes drift-slow-reverse {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(-12px, 8px); }
+  66% { transform: translate(10px, -12px); }
+}
+
+.animate-drift-slow {
+  animation: drift-slow 20s ease-in-out infinite;
+}
+
+.animate-drift-slow-reverse {
+  animation: drift-slow-reverse 25s ease-in-out infinite;
 }
 </style>
