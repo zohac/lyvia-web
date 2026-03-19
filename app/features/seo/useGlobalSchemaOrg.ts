@@ -10,7 +10,8 @@ export async function useGlobalSchemaOrg() {
 
   const runtimeConfig = useRuntimeConfig()
   const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
-  const { isPlatform } = getDomainContext(hostname, platformDomain)
+  const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
+  const { isPlatform } = getDomainContext(hostname, platformDomain, platformDomainB2B || undefined)
 
   if (isPlatform) {
     useSchemaOrg([

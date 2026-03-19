@@ -15,7 +15,8 @@ export function useBookingSchemaOrg(
   const origin = requestUrl.origin
   const runtimeConfig = useRuntimeConfig()
   const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
-  const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
+  const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
+  const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain, platformDomainB2B || undefined)
 
   // Service schema — Appel découverte gratuit (AC-3, AC-4)
   // Convention 4: raw JSON-LD for types without defineXxx() helper
