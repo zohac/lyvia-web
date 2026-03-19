@@ -49,7 +49,7 @@ export default defineNuxtConfig({
     // Dev-only: allow accessing Nuxt via custom local domains (e.g. `*.test`)
     // without Vite host-check returning 403.
     server: {
-      allowedHosts: ['localhost', '127.0.0.1', '.test']
+      allowedHosts: ['localhost', '127.0.0.1', '.test', '.fr']
     }
   },
 

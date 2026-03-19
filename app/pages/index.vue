@@ -131,22 +131,41 @@ watchEffect(() => {
     return
   }
 
-  setPublicHeader({
-    variant: 'marketing',
-    layoutStyle: 'dock',
-    brandLabel: 'Keova',
-    brandTo: '/',
-    showBrandIcon: true,
-    navLinks: [
-      { label: 'Pourquoi Keova', href: '#pourquoi' },
-      { label: 'L\'atelier', href: '#atelier' },
-      { label: 'Témoignage', href: '#temoignage' }
-    ],
-    loginLabel: 'Se connecter',
-    loginTo: '/login',
-    ctaLabel: 'Rejoindre la beta',
-    ctaTo: '#waitlist'
-  })
+  if (ctx.value.isB2C) {
+    setPublicHeader({
+      variant: 'marketing',
+      layoutStyle: 'dock',
+      brandLabel: 'Keova',
+      brandTo: '/',
+      showBrandIcon: true,
+      navLinks: [
+        { label: 'Accompagnement', href: '#education' },
+        { label: 'Spécialistes', href: '#specialistes' },
+        { label: 'Symptômes', href: '#symptomes' }
+      ],
+      loginLabel: 'Se connecter',
+      loginTo: '/login',
+      ctaLabel: 'Trouver ma spécialiste',
+      ctaTo: '#specialistes'
+    })
+  } else {
+    setPublicHeader({
+      variant: 'marketing',
+      layoutStyle: 'dock',
+      brandLabel: 'Keova',
+      brandTo: '/',
+      showBrandIcon: true,
+      navLinks: [
+        { label: 'Pourquoi Keova', href: '#pourquoi' },
+        { label: 'L\'atelier', href: '#atelier' },
+        { label: 'Témoignage', href: '#temoignage' }
+      ],
+      loginLabel: 'Se connecter',
+      loginTo: '/login',
+      ctaLabel: 'Rejoindre la beta',
+      ctaTo: '#waitlist'
+    })
+  }
 })
 </script>
 
