@@ -132,6 +132,12 @@ watchEffect(() => {
   }
 
   if (ctx.value.isB2C) {
+    // B2C login redirects to the B2B app domain (keova.app in prod, localhost in dev)
+    const b2bOrigin = platformDomainB2B
+      ? `${requestUrl.protocol}//${platformDomainB2B}${requestUrl.port ? `:${requestUrl.port}` : ''}`
+      : ''
+    const loginUrl = b2bOrigin ? `${b2bOrigin}/login` : '/login'
+
     setPublicHeader({
       variant: 'marketing',
       layoutStyle: 'dock',
@@ -144,7 +150,7 @@ watchEffect(() => {
         { label: 'Symptômes', href: '#symptomes' }
       ],
       loginLabel: 'Se connecter',
-      loginTo: '/login',
+      loginTo: loginUrl,
       ctaLabel: 'Trouver ma spécialiste',
       ctaTo: '#specialistes'
     })

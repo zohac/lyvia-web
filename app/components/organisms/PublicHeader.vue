@@ -98,7 +98,7 @@ function closeMobileMenu() {
           <ULink
             :to="headerState.ctaTo"
             :class="[
-              'dock-cta group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg',
+              'dock-cta group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white hover:text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg',
               isMarketingVariant
                 ? 'bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e]'
                 : 'bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c]'
