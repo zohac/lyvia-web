@@ -115,7 +115,10 @@ export default defineEventHandler(async (event) => {
     headers.set('x-real-ip', clientIp)
   }
 
-  const body = method === 'GET' || method === 'HEAD' ? undefined : await readRawBody(event)
+  const rawBody = method === 'GET' || method === 'HEAD' ? undefined : await readRawBody(event, false)
+  // Convert Buffer to Uint8Array for fetch() BodyInit compatibility,
+  // preserving binary data (critical for multipart/form-data uploads).
+  const body = rawBody ? new Uint8Array(rawBody) : undefined
 
   const upstreamResponse = await fetch(upstreamUrl.toString(), {
     method,

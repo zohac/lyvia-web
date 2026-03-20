@@ -39,6 +39,7 @@ const { data: coachProfile } = useNuxtData<{
   longBio?: string | null
   city?: string | null
   imageUrl?: string | null
+  secondaryPhotoUrl?: string | null
   publicPhone?: string | null
   urgencyText?: string | null
   testimonialsJson?: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
@@ -304,8 +305,8 @@ const heroProps = computed(() => ({
               />
               <div class="bio-photo-shape relative h-[45vh] w-72 overflow-hidden shadow-2xl shadow-black/20">
                 <NuxtImg
-                  v-if="coachProfile?.imageUrl"
-                  :src="coachProfile.imageUrl"
+                  v-if="coachProfile?.secondaryPhotoUrl || coachProfile?.imageUrl"
+                  :src="(coachProfile?.secondaryPhotoUrl ?? coachProfile?.imageUrl)!"
                   :alt="`${coachName}, spécialiste accompagnement ménopause`"
                   class="h-full w-full object-cover object-top"
                   loading="lazy"
