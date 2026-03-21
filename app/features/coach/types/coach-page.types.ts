@@ -40,3 +40,20 @@ export interface CoachFaqItem {
   label: string
   content: string
 }
+
+// --- Y1.3 Props ---
+
+export interface CoachHowItWorksProps {
+  discoveryDurationMinutes: number
+  providerFirstName: string
+}
+
+export interface CoachPricingProps {
+  plans: import('~/features/consultation/api/consultation.contract').ConsultationPricePlan[]
+  programs: import('~/features/programs/api/programs.contract').PublicProgramListItem[]
+  discoveryDurationMinutes: number
+}
+
+export interface CoachTestimonialsProps {
+  testimonials: Testimonial[]
+}
