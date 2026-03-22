@@ -165,14 +165,18 @@ function closeMobileMenu() {
             <ULink
               :to="headerState.loginTo"
               class="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:bg-[#f5f3f7]"
+              :aria-label="useIconOnlyLogin ? headerState.loginLabel : undefined"
               @click="closeMobileMenu"
             >
               <UIcon
-                v-if="useIconOnlyLogin"
                 name="i-lucide-user-circle"
                 class="size-5"
               />
-              {{ useIconOnlyLogin ? 'Espace cliente' : headerState.loginLabel }}
+              <span v-if="!useIconOnlyLogin">{{ headerState.loginLabel }}</span>
+              <span
+                v-else
+                class="sr-only"
+              >{{ headerState.loginLabel }}</span>
             </ULink>
             <!-- Mobile CTA full-width (coach/white-label variant) -->
             <ULink
