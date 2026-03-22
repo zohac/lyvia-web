@@ -1,5 +1,11 @@
 <script setup lang="ts">
+import type { SectionHeaderProps } from '~/features/coach/types/coach-page.types'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+
+withDefaults(defineProps<SectionHeaderProps>(), {
+  eyebrow: undefined,
+  sectionTitleAccent: undefined
+})
 
 const { reveal } = useScrollReveal()
 
@@ -34,8 +40,25 @@ const benefits = [
     class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="mx-auto max-w-6xl">
+      <!-- Section H2 (P-Y5 amended: organism owns its header rendering) -->
+      <template v-if="eyebrow || sectionTitle">
+        <span
+          v-if="eyebrow"
+          class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]"
+        >
+          {{ eyebrow }}
+        </span>
+        <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          {{ sectionTitle }}
+          <span
+            v-if="sectionTitleAccent"
+            class="block text-[#5b4b6e]"
+          >{{ sectionTitleAccent }}</span>
+        </h2>
+      </template>
+
       <!-- Intro text — Sophie's validated content -->
-      <div class="mx-auto max-w-3xl space-y-6 text-center">
+      <div class="mx-auto mt-12 max-w-3xl space-y-6 text-center">
         <p class="text-lg leading-relaxed text-[#4a4255]">
           Chaque femme vit cette période de transition différemment.
           Certaines ressentent de la fatigue, d'autres un sommeil perturbé,

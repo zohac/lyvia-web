@@ -41,6 +41,14 @@ export interface CoachFaqItem {
   content: string
 }
 
+// --- Y1.4 Section header props (P-Y5 amended) ---
+
+export interface SectionHeaderProps {
+  eyebrow?: string
+  sectionTitle: string
+  sectionTitleAccent?: string
+}
+
 // --- Y1.3 Props ---
 
 export interface CoachHowItWorksProps {
@@ -52,6 +60,9 @@ export interface CoachPricingProps {
   plans: import('~/features/consultation/api/consultation.contract').ConsultationPricePlan[]
   programs: import('~/features/programs/api/programs.contract').PublicProgramListItem[]
   discoveryDurationMinutes: number
+  ctaTo?: string
+  isAuthenticated?: boolean
+  currentPath?: string
 }
 
 export interface CoachTestimonialsProps {

@@ -13,6 +13,7 @@ import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
 import CoachPricing from '~/components/organisms/CoachPricing.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
 import CoachEducationalContent from '~/components/organisms/CoachEducationalContent.vue'
+import CoachInlineCta from '~/components/atoms/CoachInlineCta.vue'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -21,6 +22,10 @@ const props = defineProps<{
 }>()
 
 const { reveal } = useScrollReveal()
+const route = useRoute()
+const { isAuthenticated: checkAuth } = useAuth()
+const isAuthenticated = computed(() => checkAuth())
+const currentPath = computed(() => route.fullPath)
 
 const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>('public-programs', async () => {
   try {
@@ -149,13 +154,13 @@ const heroProps = computed(() => ({
 
 <template>
   <div class="min-h-screen">
-    <!-- ==================== 1. HERO (AC-2) ==================== -->
+    <!-- ==================== 1. HERO (beige) ==================== -->
     <CoachHeroProfile v-bind="heroProps" />
 
-    <!-- ==================== 2. BLOC PROBLÈME (inchangé) ==================== -->
+    <!-- ==================== 2. BLOC PROBLÈME (blanc) ==================== -->
     <section
       v-bind="reveal()"
-      class="scroll-reveal relative overflow-hidden bg-white px-6 py-32 sm:px-12 lg:px-20"
+      class="scroll-reveal relative overflow-hidden bg-white px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
       <div class="mx-auto max-w-5xl">
@@ -190,10 +195,10 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 3. MINI-TÉMOIGNAGE (preuve sociale précoce) ==================== -->
+    <!-- ==================== 3. MINI-TÉMOIGNAGE (beige) ==================== -->
     <section
       v-bind="reveal()"
-      class="scroll-reveal bg-[#f5f0eb] px-6 py-16 sm:px-12 lg:px-20"
+      class="scroll-reveal bg-[#f5f0eb] px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-3xl text-center">
         <blockquote class="font-serif text-xl italic leading-relaxed text-[#4a4255] lg:text-2xl">
@@ -207,153 +212,22 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 4. CE QUE L'ACCOMPAGNEMENT APPORTE (AC-1, Y.3) ==================== -->
-    <!-- H2 with SEO keyword (P-Y5) -->
-    <section class="bg-white px-6 pt-24 pb-0 sm:px-12 lg:px-20">
-      <div class="mx-auto max-w-6xl">
-        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-          Ce que cela apporte
-        </span>
-        <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-          Accompagnement ménopause
-          <span class="block text-[#5b4b6e]">personnalisé</span>
-        </h2>
-      </div>
-    </section>
-    <CoachTransformationBenefits />
+    <!-- ==================== 4. CE QUE L'ACCOMPAGNEMENT APPORTE (blanc) ==================== -->
+    <div id="accompagnement">
+      <CoachTransformationBenefits
+        eyebrow="Ce que cela apporte"
+        section-title="Accompagnement ménopause"
+        section-title-accent="personnalisé"
+      />
+    </div>
 
-    <!-- ==================== 5. COMMENT ÇA MARCHE (AC-2, Y.3) ==================== -->
-    <!-- H2 with SEO keyword (P-Y5) -->
-    <section class="bg-[#f5f0eb] px-6 pt-32 pb-4 sm:px-12 lg:px-20">
-      <div class="mx-auto max-w-7xl">
-        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-          Le parcours
-        </span>
-        <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-          Comment se déroule la séance
-          <span class="block text-[#5b4b6e]">découverte ménopause</span>
-        </h2>
-      </div>
-    </section>
-    <CoachHowItWorks
-      :discovery-duration-minutes="discoveryDuration"
-      :provider-first-name="coachProfile?.displayName?.split(' ')[0] ?? coachName"
+    <!-- Mini-CTA after Benefits -->
+    <CoachInlineCta
+      :cta-to="ctaTo"
+      :duration-minutes="discoveryDuration"
     />
 
-    <!-- ==================== 6. PILIERS — H2 SEO (AC-4) ==================== -->
-    <section
-      id="accompagnement"
-      v-bind="reveal()"
-      class="scroll-reveal bg-white px-6 py-32 sm:px-12 lg:px-20"
-    >
-      <div class="mx-auto max-w-7xl">
-        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-          L'accompagnement
-        </span>
-
-        <!-- H2 with SEO keyword (AC-4, P-Y5) -->
-        <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-          Les 4 piliers de
-          <span class="block text-[#5b4b6e]">l'accompagnement ménopause</span>
-        </h2>
-
-        <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
-          Une approche globale, personnalisée et respectueuse du corps féminin.
-          {{ coachName }} vous guide avec douceur à travers 4 axes essentiels.
-        </p>
-
-        <div class="mt-16 grid gap-8 md:grid-cols-2">
-          <article
-            v-for="(pillar, index) in pillars"
-            :key="pillar.title"
-            v-bind="reveal({ delay: index * 120 })"
-            class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
-          >
-            <!-- Glow blob top-right (appears on hover, like B2B feature-card) -->
-            <div
-              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
-              aria-hidden="true"
-            />
-
-            <div class="relative flex items-start gap-5">
-              <!-- Icon with color change on hover (B2B pattern) -->
-              <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
-                <UIcon
-                  :name="pillar.icon"
-                  class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
-                />
-              </div>
-
-              <div>
-                <span class="font-serif text-sm text-[#d4956a]/60">
-                  {{ String(index + 1).padStart(2, '0') }}
-                </span>
-                <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
-                  {{ pillar.title }}
-                </h3>
-                <p class="mt-3 text-base leading-relaxed text-[#4a4255]">
-                  {{ pillar.description }}
-                </p>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <!-- Emotional support callout (5th pillar — distinct treatment) -->
-        <div
-          v-bind="reveal({ delay: 500 })"
-          class="pillar-card scroll-reveal group relative mt-8 overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
-        >
-          <div
-            class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
-            aria-hidden="true"
-          />
-          <div class="relative flex items-start gap-5">
-            <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
-              <UIcon
-                name="i-lucide-hand-heart"
-                class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
-              />
-            </div>
-            <div>
-              <span class="font-serif text-sm text-[#d4956a]/60">
-                05
-              </span>
-              <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
-                Un espace d'écoute en plus de tout cela
-              </h3>
-              <p class="mt-3 max-w-3xl text-base leading-relaxed text-[#4a4255]">
-                Chaque accompagnement inclut un soutien basé sur l'écoute, la bienveillance et le respect
-                de votre rythme. Un espace sécurisé pour déposer ce que vous vivez.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== 7. TARIFS & PROGRAMMES (AC-3, Y.3) ==================== -->
-    <template v-if="hasPricing">
-      <!-- H2 with SEO keyword (P-Y5) -->
-      <section class="bg-[#f5f0eb] px-6 pt-32 pb-4 sm:px-12 lg:px-20">
-        <div class="mx-auto max-w-7xl">
-          <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-            Tarifs
-          </span>
-          <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-            Tarifs des séances
-            <span class="block text-[#5b4b6e]">accompagnement ménopause</span>
-          </h2>
-        </div>
-      </section>
-      <CoachPricing
-        :plans="consultationPlans"
-        :programs="publicPrograms"
-        :discovery-duration-minutes="discoveryDuration"
-      />
-    </template>
-
-    <!-- ==================== 8. À PROPOS — H2 SEO (AC-4) ==================== -->
+    <!-- ==================== 5. À PROPOS (dark) ==================== -->
     <section
       id="qui-suis-je"
       v-bind="reveal()"
@@ -392,7 +266,7 @@ const heroProps = computed(() => ({
               Qui suis-je
             </span>
 
-            <!-- H2 with SEO keyword (AC-4, P-Y5) -->
+            <!-- H2 with SEO keyword (P-Y5) -->
             <h2 class="font-serif text-4xl leading-tight text-white">
               Votre spécialiste ménopause — {{ coachName }}
             </h2>
@@ -484,42 +358,162 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 9. TÉMOIGNAGES (AC-4, Y.3) ==================== -->
-    <template v-if="hasTestimonials">
-      <!-- H2 with SEO keyword (P-Y5) -->
-      <section class="bg-[#f5f0eb] px-6 pt-32 pb-4 sm:px-12 lg:px-20">
-        <div class="mx-auto max-w-4xl text-center">
-          <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]">
-            Témoignages
-          </span>
-          <h2 class="font-serif text-4xl leading-tight text-[#2d2438]">
-            Témoignages de femmes
-            <span class="text-[#5b4b6e]">accompagnées</span>
-          </h2>
-        </div>
-      </section>
-      <CoachTestimonials :testimonials="coachProfile!.testimonialsJson!" />
-    </template>
+    <!-- ==================== 6. TÉMOIGNAGES (beige) ==================== -->
+    <div
+      v-if="hasTestimonials"
+      id="temoignages"
+    >
+      <CoachTestimonials
+        :testimonials="coachProfile!.testimonialsJson!"
+        eyebrow="Témoignages"
+        section-title="Témoignages de femmes"
+        section-title-accent="accompagnées"
+      />
+    </div>
 
-    <!-- ==================== 9b. CONTENU ÉDUCATIF (AC-5, Y.3) ==================== -->
-    <!-- H2 with SEO keyword (P-Y5) -->
-    <section class="bg-white px-6 pt-32 pb-4 sm:px-12 lg:px-20">
-      <div class="mx-auto max-w-5xl">
-        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-          Comprendre
-        </span>
-        <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-          Comprendre la ménopause
-          <span class="block text-[#5b4b6e]">et la périménopause</span>
-        </h2>
-      </div>
-    </section>
-    <CoachEducationalContent />
+    <!-- Mini-CTA after Témoignages -->
+    <CoachInlineCta
+      v-if="hasTestimonials"
+      :cta-to="ctaTo"
+      :duration-minutes="discoveryDuration"
+    />
 
-    <!-- ==================== 10. FAQ — VISIBLE SSR (AC-5, AC-4 H2 SEO) ==================== -->
+    <!-- ==================== 7. PILIERS (blanc) ==================== -->
     <section
       v-bind="reveal()"
-      class="scroll-reveal bg-[#f5f0eb] px-6 py-32 sm:px-12 lg:px-20"
+      class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-7xl">
+        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+          L'accompagnement
+        </span>
+
+        <!-- H2 with SEO keyword (P-Y5) -->
+        <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          Les 4 piliers de
+          <span class="block text-[#5b4b6e]">l'accompagnement ménopause</span>
+        </h2>
+
+        <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
+          Une approche globale, personnalisée et respectueuse du corps féminin.
+          {{ coachName }} vous guide avec douceur à travers 4 axes essentiels.
+        </p>
+
+        <div class="mt-16 grid gap-8 md:grid-cols-2">
+          <article
+            v-for="(pillar, index) in pillars"
+            :key="pillar.title"
+            v-bind="reveal({ delay: index * 120 })"
+            class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+          >
+            <!-- Glow blob top-right (appears on hover, like B2B feature-card) -->
+            <div
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              aria-hidden="true"
+            />
+
+            <div class="relative flex items-start gap-5">
+              <!-- Icon with color change on hover (B2B pattern) -->
+              <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+                <UIcon
+                  :name="pillar.icon"
+                  class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                />
+              </div>
+
+              <div>
+                <span class="font-serif text-sm text-[#d4956a]/60">
+                  {{ String(index + 1).padStart(2, '0') }}
+                </span>
+                <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
+                  {{ pillar.title }}
+                </h3>
+                <p class="mt-3 text-base leading-relaxed text-[#4a4255]">
+                  {{ pillar.description }}
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Emotional support callout (5th pillar — distinct treatment) -->
+        <div
+          v-bind="reveal({ delay: 500 })"
+          class="pillar-card scroll-reveal group relative mt-8 overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+        >
+          <div
+            class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+            aria-hidden="true"
+          />
+          <div class="relative flex items-start gap-5">
+            <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+              <UIcon
+                name="i-lucide-hand-heart"
+                class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+              />
+            </div>
+            <div>
+              <span class="font-serif text-sm text-[#d4956a]/60">
+                05
+              </span>
+              <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
+                Un espace d'écoute en plus de tout cela
+              </h3>
+              <p class="mt-3 max-w-3xl text-base leading-relaxed text-[#4a4255]">
+                Chaque accompagnement inclut un soutien basé sur l'écoute, la bienveillance et le respect
+                de votre rythme. Un espace sécurisé pour déposer ce que vous vivez.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 8. COMMENT ÇA MARCHE (beige) ==================== -->
+    <CoachHowItWorks
+      :discovery-duration-minutes="discoveryDuration"
+      :provider-first-name="coachProfile?.displayName?.split(' ')[0] ?? coachName"
+      eyebrow="Le parcours"
+      section-title="Comment se déroule la séance"
+      section-title-accent="découverte ménopause"
+    />
+
+    <!-- ==================== 9. TARIFS & PROGRAMMES (blanc) ==================== -->
+    <div
+      v-if="hasPricing"
+      id="tarifs"
+    >
+      <CoachPricing
+        :plans="consultationPlans"
+        :programs="publicPrograms"
+        :discovery-duration-minutes="discoveryDuration"
+        :cta-to="ctaTo"
+        :is-authenticated="isAuthenticated"
+        :current-path="currentPath"
+        eyebrow="Tarifs"
+        section-title="Tarifs des séances"
+        section-title-accent="accompagnement ménopause"
+      />
+    </div>
+
+    <!-- Mini-CTA after Tarifs -->
+    <CoachInlineCta
+      v-if="hasPricing"
+      :cta-to="ctaTo"
+      :duration-minutes="discoveryDuration"
+    />
+
+    <!-- ==================== 10. CONTENU ÉDUCATIF (beige) ==================== -->
+    <CoachEducationalContent
+      eyebrow="Comprendre"
+      section-title="Comprendre la ménopause"
+      section-title-accent="et la périménopause"
+    />
+
+    <!-- ==================== 11. FAQ (blanc) ==================== -->
+    <section
+      v-bind="reveal()"
+      class="scroll-reveal bg-white px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-3xl">
         <div class="mb-16 text-center">
@@ -528,7 +522,7 @@ const heroProps = computed(() => ({
           </h2>
         </div>
 
-        <!-- UAccordion: default-value includes all items for SSR crawlability (AC-5) -->
+        <!-- UAccordion: default-value includes all items for SSR crawlability -->
         <UAccordion
           :items="faqItems"
           :default-value="faqDefaultValue"
@@ -549,7 +543,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 11. CTA FINAL — H2 SEO (AC-4) ==================== -->
+    <!-- ==================== 12. CTA FINAL (gradient) ==================== -->
     <section
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-gradient-to-br from-[#5b4b6e] to-[#3d3250] px-6 py-32 sm:px-12 lg:px-20"
@@ -560,7 +554,7 @@ const heroProps = computed(() => ({
       />
 
       <div class="relative mx-auto max-w-3xl text-center">
-        <!-- H2 with SEO keyword (AC-4, P-Y5) -->
+        <!-- H2 with SEO keyword (P-Y5) -->
         <h2 class="font-serif text-4xl leading-tight text-white lg:text-5xl">
           Réservez votre
           <span class="block text-[#f0b48f]">séance découverte gratuite</span>
@@ -593,7 +587,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 12. DISCLAIMER MÉDICAL ==================== -->
+    <!-- ==================== 13. DISCLAIMER MÉDICAL ==================== -->
     <AtomsMedicalDisclaimer />
   </div>
 </template>

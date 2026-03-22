@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import type { CoachHowItWorksProps } from '~/features/coach/types/coach-page.types'
+import type { CoachHowItWorksProps, SectionHeaderProps } from '~/features/coach/types/coach-page.types'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
-const props = defineProps<CoachHowItWorksProps>()
+const props = withDefaults(defineProps<CoachHowItWorksProps & SectionHeaderProps>(), {
+  eyebrow: undefined,
+  sectionTitleAccent: undefined
+})
 
 const { reveal } = useScrollReveal()
 
@@ -22,7 +25,7 @@ const steps = computed(() => [
   {
     number: '03',
     title: 'Accompagnement sur mesure',
-    description: 'Des séances régulières adaptées à votre rythme, en visio depuis chez vous.',
+    description: `Des séances régulières adaptées à votre rythme, en visio depuis chez vous. ${props.providerFirstName} reste disponible par mail entre deux séances.`,
     icon: 'i-lucide-video'
   },
   {
@@ -40,6 +43,23 @@ const steps = computed(() => [
     class="scroll-reveal bg-[#f5f0eb] px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="mx-auto max-w-6xl">
+      <!-- Section H2 (P-Y5 amended: organism owns its header rendering) -->
+      <template v-if="eyebrow || sectionTitle">
+        <span
+          v-if="eyebrow"
+          class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]"
+        >
+          {{ eyebrow }}
+        </span>
+        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          {{ sectionTitle }}
+          <span
+            v-if="sectionTitleAccent"
+            class="block text-[#5b4b6e]"
+          >{{ sectionTitleAccent }}</span>
+        </h2>
+      </template>
+
       <!-- Desktop: horizontal timeline -->
       <div class="hidden lg:block">
         <!-- Progress line with numbered badges -->

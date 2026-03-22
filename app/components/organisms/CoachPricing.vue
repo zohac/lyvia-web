@@ -1,23 +1,88 @@
 <script setup lang="ts">
-import type { CoachPricingProps } from '~/features/coach/types/coach-page.types'
+import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
+import type { CoachPricingProps, SectionHeaderProps } from '~/features/coach/types/coach-page.types'
 import { formatCurrency } from '~/features/analytics/helpers/format-kpi'
 import { formatProgramInstallments } from '~/features/programs/domain/programs'
 import { getActiveConsultationPricePlans } from '~/features/consultation/domain/pricing'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+import ProgramCheckoutModal from '~/components/organisms/ProgramCheckoutModal.vue'
 
-const props = defineProps<CoachPricingProps>()
+const props = withDefaults(defineProps<CoachPricingProps & SectionHeaderProps>(), {
+  eyebrow: undefined,
+  sectionTitleAccent: undefined,
+  ctaTo: undefined,
+  isAuthenticated: false,
+  currentPath: undefined
+})
 
 const { reveal } = useScrollReveal()
 
 const activePlans = computed(() => getActiveConsultationPricePlans(props.plans))
+
+// Checkout modal state (AC-3: interactive checkout integrated in pricing)
+const checkoutModalOpen = ref(false)
+const selectedProgram = ref<PublicProgramListItem | null>(null)
+
+/**
+ * CTA logic per program — mirrors ProgramCard.vue matrix (CR-1 fix).
+ *
+ * discoveryGate=true  + !authenticated → "Prendre un appel découverte" → booking URL
+ * discoveryGate=true  + authenticated  → "Choisir ce programme"        → checkout
+ * discoveryGate=false + !authenticated → "Choisir ce programme"        → login
+ * discoveryGate=false + authenticated  → "Choisir ce programme"        → checkout
+ */
+function getProgramCta(program: PublicProgramListItem) {
+  if (program.discoveryGate && !props.isAuthenticated) {
+    return {
+      label: 'Prendre un appel découverte',
+      to: props.ctaTo ?? '/',
+      action: null as (() => void) | null
+    }
+  }
+
+  if (!props.isAuthenticated) {
+    const redirect = props.currentPath ? encodeURIComponent(`${props.currentPath}#tarifs`) : ''
+    return {
+      label: 'Choisir ce programme',
+      to: redirect ? `/login?redirect=${redirect}` : '/login',
+      action: null as (() => void) | null
+    }
+  }
+
+  return {
+    label: 'Choisir ce programme',
+    to: undefined as string | undefined,
+    action: () => {
+      selectedProgram.value = program
+      checkoutModalOpen.value = true
+    }
+  }
+}
 </script>
 
 <template>
   <section
     v-bind="reveal()"
-    class="scroll-reveal bg-[#f5f0eb] px-6 py-24 sm:px-12 lg:px-20"
+    class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="mx-auto max-w-6xl">
+      <!-- Section H2 (P-Y5 amended: organism owns its header rendering) -->
+      <template v-if="eyebrow || sectionTitle">
+        <span
+          v-if="eyebrow"
+          class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]"
+        >
+          {{ eyebrow }}
+        </span>
+        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          {{ sectionTitle }}
+          <span
+            v-if="sectionTitleAccent"
+            class="block text-[#5b4b6e]"
+          >{{ sectionTitleAccent }}</span>
+        </h2>
+      </template>
+
       <!-- Discovery card — featured, gradient border wrapper -->
       <div
         v-bind="reveal({ delay: 100 })"
@@ -63,7 +128,7 @@ const activePlans = computed(() => getActiveConsultationPricePlans(props.plans))
         </div>
       </div>
 
-      <!-- Programs — B2B feature cards -->
+      <!-- Programs — B2B feature cards with interactive checkout (AC-3) -->
       <div
         v-if="programs.length > 0"
         class="mt-12"
@@ -114,6 +179,29 @@ const activePlans = computed(() => getActiveConsultationPricePlans(props.plans))
                   ou {{ formatProgramInstallments(program) }}
                 </p>
               </div>
+
+              <!-- Discovery gate badge (CR-1: mirrors ProgramCard.vue) -->
+              <div
+                v-if="program.discoveryGate"
+                class="mt-4"
+              >
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                  <UIcon
+                    name="i-lucide-phone-call"
+                    class="size-3.5"
+                  />
+                  Appel découverte requis
+                </span>
+              </div>
+
+              <!-- CTA per program (CR-1: discoveryGate-aware matrix) -->
+              <UButton
+                :to="getProgramCta(program).to"
+                class="mt-6 w-full rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c] text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+                @click="getProgramCta(program).action?.()"
+              >
+                {{ getProgramCta(program).label }}
+              </UButton>
             </div>
           </article>
         </div>
@@ -165,6 +253,12 @@ const activePlans = computed(() => getActiveConsultationPricePlans(props.plans))
       </div>
     </div>
   </section>
+
+  <!-- Checkout modal (AC-3) -->
+  <ProgramCheckoutModal
+    v-model:open="checkoutModalOpen"
+    :program="selectedProgram"
+  />
 </template>
 
 <style scoped>
