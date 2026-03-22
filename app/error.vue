@@ -24,6 +24,12 @@ function goHome() {
 </script>
 
 <template>
+  <Head>
+    <Meta
+      name="robots"
+      content="noindex"
+    />
+  </Head>
   <div class="min-h-[100svh] bg-[color:var(--color-surface-page)] px-4 py-12 sm:px-6">
     <div class="mx-auto w-full max-w-[640px] rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-8 text-center shadow-[var(--shadow-card)] sm:p-10">
       <p class="text-sm font-semibold tracking-wide text-[color:var(--color-brand-secondary)]">

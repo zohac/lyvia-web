@@ -14,6 +14,7 @@ import CoachPricing from '~/components/organisms/CoachPricing.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
 import CoachEducationalContent from '~/components/organisms/CoachEducationalContent.vue'
 import CoachInlineCta from '~/components/atoms/CoachInlineCta.vue'
+import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -606,6 +607,7 @@ const heroProps = computed(() => ({
           <UButton
             :to="ctaTo"
             size="xl"
+            data-final-cta
             class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-10 py-5 font-semibold text-white transition-all duration-300 hover:bg-transparent hover:text-[#f0b48f]"
           >
             <!-- CTA final wording intentionnellement différent du hero (M8):
@@ -626,6 +628,15 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 13. DISCLAIMER MÉDICAL ==================== -->
     <AtomsMedicalDisclaimer />
+
+    <!-- Spacer for mobile sticky CTA -->
+    <div class="h-16 md:hidden" />
+
+    <!-- Sticky CTA mobile (AC-4: visible when hero CTA scrolls out) -->
+    <StickyCtaMobile
+      cta-label="Réserver mon appel gratuit →"
+      :cta-to="ctaTo"
+    />
   </div>
 </template>
 

@@ -13,6 +13,8 @@ const useCustomLogoImage = computed(
 )
 const isMarketingVariant = computed(() => headerState.value.variant === 'marketing')
 const isCoachVariant = computed(() => headerState.value.variant === 'coach')
+const isWhiteLabelVariant = computed(() => headerState.value.variant === 'white-label')
+const useIconOnlyLogin = computed(() => isCoachVariant.value || isWhiteLabelVariant.value)
 
 // Mobile menu state
 const isMobileMenuOpen = ref(false)
@@ -88,19 +90,19 @@ function closeMobileMenu() {
 
         <!-- Actions -->
         <div class="flex items-center gap-3">
-          <!-- Login: icon-only on coach variant, full text otherwise -->
+          <!-- Login: icon-only on coach/white-label variant, full text otherwise -->
           <ULink
             :to="headerState.loginTo"
             :class="[
               'hidden transition-colors duration-200 hover:text-[#3d3250] md:inline-flex',
-              isCoachVariant
+              useIconOnlyLogin
                 ? 'grid size-9 place-items-center rounded-full text-[#5b4b6e] hover:bg-[#5b4b6e]/8'
                 : 'text-sm font-medium text-[#5b4b6e]'
             ]"
-            :aria-label="isCoachVariant ? headerState.loginLabel : undefined"
+            :aria-label="useIconOnlyLogin ? headerState.loginLabel : undefined"
           >
             <UIcon
-              v-if="isCoachVariant"
+              v-if="useIconOnlyLogin"
               name="i-lucide-user-circle"
               class="size-5"
             />
@@ -166,9 +168,9 @@ function closeMobileMenu() {
             >
               {{ headerState.loginLabel }}
             </ULink>
-            <!-- Mobile CTA full-width (coach variant) -->
+            <!-- Mobile CTA full-width (coach/white-label variant) -->
             <ULink
-              v-if="isCoachVariant"
+              v-if="useIconOnlyLogin"
               :to="headerState.ctaTo"
               class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 py-3 text-sm font-semibold text-white shadow-md"
               @click="closeMobileMenu"

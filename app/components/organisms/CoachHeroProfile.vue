@@ -100,6 +100,7 @@ const initials = computed(() => {
               <UButton
                 :to="ctaTo"
                 size="xl"
+                data-hero-cta
                 class="hero-cta group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-8 py-4 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-[#c47a4a] hover:bg-[#c47a4a] hover:text-white hover:shadow-lg active:scale-[0.98]"
               >
                 <span class="flex items-center gap-3">

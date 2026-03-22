@@ -67,10 +67,10 @@ const bookingBreadcrumbs = computed(() =>
 const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/onboarding/discovery`
 
 useSeoMeta({
-  title: () => seo.value?.title ?? `Réserver avec ${brandName.value}`,
-  description: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte`,
-  ogTitle: () => seo.value?.title ?? `Réserver avec ${brandName.value}`,
-  ogDescription: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte`,
+  title: () => seo.value?.title ?? `Appel découverte | ${brandName.value}`,
+  description: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte gratuite`,
+  ogTitle: () => seo.value?.title ?? `Appel découverte | ${brandName.value}`,
+  ogDescription: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte gratuite`,
   ogImage: () => seo.value?.ogImageUrl ?? undefined,
   ogUrl: canonicalHref,
   ogType: 'website',
