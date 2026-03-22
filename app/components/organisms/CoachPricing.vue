@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
-import type { CoachPricingProps, SectionHeaderProps } from '~/features/coach/types/coach-page.types'
+import type { CoachPricingProps } from '~/features/coach/types/coach-page.types'
 import { formatCurrency } from '~/features/analytics/helpers/format-kpi'
 import { formatProgramInstallments } from '~/features/programs/domain/programs'
 import { getActiveConsultationPricePlans } from '~/features/consultation/domain/pricing'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import ProgramCheckoutModal from '~/components/organisms/ProgramCheckoutModal.vue'
 
-const props = withDefaults(defineProps<CoachPricingProps & SectionHeaderProps>(), {
-  eyebrow: undefined,
-  sectionTitleAccent: undefined,
-  ctaTo: undefined,
-  isAuthenticated: false,
-  currentPath: undefined
-})
+const props = defineProps<CoachPricingProps>()
 
 const { reveal } = useScrollReveal()
 
@@ -66,22 +60,8 @@ function getProgramCta(program: PublicProgramListItem) {
     class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="mx-auto max-w-6xl">
-      <!-- Section H2 (P-Y5 amended: organism owns its header rendering) -->
-      <template v-if="eyebrow || sectionTitle">
-        <span
-          v-if="eyebrow"
-          class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]"
-        >
-          {{ eyebrow }}
-        </span>
-        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-          {{ sectionTitle }}
-          <span
-            v-if="sectionTitleAccent"
-            class="block text-[#5b4b6e]"
-          >{{ sectionTitleAccent }}</span>
-        </h2>
-      </template>
+      <!-- Parent-provided H2 (P-Y5) -->
+      <slot name="header" />
 
       <!-- Discovery card — featured, gradient border wrapper -->
       <div

@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import type { CoachTestimonialsProps, SectionHeaderProps } from '~/features/coach/types/coach-page.types'
+import type { CoachTestimonialsProps } from '~/features/coach/types/coach-page.types'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
-withDefaults(defineProps<CoachTestimonialsProps & SectionHeaderProps>(), {
-  eyebrow: undefined,
-  sectionTitle: undefined,
-  sectionTitleAccent: undefined
-})
+defineProps<CoachTestimonialsProps>()
 
 const { reveal } = useScrollReveal()
 
@@ -27,24 +23,8 @@ function getAvatarColor(name: string): string {
     class="scroll-reveal relative overflow-hidden bg-[#f5f0eb] px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="relative mx-auto max-w-5xl">
-      <!-- Section H2 (P-Y5 amended: organism owns its header rendering) -->
-      <template v-if="sectionTitle">
-        <div class="mb-12 text-center">
-          <span
-            v-if="eyebrow"
-            class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]"
-          >
-            {{ eyebrow }}
-          </span>
-          <h2 class="font-serif text-4xl leading-tight text-[#2d2438]">
-            {{ sectionTitle }}
-            <span
-              v-if="sectionTitleAccent"
-              class="text-[#5b4b6e]"
-            >{{ sectionTitleAccent }}</span>
-          </h2>
-        </div>
-      </template>
+      <!-- Parent-provided H2 (P-Y5) -->
+      <slot name="header" />
 
       <div class="space-y-8">
         <article

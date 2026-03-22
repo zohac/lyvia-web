@@ -27,13 +27,17 @@ const { isAuthenticated: checkAuth } = useAuth()
 const isAuthenticated = computed(() => checkAuth())
 const currentPath = computed(() => route.fullPath)
 
-const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>('public-programs', async () => {
-  try {
-    return await listPublicPrograms()
-  } catch {
-    return []
-  }
-}, { default: () => [] })
+const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>(
+  `public-programs:${props.tenant.slug}`,
+  async () => {
+    try {
+      return await listPublicPrograms(props.tenant.slug)
+    } catch {
+      return []
+    }
+  },
+  { default: () => [] }
+)
 
 const { data: pricingData } = await useAsyncData<ListConsultationPricePlansResponse | null>(
   `pricing-${props.tenant.providerId}`,
@@ -214,11 +218,17 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 4. CE QUE L'ACCOMPAGNEMENT APPORTE (blanc) ==================== -->
     <div id="accompagnement">
-      <CoachTransformationBenefits
-        eyebrow="Ce que cela apporte"
-        section-title="Accompagnement ménopause"
-        section-title-accent="personnalisé"
-      />
+      <CoachTransformationBenefits>
+        <template #header>
+          <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+            Ce que cela apporte
+          </span>
+          <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+            Accompagnement ménopause
+            <span class="block text-[#5b4b6e]">personnalisé</span>
+          </h2>
+        </template>
+      </CoachTransformationBenefits>
     </div>
 
     <!-- Mini-CTA after Benefits -->
@@ -359,16 +369,24 @@ const heroProps = computed(() => ({
     </section>
 
     <!-- ==================== 6. TÉMOIGNAGES (beige) ==================== -->
-    <div
-      v-if="hasTestimonials"
-      id="temoignages"
-    >
+    <!-- Anchor wrapper always present so #temoignages nav link resolves (CR-2 fix) -->
+    <div id="temoignages">
       <CoachTestimonials
+        v-if="hasTestimonials"
         :testimonials="coachProfile!.testimonialsJson!"
-        eyebrow="Témoignages"
-        section-title="Témoignages de femmes"
-        section-title-accent="accompagnées"
-      />
+      >
+        <template #header>
+          <div class="mb-12 text-center">
+            <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]">
+              Témoignages
+            </span>
+            <h2 class="font-serif text-4xl leading-tight text-[#2d2438]">
+              Témoignages de femmes
+              <span class="text-[#5b4b6e]">accompagnées</span>
+            </h2>
+          </div>
+        </template>
+      </CoachTestimonials>
     </div>
 
     <!-- Mini-CTA after Témoignages -->
@@ -473,27 +491,40 @@ const heroProps = computed(() => ({
     <CoachHowItWorks
       :discovery-duration-minutes="discoveryDuration"
       :provider-first-name="coachProfile?.displayName?.split(' ')[0] ?? coachName"
-      eyebrow="Le parcours"
-      section-title="Comment se déroule la séance"
-      section-title-accent="découverte ménopause"
-    />
+    >
+      <template #header>
+        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+          Le parcours
+        </span>
+        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          Comment se déroule la séance
+          <span class="block text-[#5b4b6e]">découverte ménopause</span>
+        </h2>
+      </template>
+    </CoachHowItWorks>
 
     <!-- ==================== 9. TARIFS & PROGRAMMES (blanc) ==================== -->
-    <div
-      v-if="hasPricing"
-      id="tarifs"
-    >
+    <!-- Anchor wrapper always present so #tarifs nav link resolves (CR-2 fix) -->
+    <div id="tarifs">
       <CoachPricing
+        v-if="hasPricing"
         :plans="consultationPlans"
         :programs="publicPrograms"
         :discovery-duration-minutes="discoveryDuration"
         :cta-to="ctaTo"
         :is-authenticated="isAuthenticated"
         :current-path="currentPath"
-        eyebrow="Tarifs"
-        section-title="Tarifs des séances"
-        section-title-accent="accompagnement ménopause"
-      />
+      >
+        <template #header>
+          <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+            Tarifs
+          </span>
+          <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+            Tarifs des séances
+            <span class="block text-[#5b4b6e]">accompagnement ménopause</span>
+          </h2>
+        </template>
+      </CoachPricing>
     </div>
 
     <!-- Mini-CTA after Tarifs -->
@@ -504,11 +535,17 @@ const heroProps = computed(() => ({
     />
 
     <!-- ==================== 10. CONTENU ÉDUCATIF (beige) ==================== -->
-    <CoachEducationalContent
-      eyebrow="Comprendre"
-      section-title="Comprendre la ménopause"
-      section-title-accent="et la périménopause"
-    />
+    <CoachEducationalContent>
+      <template #header>
+        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+          Comprendre
+        </span>
+        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          Comprendre la ménopause
+          <span class="block text-[#5b4b6e]">et la périménopause</span>
+        </h2>
+      </template>
+    </CoachEducationalContent>
 
     <!-- ==================== 11. FAQ (blanc) ==================== -->
     <section

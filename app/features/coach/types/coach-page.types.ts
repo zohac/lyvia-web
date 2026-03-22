@@ -41,14 +41,6 @@ export interface CoachFaqItem {
   content: string
 }
 
-// --- Y1.4 Section header props (P-Y5 amended) ---
-
-export interface SectionHeaderProps {
-  eyebrow?: string
-  sectionTitle: string
-  sectionTitleAccent?: string
-}
-
 // --- Y1.3 Props ---
 
 export interface CoachHowItWorksProps {
