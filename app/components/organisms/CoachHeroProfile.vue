@@ -10,15 +10,15 @@ const heroTopOffsetClass = computed(() => {
   return headerState.value.variant === 'white-label' ? 'pt-32' : 'pt-28'
 })
 
-// H1: SEO template title → fallback with displayName + city
+// H1: heroHeadline (configurable) → fallback generic (never seoTitle)
 const heroH1 = computed(() => {
-  if (props.seoTitle) return props.seoTitle
+  if (props.heroHeadline) return props.heroHeadline
   const cityPart = props.city ? ` à ${props.city}` : ''
-  return `${props.displayName} — Spécialiste accompagnement ménopause${cityPart}`
+  return `Spécialiste accompagnement ménopause${cityPart}`
 })
 
-// Subtitle: first credential + city (graceful degradation)
-const heroSubtitle = computed(() => {
+// Subtitle line 1: first credential + city (graceful degradation)
+const heroSubtitleLine1 = computed(() => {
   const parts: string[] = []
   const firstCredential = props.credentials[0]
   if (firstCredential) {
@@ -75,24 +75,19 @@ const initials = computed(() => {
               {{ heroH1 }}
             </h1>
 
-            <!-- Subtitle: credentials + city (graceful degradation) -->
+            <!-- Subtitle line 1: credentials + city -->
             <p
-              v-if="heroSubtitle"
+              v-if="heroSubtitleLine1"
               class="mt-4 text-lg font-medium text-[#5b4b6e]"
             >
-              {{ heroSubtitle }}
+              {{ heroSubtitleLine1 }}
             </p>
 
-            <!-- Tagline — specifique (M9: format + differenciateur + promesse) -->
-            <p class="mt-8 max-w-lg text-lg leading-relaxed text-[#4a4255]">
-              <template v-if="credentials.length">
-                Accompagnement individuel en visio pour reprendre
-                le contrôle de vos symptômes et retrouver votre énergie.
-              </template>
-              <template v-else>
-                Un accompagnement personnalisé pour traverser
-                la ménopause avec plus de sérénité.
-              </template>
+            <!-- Subtitle line 2: descriptive text -->
+            <p class="mt-2 max-w-lg text-lg leading-relaxed text-[#4a4255]">
+              <!-- TODO: Feature V — dynamiser -->
+              Accompagnement personnalisé en périménopause et ménopause.
+              Alimentation, stress, sommeil, mouvement. Une approche complète, à votre rythme.
             </p>
 
             <!-- CTA + reassurance (AC-2) -->
@@ -118,7 +113,7 @@ const initials = computed(() => {
                   name="i-lucide-clock"
                   class="size-4"
                 />
-                {{ discoveryDurationMinutes }} min · Gratuit · Sans engagement
+                {{ discoveryDurationMinutes }} min · Gratuit · Sans engagement · En visio
               </span>
             </div>
 

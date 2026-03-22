@@ -3,26 +3,37 @@ import { useScrollReveal } from '~/composables/useScrollReveal'
 
 const { reveal } = useScrollReveal()
 
+// <!-- TODO: Feature V — dynamiser -->
 const benefits = [
   {
-    icon: 'i-lucide-heart-pulse',
-    title: 'Compréhension de votre corps',
-    description: 'une meilleure compréhension de votre corps'
+    icon: 'i-lucide-moon-star',
+    title: 'Sommeil retrouvé',
+    description: 'Des nuits complètes, sans réveils à 3h du matin'
   },
   {
     icon: 'i-lucide-sun',
-    title: 'Énergie et sérénité',
-    description: 'plus d\'énergie et de sérénité au quotidien'
+    title: 'Énergie stable',
+    description: 'Finies les journées où vous survivez au lieu de vivre'
   },
   {
-    icon: 'i-lucide-moon-star',
-    title: 'Sommeil réparateur',
-    description: 'un sommeil plus réparateur'
+    icon: 'i-lucide-heart-pulse',
+    title: 'Bouffées de chaleur apaisées',
+    description: 'Des outils concrets qui fonctionnent'
   },
   {
     icon: 'i-lucide-leaf',
-    title: 'Équilibre hormonal',
-    description: 'des habitudes de vie qui soutiennent votre équilibre hormonal'
+    title: 'Poids stabilisé',
+    description: 'Sans régime ni frustration'
+  },
+  {
+    icon: 'i-lucide-brain',
+    title: 'Concentration retrouvée',
+    description: 'Mémoire, motivation qui reviennent'
+  },
+  {
+    icon: 'i-lucide-smile',
+    title: 'Sérénité au quotidien',
+    description: 'Moins d\'irritabilité, plus de sérénité'
   }
 ]
 </script>
@@ -37,17 +48,15 @@ const benefits = [
       <!-- Parent-provided H2 (P-Y5) -->
       <slot name="header" />
 
-      <!-- Intro text — Sophie's validated content -->
+      <!-- Intro text V3 — vision + promesse -->
       <div class="mx-auto mt-12 max-w-3xl space-y-6 text-center">
         <p class="text-lg leading-relaxed text-[#4a4255]">
-          Chaque femme vit cette période de transition différemment.
-          Certaines ressentent de la fatigue, d'autres un sommeil perturbé,
-          des variations d'humeur ou l'impression de ne plus reconnaître leur corps.
+          Imaginez-vous dans 3 mois.
         </p>
         <p class="text-lg leading-relaxed text-[#4a4255]">
-          L'objectif de cet accompagnement est de vous aider à comprendre ce qui se passe,
-          à identifier ce qui vous convient vraiment et à mettre en place des ajustements
-          simples et adaptés à votre mode de vie.
+          Vous dormez mieux. Vous vous sentez plus légère, plus apaisée.
+          Vous comprenez enfin ce qui se passe dans votre corps. Et vous savez quoi faire.
+          Vous vous reconnaissez à nouveau.
         </p>
       </div>
 

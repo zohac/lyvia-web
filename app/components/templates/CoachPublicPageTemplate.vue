@@ -19,7 +19,6 @@ import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
 const props = defineProps<{
   tenant: PublicTenantResponse
   ctaTo: string
-  seoTitle?: string | null
 }>()
 
 const { reveal } = useScrollReveal()
@@ -66,65 +65,85 @@ const { data: coachProfile } = useNuxtData<{
   secondaryPhotoUrl?: string | null
   publicPhone?: string | null
   urgencyText?: string | null
+  heroHeadline?: string | null
+  socialLinks?: { linkedin?: string, instagram?: string, facebook?: string, website?: string }
+  region?: string | null
   testimonialsJson?: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
   discoveryDurationMinutes?: number
 }>(`public-provider-profile:${props.tenant.slug}`)
 
 // --- Content data ---
 
+// <!-- TODO: Feature V — dynamiser -->
 const pillars = [
   {
     title: 'Alimentation bienveillante',
-    description: 'Des repères simples et concrets pour soutenir votre métabolisme, vos hormones et votre énergie, sans régime ni culpabilité.',
+    description: 'Des repères simples pour soutenir votre métabolisme et vos hormones. Pas de régime, pas de privation. Une alimentation anti-inflammatoire adaptée à votre quotidien, votre budget et vos goûts.',
     icon: 'i-lucide-apple'
   },
   {
     title: 'Gestion du stress',
-    description: 'Des outils accessibles pour soutenir votre système nerveux, retrouver un meilleur sommeil et apaiser les réactions émotionnelles.',
+    description: 'Des outils accessibles pour calmer votre système nerveux\u00A0: techniques de respiration, routines apaisantes, gestion des émotions. Parce que le stress amplifie tous les autres symptômes de la ménopause.',
     icon: 'i-lucide-wind'
   },
   {
     title: 'Sommeil réparateur',
-    description: 'Des clés naturelles pour retrouver des nuits paisibles, réduire les réveils nocturnes et vous réveiller avec plus d\'énergie.',
+    description: 'Des stratégies naturelles pour retrouver des nuits paisibles\u00A0: rituel du soir, gestion des réveils nocturnes, environnement de sommeil. Le sommeil est souvent le premier résultat visible, en quelques semaines.',
     icon: 'i-lucide-moon-star'
   },
   {
     title: 'Mouvement adapté',
-    description: 'Des conseils concrets pour bouger en douceur, selon votre niveau d\'énergie, sans pression ni comparaison.',
+    description: 'Bouger en douceur, selon votre énergie du jour\u00A0: marche, yoga, pilates, renforcement doux. Pas de performance, pas de comparaison. Des mouvements qui font du bien à votre corps sans l\'épuiser davantage.',
     icon: 'i-lucide-heart-pulse'
   }
 ]
 
+// <!-- TODO: Feature V — dynamiser -->
 const faqItems: AccordionItem[] = [
   {
-    label: 'À quel moment commencer un accompagnement pour la ménopause ?',
-    content: 'Même si les premiers signes de la périménopause peuvent sembler anodins, c\'est souvent le bon moment pour commencer un accompagnement. Fatigue persistante, troubles du sommeil, sautes d\'humeur ou prise de poids peuvent indiquer un déséquilibre hormonal. Plus vous agissez tôt, plus vous pouvez traverser cette transition avec sérénité.',
+    label: `Combien coûte un accompagnement avec ${coachName.value}\u00A0?`,
+    content: `L'appel découverte de 15 minutes est gratuit et sans engagement. Les séances individuelles sont à 85\u00A0€. Le programme 6 mois est à 840\u00A0€ (ou 140\u00A0€/mois en 6 fois). C'est souvent moins que ce que les femmes dépensent en compléments alimentaires et consultations diverses sur la même période. Sauf qu'ici, les résultats durent.`,
     value: 'faq-1'
   },
   {
-    label: `Est-ce que l'accompagnement de ${coachName.value} est médical ?`,
-    content: `Non. Il s'agit d'un accompagnement global non médical, centré sur l'équilibre de vie et le bien-être. ${coachName.value} propose des repères concrets en alimentation, gestion du stress, sommeil et mouvement, ainsi qu'un soutien émotionnel personnalisé. En cas de besoin, vous serez orienté(e) vers un professionnel de santé.`,
+    label: `L'accompagnement de ${coachName.value} est-il médical\u00A0?`,
+    content: `Non. C'est un accompagnement en bien-être, pas un acte médical. ${coachName.value} est infirmière de formation et accompagne sur 4 axes\u00A0: alimentation, gestion du stress, sommeil et mouvement. Son approche complète le suivi médical, elle ne le remplace pas. En cas de besoin, elle vous oriente vers un professionnel de santé.`,
     value: 'faq-2'
   },
   {
-    label: `Combien coûte un accompagnement avec ${coachName.value} ?`,
-    content: `L'accompagnement commence par une séance bilan de 1h30 à 100\u00A0€, qui permet de faire le point sur votre situation, vos symptômes et vos objectifs.\n\nLes séances de suivi mensuelles de 45 minutes sont proposées à 80\u00A0€.\n\nUn minimum de 5 séances de suivi est recommandé afin de favoriser un mieux-être durable et des changements ancrés dans le temps.`,
+    label: 'Est-ce adapté si je suis déjà ménopausée depuis plusieurs années\u00A0?',
+    content: `Oui. L'accompagnement s'adapte à chaque étape\u00A0: périménopause, ménopause récente ou installée. Les 4 piliers (alimentation, stress, sommeil, mouvement) sont pertinents quel que soit le stade. L'appel découverte gratuit permet justement de voir ensemble ce qui serait le plus utile pour vous.`,
     value: 'faq-3'
   },
   {
-    label: 'L\'appel gratuit est-il vraiment sans engagement ?',
-    content: `Oui, totalement. L'appel découverte de 15 minutes est gratuit et sans engagement. Il vous permet d'échanger avec ${coachName.value}, de poser vos questions et de voir si l'accompagnement vous correspond.`,
+    label: 'Les accompagnements se font-ils en présentiel ou en visio\u00A0?',
+    content: `Tout se fait en visio (appel vidéo). Vous êtes chez vous, au calme, sans déplacement. Ça fonctionne partout en France. L'appel découverte de 15 minutes vous permettra de voir si le format vous convient.`,
     value: 'faq-4'
   },
   {
-    label: 'Est-ce adapté si je suis déjà ménopausée depuis plusieurs années ?',
-    content: 'Oui. Même plusieurs années après la ménopause, il est possible de retrouver énergie, confort et équilibre. L\'accompagnement s\'adapte à votre parcours, quel que soit votre stade.',
+    label: 'L\'appel gratuit est-il vraiment sans engagement\u00A0?',
+    content: `Oui, totalement. Pas de carte bancaire, pas de vente forcée. C'est un échange de 15 minutes pour faire connaissance. Vous repartez avec de premières pistes, même si vous décidez de ne pas poursuivre.`,
     value: 'faq-5'
   },
   {
-    label: 'Les accompagnements se font-ils en présentiel ou en visio ?',
-    content: `Tous les accompagnements se déroulent en visio. Basée à Valognes, près de Cherbourg, dans le Nord Cotentin (Manche, 50), ${coachName.value} accompagne des femmes partout en France. Pas besoin de vous déplacer.`,
+    label: 'À quel moment commencer un accompagnement pour la ménopause\u00A0?',
+    content: 'Le plus tôt possible. Plus on comprend ce qui se passe dans son corps, plus on peut agir efficacement. Mais il n\'est jamais trop tard. Les femmes qui nous rejoignent après plusieurs années de symptômes voient aussi des améliorations significatives.',
     value: 'faq-6'
+  },
+  {
+    label: 'Quels sont les symptômes de la périménopause\u00A0?',
+    content: 'La périménopause peut provoquer des règles irrégulières, des bouffées de chaleur, des troubles du sommeil, de la fatigue, une prise de poids, de l\'anxiété, de l\'irritabilité, des douleurs articulaires et un brouillard mental. Ces symptômes apparaissent généralement entre 45 et 50 ans, parfois plus tôt. L\'accompagnement ménopause aide à les identifier et à les gérer au quotidien.',
+    value: 'faq-7'
+  },
+  {
+    label: 'Peut-on soulager les bouffées de chaleur sans traitement hormonal\u00A0?',
+    content: 'Oui. Des ajustements en alimentation, gestion du stress, qualité du sommeil et activité physique adaptée permettent de réduire significativement les bouffées de chaleur. C\'est l\'approche que je propose dans mon accompagnement ménopause, sans hormones, sans médicaments. Les résultats sont souvent visibles dès les premières semaines.',
+    value: 'faq-8'
+  },
+  {
+    label: 'Combien de temps dure la ménopause\u00A0?',
+    content: 'La périménopause (la transition) dure en moyenne 4 à 8 ans. La ménopause est confirmée après 12 mois consécutifs sans règles. Les symptômes peuvent persister plusieurs années après, mais un accompagnement adapté aide à les gérer efficacement quel que soit le stade.',
+    value: 'faq-9'
   }
 ]
 
@@ -137,16 +156,46 @@ onMounted(() => {
   faqDefaultValue.value = []
 })
 
+// <!-- TODO: Feature V — dynamiser depuis testimonialsJson -->
+const fallbackTestimonials = [
+  {
+    quote: 'Après 6 mois avec Sophie, je dors enfin 7 heures par nuit. J\'ai retrouvé mon énergie, perdu les 4 kilos qui m\'obsédaient, et surtout, j\'ai compris mon corps. Ce qui a fait la différence\u00A0? L\'approche globale\u00A0: alimentation, sommeil, stress, tout en même temps. Et le fait de pouvoir lui écrire entre les séances quand j\'avais un doute.',
+    firstName: 'Anne M.',
+    age: 55,
+    location: 'Nantes',
+    rating: 5,
+    result: '6 mois d\'accompagnement'
+  },
+  {
+    quote: 'Je ne cherchais pas à « guérir » de la ménopause. Je cherchais quelqu\'un qui comprenne que ce n\'était pas une maladie. J\'ai trouvé bien plus. Pour la première fois, quelqu\'un m\'a dit\u00A0: « Ce que vous vivez est réel. » Ça a tout changé.',
+    firstName: 'Françoise L.',
+    age: 52,
+    location: 'Bordeaux',
+    rating: 5,
+    result: '4 mois d\'accompagnement'
+  },
+  {
+    quote: 'J\'avais déjà vu une naturopathe et dépensé des centaines d\'euros en compléments. Rien ne tenait dans la durée. Avec Sophie, j\'ai eu un plan concret, un suivi régulier, et des résultats dès le premier mois. Le sommeil d\'abord, puis l\'énergie. Je recommande sans hésiter.',
+    firstName: 'Valérie D.',
+    age: 49,
+    location: 'Lyon',
+    rating: 5,
+    result: '3 mois d\'accompagnement'
+  }
+]
+
 // Pricing & testimonials visibility (pattern AD-Y2: v-if at parent level)
 const consultationPlans = computed(() => pricingData.value?.plans ?? [])
-const hasTestimonials = computed(() => (coachProfile.value?.testimonialsJson?.length ?? 0) > 0)
+const apiTestimonials = computed(() => coachProfile.value?.testimonialsJson ?? [])
+const displayTestimonials = computed(() => apiTestimonials.value.length > 0 ? apiTestimonials.value : fallbackTestimonials)
+const hasTestimonials = computed(() => displayTestimonials.value.length > 0)
 const hasPricing = computed(() => consultationPlans.value.length > 0 || publicPrograms.value.length > 0)
 const discoveryDuration = computed(() => coachProfile.value?.discoveryDurationMinutes ?? 15)
 
 // Hero props (typed, pattern P-Y2)
 const heroProps = computed(() => ({
   displayName: coachName.value,
-  seoTitle: props.seoTitle ?? null,
+  heroHeadline: coachProfile.value?.heroHeadline ?? null,
   credentials: coachProfile.value?.credentials ?? [],
   city: coachProfile.value?.city ?? null,
   profilePhotoUrl: coachProfile.value?.imageUrl ?? null,
@@ -174,8 +223,9 @@ const heroProps = computed(() => ({
             class="absolute -left-4 -top-8 font-serif text-[12rem] leading-none text-[#d4956a]/10 lg:-left-16"
             aria-hidden="true"
           >"</span>
+          <!-- TODO: Feature V — dynamiser -->
           <p class="relative font-serif text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] text-[#2d2438]">
-            Je ne comprends pas ce qu'il m'arrive... J'ai 43 ans, j'ai pris
+            Je ne comprends pas ce qu'il m'arrive... J'ai 48 ans, j'ai pris
             6 kilos en 6 mois, je suis toujours épuisée, stressée pour un rien.
             J'ai des insomnies, des douleurs articulaires... J'ai l'impression
             d'avoir pris 20 ans en quelques mois. Et mon médecin me dit
@@ -186,15 +236,20 @@ const heroProps = computed(() => ({
         <div class="mt-12 space-y-6">
           <p class="text-lg leading-relaxed text-[#4a4255]">
             Vous vous reconnaissez dans ces mots ?
-            <br class="hidden sm:block">
-            Épuisement, prise de poids, troubles du sommeil, anxiété,
-            bouffées de chaleur, sécheresse...
-            <br class="hidden sm:block">
-            Et si tout cela était lié à la ménopause ?
+          </p>
+          <p class="text-lg leading-relaxed text-[#4a4255]">
+            Épuisement. Prise de poids. Troubles du sommeil. Anxiété.
+            Bouffées de chaleur. Irritabilité. Douleurs articulaires.
+          </p>
+          <p class="text-lg font-semibold text-[#2d2438]">
+            Ces symptômes ne sont pas « dans votre tête ».
+          </p>
+          <p class="text-lg leading-relaxed text-[#4a4255]">
+            Ils sont réels, ils ont une cause. Et il existe des solutions concrètes.
           </p>
           <p class="text-lg font-medium italic text-[#5b4b6e]">
-            Il est temps de comprendre ce que vit votre corps
-            — et de vous offrir le soutien que vous méritez.
+            Il est temps de comprendre ce que traverse votre corps.
+            Et de vous offrir l'accompagnement que vous méritez.
           </p>
         </div>
       </div>
@@ -298,24 +353,33 @@ const heroProps = computed(() => ({
               </template>
             </p>
 
-            <!-- Badges localisation + visio -->
-            <div
-              v-if="coachProfile?.city"
-              class="mt-6 flex flex-wrap gap-3"
-            >
+            <!-- Badges V3: credentials + specialite + localisation + visio -->
+            <div class="mt-6 flex flex-wrap gap-3">
+              <span
+                v-if="coachProfile?.credentials?.length"
+                class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]"
+              >
+                {{ coachProfile.credentials[0]?.title }}
+              </span>
               <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
+                Accompagnement en périménopause et ménopause
+              </span>
+              <span
+                v-if="coachProfile?.city"
+                class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]"
+              >
                 <UIcon
                   name="i-lucide-map-pin"
                   class="size-4"
                 />
-                {{ coachProfile.city }}
+                {{ coachProfile.city }}{{ coachProfile?.region ? ` · ${coachProfile.region}` : '' }}
               </span>
               <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
                 <UIcon
                   name="i-lucide-video"
                   class="size-4"
                 />
-                Accompagnements 100% en visio
+                100% en visio · Toute la France
               </span>
             </div>
 
@@ -332,24 +396,33 @@ const heroProps = computed(() => ({
               <template v-else-if="coachProfile?.bio">
                 <p>{{ coachProfile.bio }}</p>
               </template>
+              <!-- TODO: Feature V — dynamiser -->
               <template v-else>
                 <p>
-                  {{ coachName }} propose un accompagnement humain et bienveillant
-                  pour traverser la ménopause avec plus de sérénité.
+                  Pendant 20 ans, j'ai accompagné des patients en milieu hospitalier.
+                  L'écoute, l'empathie, la rigueur clinique — c'est mon métier, pas un diplôme de week-end.
+                </p>
+                <p>Et puis la périménopause m'est tombée dessus.</p>
+                <p>
+                  Prise de poids soudaine. Insomnies. Anxiété. Chute d'énergie.
+                  Et des réponses médicales souvent vagues : « C'est le stress », « C'est l'âge ».
+                </p>
+                <p>Je ne me reconnaissais plus.</p>
+                <p>
+                  Alors j'ai cherché. J'ai testé. Je me suis formée.
+                  J'ai compris ce qui fonctionne vraiment. Pas les modes, pas les compléments miracles.
+                  Des ajustements concrets en alimentation, en gestion du stress, en sommeil, en mouvement.
+                </p>
+                <p>
+                  Aujourd'hui, c'est ce que je propose aux femmes qui traversent la même chose :
+                  un accompagnement global, humain, sans jugement.
+                </p>
+                <p>
+                  Ce que je fais, c'est simple : je vous écoute, je vous explique,
+                  et je vous donne les outils pour reprendre le contrôle de votre corps.
+                  Et entre les séances, je reste disponible par email — vous n'êtes jamais seule.
                 </p>
               </template>
-
-              <!-- Supplementary credentials + city (always shown if available, after bio) -->
-              <p v-if="coachProfile?.credentials?.length">
-                Forte d'une expérience de
-                {{ coachProfile.credentials.map(c => c.title).join(', ') }},
-                {{ coachName }} accompagne les femmes en périménopause et ménopause
-                avec attention, respect et bienveillance.
-              </p>
-              <p v-if="coachProfile?.city">
-                Basée à {{ coachProfile.city }}, {{ coachName }} accompagne des femmes
-                partout en France grâce à des séances 100 % en visio.
-              </p>
             </div>
 
             <!-- Phone (FR-Y16, v-if graceful degradation) -->
@@ -364,6 +437,65 @@ const heroProps = computed(() => ({
               />
               {{ coachProfile.publicPhone }}
             </a>
+
+            <!-- Social links (AC-8) -->
+            <div
+              v-if="coachProfile?.socialLinks && (coachProfile.socialLinks.linkedin || coachProfile.socialLinks.instagram || coachProfile.socialLinks.facebook || coachProfile.socialLinks.website)"
+              class="mt-6 flex gap-4"
+            >
+              <a
+                v-if="coachProfile.socialLinks.linkedin"
+                :href="coachProfile.socialLinks.linkedin"
+                target="_blank"
+                rel="noopener"
+                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                aria-label="LinkedIn"
+              >
+                <UIcon
+                  name="i-simple-icons-linkedin"
+                  class="size-5"
+                />
+              </a>
+              <a
+                v-if="coachProfile.socialLinks.instagram"
+                :href="coachProfile.socialLinks.instagram"
+                target="_blank"
+                rel="noopener"
+                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                aria-label="Instagram"
+              >
+                <UIcon
+                  name="i-simple-icons-instagram"
+                  class="size-5"
+                />
+              </a>
+              <a
+                v-if="coachProfile.socialLinks.facebook"
+                :href="coachProfile.socialLinks.facebook"
+                target="_blank"
+                rel="noopener"
+                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                aria-label="Facebook"
+              >
+                <UIcon
+                  name="i-simple-icons-facebook"
+                  class="size-5"
+                />
+              </a>
+              <a
+                v-if="coachProfile.socialLinks.website"
+                :href="coachProfile.socialLinks.website"
+                target="_blank"
+                rel="noopener"
+                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                aria-label="Site web"
+              >
+                <UIcon
+                  name="i-lucide-globe"
+                  class="size-5"
+                />
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -374,7 +506,7 @@ const heroProps = computed(() => ({
     <div id="temoignages">
       <CoachTestimonials
         v-if="hasTestimonials"
-        :testimonials="coachProfile!.testimonialsJson!"
+        :testimonials="displayTestimonials"
       >
         <template #header>
           <div class="mb-12 text-center">
@@ -382,8 +514,8 @@ const heroProps = computed(() => ({
               Témoignages
             </span>
             <h2 class="font-serif text-4xl leading-tight text-[#2d2438]">
-              Témoignages de femmes
-              <span class="text-[#5b4b6e]">accompagnées</span>
+              Leurs mots,
+              <span class="text-[#5b4b6e]">leur vérité</span>
             </h2>
           </div>
         </template>
@@ -478,9 +610,11 @@ const heroProps = computed(() => ({
               <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
                 Un espace d'écoute en plus de tout cela
               </h3>
+              <!-- TODO: Feature V — dynamiser -->
               <p class="mt-3 max-w-3xl text-base leading-relaxed text-[#4a4255]">
-                Chaque accompagnement inclut un soutien basé sur l'écoute, la bienveillance et le respect
-                de votre rythme. Un espace sécurisé pour déposer ce que vous vivez.
+                Chaque accompagnement inclut un espace d'écoute bienveillant, à votre rythme.
+                Ce n'est pas un suivi psychologique. C'est un moment pour déposer ce que vous vivez,
+                sans jugement. En cas de besoin, je vous oriente vers un professionnel de santé.
               </p>
             </div>
           </div>

@@ -142,7 +142,6 @@ watchEffect(() => {
     <AtomsBreadcrumbNav :items="breadcrumbItems" />
     <CoachPublicPageTemplate
       :tenant="requiredTenant"
-      :seo-title="seo?.title ?? null"
       :cta-to="ctaTo"
     />
   </div>

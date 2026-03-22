@@ -21,7 +21,7 @@ export interface Testimonial {
 
 export interface CoachHeroProps {
   displayName: string
-  seoTitle?: string | null
+  heroHeadline?: string | null
   credentials: Credential[]
   city?: string | null
   profilePhotoUrl?: string | null

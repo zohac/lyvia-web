@@ -21,6 +21,7 @@ import { useBookingSchemaOrg } from '~/features/seo/useBookingSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import { buildBookingBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
+import { setPublicHeader } from '~/features/public/state/public-header.state'
 import DiscoveryBookingWizard from '~/components/organisms/DiscoveryBookingWizard.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 
@@ -52,6 +53,19 @@ const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_booking', providerId)
 
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
+
+setPublicHeader({
+  variant: 'white-label',
+  layoutStyle: 'bar',
+  brandLabel: brandName.value,
+  brandTo: '/',
+  showBrandIcon: false,
+  navLinks: [],
+  loginLabel: 'Espace cliente',
+  loginTo: '/login',
+  ctaLabel: 'Prendre RDV',
+  ctaTo: '/onboarding/discovery'
+})
 
 // Schema.org: Service + BreadcrumbList (AC-4)
 useBookingSchemaOrg(tenant.value.slug, () => brandName.value)

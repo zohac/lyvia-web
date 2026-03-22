@@ -15,28 +15,25 @@ const { reveal } = useScrollReveal()
       <!-- Parent-provided H2 (P-Y5) -->
       <slot name="header" />
 
+      <!-- TODO: Feature V — dynamiser -->
       <div class="space-y-8 text-lg leading-relaxed text-[#4a4255]">
         <p
           v-bind="reveal({ delay: 100 })"
           class="scroll-reveal"
         >
-          La périménopause commence souvent entre 40 et 45 ans, parfois plus tôt.
-          C'est une phase de transition hormonale naturelle durant laquelle le corps
-          s'adapte à la baisse progressive des œstrogènes et de la progestérone.
-          Les symptômes sont variés : bouffées de chaleur, fatigue chronique,
-          troubles du sommeil, prise de poids, irritabilité, douleurs articulaires,
-          sécheresse cutanée ou encore brouillard mental.
+          La périménopause commence souvent vers 45 ans, parfois plus tôt.
+          C'est une transition hormonale qui peut durer de 2 à 8 ans
+          et provoquer des symptômes que beaucoup de femmes ne savent pas relier à la ménopause.
         </p>
 
         <p
           v-bind="reveal({ delay: 200 })"
           class="scroll-reveal"
         >
-          La ménopause est confirmée après 12 mois consécutifs sans règles.
-          Mais bien avant ce cap, les fluctuations hormonales peuvent
-          profondément affecter le quotidien. Chaque femme vit cette
-          transition de manière unique, avec des symptômes d'intensité
-          et de durée très variables.
+          Prise de poids soudaine, insomnies, fatigue chronique, bouffées de chaleur,
+          anxiété, irritabilité, douleurs articulaires, brouillard mental, sueurs nocturnes...
+          Ces symptômes sont réels. Ils ne sont pas « dans votre tête ».
+          Et ils ne sont pas une fatalité.
         </p>
 
         <!-- Highlighted insight box — B2B pattern with glow -->
@@ -59,13 +56,13 @@ const { reveal } = useScrollReveal()
             </div>
             <div>
               <h3 class="font-serif text-lg text-[#2d2438]">
-                Le saviez-vous ?
+                Alternatives naturelles
               </h3>
               <p class="mt-2 text-base leading-relaxed text-[#4a4255]">
-                Un accompagnement adapté permet de mieux comprendre ces changements,
-                d'identifier les leviers d'action concrets — alimentation, sommeil,
-                gestion du stress, activité physique douce — et de retrouver
-                progressivement un équilibre.
+                Beaucoup de femmes cherchent des alternatives naturelles au traitement hormonal.
+                L'accompagnement ménopause agit sur ce que votre médecin
+                n'a pas le temps d'aborder en 15 minutes de consultation :
+                alimentation anti-inflammatoire, gestion du stress, qualité du sommeil, mouvement adapté.
               </p>
             </div>
           </div>
@@ -75,13 +72,9 @@ const { reveal } = useScrollReveal()
           v-bind="reveal({ delay: 400 })"
           class="scroll-reveal"
         >
-          Les recherches récentes confirment que les approches globales,
-          combinant hygiène de vie et soutien émotionnel, contribuent
-          significativement à réduire l'impact des symptômes sur la qualité
-          de vie. Chaque petit ajustement compte : une alimentation riche
-          en phytoestrogènes, une routine de sommeil adaptée, des techniques
-          de respiration pour calmer le système nerveux, ou simplement
-          un espace d'écoute bienveillant.
+          Ce n'est ni du médical, ni du « bien-être » générique.
+          C'est un accompagnement structuré par une infirmière de 20 ans d'expérience,
+          adapté à vous, qui complète votre suivi médical.
         </p>
       </div>
     </div>

@@ -6,30 +6,31 @@ const props = defineProps<CoachHowItWorksProps>()
 
 const { reveal } = useScrollReveal()
 
+// <!-- TODO: Feature V — dynamiser -->
 const steps = computed(() => [
   {
     number: '01',
-    title: 'Appel découverte',
-    description: `Un échange gratuit de ${props.discoveryDurationMinutes} min pour faire connaissance et comprendre vos besoins.`,
-    icon: 'i-lucide-phone'
+    title: 'Vous réservez votre appel',
+    description: `Choisissez un créneau qui vous convient. C'est gratuit, sans engagement, et 100% en visio.`,
+    icon: 'i-lucide-calendar'
   },
   {
     number: '02',
-    title: 'Bilan personnalisé',
-    description: 'Ensemble, nous identifions vos priorités : alimentation, sommeil, stress, mouvement.',
-    icon: 'i-lucide-clipboard-check'
+    title: `On fait connaissance (${props.discoveryDurationMinutes} min)`,
+    description: `${props.providerFirstName} vous écoute, vous pose quelques questions sur vos symptômes et votre quotidien. Pas de pression, pas de discours commercial.`,
+    icon: 'i-lucide-phone'
   },
   {
     number: '03',
-    title: 'Accompagnement sur mesure',
-    description: `Des séances régulières adaptées à votre rythme, en visio depuis chez vous. ${props.providerFirstName} reste disponible par mail entre deux séances.`,
-    icon: 'i-lucide-video'
+    title: `${props.providerFirstName} vous donne un premier éclairage`,
+    description: 'Vous repartez avec des premières pistes concrètes, même si vous décidez de ne pas aller plus loin.',
+    icon: 'i-lucide-lightbulb'
   },
   {
     number: '04',
-    title: 'Des résultats concrets',
-    description: 'Moins de symptômes, plus d\'énergie, un quotidien transformé.',
-    icon: 'i-lucide-sparkles'
+    title: 'Vous décidez, à votre rythme',
+    description: `Si l'accompagnement vous convient, on démarre ensemble. Sinon, vous gardez les conseils de l'appel — c'est cadeau.`,
+    icon: 'i-lucide-heart-handshake'
   }
 ])
 </script>

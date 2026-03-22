@@ -66,6 +66,9 @@ const secondaryPhotoUploading = ref(false)
 const secondaryPhotoError = ref<string | null>(null)
 const secondaryFileInputRef = ref<HTMLInputElement | null>(null)
 
+// ── Hero headline form state ────────────────────────
+const heroHeadlineForm = reactive({ heroHeadline: '' as string | null })
+
 // ── Urgency text form state ─────────────────────────
 const urgencyForm = reactive({ urgencyText: '' as string | null })
 
@@ -90,6 +93,7 @@ const passwordError = ref<string | null>(null)
 // ── Computed ────────────────────────────────────────
 const bioCharCount = computed(() => personalForm.bio?.length ?? 0)
 const longBioCharCount = computed(() => profileForm.longBio?.length ?? 0)
+const heroHeadlineCharCount = computed(() => heroHeadlineForm.heroHeadline?.length ?? 0)
 const urgencyCharCount = computed(() => urgencyForm.urgencyText?.length ?? 0)
 const criteria = computed(() => getPasswordCriteria(passwordForm.newPassword))
 const isStrong = computed(() => isPasswordStrong(passwordForm.newPassword))
@@ -130,6 +134,9 @@ function syncFormsFromAccount() {
 
   // Phone
   phoneForm.publicPhone = acc.publicPhone
+
+  // Hero headline
+  heroHeadlineForm.heroHeadline = acc.heroHeadline
 
   // Urgency
   urgencyForm.urgencyText = acc.urgencyText
@@ -387,6 +394,7 @@ async function handlePhoneSubmit() {
 
 async function handleUrgencySubmit() {
   const success = await updateAccount({
+    heroHeadline: heroHeadlineForm.heroHeadline?.trim() || null,
     urgencyText: urgencyForm.urgencyText?.trim() || null
   })
   if (success) {
@@ -1103,6 +1111,30 @@ async function handlePasswordChange() {
           class="mt-6 grid gap-4"
           @submit.prevent="handleUrgencySubmit"
         >
+          <FormControl
+            id="heroHeadline"
+            label="Titre principal de votre page (optionnel)"
+            hint="Ce titre apparaît en grand sur votre page. Laissez vide pour un titre par défaut."
+            class="max-w-lg"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="heroHeadlineForm.heroHeadline"
+                v-bind="inputAttrs"
+                placeholder="Ex: Retrouvez votre équilibre pendant la ménopause"
+                :maxlength="200"
+              />
+            </template>
+            <template #label-aside>
+              <span
+                class="text-xs"
+                :class="heroHeadlineCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
+              >
+                {{ heroHeadlineCharCount }}/200
+              </span>
+            </template>
+          </FormControl>
+
           <FormControl
             id="urgencyText"
             label="Message sous le bouton de réservation (optionnel)"

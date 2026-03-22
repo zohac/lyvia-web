@@ -96,7 +96,12 @@ describe('mapProfileToSchemaRefs', () => {
     credentials: [],
     city: null,
     region: null,
-    socialLinks: {}
+    socialLinks: {},
+    publicPhone: null,
+    urgencyText: null,
+    heroHeadline: null,
+    testimonialsJson: [],
+    secondaryPhotoUrl: null
   }
 
   test('maps all profile fields to refs', () => {

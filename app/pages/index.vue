@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
-import { ApiFetchError } from '~/services/api/api-error'
-import { apiFetch } from '~/services/api/apiFetch'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
+import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 import MarketingLandingB2B from '~/components/templates/MarketingLandingB2B.vue'
@@ -30,19 +28,8 @@ const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.to
 const ctx = computed(() => getDomainContext(hostname.value, platformDomain, platformDomainB2B || undefined))
 const isPlatformDomain = computed(() => ctx.value.isPlatform)
 
-const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
-  try {
-    return await apiFetch<PublicTenantResponse>('/public/tenant', {
-      method: 'GET',
-      withAuth: false
-    })
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError && (err.apiError.code === 'TENANT_NOT_FOUND' || err.apiError.code === 'SLUG_REQUIRED')) {
-      return null
-    }
-    return null
-  }
-}, { default: () => null })
+// Shared composable — same key+handler as useGlobalSchemaOrg (no duplicate key warning)
+const { data: tenant } = await usePublicTenantHome()
 
 if (!isPlatformDomain.value && !tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
@@ -108,7 +95,9 @@ useHead({
   }]
 })
 
-watchEffect(() => {
+// Set header state synchronously during setup (runs on both SSR and client)
+// to avoid hydration mismatch — watchEffect only ran on client, leaving SSR with defaults.
+function updatePublicHeader() {
   if (tenant.value) {
     const coachName = tenant.value.brand.displayName || 'Votre coach'
     setPublicHeader({
@@ -173,7 +162,13 @@ watchEffect(() => {
       ctaTo: '#waitlist'
     })
   }
-})
+}
+
+// Synchronous call during setup — SSR and client render the same header
+updatePublicHeader()
+
+// Reactive watch for client-side navigation (tenant data may change)
+watch([tenant, ctx], updatePublicHeader)
 </script>
 
 <template>
@@ -185,7 +180,6 @@ watchEffect(() => {
   <CoachPublicPageTemplate
     v-else-if="tenant"
     :tenant="tenant"
-    :seo-title="seo?.title ?? null"
     cta-to="/onboarding/discovery"
   />
 

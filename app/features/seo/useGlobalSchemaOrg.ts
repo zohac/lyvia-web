@@ -1,6 +1,5 @@
-import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 import { getDomainContext } from '#shared/utils/domain-context'
-import { apiFetch } from '~/services/api/apiFetch'
+import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 
 // Detection logic is covered by tests/shared/platform-host.test.ts + domain-context.test.ts.
 export async function useGlobalSchemaOrg() {
@@ -47,17 +46,8 @@ export async function useGlobalSchemaOrg() {
   })
 
   // Fetch tenant data AFTER composable registration.
-  // Reuses the same cache key as index.vue to avoid a duplicate HTTP request.
-  const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
-    try {
-      return await apiFetch<PublicTenantResponse>('/public/tenant', {
-        method: 'GET',
-        withAuth: false
-      })
-    } catch {
-      return null
-    }
-  }, { default: () => null })
+  // Shared composable ensures same key + handler as index.vue (no "Incompatible options" warning).
+  const { data: tenant } = await usePublicTenantHome()
 
   // Update ref reactively — WebSite name and og:site_name pick up the new value
   watchEffect(() => {

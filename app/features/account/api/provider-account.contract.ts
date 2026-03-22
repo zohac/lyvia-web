@@ -39,6 +39,7 @@ export type ProviderAccountResponse = {
   socialLinks: SocialLinks
   publicPhone: string | null
   urgencyText: string | null
+  heroHeadline: string | null
   testimonialsJson: TestimonialItem[]
   updatedAt?: string
 }
@@ -58,5 +59,6 @@ export type UpdateProviderAccountRequest = {
   socialLinks?: SocialLinks
   publicPhone?: string | null
   urgencyText?: string | null
+  heroHeadline?: string | null
   testimonialsJson?: TestimonialItem[]
 }
