@@ -64,12 +64,14 @@ const profileUrl = computed(() =>
             v-if="provider.profilePhotoUrl"
             class="size-20 overflow-hidden rounded-full border-4 border-white shadow-md"
           >
-            <img
+            <NuxtImg
               :src="provider.profilePhotoUrl"
               :alt="provider.profilePhotoAlt || provider.displayName"
               class="size-full object-cover"
               loading="lazy"
-            >
+              :width="80"
+              :height="80"
+            />
           </div>
           <div
             v-else
