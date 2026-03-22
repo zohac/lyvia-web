@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
+import { usePublicHeaderState } from '../features/public/state/public-header.state'
 
 useCommonLayoutHead()
 
 const currentYear = new Date().getFullYear()
+const headerState = usePublicHeaderState()
+const copyrightName = computed(() =>
+  headerState.value.variant === 'white-label' ? headerState.value.brandLabel : 'Keova'
+)
 </script>
 
 <template>
@@ -15,7 +20,7 @@ const currentYear = new Date().getFullYear()
 
       <footer class="flex flex-col items-center gap-4 pt-10 text-center text-xs text-[color:var(--color-brand-muted)]">
         <LegalFooterLinks />
-        <p>© {{ currentYear }} Keova</p>
+        <p>© {{ currentYear }} {{ copyrightName }}</p>
       </footer>
     </div>
   </div>

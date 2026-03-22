@@ -161,12 +161,18 @@ function closeMobileMenu() {
               {{ link.label }}
             </ULink>
             <div class="my-2 h-px bg-[#ebe7ef]" />
+            <!-- Login: icon-only on WL/coach mobile, full text otherwise -->
             <ULink
               :to="headerState.loginTo"
-              class="rounded-xl px-4 py-3 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:bg-[#f5f3f7]"
+              class="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:bg-[#f5f3f7]"
               @click="closeMobileMenu"
             >
-              {{ headerState.loginLabel }}
+              <UIcon
+                v-if="useIconOnlyLogin"
+                name="i-lucide-user-circle"
+                class="size-5"
+              />
+              {{ useIconOnlyLogin ? 'Espace cliente' : headerState.loginLabel }}
             </ULink>
             <!-- Mobile CTA full-width (coach/white-label variant) -->
             <ULink
