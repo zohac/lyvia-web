@@ -62,6 +62,7 @@ const { data: coachProfile } = useNuxtData<{
   longBio?: string | null
   city?: string | null
   imageUrl?: string | null
+  heroImageUrl?: string | null
   secondaryPhotoUrl?: string | null
   publicPhone?: string | null
   urgencyText?: string | null
@@ -127,7 +128,7 @@ const faqItems: AccordionItem[] = [
   },
   {
     label: 'À quel moment commencer un accompagnement pour la ménopause\u00A0?',
-    content: 'Le plus tôt possible. Plus on comprend ce qui se passe dans son corps, plus on peut agir efficacement. Mais il n\'est jamais trop tard. Les femmes qui nous rejoignent après plusieurs années de symptômes voient aussi des améliorations significatives.',
+    content: 'Le plus tôt possible. Plus on comprend ce qui se passe dans son corps, plus on peut agir efficacement. Mais il n\'est jamais trop tard. Les femmes qui me rejoignent après plusieurs années de symptômes voient aussi des améliorations significatives.',
     value: 'faq-6'
   },
   {
@@ -199,6 +200,7 @@ const heroProps = computed(() => ({
   credentials: coachProfile.value?.credentials ?? [],
   city: coachProfile.value?.city ?? null,
   profilePhotoUrl: coachProfile.value?.imageUrl ?? null,
+  heroPhotoUrl: coachProfile.value?.heroImageUrl ?? null,
   profilePhotoAlt: coachProfile.value?.imageUrl ? `${coachName.value}, spécialiste accompagnement ménopause` : null,
   discoveryDurationMinutes: coachProfile.value?.discoveryDurationMinutes ?? 15,
   urgencyText: coachProfile.value?.urgencyText ?? null,

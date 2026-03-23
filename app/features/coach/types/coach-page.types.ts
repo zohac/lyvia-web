@@ -25,6 +25,7 @@ export interface CoachHeroProps {
   credentials: Credential[]
   city?: string | null
   profilePhotoUrl?: string | null
+  heroPhotoUrl?: string | null
   profilePhotoAlt?: string | null
   discoveryDurationMinutes: number
   urgencyText?: string | null

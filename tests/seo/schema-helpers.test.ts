@@ -89,6 +89,7 @@ describe('mapProfileToSchemaRefs', () => {
     specialties: ['Nutrition', 'Bien-être'],
     timezone: 'Europe/Paris',
     imageUrl: 'https://cdn.example.com/photo.jpg',
+    heroImageUrl: null,
     discoveryDurationMinutes: 15,
     discoveryBufferAfterMinutes: 15,
     isActive: true,

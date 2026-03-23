@@ -22,6 +22,7 @@ export interface PublicProviderProfile {
   specialties: string[]
   timezone: string
   imageUrl: string | null
+  heroImageUrl: string | null
   discoveryDurationMinutes: number
   discoveryBufferAfterMinutes: number
   isActive: boolean

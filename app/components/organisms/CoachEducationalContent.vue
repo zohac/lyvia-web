@@ -22,7 +22,7 @@ const { reveal } = useScrollReveal()
           class="scroll-reveal"
         >
           La périménopause commence souvent vers 45 ans, parfois plus tôt.
-          C'est une transition hormonale qui peut durer de 2 à 8 ans
+          C'est une transition hormonale qui peut durer de 4 à 8 ans
           et provoquer des symptômes que beaucoup de femmes ne savent pas relier à la ménopause.
         </p>
 
@@ -74,7 +74,7 @@ const { reveal } = useScrollReveal()
         >
           Ce n'est ni du médical, ni du « bien-être » générique.
           C'est un accompagnement structuré par une infirmière de 20 ans d'expérience,
-          adapté à vous, qui complète votre suivi médical.
+          personnalisé, qui complète votre suivi médical.
         </p>
       </div>
     </div>

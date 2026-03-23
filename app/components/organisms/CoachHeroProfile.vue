@@ -137,14 +137,14 @@ const initials = computed(() => {
               <!-- Photo or initials placeholder -->
               <div class="hero-photo-shape relative h-[50vh] w-80 overflow-hidden shadow-2xl shadow-[#5b4b6e]/15">
                 <NuxtImg
-                  v-if="profilePhotoUrl"
-                  :src="profilePhotoUrl"
+                  v-if="heroPhotoUrl || profilePhotoUrl"
+                  :src="(heroPhotoUrl || profilePhotoUrl)!"
                   :alt="`${displayName}, spécialiste accompagnement ménopause`"
                   class="h-full w-full object-cover object-top"
                   loading="eager"
                   fetchpriority="high"
-                  :width="320"
-                  :height="500"
+                  :width="800"
+                  :height="1000"
                 />
                 <!-- Fallback: gradient initials -->
                 <div
