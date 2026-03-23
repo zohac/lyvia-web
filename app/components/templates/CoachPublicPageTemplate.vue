@@ -239,13 +239,6 @@ const heroProps = computed(() => ({
 
 <template>
   <div class="min-h-screen">
-    <!-- ==================== 0. ANNOUNCEMENT BAR (lead magnet) ==================== -->
-    <CoachAnnouncementBar
-      v-if="hasLeadMagnet"
-      :slug="tenant.slug"
-      :lead-magnet-title="leadMagnetTitle"
-    />
-
     <!-- ==================== 1. HERO (beige) ==================== -->
     <CoachHeroProfile v-bind="heroProps" />
 
@@ -862,6 +855,13 @@ const heroProps = computed(() => ({
         </div>
       </template>
     </UModal>
+
+    <!-- ==================== SLIDE-IN NOTIFICATION (lead magnet) ==================== -->
+    <CoachAnnouncementBar
+      v-if="hasLeadMagnet"
+      :slug="tenant.slug"
+      :lead-magnet-title="leadMagnetTitle"
+    />
   </div>
 </template>
 
