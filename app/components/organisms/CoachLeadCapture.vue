@@ -31,12 +31,13 @@ async function handleSubmit() {
   isSubmitting.value = true
 
   try {
-    await apiFetch('/public/newsletter', {
+    await apiFetch('/public/lead-magnet-download', {
       method: 'POST',
       withAuth: false,
       body: {
         email: email.value.trim(),
-        source: `lead_magnet_${props.slug}`.slice(0, 50),
+        slug: props.slug,
+        consent: true,
         ...(firstName.value.trim() ? { firstName: firstName.value.trim() } : {})
       }
     })
