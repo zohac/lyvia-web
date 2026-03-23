@@ -128,29 +128,28 @@ async function handleSubmit() {
           class="mx-auto mt-10 max-w-md space-y-4"
           @submit.prevent="handleSubmit"
         >
-          <UInput
+          <input
             v-model="firstName"
+            type="text"
             placeholder="Votre prénom (optionnel)"
-            size="lg"
             :disabled="isSubmitting"
-            class="w-full"
-          />
-          <UInput
+            class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[#d4956a]/50 focus:ring-2 focus:ring-[#d4956a]/20 disabled:opacity-50"
+          >
+          <input
             v-model="email"
             type="email"
             placeholder="Votre adresse email"
-            size="lg"
             required
             :disabled="isSubmitting"
-            class="w-full"
-          />
+            class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[#d4956a]/50 focus:ring-2 focus:ring-[#d4956a]/20 disabled:opacity-50"
+          >
 
           <!-- RGPD consent -->
           <label class="flex items-start gap-3 text-left">
             <input
               v-model="consent"
               type="checkbox"
-              class="mt-1 size-4 shrink-0 rounded border-white/30 bg-white/10 text-[#d4956a] focus:ring-[#d4956a]/50"
+              class="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-white/30 bg-white/10 accent-[#d4956a]"
               :disabled="isSubmitting"
             >
             <span class="text-xs leading-relaxed text-[#b9aac7]">
@@ -162,18 +161,32 @@ async function handleSubmit() {
             </span>
           </label>
 
-          <UButton
+          <!-- CTA button with glow effect -->
+          <button
             type="submit"
-            size="lg"
             :disabled="!canSubmit || isSubmitting"
-            :loading="isSubmitting"
-            class="w-full rounded-full bg-[#d4956a] font-semibold text-white transition-all duration-300 hover:bg-[#c4855a]"
+            class="cta-glow group relative h-14 w-full cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#d4956a] to-[#e0a87d] text-base font-semibold text-white shadow-lg shadow-[#d4956a]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[#d4956a]/35 hover:brightness-110 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
           >
-            Recevoir mon guide →
-          </UButton>
+            <!-- Shine overlay on hover -->
+            <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+            <span class="relative flex items-center justify-center gap-2">
+              <UIcon
+                v-if="isSubmitting"
+                name="i-lucide-loader-2"
+                class="size-5 animate-spin"
+              />
+              <template v-else>
+                Recevoir mon guide
+                <UIcon
+                  name="i-lucide-arrow-right"
+                  class="size-5 transition-transform duration-300 group-hover:translate-x-1"
+                />
+              </template>
+            </span>
+          </button>
         </form>
 
-        <p class="mt-4 text-xs text-[#9685ab]">
+        <p class="mt-5 text-xs text-[#9685ab]">
           Gratuit · Aucun spam · Désinscription en 1 clic
         </p>
       </template>
