@@ -14,7 +14,10 @@ import CoachPricing from '~/components/organisms/CoachPricing.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
 import CoachEducationalContent from '~/components/organisms/CoachEducationalContent.vue'
 import CoachInlineCta from '~/components/atoms/CoachInlineCta.vue'
+import CoachLeadCapture from '~/components/organisms/CoachLeadCapture.vue'
+import CoachAnnouncementBar from '~/components/atoms/CoachAnnouncementBar.vue'
 import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
+import { useExitIntent } from '~/composables/useExitIntent'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -71,6 +74,8 @@ const { data: coachProfile } = useNuxtData<{
   region?: string | null
   testimonialsJson?: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
   discoveryDurationMinutes?: number
+  leadMagnetUrl?: string | null
+  leadMagnetTitle?: string | null
 }>(`public-provider-profile:${props.tenant.slug}`)
 
 // --- Content data ---
@@ -193,6 +198,30 @@ const hasTestimonials = computed(() => displayTestimonials.value.length > 0)
 const hasPricing = computed(() => consultationPlans.value.length > 0 || publicPrograms.value.length > 0)
 const discoveryDuration = computed(() => coachProfile.value?.discoveryDurationMinutes ?? 15)
 
+// Lead magnet (Y2.6)
+const leadMagnetUrl = computed(() => coachProfile.value?.leadMagnetUrl ?? null)
+const leadMagnetTitle = computed(() => coachProfile.value?.leadMagnetTitle ?? 'Guide gratuit')
+const hasLeadMagnet = computed(() => !!leadMagnetUrl.value)
+
+// Exit intent popup (Y2.6 AC-6) — desktop only
+const showExitPopup = ref(false)
+useExitIntent({
+  onTrigger: () => {
+    if (!hasLeadMagnet.value) return
+    // Don't show if already downloaded
+    if (import.meta.client && sessionStorage.getItem(`lead_magnet_downloaded_${props.tenant.slug}`)) return
+    showExitPopup.value = true
+  },
+  storageKey: `lead_magnet_popup_shown_${props.tenant.slug}`
+})
+
+function closePopupAndScroll() {
+  showExitPopup.value = false
+  nextTick(() => {
+    document.getElementById('lead-capture')?.scrollIntoView({ behavior: 'smooth' })
+  })
+}
+
 // Hero props (typed, pattern P-Y2)
 const heroProps = computed(() => ({
   displayName: coachName.value,
@@ -210,6 +239,13 @@ const heroProps = computed(() => ({
 
 <template>
   <div class="min-h-screen">
+    <!-- ==================== 0. ANNOUNCEMENT BAR (lead magnet) ==================== -->
+    <CoachAnnouncementBar
+      v-if="hasLeadMagnet"
+      :slug="tenant.slug"
+      :lead-magnet-title="leadMagnetTitle"
+    />
+
     <!-- ==================== 1. HERO (beige) ==================== -->
     <CoachHeroProfile v-bind="heroProps" />
 
@@ -684,6 +720,14 @@ const heroProps = computed(() => ({
       </template>
     </CoachEducationalContent>
 
+    <!-- ==================== 10b. LEAD CAPTURE (beige gradient) ==================== -->
+    <CoachLeadCapture
+      v-if="hasLeadMagnet"
+      :slug="tenant.slug"
+      :lead-magnet-url="leadMagnetUrl!"
+      :lead-magnet-title="leadMagnetTitle"
+    />
+
     <!-- ==================== 11. FAQ (blanc) ==================== -->
     <section
       v-bind="reveal()"
@@ -773,6 +817,51 @@ const heroProps = computed(() => ({
       cta-label="Réserver mon appel gratuit →"
       :cta-to="ctaTo"
     />
+
+    <!-- ==================== EXIT INTENT MODAL (Y2.6 AC-6) ==================== -->
+    <UModal
+      v-if="hasLeadMagnet"
+      v-model:open="showExitPopup"
+    >
+      <template #content>
+        <div class="relative p-8 text-center">
+          <button
+            class="absolute right-4 top-4 rounded p-1 text-[#857d8c] transition-colors hover:text-[#2d2438]"
+            aria-label="Fermer"
+            @click="showExitPopup = false"
+          >
+            <UIcon
+              name="i-lucide-x"
+              class="size-5"
+            />
+          </button>
+
+          <h3 class="font-serif text-2xl text-[#2d2438]">
+            Avant de partir...
+          </h3>
+          <p class="mt-3 text-[#4a4255]">
+            Téléchargez gratuitement : {{ leadMagnetTitle }}
+          </p>
+
+          <p class="mt-2 text-sm text-[#857d8c]">
+            Laissez votre email pour recevoir le guide
+          </p>
+
+          <!-- Scroll to inline form and close modal -->
+          <UButton
+            class="mt-6 rounded-full bg-[#d4956a] px-8 font-semibold text-white transition-all duration-300 hover:bg-[#c4855a]"
+            size="lg"
+            @click="closePopupAndScroll"
+          >
+            Recevoir mon guide →
+          </UButton>
+
+          <p class="mt-4 text-xs text-[#857d8c]">
+            Gratuit · Aucun spam · Désinscription en 1 clic
+          </p>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 

@@ -36,4 +36,6 @@ export interface PublicProviderProfile {
   heroHeadline: string | null
   testimonialsJson: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
   secondaryPhotoUrl: string | null
+  leadMagnetUrl: string | null
+  leadMagnetTitle: string | null
 }

@@ -102,7 +102,9 @@ describe('mapProfileToSchemaRefs', () => {
     urgencyText: null,
     heroHeadline: null,
     testimonialsJson: [],
-    secondaryPhotoUrl: null
+    secondaryPhotoUrl: null,
+    leadMagnetUrl: null,
+    leadMagnetTitle: null
   }
 
   test('maps all profile fields to refs', () => {

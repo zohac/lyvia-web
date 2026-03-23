@@ -41,6 +41,8 @@ export type ProviderAccountResponse = {
   urgencyText: string | null
   heroHeadline: string | null
   testimonialsJson: TestimonialItem[]
+  leadMagnetUrl: string | null
+  leadMagnetTitle: string | null
   updatedAt?: string
 }
 
@@ -61,4 +63,6 @@ export type UpdateProviderAccountRequest = {
   urgencyText?: string | null
   heroHeadline?: string | null
   testimonialsJson?: TestimonialItem[]
+  leadMagnetUrl?: string | null
+  leadMagnetTitle?: string | null
 }

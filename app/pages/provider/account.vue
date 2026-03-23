@@ -72,6 +72,15 @@ const heroHeadlineForm = reactive({ heroHeadline: '' as string | null })
 // ── Urgency text form state ─────────────────────────
 const urgencyForm = reactive({ urgencyText: '' as string | null })
 
+// ── Lead magnet form state ──────────────────────────
+const leadMagnetForm = reactive({
+  url: null as string | null,
+  title: '' as string | null
+})
+const leadMagnetFile = ref<File | null>(null)
+const leadMagnetUploading = ref(false)
+const leadMagnetError = ref<string | null>(null)
+
 // ── Testimonials form state ─────────────────────────
 const testimonialsForm = ref<TestimonialItem[]>([])
 
@@ -95,6 +104,7 @@ const bioCharCount = computed(() => personalForm.bio?.length ?? 0)
 const longBioCharCount = computed(() => profileForm.longBio?.length ?? 0)
 const heroHeadlineCharCount = computed(() => heroHeadlineForm.heroHeadline?.length ?? 0)
 const urgencyCharCount = computed(() => urgencyForm.urgencyText?.length ?? 0)
+const leadMagnetTitleCharCount = computed(() => leadMagnetForm.title?.length ?? 0)
 const criteria = computed(() => getPasswordCriteria(passwordForm.newPassword))
 const isStrong = computed(() => isPasswordStrong(passwordForm.newPassword))
 
@@ -140,6 +150,10 @@ function syncFormsFromAccount() {
 
   // Urgency
   urgencyForm.urgencyText = acc.urgencyText
+
+  // Lead magnet
+  leadMagnetForm.url = acc.leadMagnetUrl
+  leadMagnetForm.title = acc.leadMagnetTitle
 
   // Testimonials
   testimonialsForm.value = acc.testimonialsJson?.length
@@ -412,6 +426,72 @@ async function handleTestimonialsSubmit() {
   } else {
     toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
   }
+}
+
+// ── Lead magnet handlers ────────────────────────────
+const leadMagnetInputRef = ref<HTMLInputElement | null>(null)
+
+function triggerLeadMagnetInput() {
+  leadMagnetInputRef.value?.click()
+}
+
+function onLeadMagnetSelected(event: Event) {
+  leadMagnetError.value = null
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  if (file.size > 10 * 1024 * 1024) {
+    leadMagnetError.value = 'La taille maximale est de 10 Mo.'
+    return
+  }
+
+  if (file.type !== 'application/pdf') {
+    leadMagnetError.value = 'Seuls les fichiers PDF sont acceptés.'
+    return
+  }
+
+  leadMagnetFile.value = file
+}
+
+async function handleLeadMagnetUpload() {
+  if (!leadMagnetFile.value) return
+  leadMagnetUploading.value = true
+  leadMagnetError.value = null
+
+  try {
+    const result = await uploadAsset('lead_magnet', leadMagnetFile.value)
+    leadMagnetForm.url = result.url
+    leadMagnetFile.value = null
+    toast.add({ title: 'PDF uploadé avec succès', color: 'primary' })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : ''
+    if (msg.includes('INVALID_MIME')) {
+      leadMagnetError.value = 'Format non reconnu. Utilisez un fichier PDF valide.'
+    } else {
+      leadMagnetError.value = 'Erreur lors de l\'upload du fichier.'
+    }
+  } finally {
+    leadMagnetUploading.value = false
+  }
+}
+
+async function handleLeadMagnetSubmit() {
+  const success = await updateAccount({
+    leadMagnetUrl: leadMagnetForm.url,
+    leadMagnetTitle: leadMagnetForm.title?.trim() || null
+  })
+  if (success) {
+    toast.add({ title: 'Lead magnet mis à jour', color: 'primary' })
+  } else {
+    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
+  }
+}
+
+function removeLeadMagnet() {
+  leadMagnetForm.url = null
+  leadMagnetForm.title = null
+  leadMagnetFile.value = null
 }
 
 async function handleEmailChange() {
@@ -1270,6 +1350,125 @@ async function handlePasswordChange() {
               type="button"
               @click="addTestimonial"
             />
+            <UButton
+              type="submit"
+              :loading="saving"
+              :disabled="saving"
+              label="Enregistrer"
+            />
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 8b: Lead magnet -->
+      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+            <UIcon
+              name="i-lucide-file-text"
+              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
+            />
+          </div>
+          <div>
+            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
+              Lead magnet
+            </h2>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Proposez un guide PDF gratuit pour capturer les emails de vos visiteuses.
+            </p>
+          </div>
+        </div>
+
+        <form
+          class="mt-6 space-y-6"
+          @submit.prevent="handleLeadMagnetSubmit"
+        >
+          <!-- PDF upload -->
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[color:var(--color-brand-primary)]">
+              Fichier PDF
+            </label>
+            <div v-if="leadMagnetForm.url" class="flex items-center gap-3 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-highlight)] p-3">
+              <UIcon name="i-lucide-file-text" class="size-5 text-[color:var(--color-brand-accent)]" />
+              <a
+                :href="leadMagnetForm.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex-1 truncate text-sm text-[color:var(--color-brand-primary)] underline hover:no-underline"
+              >
+                {{ leadMagnetForm.url.split('/').pop() }}
+              </a>
+              <UButton
+                variant="ghost"
+                size="xs"
+                color="error"
+                icon="i-lucide-trash-2"
+                @click="removeLeadMagnet"
+              />
+            </div>
+            <div v-else class="space-y-2">
+              <input
+                ref="leadMagnetInputRef"
+                type="file"
+                accept="application/pdf"
+                class="hidden"
+                @change="onLeadMagnetSelected"
+              >
+              <div class="flex items-center gap-3">
+                <UButton
+                  type="button"
+                  variant="outline"
+                  icon="i-lucide-upload"
+                  :loading="leadMagnetUploading"
+                  @click="triggerLeadMagnetInput"
+                >
+                  Choisir un PDF
+                </UButton>
+                <span v-if="leadMagnetFile" class="text-sm text-[color:var(--color-brand-secondary)]">
+                  {{ leadMagnetFile.name }}
+                </span>
+              </div>
+              <UButton
+                v-if="leadMagnetFile"
+                type="button"
+                size="sm"
+                :loading="leadMagnetUploading"
+                @click="handleLeadMagnetUpload"
+              >
+                Uploader
+              </UButton>
+            </div>
+            <p v-if="leadMagnetError" class="mt-2 text-sm text-[color:var(--color-error)]">
+              {{ leadMagnetError }}
+            </p>
+            <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
+              Format : PDF uniquement · Taille max : 10 Mo
+            </p>
+          </div>
+
+          <!-- Title -->
+          <div>
+            <label
+              for="leadMagnetTitle"
+              class="mb-2 block text-sm font-medium text-[color:var(--color-brand-primary)]"
+            >
+              Titre du guide
+            </label>
+            <UInput
+              id="leadMagnetTitle"
+              v-model="leadMagnetForm.title"
+              placeholder="Ex : Les 7 signaux que votre corps vous envoie en périménopause"
+              :maxlength="200"
+            />
+            <p class="mt-1 text-right text-xs" :class="leadMagnetTitleCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'">
+              {{ leadMagnetTitleCharCount }}/200
+            </p>
+            <p class="text-xs text-[color:var(--color-brand-muted)]">
+              Ce titre apparaît sur votre page publique dans la section de téléchargement.
+            </p>
+          </div>
+
+          <div class="flex justify-end">
             <UButton
               type="submit"
               :loading="saving"
