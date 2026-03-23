@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * Lead capture form for B2C landing page.
+ * Calls POST /public/lead-magnet-download with slug: 'keova'.
+ * Anti-enumeration: same behavior whether email is new or already exists.
+ */
 import { apiFetch } from '~/services/api/apiFetch'
 import { ApiFetchError } from '~/services/api/api-error'
 
@@ -8,7 +13,7 @@ const email = ref('')
 const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 
-const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))
+const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim()))
 const canSubmit = computed(() => isValidEmail.value && !isSubmitting.value)
 
 async function handleSubmit() {
@@ -16,12 +21,13 @@ async function handleSubmit() {
   isSubmitting.value = true
 
   try {
-    await apiFetch('/public/newsletter', {
+    await apiFetch('/public/lead-magnet-download', {
       method: 'POST',
       withAuth: false,
       body: {
         email: email.value.trim(),
-        source: 'landing_b2c'
+        slug: 'keova',
+        consent: true
       }
     })
 
@@ -52,7 +58,7 @@ async function handleSubmit() {
   <!-- Confirmation state -->
   <div
     v-if="isSubmitted"
-    class="newsletter-confirmed flex flex-col items-center gap-3 text-center"
+    class="lead-capture-confirmed flex flex-col items-center gap-3 text-center"
   >
     <div class="grid size-14 place-items-center rounded-full bg-emerald-500/20 ring-2 ring-emerald-400/30">
       <UIcon
@@ -103,7 +109,7 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
-.newsletter-confirmed {
+.lead-capture-confirmed {
   animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

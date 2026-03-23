@@ -75,7 +75,7 @@ const urgencyForm = reactive({ urgencyText: '' as string | null })
 // ── Lead magnet form state ──────────────────────────
 const leadMagnetForm = reactive({
   url: null as string | null,
-  title: '' as string | null
+  title: null as string | null
 })
 const leadMagnetFile = ref<File | null>(null)
 const leadMagnetUploading = ref(false)
@@ -223,6 +223,16 @@ function formatUploadError(e: unknown): string {
   return 'Erreur lors de l\'upload de la photo.'
 }
 
+function validateFileUpload(file: File, maxBytes: number, allowedTypes: string[]): string | null {
+  if (file.size > maxBytes) {
+    return `La taille maximale est de ${Math.round(maxBytes / 1024 / 1024)} Mo.`
+  }
+  if (!allowedTypes.includes(file.type)) {
+    return `Formats acceptés : ${allowedTypes.map(t => t.split('/')[1]?.toUpperCase()).join(', ')}.`
+  }
+  return null
+}
+
 // ── Photo upload handlers ───────────────────────────
 function triggerFileInput() {
   fileInputRef.value?.click()
@@ -234,14 +244,9 @@ function onFileSelected(event: Event) {
   const file = target.files?.[0]
   if (!file) return
 
-  if (file.size > 2 * 1024 * 1024) {
-    photoError.value = 'La taille maximale est de 2 Mo.'
-    return
-  }
-
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-  if (!allowedTypes.includes(file.type)) {
-    photoError.value = 'Formats acceptés : JPEG, PNG ou WebP.'
+  const err = validateFileUpload(file, 2 * 1024 * 1024, ['image/jpeg', 'image/png', 'image/webp'])
+  if (err) {
+    photoError.value = err
     return
   }
 
@@ -278,14 +283,9 @@ function onSecondaryFileSelected(event: Event) {
   const file = target.files?.[0]
   if (!file) return
 
-  if (file.size > 2 * 1024 * 1024) {
-    secondaryPhotoError.value = 'La taille maximale est de 2 Mo.'
-    return
-  }
-
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-  if (!allowedTypes.includes(file.type)) {
-    secondaryPhotoError.value = 'Formats acceptés : JPEG, PNG ou WebP.'
+  const err = validateFileUpload(file, 2 * 1024 * 1024, ['image/jpeg', 'image/png', 'image/webp'])
+  if (err) {
+    secondaryPhotoError.value = err
     return
   }
 
@@ -441,13 +441,9 @@ function onLeadMagnetSelected(event: Event) {
   const file = target.files?.[0]
   if (!file) return
 
-  if (file.size > 10 * 1024 * 1024) {
-    leadMagnetError.value = 'La taille maximale est de 10 Mo.'
-    return
-  }
-
-  if (file.type !== 'application/pdf') {
-    leadMagnetError.value = 'Seuls les fichiers PDF sont acceptés.'
+  const err = validateFileUpload(file, 10 * 1024 * 1024, ['application/pdf'])
+  if (err) {
+    leadMagnetError.value = err
     return
   }
 

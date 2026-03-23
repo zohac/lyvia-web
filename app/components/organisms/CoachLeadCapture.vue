@@ -23,7 +23,7 @@ const consent = ref(false)
 const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 
-const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))
+const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim()))
 const canSubmit = computed(() => isValidEmail.value && consent.value && !isSubmitting.value)
 
 async function handleSubmit() {
@@ -47,8 +47,8 @@ async function handleSubmit() {
       color: 'success'
     })
 
-    // Download PDF
-    window.open(props.leadMagnetUrl, '_blank')
+    // Download PDF — Convention A30: noopener,noreferrer
+    window.open(props.leadMagnetUrl, '_blank', 'noopener,noreferrer')
 
     // Mark as downloaded for exit intent
     if (import.meta.client) {
