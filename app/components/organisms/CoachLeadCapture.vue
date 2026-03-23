@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Y2.6 AC-3/AC-4/AC-5: Lead capture with lead magnet PDF download.
- * Captures email via POST /public/newsletter, then triggers PDF download.
+ * Captures email via POST /public/lead-magnet-download, then triggers PDF download.
  * Anti-enumeration: same behavior whether email is new or already exists.
  * Deep purple background for visual rupture (audit UX scrolltelling).
  * RGPD: explicit consent checkbox required before submission.
@@ -129,21 +129,35 @@ async function handleSubmit() {
           class="mx-auto mt-10 max-w-md space-y-4"
           @submit.prevent="handleSubmit"
         >
-          <input
-            v-model="firstName"
-            type="text"
-            placeholder="Votre prénom (optionnel)"
-            :disabled="isSubmitting"
-            class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[#d4956a]/50 focus:ring-2 focus:ring-[#d4956a]/20 disabled:opacity-50"
-          >
-          <input
-            v-model="email"
-            type="email"
-            placeholder="Votre adresse email"
-            required
-            :disabled="isSubmitting"
-            class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[#d4956a]/50 focus:ring-2 focus:ring-[#d4956a]/20 disabled:opacity-50"
-          >
+          <div>
+            <label
+              for="lead-capture-firstname"
+              class="mb-1 block text-xs font-medium text-[#b9aac7]"
+            >Prénom (optionnel)</label>
+            <input
+              id="lead-capture-firstname"
+              v-model="firstName"
+              type="text"
+              placeholder="Votre prénom"
+              :disabled="isSubmitting"
+              class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[#d4956a]/50 focus:ring-2 focus:ring-[#d4956a]/20 disabled:opacity-50"
+            >
+          </div>
+          <div>
+            <label
+              for="lead-capture-email"
+              class="mb-1 block text-xs font-medium text-[#b9aac7]"
+            >Adresse email</label>
+            <input
+              id="lead-capture-email"
+              v-model="email"
+              type="email"
+              placeholder="votre@email.com"
+              required
+              :disabled="isSubmitting"
+              class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[#d4956a]/50 focus:ring-2 focus:ring-[#d4956a]/20 disabled:opacity-50"
+            >
+          </div>
 
           <!-- RGPD consent -->
           <label class="flex items-start gap-3 text-left">

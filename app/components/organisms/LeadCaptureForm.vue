@@ -77,34 +77,40 @@ async function handleSubmit() {
   <!-- Form — inline input+button inside a pill container -->
   <form
     v-else
-    class="flex items-center rounded-xl bg-white/95 p-1.5 shadow-lg backdrop-blur-sm transition-shadow duration-300 focus-within:shadow-xl sm:rounded-full"
     @submit.prevent="handleSubmit"
   >
-    <div class="relative flex-1">
-      <UIcon
-        name="i-lucide-mail"
-        class="absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[#b5adc0]"
-      />
-      <input
-        v-model="email"
-        type="email"
-        placeholder="Votre adresse email"
-        :disabled="isSubmitting"
-        class="w-full rounded-lg bg-transparent py-3 pl-11 pr-3 text-sm text-[#3d3250] outline-none placeholder:text-[#b5adc0] disabled:opacity-50 sm:rounded-full"
+    <label
+      for="lead-capture-b2c-email"
+      class="mb-2 block text-xs font-medium text-[#c4bdd0]"
+    >Votre adresse email</label>
+    <div class="flex items-center rounded-xl bg-white/95 p-1.5 shadow-lg backdrop-blur-sm transition-shadow duration-300 focus-within:shadow-xl sm:rounded-full">
+      <div class="relative flex-1">
+        <UIcon
+          name="i-lucide-mail"
+          class="absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[#b5adc0]"
+        />
+        <input
+          id="lead-capture-b2c-email"
+          v-model="email"
+          type="email"
+          placeholder="votre@email.com"
+          :disabled="isSubmitting"
+          class="w-full rounded-lg bg-transparent py-3 pl-11 pr-3 text-sm text-[#3d3250] outline-none placeholder:text-[#b5adc0] disabled:opacity-50 sm:rounded-full"
+        >
+      </div>
+      <button
+        type="submit"
+        :disabled="!canSubmit || isSubmitting"
+        class="shrink-0 cursor-pointer rounded-lg bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:from-[#4a3d5e] hover:to-[#6d5c82] hover:shadow-md disabled:pointer-events-none disabled:opacity-50 sm:rounded-full"
       >
+        <UIcon
+          v-if="isSubmitting"
+          name="i-lucide-loader-2"
+          class="size-5 animate-spin"
+        />
+        <span v-else>S'inscrire</span>
+      </button>
     </div>
-    <button
-      type="submit"
-      :disabled="!canSubmit || isSubmitting"
-      class="shrink-0 cursor-pointer rounded-lg bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:from-[#4a3d5e] hover:to-[#6d5c82] hover:shadow-md disabled:pointer-events-none disabled:opacity-50 sm:rounded-full"
-    >
-      <UIcon
-        v-if="isSubmitting"
-        name="i-lucide-loader-2"
-        class="size-5 animate-spin"
-      />
-      <span v-else>S'inscrire</span>
-    </button>
   </form>
 </template>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FeaturedProvider } from '~/components/organisms/SpecialistCard.vue'
 import SpecialistCard from '~/components/organisms/SpecialistCard.vue'
-import NewsletterForm from '~/components/organisms/NewsletterForm.vue'
+import LeadCaptureForm from '~/components/organisms/LeadCaptureForm.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
 const { reveal } = useScrollReveal()
@@ -265,7 +265,7 @@ function scrollTo(id: string) {
             Nos spécialistes arrivent bientôt
           </p>
           <p class="mt-3 text-sm text-[#857d8c]">
-            Inscrivez-vous à la newsletter pour être prévenue du lancement.
+            Inscrivez-vous pour être prévenue du lancement.
           </p>
         </div>
       </div>
@@ -342,7 +342,7 @@ function scrollTo(id: string) {
             Guides pratiques, témoignages et actualités — 1 email par semaine, sans spam.
           </p>
           <div class="mx-auto mt-10 max-w-md">
-            <NewsletterForm />
+            <LeadCaptureForm />
           </div>
           <p class="mt-6 text-xs text-[#9685ab]">
             Données hébergées en France. Conforme RGPD. Désinscription en un clic.
@@ -491,7 +491,7 @@ function scrollTo(id: string) {
   transform: scale(0.9) translateY(0);
 }
 
-/* Variant: clip reveal (newsletter dark section) */
+/* Variant: clip reveal (lead capture dark section) */
 .scroll-reveal.reveal-clip {
   transform: translateY(48px);
 }
