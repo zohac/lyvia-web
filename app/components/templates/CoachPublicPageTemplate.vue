@@ -113,7 +113,7 @@ const faqItems: AccordionItem[] = [
   },
   {
     label: `L'accompagnement de ${coachName.value} est-il médical\u00A0?`,
-    content: `Non. C'est un accompagnement en bien-être, pas un acte médical. ${coachName.value} est infirmière de formation et accompagne sur 4 axes\u00A0: alimentation, gestion du stress, sommeil et mouvement. Son approche complète le suivi médical, elle ne le remplace pas. En cas de besoin, elle vous oriente vers un professionnel de santé.`,
+    content: `Non. C'est un accompagnement en bien-être, pas un acte médical. Je suis infirmière de formation et j'accompagne sur 4 axes\u00A0: alimentation, gestion du stress, sommeil et mouvement. Mon approche complète le suivi médical, elle ne le remplace pas. En cas de besoin, je vous oriente vers un professionnel de santé.`,
     value: 'faq-2'
   },
   {
@@ -128,7 +128,7 @@ const faqItems: AccordionItem[] = [
   },
   {
     label: 'L\'appel gratuit est-il vraiment sans engagement\u00A0?',
-    content: `Oui, totalement. Pas de carte bancaire, pas de vente forcée. C'est un échange de 15 minutes pour faire connaissance. Vous repartez avec de premières pistes, même si vous décidez de ne pas poursuivre.`,
+    content: `Oui, totalement. Pas de carte bancaire, pas de vente forcée. C'est un échange de 15 minutes pour être écoutée et voir ensemble si un accompagnement peut vous aider. Vous décidez ensuite, sans aucune obligation.`,
     value: 'faq-5'
   },
   {
@@ -345,6 +345,8 @@ const heroProps = computed(() => ({
                   :src="(coachProfile?.secondaryPhotoUrl ?? coachProfile?.imageUrl)!"
                   :alt="`${coachName}, spécialiste accompagnement ménopause`"
                   class="h-full w-full object-cover object-top"
+                  width="288"
+                  height="400"
                   loading="lazy"
                 />
                 <div
@@ -578,7 +580,7 @@ const heroProps = computed(() => ({
 
         <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
           Une approche globale, personnalisée et respectueuse du corps féminin.
-          {{ coachName }} vous guide avec douceur à travers 4 axes essentiels.
+          Je vous guide avec douceur à travers 4 axes essentiels.
         </p>
 
         <div class="mt-16 grid gap-8 md:grid-cols-2">
@@ -656,7 +658,6 @@ const heroProps = computed(() => ({
     <!-- ==================== 8. COMMENT ÇA MARCHE (beige) ==================== -->
     <CoachHowItWorks
       :discovery-duration-minutes="discoveryDuration"
-      :provider-first-name="coachProfile?.displayName?.split(' ')[0] ?? coachName"
     >
       <template #header>
         <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">

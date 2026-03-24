@@ -17,19 +17,19 @@ const steps = computed(() => [
   {
     number: '02',
     title: `On fait connaissance (${props.discoveryDurationMinutes} min)`,
-    description: `${props.providerFirstName} vous écoute, vous pose quelques questions sur vos symptômes et votre quotidien. Pas de pression, pas de discours commercial.`,
+    description: 'Je vous écoute, je vous pose quelques questions sur vos symptômes et votre quotidien. Pas de pression, pas de discours commercial.',
     icon: 'i-lucide-phone'
   },
   {
     number: '03',
-    title: `${props.providerFirstName} vous donne un premier éclairage`,
-    description: 'Vous repartez avec des premières pistes concrètes, même si vous décidez de ne pas aller plus loin.',
-    icon: 'i-lucide-lightbulb'
+    title: 'On voit ensemble si c\'est le bon chemin',
+    description: 'Je vous dis honnêtement si un accompagnement peut vous aider, et si je suis la bonne personne pour ça.',
+    icon: 'i-lucide-compass'
   },
   {
     number: '04',
     title: 'Vous décidez, à votre rythme',
-    description: `Si l'accompagnement vous convient, on démarre ensemble. Sinon, vous gardez les conseils de l'appel — c'est cadeau.`,
+    description: `Si c'est le bon moment pour vous, on démarre ensemble. Sinon, pas de pression\u00A0— c'est un échange, pas une vente.`,
     icon: 'i-lucide-heart-handshake'
   }
 ])

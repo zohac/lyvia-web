@@ -46,7 +46,6 @@ export interface CoachFaqItem {
 
 export interface CoachHowItWorksProps {
   discoveryDurationMinutes: number
-  providerFirstName: string
 }
 
 export interface CoachPricingProps {

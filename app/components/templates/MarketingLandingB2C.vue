@@ -317,7 +317,7 @@ function scrollTo(id: string) {
       </div>
     </section>
 
-    <!-- ==================== ACTE 5 — NEWSLETTER ==================== -->
+    <!-- ==================== ACTE 5 — LEAD CAPTURE ==================== -->
     <section class="relative px-4 py-24 sm:py-32">
       <div
         v-bind="reveal()"

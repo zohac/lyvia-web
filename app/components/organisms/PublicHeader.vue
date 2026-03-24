@@ -50,6 +50,8 @@ function closeMobileMenu() {
               src="/images/keova-logo.png"
               alt=""
               class="h-7 w-auto sm:h-8"
+              width="120"
+              height="32"
               aria-hidden="true"
               loading="eager"
             />
@@ -62,6 +64,8 @@ function closeMobileMenu() {
               :src="headerState.brandLogoSrc"
               :alt="headerState.brandLabel"
               class="h-16 w-auto"
+              width="200"
+              height="64"
               loading="eager"
             />
           </template>
@@ -215,6 +219,8 @@ function closeMobileMenu() {
               src="/images/keova-logo.png"
               alt=""
               class="h-8 w-auto sm:h-9"
+              width="135"
+              height="36"
               aria-hidden="true"
               loading="eager"
             />
@@ -227,6 +233,8 @@ function closeMobileMenu() {
               :src="headerState.brandLogoSrc"
               :alt="headerState.brandLabel"
               class="h-16 w-auto"
+              width="200"
+              height="64"
               loading="eager"
             />
           </template>

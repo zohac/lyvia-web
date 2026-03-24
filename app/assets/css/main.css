@@ -9,9 +9,9 @@
    * Philosophie : Clarté et Chaleur — simplicité, accessibilité 40-60+ ans
    * ================================================================================================= */
 
-  /* Typography — DM Serif Display + Plus Jakarta Sans */
-  --font-family-heading: 'DM Serif Display', Georgia, ui-serif, serif;
-  --font-family-body: 'Plus Jakarta Sans', -apple-system, ui-sans-serif, system-ui, sans-serif;
+  /* Typography — Fraunces + Manrope */
+  --font-family-heading: 'Fraunces', Georgia, ui-serif, serif;
+  --font-family-body: 'Manrope', -apple-system, ui-sans-serif, system-ui, sans-serif;
 
   --leading-tight: 1.2;
   --leading-normal: 1.5;
