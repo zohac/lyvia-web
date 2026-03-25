@@ -11,7 +11,7 @@ const steps = computed(() => [
   {
     number: '01',
     title: 'Vous réservez votre appel',
-    description: `Choisissez un créneau qui vous convient. C'est gratuit, sans engagement, et 100% en visio.`,
+    description: `Choisissez un créneau qui vous convient. C'est gratuit, sans engagement.`,
     icon: 'i-lucide-calendar'
   },
   {

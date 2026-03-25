@@ -113,7 +113,7 @@ const initials = computed(() => {
                   name="i-lucide-clock"
                   class="size-4"
                 />
-                {{ discoveryDurationMinutes }} min · Gratuit · Sans engagement · En visio
+                {{ discoveryDurationMinutes }} min · Gratuit · Sans engagement
               </span>
             </div>
 
