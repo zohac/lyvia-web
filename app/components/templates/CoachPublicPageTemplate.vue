@@ -108,7 +108,7 @@ const pillars = [
 const faqItems: AccordionItem[] = [
   {
     label: `Combien coûte un accompagnement avec ${coachName.value}\u00A0?`,
-    content: `L'appel découverte de 15 minutes est gratuit et sans engagement. Les séances individuelles sont à 85\u00A0€. Le programme 6 mois est à 840\u00A0€ (ou 140\u00A0€/mois en 6 fois). C'est souvent moins que ce que les femmes dépensent en compléments alimentaires et consultations diverses sur la même période. Sauf qu'ici, les résultats durent.`,
+    content: `L'appel découverte de 15 minutes est gratuit et sans engagement, c'est le point de départ idéal.\n\nEnsuite, deux formules s'offrent à vous. À la séance\u00A0: le premier mois inclut une séance bilan d'1h30 (160\u00A0€), puis des séances de suivi de 45 minutes (140\u00A0€/mois), avec un soutien par mail entre les rendez-vous. Le paiement est à effectuer en ligne 48 heures avant chaque séance, la séance est confirmée à ce moment-là.\n\nEn forfait 6 mois\u00A0: 840\u00A0€ en une fois ou en plusieurs mensualités sans frais, prélevées automatiquement.\n\n6 mois, c'est en général le temps nécessaire pour ancrer de nouvelles habitudes et constater une amélioration durable de votre bien-être.`,
     value: 'faq-1'
   },
   {
