@@ -1,120 +1,262 @@
 <script setup lang="ts">
 import type { AccordionItem } from '@nuxt/ui'
 
-import type { PublicTenantResponse } from '../../features/onboarding/api/onboarding.contract'
-import type { PublicProgramListItem } from '../../features/programs/api/programs.contract'
-import { listPublicPrograms } from '../../features/programs/services/public-programs.service'
-import CoachHeroProfile from '../organisms/CoachHeroProfile.vue'
-import ProgramCard from '../organisms/ProgramCard.vue'
-import ProgramCheckoutModal from '../organisms/ProgramCheckoutModal.vue'
+import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
+import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
+import type { ListConsultationPricePlansResponse } from '~/features/consultation/api/consultation.contract'
+import { listPublicPrograms } from '~/features/programs/services/public-programs.service'
+import { listConsultationPricePlans } from '~/features/consultation/services/client-consultation.service'
+import { useScrollReveal } from '~/composables/useScrollReveal'
+import CoachHeroProfile from '~/components/organisms/CoachHeroProfile.vue'
+import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
+import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
+import CoachPricing from '~/components/organisms/CoachPricing.vue'
+import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
+import CoachEducationalContent from '~/components/organisms/CoachEducationalContent.vue'
+import CoachInlineCta from '~/components/atoms/CoachInlineCta.vue'
+import CoachLeadCapture from '~/components/organisms/CoachLeadCapture.vue'
+import CoachAnnouncementBar from '~/components/atoms/CoachAnnouncementBar.vue'
+import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
+import { useExitIntent } from '~/composables/useExitIntent'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
   ctaTo: string
 }>()
 
-const auth = useAuth()
-
-const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>('public-programs', async () => {
-  try {
-    return await listPublicPrograms()
-  } catch {
-    return []
-  }
-}, { default: () => [] })
-
+const { reveal } = useScrollReveal()
 const route = useRoute()
-const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre coach')
+const { isAuthenticated: checkAuth } = useAuth()
+const isAuthenticated = computed(() => checkAuth())
 const currentPath = computed(() => route.fullPath)
 
-// X3.3: Program checkout modal state
-const checkoutModalOpen = ref(false)
-const selectedProgram = ref<PublicProgramListItem | null>(null)
+const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>(
+  `public-programs:${props.tenant.slug}`,
+  async () => {
+    try {
+      return await listPublicPrograms(props.tenant.slug)
+    } catch {
+      return []
+    }
+  },
+  { default: () => [] }
+)
 
-function handleProgramCheckout(program: PublicProgramListItem) {
-  selectedProgram.value = program
-  checkoutModalOpen.value = true
-}
+const { data: pricingData } = await useAsyncData<ListConsultationPricePlansResponse | null>(
+  `pricing-${props.tenant.providerId}`,
+  async () => {
+    try {
+      return await listConsultationPricePlans(props.tenant.providerId)
+    } catch {
+      return null
+    }
+  },
+  { default: () => null }
+)
 
+const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre coach')
+
+// Provider enriched profile data (loaded by useCoachSchemaOrg in parent page)
+const { data: coachProfile } = useNuxtData<{
+  specialties?: string[]
+  displayName?: string
+  credentials?: Array<{ title: string, institution?: string, year?: number, verified?: boolean }>
+  bio?: string | null
+  longBio?: string | null
+  city?: string | null
+  imageUrl?: string | null
+  heroImageUrl?: string | null
+  secondaryPhotoUrl?: string | null
+  publicPhone?: string | null
+  urgencyText?: string | null
+  heroHeadline?: string | null
+  socialLinks?: { linkedin?: string, instagram?: string, facebook?: string, website?: string }
+  region?: string | null
+  testimonialsJson?: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
+  discoveryDurationMinutes?: number
+  leadMagnetUrl?: string | null
+  leadMagnetTitle?: string | null
+}>(`public-provider-profile:${props.tenant.slug}`)
+
+// --- Content data ---
+
+// <!-- TODO: Feature V — dynamiser -->
 const pillars = [
   {
     title: 'Alimentation bienveillante',
-    description: 'Des repères simples et concrets pour soutenir votre métabolisme, vos hormones et votre énergie, sans régime ni culpabilité.'
+    description: 'Des repères simples pour soutenir votre métabolisme et vos hormones. Pas de régime, pas de privation. Une alimentation anti-inflammatoire adaptée à votre quotidien, votre budget et vos goûts.',
+    icon: 'i-lucide-apple'
   },
   {
     title: 'Gestion du stress',
-    description: 'Des outils accessibles pour soutenir votre système nerveux, retrouver un meilleur sommeil et apaiser les réactions émotionnelles.'
+    description: 'Des outils accessibles pour calmer votre système nerveux\u00A0: techniques de respiration, routines apaisantes, gestion des émotions. Parce que le stress amplifie tous les autres symptômes de la ménopause.',
+    icon: 'i-lucide-wind'
   },
   {
     title: 'Sommeil réparateur',
-    description: 'Des clés naturelles pour retrouver des nuits paisibles, réduire les réveils nocturnes et vous réveiller avec plus d\'énergie.'
+    description: 'Des stratégies naturelles pour retrouver des nuits paisibles\u00A0: rituel du soir, gestion des réveils nocturnes, environnement de sommeil. Le sommeil est souvent le premier résultat visible, en quelques semaines.',
+    icon: 'i-lucide-moon-star'
   },
   {
     title: 'Mouvement adapté',
-    description: 'Des conseils concrets pour bouger en douceur, selon votre niveau d\'énergie, sans pression ni comparaison.'
+    description: 'Bouger en douceur, selon votre énergie du jour\u00A0: marche, yoga, pilates, renforcement doux. Pas de performance, pas de comparaison. Des mouvements qui font du bien à votre corps sans l\'épuiser davantage.',
+    icon: 'i-lucide-heart-pulse'
   }
 ]
 
-const benefits = [
-  'Votre poids de forme, sans régime ni frustration',
-  'Moins de bouffées de chaleur, moins de fatigue, plus de vitalité',
-  'Des émotions plus stables, moins d\'irritabilité',
-  'Une mémoire et une concentration qui reviennent',
-  'L\'énergie et la motivation pour reprendre vos projets en main',
-  'La confiance que ce second chapitre de vie peut être beau'
-]
-
+// <!-- TODO: Feature V — dynamiser -->
 const faqItems: AccordionItem[] = [
   {
-    label: 'À quel moment commencer un accompagnement pour la ménopause ?',
-    content: 'Même si les premiers signes de la périménopause peuvent sembler anodins, c\'est souvent le bon moment pour commencer un accompagnement. Fatigue persistante, troubles du sommeil, sautes d\'humeur ou prise de poids peuvent indiquer un déséquilibre hormonal. Plus vous agissez tôt, plus vous pouvez traverser cette transition avec sérénité.'
+    label: `Combien coûte un accompagnement avec ${coachName.value}\u00A0?`,
+    content: `L'appel découverte de 15 minutes est gratuit et sans engagement, c'est le point de départ idéal.\n\nEnsuite, deux formules s'offrent à vous. À la séance\u00A0: le premier mois inclut une séance bilan d'1h30 (160\u00A0€), puis des séances de suivi de 45 minutes (140\u00A0€/mois), avec un soutien par mail entre les rendez-vous. Le paiement est à effectuer en ligne 48 heures avant chaque séance, la séance est confirmée à ce moment-là.\n\nEn forfait 6 mois\u00A0: 840\u00A0€ en une fois ou en plusieurs mensualités sans frais, prélevées automatiquement.\n\n6 mois, c'est en général le temps nécessaire pour ancrer de nouvelles habitudes et constater une amélioration durable de votre bien-être.`,
+    value: 'faq-1'
   },
   {
-    label: `Est-ce que l'accompagnement de ${coachName.value} est médical ?`,
-    content: `Non. Il s'agit d'un accompagnement global non médical, centré sur l'équilibre de vie et le bien-être. ${coachName.value} propose des repères concrets en alimentation, gestion du stress, sommeil et mouvement, ainsi qu'un soutien émotionnel personnalisé. En cas de besoin, vous serez orienté(e) vers un professionnel de santé.`
+    label: `L'accompagnement de ${coachName.value} est-il médical\u00A0?`,
+    content: `Non. C'est un accompagnement en bien-être, pas un acte médical. Je suis infirmière de formation et j'accompagne sur 4 axes\u00A0: alimentation, gestion du stress, sommeil et mouvement. Mon approche complète le suivi médical, elle ne le remplace pas. En cas de besoin, je vous oriente vers un professionnel de santé.`,
+    value: 'faq-2'
   },
   {
-    label: `Combien coûte un accompagnement avec ${coachName.value} ?`,
-    content: `L'accompagnement commence par une séance bilan de 1h30 à 100\u00A0€, qui permet de faire le point sur votre situation, vos symptômes et vos objectifs.\n\nLes séances de suivi mensuelles de 45 minutes sont proposées à 80\u00A0€.\n\nUn minimum de 5 séances de suivi est recommandé afin de favoriser un mieux-être durable et des changements ancrés dans le temps. Cette approche progressive permet d'accompagner le corps et l'esprit avec douceur et cohérence.`
+    label: 'Est-ce adapté si je suis déjà ménopausée depuis plusieurs années\u00A0?',
+    content: `Oui. L'accompagnement s'adapte à chaque étape\u00A0: périménopause, ménopause récente ou installée. Les 4 piliers (alimentation, stress, sommeil, mouvement) sont pertinents quel que soit le stade. L'appel découverte gratuit permet justement de voir ensemble ce qui serait le plus utile pour vous.`,
+    value: 'faq-3'
   },
   {
-    label: `L'appel gratuit est-il vraiment sans engagement ?`,
-    content: `Oui, totalement. L'appel découverte de 15 minutes est gratuit et sans engagement. Il vous permet d'échanger avec ${coachName.value}, de poser vos questions et de voir si l'accompagnement vous correspond.`
+    label: 'Les accompagnements se font-ils en présentiel ou en visio\u00A0?',
+    content: `Tout se fait en visio (appel vidéo). Vous êtes chez vous, au calme, sans déplacement. Ça fonctionne partout en France. L'appel découverte de 15 minutes vous permettra de voir si le format vous convient.`,
+    value: 'faq-4'
   },
   {
-    label: 'Est-ce adapté si je suis déjà ménopausée depuis plusieurs années ?',
-    content: 'Oui. Même plusieurs années après la ménopause, il est possible de retrouver énergie, confort et équilibre. L\'accompagnement s\'adapte à votre parcours, quel que soit votre stade.'
+    label: 'L\'appel gratuit est-il vraiment sans engagement\u00A0?',
+    content: `Oui, totalement. Pas de carte bancaire, pas de vente forcée. C'est un échange de 15 minutes pour être écoutée et voir ensemble si un accompagnement peut vous aider. Vous décidez ensuite, sans aucune obligation.`,
+    value: 'faq-5'
   },
   {
-    label: 'Les accompagnements se font-ils en présentiel ou en visio ?',
-    content: `Tous les accompagnements se déroulent en visio. Basée à Valognes, près de Cherbourg, dans le Nord Cotentin (Manche, 50), ${coachName.value} accompagne des femmes partout en France. Pas besoin de vous déplacer : vous gagnez du temps et bénéficiez d'un accompagnement personnalisé, de chez vous.`
+    label: 'À quel moment commencer un accompagnement pour la ménopause\u00A0?',
+    content: 'Le plus tôt possible. Plus on comprend ce qui se passe dans son corps, plus on peut agir efficacement. Mais il n\'est jamais trop tard. Les femmes qui me rejoignent après plusieurs années de symptômes voient aussi des améliorations significatives.',
+    value: 'faq-6'
+  },
+  {
+    label: 'Quels sont les symptômes de la périménopause\u00A0?',
+    content: 'La périménopause peut provoquer des règles irrégulières, des bouffées de chaleur, des troubles du sommeil, de la fatigue, une prise de poids, de l\'anxiété, de l\'irritabilité, des douleurs articulaires et un brouillard mental. Ces symptômes apparaissent généralement entre 45 et 50 ans, parfois plus tôt. L\'accompagnement ménopause aide à les identifier et à les gérer au quotidien.',
+    value: 'faq-7'
+  },
+  {
+    label: 'Peut-on soulager les bouffées de chaleur sans traitement hormonal\u00A0?',
+    content: 'Oui. Des ajustements en alimentation, gestion du stress, qualité du sommeil et activité physique adaptée permettent de réduire significativement les bouffées de chaleur. C\'est l\'approche que je propose dans mon accompagnement ménopause, sans hormones, sans médicaments. Les résultats sont souvent visibles dès les premières semaines.',
+    value: 'faq-8'
+  },
+  {
+    label: 'Combien de temps dure la ménopause\u00A0?',
+    content: 'La périménopause (la transition) dure en moyenne 4 à 8 ans. La ménopause est confirmée après 12 mois consécutifs sans règles. Les symptômes peuvent persister plusieurs années après, mais un accompagnement adapté aide à les gérer efficacement quel que soit le stade.',
+    value: 'faq-9'
   }
 ]
+
+// FAQ SSR: all items open on server, closed after hydration (AC-5)
+const allFaqValues = faqItems.map(item => item.value).filter((v): v is string => !!v)
+const faqDefaultValue = ref<string[]>(allFaqValues)
+
+onMounted(() => {
+  // Close all FAQ items after hydration — UX preserved, content was crawlable in SSR
+  faqDefaultValue.value = []
+})
+
+// <!-- TODO: Feature V — dynamiser depuis testimonialsJson -->
+const fallbackTestimonials = [
+  {
+    quote: 'Après 6 mois avec Sophie, je dors enfin 7 heures par nuit. J\'ai retrouvé mon énergie, perdu les 4 kilos qui m\'obsédaient, et surtout, j\'ai compris mon corps. Ce qui a fait la différence\u00A0? L\'approche globale\u00A0: alimentation, sommeil, stress, tout en même temps. Et le fait de pouvoir lui écrire entre les séances quand j\'avais un doute.',
+    firstName: 'Anne M.',
+    age: 55,
+    location: 'Nantes',
+    rating: 5,
+    result: '6 mois d\'accompagnement'
+  },
+  {
+    quote: 'Je ne cherchais pas à « guérir » de la ménopause. Je cherchais quelqu\'un qui comprenne que ce n\'était pas une maladie. J\'ai trouvé bien plus. Pour la première fois, quelqu\'un m\'a dit\u00A0: « Ce que vous vivez est réel. » Ça a tout changé.',
+    firstName: 'Françoise L.',
+    age: 52,
+    location: 'Bordeaux',
+    rating: 5,
+    result: '4 mois d\'accompagnement'
+  },
+  {
+    quote: 'J\'avais déjà vu une naturopathe et dépensé des centaines d\'euros en compléments. Rien ne tenait dans la durée. Avec Sophie, j\'ai eu un plan concret, un suivi régulier, et des résultats dès le premier mois. Le sommeil d\'abord, puis l\'énergie. Je recommande sans hésiter.',
+    firstName: 'Valérie D.',
+    age: 49,
+    location: 'Lyon',
+    rating: 5,
+    result: '3 mois d\'accompagnement'
+  }
+]
+
+// Pricing & testimonials visibility (pattern AD-Y2: v-if at parent level)
+const consultationPlans = computed(() => pricingData.value?.plans ?? [])
+const apiTestimonials = computed(() => coachProfile.value?.testimonialsJson ?? [])
+const displayTestimonials = computed(() => apiTestimonials.value.length > 0 ? apiTestimonials.value : fallbackTestimonials)
+const hasTestimonials = computed(() => displayTestimonials.value.length > 0)
+const hasPricing = computed(() => consultationPlans.value.length > 0 || publicPrograms.value.length > 0)
+const discoveryDuration = computed(() => coachProfile.value?.discoveryDurationMinutes ?? 15)
+
+// Lead magnet (Y2.6)
+const leadMagnetUrl = computed(() => coachProfile.value?.leadMagnetUrl ?? null)
+const leadMagnetTitle = computed(() => coachProfile.value?.leadMagnetTitle ?? 'Guide gratuit')
+const hasLeadMagnet = computed(() => !!leadMagnetUrl.value)
+
+// Exit intent popup (Y2.6 AC-6) — desktop only
+const showExitPopup = ref(false)
+useExitIntent({
+  onTrigger: () => {
+    if (!hasLeadMagnet.value) return
+    // Don't show if already downloaded
+    if (import.meta.client && sessionStorage.getItem(`lead_magnet_downloaded_${props.tenant.slug}`)) return
+    showExitPopup.value = true
+  },
+  storageKey: `lead_magnet_popup_shown_${props.tenant.slug}`
+})
+
+function closePopupAndScroll() {
+  showExitPopup.value = false
+  nextTick(() => {
+    document.getElementById('lead-capture')?.scrollIntoView({ behavior: 'smooth' })
+  })
+}
+
+// Hero props (typed, pattern P-Y2)
+const heroProps = computed(() => ({
+  displayName: coachName.value,
+  heroHeadline: coachProfile.value?.heroHeadline ?? null,
+  credentials: coachProfile.value?.credentials ?? [],
+  city: coachProfile.value?.city ?? null,
+  profilePhotoUrl: coachProfile.value?.imageUrl ?? null,
+  heroPhotoUrl: coachProfile.value?.heroImageUrl ?? null,
+  profilePhotoAlt: coachProfile.value?.imageUrl ? `${coachName.value}, spécialiste accompagnement ménopause` : null,
+  discoveryDurationMinutes: coachProfile.value?.discoveryDurationMinutes ?? 15,
+  urgencyText: coachProfile.value?.urgencyText ?? null,
+  ctaTo: props.ctaTo
+}))
 </script>
 
 <template>
   <div class="min-h-screen">
-    <!-- Hero -->
-    <CoachHeroProfile
-      :tenant="tenant"
-      :cta-to="ctaTo"
-    />
+    <!-- ==================== 1. HERO (beige) ==================== -->
+    <CoachHeroProfile v-bind="heroProps" />
 
-    <!-- Section: Manifeste - Full-width pull quote -->
-    <section class="relative overflow-hidden bg-[#f5f0eb] px-6 py-32 sm:px-12 lg:px-20">
-      <!-- Decorative line -->
+    <!-- ==================== 2. BLOC PROBLÈME (blanc) ==================== -->
+    <section
+      v-bind="reveal()"
+      class="scroll-reveal relative overflow-hidden bg-white px-6 py-20 sm:px-12 lg:px-20"
+    >
       <div class="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
-
       <div class="mx-auto max-w-5xl">
         <blockquote class="relative">
-          <!-- Large quotation mark -->
           <span
             class="absolute -left-4 -top-8 font-serif text-[12rem] leading-none text-[#d4956a]/10 lg:-left-16"
             aria-hidden="true"
           >"</span>
-
+          <!-- TODO: Feature V — dynamiser -->
           <p class="relative font-serif text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] text-[#2d2438]">
-            Je ne comprends pas ce qu'il m'arrive... J'ai 43 ans, j'ai pris
+            Je ne comprends pas ce qu'il m'arrive... J'ai 48 ans, j'ai pris
             6 kilos en 6 mois, je suis toujours épuisée, stressée pour un rien.
             J'ai des insomnies, des douleurs articulaires... J'ai l'impression
             d'avoir pris 20 ans en quelques mois. Et mon médecin me dit
@@ -122,256 +264,390 @@ const faqItems: AccordionItem[] = [
           </p>
         </blockquote>
 
-        <!-- Transition text -->
         <div class="mt-12 space-y-6">
           <p class="text-lg leading-relaxed text-[#4a4255]">
             Vous vous reconnaissez dans ces mots ?
-            <br class="hidden sm:block">
-            Épuisement, prise de poids, troubles du sommeil, anxiété,
-            bouffées de chaleur, sécheresse...
-            <br class="hidden sm:block">
-            Et si tout cela était lié à la ménopause ?
           </p>
-
+          <p class="text-lg leading-relaxed text-[#4a4255]">
+            Épuisement. Prise de poids. Troubles du sommeil. Anxiété.
+            Bouffées de chaleur. Irritabilité. Douleurs articulaires.
+          </p>
+          <p class="text-lg font-semibold text-[#2d2438]">
+            Ces symptômes ne sont pas « dans votre tête ».
+          </p>
+          <p class="text-lg leading-relaxed text-[#4a4255]">
+            Ils sont réels, ils ont une cause. Et il existe des solutions concrètes.
+          </p>
           <p class="text-lg font-medium italic text-[#5b4b6e]">
-            Il est temps de comprendre ce que vit votre corps
-            - et de vous offrir le soutien que vous méritez.
+            Il est temps de comprendre ce que traverse votre corps.
+            Et de vous offrir l'accompagnement que vous méritez.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- Section: Projection - Benefits & transformation -->
-    <section class="bg-white px-6 py-32 sm:px-12 lg:px-20">
-      <div class="mx-auto max-w-4xl text-center">
-        <h2 class="font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-          Et si, dans quelques mois, vous retrouviez enfin votre équilibre ?
-        </h2>
-
-        <p class="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
-          Imaginez-vous... Vous êtes plus légère, apaisée, vous dormez mieux.
-          Vous comprenez votre corps et ses besoins.
-          Vous vous sentez à nouveau vous-même.
-        </p>
-
-        <!-- Benefits list -->
-        <ul class="mx-auto mt-12 max-w-xl space-y-4 text-left">
-          <li
-            v-for="benefit in benefits"
-            :key="benefit"
-            class="flex items-start gap-3 text-base leading-relaxed text-[#4a4255]"
-          >
-            <span
-              class="mt-1 text-[#4a8b6e]"
-              aria-hidden="true"
-            >✓</span>
-            <span>{{ benefit }}</span>
-          </li>
-        </ul>
-
-        <!-- Closing statement -->
-        <p class="mx-auto mt-12 max-w-lg text-xl font-medium text-[#5b4b6e]">
-          La ménopause n'est pas une fin. C'est un tournant.
-          <br class="hidden sm:block">
-          Une opportunité de vous reconnecter à vous-même, en profondeur.
-        </p>
-
-        <!-- CTA -->
-        <div class="mt-12">
-          <UButton
-            :to="ctaTo"
-            size="xl"
-            class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-8 py-4 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#c47a4a] hover:shadow-lg"
-          >
-            <span class="flex items-center gap-3">
-              Réserver mon appel gratuit avec {{ coachName }}
-              <span class="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-            </span>
-          </UButton>
-        </div>
+    <!-- ==================== 3. MINI-TÉMOIGNAGE (beige) ==================== -->
+    <section
+      v-bind="reveal()"
+      class="scroll-reveal bg-[#f5f0eb] px-6 py-20 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-3xl text-center">
+        <blockquote class="font-serif text-xl italic leading-relaxed text-[#4a4255] lg:text-2xl">
+          « Je ne cherchais pas à "guérir" de la ménopause. Je cherchais quelqu'un qui comprenne
+          que ce n'était pas une maladie. J'ai trouvé bien plus. »
+        </blockquote>
+        <!-- TODO: Feature V — dynamiser depuis testimonialsJson -->
+        <footer class="mt-6 text-sm text-[#857d8c]">
+          <span class="font-medium text-[#2d2438]">Marie-Claire</span>, 52 ans
+        </footer>
       </div>
     </section>
 
-    <!-- Section: Programmes d'accompagnement -->
-    <section
-      v-if="publicPrograms.length > 0"
-      id="programmes"
-      class="bg-white px-6 py-32 sm:px-12 lg:px-20"
-    >
-      <div class="mx-auto max-w-7xl">
-        <div class="mb-16 text-center">
-          <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]">
-            Programmes
-          </span>
-          <h2 class="font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-            Des accompagnements pensés
-            <span class="block text-[#5b4b6e]">pour vous</span>
-          </h2>
-          <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
-            Choisissez le programme adapté à vos besoins et avancez à votre rythme.
-          </p>
-        </div>
-
-        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          <ProgramCard
-            v-for="prog in publicPrograms"
-            :key="prog.id"
-            :program="prog"
-            :booking-url="ctaTo"
-            :is-authenticated="auth.isAuthenticated()"
-            :current-path="currentPath"
-            @checkout="handleProgramCheckout"
-          />
-        </div>
-      </div>
-    </section>
-
-    <!-- Section: Les 4 Piliers de l'accompagnement -->
-    <section
-      id="accompagnement"
-      class="bg-[#f5f0eb] px-6 py-32 sm:px-12 lg:px-20"
-    >
-      <div class="mx-auto max-w-7xl">
-        <!-- Section label -->
-        <div class="mb-16">
+    <!-- ==================== 4. CE QUE L'ACCOMPAGNEMENT APPORTE (blanc) ==================== -->
+    <div id="accompagnement">
+      <CoachTransformationBenefits>
+        <template #header>
           <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-            L'accompagnement
+            Ce que cela apporte
           </span>
-        </div>
+          <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+            Accompagnement ménopause
+            <span class="block text-[#5b4b6e]">personnalisé</span>
+          </h2>
+        </template>
+      </CoachTransformationBenefits>
+    </div>
 
-        <h2 class="font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
-          Sur quels piliers repose
-          <span class="block text-[#5b4b6e]">l'accompagnement Auréa ?</span>
-        </h2>
+    <!-- Mini-CTA after Benefits -->
+    <CoachInlineCta
+      :cta-to="ctaTo"
+      :duration-minutes="discoveryDuration"
+    />
 
-        <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
-          Une approche globale, personnalisée et respectueuse du corps féminin.
-          {{ coachName }} vous guide avec douceur à travers 4 axes essentiels.
-        </p>
-
-        <!-- 4 Pillars grid -->
-        <div class="mt-16 grid gap-8 md:grid-cols-2">
-          <article
-            v-for="(pillar, index) in pillars"
-            :key="pillar.title"
-            class="rounded-2xl bg-white p-8 shadow-sm transition-shadow duration-300 hover:shadow-md"
-          >
-            <span class="font-serif text-4xl text-[#d4956a]">{{ String(index + 1).padStart(2, '0') }}</span>
-            <h3 class="mt-4 font-serif text-xl text-[#2d2438]">
-              {{ pillar.title }}
-            </h3>
-            <p class="mt-3 text-base leading-relaxed text-[#4a4255]">
-              {{ pillar.description }}
-            </p>
-          </article>
-        </div>
-
-        <!-- Emotional support callout -->
-        <div class="mt-12 border-l-2 border-[#5b4b6e] pl-8 lg:pl-12">
-          <h3 class="font-serif text-xl text-[#2d2438]">
-            Un espace d'écoute en plus de tout cela
-          </h3>
-          <p class="mt-3 max-w-3xl text-base leading-relaxed text-[#4a4255]">
-            Chaque accompagnement inclut un soutien psychologique
-            non-thérapeutique, basé sur l'écoute, la bienveillance et le respect
-            de votre rythme. Un espace sécurisé pour déposer ce que vous vivez,
-            clarifier vos ressentis, et traverser cette étape en confiance.
-          </p>
-          <p class="mt-4 text-sm text-[#857d8c]">
-            En cas de besoin, {{ coachName }} vous orientera vers un professionnel de santé compétent.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section: Qui suis-je - Coach bio -->
+    <!-- ==================== 5. À PROPOS (dark) ==================== -->
     <section
       id="qui-suis-je"
-      class="relative overflow-hidden bg-[#2d2438] px-6 py-32 text-white sm:px-12 lg:px-20"
+      v-bind="reveal()"
+      class="scroll-reveal relative overflow-hidden bg-[#2d2438] px-6 py-32 text-white sm:px-12 lg:px-20"
     >
       <div class="relative mx-auto max-w-7xl">
         <div class="grid gap-16 lg:grid-cols-12 lg:items-center">
-          <!-- Left - Photo -->
+          <!-- Photo -->
           <div class="flex justify-center lg:col-span-5">
             <div class="relative">
-              <!-- Ghost shape - offset gradient shadow -->
               <div
                 class="bio-photo-shape absolute h-[45vh] w-72 translate-x-4 translate-y-4 bg-gradient-to-br from-[#d4956a]/25 to-[#5b4b6e]/15"
                 aria-hidden="true"
               />
               <div class="bio-photo-shape relative h-[45vh] w-72 overflow-hidden shadow-2xl shadow-black/20">
                 <NuxtImg
-                  src="/images/sophie_jouan_2.jpeg"
-                  :alt="coachName"
+                  v-if="coachProfile?.secondaryPhotoUrl || coachProfile?.imageUrl"
+                  :src="(coachProfile?.secondaryPhotoUrl ?? coachProfile?.imageUrl)!"
+                  :alt="`${coachName}, spécialiste accompagnement ménopause`"
                   class="h-full w-full object-cover object-top"
+                  width="288"
+                  height="400"
                   loading="lazy"
                 />
-                <!-- Subtle warm overlay -->
                 <div
-                  class="pointer-events-none absolute inset-0"
-                  style="background: linear-gradient(160deg, rgba(212, 149, 106, 0.1) 0%, transparent 50%, rgba(91, 75, 110, 0.08) 100%);"
-                />
+                  v-else
+                  class="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#5b4b6e] to-[#7a6b8e]"
+                >
+                  <span class="font-serif text-6xl font-bold text-white/40">{{ coachName.charAt(0) }}</span>
+                </div>
               </div>
-              <div
-                class="absolute -bottom-6 -right-6 h-24 w-24 rounded-full border border-[#d4956a]/30"
-                style="animation: pulse-slow 4s ease-in-out infinite;"
-              />
             </div>
           </div>
 
-          <!-- Right - Bio text -->
+          <!-- Bio -->
           <div class="lg:col-span-7">
             <span class="mb-6 inline-block rounded-full border border-[#d4956a]/30 px-6 py-2 text-xs font-medium uppercase tracking-[0.2em] text-[#d4956a]">
               Qui suis-je
             </span>
 
+            <!-- H2 with SEO keyword (P-Y5) -->
             <h2 class="font-serif text-4xl leading-tight text-white">
-              Je m'appelle {{ coachName }}
+              Votre spécialiste ménopause — {{ coachName }}
             </h2>
-            <p class="mt-4 text-lg text-[#d4956a]">
-              Infirmière pendant 20 ans · Spécialiste de l'accompagnement
-              en périménopause et ménopause
+
+            <!-- Credentials subtitle (dynamic from profile) -->
+            <p
+              v-if="coachProfile?.credentials?.length || coachProfile?.city"
+              class="mt-4 text-lg text-[#d4956a]"
+            >
+              <template v-if="coachProfile?.credentials?.length">
+                {{ coachProfile.credentials[0]?.title }}
+              </template>
+              <template v-if="coachProfile?.credentials?.length && coachProfile?.city">
+                ·
+              </template>
+              <template v-if="coachProfile?.city">
+                {{ coachProfile.city }}
+              </template>
             </p>
 
-            <!-- Badges localisation + visio -->
+            <!-- Badges V3: credentials + specialite + localisation + visio -->
             <div class="mt-6 flex flex-wrap gap-3">
+              <span
+                v-if="coachProfile?.credentials?.length"
+                class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]"
+              >
+                {{ coachProfile.credentials[0]?.title }}
+              </span>
               <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
+                Accompagnement en périménopause et ménopause
+              </span>
+              <span
+                v-if="coachProfile?.city"
+                class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]"
+              >
                 <UIcon
-                  name="lucide:map-pin"
-                  size="16"
-                  aria-hidden="true"
+                  name="i-lucide-map-pin"
+                  class="size-4"
                 />
-                Basée à Valognes · Nord Cotentin, Manche (50)
+                {{ coachProfile.city }}{{ coachProfile?.region ? ` · ${coachProfile.region}` : '' }}
               </span>
               <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
                 <UIcon
-                  name="lucide:video"
-                  size="16"
-                  aria-hidden="true"
+                  name="i-lucide-video"
+                  class="size-4"
                 />
-                Accompagnements 100% en visio · Toute la France
+                100% en visio · Toute la France
               </span>
             </div>
 
             <div class="mt-10 space-y-6 text-base leading-relaxed text-[#b9aac7]">
-              <p>
-                Infirmière pendant 20 ans, j'ai développé une solide expérience
-                de l'accompagnement humain, fondée sur l'écoute, l'empathie
-                et la compréhension des besoins de chacun.
-              </p>
-              <p>
-                Comme beaucoup de femmes, j'ai traversé cette période sans trop
-                comprendre ce qui m'arrivait. Prise de poids soudaine, insomnies,
-                anxiété, chute d'énergie... Et des réponses médicales souvent vagues
-                ou inadaptées. C'est en cherchant, en expérimentant, en me formant,
-                que j'ai compris ce qui fonctionne vraiment.
-              </p>
-              <p>
-                Cette expérience nourrit aujourd'hui ma façon d'accompagner les femmes
-                en périménopause et ménopause, avec attention, respect et bienveillance.
-                Ce que je propose, c'est un espace où l'on peut se dire les choses,
-                sans jugement. Un moment pour soi, pour comprendre son corps
-                et écouter ses besoins.
+              <!-- Priority: longBio (markdown-like paragraphs) → bio (short) → fallback -->
+              <template v-if="coachProfile?.longBio">
+                <p
+                  v-for="(paragraph, i) in coachProfile.longBio.split('\n\n').filter(Boolean)"
+                  :key="i"
+                >
+                  {{ paragraph }}
+                </p>
+              </template>
+              <template v-else-if="coachProfile?.bio">
+                <p>{{ coachProfile.bio }}</p>
+              </template>
+              <!-- TODO: Feature V — dynamiser -->
+              <template v-else>
+                <p>
+                  Pendant 20 ans, j'ai accompagné des patients en milieu hospitalier.
+                  L'écoute, l'empathie, la rigueur clinique — c'est mon métier, pas un diplôme de week-end.
+                </p>
+                <p>Et puis la périménopause m'est tombée dessus.</p>
+                <p>
+                  Prise de poids soudaine. Insomnies. Anxiété. Chute d'énergie.
+                  Et des réponses médicales souvent vagues : « C'est le stress », « C'est l'âge ».
+                </p>
+                <p>Je ne me reconnaissais plus.</p>
+                <p>
+                  Alors j'ai cherché. J'ai testé. Je me suis formée.
+                  J'ai compris ce qui fonctionne vraiment. Pas les modes, pas les compléments miracles.
+                  Des ajustements concrets en alimentation, en gestion du stress, en sommeil, en mouvement.
+                </p>
+                <p>
+                  Aujourd'hui, c'est ce que je propose aux femmes qui traversent la même chose :
+                  un accompagnement global, humain, sans jugement.
+                </p>
+                <p>
+                  Ce que je fais, c'est simple : je vous écoute, je vous explique,
+                  et je vous donne les outils pour reprendre le contrôle de votre corps.
+                  Et entre les séances, je reste disponible par email — vous n'êtes jamais seule.
+                </p>
+              </template>
+            </div>
+
+            <!-- Phone (FR-Y16, v-if graceful degradation) -->
+            <a
+              v-if="coachProfile?.publicPhone"
+              :href="`tel:${coachProfile.publicPhone}`"
+              class="mt-6 inline-flex items-center gap-2 text-[#d4956a] hover:underline"
+            >
+              <UIcon
+                name="i-lucide-phone"
+                class="size-4"
+              />
+              {{ coachProfile.publicPhone }}
+            </a>
+
+            <!-- Social links (AC-8) -->
+            <div
+              v-if="coachProfile?.socialLinks && (coachProfile.socialLinks.linkedin || coachProfile.socialLinks.instagram || coachProfile.socialLinks.facebook || coachProfile.socialLinks.website)"
+              class="mt-6 flex gap-4"
+            >
+              <a
+                v-if="coachProfile.socialLinks.linkedin"
+                :href="coachProfile.socialLinks.linkedin"
+                target="_blank"
+                rel="noopener"
+                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                aria-label="LinkedIn"
+              >
+                <UIcon
+                  name="i-simple-icons-linkedin"
+                  class="size-5"
+                />
+              </a>
+              <a
+                v-if="coachProfile.socialLinks.instagram"
+                :href="coachProfile.socialLinks.instagram"
+                target="_blank"
+                rel="noopener"
+                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                aria-label="Instagram"
+              >
+                <UIcon
+                  name="i-simple-icons-instagram"
+                  class="size-5"
+                />
+              </a>
+              <a
+                v-if="coachProfile.socialLinks.facebook"
+                :href="coachProfile.socialLinks.facebook"
+                target="_blank"
+                rel="noopener"
+                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                aria-label="Facebook"
+              >
+                <UIcon
+                  name="i-simple-icons-facebook"
+                  class="size-5"
+                />
+              </a>
+              <a
+                v-if="coachProfile.socialLinks.website"
+                :href="coachProfile.socialLinks.website"
+                target="_blank"
+                rel="noopener"
+                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                aria-label="Site web"
+              >
+                <UIcon
+                  name="i-lucide-globe"
+                  class="size-5"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 6. TÉMOIGNAGES (beige) ==================== -->
+    <!-- Anchor wrapper always present so #temoignages nav link resolves (CR-2 fix) -->
+    <div id="temoignages">
+      <CoachTestimonials
+        v-if="hasTestimonials"
+        :testimonials="displayTestimonials"
+      >
+        <template #header>
+          <div class="mb-12 text-center">
+            <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]">
+              Témoignages
+            </span>
+            <h2 class="font-serif text-4xl leading-tight text-[#2d2438]">
+              Leurs mots,
+              <span class="text-[#5b4b6e]">leur vérité</span>
+            </h2>
+          </div>
+        </template>
+      </CoachTestimonials>
+    </div>
+
+    <!-- Mini-CTA after Témoignages -->
+    <CoachInlineCta
+      v-if="hasTestimonials"
+      :cta-to="ctaTo"
+      :duration-minutes="discoveryDuration"
+    />
+
+    <!-- ==================== 7. PILIERS (blanc) ==================== -->
+    <section
+      v-bind="reveal()"
+      class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-7xl">
+        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+          L'accompagnement
+        </span>
+
+        <!-- H2 with SEO keyword (P-Y5) -->
+        <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          Les 4 piliers de
+          <span class="block text-[#5b4b6e]">l'accompagnement ménopause</span>
+        </h2>
+
+        <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
+          Une approche globale, personnalisée et respectueuse du corps féminin.
+          Je vous guide avec douceur à travers 4 axes essentiels.
+        </p>
+
+        <div class="mt-16 grid gap-8 md:grid-cols-2">
+          <article
+            v-for="(pillar, index) in pillars"
+            :key="pillar.title"
+            v-bind="reveal({ delay: index * 120 })"
+            class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+          >
+            <!-- Glow blob top-right (appears on hover, like B2B feature-card) -->
+            <div
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              aria-hidden="true"
+            />
+
+            <div class="relative flex items-start gap-5">
+              <!-- Icon with color change on hover (B2B pattern) -->
+              <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+                <UIcon
+                  :name="pillar.icon"
+                  class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                />
+              </div>
+
+              <div>
+                <span class="font-serif text-sm text-[#d4956a]/60">
+                  {{ String(index + 1).padStart(2, '0') }}
+                </span>
+                <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
+                  {{ pillar.title }}
+                </h3>
+                <p class="mt-3 text-base leading-relaxed text-[#4a4255]">
+                  {{ pillar.description }}
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Emotional support callout (5th pillar — distinct treatment) -->
+        <div
+          v-bind="reveal({ delay: 500 })"
+          class="pillar-card scroll-reveal group relative mt-8 overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+        >
+          <div
+            class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+            aria-hidden="true"
+          />
+          <div class="relative flex items-start gap-5">
+            <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+              <UIcon
+                name="i-lucide-hand-heart"
+                class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+              />
+            </div>
+            <div>
+              <span class="font-serif text-sm text-[#d4956a]/60">
+                05
+              </span>
+              <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
+                Un espace d'écoute en plus de tout cela
+              </h3>
+              <!-- TODO: Feature V — dynamiser -->
+              <p class="mt-3 max-w-3xl text-base leading-relaxed text-[#4a4255]">
+                Chaque accompagnement inclut un espace d'écoute bienveillant, à votre rythme.
+                Ce n'est pas un suivi psychologique. C'est un moment pour déposer ce que vous vivez,
+                sans jugement. En cas de besoin, je vous oriente vers un professionnel de santé.
               </p>
             </div>
           </div>
@@ -379,92 +655,94 @@ const faqItems: AccordionItem[] = [
       </div>
     </section>
 
-    <!-- Section: Témoignages - Editorial vertical -->
-    <section class="relative bg-white px-6 py-32 sm:px-12 lg:px-20">
-      <div class="mx-auto max-w-4xl">
-        <!-- Section header - centered -->
-        <div class="mb-20 text-center">
-          <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]">
-            Témoignages
+    <!-- ==================== 8. COMMENT ÇA MARCHE (beige) ==================== -->
+    <CoachHowItWorks
+      :discovery-duration-minutes="discoveryDuration"
+    >
+      <template #header>
+        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+          Le parcours
+        </span>
+        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          Comment se déroule la séance
+          <span class="block text-[#5b4b6e]">découverte ménopause</span>
+        </h2>
+      </template>
+    </CoachHowItWorks>
+
+    <!-- ==================== 9. TARIFS & PROGRAMMES (blanc) ==================== -->
+    <!-- Anchor wrapper always present so #tarifs nav link resolves (CR-2 fix) -->
+    <div id="tarifs">
+      <CoachPricing
+        v-if="hasPricing"
+        :plans="consultationPlans"
+        :programs="publicPrograms"
+        :discovery-duration-minutes="discoveryDuration"
+        :cta-to="ctaTo"
+        :is-authenticated="isAuthenticated"
+        :current-path="currentPath"
+      >
+        <template #header>
+          <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+            Tarifs
           </span>
-          <h2 class="font-serif text-4xl leading-tight text-[#2d2438]">
-            Leurs mots,
-            <span class="text-[#5b4b6e]">leur vérité</span>
+          <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+            Tarifs des séances
+            <span class="block text-[#5b4b6e]">accompagnement ménopause</span>
           </h2>
-        </div>
+        </template>
+      </CoachPricing>
+    </div>
 
-        <!-- Testimonials - vertical stack with editorial styling -->
-        <div class="space-y-16">
-          <!-- Testimonial 1 - Featured quote -->
-          <article class="relative border-l-2 border-[#d4956a] pl-8 lg:pl-12">
-            <span
-              class="absolute -left-0 top-0 font-serif text-6xl leading-none text-[#d4956a]"
-              aria-hidden="true"
-            >"</span>
-            <blockquote class="font-serif text-xl leading-relaxed text-[#2d2438] lg:text-2xl">
-              Je ne cherchais pas à "guérir" de la ménopause. Je cherchais quelqu'un qui comprenne
-              que ce n'était pas une maladie. J'ai trouvé bien plus.
-            </blockquote>
-            <footer class="mt-6 flex items-center gap-3">
-              <div class="h-px w-8 bg-[#d4956a]/40" />
-              <cite class="text-sm not-italic text-[#857d8c]">
-                <span class="font-medium text-[#2d2438]">Marie-Claire</span>, 52 ans
-              </cite>
-            </footer>
-          </article>
+    <!-- Mini-CTA after Tarifs -->
+    <CoachInlineCta
+      v-if="hasPricing"
+      :cta-to="ctaTo"
+      :duration-minutes="discoveryDuration"
+    />
 
-          <!-- Divider -->
-          <div class="flex items-center justify-center gap-4">
-            <div class="h-px w-16 bg-[#d7cfdf]" />
-            <div class="size-2 rotate-45 bg-[#d4956a]/30" />
-            <div class="h-px w-16 bg-[#d7cfdf]" />
-          </div>
+    <!-- ==================== 10. CONTENU ÉDUCATIF (beige) ==================== -->
+    <CoachEducationalContent>
+      <template #header>
+        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+          Comprendre
+        </span>
+        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          Comprendre la ménopause
+          <span class="block text-[#5b4b6e]">et la périménopause</span>
+        </h2>
+      </template>
+    </CoachEducationalContent>
 
-          <!-- Testimonial 2 -->
-          <article class="relative border-l-2 border-[#5b4b6e]/30 pl-8 lg:pl-12">
-            <blockquote class="font-serif text-lg leading-relaxed text-[#4a4255] lg:text-xl">
-              Les séances m'ont aidée à voir cette période différemment.
-              Pas comme une fin, mais comme un passage.
-            </blockquote>
-            <footer class="mt-6 flex items-center gap-3">
-              <div class="h-px w-8 bg-[#5b4b6e]/30" />
-              <cite class="text-sm not-italic text-[#857d8c]">
-                <span class="font-medium text-[#2d2438]">Sophie</span>, 48 ans
-              </cite>
-            </footer>
-          </article>
+    <!-- ==================== 10b. LEAD CAPTURE (beige gradient) ==================== -->
+    <CoachLeadCapture
+      v-if="hasLeadMagnet"
+      :slug="tenant.slug"
+      :lead-magnet-url="leadMagnetUrl!"
+      :lead-magnet-title="leadMagnetTitle"
+    />
 
-          <!-- Testimonial 3 -->
-          <article class="relative border-l-2 border-[#5b4b6e]/30 pl-8 lg:pl-12">
-            <blockquote class="font-serif text-lg leading-relaxed text-[#4a4255] lg:text-xl">
-              Enfin quelqu'un qui écoute vraiment, sans vouloir tout médicamentaliser.
-            </blockquote>
-            <footer class="mt-6 flex items-center gap-3">
-              <div class="h-px w-8 bg-[#5b4b6e]/30" />
-              <cite class="text-sm not-italic text-[#857d8c]">
-                <span class="font-medium text-[#2d2438]">Anne</span>, 55 ans
-              </cite>
-            </footer>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section: FAQ - Accordion -->
-    <section class="bg-[#f5f0eb] px-6 py-32 sm:px-12 lg:px-20">
+    <!-- ==================== 11. FAQ (blanc) ==================== -->
+    <section
+      v-bind="reveal()"
+      class="scroll-reveal bg-white px-6 py-20 sm:px-12 lg:px-20"
+    >
       <div class="mx-auto max-w-3xl">
         <div class="mb-16 text-center">
           <h2 class="font-serif text-3xl leading-tight text-[#2d2438]">
-            Questions fréquentes
+            Questions fréquentes sur l'accompagnement ménopause
           </h2>
         </div>
 
+        <!-- UAccordion: default-value includes all items for SSR crawlability -->
         <UAccordion
           :items="faqItems"
+          :default-value="faqDefaultValue"
+          multiple
           aria-label="Questions fréquentes"
         >
           <template #content="{ item }">
-            <div class="pb-3.5 space-y-3 text-sm text-[#4a4255]">
+            <div class="space-y-3 pb-3.5 text-sm text-[#4a4255]">
               <p
                 v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
                 :key="i"
@@ -477,22 +755,25 @@ const faqItems: AccordionItem[] = [
       </div>
     </section>
 
-    <!-- Section: CTA Final - Warm invitation -->
-    <section class="relative overflow-hidden bg-gradient-to-br from-[#5b4b6e] to-[#3d3250] px-6 py-32 sm:px-12 lg:px-20">
-      <!-- Subtle warm accent -->
+    <!-- ==================== 12. CTA FINAL (gradient) ==================== -->
+    <section
+      v-bind="reveal()"
+      class="scroll-reveal relative overflow-hidden bg-gradient-to-br from-[#5b4b6e] to-[#3d3250] px-6 py-32 sm:px-12 lg:px-20"
+    >
       <div
         class="pointer-events-none absolute -right-[20%] top-1/2 h-[60vh] w-[60vh] -translate-y-1/2 rounded-full"
-        style="background: radial-gradient(circle, rgba(212, 149, 106, 0.15), transparent 60%); filter: blur(80px);"
+        style="background: radial-gradient(circle, rgba(212,149,106,0.15), transparent 60%); filter: blur(80px);"
       />
 
       <div class="relative mx-auto max-w-3xl text-center">
+        <!-- H2 with SEO keyword (P-Y5) -->
         <h2 class="font-serif text-4xl leading-tight text-white lg:text-5xl">
-          Prête à écrire
-          <span class="block text-[#f0b48f]">un nouveau chapitre ?</span>
+          Réservez votre
+          <span class="block text-[#f0b48f]">séance découverte gratuite</span>
         </h2>
 
         <p class="mx-auto mt-8 max-w-lg text-lg text-[#d7cfdf]">
-          Un premier échange de 15 minutes, gratuit et sans engagement,
+          Un premier échange de {{ coachProfile?.discoveryDurationMinutes ?? 15 }} minutes, gratuit et sans engagement,
           pour voir si nous sommes faites pour cheminer ensemble.
         </p>
 
@@ -500,8 +781,12 @@ const faqItems: AccordionItem[] = [
           <UButton
             :to="ctaTo"
             size="xl"
+            data-final-cta
             class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-10 py-5 font-semibold text-white transition-all duration-300 hover:bg-transparent hover:text-[#f0b48f]"
           >
+            <!-- CTA final wording intentionnellement différent du hero (M8):
+                 Hero = action directe ("Réserver mon appel gratuit")
+                 Final = personnalisé après lecture complète ("Je prends RDV avec {name}") -->
             <span class="flex items-center gap-3">
               Je prends rendez-vous avec {{ coachName }}
               <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
@@ -509,20 +794,75 @@ const faqItems: AccordionItem[] = [
           </UButton>
         </div>
 
-        <!-- Trust note -->
         <p class="mt-8 text-sm text-[#9685ab]">
           Fuseau horaire : {{ tenant.timezone }}
         </p>
       </div>
     </section>
-    <!-- X3.3: Program checkout modal -->
-    <ProgramCheckoutModal
-      :open="checkoutModalOpen"
-      :program="selectedProgram"
-      @update:open="checkoutModalOpen = $event"
-    />
-    <!-- U1.4a: Medical disclaimer (YMYL obligation) -->
+
+    <!-- ==================== 13. DISCLAIMER MÉDICAL ==================== -->
     <AtomsMedicalDisclaimer />
+
+    <!-- Spacer for mobile sticky CTA -->
+    <div class="h-16 md:hidden" />
+
+    <!-- Sticky CTA mobile (AC-4: visible when hero CTA scrolls out) -->
+    <StickyCtaMobile
+      cta-label="Réserver mon appel gratuit →"
+      :cta-to="ctaTo"
+    />
+
+    <!-- ==================== EXIT INTENT MODAL (Y2.6 AC-6) ==================== -->
+    <UModal
+      v-if="hasLeadMagnet"
+      v-model:open="showExitPopup"
+    >
+      <template #content>
+        <div class="relative p-8 text-center">
+          <button
+            class="absolute right-4 top-4 rounded p-1 text-[#857d8c] transition-colors hover:text-[#2d2438]"
+            aria-label="Fermer"
+            @click="showExitPopup = false"
+          >
+            <UIcon
+              name="i-lucide-x"
+              class="size-5"
+            />
+          </button>
+
+          <h3 class="font-serif text-2xl text-[#2d2438]">
+            Avant de partir...
+          </h3>
+          <p class="mt-3 text-[#4a4255]">
+            Téléchargez gratuitement : {{ leadMagnetTitle }}
+          </p>
+
+          <p class="mt-2 text-sm text-[#857d8c]">
+            Laissez votre email pour recevoir le guide
+          </p>
+
+          <!-- Scroll to inline form and close modal -->
+          <UButton
+            class="mt-6 rounded-full bg-[#d4956a] px-8 font-semibold text-white transition-all duration-300 hover:bg-[#c4855a]"
+            size="lg"
+            @click="closePopupAndScroll"
+          >
+            Recevoir mon guide →
+          </UButton>
+
+          <p class="mt-4 text-xs text-[#857d8c]">
+            Gratuit · Aucun spam · Désinscription en 1 clic
+          </p>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- ==================== SLIDE-IN NOTIFICATION (lead magnet) ==================== -->
+    <CoachAnnouncementBar
+      v-if="hasLeadMagnet"
+      :slug="tenant.slug"
+      :lead-magnet-title="leadMagnetTitle"
+    />
   </div>
 </template>
 
@@ -531,14 +871,40 @@ const faqItems: AccordionItem[] = [
   border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
 }
 
-@keyframes pulse-slow {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.6;
+/* Scroll reveal base */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Pillar cards — B2B feature-card pattern */
+.pillar-card:hover {
+  border-color: #d7cfdf;
+  box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
+  transform: translateY(-4px);
+}
+
+.pillar-card:hover .pillar-card-glow {
+  opacity: 0.15;
+  transition: opacity 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.3;
+
+  .pillar-card:hover {
+    transform: none;
   }
 }
 </style>

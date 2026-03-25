@@ -1,0 +1,118 @@
+<script setup lang="ts">
+import { useScrollReveal } from '~/composables/useScrollReveal'
+
+const { reveal } = useScrollReveal()
+
+// <!-- TODO: Feature V — dynamiser -->
+const benefits = [
+  {
+    icon: 'i-lucide-moon-star',
+    title: 'Sommeil retrouvé',
+    description: 'Des nuits complètes, sans réveils à 3h du matin'
+  },
+  {
+    icon: 'i-lucide-sun',
+    title: 'Énergie stable',
+    description: 'Finies les journées où vous survivez au lieu de vivre'
+  },
+  {
+    icon: 'i-lucide-heart-pulse',
+    title: 'Bouffées de chaleur apaisées',
+    description: 'Des outils concrets qui fonctionnent'
+  },
+  {
+    icon: 'i-lucide-leaf',
+    title: 'Poids stabilisé',
+    description: 'Sans régime ni frustration'
+  },
+  {
+    icon: 'i-lucide-brain',
+    title: 'Concentration retrouvée',
+    description: 'Mémoire, motivation qui reviennent'
+  },
+  {
+    icon: 'i-lucide-smile',
+    title: 'Sérénité au quotidien',
+    description: 'Moins d\'irritabilité, plus de sérénité'
+  }
+]
+</script>
+
+<template>
+  <!-- TODO: Feature V — dynamiser -->
+  <section
+    v-bind="reveal()"
+    class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
+  >
+    <div class="mx-auto max-w-6xl">
+      <!-- Parent-provided H2 (P-Y5) -->
+      <slot name="header" />
+
+      <!-- Intro text V3 — vision + promesse -->
+      <div class="mx-auto mt-12 max-w-3xl space-y-6 text-center">
+        <p class="text-lg leading-relaxed text-[#4a4255]">
+          Imaginez-vous dans 3 mois.
+        </p>
+        <p class="text-lg leading-relaxed text-[#4a4255]">
+          Vous dormez mieux. Vous vous sentez plus légère, plus apaisée.
+          Vous comprenez enfin ce qui se passe dans votre corps. Et vous savez quoi faire.
+          Vous vous reconnaissez à nouveau.
+        </p>
+      </div>
+
+      <!-- Benefit cards — B2B feature-card pattern harmonized -->
+      <div class="mt-20 grid gap-6 sm:grid-cols-2">
+        <article
+          v-for="(benefit, index) in benefits"
+          :key="benefit.title"
+          v-bind="reveal({ delay: index * 100 })"
+          class="benefit-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+        >
+          <!-- Glow blob (B2B pattern) -->
+          <div
+            class="benefit-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+            aria-hidden="true"
+          />
+
+          <div class="relative flex items-start gap-5">
+            <!-- Icon with color change on hover (B2B pattern) -->
+            <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+              <UIcon
+                :name="benefit.icon"
+                class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+              />
+            </div>
+
+            <div>
+              <h3 class="font-serif text-lg text-[#2d2438]">
+                {{ benefit.title }}
+              </h3>
+              <p class="mt-2 text-base leading-relaxed text-[#4a4255]">
+                {{ benefit.description }}
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</template>
+
+<style scoped>
+.benefit-card:hover {
+  border-color: #d7cfdf;
+  box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
+  transform: translateY(-4px);
+}
+
+.benefit-card:hover .benefit-card-glow {
+  opacity: 0.15;
+  transition: opacity 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .benefit-card:hover {
+    transform: none;
+  }
+}
+</style>

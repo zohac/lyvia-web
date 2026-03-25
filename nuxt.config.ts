@@ -7,6 +7,7 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxt/image',
+    '@nuxt/fonts',
     '@nuxtjs/seo'
   ],
 
@@ -49,7 +50,7 @@ export default defineNuxtConfig({
     // Dev-only: allow accessing Nuxt via custom local domains (e.g. `*.test`)
     // without Vite host-check returning 403.
     server: {
-      allowedHosts: ['localhost', '127.0.0.1', '.test']
+      allowedHosts: ['localhost', '127.0.0.1', '.test', '.fr']
     }
   },
 
@@ -63,14 +64,8 @@ export default defineNuxtConfig({
         { property: 'og:image:height', content: '630' },
         { property: 'og:image:type', content: 'image/png' }
       ],
-      link: [
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600;1,9..144,700&display=swap'
-        }
-      ]
+      // Google Fonts links removed — @nuxt/fonts handles self-hosting automatically
+      link: []
     }
   },
 
@@ -98,8 +93,15 @@ export default defineNuxtConfig({
         'Referrer-Policy': 'strict-origin-when-cross-origin',
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
-        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+        'X-Powered-By': '',
+        // eslint-disable-next-line @stylistic/quotes
+        'Content-Security-Policy-Report-Only': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://keova-assets.s3.fr-par.scw.cloud data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'"
       }
+    },
+    // Static images: immutable cache (Y2.5 AC-3)
+    '/images/**': {
+      headers: { 'Cache-Control': 'public, max-age=31536000, immutable' }
     },
     // Home page is host-dependent (platform marketing vs white-label tenant),
     // so it must stay dynamic at runtime.

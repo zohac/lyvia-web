@@ -60,7 +60,8 @@ usePageTracking(providerId)
 const requestUrl = useRequestURL()
 const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
-const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
+const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
+const { isPlatform, isB2B } = getDomainContext(requestUrl.hostname, platformDomain, platformDomainB2B || undefined)
 
 const { data: coachProfile } = useNuxtData<{ specialties?: string[], displayName?: string }>(`public-provider-profile:${slug.value}`)
 
@@ -90,7 +91,11 @@ const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coa
 const breadcrumbDisplayName = computed(() => coachProfile.value?.displayName || brandName.value)
 const breadcrumbItems = computed(() => buildCoachBreadcrumbs(breadcrumbDisplayName.value, isPlatform))
 
-const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}`
+// Canonical cross-domaine: coach pages accessed via keova.app point to keova.fr (SEO reference domain)
+// On B2B, force canonical to keova.fr regardless of any absolute canonical in seo_metadata (CR1-RFU-1)
+const canonicalOrigin = isB2B ? `https://${platformDomain}` : origin
+const b2bCanonical = `${canonicalOrigin}/coach/${slug.value}`
+const canonicalHref = () => isB2B ? b2bCanonical : (resolveCanonical(seo.value?.canonicalUrl, canonicalOrigin) ?? b2bCanonical)
 
 useSeoMeta({
   title: () => seo.value?.title ?? `${brandName.value} — Coach`,
@@ -115,9 +120,10 @@ watchEffect(() => {
     brandTo: '/',
     showBrandIcon: true,
     navLinks: [
-      { label: 'L\'Essence', href: '#essence' },
       { label: 'Accompagnement', href: '#accompagnement' },
-      { label: brandName.value, href: '#qui-suis-je' }
+      { label: 'Tarifs', href: '#tarifs' },
+      { label: 'Témoignages', href: '#temoignages' },
+      { label: 'Qui suis-je', href: '#qui-suis-je' }
     ],
     loginLabel: 'Se connecter',
     loginTo: '/login',

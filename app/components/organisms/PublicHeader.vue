@@ -12,6 +12,9 @@ const useCustomLogoImage = computed(
   () => headerState.value.variant === 'white-label' && !!headerState.value.brandLogoSrc
 )
 const isMarketingVariant = computed(() => headerState.value.variant === 'marketing')
+const isCoachVariant = computed(() => headerState.value.variant === 'coach')
+const isWhiteLabelVariant = computed(() => headerState.value.variant === 'white-label')
+const useIconOnlyLogin = computed(() => isCoachVariant.value || isWhiteLabelVariant.value)
 
 // Mobile menu state
 const isMobileMenuOpen = ref(false)
@@ -47,6 +50,8 @@ function closeMobileMenu() {
               src="/images/keova-logo.png"
               alt=""
               class="h-7 w-auto sm:h-8"
+              width="120"
+              height="32"
               aria-hidden="true"
               loading="eager"
             />
@@ -59,6 +64,8 @@ function closeMobileMenu() {
               :src="headerState.brandLogoSrc"
               :alt="headerState.brandLabel"
               class="h-16 w-auto"
+              width="200"
+              height="64"
               loading="eager"
             />
           </template>
@@ -87,18 +94,32 @@ function closeMobileMenu() {
 
         <!-- Actions -->
         <div class="flex items-center gap-3">
+          <!-- Login: icon-only on coach/white-label variant, full text otherwise -->
           <ULink
             :to="headerState.loginTo"
-            class="hidden text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:text-[#3d3250] md:inline-flex"
+            :class="[
+              'hidden transition-colors duration-200 hover:text-[#3d3250] md:inline-flex',
+              useIconOnlyLogin
+                ? 'grid size-9 place-items-center rounded-full text-[#5b4b6e] hover:bg-[#5b4b6e]/8'
+                : 'text-sm font-medium text-[#5b4b6e]'
+            ]"
+            :aria-label="useIconOnlyLogin ? headerState.loginLabel : undefined"
           >
-            {{ headerState.loginLabel }}
+            <UIcon
+              v-if="useIconOnlyLogin"
+              name="i-lucide-user-circle"
+              class="size-5"
+            />
+            <template v-else>
+              {{ headerState.loginLabel }}
+            </template>
           </ULink>
 
           <!-- CTA — branded gradient for marketing, solid for coach -->
           <ULink
             :to="headerState.ctaTo"
             :class="[
-              'dock-cta group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg',
+              'dock-cta group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white hover:text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg',
               isMarketingVariant
                 ? 'bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e]'
                 : 'bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c]'
@@ -144,12 +165,35 @@ function closeMobileMenu() {
               {{ link.label }}
             </ULink>
             <div class="my-2 h-px bg-[#ebe7ef]" />
+            <!-- Login: icon-only on WL/coach mobile, full text otherwise -->
             <ULink
               :to="headerState.loginTo"
-              class="rounded-xl px-4 py-3 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:bg-[#f5f3f7]"
+              class="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:bg-[#f5f3f7]"
+              :aria-label="useIconOnlyLogin ? headerState.loginLabel : undefined"
               @click="closeMobileMenu"
             >
-              {{ headerState.loginLabel }}
+              <UIcon
+                name="i-lucide-user-circle"
+                class="size-5"
+              />
+              <span v-if="!useIconOnlyLogin">{{ headerState.loginLabel }}</span>
+              <span
+                v-else
+                class="sr-only"
+              >{{ headerState.loginLabel }}</span>
+            </ULink>
+            <!-- Mobile CTA full-width (coach/white-label variant) -->
+            <ULink
+              v-if="useIconOnlyLogin"
+              :to="headerState.ctaTo"
+              class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 py-3 text-sm font-semibold text-white shadow-md"
+              @click="closeMobileMenu"
+            >
+              {{ headerState.ctaLabel }}
+              <UIcon
+                name="i-lucide-arrow-right"
+                class="size-4"
+              />
             </ULink>
           </div>
         </div>
@@ -175,6 +219,8 @@ function closeMobileMenu() {
               src="/images/keova-logo.png"
               alt=""
               class="h-8 w-auto sm:h-9"
+              width="135"
+              height="36"
               aria-hidden="true"
               loading="eager"
             />
@@ -187,6 +233,8 @@ function closeMobileMenu() {
               :src="headerState.brandLogoSrc"
               :alt="headerState.brandLabel"
               class="h-16 w-auto"
+              width="200"
+              height="64"
               loading="eager"
             />
           </template>

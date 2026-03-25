@@ -22,6 +22,7 @@ export interface PublicProviderProfile {
   specialties: string[]
   timezone: string
   imageUrl: string | null
+  heroImageUrl: string | null
   discoveryDurationMinutes: number
   discoveryBufferAfterMinutes: number
   isActive: boolean
@@ -30,4 +31,11 @@ export interface PublicProviderProfile {
   city: string | null
   region: string | null
   socialLinks: SocialLinks
+  publicPhone: string | null
+  urgencyText: string | null
+  heroHeadline: string | null
+  testimonialsJson: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
+  secondaryPhotoUrl: string | null
+  leadMagnetUrl: string | null
+  leadMagnetTitle: string | null
 }

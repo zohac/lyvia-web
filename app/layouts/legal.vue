@@ -17,6 +17,8 @@ useCommonLayoutHead()
             src="/images/keova-logo.png"
             alt=""
             class="h-6 w-auto"
+            width="90"
+            height="24"
             aria-hidden="true"
             loading="eager"
           />

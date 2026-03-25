@@ -89,6 +89,7 @@ describe('mapProfileToSchemaRefs', () => {
     specialties: ['Nutrition', 'Bien-être'],
     timezone: 'Europe/Paris',
     imageUrl: 'https://cdn.example.com/photo.jpg',
+    heroImageUrl: null,
     discoveryDurationMinutes: 15,
     discoveryBufferAfterMinutes: 15,
     isActive: true,
@@ -96,7 +97,14 @@ describe('mapProfileToSchemaRefs', () => {
     credentials: [],
     city: null,
     region: null,
-    socialLinks: {}
+    socialLinks: {},
+    publicPhone: null,
+    urgencyText: null,
+    heroHeadline: null,
+    testimonialsJson: [],
+    secondaryPhotoUrl: null,
+    leadMagnetUrl: null,
+    leadMagnetTitle: null
   }
 
   test('maps all profile fields to refs', () => {

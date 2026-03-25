@@ -1,9 +1,22 @@
 <script setup lang="ts">
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
+import { getDomainContext } from '#shared/utils/domain-context'
 
 useCommonLayoutHead()
 
 const currentYear = new Date().getFullYear()
+const requestUrl = useRequestURL()
+const runtimeConfig = useRuntimeConfig()
+const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
+const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
+const { isWhiteLabel } = getDomainContext(requestUrl.hostname, platformDomain, platformDomainB2B || undefined)
+
+// On white-label, resolve coach name from tenant data (loaded by the page)
+const { data: tenantData } = useNuxtData<{ brand?: { displayName?: string } }>('public-tenant-discovery')
+const copyrightName = computed(() => {
+  if (!isWhiteLabel) return 'Keova'
+  return tenantData.value?.brand?.displayName?.trim() || 'Keova'
+})
 </script>
 
 <template>
@@ -15,7 +28,7 @@ const currentYear = new Date().getFullYear()
 
       <footer class="flex flex-col items-center gap-4 pt-10 text-center text-xs text-[color:var(--color-brand-muted)]">
         <LegalFooterLinks />
-        <p>© {{ currentYear }} Keova</p>
+        <p>© {{ currentYear }} {{ copyrightName }}</p>
       </footer>
     </div>
   </div>

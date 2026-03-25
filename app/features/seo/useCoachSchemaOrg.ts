@@ -16,7 +16,8 @@ export async function useCoachSchemaOrg(slug: string) {
   const origin = requestUrl.origin
   const runtimeConfig = useRuntimeConfig()
   const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
-  const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain)
+  const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
+  const { isPlatform } = getDomainContext(requestUrl.hostname, platformDomain, platformDomainB2B || undefined)
 
   const { coachUrl, bookingUrl } = buildCoachUrls(origin, slug, isPlatform)
 

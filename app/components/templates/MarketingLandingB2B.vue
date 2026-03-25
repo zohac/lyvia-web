@@ -189,12 +189,15 @@ function scrollTo(id: string) {
             <div class="relative w-full max-w-lg">
               <div class="hero-glow absolute -inset-4 -z-10 rounded-[2rem]" />
               <div class="overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-2xl backdrop-blur-sm transition-transform duration-700 hover:scale-[1.01]">
-                <img
+                <NuxtImg
                   src="/images/marketing-dashboard-mockup.svg"
                   class="w-full rounded-2xl"
                   alt="Interface Keova — agenda, paiements et suivi client"
                   loading="eager"
-                >
+                  fetchpriority="high"
+                  :width="1200"
+                  :height="800"
+                />
               </div>
             </div>
           </div>
@@ -327,12 +330,14 @@ function scrollTo(id: string) {
           >
             <div class="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-40 blur-[30px]" />
             <div class="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-xl backdrop-blur-sm transition-transform duration-500 hover:scale-[1.02]">
-              <img
+              <NuxtImg
                 src="/images/marketing-screen-calendar.svg"
                 class="w-full rounded-2xl"
                 alt="Agenda Keova"
                 loading="lazy"
-              >
+                :width="600"
+                :height="400"
+              />
             </div>
             <!-- Floating quote -->
             <div class="animate-float-slow absolute -bottom-6 -right-6 max-w-xs rounded-2xl border border-white/50 bg-white/90 p-5 shadow-lg backdrop-blur-md lg:-right-12">
@@ -478,12 +483,14 @@ function scrollTo(id: string) {
                 class="scroll-reveal order-1 lg:order-2"
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-calendar.svg"
                     class="w-full rounded-xl"
                     alt="Configuration agenda"
                     loading="lazy"
-                  >
+                    :width="400"
+                    :height="280"
+                  />
                 </div>
               </div>
             </div>
@@ -510,12 +517,14 @@ function scrollTo(id: string) {
                 class="scroll-reveal order-1"
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-payments.svg"
                     class="w-full rounded-xl"
                     alt="Automatisation paiements"
                     loading="lazy"
-                  >
+                    :width="400"
+                    :height="280"
+                  />
                 </div>
               </div>
             </div>
@@ -542,12 +551,14 @@ function scrollTo(id: string) {
                 class="scroll-reveal order-1 lg:order-2"
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
-                  <img
+                  <NuxtImg
                     src="/images/marketing-screen-library.svg"
                     class="w-full rounded-xl"
                     alt="Expérience client"
                     loading="lazy"
-                  >
+                    :width="400"
+                    :height="280"
+                  />
                 </div>
               </div>
             </div>

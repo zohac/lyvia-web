@@ -4,12 +4,13 @@ import test from 'node:test'
 import { getDomainContext } from '../../shared/utils/domain-context'
 
 const PLATFORM = 'keova.fr'
+const PLATFORM_B2B = 'keova.app'
 
 // Tests the domain-context contract as used by the robots.txt handler — not a handler integration test.
 // The h3 event wiring (getRequestHost, setResponseHeader) is not exercised here.
-function buildRobotsTxt(host: string, protocol = 'https'): string {
+function buildRobotsTxt(host: string, protocol = 'https', platformDomainB2B?: string): string {
   const origin = `${protocol}://${host}`
-  const ctx = getDomainContext(host, PLATFORM)
+  const ctx = getDomainContext(host, PLATFORM, platformDomainB2B)
 
   const lines = [
     'User-agent: *',
@@ -83,4 +84,34 @@ test('robots.txt localhost: treated as platform (legacy b2b), disallows /coaches
 test('robots.txt localhost: sitemap points to localhost', () => {
   const output = buildRobotsTxt('localhost:3000', 'http')
   assert.ok(output.includes('Sitemap: http://localhost:3000/sitemap.xml'))
+})
+
+// --- TRI-MODAL MODE (3 params — platformDomainB2B) ---
+
+test('robots.txt B2C (tri-modal): disallows auth paths only, NOT /coaches or /coach/', () => {
+  const output = buildRobotsTxt('keova.fr', 'https', PLATFORM_B2B)
+  assert.ok(output.includes('Disallow: /client/'))
+  assert.ok(output.includes('Disallow: /admin/'))
+  assert.ok(output.includes('Disallow: /login'))
+  assert.ok(!output.includes('Disallow: /coaches'))
+  assert.ok(!output.includes('Disallow: /coach/'))
+})
+
+test('robots.txt B2B (tri-modal): disallows auth paths + /coaches + /coach/', () => {
+  const output = buildRobotsTxt('keova.app', 'https', PLATFORM_B2B)
+  assert.ok(output.includes('Disallow: /client/'))
+  assert.ok(output.includes('Disallow: /admin/'))
+  assert.ok(output.includes('Disallow: /coaches'))
+  assert.ok(output.includes('Disallow: /coach/'))
+})
+
+test('robots.txt B2B (tri-modal): sitemap points to keova.app', () => {
+  const output = buildRobotsTxt('keova.app', 'https', PLATFORM_B2B)
+  assert.ok(output.includes('Sitemap: https://keova.app/sitemap.xml'))
+})
+
+test('robots.txt white-label (tri-modal): disallows /coaches but NOT /coach/', () => {
+  const output = buildRobotsTxt('sophie-jouan.fr', 'https', PLATFORM_B2B)
+  assert.ok(output.includes('Disallow: /coaches'))
+  assert.ok(!output.includes('Disallow: /coach/'))
 })

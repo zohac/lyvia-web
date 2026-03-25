@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
-import { ApiFetchError } from '~/services/api/api-error'
-import { apiFetch } from '~/services/api/apiFetch'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
-import { isPlatformHost } from '#shared/utils/platform-host'
+import { getDomainContext } from '#shared/utils/domain-context'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
+import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 import MarketingLandingB2B from '~/components/templates/MarketingLandingB2B.vue'
+import MarketingLandingB2C from '~/components/templates/MarketingLandingB2C.vue'
 
 definePageMeta({
   layout: 'public',
@@ -24,22 +23,13 @@ const hostname = computed(() => requestUrl.hostname.toLowerCase())
 
 const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
+const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
 
-const isPlatformDomain = computed(() => isPlatformHost(hostname.value, platformDomain))
+const ctx = computed(() => getDomainContext(hostname.value, platformDomain, platformDomainB2B || undefined))
+const isPlatformDomain = computed(() => ctx.value.isPlatform)
 
-const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
-  try {
-    return await apiFetch<PublicTenantResponse>('/public/tenant', {
-      method: 'GET',
-      withAuth: false
-    })
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError && (err.apiError.code === 'TENANT_NOT_FOUND' || err.apiError.code === 'SLUG_REQUIRED')) {
-      return null
-    }
-    return null
-  }
-}, { default: () => null })
+// Shared composable — same key+handler as useGlobalSchemaOrg (no duplicate key warning)
+const { data: tenant } = await usePublicTenantHome()
 
 if (!isPlatformDomain.value && !tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
@@ -59,22 +49,34 @@ usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.v
 
 const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
+const b2bTitle = 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
+const b2bDescription = 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause : agenda, paiements, suivi client dans un espace conçu pour les spécialistes.'
+const b2cTitle = 'Keova — Trouvez votre spécialiste ménopause et périménopause'
+const b2cDescription = 'Découvrez des spécialistes vérifiées pour un accompagnement ménopause personnalisé. Périménopause, ménopause : trouvez votre spécialiste.'
+
+function platformTitle() {
+  return ctx.value.isB2C ? b2cTitle : b2bTitle
+}
+function platformDescription() {
+  return ctx.value.isB2C ? b2cDescription : b2bDescription
+}
+
 useSeoMeta({
   title: () =>
     isPlatformDomain.value
-      ? 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
+      ? platformTitle()
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   description: () =>
     isPlatformDomain.value
-      ? 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause : agenda, paiements, suivi client dans un espace conçu pour les spécialistes.'
+      ? platformDescription()
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogTitle: () =>
     isPlatformDomain.value
-      ? 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
+      ? platformTitle()
       : seo.value?.title ?? `${whiteLabelBrandName.value} - Coach`,
   ogDescription: () =>
     isPlatformDomain.value
-      ? 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause.'
+      ? platformDescription()
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogImage: () => !isPlatformDomain.value ? seo.value?.ogImageUrl ?? undefined : undefined,
   ogType: 'website',
@@ -93,7 +95,9 @@ useHead({
   }]
 })
 
-watchEffect(() => {
+// Set header state synchronously during setup (runs on both SSR and client)
+// to avoid hydration mismatch — watchEffect only ran on client, leaving SSR with defaults.
+function updatePublicHeader() {
   if (tenant.value) {
     const coachName = tenant.value.brand.displayName || 'Votre coach'
     setPublicHeader({
@@ -104,9 +108,10 @@ watchEffect(() => {
       brandTo: '/',
       showBrandIcon: false,
       navLinks: [
-        { label: 'L\'Essence', href: '#essence' },
         { label: 'Accompagnement', href: '#accompagnement' },
-        { label: coachName, href: '#qui-suis-je' }
+        { label: 'Tarifs', href: '#tarifs' },
+        { label: 'Témoignages', href: '#temoignages' },
+        { label: 'Qui suis-je', href: '#qui-suis-je' }
       ],
       loginLabel: 'Espace cliente',
       loginTo: '/login',
@@ -116,23 +121,54 @@ watchEffect(() => {
     return
   }
 
-  setPublicHeader({
-    variant: 'marketing',
-    layoutStyle: 'dock',
-    brandLabel: 'Keova',
-    brandTo: '/',
-    showBrandIcon: true,
-    navLinks: [
-      { label: 'Pourquoi Keova', href: '#pourquoi' },
-      { label: 'L\'atelier', href: '#atelier' },
-      { label: 'Témoignage', href: '#temoignage' }
-    ],
-    loginLabel: 'Se connecter',
-    loginTo: '/login',
-    ctaLabel: 'Rejoindre la beta',
-    ctaTo: '#waitlist'
-  })
-})
+  if (ctx.value.isB2C) {
+    // B2C login redirects to the B2B app domain (keova.app in prod, localhost in dev)
+    const b2bOrigin = platformDomainB2B
+      ? `${requestUrl.protocol}//${platformDomainB2B}${requestUrl.port ? `:${requestUrl.port}` : ''}`
+      : ''
+    const loginUrl = b2bOrigin ? `${b2bOrigin}/login` : '/login'
+
+    setPublicHeader({
+      variant: 'marketing',
+      layoutStyle: 'dock',
+      brandLabel: 'Keova',
+      brandTo: '/',
+      showBrandIcon: true,
+      navLinks: [
+        { label: 'Accompagnement', href: '#education' },
+        { label: 'Spécialistes', href: '#specialistes' },
+        { label: 'Symptômes', href: '#symptomes' }
+      ],
+      loginLabel: 'Se connecter',
+      loginTo: loginUrl,
+      ctaLabel: 'Trouver ma spécialiste',
+      ctaTo: '#specialistes'
+    })
+  } else {
+    setPublicHeader({
+      variant: 'marketing',
+      layoutStyle: 'dock',
+      brandLabel: 'Keova',
+      brandTo: '/',
+      showBrandIcon: true,
+      navLinks: [
+        { label: 'Pourquoi Keova', href: '#pourquoi' },
+        { label: 'L\'atelier', href: '#atelier' },
+        { label: 'Témoignage', href: '#temoignage' }
+      ],
+      loginLabel: 'Se connecter',
+      loginTo: '/login',
+      ctaLabel: 'Rejoindre la beta',
+      ctaTo: '#waitlist'
+    })
+  }
+}
+
+// Synchronous call during setup — SSR and client render the same header
+updatePublicHeader()
+
+// Reactive watch for client-side navigation (tenant data may change)
+watch([tenant, ctx], updatePublicHeader)
 </script>
 
 <template>
@@ -146,6 +182,8 @@ watchEffect(() => {
     :tenant="tenant"
     cta-to="/onboarding/discovery"
   />
+
+  <MarketingLandingB2C v-else-if="ctx.isB2C" />
 
   <MarketingLandingB2B v-else />
 </template>

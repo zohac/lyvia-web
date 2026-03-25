@@ -19,7 +19,8 @@ const publicLayout = computed<PublicLayoutMeta>(() => {
 })
 
 const showHeader = computed(() => publicLayout.value.hideHeader !== true)
-const showFooter = computed(() => publicLayout.value.hideFooter !== true)
+const hideFooterState = useState('hide-layout-footer', () => false)
+const showFooter = computed(() => publicLayout.value.hideFooter !== true && !hideFooterState.value)
 const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
 </script>
 

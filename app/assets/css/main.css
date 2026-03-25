@@ -9,9 +9,9 @@
    * Philosophie : Clarté et Chaleur — simplicité, accessibilité 40-60+ ans
    * ================================================================================================= */
 
-  /* Typography — DM Serif Display + Plus Jakarta Sans */
-  --font-family-heading: 'DM Serif Display', Georgia, ui-serif, serif;
-  --font-family-body: 'Plus Jakarta Sans', -apple-system, ui-sans-serif, system-ui, sans-serif;
+  /* Typography — Fraunces + Manrope */
+  --font-family-heading: 'Fraunces', Georgia, ui-serif, serif;
+  --font-family-body: 'Manrope', -apple-system, ui-sans-serif, system-ui, sans-serif;
 
   --leading-tight: 1.2;
   --leading-normal: 1.5;
@@ -311,5 +311,36 @@
 
   .warm-filter {
     filter: sepia(10%) contrast(95%) brightness(105%);
+  }
+}
+
+/* =================================================================================================
+ * Feature Y — Coach page animations (P-Y3: centralized keyframes, never in <style scoped>)
+ * ================================================================================================= */
+
+@keyframes label-slide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes accent-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 0.3; }
+}
+
+@keyframes scroll-fade {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 0.8; transform: scaleY(1.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-label,
+  .accent-ring,
+  .scroll-indicator {
+    animation: none !important;
+  }
+  .hero-label {
+    opacity: 1;
+    transform: none;
   }
 }
