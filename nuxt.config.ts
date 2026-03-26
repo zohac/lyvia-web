@@ -123,7 +123,6 @@ export default defineNuxtConfig({
       headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
     },
     '/legal/**': {
-      prerender: true,
       headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400' }
     },
     '/client/**': { ssr: false },

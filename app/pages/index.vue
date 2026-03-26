@@ -79,20 +79,21 @@ useSeoMeta({
       ? platformDescription()
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogImage: () => !isPlatformDomain.value ? (seo.value?.ogImageUrl || null) : null,
-  ogUrl: `${origin}/`,
+  ogUrl: () => canonicalOrigin.value,
   ogType: 'website',
   twitterCard: 'summary_large_image'
+})
+
+// B2B homepage canonical/og:url → keova.fr (SEO reference domain per AC-5)
+const canonicalOrigin = computed(() => {
+  if (ctx.value.isB2B) return `https://${platformDomain}/`
+  return `${origin}/`
 })
 
 useHead({
   link: [{
     rel: 'canonical',
-    href: () => {
-      // Both platform and white-label home: canonical is self-referencing
-      // The API fallback returns /coach/{slug} which is correct for /coach/[slug]
-      // but not for the home page — override with origin root
-      return `${origin}/`
-    }
+    href: () => canonicalOrigin.value
   }]
 })
 
