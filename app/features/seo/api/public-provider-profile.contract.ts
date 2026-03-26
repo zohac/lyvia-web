@@ -38,4 +38,6 @@ export interface PublicProviderProfile {
   secondaryPhotoUrl: string | null
   leadMagnetUrl: string | null
   leadMagnetTitle: string | null
+  googleAdsId: string | null // verified against OpenAPI spec
+  googleAdsConversionLabel: string | null // verified against OpenAPI spec
 }

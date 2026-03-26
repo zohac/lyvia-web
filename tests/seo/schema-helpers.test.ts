@@ -104,7 +104,9 @@ describe('mapProfileToSchemaRefs', () => {
     testimonialsJson: [],
     secondaryPhotoUrl: null,
     leadMagnetUrl: null,
-    leadMagnetTitle: null
+    leadMagnetTitle: null,
+    googleAdsId: null,
+    googleAdsConversionLabel: null
   }
 
   test('maps all profile fields to refs', () => {
