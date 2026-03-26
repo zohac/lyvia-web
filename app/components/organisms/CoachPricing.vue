@@ -96,13 +96,19 @@ function getProgramCta(program: PublicProgramListItem) {
               </p>
             </div>
 
-            <div class="flex shrink-0 flex-col items-center gap-2 sm:items-end">
+            <div class="flex shrink-0 flex-col items-center gap-3 sm:items-end">
               <span class="font-serif text-4xl font-bold text-[#2d2438]">
                 Gratuit
               </span>
               <span class="rounded-full bg-[#d4956a]/10 px-4 py-1.5 text-sm font-medium text-[#d4956a]">
                 {{ discoveryDurationMinutes }} min · Sans engagement
               </span>
+              <UButton
+                :to="ctaTo"
+                class="mt-1 rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                Réserver mon appel
+              </UButton>
             </div>
           </div>
         </div>

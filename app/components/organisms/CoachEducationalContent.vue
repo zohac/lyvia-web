@@ -21,7 +21,7 @@ const { reveal } = useScrollReveal()
           v-bind="reveal({ delay: 100 })"
           class="scroll-reveal"
         >
-          La périménopause commence souvent vers 45 ans, parfois plus tôt.
+          La pré-ménopause (ou périménopause, son terme médical) commence souvent vers 45 ans, parfois plus tôt.
           C'est une transition hormonale qui peut durer de 4 à 8 ans
           et provoquer des symptômes que beaucoup de femmes ne savent pas relier à la ménopause.
         </p>

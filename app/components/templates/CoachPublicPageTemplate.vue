@@ -137,8 +137,8 @@ const faqItems: AccordionItem[] = [
     value: 'faq-6'
   },
   {
-    label: 'Quels sont les symptômes de la périménopause\u00A0?',
-    content: 'La périménopause peut provoquer des règles irrégulières, des bouffées de chaleur, des troubles du sommeil, de la fatigue, une prise de poids, de l\'anxiété, de l\'irritabilité, des douleurs articulaires et un brouillard mental. Ces symptômes apparaissent généralement entre 45 et 50 ans, parfois plus tôt. L\'accompagnement ménopause aide à les identifier et à les gérer au quotidien.',
+    label: 'Quels sont les symptômes de la pré-ménopause (périménopause)\u00A0?',
+    content: 'La pré-ménopause (ou périménopause) peut provoquer des règles irrégulières, des bouffées de chaleur, des troubles du sommeil, de la fatigue, une prise de poids, de l\'anxiété, de l\'irritabilité, des douleurs articulaires et un brouillard mental. Ces symptômes apparaissent généralement entre 45 et 50 ans, parfois plus tôt. L\'accompagnement ménopause aide à les identifier et à les gérer au quotidien.',
     value: 'faq-7'
   },
   {
@@ -709,7 +709,7 @@ const heroProps = computed(() => ({
         </span>
         <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
           Comprendre la ménopause
-          <span class="block text-[#5b4b6e]">et la périménopause</span>
+          <span class="block text-[#5b4b6e]">et la pré-ménopause</span>
         </h2>
       </template>
     </CoachEducationalContent>
