@@ -45,12 +45,12 @@ export async function useCoachSchemaOrg(slug: string) {
     })
   ])
 
-  // hasCredential + address as raw JSON-LD (no defineXxx helper available)
+  // hasCredential + address as raw JSON-LD merged into the same Person via #identity @id
   // Person.address.addressLocality for E-E-A-T locality (Story U1.1 — CR2)
   // Logic extracted into pure helpers (Convention 5) for testability
   useSchemaOrg([{
     '@type': 'Person',
-    '@id': coachUrl,
+    '@id': '#identity',
     'hasCredential': () => buildCredentialSchemaItems(credentials.value),
     'address': () => buildPersonAddress(city.value)
   }])

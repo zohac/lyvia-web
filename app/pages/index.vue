@@ -106,7 +106,7 @@ function updatePublicHeader() {
       variant: 'white-label',
       layoutStyle: 'dock',
       brandLabel: coachName,
-      brandLogoSrc: '/images/logo_aurea_menopause_inline.png',
+      brandLogoSrc: '/images/keova-logo-white-label.png',
       brandTo: '/',
       showBrandIcon: false,
       navLinks: [
