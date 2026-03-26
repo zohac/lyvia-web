@@ -102,7 +102,7 @@ useSeoMeta({
   description: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
   ogTitle: () => seo.value?.title ?? `${brandName.value} — Coach`,
   ogDescription: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
-  ogImage: () => ogStrategy.value.kind === 'custom' ? ogStrategy.value.url : undefined,
+  ogImage: () => ogStrategy.value.kind === 'custom' ? ogStrategy.value.url : null,
   ogUrl: canonicalHref,
   ogType: 'website',
   twitterCard: 'summary_large_image'

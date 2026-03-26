@@ -78,7 +78,8 @@ useSeoMeta({
     isPlatformDomain.value
       ? platformDescription()
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
-  ogImage: () => !isPlatformDomain.value ? seo.value?.ogImageUrl ?? undefined : undefined,
+  ogImage: () => !isPlatformDomain.value ? (seo.value?.ogImageUrl || null) : null,
+  ogUrl: `${origin}/`,
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })

@@ -77,15 +77,22 @@ const bookingBreadcrumbs = computed(() =>
   buildBookingBreadcrumbs(brandName.value, tenant.value?.slug ?? '', false)
 )
 
-// Keep in sync with coach/[slug]/onboarding/discovery.vue
-const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/onboarding/discovery`
+// White-label canonical: ignore API canonical if it contains /coach/ (platform path)
+// On white-label, the correct canonical is always ${origin}/onboarding/discovery
+const canonicalHref = () => {
+  const apiCanonical = seo.value?.canonicalUrl
+  if (apiCanonical && !apiCanonical.includes('/coach/')) {
+    return resolveCanonical(apiCanonical, origin) ?? `${origin}/onboarding/discovery`
+  }
+  return `${origin}/onboarding/discovery`
+}
 
 useSeoMeta({
   title: () => seo.value?.title ?? `Appel découverte | ${brandName.value}`,
   description: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte gratuite`,
   ogTitle: () => seo.value?.title ?? `Appel découverte | ${brandName.value}`,
   ogDescription: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte gratuite`,
-  ogImage: () => seo.value?.ogImageUrl ?? undefined,
+  ogImage: () => seo.value?.ogImageUrl || null,
   ogUrl: canonicalHref,
   ogType: 'website',
   twitterCard: 'summary_large_image'

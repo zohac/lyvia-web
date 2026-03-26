@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LegalPageContent from '../../components/templates/LegalPageContent.vue'
 import { buildLegalBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
+import { useLegalPageSeo } from '~/features/seo/useLegalPageSeo'
 
 definePageMeta({
   layout: 'legal'
@@ -8,13 +9,10 @@ definePageMeta({
 
 const breadcrumbs = buildLegalBreadcrumbs('Mentions légales')
 
-useSeoMeta({
-  title: 'Mentions légales - Keova',
-  description: 'Mentions légales de la plateforme Keova.'
-})
-
-useHead({
-  link: [{ rel: 'canonical', href: `${useRequestURL().origin}/legal/mentions-legales` }]
+useLegalPageSeo({
+  pageTitle: 'Mentions légales',
+  description: 'Mentions légales de la plateforme Keova.',
+  path: '/legal/mentions-legales'
 })
 </script>
 

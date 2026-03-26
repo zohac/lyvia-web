@@ -12,7 +12,7 @@ export default defineNuxtConfig({
   ],
 
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.app',
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.fr',
     name: 'Keova'
   },
 
@@ -56,10 +56,11 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: { lang: 'fr' },
       meta: [
         { property: 'og:locale', content: 'fr_FR' },
         { property: 'og:site_name', content: 'Keova' },
-        { property: 'og:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.app'}/images/og-default.png` },
+        { property: 'og:image', content: `${process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.fr'}/images/og-default.png` },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         { property: 'og:image:type', content: 'image/png' }
