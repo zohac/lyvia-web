@@ -67,7 +67,7 @@ const initials = computed(() => {
           <div class="flex flex-col justify-center lg:col-span-7">
             <!-- Coach name eyebrow -->
             <p class="hero-label mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[#d4956a]">
-              {{ displayName }}
+              {{ displayName }} - EI
             </p>
 
             <!-- H1 — dynamic SEO (AC-2) -->
