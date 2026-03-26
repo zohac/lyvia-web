@@ -9,6 +9,7 @@ import {
   toConsentSignals,
   type ConsentValue
 } from '~/features/consent/consent-logic'
+import CookieSettingsModal from '~/components/molecules/CookieSettingsModal.vue'
 
 const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, {
   maxAge: COOKIE_CONSENT_MAX_AGE,
