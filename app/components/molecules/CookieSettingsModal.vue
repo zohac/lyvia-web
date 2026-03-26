@@ -1,8 +1,13 @@
 <script setup lang="ts">
-const COOKIE_NAME = 'cookieConsent'
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
-
-type ConsentValue = 'all' | 'essential' | 'acknowledged' | null
+import {
+  COOKIE_CONSENT_MAX_AGE,
+  COOKIE_CONSENT_NAME,
+  getAdsEnabledFromConsent,
+  getConsentValueFromPreferences,
+  hasGoogleAdsConfig,
+  toConsentSignals,
+  type ConsentValue
+} from '~/features/consent/consent-logic'
 
 const props = defineProps<{
   open: boolean
@@ -13,15 +18,15 @@ const emit = defineEmits<{
   'saved': []
 }>()
 
-const consent = useCookie<ConsentValue>(COOKIE_NAME, {
-  maxAge: COOKIE_MAX_AGE,
+const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, {
+  maxAge: COOKIE_CONSENT_MAX_AGE,
   sameSite: 'lax',
   secure: true
 })
 
 const googleAdsId = useState<string | null>('googleAdsId', () => null)
 const gtag = useState<((...args: unknown[]) => void) | null>('gtag', () => null)
-const hasAds = computed(() => !!googleAdsId.value)
+const hasAds = computed(() => hasGoogleAdsConfig(googleAdsId.value))
 
 // Toggle state for advertising cookies
 const adsEnabled = ref(false)
@@ -29,20 +34,16 @@ const adsEnabled = ref(false)
 // Pre-fill toggle when modal opens
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
-    adsEnabled.value = consent.value === 'all'
+    adsEnabled.value = getAdsEnabledFromConsent(consent.value)
   }
 })
 
 function save() {
   const granted = adsEnabled.value && hasAds.value
-  consent.value = granted ? 'all' : 'essential'
+  consent.value = getConsentValueFromPreferences(adsEnabled.value, hasAds.value)
 
   if (gtag.value) {
-    gtag.value('consent', 'update', {
-      ad_storage: granted ? 'granted' : 'denied',
-      ad_user_data: granted ? 'granted' : 'denied',
-      ad_personalization: granted ? 'granted' : 'denied'
-    })
+    gtag.value('consent', 'update', toConsentSignals(granted))
   }
 
   emit('update:open', false)

@@ -1,210 +1,217 @@
 import * as assert from 'node:assert/strict'
-import test, { describe } from 'node:test'
+import test from 'node:test'
 
-/**
- * Tests for cookie consent logic used by CookieConsentBanner and CookieSettingsModal.
- *
- * These are pure logic tests — no Vue component rendering.
- * They validate the consent state machine and gtag integration contract.
- */
+import {
+  getAcceptConsentValue,
+  getAdsEnabledFromConsent,
+  getBannerMode,
+  getConsentValueFromPreferences,
+  GOOGLE_ADS_CONVERSION_LABEL_REGEX,
+  GOOGLE_ADS_ID_REGEX,
+  resolveAdsContext,
+  shouldFetchAdsProfile,
+  shouldFireConversion,
+  shouldRestoreConsent,
+  shouldShowConsentBanner,
+  toConsentSignals,
+  type ConsentValue
+} from '../../app/features/consent/consent-logic'
 
-// --- Consent value types ---
+test('cookie consent state helpers: shows banner when consent is null', () => {
+  assert.equal(shouldShowConsentBanner(null), true)
+})
 
-type ConsentValue = 'all' | 'essential' | 'acknowledged' | null
+test('cookie consent state helpers: does not show banner for acknowledged consent', () => {
+  assert.equal(shouldShowConsentBanner('acknowledged'), false)
+})
 
-// --- Consent state machine ---
+test('cookie consent state helpers: accepting consent with ads enabled stores all', () => {
+  assert.equal(getAcceptConsentValue(true), 'all')
+})
 
-describe('cookie consent state machine', () => {
-  test('initial state is null (no consent)', () => {
-    const consent: ConsentValue = null
-    assert.equal(consent, null)
-  })
+test('cookie consent state helpers: accepting consent without ads keeps backward-compatible acknowledged', () => {
+  assert.equal(getAcceptConsentValue(false), 'acknowledged')
+})
 
-  test('"acknowledged" is backward-compatible (no Google Ads)', () => {
-    const consent: ConsentValue = 'acknowledged'
-    assert.equal(consent, 'acknowledged')
-    // acknowledged = no ads tracking, same as before Google Ads feature
-  })
+test('cookie consent state helpers: banner mode is simple without ads', () => {
+  assert.equal(getBannerMode(false), 'simple')
+})
 
-  test('"all" grants advertising cookies', () => {
-    const consent: ConsentValue = 'all'
-    assert.equal(consent, 'all')
-  })
+test('cookie consent state helpers: banner mode is full with ads', () => {
+  assert.equal(getBannerMode(true), 'full')
+})
 
-  test('"essential" explicitly refuses advertising cookies', () => {
-    const consent: ConsentValue = 'essential'
-    assert.equal(consent, 'essential')
+test('cookie settings modal helpers: ads toggle is enabled only for all consent', () => {
+  assert.equal(getAdsEnabledFromConsent('all'), true)
+  assert.equal(getAdsEnabledFromConsent('essential'), false)
+  assert.equal(getAdsEnabledFromConsent('acknowledged'), false)
+  assert.equal(getAdsEnabledFromConsent(null), false)
+})
+
+test('cookie settings modal helpers: saving enabled ads with ads configured stores all', () => {
+  assert.equal(getConsentValueFromPreferences(true, true), 'all')
+})
+
+test('cookie settings modal helpers: saving disabled ads stores essential', () => {
+  assert.equal(getConsentValueFromPreferences(false, true), 'essential')
+})
+
+test('cookie settings modal helpers: saving preferences without ads configured stores essential', () => {
+  assert.equal(getConsentValueFromPreferences(true, false), 'essential')
+})
+
+test('consent mode v2 signal mapping: maps granted consent to all granted signals', () => {
+  assert.deepStrictEqual(toConsentSignals(true), {
+    ad_storage: 'granted',
+    ad_user_data: 'granted',
+    ad_personalization: 'granted'
   })
 })
 
-// --- Banner mode detection ---
-
-describe('banner mode detection', () => {
-  function getBannerMode(hasAds: boolean): 'simple' | 'full' {
-    return hasAds ? 'full' : 'simple'
-  }
-
-  test('without Google Ads ID: simple mode (Compris only)', () => {
-    assert.equal(getBannerMode(false), 'simple')
-  })
-
-  test('with Google Ads ID: full mode (Accepter/Refuser/Paramétrer)', () => {
-    assert.equal(getBannerMode(true), 'full')
+test('consent mode v2 signal mapping: maps denied consent to all denied signals', () => {
+  assert.deepStrictEqual(toConsentSignals(false), {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied'
   })
 })
 
-// --- Consent Mode v2 signal mapping ---
+test('conversion event guard: fires when gtag, ads id and conversion label are present', () => {
+  assert.equal(shouldFireConversion(true, 'AW-123456789', 'abcDEF'), true)
+})
 
-describe('consent mode v2 signal mapping', () => {
-  type ConsentSignals = {
-    ad_storage: 'granted' | 'denied'
-    ad_user_data: 'granted' | 'denied'
-    ad_personalization: 'granted' | 'denied'
-  }
+test('conversion event guard: does not fire without gtag', () => {
+  assert.equal(shouldFireConversion(false, 'AW-123456789', 'abcDEF'), false)
+})
 
-  function mapConsentToSignals(granted: boolean): ConsentSignals {
-    return {
-      ad_storage: granted ? 'granted' : 'denied',
-      ad_user_data: granted ? 'granted' : 'denied',
-      ad_personalization: granted ? 'granted' : 'denied',
-    }
-  }
+test('conversion event guard: does not fire without Google Ads ID', () => {
+  assert.equal(shouldFireConversion(true, null, 'abcDEF'), false)
+})
 
-  test('granted=true maps all signals to granted', () => {
-    const signals = mapConsentToSignals(true)
-    assert.equal(signals.ad_storage, 'granted')
-    assert.equal(signals.ad_user_data, 'granted')
-    assert.equal(signals.ad_personalization, 'granted')
+test('conversion event guard: does not fire without conversion label', () => {
+  assert.equal(shouldFireConversion(true, 'AW-123456789', null), false)
+})
+
+test('conversion event guard: does not fire with empty strings', () => {
+  assert.equal(shouldFireConversion(true, '', ''), false)
+})
+
+test('google ads id validation: accepts valid ids from 5 to 12 digits', () => {
+  assert.equal(GOOGLE_ADS_ID_REGEX.test('AW-12345'), true)
+  assert.equal(GOOGLE_ADS_ID_REGEX.test('AW-123456789'), true)
+  assert.equal(GOOGLE_ADS_ID_REGEX.test('AW-123456789012'), true)
+})
+
+test('google ads id validation: rejects invalid ids', () => {
+  assert.equal(GOOGLE_ADS_ID_REGEX.test('123456789'), false)
+  assert.equal(GOOGLE_ADS_ID_REGEX.test('AW-1234'), false)
+  assert.equal(GOOGLE_ADS_ID_REGEX.test('AW-1234567890123'), false)
+  assert.equal(GOOGLE_ADS_ID_REGEX.test('AW-12345abc'), false)
+  assert.equal(GOOGLE_ADS_ID_REGEX.test('aw-123456789'), false)
+})
+
+test('google ads conversion label validation: accepts valid labels', () => {
+  assert.equal(GOOGLE_ADS_CONVERSION_LABEL_REGEX.test('abcDEF123'), true)
+  assert.equal(GOOGLE_ADS_CONVERSION_LABEL_REGEX.test('my_label_123'), true)
+  assert.equal(GOOGLE_ADS_CONVERSION_LABEL_REGEX.test('my-label-123'), true)
+})
+
+test('google ads conversion label validation: rejects invalid labels', () => {
+  assert.equal(GOOGLE_ADS_CONVERSION_LABEL_REGEX.test(''), false)
+  assert.equal(GOOGLE_ADS_CONVERSION_LABEL_REGEX.test('my label'), false)
+  assert.equal(GOOGLE_ADS_CONVERSION_LABEL_REGEX.test('label!@#'), false)
+})
+
+const consentRestoreCases: Array<{ consent: ConsentValue, expected: boolean }> = [
+  { consent: 'all', expected: true },
+  { consent: 'essential', expected: false },
+  { consent: 'acknowledged', expected: false },
+  { consent: null, expected: false }
+]
+
+for (const { consent, expected } of consentRestoreCases) {
+  test(`returning visitor consent restore: ${String(consent)} -> ${expected}`, () => {
+    assert.equal(shouldRestoreConsent(consent), expected)
+  })
+}
+
+test('ads context resolution: prefers route profile when route slug already has ads config', () => {
+  const result = resolveAdsContext({
+    routeSlug: 'sophie-jouan',
+    routeProfile: { id: 'AW-123456789', label: 'abcDEF123' },
+    tenantHomeSlug: 'ignored-home',
+    tenantHomeProfile: { id: 'AW-99999', label: 'ignored' }
   })
 
-  test('granted=false maps all signals to denied', () => {
-    const signals = mapConsentToSignals(false)
-    assert.equal(signals.ad_storage, 'denied')
-    assert.equal(signals.ad_user_data, 'denied')
-    assert.equal(signals.ad_personalization, 'denied')
+  assert.deepStrictEqual(result, {
+    slug: 'sophie-jouan',
+    ads: { id: 'AW-123456789', label: 'abcDEF123' }
   })
 })
 
-// --- Conversion event guard ---
-
-describe('conversion event guard', () => {
-  function shouldFireConversion(
-    gtagLoaded: boolean,
-    googleAdsId: string | null,
-    conversionLabel: string | null
-  ): boolean {
-    return gtagLoaded && !!googleAdsId && !!conversionLabel
-  }
-
-  test('fires when all conditions met', () => {
-    assert.equal(shouldFireConversion(true, 'AW-123456789', 'abcDEF'), true)
+test('ads context resolution: returns route slug with empty ads when route profile has no id yet', () => {
+  const result = resolveAdsContext({
+    routeSlug: 'sophie-jouan',
+    routeProfile: { id: null, label: null }
   })
 
-  test('does not fire without gtag', () => {
-    assert.equal(shouldFireConversion(false, 'AW-123456789', 'abcDEF'), false)
-  })
-
-  test('does not fire without Google Ads ID', () => {
-    assert.equal(shouldFireConversion(true, null, 'abcDEF'), false)
-  })
-
-  test('does not fire without conversion label', () => {
-    assert.equal(shouldFireConversion(true, 'AW-123456789', null), false)
-  })
-
-  test('does not fire with empty strings', () => {
-    assert.equal(shouldFireConversion(true, '', ''), false)
+  assert.deepStrictEqual(result, {
+    slug: 'sophie-jouan',
+    ads: { id: null, label: null }
   })
 })
 
-// --- Google Ads ID format validation ---
-
-describe('google ads id format validation', () => {
-  const GOOGLE_ADS_ID_PATTERN = /^AW-\d{5,12}$/
-
-  test('accepts valid AW- format with 5 digits', () => {
-    assert.equal(GOOGLE_ADS_ID_PATTERN.test('AW-12345'), true)
+test('ads context resolution: uses tenant home profile when route slug is absent', () => {
+  const result = resolveAdsContext({
+    tenantHomeSlug: 'sophie-jouan',
+    tenantHomeProfile: { id: 'AW-123456789', label: 'abcDEF123' }
   })
 
-  test('accepts valid AW- format with 9 digits', () => {
-    assert.equal(GOOGLE_ADS_ID_PATTERN.test('AW-123456789'), true)
-  })
-
-  test('accepts valid AW- format with 12 digits', () => {
-    assert.equal(GOOGLE_ADS_ID_PATTERN.test('AW-123456789012'), true)
-  })
-
-  test('rejects without AW- prefix', () => {
-    assert.equal(GOOGLE_ADS_ID_PATTERN.test('123456789'), false)
-  })
-
-  test('rejects with too few digits (4)', () => {
-    assert.equal(GOOGLE_ADS_ID_PATTERN.test('AW-1234'), false)
-  })
-
-  test('rejects with too many digits (13)', () => {
-    assert.equal(GOOGLE_ADS_ID_PATTERN.test('AW-1234567890123'), false)
-  })
-
-  test('rejects with letters in digits part', () => {
-    assert.equal(GOOGLE_ADS_ID_PATTERN.test('AW-12345abc'), false)
-  })
-
-  test('rejects lowercase aw-', () => {
-    assert.equal(GOOGLE_ADS_ID_PATTERN.test('aw-123456789'), false)
+  assert.deepStrictEqual(result, {
+    slug: 'sophie-jouan',
+    ads: { id: 'AW-123456789', label: 'abcDEF123' }
   })
 })
 
-// --- Conversion label format validation ---
-
-describe('google ads conversion label validation', () => {
-  const LABEL_PATTERN = /^[a-zA-Z0-9_-]{1,50}$/
-
-  test('accepts alphanumeric label', () => {
-    assert.equal(LABEL_PATTERN.test('abcDEF123'), true)
+test('ads context resolution: falls back to booking tenant slug when only public-tenant-discovery is loaded', () => {
+  const result = resolveAdsContext({
+    tenantDiscoverySlug: 'sophie-jouan'
   })
 
-  test('accepts label with underscores', () => {
-    assert.equal(LABEL_PATTERN.test('my_label_123'), true)
-  })
-
-  test('accepts label with dashes', () => {
-    assert.equal(LABEL_PATTERN.test('my-label-123'), true)
-  })
-
-  test('rejects empty string', () => {
-    assert.equal(LABEL_PATTERN.test(''), false)
-  })
-
-  test('rejects label with spaces', () => {
-    assert.equal(LABEL_PATTERN.test('my label'), false)
-  })
-
-  test('rejects label with special characters', () => {
-    assert.equal(LABEL_PATTERN.test('label!@#'), false)
+  assert.deepStrictEqual(result, {
+    slug: 'sophie-jouan',
+    ads: { id: null, label: null }
   })
 })
 
-// --- Returning visitor consent restore ---
-
-describe('returning visitor consent restore', () => {
-  function shouldRestoreConsent(cookieValue: ConsentValue): boolean {
-    return cookieValue === 'all'
-  }
-
-  test('restores consent for "all" cookie', () => {
-    assert.equal(shouldRestoreConsent('all'), true)
+test('ads context resolution: falls back to platform booking tenant slug when public-tenant route data is loaded', () => {
+  const result = resolveAdsContext({
+    tenantRouteSlug: 'sophie-jouan'
   })
 
-  test('does not restore for "essential" cookie', () => {
-    assert.equal(shouldRestoreConsent('essential'), false)
+  assert.deepStrictEqual(result, {
+    slug: 'sophie-jouan',
+    ads: { id: null, label: null }
   })
+})
 
-  test('does not restore for "acknowledged" cookie', () => {
-    assert.equal(shouldRestoreConsent('acknowledged'), false)
-  })
+test('ads context resolution: returns null context when nothing is available', () => {
+  const result = resolveAdsContext({})
 
-  test('does not restore for null cookie', () => {
-    assert.equal(shouldRestoreConsent(null), false)
+  assert.deepStrictEqual(result, {
+    slug: null,
+    ads: { id: null, label: null }
   })
+})
+
+test('profile fallback fetch guard: fetches profile when slug exists but ads id is missing', () => {
+  assert.equal(shouldFetchAdsProfile('sophie-jouan', null), true)
+})
+
+test('profile fallback fetch guard: does not fetch profile when ads id is already known', () => {
+  assert.equal(shouldFetchAdsProfile('sophie-jouan', 'AW-123456789'), false)
+})
+
+test('profile fallback fetch guard: does not fetch profile without slug', () => {
+  assert.equal(shouldFetchAdsProfile(null, null), false)
 })

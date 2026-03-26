@@ -1,11 +1,17 @@
 <script setup lang="ts">
-const COOKIE_NAME = 'cookieConsent'
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 12 months in seconds
+import {
+  COOKIE_CONSENT_MAX_AGE,
+  COOKIE_CONSENT_NAME,
+  getAcceptConsentValue,
+  getBannerMode,
+  hasGoogleAdsConfig,
+  shouldShowConsentBanner,
+  toConsentSignals,
+  type ConsentValue
+} from '~/features/consent/consent-logic'
 
-type ConsentValue = 'all' | 'essential' | 'acknowledged' | null
-
-const consent = useCookie<ConsentValue>(COOKIE_NAME, {
-  maxAge: COOKIE_MAX_AGE,
+const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, {
+  maxAge: COOKIE_CONSENT_MAX_AGE,
   sameSite: 'lax',
   secure: true
 })
@@ -16,27 +22,24 @@ const showSettings = ref(false)
 // Detect if Google Ads is active (set by google-ads.client.ts plugin)
 const googleAdsId = useState<string | null>('googleAdsId', () => null)
 const gtag = useState<((...args: unknown[]) => void) | null>('gtag', () => null)
-const hasAds = computed(() => !!googleAdsId.value)
+const hasAds = computed(() => hasGoogleAdsConfig(googleAdsId.value))
+const bannerMode = computed(() => getBannerMode(hasAds.value))
 
 // Only show banner client-side after hydration if no consent is stored
 onMounted(() => {
-  if (!consent.value) {
+  if (shouldShowConsentBanner(consent.value)) {
     showBanner.value = true
   }
 })
 
 function updateConsent(granted: boolean) {
   if (gtag.value) {
-    gtag.value('consent', 'update', {
-      ad_storage: granted ? 'granted' : 'denied',
-      ad_user_data: granted ? 'granted' : 'denied',
-      ad_personalization: granted ? 'granted' : 'denied'
-    })
+    gtag.value('consent', 'update', toConsentSignals(granted))
   }
 }
 
 function acceptAll() {
-  consent.value = hasAds.value ? 'all' : 'acknowledged'
+  consent.value = getAcceptConsentValue(hasAds.value)
   updateConsent(true)
   showBanner.value = false
 }
@@ -95,7 +98,7 @@ function onSettingsSaved() {
 
           <div class="flex items-center gap-3">
             <!-- Without ads: simple acknowledge -->
-            <template v-if="!hasAds">
+            <template v-if="bannerMode === 'simple'">
               <UButton
                 color="primary"
                 size="md"

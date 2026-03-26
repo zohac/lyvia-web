@@ -2,6 +2,10 @@
 // TODO: extract AccountEmailSection + AccountPasswordSection shared components (duplicated with client/account.vue)
 import { useProviderAccount } from '../../features/account/useProviderAccount'
 import { useAuthActions } from '../../features/auth/useAuthActions'
+import {
+  GOOGLE_ADS_CONVERSION_LABEL_REGEX,
+  GOOGLE_ADS_ID_REGEX
+} from '../../features/consent/consent-logic'
 import { apiFetch } from '../../services/api/apiFetch'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
 import type { CredentialItem, SocialLinks, TestimonialItem } from '../../features/account/api/provider-account.contract'
@@ -91,11 +95,11 @@ const adsForm = reactive({
 })
 const adsIdValid = computed(() => {
   const v = (adsForm.googleAdsId ?? '').trim()
-  return v === '' || /^AW-\d{5,12}$/.test(v)
+  return v === '' || GOOGLE_ADS_ID_REGEX.test(v)
 })
 const adsLabelValid = computed(() => {
   const v = (adsForm.googleAdsConversionLabel ?? '').trim()
-  return v === '' || /^[a-zA-Z0-9_-]{1,50}$/.test(v)
+  return v === '' || GOOGLE_ADS_CONVERSION_LABEL_REGEX.test(v)
 })
 
 // ── Email change form state ─────────────────────────

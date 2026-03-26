@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { shouldFireConversion } from '../../features/consent/consent-logic'
 import type {
   AvailabilitySlot,
   BookDiscoveryResponse,
@@ -404,7 +405,7 @@ async function submitBooking() {
     const gtagFn = useState<((...args: unknown[]) => void) | null>('gtag')
     const adsId = useState<string | null>('googleAdsId')
     const convLabel = useState<string | null>('googleAdsConversionLabel')
-    if (gtagFn.value && adsId.value && convLabel.value) {
+    if (gtagFn.value && shouldFireConversion(Boolean(gtagFn.value), adsId.value, convLabel.value)) {
       gtagFn.value('event', 'conversion', {
         send_to: `${adsId.value}/${convLabel.value}`,
         value: 1.0,
