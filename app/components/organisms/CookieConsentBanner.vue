@@ -141,7 +141,7 @@ function onSettingsSaved() {
     </div>
   </Transition>
 
-  <CookieSettingsModal
+  <MoleculesCookieSettingsModal
     :open="showSettings"
     @update:open="showSettings = $event"
     @saved="onSettingsSaved"
