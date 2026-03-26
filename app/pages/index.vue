@@ -61,6 +61,12 @@ function platformDescription() {
   return ctx.value.isB2C ? b2cDescription : b2bDescription
 }
 
+// B2B homepage canonical/og:url → keova.fr (SEO reference domain per AC-5)
+const canonicalHref = computed(() => {
+  if (ctx.value.isB2B) return `https://${platformDomain}/`
+  return `${origin}/`
+})
+
 useSeoMeta({
   title: () =>
     isPlatformDomain.value
@@ -79,21 +85,15 @@ useSeoMeta({
       ? platformDescription()
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
   ogImage: () => !isPlatformDomain.value ? (seo.value?.ogImageUrl || null) : null,
-  ogUrl: () => canonicalOrigin.value,
+  ogUrl: () => canonicalHref.value,
   ogType: 'website',
   twitterCard: 'summary_large_image'
-})
-
-// B2B homepage canonical/og:url → keova.fr (SEO reference domain per AC-5)
-const canonicalOrigin = computed(() => {
-  if (ctx.value.isB2B) return `https://${platformDomain}/`
-  return `${origin}/`
 })
 
 useHead({
   link: [{
     rel: 'canonical',
-    href: () => canonicalOrigin.value
+    href: () => canonicalHref.value
   }]
 })
 
