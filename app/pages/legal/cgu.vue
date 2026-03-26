@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LegalPageContent from '../../components/templates/LegalPageContent.vue'
 import { buildLegalBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
+import { useLegalPageSeo } from '~/features/seo/useLegalPageSeo'
 
 definePageMeta({
   layout: 'legal'
@@ -8,13 +9,10 @@ definePageMeta({
 
 const breadcrumbs = buildLegalBreadcrumbs('Conditions Générales d\'Utilisation')
 
-useSeoMeta({
-  title: 'Conditions Générales d\'Utilisation - Keova',
-  description: 'Conditions générales d\'utilisation de la plateforme Keova.'
-})
-
-useHead({
-  link: [{ rel: 'canonical', href: `${useRequestURL().origin}/legal/cgu` }]
+useLegalPageSeo({
+  pageTitle: 'Conditions Générales d\'Utilisation',
+  description: 'Conditions générales d\'utilisation de la plateforme Keova.',
+  path: '/legal/cgu'
 })
 </script>
 

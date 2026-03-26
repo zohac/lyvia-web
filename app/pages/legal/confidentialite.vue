@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LegalPageContent from '../../components/templates/LegalPageContent.vue'
 import { buildLegalBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
+import { useLegalPageSeo } from '~/features/seo/useLegalPageSeo'
 
 definePageMeta({
   layout: 'legal'
@@ -8,13 +9,10 @@ definePageMeta({
 
 const breadcrumbs = buildLegalBreadcrumbs('Politique de confidentialité')
 
-useSeoMeta({
-  title: 'Politique de confidentialité - Keova',
-  description: 'Politique de confidentialité et protection des données personnelles de la plateforme Keova.'
-})
-
-useHead({
-  link: [{ rel: 'canonical', href: `${useRequestURL().origin}/legal/confidentialite` }]
+useLegalPageSeo({
+  pageTitle: 'Politique de confidentialité',
+  description: 'Politique de confidentialité et protection des données personnelles de la plateforme Keova.',
+  path: '/legal/confidentialite'
 })
 </script>
 

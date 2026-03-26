@@ -1,17 +1,60 @@
 <script setup lang="ts">
+import {
+  COOKIE_CONSENT_MAX_AGE,
+  COOKIE_CONSENT_NAME,
+  getAdsEnabledFromConsent,
+  getConsentValueFromPreferences,
+  hasGoogleAdsConfig,
+  toConsentSignals,
+  type ConsentValue
+} from '~/features/consent/consent-logic'
+
 const props = defineProps<{
   open: boolean
 }>()
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
+  'saved': []
 }>()
+
+const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, {
+  maxAge: COOKIE_CONSENT_MAX_AGE,
+  sameSite: 'lax',
+  secure: true
+})
+
+const googleAdsId = useState<string | null>('googleAdsId', () => null)
+const gtag = useState<((...args: unknown[]) => void) | null>('gtag', () => null)
+const hasAds = computed(() => hasGoogleAdsConfig(googleAdsId.value))
+
+// Toggle state for advertising cookies
+const adsEnabled = ref(false)
+
+// Pre-fill toggle when modal opens
+watch(() => props.open, (isOpen) => {
+  if (isOpen) {
+    adsEnabled.value = getAdsEnabledFromConsent(consent.value)
+  }
+})
+
+function save() {
+  const granted = adsEnabled.value && hasAds.value
+  consent.value = getConsentValueFromPreferences(adsEnabled.value, hasAds.value)
+
+  if (gtag.value) {
+    gtag.value('consent', 'update', toConsentSignals(granted))
+  }
+
+  emit('update:open', false)
+  emit('saved')
+}
 </script>
 
 <template>
   <UModal
     :open="props.open"
-    title="Cookies"
+    title="Param&eacute;trer les cookies"
     :ui="{
       footer: 'justify-end'
     }"
@@ -20,43 +63,60 @@ const emit = defineEmits<{
     <template #body>
       <div class="space-y-4">
         <p class="text-sm leading-relaxed text-[color:var(--color-brand-secondary)]">
-          Ce site utilise uniquement des cookies essentiels au fonctionnement du service.
+          Choisissez les cookies que vous acceptez sur ce site.
         </p>
 
-        <div class="space-y-2">
-          <div class="flex items-start gap-3 rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)] p-3">
-            <UIcon
-              name="i-lucide-lock"
-              class="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--color-brand-muted)]"
-            />
-            <div>
-              <p class="text-sm font-medium text-[color:var(--color-brand-primary)]">
-                Authentification
-              </p>
-              <p class="text-xs text-[color:var(--color-brand-muted)]">
-                Maintient votre connexion securisee
-              </p>
+        <div class="space-y-3">
+          <!-- Essential cookies — always on -->
+          <div class="flex items-center justify-between rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)] p-3">
+            <div class="flex items-start gap-3">
+              <UIcon
+                name="i-lucide-lock"
+                class="mt-0.5 size-4 shrink-0 text-[color:var(--color-brand-muted)]"
+              />
+              <div>
+                <p class="text-sm font-medium text-[color:var(--color-brand-primary)]">
+                  Essentiels
+                </p>
+                <p class="text-xs text-[color:var(--color-brand-muted)]">
+                  Connexion, rendez-vous — n&eacute;cessaires au fonctionnement
+                </p>
+              </div>
             </div>
+            <USwitch
+              :model-value="true"
+              disabled
+            />
           </div>
 
-          <div class="flex items-start gap-3 rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)] p-3">
-            <UIcon
-              name="i-lucide-calendar"
-              class="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--color-brand-muted)]"
-            />
-            <div>
-              <p class="text-sm font-medium text-[color:var(--color-brand-primary)]">
-                Rendez-vous
-              </p>
-              <p class="text-xs text-[color:var(--color-brand-muted)]">
-                Sauvegarde temporaire de votre reservation en cours
-              </p>
+          <!-- Advertising cookies — only if Google Ads is configured -->
+          <div
+            v-if="hasAds"
+            class="flex items-center justify-between rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)] p-3"
+          >
+            <div class="flex items-start gap-3">
+              <UIcon
+                name="i-lucide-megaphone"
+                class="mt-0.5 size-4 shrink-0 text-[color:var(--color-brand-muted)]"
+              />
+              <div>
+                <p class="text-sm font-medium text-[color:var(--color-brand-primary)]">
+                  Publicitaires
+                </p>
+                <p class="text-xs text-[color:var(--color-brand-muted)]">
+                  Mesure de l'efficacit&eacute; des campagnes publicitaires (Google Ads)
+                </p>
+              </div>
             </div>
+            <USwitch v-model="adsEnabled" />
           </div>
         </div>
 
-        <p class="text-xs text-[color:var(--color-brand-muted)]">
-          Aucun cookie de tracking ou d'analyse n'est utilise.
+        <p
+          v-if="!hasAds"
+          class="text-xs text-[color:var(--color-brand-muted)]"
+        >
+          Aucun cookie de tracking ou d'analyse n'est utilis&eacute;.
         </p>
 
         <NuxtLink
@@ -66,9 +126,9 @@ const emit = defineEmits<{
         >
           <UIcon
             name="i-lucide-external-link"
-            class="h-3 w-3"
+            class="size-3"
           />
-          Politique de confidentialite
+          Politique de confidentialit&eacute;
         </NuxtLink>
       </div>
     </template>
@@ -79,7 +139,13 @@ const emit = defineEmits<{
         variant="outline"
         @click="emit('update:open', false)"
       >
-        Fermer
+        Annuler
+      </UButton>
+      <UButton
+        color="primary"
+        @click="save"
+      >
+        Enregistrer mes choix
       </UButton>
     </template>
   </UModal>

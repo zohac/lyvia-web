@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { shouldFireConversion } from '../../features/consent/consent-logic'
 import type {
   AvailabilitySlot,
   BookDiscoveryResponse,
@@ -399,6 +400,18 @@ async function submitBooking() {
     booking.value = response
     clearIdempotencyKey()
     goToStep(3)
+
+    // Google Ads conversion event (AC-5)
+    const gtagFn = useState<((...args: unknown[]) => void) | null>('gtag')
+    const adsId = useState<string | null>('googleAdsId')
+    const convLabel = useState<string | null>('googleAdsConversionLabel')
+    if (gtagFn.value && shouldFireConversion(Boolean(gtagFn.value), adsId.value, convLabel.value)) {
+      gtagFn.value('event', 'conversion', {
+        send_to: `${adsId.value}/${convLabel.value}`,
+        value: 1.0,
+        currency: 'EUR'
+      })
+    }
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
       const mapped = mapOnboardingErrorCodeToUserMessage(err.apiError.code)

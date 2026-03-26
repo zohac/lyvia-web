@@ -87,7 +87,7 @@ useSeoMeta({
   description: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte gratuite`,
   ogTitle: () => seo.value?.title ?? `Appel découverte | ${brandName.value}`,
   ogDescription: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte gratuite`,
-  ogImage: () => seo.value?.ogImageUrl ?? undefined,
+  ogImage: () => seo.value?.ogImageUrl || null,
   ogUrl: canonicalHref,
   ogType: 'website',
   twitterCard: 'summary_large_image'

@@ -2,6 +2,10 @@
 // TODO: extract AccountEmailSection + AccountPasswordSection shared components (duplicated with client/account.vue)
 import { useProviderAccount } from '../../features/account/useProviderAccount'
 import { useAuthActions } from '../../features/auth/useAuthActions'
+import {
+  GOOGLE_ADS_CONVERSION_LABEL_REGEX,
+  GOOGLE_ADS_ID_REGEX
+} from '../../features/consent/consent-logic'
 import { apiFetch } from '../../services/api/apiFetch'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
 import type { CredentialItem, SocialLinks, TestimonialItem } from '../../features/account/api/provider-account.contract'
@@ -84,6 +88,20 @@ const leadMagnetError = ref<string | null>(null)
 // ── Testimonials form state ─────────────────────────
 const testimonialsForm = ref<TestimonialItem[]>([])
 
+// ── Google Ads form state ───────────────────────────
+const adsForm = reactive({
+  googleAdsId: '' as string | null,
+  googleAdsConversionLabel: '' as string | null
+})
+const adsIdValid = computed(() => {
+  const v = (adsForm.googleAdsId ?? '').trim()
+  return v === '' || GOOGLE_ADS_ID_REGEX.test(v)
+})
+const adsLabelValid = computed(() => {
+  const v = (adsForm.googleAdsConversionLabel ?? '').trim()
+  return v === '' || GOOGLE_ADS_CONVERSION_LABEL_REGEX.test(v)
+})
+
 // ── Email change form state ─────────────────────────
 const emailForm = reactive({
   newEmail: '',
@@ -159,6 +177,10 @@ function syncFormsFromAccount() {
   testimonialsForm.value = acc.testimonialsJson?.length
     ? acc.testimonialsJson.map(t => ({ ...t }))
     : []
+
+  // Google Ads
+  adsForm.googleAdsId = acc.googleAdsId
+  adsForm.googleAdsConversionLabel = acc.googleAdsConversionLabel
 }
 
 // ── Specialty tag handlers ──────────────────────────
@@ -488,6 +510,19 @@ function removeLeadMagnet() {
   leadMagnetForm.url = null
   leadMagnetForm.title = null
   leadMagnetFile.value = null
+}
+
+async function handleGoogleAdsSubmit() {
+  if (!adsIdValid.value || !adsLabelValid.value) return
+  const success = await updateAccount({
+    googleAdsId: adsForm.googleAdsId?.trim() || null,
+    googleAdsConversionLabel: adsForm.googleAdsConversionLabel?.trim() || null
+  })
+  if (success) {
+    toast.add({ title: 'Configuration Google Ads enregistrée', color: 'primary' })
+  } else {
+    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
+  }
 }
 
 async function handleEmailChange() {
@@ -1384,8 +1419,14 @@ async function handlePasswordChange() {
             <label class="mb-2 block text-sm font-medium text-[color:var(--color-brand-primary)]">
               Fichier PDF
             </label>
-            <div v-if="leadMagnetForm.url" class="flex items-center gap-3 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-highlight)] p-3">
-              <UIcon name="i-lucide-file-text" class="size-5 text-[color:var(--color-brand-accent)]" />
+            <div
+              v-if="leadMagnetForm.url"
+              class="flex items-center gap-3 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-highlight)] p-3"
+            >
+              <UIcon
+                name="i-lucide-file-text"
+                class="size-5 text-[color:var(--color-brand-accent)]"
+              />
               <a
                 :href="leadMagnetForm.url"
                 target="_blank"
@@ -1402,7 +1443,10 @@ async function handlePasswordChange() {
                 @click="removeLeadMagnet"
               />
             </div>
-            <div v-else class="space-y-2">
+            <div
+              v-else
+              class="space-y-2"
+            >
               <input
                 ref="leadMagnetInputRef"
                 type="file"
@@ -1420,7 +1464,10 @@ async function handlePasswordChange() {
                 >
                   Choisir un PDF
                 </UButton>
-                <span v-if="leadMagnetFile" class="text-sm text-[color:var(--color-brand-secondary)]">
+                <span
+                  v-if="leadMagnetFile"
+                  class="text-sm text-[color:var(--color-brand-secondary)]"
+                >
                   {{ leadMagnetFile.name }}
                 </span>
               </div>
@@ -1434,7 +1481,10 @@ async function handlePasswordChange() {
                 Uploader
               </UButton>
             </div>
-            <p v-if="leadMagnetError" class="mt-2 text-sm text-[color:var(--color-error)]">
+            <p
+              v-if="leadMagnetError"
+              class="mt-2 text-sm text-[color:var(--color-error)]"
+            >
               {{ leadMagnetError }}
             </p>
             <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
@@ -1456,7 +1506,10 @@ async function handlePasswordChange() {
               placeholder="Ex : Les 7 signaux que votre corps vous envoie en périménopause"
               :maxlength="200"
             />
-            <p class="mt-1 text-right text-xs" :class="leadMagnetTitleCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'">
+            <p
+              class="mt-1 text-right text-xs"
+              :class="leadMagnetTitleCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
+            >
               {{ leadMagnetTitleCharCount }}/200
             </p>
             <p class="text-xs text-[color:var(--color-brand-muted)]">
@@ -1469,6 +1522,99 @@ async function handlePasswordChange() {
               type="submit"
               :loading="saving"
               :disabled="saving"
+              label="Enregistrer"
+            />
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 8c: Google Ads -->
+      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+            <UIcon
+              name="i-lucide-megaphone"
+              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
+            />
+          </div>
+          <div>
+            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
+              Marketing
+            </h2>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Configurez le suivi de vos campagnes publicitaires.
+            </p>
+          </div>
+        </div>
+
+        <form
+          class="mt-6 space-y-4"
+          @submit.prevent="handleGoogleAdsSubmit"
+        >
+          <div>
+            <div class="flex items-center gap-2">
+              <label
+                for="googleAdsId"
+                class="block text-sm font-medium text-[color:var(--color-brand-primary)]"
+              >
+                ID de conversion Google Ads
+              </label>
+              <span
+                v-if="adsForm.googleAdsId"
+                class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                :class="adsIdValid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+              >
+                {{ adsIdValid ? 'Actif' : 'Format invalide' }}
+              </span>
+            </div>
+            <UInput
+              id="googleAdsId"
+              v-model="adsForm.googleAdsId"
+              placeholder="AW-123456789"
+              :maxlength="20"
+              class="mt-1"
+            />
+            <p
+              v-if="!adsIdValid"
+              class="mt-1 text-xs text-[color:var(--color-error)]"
+            >
+              Format attendu : AW- suivi de 5 à 12 chiffres
+            </p>
+            <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
+              Trouvez cette valeur dans Google Ads > Outils > Conversions
+            </p>
+          </div>
+
+          <div>
+            <label
+              for="googleAdsConversionLabel"
+              class="block text-sm font-medium text-[color:var(--color-brand-primary)]"
+            >
+              Label de conversion
+            </label>
+            <UInput
+              id="googleAdsConversionLabel"
+              v-model="adsForm.googleAdsConversionLabel"
+              placeholder="abcDEF123"
+              :maxlength="50"
+              class="mt-1"
+            />
+            <p
+              v-if="!adsLabelValid"
+              class="mt-1 text-xs text-[color:var(--color-error)]"
+            >
+              Caractères alphanumériques, tirets ou underscores uniquement (max 50)
+            </p>
+            <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
+              Optionnel — fourni par Google Ads lors de la création de la conversion
+            </p>
+          </div>
+
+          <div class="flex justify-end">
+            <UButton
+              type="submit"
+              :loading="saving"
+              :disabled="saving || !adsIdValid || !adsLabelValid"
               label="Enregistrer"
             />
           </div>

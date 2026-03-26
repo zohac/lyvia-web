@@ -43,6 +43,8 @@ export type ProviderAccountResponse = {
   testimonialsJson: TestimonialItem[]
   leadMagnetUrl: string | null
   leadMagnetTitle: string | null
+  googleAdsId: string | null // verified against OpenAPI spec
+  googleAdsConversionLabel: string | null // verified against OpenAPI spec
   updatedAt?: string
 }
 
@@ -65,4 +67,6 @@ export type UpdateProviderAccountRequest = {
   testimonialsJson?: TestimonialItem[]
   leadMagnetUrl?: string | null
   leadMagnetTitle?: string | null
+  googleAdsId?: string | null // verified against OpenAPI spec
+  googleAdsConversionLabel?: string | null // verified against OpenAPI spec
 }
