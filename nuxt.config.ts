@@ -13,7 +13,8 @@ export default defineNuxtConfig({
 
   site: {
     url: process.env.NUXT_PUBLIC_SITE_URL || 'https://keova.fr',
-    name: 'Keova'
+    name: 'Keova',
+    defaultLocale: 'fr'
   },
 
   ogImage: {
