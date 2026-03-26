@@ -14,6 +14,8 @@ await useGlobalSchemaOrg()
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <CookieConsentBanner />
+    <ClientOnly>
+      <CookieConsentBanner />
+    </ClientOnly>
   </UApp>
 </template>
