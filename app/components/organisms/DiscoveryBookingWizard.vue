@@ -306,6 +306,14 @@ function goToIdentityStep() {
   goToStep(2)
 }
 
+const canSubmitIdentity = computed(() =>
+  identity.value.firstname.trim().length > 0
+  && identity.value.lastname.trim().length > 0
+  && identity.value.email.trim().length > 0
+  && identity.value.phone.trim().length > 0
+  && consents.value.legalAccepted
+)
+
 function validateIdentity(): boolean {
   const errors: FormErrors = {}
 
@@ -671,7 +679,7 @@ async function submitBooking() {
                 class="mt-8"
                 block
                 :loading="isSubmitting"
-                :disabled="isSubmitting"
+                :disabled="!canSubmitIdentity || isSubmitting"
                 @click="submitBooking"
               >
                 Confirmer mon appel
