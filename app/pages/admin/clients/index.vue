@@ -51,6 +51,7 @@ type ListClientsResponse = {
 type ProviderOption = {
   id: string
   displayName: string
+  isTest: boolean
 }
 
 // ──────────────────────────────────────────────
@@ -88,7 +89,10 @@ const { data: providersData } = await useAsyncData<{ items: ProviderOption[] }>(
 
 const providerOptions = computed(() => [
   { value: 'all', label: 'Tous les providers' },
-  ...(providersData.value?.items.map(p => ({ value: p.id, label: p.displayName })) ?? [])
+  ...(providersData.value?.items.map(p => ({
+    value: p.id,
+    label: p.isTest ? `${p.displayName} (Test)` : p.displayName
+  })) ?? [])
 ])
 
 // ──────────────────────────────────────────────

@@ -68,6 +68,7 @@ type AdminProviderDetail = {
   siret: string | null
   legalIdentifier: string | null
   isActive: boolean
+  isTest: boolean
   activatedAt: string | null
   clientsCount: number
   createdAt: string
@@ -568,6 +569,10 @@ const SEO_TARGET_ICONS: Record<string, string> = {
             <div>
               <h1 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)] sm:text-3xl">
                 {{ displayName }}
+                <span
+                  v-if="detail?.isTest"
+                  class="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 align-middle text-xs font-semibold not-italic text-amber-700"
+                >Test</span>
               </h1>
 
               <!-- Badges -->

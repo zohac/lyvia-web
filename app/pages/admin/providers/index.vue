@@ -24,6 +24,7 @@ type AdminProviderListItem = {
   displayName: string
   email: string
   isActive: boolean
+  isTest: boolean
   createdAt: string
   stripe: {
     stripeAccountId: string | null
@@ -52,6 +53,7 @@ function onProviderCreated(id: string) {
 // Filters
 const searchQuery = ref('')
 const stripeStatus = ref<StripeStatusFilter>('all')
+const showTestOnly = ref(false)
 const providerIdInput = ref('')
 const loadingMore = ref(false)
 
@@ -70,6 +72,11 @@ const queryParams = computed(() => {
   const params: Record<string, string> = { limit: '20' }
   if (searchQuery.value) params.q = searchQuery.value
   if (stripeStatus.value !== 'all') params.stripeStatus = stripeStatus.value
+  if (showTestOnly.value) {
+    params.isTest = 'true'
+  } else {
+    params.isTest = 'false'
+  }
   return params
 })
 
@@ -124,8 +131,14 @@ const columns: TableColumn<AdminProviderListItem>[] = [
     header: 'Provider',
     cell: ({ row }) => {
       const provider = row.original
+      const nameChildren: ReturnType<typeof h>[] = [
+        h('span', { class: 'font-medium text-[color:var(--color-brand-primary)]' }, provider.displayName)
+      ]
+      if (provider.isTest) {
+        nameChildren.push(h('span', { class: 'ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700' }, 'Test'))
+      }
       return h('div', { class: 'flex flex-col gap-0.5' }, [
-        h('span', { class: 'font-medium text-[color:var(--color-brand-primary)]' }, provider.displayName),
+        h('div', { class: 'flex items-center' }, nameChildren),
         h('span', { class: 'text-xs text-[color:var(--color-brand-muted)]' }, provider.email)
       ])
     }
@@ -242,20 +255,32 @@ function goToProvider() {
         />
       </div>
 
-      <!-- Stripe Status Filter -->
-      <div class="flex items-center gap-3">
-        <span class="text-sm text-[color:var(--color-brand-muted)]">Statut Stripe :</span>
-        <div class="flex gap-2">
-          <button
-            v-for="filter in stripeStatusFilters"
-            :key="filter.value"
-            type="button"
-            :class="filterPillClasses(stripeStatus === filter.value)"
-            @click="setStripeStatus(filter.value)"
-          >
-            {{ filter.label }}
-          </button>
+      <!-- Filters -->
+      <div class="flex items-center gap-5">
+        <!-- Stripe Status Filter -->
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-[color:var(--color-brand-muted)]">Stripe :</span>
+          <div class="flex gap-2">
+            <button
+              v-for="filter in stripeStatusFilters"
+              :key="filter.value"
+              type="button"
+              :class="filterPillClasses(stripeStatus === filter.value)"
+              @click="setStripeStatus(filter.value)"
+            >
+              {{ filter.label }}
+            </button>
+          </div>
         </div>
+
+        <!-- Test Filter -->
+        <button
+          type="button"
+          :class="filterPillClasses(showTestOnly)"
+          @click="showTestOnly = !showTestOnly"
+        >
+          Comptes test
+        </button>
       </div>
     </section>
 
@@ -323,6 +348,7 @@ function goToProvider() {
         <UTable
           :data="providers.items"
           :columns="columns"
+          :row-attrs="(row: AdminProviderListItem) => row.isTest ? { class: 'bg-amber-50/40' } : {}"
           :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
           @select="onRowSelect"
         />

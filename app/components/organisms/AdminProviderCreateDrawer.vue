@@ -22,7 +22,8 @@ const form = reactive({
   email: '',
   slug: '',
   siret: '',
-  legalIdentifier: ''
+  legalIdentifier: '',
+  isTest: false
 })
 
 const saving = ref(false)
@@ -49,6 +50,7 @@ function resetForm() {
   form.slug = ''
   form.siret = ''
   form.legalIdentifier = ''
+  form.isTest = false
 }
 
 // Auto-focus firstName on drawer open
@@ -65,7 +67,7 @@ async function handleSubmit() {
 
   saving.value = true
   try {
-    const body: Record<string, string> = {
+    const body: Record<string, string | boolean> = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.trim(),
@@ -73,6 +75,7 @@ async function handleSubmit() {
     }
     if (form.siret.trim()) body.siret = form.siret.trim()
     if (form.legalIdentifier.trim()) body.legalIdentifier = form.legalIdentifier.trim()
+    if (form.isTest) body.isTest = true
 
     const { apiFetch } = await import('~/services/api/apiFetch')
     const result = await apiFetch<{ id: string }>('/admin/providers', { method: 'POST', body })
@@ -208,6 +211,12 @@ async function handleSubmit() {
             />
           </UFormField>
         </div>
+
+        <UCheckbox
+          v-model="form.isTest"
+          label="Compte de test"
+          description="Ce compte ne sera pas visible publiquement"
+        />
       </div>
     </template>
 
