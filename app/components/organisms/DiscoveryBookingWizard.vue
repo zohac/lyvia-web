@@ -626,7 +626,7 @@ async function submitBooking() {
             key="step-2"
             :ui="{ body: 'p-6 sm:p-8' }"
           >
-            <div class="mx-auto max-w-lg">
+            <div>
               <div class="mb-6 flex items-start justify-between">
                 <div>
                   <h2 class="text-xl font-semibold text-neutral-900">
@@ -691,7 +691,7 @@ async function submitBooking() {
           >
             <div
               v-if="booking"
-              class="mx-auto max-w-lg text-center"
+              class="mx-auto max-w-xl text-center"
             >
               <div class="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-success-100">
                 <UIcon
