@@ -139,10 +139,10 @@ function formatAriaDateLabel(ymd: string): string {
 </script>
 
 <template>
-  <section class="grid gap-4">
+  <section class="grid gap-4 sm:min-w-[340px] lg:min-w-[400px]">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-0.5">
-        <h3 class="font-semibold capitalize text-neutral-900">
+        <h3 class="text-lg font-semibold capitalize text-neutral-900 sm:text-xl">
           {{ monthLabel }}
         </h3>
         <p class="text-xs text-neutral-500">
@@ -154,7 +154,7 @@ function formatAriaDateLabel(ymd: string): string {
         <UButton
           variant="ghost"
           color="neutral"
-          size="sm"
+          size="md"
           icon="i-lucide-chevron-left"
           :disabled="!canGoPrev || isLoading"
           aria-label="Mois précédent"
@@ -163,7 +163,7 @@ function formatAriaDateLabel(ymd: string): string {
         <UButton
           variant="ghost"
           color="neutral"
-          size="sm"
+          size="md"
           icon="i-lucide-chevron-right"
           :disabled="!canGoNext || isLoading"
           aria-label="Mois suivant"
@@ -172,11 +172,11 @@ function formatAriaDateLabel(ymd: string): string {
       </div>
     </div>
 
-    <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-neutral-500">
+    <div class="grid grid-cols-7 gap-1.5 text-center text-xs font-medium text-neutral-500 sm:gap-2">
       <span
         v-for="(label, index) in weekdayLabels"
         :key="index"
-        class="py-2"
+        class="py-2 sm:py-2.5 sm:text-sm"
         aria-hidden="true"
       >
         {{ label }}
@@ -184,7 +184,7 @@ function formatAriaDateLabel(ymd: string): string {
     </div>
 
     <div
-      class="grid grid-cols-7 gap-1"
+      class="grid grid-cols-7 gap-1.5 sm:gap-2"
       role="grid"
       aria-label="Calendrier des disponibilités"
     >
@@ -192,16 +192,16 @@ function formatAriaDateLabel(ymd: string): string {
         v-for="d in days"
         :key="d.ymd"
         type="button"
-        class="flex h-10 items-center justify-center rounded-lg text-sm font-medium transition-all duration-150"
+        class="flex aspect-square items-center justify-center rounded-xl text-sm font-medium transition-all duration-150 sm:text-base"
         :class="[
           !d.inMonth
             ? 'pointer-events-none text-transparent'
             : d.disabled
               ? 'cursor-not-allowed text-neutral-300'
               : modelValue === d.ymd
-                ? 'bg-crepuscule-600 text-white shadow-sm'
+                ? 'bg-crepuscule-600 text-white shadow-md ring-2 ring-crepuscule-600/20'
                 : availableDates.has(d.ymd)
-                  ? 'bg-crepuscule-50 text-crepuscule-700 hover:bg-crepuscule-100'
+                  ? 'bg-crepuscule-50 text-crepuscule-700 hover:bg-crepuscule-100 hover:shadow-sm'
                   : 'text-neutral-400 hover:bg-neutral-100'
         ]"
         :disabled="d.disabled || isLoading"

@@ -202,9 +202,9 @@ function onSelectSlot(slot: TimeSlot) {
 
     <div
       v-else
-      class="grid gap-6 lg:grid-cols-[1fr_280px] lg:items-start"
+      class="grid gap-6 md:grid-cols-[1fr_240px] md:items-start lg:grid-cols-[1fr_280px]"
     >
-      <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
+      <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6 lg:p-8">
         <CalendarMonthView
           v-model="selectedDate"
           v-model:visible-month="visibleMonth"
@@ -218,7 +218,7 @@ function onSelectSlot(slot: TimeSlot) {
         />
       </div>
 
-      <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
+      <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
         <TimeSlotGrid
           :title="selectedDateLabel ? `${selectedDateLabel}` : 'Sélectionnez un jour'"
           :slots="selectedDaySlots"
