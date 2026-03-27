@@ -466,7 +466,7 @@ async function submitBooking() {
     <!-- Stepper -->
     <div class="mx-auto mb-8 max-w-2xl">
       <UStepper
-        :model-value="step"
+        :model-value="step - 1"
         :items="stepperItems"
         color="primary"
         size="md"
