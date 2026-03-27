@@ -95,7 +95,9 @@ const breadcrumbItems = computed(() => buildCoachBreadcrumbs(breadcrumbDisplayNa
 // On B2B, force canonical to keova.fr regardless of any absolute canonical in seo_metadata (CR1-RFU-1)
 const canonicalOrigin = isB2B ? `https://${platformDomain}` : origin
 const b2bCanonical = `${canonicalOrigin}/coach/${slug.value}`
-const canonicalHref = () => isB2B ? b2bCanonical : (resolveCanonical(seo.value?.canonicalUrl, canonicalOrigin) ?? b2bCanonical)
+const canonicalHref = computed(() =>
+  isB2B ? b2bCanonical : (resolveCanonical(seo.value?.canonicalUrl, canonicalOrigin) ?? b2bCanonical)
+)
 
 useSeoMeta({
   title: () => seo.value?.title ?? `${brandName.value} — Coach`,
@@ -103,14 +105,12 @@ useSeoMeta({
   ogTitle: () => seo.value?.title ?? `${brandName.value} — Coach`,
   ogDescription: () => seo.value?.description ?? `${brandName.value} — Coaching et accompagnement`,
   ogImage: () => ogStrategy.value.kind === 'custom' ? ogStrategy.value.url : null,
-  ogUrl: canonicalHref,
+  ogUrl: () => canonicalHref.value,
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })
 
-useHead({
-  link: [{ rel: 'canonical', href: canonicalHref }]
-})
+usePublicCanonicalHead(canonicalHref)
 
 watchEffect(() => {
   setPublicHeader({

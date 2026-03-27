@@ -90,12 +90,7 @@ useSeoMeta({
   twitterCard: 'summary_large_image'
 })
 
-useHead({
-  link: [{
-    rel: 'canonical',
-    href: () => canonicalHref.value
-  }]
-})
+usePublicCanonicalHead(canonicalHref)
 
 // Set header state synchronously during setup (runs on both SSR and client)
 // to avoid hydration mismatch — watchEffect only ran on client, leaving SSR with defaults.

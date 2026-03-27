@@ -80,7 +80,9 @@ const bookingBreadcrumbs = computed(() =>
 )
 
 // Keep in sync with onboarding/discovery.vue (white-label)
-const canonicalHref = () => resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}/onboarding/discovery`
+const canonicalHref = computed(() =>
+  resolveCanonical(seo.value?.canonicalUrl, origin) ?? `${origin}/coach/${slug.value}/onboarding/discovery`
+)
 
 useSeoMeta({
   title: () => seo.value?.title ?? `Appel découverte | ${brandName.value}`,
@@ -88,13 +90,14 @@ useSeoMeta({
   ogTitle: () => seo.value?.title ?? `Appel découverte | ${brandName.value}`,
   ogDescription: () => seo.value?.description ?? `Prenez rendez-vous avec ${brandName.value} pour une séance découverte gratuite`,
   ogImage: () => seo.value?.ogImageUrl || null,
-  ogUrl: canonicalHref,
+  ogUrl: () => canonicalHref.value,
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })
 
 useHead({
-  titleTemplate: (title?: string) => title || '',
-  link: [{ rel: 'canonical', href: canonicalHref }]
+  titleTemplate: (title?: string) => title || ''
 })
+
+usePublicCanonicalHead(canonicalHref)
 </script>

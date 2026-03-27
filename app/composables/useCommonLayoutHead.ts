@@ -1,7 +1,8 @@
-import { getDomainContext, getSeoReferenceOrigin } from '#shared/utils/domain-context'
+import { resolveAlternateHref } from '#shared/utils/resolve-alternate-href'
 
 export function useCommonLayoutHead() {
   const faviconHref = useDomainAwareFaviconHref()
+  const canonicalState = usePublicCanonicalState()
   const requestUrl = useRequestURL()
 
   const runtimeConfig = useRuntimeConfig()
@@ -9,10 +10,13 @@ export function useCommonLayoutHead() {
   const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
 
   const hreflangHref = computed(() => {
-    const ctx = getDomainContext(requestUrl.hostname, platformDomain, platformDomainB2B || undefined)
-    const seoOrigin = getSeoReferenceOrigin(ctx, platformDomain)
-    const path = requestUrl.pathname
-    return `${seoOrigin}${path}`
+    return resolveAlternateHref({
+      hostname: requestUrl.hostname,
+      pathname: requestUrl.pathname,
+      platformDomain,
+      platformDomainB2B: platformDomainB2B || undefined,
+      canonicalHref: canonicalState.value
+    })
   })
 
   useHead(() => ({
