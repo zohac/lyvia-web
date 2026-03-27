@@ -9,8 +9,11 @@ export function useDomainAwareFaviconHref() {
 
   const hostname = requestUrl.hostname || ''
   const platformDomain = String(runtimeConfig.public.platformDomain || 'keova.fr')
+  const platformDomainB2B = String(runtimeConfig.public.platformDomainB2B || '')
 
   return computed(() =>
-    isPlatformHost(hostname, platformDomain) ? PLATFORM_FAVICON : WHITE_LABEL_FAVICON
+    isPlatformHost(hostname, platformDomain, platformDomainB2B || undefined)
+      ? PLATFORM_FAVICON
+      : WHITE_LABEL_FAVICON
   )
 }

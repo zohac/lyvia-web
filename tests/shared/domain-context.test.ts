@@ -1,7 +1,7 @@
 import * as assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { getDomainContext } from '../../shared/utils/domain-context'
+import { getDomainContext, getSeoReferenceOrigin } from '../../shared/utils/domain-context'
 
 const PLATFORM = 'keova.fr'
 const PLATFORM_B2B = 'keova.app'
@@ -195,4 +195,34 @@ test('getDomainContext [tri-modal]: empty B2B domain behaves like legacy mode', 
   assert.equal(whiteLabelCtx.role, 'white-label')
   assert.equal(whiteLabelCtx.isPlatform, false)
   assert.equal(whiteLabelCtx.isWhiteLabel, true)
+})
+
+// ========================================
+// getSeoReferenceOrigin
+// ========================================
+
+test('getSeoReferenceOrigin: B2C → actual host origin', () => {
+  const ctx = getDomainContext('keova.fr', PLATFORM, PLATFORM_B2B)
+  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://keova.fr')
+})
+
+test('getSeoReferenceOrigin: B2B → platform (keova.fr) origin, not keova.app', () => {
+  const ctx = getDomainContext('keova.app', PLATFORM, PLATFORM_B2B)
+  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://keova.fr')
+})
+
+test('getSeoReferenceOrigin: white-label → actual host origin', () => {
+  const ctx = getDomainContext('sophie-jouan.fr', PLATFORM, PLATFORM_B2B)
+  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://sophie-jouan.fr')
+})
+
+test('getSeoReferenceOrigin: localhost (B2B dev) → platform origin', () => {
+  const ctx = getDomainContext('localhost', PLATFORM, PLATFORM_B2B)
+  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://keova.fr')
+})
+
+test('getSeoReferenceOrigin [legacy]: platform → platform origin', () => {
+  const ctx = getDomainContext('keova.fr', PLATFORM)
+  // Legacy mode: keova.fr is B2B → returns platform origin
+  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://keova.fr')
 })
