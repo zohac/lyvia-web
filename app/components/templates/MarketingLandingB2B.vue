@@ -643,7 +643,7 @@ function scrollTo(id: string) {
     <!-- ====================== WAITLIST SECTION ====================== -->
     <section
       id="waitlist"
-      class="relative overflow-hidden bg-gradient-to-br from-[#3d3250] via-[#352c44] to-[#221d28] px-6 py-32 sm:px-12 lg:px-20"
+      class="relative overflow-hidden bg-gradient-to-br from-[#3d3250] via-[#352c44] to-[#221d28] px-6 pb-40 pt-32 sm:px-12 lg:px-20"
     >
       <!-- Ambient particles -->
       <div
@@ -668,10 +668,10 @@ function scrollTo(id: string) {
           Rejoindre la
           <span class="bg-gradient-to-r from-[#e89560] to-[#f0b48f] bg-clip-text text-transparent">beta</span>
         </h2>
-        <p class="mx-auto mt-4 max-w-lg text-lg text-[#8a7d9a]">
+        <p class="mx-auto mt-4 max-w-lg text-lg text-[#c8bfd4]">
           Inscrivez-vous pour être prévenue dès qu'une place se libère.
         </p>
-        <p class="mt-2 text-sm text-[#6b6278]">
+        <p class="mt-2 text-sm text-[#a99bb8]">
           Aucune carte bancaire. Aucun engagement. Juste un email.
         </p>
 

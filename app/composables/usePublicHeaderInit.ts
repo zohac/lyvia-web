@@ -19,6 +19,52 @@ export async function usePublicHeaderInit() {
   const ctx = getDomainContext(hostname, platformDomain, platformDomainB2B || undefined)
 
   if (ctx.isPlatform) {
+    // Seed the B2B or B2C header state before layout renders (SSR consistency)
+    const headerState = usePublicHeaderState()
+
+    if (ctx.isB2C) {
+      const b2bOrigin = platformDomainB2B
+        ? `${requestUrl.protocol}//${platformDomainB2B}${requestUrl.port ? `:${requestUrl.port}` : ''}`
+        : ''
+      const loginUrl = b2bOrigin ? `${b2bOrigin}/login` : '/login'
+
+      headerState.value = {
+        ...headerState.value,
+        variant: 'marketing',
+        layoutStyle: 'dock',
+        brandLabel: 'Keova',
+        brandTo: '/',
+        showBrandIcon: true,
+        navLinks: [
+          { label: 'Accompagnement', href: '#education' },
+          { label: 'Spécialistes', href: '#specialistes' },
+          { label: 'Symptômes', href: '#symptomes' }
+        ],
+        loginLabel: 'Se connecter',
+        loginTo: loginUrl,
+        ctaLabel: 'Trouver ma spécialiste',
+        ctaTo: '#specialistes'
+      }
+    } else {
+      headerState.value = {
+        ...headerState.value,
+        variant: 'marketing',
+        layoutStyle: 'dock',
+        brandLabel: 'Keova',
+        brandTo: '/',
+        showBrandIcon: true,
+        navLinks: [
+          { label: 'Le problème', href: '#pourquoi' },
+          { label: 'La solution', href: '#atelier' },
+          { label: 'Témoignage', href: '#temoignage' }
+        ],
+        loginLabel: 'Se connecter',
+        loginTo: '/login',
+        ctaLabel: 'Je réserve ma place',
+        ctaTo: '#waitlist'
+      }
+    }
+
     return
   }
 

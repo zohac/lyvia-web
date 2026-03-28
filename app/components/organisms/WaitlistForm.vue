@@ -80,7 +80,7 @@ const darkFormFieldUi = {
   root: 'w-full',
   label: 'text-[#f0edf3] font-semibold',
   error: 'text-[#fca5a5]',
-  hint: 'text-[#9685ab]'
+  hint: 'text-[#b9aac7]'
 }
 const lightFormFieldUi = { root: 'w-full' }
 const formFieldUi = computed(() => isDark.value ? darkFormFieldUi : lightFormFieldUi)
@@ -153,7 +153,7 @@ async function handleSubmit() {
       Nous vous contacterons en priorité dès qu'une place se libère.
       Vérifiez vos spams si besoin.
     </p>
-    <p class="mt-6 text-sm text-[#9685ab]">
+    <p class="mt-6 text-sm text-[#b9aac7]">
       En attendant, découvrez comment Sophie Jouan utilise Keova
       <a
         href="https://sophiejouan.fr"
@@ -265,7 +265,7 @@ async function handleSubmit() {
         :ui="isDark ? { base: 'mt-0.5 border-white/30' } : { base: 'mt-0.5' }"
       />
       <label
-        :class="['text-sm leading-relaxed', isDark ? 'text-[#b9aac7]' : 'text-[#857d8c]']"
+        :class="['text-sm leading-relaxed', isDark ? 'text-[#c8bfd4]' : 'text-[#6b6278]']"
       >
         J'accepte que mes données soient utilisées pour me recontacter dans le cadre de la beta Keova.
         <a
@@ -300,7 +300,7 @@ async function handleSubmit() {
     </button>
 
     <!-- Trust copy -->
-    <p :class="['text-center text-xs', isDark ? 'text-[#9685ab]' : 'text-[#857d8c]']">
+    <p :class="['text-center text-xs', isDark ? 'text-[#b9aac7]' : 'text-[#6b6278]']">
       Jamais de spam. Données hébergées en France. Conforme RGPD.
     </p>
   </form>

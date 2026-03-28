@@ -20,21 +20,21 @@ export type PublicHeaderState = {
   ctaTo: string
 }
 
-const DEFAULT_HEADER_STATE: PublicHeaderState = {
+export const DEFAULT_HEADER_STATE: PublicHeaderState = {
   variant: 'marketing',
-  layoutStyle: 'bar',
+  layoutStyle: 'dock',
   brandLabel: 'Keova',
   brandTo: '/',
   showBrandIcon: true,
   navLinks: [
-    { label: 'L\'Essence', href: '#essence' },
-    { label: 'Atelier', href: '#atelier' },
-    { label: 'Parcours', href: '#parcours' }
+    { label: 'Le problème', href: '#pourquoi' },
+    { label: 'La solution', href: '#atelier' },
+    { label: 'Témoignage', href: '#temoignage' }
   ],
   loginLabel: 'Se connecter',
   loginTo: '/login',
-  ctaLabel: 'Essayer Keova',
-  ctaTo: '/login'
+  ctaLabel: 'Je réserve ma place',
+  ctaTo: '#waitlist'
 }
 
 export function usePublicHeaderState() {
