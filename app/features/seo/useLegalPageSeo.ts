@@ -19,7 +19,5 @@ export function useLegalPageSeo(opts: {
     ogType: 'website'
   })
 
-  useHead({
-    link: [{ rel: 'canonical', href: canonicalUrl }]
-  })
+  usePublicCanonicalHead(canonicalUrl)
 }

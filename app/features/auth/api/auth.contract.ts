@@ -30,6 +30,8 @@ export type AuthUser = {
   lastname: string | null
   /** Display name (e.g., "Marie D.") or null if profile not found */
   displayName: string | null
+  /** Whether this is a test provider account (only present for PROVIDER role) */
+  isTest?: boolean
 }
 
 export type LoginRequest = {

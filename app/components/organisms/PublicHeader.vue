@@ -100,7 +100,7 @@ function closeMobileMenu() {
             :class="[
               'hidden transition-colors duration-200 hover:text-[#3d3250] md:inline-flex',
               useIconOnlyLogin
-                ? 'grid size-9 place-items-center rounded-full text-[#5b4b6e] hover:bg-[#5b4b6e]/8'
+                ? 'size-9 items-center justify-center rounded-full text-[#5b4b6e] hover:bg-[#5b4b6e]/8'
                 : 'text-sm font-medium text-[#5b4b6e]'
             ]"
             :aria-label="useIconOnlyLogin ? headerState.loginLabel : undefined"

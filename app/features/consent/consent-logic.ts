@@ -43,7 +43,7 @@ export function toConsentSignals(granted: boolean): ConsentSignals {
 }
 
 export function shouldShowConsentBanner(consent: ConsentValue): boolean {
-  return consent === null
+  return consent == null
 }
 
 export function getAcceptConsentValue(hasAds: boolean): ConsentValue {

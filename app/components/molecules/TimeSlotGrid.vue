@@ -26,23 +26,23 @@ function formatTime(iso: string): string {
     class="grid gap-4"
     aria-label="Créneaux disponibles"
   >
-    <h4 class="text-sm font-medium capitalize text-neutral-700">
+    <h4 class="text-sm font-semibold capitalize text-neutral-700">
       {{ title }}
     </h4>
 
     <div
       v-if="slots.length > 0"
-      class="flex max-h-[320px] flex-col gap-2 overflow-y-auto"
+      class="flex max-h-[400px] flex-col gap-2 overflow-y-auto pr-1"
     >
       <button
         v-for="slot in slots"
         :key="slot.startAt"
         type="button"
-        class="flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition-all duration-150"
+        class="flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-semibold tabular-nums transition-all duration-150"
         :class="[
           selectedStartAt === slot.startAt
-            ? 'border-crepuscule-600 bg-crepuscule-600 text-white'
-            : 'border-neutral-200 bg-white text-neutral-700 hover:border-crepuscule-300 hover:bg-crepuscule-50'
+            ? 'border-crepuscule-600 bg-crepuscule-600 text-white shadow-md ring-2 ring-crepuscule-600/20'
+            : 'border-neutral-200 bg-white text-neutral-700 hover:border-crepuscule-300 hover:bg-crepuscule-50 hover:shadow-sm'
         ]"
         @click="emit('select', slot)"
       >

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { apiFetch } from '~/services/api/apiFetch'
 import { validateClientFields } from '~/utils/validate-client-fields'
-import { formatDateTime } from '~/composables/useDateFormat'
 import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
 import { type ClientStage, STAGE_LABELS, STAGE_VARIANT } from '~/utils/client-stage'
 import ClientDeactivationModal from '~/components/organisms/ClientDeactivationModal.vue'
@@ -17,20 +16,40 @@ const toast = useToast()
 const clientId = computed(() => route.params.id as string)
 
 // ──────────────────────────────────────────────
-// Types (verified against OpenAPI DTOs)
+// Types
 // ──────────────────────────────────────────────
 
+// API response shape (GET /admin/clients/:clientProfileId — ProviderClientDetailResponseDto)
+type ApiClientDetailResponse = {
+  client: {
+    clientProfileId: string
+    firstname: string
+    lastname: string
+    email: string
+    phone: string
+  }
+  stage: ClientStage
+  computedStatus: ClientStage
+  isActivated: boolean
+  pausedAt: string | null
+  pauseReason: string | null
+  timezone: string
+  stats: {
+    consultationsCompleted: number
+    lastAppointmentAt: string | null
+    nextConsultationAt: string | null
+  }
+}
+
+// Normalized view used by the template
 type AdminClientDetail = {
   id: string
-  userId: string
   firstName: string
   lastName: string
   email: string
   phone: string
   stage: ClientStage
   isActive: boolean
-  createdAt: string
-  updatedAt: string
 }
 
 type ClientDeactivationImpact = {
@@ -41,13 +60,28 @@ type ClientDeactivationImpact = {
   hasActiveTransactions: boolean
 }
 
+function mapApiToDetail(raw: ApiClientDetailResponse): AdminClientDetail {
+  return {
+    id: raw.client.clientProfileId,
+    firstName: raw.client.firstname,
+    lastName: raw.client.lastname,
+    email: raw.client.email,
+    phone: raw.client.phone,
+    stage: raw.stage,
+    isActive: raw.isActivated
+  }
+}
+
 // ──────────────────────────────────────────────
 // Data fetching
 // ──────────────────────────────────────────────
 
 const { data: detail, pending, error, refresh: refreshDetail } = await useAsyncData<AdminClientDetail>(
   `admin-client-detail-${clientId.value}`,
-  () => apiFetch<AdminClientDetail>(`/admin/clients/${clientId.value}`)
+  async () => {
+    const raw = await apiFetch<ApiClientDetailResponse>(`/admin/clients/${clientId.value}`)
+    return mapApiToDetail(raw)
+  }
 )
 
 // ──────────────────────────────────────────────
@@ -328,25 +362,7 @@ async function reactivateClient() {
         </div>
       </section>
 
-      <!-- Info cards -->
-      <div class="mt-6 grid gap-4 sm:grid-cols-2">
-        <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
-          <dt class="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-            Inscription
-          </dt>
-          <dd class="text-sm text-[color:var(--color-brand-secondary)]">
-            {{ formatDateTime(detail.createdAt) }}
-          </dd>
-        </div>
-        <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
-          <dt class="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-            Dernière mise à jour
-          </dt>
-          <dd class="text-sm text-[color:var(--color-brand-secondary)]">
-            {{ formatDateTime(detail.updatedAt) }}
-          </dd>
-        </div>
-      </div>
+      <!-- Info cards placeholder — createdAt/updatedAt not available in current API response -->
 
       <!-- Edit form -->
       <section class="mt-6 rounded-2xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-crepuscule-50)]/55 p-6 shadow-soft">

@@ -7,7 +7,12 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/ui',
     '@nuxt/image',
-    '@nuxt/fonts',
+    ['@nuxt/fonts', {
+      families: [
+        { name: 'Manrope', preload: true },
+        { name: 'Fraunces', preload: true }
+      ]
+    }],
     '@nuxtjs/seo'
   ],
 

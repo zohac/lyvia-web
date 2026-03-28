@@ -56,7 +56,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
           name="firstname"
           type="text"
           autocomplete="given-name"
-          class="h-12 w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
+          class="h-12 w-full rounded-xl border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
           :class="
             slotProps?.invalid
               ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
@@ -80,7 +80,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
           name="lastname"
           type="text"
           autocomplete="family-name"
-          class="h-12 w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
+          class="h-12 w-full rounded-xl border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
           :class="
             slotProps?.invalid
               ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
@@ -106,7 +106,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
         type="email"
         inputmode="email"
         autocomplete="email"
-        class="h-12 w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
+        class="h-12 w-full rounded-xl border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
         :class="
           slotProps?.invalid
             ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
@@ -132,7 +132,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
         inputmode="tel"
         autocomplete="tel"
         placeholder="+33 6 12 34 56 78"
-        class="h-12 w-full rounded-[var(--radius-sm)] border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
+        class="h-12 w-full rounded-xl border bg-[color:var(--color-surface-card)] px-4 text-base text-[color:var(--color-brand-primary)] placeholder:text-[color:var(--color-brand-secondary)] placeholder:opacity-60 shadow-none transition-[border-color,box-shadow] duration-150 ease-in-out focus:outline-none focus:ring-4"
         :class="
           slotProps?.invalid
             ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'

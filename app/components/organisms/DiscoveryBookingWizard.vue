@@ -74,7 +74,7 @@ function updateConsents(value: typeof consents.value) {
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
 const isWhiteLabelTenant = computed(() => tenant.value?.brand.mode === 'custom_domain')
 const headerLogoSrc = computed(() =>
-  isWhiteLabelTenant.value ? '/images/logo_aurea_menopause_inline.png' : '/images/keova-logo.png'
+  isWhiteLabelTenant.value ? '/images/keova-logo-white-label.png' : '/images/keova-logo.png'
 )
 const headerLogoAlt = computed(() =>
   isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Keova'
@@ -306,6 +306,14 @@ function goToIdentityStep() {
   goToStep(2)
 }
 
+const canSubmitIdentity = computed(() =>
+  identity.value.firstname.trim().length > 0
+  && identity.value.lastname.trim().length > 0
+  && identity.value.email.trim().length > 0
+  && identity.value.phone.trim().length > 0
+  && consents.value.legalAccepted
+)
+
 function validateIdentity(): boolean {
   const errors: FormErrors = {}
 
@@ -466,7 +474,7 @@ async function submitBooking() {
     <!-- Stepper -->
     <div class="mx-auto mb-8 max-w-2xl">
       <UStepper
-        :model-value="step"
+        :model-value="step - 1"
         :items="stepperItems"
         color="primary"
         size="md"
@@ -626,7 +634,7 @@ async function submitBooking() {
             key="step-2"
             :ui="{ body: 'p-6 sm:p-8' }"
           >
-            <div class="mx-auto max-w-lg">
+            <div>
               <div class="mb-6 flex items-start justify-between">
                 <div>
                   <h2 class="text-xl font-semibold text-neutral-900">
@@ -671,7 +679,7 @@ async function submitBooking() {
                 class="mt-8"
                 block
                 :loading="isSubmitting"
-                :disabled="isSubmitting"
+                :disabled="!canSubmitIdentity || isSubmitting"
                 @click="submitBooking"
               >
                 Confirmer mon appel
@@ -691,7 +699,7 @@ async function submitBooking() {
           >
             <div
               v-if="booking"
-              class="mx-auto max-w-lg text-center"
+              class="mx-auto max-w-xl text-center"
             >
               <div class="mx-auto mb-6 flex size-16 items-center justify-center rounded-full bg-success-100">
                 <UIcon

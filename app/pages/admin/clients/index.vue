@@ -51,6 +51,7 @@ type ListClientsResponse = {
 type ProviderOption = {
   id: string
   displayName: string
+  isTest: boolean
 }
 
 // ──────────────────────────────────────────────
@@ -60,7 +61,7 @@ type ProviderOption = {
 const searchQuery = ref('')
 const stageFilter = ref<ClientStage | 'all'>('all')
 const isActiveFilter = ref<IsActiveFilter>('all')
-const providerFilter = ref<string>('')
+const providerFilter = ref<string>('all')
 const loadingMore = ref(false)
 
 const stageOptions = [
@@ -83,12 +84,15 @@ const isActiveOptions = [
 
 const { data: providersData } = await useAsyncData<{ items: ProviderOption[] }>(
   'admin-providers-for-filter',
-  () => apiFetch<{ items: ProviderOption[] }>('/admin/providers', { params: { limit: '200' } })
+  () => apiFetch<{ items: ProviderOption[] }>('/admin/providers', { params: { limit: '100' } })
 )
 
 const providerOptions = computed(() => [
-  { value: '', label: 'Tous les providers' },
-  ...(providersData.value?.items.map(p => ({ value: p.id, label: p.displayName })) ?? [])
+  { value: 'all', label: 'Tous les providers' },
+  ...(providersData.value?.items.map(p => ({
+    value: p.id,
+    label: p.isTest ? `${p.displayName} (Test)` : p.displayName
+  })) ?? [])
 ])
 
 // ──────────────────────────────────────────────
@@ -100,7 +104,7 @@ const queryParams = computed(() => {
   if (searchQuery.value) params.q = searchQuery.value
   if (stageFilter.value !== 'all') params.status = stageFilter.value
   if (isActiveFilter.value !== 'all') params.isActive = isActiveFilter.value
-  if (providerFilter.value) params.providerId = providerFilter.value
+  if (providerFilter.value && providerFilter.value !== 'all') params.providerId = providerFilter.value
   return params
 })
 

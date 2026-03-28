@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { useProviderStripeStatus } from '../features/stripe/useProviderStripeStatus'
 import { useProviderRequestsBadge } from '../features/provider-requests/useProviderRequestsBadge'
+import { useCurrentUser } from '../features/auth/useCurrentUser'
 
 useCommonLayoutHead()
+
+const { user } = useCurrentUser()
+const isTestAccount = computed(() => user.value?.isTest === true)
 
 const stripeStatus = useProviderStripeStatus()
 const requestsBadge = useProviderRequestsBadge()
@@ -126,6 +130,14 @@ const navigation = computed(() => ({
     sidebar-label="Coach"
     :navigation="navigation"
   >
+    <UAlert
+      v-if="isTestAccount"
+      color="warning"
+      variant="subtle"
+      icon="lucide:flask-conical"
+      title="Compte de test — Les données de ce compte ne sont pas visibles publiquement"
+      class="mb-6"
+    />
     <div
       v-if="stripeStatus.isBlocked.value"
       class="mb-6 flex items-center justify-center gap-3 rounded-blob-b bg-gradient-to-r from-red-600 to-red-500 px-4 py-3 text-sm font-medium text-white shadow-floating"
