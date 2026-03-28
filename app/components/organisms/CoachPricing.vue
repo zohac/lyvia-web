@@ -125,12 +125,12 @@ function getProgramCta(program: PublicProgramListItem) {
         >
           Programmes d'accompagnement
         </p>
-        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div class="flex flex-wrap justify-center gap-6">
           <article
             v-for="(program, index) in programs"
             :key="program.id"
             v-bind="reveal({ delay: 250 + index * 100 })"
-            class="pricing-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+            class="pricing-card scroll-reveal group relative w-full overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300 md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
           >
             <!-- Glow blob -->
             <div
