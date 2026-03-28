@@ -21,6 +21,10 @@ test('cookie consent state helpers: shows banner when consent is null', () => {
   assert.equal(shouldShowConsentBanner(null), true)
 })
 
+test('cookie consent state helpers: shows banner when consent is undefined (fresh browser)', () => {
+  assert.equal(shouldShowConsentBanner(undefined as unknown as ConsentValue), true)
+})
+
 test('cookie consent state helpers: does not show banner for acknowledged consent', () => {
   assert.equal(shouldShowConsentBanner('acknowledged'), false)
 })
