@@ -4,7 +4,7 @@ import WaitlistForm from '~/components/organisms/WaitlistForm.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
 const isWaitlistModalOpen = ref(false)
-const { reveal } = useScrollReveal()
+const { reveal, isReady: scrollReady } = useScrollReveal()
 
 // --- Comparatif outils fragmentés ---
 const fragmentedTools = [
@@ -12,7 +12,7 @@ const fragmentedTools = [
   { name: 'Stripe', icon: 'i-lucide-credit-card', color: '#635BFF' },
   { name: 'Excel', icon: 'i-lucide-table', color: '#217346' },
   { name: 'WordPress', icon: 'i-lucide-globe', color: '#21759B' },
-  { name: 'Gmail', icon: 'i-lucide-mail', color: '#EA4335' }
+  { name: 'Doctolib', icon: 'i-lucide-stethoscope', color: '#0596DE' }
 ]
 
 // --- Stats pour le social proof ---
@@ -28,7 +28,9 @@ function scrollTo(id: string) {
 </script>
 
 <template>
-  <div class="relative min-h-screen overflow-hidden bg-[#f8f6fa]">
+  <div
+    :class="['relative min-h-screen overflow-hidden bg-[#f8f6fa]', { 'js-scroll-ready': scrollReady }]"
+  >
     <!-- Ambient gradient mesh background — elevated depth -->
     <div
       aria-hidden="true"
@@ -52,7 +54,7 @@ function scrollTo(id: string) {
     <!-- ====================== HERO SECTION ====================== -->
     <section
       id="essence"
-      class="relative min-h-screen px-6 pb-24 pt-32 sm:px-12 lg:px-20"
+      class="relative min-h-[calc(100svh-80px)] px-6 pb-24 pt-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-7xl">
         <div class="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
@@ -87,7 +89,7 @@ function scrollTo(id: string) {
               Keova réunit agenda, paiements et suivi client dans une expérience calme
               — pensée pour les métiers du soin, pas pour les dashboards bruyants.
             </p>
-            <p class="max-w-md text-sm text-[#857d8c]">
+            <p class="max-w-md text-sm text-[#6b6278]">
               Keova est en beta privée avec un nombre limité de praticiennes.
               Inscrivez-vous pour être prévenue de l'ouverture.
             </p>
@@ -100,44 +102,27 @@ function scrollTo(id: string) {
               >
                 <span class="cta-primary-bg" />
                 <span class="relative z-10 flex items-center gap-2">
-                  Rejoindre la liste d'attente
+                  Je réserve ma place
                   <UIcon
                     name="i-lucide-arrow-right"
                     class="size-5 transition-transform duration-300 group-hover:translate-x-1"
                   />
                 </span>
               </button>
-
-              <button
-                class="group flex items-center gap-2 rounded-full border-2 border-[#d7cfdf] px-8 py-4 font-semibold text-[#4d3f5c] transition-all duration-300 hover:border-[#9685ab] hover:bg-white/60"
-                @click="scrollTo('atelier')"
-              >
-                <UIcon
-                  name="i-lucide-play-circle"
-                  class="size-5 transition-transform duration-300 group-hover:scale-110"
-                />
-                Découvrir
-              </button>
             </div>
 
             <!-- Login link discret -->
             <NuxtLink
               to="/login"
-              class="self-start text-sm text-[#857d8c] underline-offset-2 transition-colors duration-200 hover:text-[#5b4b6e] hover:underline"
+              class="self-start text-sm text-[#6b6278] underline-offset-2 transition-colors duration-200 hover:text-[#5b4b6e] hover:underline"
             >
               Déjà inscrite ? Se connecter
             </NuxtLink>
 
-            <!-- Trust badges -->
-            <div class="flex flex-wrap gap-3">
-              <span
-                v-for="badge in ['Beta privée', 'Places limitées', 'White-label']"
-                :key="badge"
-                class="trust-badge rounded-full border border-[#d7cfdf] bg-white/60 px-4 py-2 text-sm font-medium text-[#4d3f5c] backdrop-blur-sm"
-              >
-                {{ badge }}
-              </span>
-            </div>
+            <!-- Réassurance -->
+            <p class="text-sm text-[#6b6278]">
+              Sans carte bancaire · Aucun engagement · Données hébergées en France
+            </p>
           </div>
 
           <!-- Hero Visual -->
@@ -153,7 +138,7 @@ function scrollTo(id: string) {
                     />
                   </div>
                   <div>
-                    <p class="text-xs font-medium text-[#857d8c]">
+                    <p class="text-xs font-medium text-[#6b6278]">
                       Nouveau RDV
                     </p>
                     <p class="font-semibold text-[#4d3f5c]">
@@ -174,7 +159,7 @@ function scrollTo(id: string) {
                     />
                   </div>
                   <div>
-                    <p class="text-xs font-medium text-[#857d8c]">
+                    <p class="text-xs font-medium text-[#6b6278]">
                       Paiement reçu
                     </p>
                     <p class="font-semibold text-[#4d3f5c]">
@@ -190,13 +175,13 @@ function scrollTo(id: string) {
               <div class="hero-glow absolute -inset-4 -z-10 rounded-[2rem]" />
               <div class="overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-2xl backdrop-blur-sm transition-transform duration-700 hover:scale-[1.01]">
                 <NuxtImg
-                  src="/images/marketing-dashboard-mockup.svg"
+                  src="/images/screenshot-dashboard.png"
                   class="w-full rounded-2xl"
                   alt="Interface Keova — agenda, paiements et suivi client"
                   loading="eager"
                   fetchpriority="high"
-                  :width="1200"
-                  :height="800"
+                  width="1200"
+                  height="800"
                 />
               </div>
             </div>
@@ -206,7 +191,8 @@ function scrollTo(id: string) {
         <!-- Scroll indicator -->
         <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
           <button
-            class="flex flex-col items-center gap-2 text-[#9685ab] transition-colors duration-300 hover:text-[#5b4b6e]"
+            class="flex flex-col items-center gap-2 text-[#6b6278] transition-colors duration-300 hover:text-[#5b4b6e]"
+            aria-label="Explorer — défiler vers la section suivante"
             @click="scrollTo('pourquoi')"
           >
             <span class="text-xs font-medium uppercase tracking-widest">Explorer</span>
@@ -221,7 +207,7 @@ function scrollTo(id: string) {
     <!-- ====================== POURQUOI KEOVA ====================== -->
     <section
       id="pourquoi"
-      class="relative px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
     >
       <div
         v-bind="reveal()"
@@ -232,7 +218,7 @@ function scrollTo(id: string) {
           Moins d'onglets.
           <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">Plus de présence.</span>
         </h2>
-        <p class="mx-auto mt-4 max-w-xl text-[#857d8c]">
+        <p class="mx-auto mt-4 max-w-xl text-[#6b6278]">
           Aujourd'hui, votre quotidien c'est 5 outils, 5 mots de passe, 5 onglets.
           Et si tout tenait dans un seul espace ?
         </p>
@@ -249,11 +235,11 @@ function scrollTo(id: string) {
               <div class="grid size-12 place-items-center rounded-xl bg-[#f5f3f7] transition-all duration-300 group-hover:bg-[#ebe7ef]">
                 <UIcon
                   :name="tool.icon"
-                  class="size-6 text-[#857d8c] transition-colors duration-300"
+                  class="size-6 text-[#6b6278] transition-colors duration-300"
                   :style="{ '--tool-color': tool.color }"
                 />
               </div>
-              <span class="text-xs font-medium text-[#857d8c]">{{ tool.name }}</span>
+              <span class="text-xs font-medium text-[#6b6278]">{{ tool.name }}</span>
             </div>
           </div>
 
@@ -301,7 +287,7 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== STATS BAND ====================== -->
-    <section class="relative overflow-hidden border-y border-[#ebe7ef] bg-white/60 px-6 py-12 backdrop-blur-sm sm:px-12 lg:px-20">
+    <section class="relative overflow-hidden border-y border-[#ebe7ef] bg-[#f0edf3] px-6 py-12 sm:px-12 lg:px-20">
       <div class="mx-auto flex max-w-4xl flex-col items-center justify-around gap-8 sm:flex-row">
         <div
           v-for="(stat, i) in stats"
@@ -310,8 +296,8 @@ function scrollTo(id: string) {
           class="scroll-reveal flex flex-col items-center gap-1 text-center"
         >
           <span class="font-serif text-4xl text-[#5b4b6e] lg:text-5xl">{{ stat.value }}</span>
-          <span class="text-sm font-semibold uppercase tracking-wider text-[#857d8c]">{{ stat.label }}</span>
-          <span class="text-xs text-[#b9aac7]">{{ stat.suffix }}</span>
+          <span class="text-sm font-semibold uppercase tracking-wider text-[#6b6278]">{{ stat.label }}</span>
+          <span class="text-xs text-[#8a7d9a]">{{ stat.suffix }}</span>
         </div>
       </div>
     </section>
@@ -319,7 +305,7 @@ function scrollTo(id: string) {
     <!-- ====================== ATELIER SECTION ====================== -->
     <section
       id="atelier"
-      class="relative bg-gradient-to-b from-transparent via-[#f0edf3] to-transparent px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-6xl">
         <div class="flex flex-col items-center gap-16 lg:flex-row lg:gap-20">
@@ -331,12 +317,12 @@ function scrollTo(id: string) {
             <div class="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-40 blur-[30px]" />
             <div class="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-xl backdrop-blur-sm transition-transform duration-500 hover:scale-[1.02]">
               <NuxtImg
-                src="/images/marketing-screen-calendar.svg"
+                src="/images/screenshot-calendar.png"
                 class="w-full rounded-2xl"
-                alt="Agenda Keova"
+                alt="Agenda Keova — vue calendrier semaine"
                 loading="lazy"
-                :width="600"
-                :height="400"
+                width="600"
+                height="400"
               />
             </div>
             <!-- Floating quote -->
@@ -369,7 +355,7 @@ function scrollTo(id: string) {
               orchestrés sans effort.
             </p>
 
-            <p class="text-[#857d8c]">
+            <p class="text-[#6b6278]">
               Chaque détail vise à réduire la charge mentale. Vous gardez la relation, Keova garde la structure.
             </p>
 
@@ -377,7 +363,7 @@ function scrollTo(id: string) {
               class="group -ml-2 flex items-center gap-2 self-start font-semibold text-[#5b4b6e] transition-colors duration-200 hover:text-[#c47a4a]"
               @click="scrollTo('waitlist')"
             >
-              Rejoindre la beta
+              Je réserve ma place
               <UIcon
                 name="i-lucide-arrow-right"
                 class="size-4 transition-transform duration-300 group-hover:translate-x-1"
@@ -402,7 +388,7 @@ function scrollTo(id: string) {
                     <p class="font-semibold text-[#3d3250]">
                       Paiements
                     </p>
-                    <p class="mt-1 text-sm text-[#857d8c]">
+                    <p class="mt-1 text-sm text-[#6b6278]">
                       Stripe, factures, statuts : la trésorerie devient lisible, sans effort.
                     </p>
                   </div>
@@ -425,7 +411,7 @@ function scrollTo(id: string) {
                     <p class="font-semibold text-[#3d3250]">
                       Ressources
                     </p>
-                    <p class="mt-1 text-sm text-[#857d8c]">
+                    <p class="mt-1 text-sm text-[#6b6278]">
                       Des contenus au bon moment, pour prolonger le travail entre les séances.
                     </p>
                   </div>
@@ -440,7 +426,7 @@ function scrollTo(id: string) {
     <!-- ====================== PARCOURS SECTION ====================== -->
     <section
       id="parcours"
-      class="relative px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-[#f5f3f7] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-6xl">
         <div
@@ -474,7 +460,7 @@ function scrollTo(id: string) {
                 <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
                   Une page, un agenda.
                 </h3>
-                <p class="mt-4 text-[#857d8c]">
+                <p class="mt-4 text-[#6b6278]">
                   Votre page publique et vos créneaux se configurent en douceur. Quelques minutes suffisent.
                 </p>
               </div>
@@ -484,12 +470,12 @@ function scrollTo(id: string) {
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
-                    src="/images/marketing-screen-calendar.svg"
+                    src="/images/screenshot-scheduling.png"
                     class="w-full rounded-xl"
-                    alt="Configuration agenda"
+                    alt="Configuration créneaux et tarifs"
                     loading="lazy"
-                    :width="400"
-                    :height="280"
+                    width="400"
+                    height="280"
                   />
                 </div>
               </div>
@@ -508,7 +494,7 @@ function scrollTo(id: string) {
                 <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
                   Le flux suit.
                 </h3>
-                <p class="mt-4 text-[#857d8c]">
+                <p class="mt-4 text-[#6b6278]">
                   Paiements, confirmations, rappels : la structure devient naturelle et invisible.
                 </p>
               </div>
@@ -518,12 +504,12 @@ function scrollTo(id: string) {
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
-                    src="/images/marketing-screen-payments.svg"
+                    src="/images/screenshot-payments.png"
                     class="w-full rounded-xl"
-                    alt="Automatisation paiements"
+                    alt="Finance et paiements automatisés"
                     loading="lazy"
-                    :width="400"
-                    :height="280"
+                    width="400"
+                    height="280"
                   />
                 </div>
               </div>
@@ -542,7 +528,7 @@ function scrollTo(id: string) {
                 <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
                   Le soin reste.
                 </h3>
-                <p class="mt-4 text-[#857d8c]">
+                <p class="mt-4 text-[#6b6278]">
                   Contenus, suivi et ressources : vos clientes restent engagées, sans surcharge.
                 </p>
               </div>
@@ -552,12 +538,12 @@ function scrollTo(id: string) {
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
-                    src="/images/marketing-screen-library.svg"
+                    src="/images/screenshot-clients.png"
                     class="w-full rounded-xl"
-                    alt="Expérience client"
+                    alt="Suivi et gestion des clientes"
                     loading="lazy"
-                    :width="400"
-                    :height="280"
+                    width="400"
+                    height="280"
                   />
                 </div>
               </div>
@@ -570,7 +556,7 @@ function scrollTo(id: string) {
     <!-- ====================== CASE STUDY SOPHIE ====================== -->
     <section
       id="temoignage"
-      class="relative bg-gradient-to-b from-transparent via-[#f5f3f7] to-transparent px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-4xl">
         <!-- Badge -->
@@ -614,7 +600,7 @@ function scrollTo(id: string) {
                 <p class="font-semibold text-[#3d3250]">
                   Sophie Jouan
                 </p>
-                <p class="text-sm text-[#857d8c]">
+                <p class="text-sm text-[#6b6278]">
                   Sophrologue spécialisée ménopause, Lyon
                 </p>
               </div>
@@ -622,9 +608,9 @@ function scrollTo(id: string) {
               <!-- Comparatif avant/après — enhanced -->
               <div class="mt-6 flex flex-wrap items-center gap-2">
                 <span
-                  v-for="tool in ['Calendly', 'Stripe', 'Excel', 'WordPress', 'Gmail']"
+                  v-for="tool in ['Calendly', 'Stripe', 'Excel', 'WordPress', 'Doctolib']"
                   :key="tool"
-                  class="rounded-full bg-[#ebe7ef] px-3 py-1 text-xs text-[#857d8c] transition-all duration-300 group-hover:bg-[#f5f3f7]"
+                  class="rounded-full bg-[#ebe7ef] px-3 py-1 text-xs text-[#6b6278] transition-all duration-300 group-hover:bg-[#f5f3f7]"
                 >{{ tool }}</span>
                 <UIcon
                   name="i-lucide-arrow-right"
@@ -639,7 +625,7 @@ function scrollTo(id: string) {
               <a
                 href="https://sophiejouan.fr"
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
                 class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:text-[#c47a4a]"
               >
                 Voir le profil de Sophie Jouan, spécialiste ménopause
@@ -657,7 +643,7 @@ function scrollTo(id: string) {
     <!-- ====================== WAITLIST SECTION ====================== -->
     <section
       id="waitlist"
-      class="relative overflow-hidden bg-gradient-to-br from-[#3d3250] via-[#352c44] to-[#221d28] px-6 py-32 sm:px-12 lg:px-20"
+      class="relative overflow-hidden bg-gradient-to-br from-[#3d3250] via-[#352c44] to-[#221d28] px-6 pb-40 pt-32 sm:px-12 lg:px-20"
     >
       <!-- Ambient particles -->
       <div
@@ -682,10 +668,10 @@ function scrollTo(id: string) {
           Rejoindre la
           <span class="bg-gradient-to-r from-[#e89560] to-[#f0b48f] bg-clip-text text-transparent">beta</span>
         </h2>
-        <p class="mx-auto mt-4 max-w-lg text-lg text-[#b9aac7]">
+        <p class="mx-auto mt-4 max-w-lg text-lg text-[#c8bfd4]">
           Inscrivez-vous pour être prévenue dès qu'une place se libère.
         </p>
-        <p class="mt-2 text-sm text-[#857d8c]">
+        <p class="mt-2 text-sm text-[#a99bb8]">
           Aucune carte bancaire. Aucun engagement. Juste un email.
         </p>
 
@@ -696,41 +682,44 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== WAITLIST MODAL ====================== -->
-    <UModal
-      v-model:open="isWaitlistModalOpen"
-      title="Rejoindre la beta Keova"
-      description="Votre demande reste confidentielle. Aucun engagement."
-      :ui="{
-        content: 'rounded-3xl border border-[#ebe7ef] bg-white shadow-2xl max-w-lg overflow-hidden',
-        header: 'relative overflow-hidden bg-gradient-to-r from-[#5b4b6e] via-[#7a6b8e] to-[#5b4b6e] px-8 pt-8 pb-6',
-        body: 'px-8 pb-8 pt-6',
-        title: 'font-serif text-2xl text-white',
-        description: 'text-sm text-[#d7cfdf]',
-        close: 'text-white/70 hover:text-white hover:bg-white/10 rounded-full'
-      }"
-    >
-      <template #header>
-        <!-- Ambient glow in header -->
-        <div
-          class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#d4956a] opacity-20 blur-[40px]"
-          aria-hidden="true"
-        />
-        <h3 class="relative font-serif text-2xl text-white">
-          Rejoindre la beta
-          <span class="bg-gradient-to-r from-[#f0b48f] to-[#e89560] bg-clip-text text-transparent">Keova</span>
-        </h3>
-        <p class="relative mt-1 text-sm text-[#d7cfdf]">
-          Votre demande reste confidentielle. Aucun engagement.
-        </p>
-      </template>
+    <!-- ClientOnly: prevents SSR of second WaitlistForm instance which causes useId() mismatch -->
+    <ClientOnly>
+      <UModal
+        v-model:open="isWaitlistModalOpen"
+        title="Rejoindre la beta Keova"
+        description="Votre demande reste confidentielle. Aucun engagement."
+        :ui="{
+          content: 'rounded-3xl border border-[#ebe7ef] bg-white shadow-2xl max-w-lg overflow-hidden',
+          header: 'relative overflow-hidden bg-gradient-to-r from-[#5b4b6e] via-[#7a6b8e] to-[#5b4b6e] px-8 pt-8 pb-6',
+          body: 'px-8 pb-8 pt-6',
+          title: 'font-serif text-2xl text-white',
+          description: 'text-sm text-[#d7cfdf]',
+          close: 'text-white/70 hover:text-white hover:bg-white/10 rounded-full'
+        }"
+      >
+        <template #header>
+          <!-- Ambient glow in header -->
+          <div
+            class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#d4956a] opacity-20 blur-[40px]"
+            aria-hidden="true"
+          />
+          <h3 class="relative font-serif text-2xl text-white">
+            Rejoindre la beta
+            <span class="bg-gradient-to-r from-[#f0b48f] to-[#e89560] bg-clip-text text-transparent">Keova</span>
+          </h3>
+          <p class="relative mt-1 text-sm text-[#d7cfdf]">
+            Votre demande reste confidentielle. Aucun engagement.
+          </p>
+        </template>
 
-      <template #body>
-        <WaitlistForm
-          mode="modal"
-          @submitted="isWaitlistModalOpen = false"
-        />
-      </template>
-    </UModal>
+        <template #body>
+          <WaitlistForm
+            mode="modal"
+            @submitted="isWaitlistModalOpen = false"
+          />
+        </template>
+      </UModal>
+    </ClientOnly>
   </div>
 </template>
 
@@ -740,11 +729,18 @@ function scrollTo(id: string) {
  * ================================================================================================= */
 
 /* --- Scroll reveal base --- */
+/* Default: visible (SSR-safe for crawlers and no-JS) */
 .scroll-reveal {
-  opacity: 0;
-  transform: translateY(24px);
+  opacity: 1;
+  transform: translateY(0);
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
+}
+
+/* JS-enhanced: hide until IntersectionObserver reveals */
+.js-scroll-ready .scroll-reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(24px);
 }
 
 .scroll-reveal.is-visible {
@@ -868,18 +864,6 @@ function scrollTo(id: string) {
   50% { background-position: 100% center; }
 }
 
-/* --- Trust badges hover --- */
-.trust-badge {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.trust-badge:hover {
-  border-color: #f0b48f;
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(91, 75, 110, 0.08);
-}
-
 /* --- Tool cards --- */
 .tool-card {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -966,5 +950,24 @@ function scrollTo(id: string) {
   25% { transform: translate(10px, -20px) scale(1.2); opacity: 0.7; }
   50% { transform: translate(-5px, -40px) scale(0.8); opacity: 0.5; }
   75% { transform: translate(15px, -20px) scale(1.1); opacity: 0.6; }
+}
+
+/* =================================================================================================
+ * REDUCED MOTION — disable perpetual animations
+ * ================================================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-float-delayed,
+  .animate-float-slow,
+  .hero-gradient-text,
+  .eyebrow-shimmer,
+  .scroll-dot,
+  .arrow-pulse,
+  .hero-glow,
+  .avatar-ring,
+  .particle,
+  .cta-primary-bg {
+    animation: none !important;
+  }
 }
 </style>

@@ -25,15 +25,16 @@ function closeMobileMenu() {
 </script>
 
 <template>
-  <!-- Dock-style floating header -->
-  <template v-if="isDockHeader">
+  <div>
+    <!-- Dock-style floating header -->
     <nav
+      v-if="isDockHeader"
       class="fixed left-0 right-0 top-6 z-50 flex justify-center px-4"
       aria-label="Navigation principale"
     >
       <div
         :class="[
-          'dock-bar flex w-full max-w-5xl items-center justify-between gap-6 rounded-full px-6 py-3 shadow-lg',
+          'dock-bar flex w-full max-w-5xl items-center justify-between gap-6 rounded-full px-6 py-4 shadow-lg',
           isMarketingVariant
             ? 'border border-white/30 bg-white/70 backdrop-blur-xl'
             : 'border border-white/40 bg-white/80 backdrop-blur-xl'
@@ -49,9 +50,9 @@ function closeMobileMenu() {
             <NuxtImg
               src="/images/keova-logo.png"
               alt=""
-              class="h-7 w-auto sm:h-8"
-              width="120"
-              height="32"
+              class="h-10 w-auto sm:h-12"
+              width="104"
+              height="48"
               aria-hidden="true"
               loading="eager"
             />
@@ -199,89 +200,89 @@ function closeMobileMenu() {
         </div>
       </Transition>
     </nav>
-  </template>
 
-  <!-- Classic sticky header -->
-  <header
-    v-else
-    class="sticky top-0 z-40 border-b border-[#ebe7ef]"
-  >
-    <div class="bg-white/90 backdrop-blur-lg">
-      <div class="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <!-- Brand -->
-        <ULink
-          :to="headerState.brandTo"
-          class="inline-flex items-center gap-3 transition-all duration-300"
-          aria-label="Accueil"
-        >
-          <template v-if="useKeovaLogoImage">
-            <NuxtImg
-              src="/images/keova-logo.png"
-              alt=""
-              class="h-8 w-auto sm:h-9"
-              width="135"
-              height="36"
-              aria-hidden="true"
-              loading="eager"
-            />
-            <span class="sr-only">
-              Keova
+    <!-- Classic sticky header -->
+    <header
+      v-else
+      class="sticky top-0 z-40 border-b border-[#ebe7ef]"
+    >
+      <div class="bg-white/90 backdrop-blur-lg">
+        <div class="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+          <!-- Brand -->
+          <ULink
+            :to="headerState.brandTo"
+            class="inline-flex items-center gap-3 transition-all duration-300"
+            aria-label="Accueil"
+          >
+            <template v-if="useKeovaLogoImage">
+              <NuxtImg
+                src="/images/keova-logo.png"
+                alt=""
+                class="h-8 w-auto sm:h-9"
+                width="78"
+                height="36"
+                aria-hidden="true"
+                loading="eager"
+              />
+              <span class="sr-only">
+                Keova
+              </span>
+            </template>
+            <template v-else-if="useCustomLogoImage">
+              <NuxtImg
+                :src="headerState.brandLogoSrc"
+                :alt="headerState.brandLabel"
+                class="h-16 w-auto"
+                width="200"
+                height="64"
+                loading="eager"
+              />
+            </template>
+            <span
+              v-else
+              class="font-serif text-2xl tracking-tight text-[#3d3250]"
+            >
+              {{ headerState.brandLabel }}
             </span>
-          </template>
-          <template v-else-if="useCustomLogoImage">
-            <NuxtImg
-              :src="headerState.brandLogoSrc"
-              :alt="headerState.brandLabel"
-              class="h-16 w-auto"
-              width="200"
-              height="64"
-              loading="eager"
-            />
-          </template>
-          <span
-            v-else
-            class="font-serif text-2xl tracking-tight text-[#3d3250]"
-          >
-            {{ headerState.brandLabel }}
-          </span>
-        </ULink>
-
-        <!-- Nav links -->
-        <nav
-          v-if="showNavLinks"
-          class="hidden items-center gap-8 md:flex"
-          aria-label="Navigation"
-        >
-          <ULink
-            v-for="link in headerState.navLinks"
-            :key="link.href"
-            :to="link.href"
-            class="text-sm font-semibold text-[#857d8c] transition-colors duration-200 hover:text-[#5b4b6e]"
-          >
-            {{ link.label }}
-          </ULink>
-        </nav>
-
-        <!-- Actions -->
-        <div class="flex items-center gap-3">
-          <ULink
-            :to="headerState.loginTo"
-            class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[#5b4b6e] transition-colors duration-200 hover:text-[#3d3250] md:inline-flex"
-          >
-            {{ headerState.loginLabel }}
           </ULink>
 
-          <UButton
-            :to="headerState.ctaTo"
-            size="lg"
-            class="rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+          <!-- Nav links -->
+          <nav
+            v-if="showNavLinks"
+            class="hidden items-center gap-8 md:flex"
+            aria-label="Navigation"
           >
-            {{ headerState.ctaLabel }}
-          </UButton>
+            <ULink
+              v-for="link in headerState.navLinks"
+              :key="link.href"
+              :to="link.href"
+              class="text-sm font-semibold text-[#857d8c] transition-colors duration-200 hover:text-[#5b4b6e]"
+            >
+              {{ link.label }}
+            </ULink>
+          </nav>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-3">
+            <ULink
+              :to="headerState.loginTo"
+              class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[#5b4b6e] transition-colors duration-200 hover:text-[#3d3250] md:inline-flex"
+            >
+              {{ headerState.loginLabel }}
+            </ULink>
+
+            <UButton
+              :to="headerState.ctaTo"
+              size="lg"
+              class="rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+            >
+              {{ headerState.ctaLabel }}
+            </UButton>
+          </div>
         </div>
       </div>
-    </div>
-  </header>
+    </header>
+  </div>
 </template>
 
 <style scoped>
