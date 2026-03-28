@@ -149,13 +149,13 @@ function updatePublicHeader() {
       brandTo: '/',
       showBrandIcon: true,
       navLinks: [
-        { label: 'Pourquoi Keova', href: '#pourquoi' },
-        { label: 'L\'atelier', href: '#atelier' },
+        { label: 'Le problème', href: '#pourquoi' },
+        { label: 'La solution', href: '#atelier' },
         { label: 'Témoignage', href: '#temoignage' }
       ],
       loginLabel: 'Se connecter',
       loginTo: '/login',
-      ctaLabel: 'Rejoindre la beta',
+      ctaLabel: 'Je réserve ma place',
       ctaTo: '#waitlist'
     })
   }

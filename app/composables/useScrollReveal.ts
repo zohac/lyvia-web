@@ -15,6 +15,15 @@ export function useScrollReveal(options?: { threshold?: number, rootMargin?: str
   const rootMargin = options?.rootMargin ?? '0px 0px -40px 0px'
 
   let observer: IntersectionObserver | null = null
+  let containerMarked = false
+
+  function markContainer(el: HTMLElement) {
+    if (containerMarked) return
+    // Walk up to find the closest scrollable ancestor or use the root element
+    const container = el.closest('[class*="overflow"]') ?? el.parentElement?.closest('section')?.parentElement ?? document.documentElement
+    container?.classList.add('js-scroll-ready')
+    containerMarked = true
+  }
 
   function getObserver(): IntersectionObserver | null {
     if (import.meta.server) return null
@@ -55,6 +64,7 @@ export function useScrollReveal(options?: { threshold?: number, rootMargin?: str
 
         const obs = getObserver()
         if (obs) {
+          markContainer(htmlEl)
           nextTick(() => obs.observe(htmlEl))
         } else {
           // SSR fallback — show immediately

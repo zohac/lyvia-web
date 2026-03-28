@@ -26,17 +26,27 @@ const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
 
 <template>
   <div class="min-h-[100svh] bg-[#f9f8fa] text-[#221d28]">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-[#5b4b6e] focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+    >
+      Aller au contenu
+    </a>
     <PublicHeader v-if="showHeader" />
 
     <main
       v-if="!isFullBleed"
+      id="main-content"
       class="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6"
     >
       <slot />
     </main>
-    <div v-else>
+    <main
+      v-else
+      id="main-content"
+    >
       <slot />
-    </div>
+    </main>
 
     <PublicFooter v-if="showFooter" />
   </div>

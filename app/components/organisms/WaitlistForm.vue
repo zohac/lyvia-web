@@ -158,7 +158,7 @@ async function handleSubmit() {
       <a
         href="https://sophiejouan.fr"
         target="_blank"
-        rel="noopener"
+        rel="noopener noreferrer"
         class="font-medium text-[#f0b48f] underline-offset-2 hover:underline"
       >sophiejouan.fr &rarr;</a>
     </p>
@@ -271,7 +271,7 @@ async function handleSubmit() {
         <a
           href="/legal/confidentialite"
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
           :class="['font-medium underline-offset-2 hover:underline', isDark ? 'text-[#f0b48f]' : 'text-[#5b4b6e]']"
         >Politique de confidentialité</a>
       </label>
