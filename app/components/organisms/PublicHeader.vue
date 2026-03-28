@@ -50,9 +50,9 @@ function closeMobileMenu() {
             <NuxtImg
               src="/images/keova-logo.png"
               alt=""
-              class="h-9 w-auto sm:h-10"
-              width="150"
-              height="40"
+              class="h-10 w-auto sm:h-12"
+              width="104"
+              height="48"
               aria-hidden="true"
               loading="eager"
             />
@@ -219,7 +219,7 @@ function closeMobileMenu() {
                 src="/images/keova-logo.png"
                 alt=""
                 class="h-8 w-auto sm:h-9"
-                width="135"
+                width="78"
                 height="36"
                 aria-hidden="true"
                 loading="eager"
