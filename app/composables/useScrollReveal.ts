@@ -1,13 +1,19 @@
 /**
  * useScrollReveal — lightweight IntersectionObserver composable for scroll-triggered animations.
  *
+ * SSR-safe: content is visible by default (opacity: 1). On client mount,
+ * `isReady` becomes true which enables the hide-before-reveal CSS via a
+ * class binding on the component root element (scoped CSS compatible).
+ *
  * Usage:
- *   const { reveal } = useScrollReveal()
- *   <div v-bind="reveal()" class="scroll-reveal">...</div>
- *   <div v-bind="reveal({ delay: 200 })" class="scroll-reveal">...</div>
+ *   const { reveal, isReady } = useScrollReveal()
+ *   <div :class="{ 'js-scroll-ready': isReady }">
+ *     <div v-bind="reveal()" class="scroll-reveal">...</div>
+ *   </div>
  *
  * CSS classes:
- *   .scroll-reveal — base state (hidden)
+ *   .scroll-reveal — base state (visible by default for SSR)
+ *   .js-scroll-ready .scroll-reveal:not(.is-visible) — hidden (JS-enhanced)
  *   .scroll-reveal.is-visible — revealed state
  */
 export function useScrollReveal(options?: { threshold?: number, rootMargin?: string }) {
@@ -15,21 +21,10 @@ export function useScrollReveal(options?: { threshold?: number, rootMargin?: str
   const rootMargin = options?.rootMargin ?? '0px 0px -40px 0px'
 
   let observer: IntersectionObserver | null = null
-  let containerMarked = false
+  const isReady = ref(false)
 
-  function markContainer(el: HTMLElement) {
-    if (containerMarked) return
-    // Walk up to find the closest scrollable ancestor or use the root element
-    const container = el.closest('[class*="overflow"]') ?? el.parentElement?.closest('section')?.parentElement ?? document.documentElement
-    container?.classList.add('js-scroll-ready')
-    containerMarked = true
-  }
-
-  function getObserver(): IntersectionObserver | null {
-    if (import.meta.server) return null
-    if (observer) return observer
-
-    observer = new IntersectionObserver(
+  function createObserver(): IntersectionObserver {
+    return new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
@@ -48,9 +43,16 @@ export function useScrollReveal(options?: { threshold?: number, rootMargin?: str
       },
       { threshold, rootMargin }
     )
-
-    return observer
   }
+
+  onMounted(() => {
+    observer = createObserver()
+    // Delay isReady by a frame so that ref callbacks have time to register
+    // elements, and the browser has painted the initial state
+    requestAnimationFrame(() => {
+      isReady.value = true
+    })
+  })
 
   function reveal(opts?: { delay?: number }) {
     return {
@@ -62,14 +64,18 @@ export function useScrollReveal(options?: { threshold?: number, rootMargin?: str
           htmlEl.dataset.revealDelay = String(opts.delay)
         }
 
-        const obs = getObserver()
-        if (obs) {
-          markContainer(htmlEl)
-          nextTick(() => obs.observe(htmlEl))
-        } else {
-          // SSR fallback — show immediately
+        if (import.meta.server) {
+          // SSR: mark as visible immediately so content renders
           htmlEl.classList.add('is-visible')
+          return
         }
+
+        // Always use nextTick to ensure observer is created (onMounted runs first)
+        nextTick(() => {
+          if (observer) {
+            observer.observe(htmlEl)
+          }
+        })
       }
     }
   }
@@ -79,5 +85,5 @@ export function useScrollReveal(options?: { threshold?: number, rootMargin?: str
     observer = null
   })
 
-  return { reveal }
+  return { reveal, isReady }
 }

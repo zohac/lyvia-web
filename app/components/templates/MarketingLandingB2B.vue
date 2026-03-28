@@ -4,7 +4,7 @@ import WaitlistForm from '~/components/organisms/WaitlistForm.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
 const isWaitlistModalOpen = ref(false)
-const { reveal } = useScrollReveal()
+const { reveal, isReady: scrollReady } = useScrollReveal()
 
 // --- Comparatif outils fragmentés ---
 const fragmentedTools = [
@@ -28,7 +28,9 @@ function scrollTo(id: string) {
 </script>
 
 <template>
-  <div class="relative min-h-screen overflow-hidden bg-[#f8f6fa]">
+  <div
+    :class="['relative min-h-screen overflow-hidden bg-[#f8f6fa]', { 'js-scroll-ready': scrollReady }]"
+  >
     <!-- Ambient gradient mesh background — elevated depth -->
     <div
       aria-hidden="true"
@@ -173,13 +175,13 @@ function scrollTo(id: string) {
               <div class="hero-glow absolute -inset-4 -z-10 rounded-[2rem]" />
               <div class="overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-2xl backdrop-blur-sm transition-transform duration-700 hover:scale-[1.01]">
                 <NuxtImg
-                  src="/images/marketing-dashboard-mockup.svg"
+                  src="/images/screenshot-dashboard.png"
                   class="w-full rounded-2xl"
                   alt="Interface Keova — agenda, paiements et suivi client"
                   loading="eager"
                   fetchpriority="high"
-                  :width="1200"
-                  :height="800"
+                  width="1200"
+                  height="800"
                 />
               </div>
             </div>
@@ -189,8 +191,8 @@ function scrollTo(id: string) {
         <!-- Scroll indicator -->
         <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
           <button
-            class="flex flex-col items-center gap-2 text-[#9685ab] transition-colors duration-300 hover:text-[#5b4b6e]"
-            aria-label="Défiler vers la section suivante"
+            class="flex flex-col items-center gap-2 text-[#6b6278] transition-colors duration-300 hover:text-[#5b4b6e]"
+            aria-label="Explorer — défiler vers la section suivante"
             @click="scrollTo('pourquoi')"
           >
             <span class="text-xs font-medium uppercase tracking-widest">Explorer</span>
@@ -315,12 +317,12 @@ function scrollTo(id: string) {
             <div class="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-40 blur-[30px]" />
             <div class="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-xl backdrop-blur-sm transition-transform duration-500 hover:scale-[1.02]">
               <NuxtImg
-                src="/images/marketing-screen-calendar.svg"
+                src="/images/screenshot-calendar.png"
                 class="w-full rounded-2xl"
-                alt="Agenda Keova"
+                alt="Agenda Keova — vue calendrier semaine"
                 loading="lazy"
-                :width="600"
-                :height="400"
+                width="600"
+                height="400"
               />
             </div>
             <!-- Floating quote -->
@@ -468,12 +470,12 @@ function scrollTo(id: string) {
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
-                    src="/images/marketing-screen-calendar.svg"
+                    src="/images/screenshot-scheduling.png"
                     class="w-full rounded-xl"
-                    alt="Configuration agenda"
+                    alt="Configuration créneaux et tarifs"
                     loading="lazy"
-                    :width="400"
-                    :height="280"
+                    width="400"
+                    height="280"
                   />
                 </div>
               </div>
@@ -502,12 +504,12 @@ function scrollTo(id: string) {
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
-                    src="/images/marketing-screen-payments.svg"
+                    src="/images/screenshot-payments.png"
                     class="w-full rounded-xl"
-                    alt="Automatisation paiements"
+                    alt="Finance et paiements automatisés"
                     loading="lazy"
-                    :width="400"
-                    :height="280"
+                    width="400"
+                    height="280"
                   />
                 </div>
               </div>
@@ -536,12 +538,12 @@ function scrollTo(id: string) {
               >
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
-                    src="/images/marketing-screen-library.svg"
+                    src="/images/screenshot-clients.png"
                     class="w-full rounded-xl"
-                    alt="Expérience client"
+                    alt="Suivi et gestion des clientes"
                     loading="lazy"
-                    :width="400"
-                    :height="280"
+                    width="400"
+                    height="280"
                   />
                 </div>
               </div>
@@ -680,41 +682,44 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== WAITLIST MODAL ====================== -->
-    <UModal
-      v-model:open="isWaitlistModalOpen"
-      title="Rejoindre la beta Keova"
-      description="Votre demande reste confidentielle. Aucun engagement."
-      :ui="{
-        content: 'rounded-3xl border border-[#ebe7ef] bg-white shadow-2xl max-w-lg overflow-hidden',
-        header: 'relative overflow-hidden bg-gradient-to-r from-[#5b4b6e] via-[#7a6b8e] to-[#5b4b6e] px-8 pt-8 pb-6',
-        body: 'px-8 pb-8 pt-6',
-        title: 'font-serif text-2xl text-white',
-        description: 'text-sm text-[#d7cfdf]',
-        close: 'text-white/70 hover:text-white hover:bg-white/10 rounded-full'
-      }"
-    >
-      <template #header>
-        <!-- Ambient glow in header -->
-        <div
-          class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#d4956a] opacity-20 blur-[40px]"
-          aria-hidden="true"
-        />
-        <h3 class="relative font-serif text-2xl text-white">
-          Rejoindre la beta
-          <span class="bg-gradient-to-r from-[#f0b48f] to-[#e89560] bg-clip-text text-transparent">Keova</span>
-        </h3>
-        <p class="relative mt-1 text-sm text-[#d7cfdf]">
-          Votre demande reste confidentielle. Aucun engagement.
-        </p>
-      </template>
+    <!-- ClientOnly: prevents SSR of second WaitlistForm instance which causes useId() mismatch -->
+    <ClientOnly>
+      <UModal
+        v-model:open="isWaitlistModalOpen"
+        title="Rejoindre la beta Keova"
+        description="Votre demande reste confidentielle. Aucun engagement."
+        :ui="{
+          content: 'rounded-3xl border border-[#ebe7ef] bg-white shadow-2xl max-w-lg overflow-hidden',
+          header: 'relative overflow-hidden bg-gradient-to-r from-[#5b4b6e] via-[#7a6b8e] to-[#5b4b6e] px-8 pt-8 pb-6',
+          body: 'px-8 pb-8 pt-6',
+          title: 'font-serif text-2xl text-white',
+          description: 'text-sm text-[#d7cfdf]',
+          close: 'text-white/70 hover:text-white hover:bg-white/10 rounded-full'
+        }"
+      >
+        <template #header>
+          <!-- Ambient glow in header -->
+          <div
+            class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#d4956a] opacity-20 blur-[40px]"
+            aria-hidden="true"
+          />
+          <h3 class="relative font-serif text-2xl text-white">
+            Rejoindre la beta
+            <span class="bg-gradient-to-r from-[#f0b48f] to-[#e89560] bg-clip-text text-transparent">Keova</span>
+          </h3>
+          <p class="relative mt-1 text-sm text-[#d7cfdf]">
+            Votre demande reste confidentielle. Aucun engagement.
+          </p>
+        </template>
 
-      <template #body>
-        <WaitlistForm
-          mode="modal"
-          @submitted="isWaitlistModalOpen = false"
-        />
-      </template>
-    </UModal>
+        <template #body>
+          <WaitlistForm
+            mode="modal"
+            @submitted="isWaitlistModalOpen = false"
+          />
+        </template>
+      </UModal>
+    </ClientOnly>
   </div>
 </template>
 
