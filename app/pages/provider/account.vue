@@ -79,7 +79,7 @@ const urgencyForm = reactive({ urgencyText: '' as string | null })
 // ── Lead magnet form state ──────────────────────────
 const leadMagnetForm = reactive({
   url: null as string | null,
-  title: null as string | null
+  title: undefined as string | undefined
 })
 const leadMagnetFile = ref<File | null>(null)
 const leadMagnetUploading = ref(false)
@@ -90,8 +90,8 @@ const testimonialsForm = ref<TestimonialItem[]>([])
 
 // ── Google Ads form state ───────────────────────────
 const adsForm = reactive({
-  googleAdsId: '' as string | null,
-  googleAdsConversionLabel: '' as string | null
+  googleAdsId: '' as string | undefined,
+  googleAdsConversionLabel: '' as string | undefined
 })
 const adsIdValid = computed(() => {
   const v = (adsForm.googleAdsId ?? '').trim()
@@ -171,7 +171,7 @@ function syncFormsFromAccount() {
 
   // Lead magnet
   leadMagnetForm.url = acc.leadMagnetUrl
-  leadMagnetForm.title = acc.leadMagnetTitle
+  leadMagnetForm.title = acc.leadMagnetTitle ?? undefined
 
   // Testimonials
   testimonialsForm.value = acc.testimonialsJson?.length
@@ -179,8 +179,8 @@ function syncFormsFromAccount() {
     : []
 
   // Google Ads
-  adsForm.googleAdsId = acc.googleAdsId
-  adsForm.googleAdsConversionLabel = acc.googleAdsConversionLabel
+  adsForm.googleAdsId = acc.googleAdsId ?? undefined
+  adsForm.googleAdsConversionLabel = acc.googleAdsConversionLabel ?? undefined
 }
 
 // ── Specialty tag handlers ──────────────────────────
@@ -508,7 +508,7 @@ async function handleLeadMagnetSubmit() {
 
 function removeLeadMagnet() {
   leadMagnetForm.url = null
-  leadMagnetForm.title = null
+  leadMagnetForm.title = undefined
   leadMagnetFile.value = null
 }
 

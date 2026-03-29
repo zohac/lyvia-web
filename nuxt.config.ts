@@ -94,6 +94,7 @@ export default defineNuxtConfig({
     }
   },
 
+  // @ts-expect-error — routeRules is valid at runtime but @nuxt/ui 4.6 types omit it
   routeRules: {
     '/**': {
       headers: {
