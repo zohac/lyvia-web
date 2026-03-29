@@ -14,7 +14,7 @@
     "contract:check": "node ./scripts/contract-check-openapi-auth.mjs"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.74",
+    "@iconify-json/lucide": "^1.2.100",
     "@iconify-json/simple-icons": "^1.2.59",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/image": "^2.0.0",
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.10.0",
-    "@tailwindcss/vite": "^4.1.18",
+    "@tailwindcss/vite": "^4.2.2",
     "eslint": "^9.39.1",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
