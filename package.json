@@ -14,7 +14,7 @@
     "contract:check": "node ./scripts/contract-check-openapi-auth.mjs"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.74",
+    "@iconify-json/lucide": "^1.2.100",
     "@iconify-json/simple-icons": "^1.2.59",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/image": "^2.0.0",
