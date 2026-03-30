@@ -37,7 +37,7 @@ export function useB2CLandingSchemaOrg(providers: Ref<FeaturedProvider[]>) {
           'name': p.displayName,
           'jobTitle': 'Spécialiste ménopause',
           ...(p.profilePhotoUrl ? { image: p.profilePhotoUrl } : {}),
-          ...(p.city ? { address: { '@type': 'PostalAddress', addressLocality: p.city } } : {}),
+          ...(p.city ? { address: { '@type': 'PostalAddress', 'addressLocality': p.city } } : {}),
           ...(p.specialties?.length ? { knowsAbout: p.specialties } : {}),
           ...(p.customDomain ? { url: `https://${p.customDomain}` } : { url: `${origin}/coach/${p.slug}` })
         }

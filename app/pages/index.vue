@@ -135,13 +135,14 @@ function updatePublicHeader() {
       brandTo: '/',
       showBrandIcon: true,
       navLinks: [
-        { label: 'Accompagnement', href: '#education' },
+        { label: 'Comprendre', href: '#education' },
+        { label: 'Symptômes', href: '#symptomes' },
         { label: 'Spécialistes', href: '#specialistes' },
-        { label: 'Symptômes', href: '#symptomes' }
+        { label: 'FAQ', href: '#faq' }
       ],
       loginLabel: 'Se connecter',
       loginTo: '/login',
-      ctaLabel: 'Trouver ma spécialiste',
+      ctaLabel: 'Trouver une spécialiste',
       ctaTo: '#specialistes'
     })
   } else {

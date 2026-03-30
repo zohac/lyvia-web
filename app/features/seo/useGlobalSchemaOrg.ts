@@ -28,8 +28,8 @@ export async function useGlobalSchemaOrg() {
         },
         description: 'Keova réunit agenda, paiements et suivi client dans un espace pro conçu pour les spécialistes ménopause et bien-être.',
         foundingDate: '2026',
-        areaServed: { '@type': 'Country', name: 'France' },
-        contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', availableLanguage: 'fr' },
+        areaServed: { '@type': 'Country', 'name': 'France' },
+        contactPoint: { '@type': 'ContactPoint', 'contactType': 'customer support', 'availableLanguage': 'fr' },
         sameAs: []
       }),
       defineWebSite({
