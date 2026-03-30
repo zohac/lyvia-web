@@ -370,95 +370,90 @@ function scrollTo(id: string) {
           </p>
         </div>
 
-        <!-- 2 cards côte à côte: Avant / Avec Keova -->
-        <div class="mx-auto mt-16 grid max-w-4xl gap-6 lg:grid-cols-2">
-          <!-- CARD 1 — Avant -->
-          <div
-            v-bind="reveal({ delay: 200 })"
-            class="scroll-reveal compare-card overflow-hidden rounded-3xl shadow-xl transition-all duration-500"
-          >
-            <!-- Header dark -->
-            <div class="bg-[#2d2438] px-8 py-5">
-              <p class="text-sm font-bold uppercase tracking-[0.2em] text-white">
+        <!-- Split card: Avant / Avec Keova -->
+        <div
+          v-bind="reveal({ delay: 200 })"
+          class="scroll-reveal mx-auto max-w-4xl overflow-hidden rounded-3xl shadow-xl"
+        >
+          <div class="grid lg:grid-cols-2">
+            <!-- LEFT — Avant (dark, chaos) -->
+            <div class="relative bg-[#2d2438] px-8 py-10 lg:px-10 lg:py-12">
+              <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#a99bb8]">
                 Avant
               </p>
-              <p class="mt-1 text-xs text-[#a99bb8]">
+              <div class="space-y-3">
+                <div
+                  v-for="(tool, i) in fragmentedTools"
+                  :key="tool.name"
+                  class="avant-tool flex items-center gap-4 rounded-xl border border-white/8 bg-white/5 px-4 py-3 transition-all duration-300"
+                >
+                  <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10 transition-colors duration-300">
+                    <UIcon
+                      :name="tool.icon"
+                      class="size-5 text-[#a99bb8] transition-colors duration-300"
+                    />
+                  </div>
+                  <span class="text-sm text-[#c8bfd4]">{{ tool.name }}</span>
+                  <div class="ml-auto h-px flex-1 border-b border-dashed border-white/10" />
+                  <span class="text-xs text-[#8a7d9a]">login #{{ i + 1 }}</span>
+                </div>
+              </div>
+              <p class="mt-8 text-center text-sm text-[#8a7d9a]">
                 5 outils · 5 logins · 5 factures
               </p>
             </div>
-            <!-- Body dark -->
-            <div class="space-y-3 bg-[#352c44] px-8 py-8">
-              <div
-                v-for="(tool, i) in fragmentedTools"
-                :key="tool.name"
-                class="avant-tool flex items-center gap-4 rounded-xl border border-white/8 bg-white/5 px-4 py-3 transition-all duration-300"
-              >
-                <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10 transition-colors duration-300">
-                  <UIcon
-                    :name="tool.icon"
-                    class="size-5 text-[#a99bb8] transition-colors duration-300"
-                  />
-                </div>
-                <span class="text-sm text-[#c8bfd4]">{{ tool.name }}</span>
-                <div class="ml-auto h-px flex-1 border-b border-dashed border-white/10" />
-                <span class="text-xs text-[#8a7d9a]">login #{{ i + 1 }}</span>
-              </div>
-            </div>
-          </div>
 
-          <!-- CARD 2 — Avec Keova -->
-          <div
-            v-bind="reveal({ delay: 400 })"
-            class="scroll-reveal compare-card overflow-hidden rounded-3xl shadow-xl transition-all duration-500"
-          >
-            <!-- Header dark -->
-            <div class="bg-[#2d2438] px-8 py-5">
-              <p class="text-sm font-bold uppercase tracking-[0.2em] text-[#f0b48f]">
+            <!-- RIGHT — Avec Keova (light, calm) — 5 items mapping 1:1 -->
+            <div class="relative flex flex-col bg-white px-8 py-10 lg:px-10 lg:py-12">
+              <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#d4956a]">
                 Avec Keova
               </p>
-              <p class="mt-1 text-xs text-[#a99bb8]">
+              <div class="space-y-3">
+                <div
+                  v-for="item in [
+                    { icon: 'i-lucide-calendar', label: 'Agenda et créneaux' },
+                    { icon: 'i-lucide-credit-card', label: 'Paiements automatiques' },
+                    { icon: 'i-lucide-folder-heart', label: 'Dossier client complet' },
+                    { icon: 'i-lucide-globe', label: 'Votre site pro' },
+                    { icon: 'i-lucide-mouse-pointer-click', label: 'Réservation en ligne' }
+                  ]"
+                  :key="item.label"
+                  class="flex items-center gap-4 rounded-xl border border-[#ebe7ef] px-4 py-3 transition-all duration-300 hover:border-[#d4956a]/30 hover:bg-[#fdf6f1]"
+                >
+                  <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-[#f5f3f7]">
+                    <UIcon
+                      :name="item.icon"
+                      class="size-5 text-[#d4956a]"
+                    />
+                  </div>
+                  <span class="text-sm font-medium text-[#3d3250]">{{ item.label }}</span>
+                </div>
+              </div>
+              <p class="mt-6 text-center text-sm text-[#6b6278]">
                 1 espace · 1 connexion · 0 friction
               </p>
-            </div>
-            <!-- Body light -->
-            <div class="space-y-3 bg-white px-8 py-8">
-              <div
-                v-for="item in [
-                  { icon: 'i-lucide-calendar', label: 'Agenda et créneaux' },
-                  { icon: 'i-lucide-credit-card', label: 'Paiements automatiques' },
-                  { icon: 'i-lucide-folder-heart', label: 'Dossier client complet' },
-                  { icon: 'i-lucide-globe', label: 'Votre site pro' },
-                  { icon: 'i-lucide-mouse-pointer-click', label: 'Réservation en ligne' }
-                ]"
-                :key="item.label"
-                class="flex items-center gap-4 rounded-xl border border-[#ebe7ef] px-4 py-3 transition-all duration-300 hover:border-[#d4956a]/30 hover:bg-[#fdf6f1]"
-              >
-                <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-[#f5f3f7]">
-                  <UIcon
-                    :name="item.icon"
-                    class="size-5 text-[#d4956a]"
-                  />
-                </div>
-                <span class="text-sm font-medium text-[#3d3250]">{{ item.label }}</span>
-              </div>
             </div>
           </div>
         </div>
 
-        <!-- Stats — 3 cards séparées sous le split -->
+        <!-- Stats — 3 cards avec header dark -->
         <div class="mt-10 grid gap-4 sm:grid-cols-3">
           <div
             v-for="(stat, i) in stats"
             :key="stat.label"
             v-bind="reveal({ delay: 400 + i * 120 })"
-            class="stat-card scroll-reveal group flex flex-col items-center gap-2 rounded-2xl border border-[#ebe7ef] bg-white px-6 py-8 text-center shadow-sm"
+            class="stat-card scroll-reveal group overflow-hidden rounded-2xl shadow-sm"
           >
-            <span class="font-serif text-4xl text-[#5b4b6e] transition-transform duration-300 group-hover:scale-110">
-              {{ stat.value }}
-            </span>
-            <span class="text-xs font-semibold uppercase tracking-wider text-[#6b6278]">
-              {{ stat.label }}
-            </span>
+            <div class="bg-[#2d2438] px-4 py-3 text-center">
+              <span class="font-serif text-3xl text-white transition-transform duration-300 group-hover:scale-110 inline-block">
+                {{ stat.value }}
+              </span>
+            </div>
+            <div class="bg-white px-4 py-4 text-center">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[#6b6278]">
+                {{ stat.label }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
