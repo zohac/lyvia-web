@@ -43,7 +43,7 @@ const whiteLabelLocation = computed(() => {
   <footer class="border-t border-[color:var(--color-brand-subtle)]">
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-10 text-center text-sm text-[color:var(--color-brand-muted)] sm:px-6">
       <p class="font-semibold uppercase tracking-widest">
-        © {{ currentYear }} {{ isWhiteLabel ? whiteLabelName : 'Keova' }}
+        © {{ currentYear }} {{ isWhiteLabel ? whiteLabelName : 'Keova — [Nom entité], [Ville]' }}
       </p>
 
       <!-- White-label V3 footer -->

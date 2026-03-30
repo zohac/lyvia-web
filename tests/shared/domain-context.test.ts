@@ -206,9 +206,9 @@ test('getSeoReferenceOrigin: B2C → actual host origin', () => {
   assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://keova.fr')
 })
 
-test('getSeoReferenceOrigin: B2B → platform (keova.fr) origin, not keova.app', () => {
+test('getSeoReferenceOrigin: B2B → own domain (keova.app), not keova.fr', () => {
   const ctx = getDomainContext('keova.app', PLATFORM, PLATFORM_B2B)
-  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://keova.fr')
+  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://keova.app')
 })
 
 test('getSeoReferenceOrigin: white-label → actual host origin', () => {
@@ -216,9 +216,9 @@ test('getSeoReferenceOrigin: white-label → actual host origin', () => {
   assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://sophie-jouan.fr')
 })
 
-test('getSeoReferenceOrigin: localhost (B2B dev) → platform origin', () => {
+test('getSeoReferenceOrigin: localhost (B2B dev) → own hostname', () => {
   const ctx = getDomainContext('localhost', PLATFORM, PLATFORM_B2B)
-  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://keova.fr')
+  assert.equal(getSeoReferenceOrigin(ctx, PLATFORM), 'https://localhost')
 })
 
 test('getSeoReferenceOrigin [legacy]: platform → platform origin', () => {

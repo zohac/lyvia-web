@@ -92,15 +92,14 @@ export function getDomainContext(
 /**
  * Returns the SEO reference origin for Schema.org @id, canonical, and hreflang.
  *
- * B2B (keova.app) → `https://keova.fr` (SEO reference domain)
- * B2C (keova.fr) / WL (sophiejouan.fr) → `https://{actual host}`
+ * Each domain is its own SEO origin (AC-1/AC-21):
+ * B2B (keova.app) → `https://keova.app`
+ * B2C (keova.fr) → `https://keova.fr`
+ * WL (sophiejouan.fr) → `https://sophiejouan.fr`
  */
 export function getSeoReferenceOrigin(
   ctx: DomainContext,
-  platformDomain: string
+  _platformDomain: string
 ): string {
-  if (ctx.isB2B) {
-    return `https://${normalizeHostname(platformDomain)}`
-  }
   return `https://${ctx.hostname}`
 }

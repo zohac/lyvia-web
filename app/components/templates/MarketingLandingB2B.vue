@@ -863,7 +863,7 @@ function scrollTo(id: string) {
             rester proche de chaque praticienne plutôt que de grossir trop vite.
           </p>
           <p class="text-[#6b6278]">
-            Keova est développé et hébergé en France.
+            Keova est développé et hébergé en France par [Nom entité], [Ville].
             Chaque membre de la beta a un accès direct à l'équipe — par message, appel ou visio.
           </p>
         </div>

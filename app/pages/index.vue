@@ -61,9 +61,9 @@ function platformDescription() {
   return ctx.value.isB2C ? b2cDescription : b2bDescription
 }
 
-// B2B homepage canonical/og:url → keova.fr (SEO reference domain per AC-5)
+// B2B homepage canonical/og:url → keova.app (AC-1, AC-21)
 const canonicalHref = computed(() => {
-  if (ctx.value.isB2B) return `https://${platformDomain}/`
+  if (ctx.value.isB2B) return `https://${platformDomainB2B || platformDomain}/`
   return `${origin}/`
 })
 
@@ -92,11 +92,11 @@ useSeoMeta({
 
 usePublicCanonicalHead(canonicalHref)
 
-// Preload LCP image for B2B landing (AC-19)
+// Preload LCP image for B2B landing (AC-19) — target IPX-processed WebP asset
 if (isPlatformDomain.value) {
   useHead({
     link: [
-      { rel: 'preload', as: 'image', href: '/images/screenshot-dashboard.png' }
+      { rel: 'preload', as: 'image', href: '/_ipx/f_webp/images/screenshot-dashboard.png', type: 'image/webp' }
     ]
   })
 }
