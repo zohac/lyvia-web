@@ -19,9 +19,9 @@ const fragmentedTools = [
 
 // --- Stats pour le social proof ---
 const stats = [
-  { value: '1', label: 'connexion', suffix: 'au lieu de 5' },
-  { value: '0\u00A0€', label: 'de commission', suffix: 'en beta' },
-  { value: 'Plus de', label: 'dimanche soir', suffix: 'sur les factures' }
+  { value: '1', label: 'seul espace' },
+  { value: '0\u00A0%', label: 'de commission' },
+  { value: '10\u00A0min', label: 'pour démarrer' }
 ]
 
 // --- Features V5 ---
@@ -56,7 +56,7 @@ const features = [
 const faqItems: AccordionItem[] = [
   {
     label: 'Keova est-il gratuit\u00A0?',
-    content: 'Oui, pendant toute la durée de la beta. Les 50 premières inscrites bénéficieront d\'un tarif fondateur à vie au lancement — bien en-dessous de ce que coûtent 5 outils séparément.',
+    content: 'Oui, pendant toute la durée de la beta. Au lancement, les premières inscrites bénéficieront d\'une réduction sur leur première année — bien en-dessous de ce que coûtent 5 outils séparément.',
     value: 'faq-1'
   },
   {
@@ -143,7 +143,7 @@ function scrollTo(id: string) {
                 <span class="eyebrow-shimmer absolute inset-0 bg-gradient-to-r from-[#5b4b6e] via-[#d4956a] to-[#5b4b6e]" />
               </span>
               <span class="text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-                Beta privée — 50 places
+                Beta privée — Places limitées
               </span>
             </div>
 
@@ -161,8 +161,8 @@ function scrollTo(id: string) {
             </h1>
 
             <!-- Description V5 -->
-            <div class="max-w-md space-y-3">
-              <p class="text-lg leading-relaxed text-[#4a4255]">
+            <div class="space-y-3">
+              <p class="max-w-xl text-lg leading-relaxed text-[#4a4255]">
                 Agenda en ligne, paiements automatiques, suivi client — réunis dans un seul outil.
                 Vous ouvrez Keova, vous voyez vos rendez-vous, vos règlements, vos clientes.
                 Tout ce qu'il faut. Rien de superflu.
@@ -171,40 +171,62 @@ function scrollTo(id: string) {
                 Conçu pour les coachs ménopause. Adapté à tous les métiers de l'accompagnement.
               </p>
             </div>
-            <p class="max-w-md text-sm text-[#6b6278]">
-              50 praticiennes construisent Keova avec nous avant le lancement.
+            <p class="text-sm text-[#6b6278]">
+              Les premières praticiennes construisent Keova avec nous avant le lancement.
               Il reste des places — inscrivez-vous pour en faire partie.
             </p>
 
-            <!-- CTAs -->
-            <div class="flex flex-col gap-4 pt-2 sm:flex-row">
-              <button
-                class="cta-primary group relative overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
-                @click="isWaitlistModalOpen = true"
-              >
-                <span class="cta-primary-bg" />
-                <span class="relative z-10 flex items-center gap-2">
-                  Je réserve ma place
+            <!-- CTA + reassurance pills -->
+            <div class="flex flex-col gap-5 pt-2">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <button
+                  class="cta-primary group relative overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
+                  @click="isWaitlistModalOpen = true"
+                >
+                  <span class="cta-primary-bg" />
+                  <span class="relative z-10 flex items-center gap-2">
+                    Je réserve ma place
+                    <UIcon
+                      name="i-lucide-arrow-right"
+                      class="size-5 transition-transform duration-300 group-hover:translate-x-1"
+                    />
+                  </span>
+                </button>
+
+                <!-- Login link discret -->
+                <NuxtLink
+                  to="/login"
+                  class="text-sm text-[#6b6278] underline-offset-2 transition-colors duration-200 hover:text-[#5b4b6e] hover:underline"
+                >
+                  Déjà inscrite ?
+                </NuxtLink>
+              </div>
+
+              <!-- Réassurance pills -->
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-[#ebe7ef] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[#4a4255] backdrop-blur-sm">
                   <UIcon
-                    name="i-lucide-arrow-right"
-                    class="size-5 transition-transform duration-300 group-hover:translate-x-1"
+                    name="i-lucide-credit-card"
+                    class="size-3.5 text-[#d4956a]"
                   />
+                  Sans carte bancaire
                 </span>
-              </button>
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-[#ebe7ef] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[#4a4255] backdrop-blur-sm">
+                  <UIcon
+                    name="i-lucide-zap"
+                    class="size-3.5 text-[#d4956a]"
+                  />
+                  Inscription en 30 secondes
+                </span>
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-[#ebe7ef] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[#4a4255] backdrop-blur-sm">
+                  <UIcon
+                    name="i-lucide-shield-check"
+                    class="size-3.5 text-[#d4956a]"
+                  />
+                  Données hébergées en France
+                </span>
+              </div>
             </div>
-
-            <!-- Login link discret -->
-            <NuxtLink
-              to="/login"
-              class="self-start text-sm text-[#6b6278] underline-offset-2 transition-colors duration-200 hover:text-[#5b4b6e] hover:underline"
-            >
-              Déjà inscrite ? Se connecter
-            </NuxtLink>
-
-            <!-- Réassurance -->
-            <p class="text-sm text-[#6b6278]">
-              Sans carte bancaire · Inscription en 30 secondes · Données hébergées en France
-            </p>
           </div>
 
           <!-- Hero Visual -->
@@ -270,20 +292,20 @@ function scrollTo(id: string) {
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Scroll indicator -->
-        <div class="absolute bottom-8 left-1/2 -translate-x-1/2">
-          <button
-            class="flex flex-col items-center gap-2 text-[#6b6278] transition-colors duration-300 hover:text-[#5b4b6e]"
-            aria-label="Explorer — défiler vers la section suivante"
-            @click="scrollTo('pourquoi')"
-          >
-            <span class="text-xs font-medium uppercase tracking-widest">Explorer</span>
-            <div class="relative h-8 w-5 rounded-full border-2 border-current">
-              <div class="scroll-dot absolute left-1/2 top-1.5 h-2 w-1 -translate-x-1/2 rounded-full bg-current" />
-            </div>
-          </button>
-        </div>
+      <!-- Scroll indicator — positioned relative to the section, centered on full width -->
+      <div class="absolute inset-x-0 bottom-8 flex justify-center">
+        <button
+          class="flex flex-col items-center gap-2 text-[#6b6278] transition-colors duration-300 hover:text-[#5b4b6e]"
+          aria-label="Explorer — défiler vers la section suivante"
+          @click="scrollTo('pourquoi')"
+        >
+          <span class="text-xs font-medium uppercase tracking-widest">Explorer</span>
+          <div class="flex h-8 w-5 justify-center rounded-full border-2 border-current pt-1.5">
+            <div class="scroll-dot h-2 w-1 rounded-full bg-current" />
+          </div>
+        </button>
       </div>
     </section>
 
@@ -324,100 +346,108 @@ function scrollTo(id: string) {
       </div>
     </section>
 
-    <!-- ====================== SECTION COMPARATIVE (V5) ====================== -->
+    <!-- ====================== SECTION COMPARATIVE — Split Chaos vs Calm ====================== -->
     <section
       id="pourquoi"
       class="relative bg-[#f0edf3] px-6 py-32 sm:px-12 lg:px-20"
     >
-      <div
-        v-bind="reveal()"
-        class="scroll-reveal mx-auto max-w-4xl text-center"
-      >
-        <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
-        <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
-          Un seul logiciel
-          <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">au lieu de cinq.</span>
-        </h2>
-        <p class="mx-auto mt-4 max-w-xl text-[#6b6278]">
-          Calendly, Stripe, Excel, WordPress, Doctolib — vous les connaissez par cœur.
-          Keova les remplace. Un seul compte, un seul écran, un seul outil de gestion.
-        </p>
-
-        <div class="mt-16 flex flex-col items-center gap-8 lg:flex-row lg:justify-center">
-          <!-- 5 outils fragmentés -->
-          <div class="flex flex-wrap justify-center gap-4">
-            <div
-              v-for="(tool, i) in fragmentedTools"
-              :key="tool.name"
-              v-bind="reveal({ delay: i * 100 })"
-              class="scroll-reveal tool-card group flex flex-col items-center gap-2 rounded-2xl border border-[#ebe7ef] bg-white p-4 shadow-sm"
-            >
-              <div class="grid size-12 place-items-center rounded-xl bg-[#f5f3f7] transition-all duration-300 group-hover:bg-[#ebe7ef]">
-                <UIcon
-                  :name="tool.icon"
-                  class="size-6 text-[#6b6278] transition-colors duration-300"
-                  :style="{ '--tool-color': tool.color }"
-                />
-              </div>
-              <span class="text-xs font-medium text-[#6b6278]">{{ tool.name }}</span>
-            </div>
-          </div>
-
-          <!-- Animated arrow -->
-          <div
-            v-bind="reveal({ delay: 500 })"
-            class="scroll-reveal"
-          >
-            <div class="arrow-pulse hidden lg:block">
-              <UIcon
-                name="i-lucide-arrow-right"
-                class="size-8 text-[#d4956a]"
-              />
-            </div>
-            <div class="arrow-pulse lg:hidden">
-              <UIcon
-                name="i-lucide-arrow-down"
-                class="size-8 text-[#d4956a]"
-              />
-            </div>
-          </div>
-
-          <!-- Bloc Keova — elevated -->
-          <div
-            v-bind="reveal({ delay: 600 })"
-            class="scroll-reveal keova-card group relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-br from-[#5b4b6e] to-[#4d3f5c] p-8 text-white shadow-xl"
-          >
-            <div class="keova-card-glow absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-            <UIcon
-              name="i-lucide-sparkles"
-              class="relative size-10 transition-transform duration-500 group-hover:scale-110"
-            />
-            <span class="relative text-xl font-bold">Keova</span>
-            <span class="relative text-sm font-medium opacity-80">Tout-en-un</span>
-          </div>
+      <div class="mx-auto max-w-5xl">
+        <!-- H2 -->
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal mb-16 text-center"
+        >
+          <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
+          <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
+            Un seul logiciel
+            <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">au lieu de cinq.</span>
+          </h2>
+          <p class="mx-auto mt-4 max-w-2xl text-[#6b6278]">
+            Calendly pour l'agenda. Stripe pour les paiements. Excel pour le suivi.
+            WordPress pour le site. Doctolib pour la visibilité.
+            Cinq abonnements, cinq mots de passe, zéro lien entre eux.
+            Keova réunit tout dans un seul espace.
+          </p>
         </div>
 
-        <p
-          v-bind="reveal({ delay: 700 })"
-          class="scroll-reveal mt-10 font-serif text-xl italic text-[#4a4255]"
-        >
-          5 outils, 5 abonnements &rarr; 1 seul espace
-        </p>
-      </div>
-    </section>
-
-    <!-- ====================== STATS BAND ====================== -->
-    <section class="relative overflow-hidden border-y border-[#ebe7ef] bg-[#f0edf3] px-6 py-12 sm:px-12 lg:px-20">
-      <div class="mx-auto flex max-w-4xl flex-col items-center justify-around gap-8 sm:flex-row">
+        <!-- Split card: Avant / Avec Keova -->
         <div
-          v-for="(stat, i) in stats"
-          :key="stat.label"
-          v-bind="reveal({ delay: i * 150 })"
-          class="scroll-reveal flex flex-col items-center gap-1 text-center"
+          v-bind="reveal({ delay: 200 })"
+          class="scroll-reveal mx-auto max-w-4xl overflow-hidden rounded-3xl shadow-xl"
         >
-          <span class="font-serif text-4xl text-[#5b4b6e] lg:text-5xl">{{ stat.value }}</span>
-          <span class="text-sm font-semibold uppercase tracking-wider text-[#6b6278]">{{ stat.label }}</span>
-          <span class="text-xs text-[#8a7d9a]">{{ stat.suffix }}</span>
+          <div class="grid lg:grid-cols-2">
+            <!-- LEFT — Avant (dark, chaos) -->
+            <div class="relative bg-[#2d2438] px-8 py-10 lg:px-10 lg:py-12">
+              <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#a99bb8]">
+                Avant
+              </p>
+              <div class="space-y-3">
+                <div
+                  v-for="(tool, i) in fragmentedTools"
+                  :key="tool.name"
+                  class="avant-tool flex items-center gap-4 rounded-xl border border-white/8 bg-white/5 px-4 py-3 transition-all duration-300"
+                >
+                  <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10 transition-colors duration-300">
+                    <UIcon
+                      :name="tool.icon"
+                      class="size-5 text-[#a99bb8] transition-colors duration-300"
+                    />
+                  </div>
+                  <span class="text-sm text-[#c8bfd4]">{{ tool.name }}</span>
+                  <div class="ml-auto h-px flex-1 border-b border-dashed border-white/10" />
+                  <span class="text-xs text-[#8a7d9a]">login #{{ i + 1 }}</span>
+                </div>
+              </div>
+              <p class="mt-8 text-center text-sm text-[#8a7d9a]">
+                5 outils · 5 logins · 5 factures
+              </p>
+            </div>
+
+            <!-- RIGHT — Avec Keova (light, calm) — 5 items mapping 1:1 -->
+            <div class="relative flex flex-col bg-white px-8 py-10 lg:px-10 lg:py-12">
+              <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#d4956a]">
+                Avec Keova
+              </p>
+
+              <div class="space-y-3">
+                <div
+                  v-for="item in [
+                    { icon: 'i-lucide-calendar', label: 'Agenda et créneaux' },
+                    { icon: 'i-lucide-credit-card', label: 'Paiements automatiques' },
+                    { icon: 'i-lucide-folder-heart', label: 'Dossier client complet' },
+                    { icon: 'i-lucide-globe', label: 'Votre site pro' },
+                    { icon: 'i-lucide-mouse-pointer-click', label: 'Réservation en ligne' }
+                  ]"
+                  :key="item.label"
+                  class="flex items-center gap-4 rounded-xl border border-[#ebe7ef] px-4 py-3 transition-all duration-300 hover:border-[#d4956a]/30 hover:bg-[#fdf6f1]"
+                >
+                  <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-[#f5f3f7]">
+                    <UIcon
+                      :name="item.icon"
+                      class="size-5 text-[#d4956a]"
+                    />
+                  </div>
+                  <span class="text-sm font-medium text-[#3d3250]">{{ item.label }}</span>
+                </div>
+              </div>
+
+              <!-- Stats intégrées -->
+              <div class="mt-auto grid grid-cols-3 gap-4 border-t border-[#ebe7ef] pt-6">
+                <div
+                  v-for="stat in stats"
+                  :key="stat.label"
+                  class="text-center"
+                >
+                  <span class="block font-serif text-2xl text-[#5b4b6e]">{{ stat.value }}</span>
+                  <span class="text-[10px] font-semibold uppercase tracking-wider text-[#6b6278]">{{ stat.label }}</span>
+                </div>
+              </div>
+
+              <p class="mt-6 text-center text-sm text-[#6b6278]">
+                1 espace · 1 connexion · 0 friction
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -743,8 +773,8 @@ function scrollTo(id: string) {
               Avec vous, vos retours, vos besoins réels.
             </p>
             <p>
-              Les 50 premières inscrites ne seront pas des testeuses.
-              Elles seront co-fondatrices de l'outil.
+              Les premières inscrites ne seront pas des testeuses.
+              Elles co-construiront l'outil.
               Ce que vous demandez aujourd'hui, on le construit demain.
             </p>
             <p class="font-medium text-[#221d28]">
@@ -753,25 +783,49 @@ function scrollTo(id: string) {
             </p>
           </div>
 
-          <!-- 3 piliers visuels -->
-          <div class="mt-12 grid gap-6 sm:grid-cols-3">
-            <div
+          <!-- 3 piliers visuels — stepped flow -->
+          <div class="mt-12 grid gap-4 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-center">
+            <template
               v-for="(pillar, i) in [
-                { title: 'Vous utilisez', subtitle: 'Keova au quotidien' },
-                { title: 'Vous dites', subtitle: 'ce qui manque' },
-                { title: 'On construit', subtitle: 'la version suivante' }
+                { icon: 'i-lucide-mouse-pointer-click', title: 'Vous utilisez', subtitle: 'Keova au quotidien', num: '01' },
+                { icon: 'i-lucide-message-circle', title: 'Vous dites', subtitle: 'ce qui manque', num: '02' },
+                { icon: 'i-lucide-hammer', title: 'On construit', subtitle: 'la version suivante', num: '03' }
               ]"
               :key="pillar.title"
-              v-bind="reveal({ delay: i * 150 })"
-              class="scroll-reveal rounded-2xl border border-[#ebe7ef] bg-white p-6 text-center"
             >
-              <p class="font-serif text-xl font-semibold text-[#5b4b6e]">
-                {{ pillar.title }}
-              </p>
-              <p class="mt-2 text-sm text-[#6b6278]">
-                {{ pillar.subtitle }}
-              </p>
-            </div>
+              <!-- Arrow connector between cards -->
+              <div
+                v-if="i > 0"
+                class="hidden justify-center sm:flex"
+              >
+                <UIcon
+                  name="i-lucide-chevron-right"
+                  class="size-5 text-[#d4956a]"
+                />
+              </div>
+
+              <!-- Step card -->
+              <div
+                v-bind="reveal({ delay: i * 150 })"
+                class="scroll-reveal group relative flex flex-col items-center gap-3 rounded-2xl border border-[#ebe7ef] bg-white px-6 py-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#d7cfdf] hover:shadow-lg"
+              >
+                <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-3 py-0.5 text-[10px] font-bold text-white">
+                  {{ pillar.num }}
+                </span>
+                <div class="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+                  <UIcon
+                    :name="pillar.icon"
+                    class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                  />
+                </div>
+                <p class="font-serif text-lg font-semibold text-[#3d3250]">
+                  {{ pillar.title }}
+                </p>
+                <p class="text-sm text-[#6b6278]">
+                  {{ pillar.subtitle }}
+                </p>
+              </div>
+            </template>
           </div>
 
           <!-- Citation -->
@@ -876,7 +930,7 @@ function scrollTo(id: string) {
           <span class="bg-gradient-to-r from-[#e89560] to-[#f0b48f] bg-clip-text text-transparent">place</span>
         </h2>
         <p class="mx-auto mt-4 max-w-lg text-lg text-[#c8bfd4]">
-          50 places pour construire Keova avec nous. Inscrivez-vous en 30 secondes.
+          Quelques places pour construire Keova avec nous. Inscrivez-vous en 30 secondes.
           Aucune carte bancaire. On vous prévient dès qu'un accès se libère.
         </p>
 
@@ -891,7 +945,7 @@ function scrollTo(id: string) {
         <!-- P.S. V5 -->
         <p class="mx-auto mt-10 max-w-lg text-left text-sm leading-relaxed text-[#c8bfd4]">
           <strong class="text-[#f0b48f]">P.S.</strong> — Keova est gratuit pendant toute la beta.
-          Les 50 premières inscrites garderont un tarif fondateur à vie —
+          Les premières inscrites bénéficieront d'une réduction sur leur première année —
           bien en-dessous de ce que coûtent vos 5 outils actuels —
           et un accès direct à l'équipe pour orienter les prochaines fonctionnalités.
           Si vous hésitez, inscrivez-vous — vous pourrez toujours dire non plus tard.
@@ -1023,8 +1077,8 @@ function scrollTo(id: string) {
 }
 
 @keyframes scrollBounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 1; }
-  50% { transform: translateX(-50%) translateY(8px); opacity: 0.5; }
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(8px); opacity: 0.5; }
 }
 
 /* =================================================================================================
@@ -1082,14 +1136,19 @@ function scrollTo(id: string) {
   50% { background-position: 100% center; }
 }
 
-/* --- Tool cards --- */
-.tool-card {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* --- Avant tool rows (dark side hover) --- */
+.avant-tool:hover {
+  border-color: rgba(212, 149, 106, 0.3);
+  background: rgba(212, 149, 106, 0.08);
+  transform: translateX(4px);
 }
 
-.tool-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(91, 75, 110, 0.12);
+.avant-tool:hover .size-5 {
+  color: #d4956a;
+}
+
+.avant-tool:hover .rounded-lg {
+  background: rgba(212, 149, 106, 0.15);
 }
 
 /* --- Arrow pulse --- */
