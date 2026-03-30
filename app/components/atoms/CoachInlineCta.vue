@@ -10,11 +10,11 @@ defineProps<{
 </script>
 
 <template>
-  <div class="py-12 text-center">
+  <div class="bg-[#faf8f6] py-5 text-center">
     <UButton
       :to="ctaTo"
       variant="ghost"
-      class="group rounded-full border border-[#d4956a]/20 px-8 py-3 text-[#d4956a] transition-all duration-300 hover:border-[#d4956a]/40 hover:bg-[#d4956a]/5"
+      class="group rounded-full border border-[#d4956a]/40 px-8 py-3 text-[#d4956a] transition-all duration-300 hover:border-[#d4956a] hover:bg-[#d4956a]/5"
     >
       <span class="flex items-center gap-2">
         Réserver mon appel gratuit
@@ -24,7 +24,7 @@ defineProps<{
         />
       </span>
     </UButton>
-    <p class="mt-3 text-xs text-[#857d8c]">
+    <p class="mt-2 text-xs text-[#857d8c]">
       {{ durationMinutes }} min · Gratuit · Sans engagement
     </p>
   </div>

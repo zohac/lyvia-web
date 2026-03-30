@@ -4,7 +4,7 @@ import SpecialistCard from '~/components/organisms/SpecialistCard.vue'
 import LeadCaptureForm from '~/components/organisms/LeadCaptureForm.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
-const { reveal } = useScrollReveal()
+const { reveal, isReady: scrollReady } = useScrollReveal()
 
 // OG image B2C — override global fallback (AC-9, AC-10)
 useSeoMeta({
@@ -67,7 +67,7 @@ function scrollTo(id: string) {
 </script>
 
 <template>
-  <div class="relative min-h-screen overflow-hidden bg-[#faf8f6]">
+  <div :class="['relative min-h-screen overflow-hidden bg-[#faf8f6]', { 'js-scroll-ready': scrollReady }]">
     <!-- ========= AMBIENT MESH (fixed, organic biophilic) ========= -->
     <div
       aria-hidden="true"
@@ -461,13 +461,19 @@ function scrollTo(id: string) {
 
 /* ========= SCROLLTELLING — IntersectionObserver driven ========= */
 
-/* Base: fade up (default) */
+/* Base: visible by default (SSR-safe for crawlers and no-JS) */
 .scroll-reveal {
-  opacity: 0;
-  transform: translateY(32px);
+  opacity: 1;
+  transform: translateY(0);
   transition:
     opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
     transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* JS-enhanced: hide until IntersectionObserver reveals */
+.js-scroll-ready .scroll-reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(32px);
   will-change: opacity, transform;
 }
 
@@ -477,22 +483,22 @@ function scrollTo(id: string) {
 }
 
 /* Variant: slide from left (education cards — even) */
-.scroll-reveal.reveal-from-left {
+.js-scroll-ready .scroll-reveal.reveal-from-left:not(.is-visible) {
   transform: translateX(-40px) translateY(0);
 }
 
 /* Variant: slide from right (education cards — odd) */
-.scroll-reveal.reveal-from-right {
+.js-scroll-ready .scroll-reveal.reveal-from-right:not(.is-visible) {
   transform: translateX(40px) translateY(0);
 }
 
 /* Variant: scale in (symptom pills) */
-.scroll-reveal.reveal-scale {
+.js-scroll-ready .scroll-reveal.reveal-scale:not(.is-visible) {
   transform: scale(0.9) translateY(0);
 }
 
 /* Variant: clip reveal (lead capture dark section) */
-.scroll-reveal.reveal-clip {
+.js-scroll-ready .scroll-reveal.reveal-clip:not(.is-visible) {
   transform: translateY(48px);
 }
 

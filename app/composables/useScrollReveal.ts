@@ -45,10 +45,25 @@ export function useScrollReveal(options?: { threshold?: number, rootMargin?: str
     )
   }
 
+  // Track elements registered before observer is ready
+  const pendingElements: HTMLElement[] = []
+
   onMounted(() => {
     observer = createObserver()
-    // Delay isReady by a frame so that ref callbacks have time to register
-    // elements, and the browser has painted the initial state
+
+    // Observe all elements registered during hydration
+    for (const el of pendingElements) {
+      observer.observe(el)
+      // Immediately mark elements already in viewport to prevent flash
+      // when isReady enables the hide-by-default CSS
+      const rect = el.getBoundingClientRect()
+      if (rect.top < window.innerHeight + 40 && rect.bottom > 0) {
+        el.classList.add('is-visible')
+      }
+    }
+    pendingElements.length = 0
+
+    // Enable hide-by-default CSS after all in-viewport elements are marked
     requestAnimationFrame(() => {
       isReady.value = true
     })
@@ -64,18 +79,19 @@ export function useScrollReveal(options?: { threshold?: number, rootMargin?: str
           htmlEl.dataset.revealDelay = String(opts.delay)
         }
 
-        if (import.meta.server) {
-          // SSR: mark as visible immediately so content renders
-          htmlEl.classList.add('is-visible')
-          return
-        }
+        if (import.meta.server) return
 
-        // Always use nextTick to ensure observer is created (onMounted runs first)
-        nextTick(() => {
-          if (observer) {
-            observer.observe(htmlEl)
+        if (observer) {
+          observer.observe(htmlEl)
+          // Immediately mark if already in viewport
+          const rect = htmlEl.getBoundingClientRect()
+          if (rect.top < window.innerHeight + 40 && rect.bottom > 0) {
+            htmlEl.classList.add('is-visible')
           }
-        })
+        } else {
+          // Observer not yet created (ref fires before onMounted)
+          pendingElements.push(htmlEl)
+        }
       }
     }
   }

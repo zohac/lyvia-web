@@ -24,7 +24,7 @@ const props = defineProps<{
   ctaTo: string
 }>()
 
-const { reveal } = useScrollReveal()
+const { reveal, isReady } = useScrollReveal()
 const route = useRoute()
 const { isAuthenticated: checkAuth } = useAuth()
 const isAuthenticated = computed(() => checkAuth())
@@ -238,7 +238,10 @@ const heroProps = computed(() => ({
 </script>
 
 <template>
-  <div class="min-h-screen">
+  <div
+    class="min-h-screen"
+    :class="{ 'js-scroll-ready': isReady }"
+  >
     <!-- ==================== 1. HERO (beige) ==================== -->
     <CoachHeroProfile v-bind="heroProps" />
 
@@ -871,10 +874,13 @@ const heroProps = computed(() => ({
   border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
 }
 
-/* Scroll reveal base */
-.scroll-reveal {
+/* Scroll reveal base — visible by default for SSR, hidden only after JS loads */
+.js-scroll-ready .scroll-reveal:not(.is-visible) {
   opacity: 0;
   transform: translateY(24px);
+}
+
+.scroll-reveal {
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
@@ -897,9 +903,13 @@ const heroProps = computed(() => ({
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scroll-reveal {
+  .js-scroll-ready .scroll-reveal:not(.is-visible) {
     opacity: 1;
     transform: none;
+    transition: none;
+  }
+
+  .scroll-reveal {
     transition: none;
   }
 
