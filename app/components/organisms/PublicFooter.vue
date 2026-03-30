@@ -60,9 +60,12 @@ const whiteLabelLocation = computed(() => {
       </template>
 
       <!-- Platform footer -->
-      <p v-else-if="footerLine">
-        {{ footerLine }}
-      </p>
+      <template v-else-if="footerLine">
+        <p>{{ footerLine }}</p>
+        <p class="text-xs">
+          Dernière mise à jour : mars 2026
+        </p>
+      </template>
 
       <ULink
         :to="headerState.loginTo"

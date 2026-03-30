@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { AccordionItem } from '@nuxt/ui'
+
 // Import explicite obligatoire — pathPrefix Nuxt auto-import renommerait en OrganismsWaitlistForm (retro Epic 11)
 import WaitlistForm from '~/components/organisms/WaitlistForm.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
@@ -17,10 +19,85 @@ const fragmentedTools = [
 
 // --- Stats pour le social proof ---
 const stats = [
-  { value: '1', label: 'espace', suffix: 'unique' },
-  { value: '0', label: 'commission', suffix: 'en beta' },
-  { value: '5', label: 'outils', suffix: 'remplacés' }
+  { value: '1', label: 'connexion', suffix: 'au lieu de 5' },
+  { value: '0\u00A0€', label: 'de commission', suffix: 'en beta' },
+  { value: 'Plus de', label: 'dimanche soir', suffix: 'sur les factures' }
 ]
+
+// --- Features V5 ---
+const features = [
+  {
+    icon: 'i-lucide-calendar',
+    title: 'Agenda en ligne',
+    paragraphs: [
+      'Vos clientes réservent en ligne, 24h/24. Confirmation et rappel envoyés automatiquement. Plus de SMS « on était bien mardi à 14h\u00A0? ».',
+      'Vous choisissez vos créneaux, Keova gère les disponibilités. Les rendez-vous apparaissent dans votre agenda — sans double saisie.'
+    ]
+  },
+  {
+    icon: 'i-lucide-credit-card',
+    title: 'Paiements automatiques',
+    paragraphs: [
+      'Votre cliente paie en 1 clic après la séance. Facture envoyée automatiquement. Relance si impayé. Vous ne touchez à rien.',
+      'Stripe intégré, conforme aux normes françaises. Votre trésorerie est visible en temps réel — plus besoin d\'Excel.'
+    ]
+  },
+  {
+    icon: 'i-lucide-folder-heart',
+    title: 'Suivi client et ressources',
+    paragraphs: [
+      'Envoyez un exercice après la séance, une fiche à J+7, ou structurez un programme complet — 6, 8, 12 séances. Chaque cliente reçoit le bon contenu au bon moment.',
+      'L\'historique des séances et les notes sont centralisés. Vous retrouvez le dossier d\'une cliente en 2 clics.'
+    ]
+  }
+]
+
+// --- FAQ V5 ---
+const faqItems: AccordionItem[] = [
+  {
+    label: 'Keova est-il gratuit\u00A0?',
+    content: 'Oui, pendant toute la durée de la beta. Les 50 premières inscrites bénéficieront d\'un tarif fondateur à vie au lancement — bien en-dessous de ce que coûtent 5 outils séparément.',
+    value: 'faq-1'
+  },
+  {
+    label: 'Quelles sont les fonctionnalités de Keova\u00A0?',
+    content: 'Keova réunit trois fonctionnalités principales :\n— Agenda en ligne avec réservation et rappels automatiques\n— Paiements intégrés (Stripe) avec facturation et relance automatiques\n— Suivi client avec partage de ressources et programmes structurés\n\nD\'autres fonctionnalités sont en cours de développement, co-construites avec les praticiennes de la beta.',
+    value: 'faq-2'
+  },
+  {
+    label: 'Est-ce que Keova remplace Doctolib\u00A0?',
+    content: 'Keova n\'est pas un annuaire de praticiens. C\'est votre espace de gestion : agenda, paiements, suivi client, tout-en-un. Doctolib vous donne de la visibilité. Keova gère tout ce qui se passe après le premier contact. Les deux peuvent coexister.',
+    value: 'faq-3'
+  },
+  {
+    label: 'Comment migrer depuis Calendly ou un autre outil\u00A0?',
+    content: 'Vous n\'avez rien à migrer. Créez votre page Keova en 10 minutes, partagez le lien à vos clientes, et les nouvelles réservations passent par Keova. Vos anciens outils peuvent rester actifs le temps de la transition.',
+    value: 'faq-4'
+  },
+  {
+    label: 'Mes données sont-elles en sécurité\u00A0?',
+    content: 'Keova est développé et hébergé en France. Vos données et celles de vos clientes ne quittent jamais le territoire français. Les paiements sont sécurisés par Stripe, leader mondial du paiement en ligne. Keova est conforme au RGPD.',
+    value: 'faq-5'
+  },
+  {
+    label: 'Keova est-il adapté si j\'ai peu de clientes\u00A0?',
+    content: 'Oui. Keova est particulièrement utile quand vous démarrez : il vous donne une page pro, un agenda en ligne et une facturation automatique dès le premier jour — sans investir dans un site web ou 5 outils différents.',
+    value: 'faq-6'
+  },
+  {
+    label: 'Puis-je utiliser Keova si je ne suis pas spécialiste ménopause\u00A0?',
+    content: 'Oui. Keova est conçu pour les coachs ménopause mais fonctionne pour tous les métiers de l\'accompagnement : sophrologie, naturopathie, coaching bien-être, coaching de vie. Les fonctionnalités (agenda, paiements, suivi) sont les mêmes.',
+    value: 'faq-7'
+  }
+]
+
+// FAQ SSR: all items open on server, closed after hydration (crawlability)
+const allFaqValues = faqItems.map(item => item.value).filter((v): v is string => !!v)
+const faqDefaultValue = ref<string[]>(allFaqValues)
+
+onMounted(() => {
+  faqDefaultValue.value = []
+})
 
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
@@ -66,32 +143,37 @@ function scrollTo(id: string) {
                 <span class="eyebrow-shimmer absolute inset-0 bg-gradient-to-r from-[#5b4b6e] via-[#d4956a] to-[#5b4b6e]" />
               </span>
               <span class="text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
-                Beta privée — Places limitées
+                Beta privée — 50 places
               </span>
             </div>
 
             <!-- Main headline -->
             <h1 class="font-serif text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] text-[#221d28]">
-              Votre espace pro
-              <br>
+              Le logiciel
               <span class="relative inline-block">
-                pour accompagner
+                tout-en-un
                 <span class="absolute -bottom-2 left-0 h-3 w-full -skew-x-6 bg-gradient-to-r from-[#e89560] to-[#d4956a] opacity-30" />
               </span>
               <br>
               <span class="hero-gradient-text">
-                les femmes en ménopause
+                pour coachs ménopause
               </span>.
             </h1>
 
-            <!-- Description -->
-            <p class="max-w-md text-lg leading-relaxed text-[#4a4255]">
-              Keova réunit agenda, paiements et suivi client dans une expérience calme
-              — pensée pour les métiers du soin, pas pour les dashboards bruyants.
-            </p>
+            <!-- Description V5 -->
+            <div class="max-w-md space-y-3">
+              <p class="text-lg leading-relaxed text-[#4a4255]">
+                Agenda en ligne, paiements automatiques, suivi client — réunis dans un seul outil.
+                Vous ouvrez Keova, vous voyez vos rendez-vous, vos règlements, vos clientes.
+                Tout ce qu'il faut. Rien de superflu.
+              </p>
+              <p class="text-sm text-[#6b6278]">
+                Conçu pour les coachs ménopause. Adapté à tous les métiers de l'accompagnement.
+              </p>
+            </div>
             <p class="max-w-md text-sm text-[#6b6278]">
-              Keova est en beta privée avec un nombre limité de praticiennes.
-              Inscrivez-vous pour être prévenue de l'ouverture.
+              50 praticiennes construisent Keova avec nous avant le lancement.
+              Il reste des places — inscrivez-vous pour en faire partie.
             </p>
 
             <!-- CTAs -->
@@ -121,7 +203,7 @@ function scrollTo(id: string) {
 
             <!-- Réassurance -->
             <p class="text-sm text-[#6b6278]">
-              Sans carte bancaire · Aucun engagement · Données hébergées en France
+              Sans carte bancaire · Inscription en 30 secondes · Données hébergées en France
             </p>
           </div>
 
@@ -176,6 +258,7 @@ function scrollTo(id: string) {
               <div class="overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-2xl backdrop-blur-sm transition-transform duration-700 hover:scale-[1.01]">
                 <NuxtImg
                   src="/images/screenshot-dashboard.png"
+                  format="webp"
                   class="w-full rounded-2xl"
                   alt="Interface Keova — agenda, paiements et suivi client"
                   loading="eager"
@@ -204,10 +287,47 @@ function scrollTo(id: string) {
       </div>
     </section>
 
-    <!-- ====================== POURQUOI KEOVA ====================== -->
+    <!-- ====================== BLOC DOULEUR (V5) ====================== -->
+    <section class="relative bg-white px-6 py-24 sm:px-12 lg:px-20">
+      <div
+        v-bind="reveal()"
+        class="scroll-reveal mx-auto max-w-3xl"
+      >
+        <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
+        <h2 class="font-serif text-3xl leading-tight text-[#221d28] lg:text-4xl">
+          Combien d'outils ouvrez-vous avant votre première séance&#8239;?
+        </h2>
+        <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#4a4255]">
+          <p>
+            Calendly ou Google Agenda pour les créneaux.
+            Stripe ou des virements à la main pour les paiements.
+            Un tableur pour le suivi.
+            Un site — ou juste un lien Instagram.
+          </p>
+          <p>
+            Trois, quatre, cinq outils. Aucun ne se parle.
+            Et entre chaque séance, c'est l'admin qui prend le dessus.
+          </p>
+          <p>
+            Vous relancez un paiement. Vous recopiez un créneau.
+            Vous cherchez où vous aviez noté le bilan d'une cliente.
+          </p>
+          <p class="font-medium text-[#221d28]">
+            À 10 clientes, ça tient. À 25, ça déborde.
+            Pas parce que vous n'êtes pas organisée — parce que vos outils ne suivent pas.
+          </p>
+          <p class="text-[#6b6278]">
+            Et si vous débutez sans aucun de ces outils&#8239;?
+            C'est le moment de poser les bonnes bases.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== SECTION COMPARATIVE (V5) ====================== -->
     <section
       id="pourquoi"
-      class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-[#f0edf3] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div
         v-bind="reveal()"
@@ -215,12 +335,12 @@ function scrollTo(id: string) {
       >
         <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
         <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
-          Moins d'onglets.
-          <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">Plus de présence.</span>
+          Un seul logiciel
+          <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">au lieu de cinq.</span>
         </h2>
         <p class="mx-auto mt-4 max-w-xl text-[#6b6278]">
-          Aujourd'hui, votre quotidien c'est 5 outils, 5 mots de passe, 5 onglets.
-          Et si tout tenait dans un seul espace ?
+          Calendly, Stripe, Excel, WordPress, Doctolib — vous les connaissez par cœur.
+          Keova les remplace. Un seul compte, un seul écran, un seul outil de gestion.
         </p>
 
         <div class="mt-16 flex flex-col items-center gap-8 lg:flex-row lg:justify-center">
@@ -302,123 +422,76 @@ function scrollTo(id: string) {
       </div>
     </section>
 
-    <!-- ====================== ATELIER SECTION ====================== -->
+    <!-- ====================== FEATURES V5 ====================== -->
     <section
       id="atelier"
       class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
     >
-      <div class="mx-auto max-w-6xl">
-        <div class="flex flex-col items-center gap-16 lg:flex-row lg:gap-20">
-          <!-- Image -->
+      <div class="mx-auto max-w-5xl">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal mb-16 text-center"
+        >
+          <span class="mb-4 inline-block bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
+            La solution
+          </span>
+          <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
+            Ce que Keova fait pour vous
+            <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">chaque jour</span>
+          </h2>
+          <p class="mx-auto mt-4 max-w-2xl text-[#6b6278]">
+            Rendez-vous, paiements, ressources — les trois piliers de votre pratique,
+            réunis dans un seul logiciel.
+            Vous gardez la relation avec vos clientes. Keova s'occupe du reste.
+          </p>
+        </div>
+
+        <div class="grid gap-8">
           <div
-            v-bind="reveal()"
-            class="scroll-reveal relative w-full lg:w-1/2"
+            v-for="(feature, i) in features"
+            :key="feature.title"
+            v-bind="reveal({ delay: i * 150 })"
+            class="scroll-reveal feature-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8"
           >
-            <div class="absolute -left-4 -top-4 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-40 blur-[30px]" />
-            <div class="relative overflow-hidden rounded-3xl border border-white/60 bg-white/90 p-2 shadow-xl backdrop-blur-sm transition-transform duration-500 hover:scale-[1.02]">
-              <NuxtImg
-                src="/images/screenshot-calendar.png"
-                class="w-full rounded-2xl"
-                alt="Agenda Keova — vue calendrier semaine"
-                loading="lazy"
-                width="600"
-                height="400"
-              />
-            </div>
-            <!-- Floating quote -->
-            <div class="animate-float-slow absolute -bottom-6 -right-6 max-w-xs rounded-2xl border border-white/50 bg-white/90 p-5 shadow-lg backdrop-blur-md lg:-right-12">
-              <UIcon
-                name="i-lucide-quote"
-                class="mb-2 size-6 text-[#d4956a]"
-              />
-              <p class="font-serif text-base italic text-[#4d3f5c]">
-                "On ne gère pas des clientes. On les accompagne."
-              </p>
+            <div class="feature-card-glow absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0" />
+            <div class="flex items-start gap-5">
+              <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+                <UIcon
+                  :name="feature.icon"
+                  class="size-7 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                />
+              </div>
+              <div>
+                <h3 class="font-serif text-xl font-semibold text-[#3d3250]">
+                  {{ feature.title }}
+                </h3>
+                <p
+                  v-for="(paragraph, j) in feature.paragraphs"
+                  :key="j"
+                  class="mt-3 text-[#6b6278]"
+                >
+                  {{ paragraph }}
+                </p>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- Content -->
-          <div
-            v-bind="reveal({ delay: 200 })"
-            class="scroll-reveal flex w-full flex-col gap-8 lg:w-1/2"
+        <!-- CTA intermédiaire -->
+        <div class="mt-12 text-center">
+          <button
+            class="cta-primary group relative overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
+            @click="isWaitlistModalOpen = true"
           >
-            <div>
-              <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
-              <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
-                Un outil pensé pour les
-                <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">spécialistes ménopause</span>
-              </h2>
-            </div>
-
-            <p class="text-lg leading-relaxed text-[#4a4255]">
-              Une interface qui se vit comme un espace de travail calme : rendez-vous, paiements et ressources sont
-              orchestrés sans effort.
-            </p>
-
-            <p class="text-[#6b6278]">
-              Chaque détail vise à réduire la charge mentale. Vous gardez la relation, Keova garde la structure.
-            </p>
-
-            <button
-              class="group -ml-2 flex items-center gap-2 self-start font-semibold text-[#5b4b6e] transition-colors duration-200 hover:text-[#c47a4a]"
-              @click="scrollTo('waitlist')"
-            >
+            <span class="cta-primary-bg" />
+            <span class="relative z-10 flex items-center gap-2">
               Je réserve ma place
               <UIcon
                 name="i-lucide-arrow-right"
-                class="size-4 transition-transform duration-300 group-hover:translate-x-1"
+                class="size-5 transition-transform duration-300 group-hover:translate-x-1"
               />
-            </button>
-
-            <!-- Feature cards -->
-            <div class="grid gap-4 pt-4">
-              <div
-                v-bind="reveal({ delay: 300 })"
-                class="scroll-reveal feature-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6"
-              >
-                <div class="feature-card-glow absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0" />
-                <div class="flex items-start gap-4">
-                  <div class="grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
-                    <UIcon
-                      name="i-lucide-credit-card"
-                      class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
-                    />
-                  </div>
-                  <div>
-                    <p class="font-semibold text-[#3d3250]">
-                      Paiements
-                    </p>
-                    <p class="mt-1 text-sm text-[#6b6278]">
-                      Stripe, factures, statuts : la trésorerie devient lisible, sans effort.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                v-bind="reveal({ delay: 400 })"
-                class="scroll-reveal feature-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6"
-              >
-                <div class="feature-card-glow absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0" />
-                <div class="flex items-start gap-4">
-                  <div class="grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
-                    <UIcon
-                      name="i-lucide-folder-heart"
-                      class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
-                    />
-                  </div>
-                  <div>
-                    <p class="font-semibold text-[#3d3250]">
-                      Ressources
-                    </p>
-                    <p class="mt-1 text-sm text-[#6b6278]">
-                      Des contenus au bon moment, pour prolonger le travail entre les séances.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            </span>
+          </button>
         </div>
       </div>
     </section>
@@ -437,8 +510,8 @@ function scrollTo(id: string) {
             Le parcours
           </span>
           <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
-            Une trajectoire
-            <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">simple</span>
+            Prête en
+            <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">3 étapes</span>
           </h2>
         </div>
 
@@ -455,13 +528,15 @@ function scrollTo(id: string) {
               >
                 <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#ebe7ef] px-4 py-2 text-sm font-semibold text-[#4d3f5c]">
                   <span class="grid size-6 place-items-center rounded-full bg-[#5b4b6e] text-xs font-bold text-white">1</span>
-                  Mise en place
+                  Créez votre page pro
                 </span>
                 <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
-                  Une page, un agenda.
+                  10 minutes, c'est prêt.
                 </h3>
                 <p class="mt-4 text-[#6b6278]">
-                  Votre page publique et vos créneaux se configurent en douceur. Quelques minutes suffisent.
+                  Ajoutez votre photo, vos horaires et vos tarifs.
+                  Votre page est en ligne — vos clientes peuvent réserver.
+                  Pas besoin de webmaster ni de site WordPress.
                 </p>
               </div>
               <div
@@ -471,6 +546,7 @@ function scrollTo(id: string) {
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
                     src="/images/screenshot-scheduling.png"
+                    format="webp"
                     class="w-full rounded-xl"
                     alt="Configuration créneaux et tarifs"
                     loading="lazy"
@@ -489,13 +565,15 @@ function scrollTo(id: string) {
               >
                 <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#fbeade] px-4 py-2 text-sm font-semibold text-[#a3603e]">
                   <span class="grid size-6 place-items-center rounded-full bg-[#d4956a] text-xs font-bold text-white">2</span>
-                  Automatisation
+                  Laissez Keova gérer l'admin
                 </span>
                 <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
-                  Le flux suit.
+                  Paiements, confirmations, rappels — automatiques.
                 </h3>
                 <p class="mt-4 text-[#6b6278]">
-                  Paiements, confirmations, rappels : la structure devient naturelle et invisible.
+                  Une cliente réserve&#8239;? Elle reçoit la confirmation.
+                  La veille du RDV&#8239;? Elle reçoit le rappel.
+                  Après la séance&#8239;? La facture part toute seule.
                 </p>
               </div>
               <div
@@ -505,6 +583,7 @@ function scrollTo(id: string) {
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
                     src="/images/screenshot-payments.png"
+                    format="webp"
                     class="w-full rounded-xl"
                     alt="Finance et paiements automatisés"
                     loading="lazy"
@@ -523,13 +602,14 @@ function scrollTo(id: string) {
               >
                 <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#ebe7ef] px-4 py-2 text-sm font-semibold text-[#4d3f5c]">
                   <span class="grid size-6 place-items-center rounded-full bg-[#5b4b6e] text-xs font-bold text-white">3</span>
-                  Expérience client
+                  Gardez le lien entre les séances
                 </span>
                 <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
-                  Le soin reste.
+                  Vos clientes restent engagées.
                 </h3>
                 <p class="mt-4 text-[#6b6278]">
-                  Contenus, suivi et ressources : vos clientes restent engagées, sans surcharge.
+                  Partagez un exercice, un article, un bilan.
+                  Vos clientes reçoivent le bon contenu au bon moment de leur parcours.
                 </p>
               </div>
               <div
@@ -539,6 +619,7 @@ function scrollTo(id: string) {
                 <div class="overflow-hidden rounded-2xl border border-white/60 bg-white/90 p-2 shadow-lg transition-transform duration-500 hover:scale-[1.02]">
                   <NuxtImg
                     src="/images/screenshot-clients.png"
+                    format="webp"
                     class="w-full rounded-xl"
                     alt="Suivi et gestion des clientes"
                     loading="lazy"
@@ -601,7 +682,7 @@ function scrollTo(id: string) {
                   Sophie Jouan
                 </p>
                 <p class="text-sm text-[#6b6278]">
-                  Sophrologue spécialisée ménopause, Lyon
+                  Spécialiste ménopause, Valognes (Normandie)
                 </p>
               </div>
 
@@ -640,6 +721,132 @@ function scrollTo(id: string) {
       </div>
     </section>
 
+    <!-- ====================== CO-CONSTRUCTION (V5) ====================== -->
+    <section class="relative bg-[#f5f3f7] px-6 py-24 sm:px-12 lg:px-20">
+      <div class="mx-auto max-w-4xl">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal"
+        >
+          <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
+          <h2 class="font-serif text-3xl leading-tight text-[#221d28] lg:text-4xl">
+            Un outil jeune. Co-construit avec vous.
+          </h2>
+          <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#4a4255]">
+            <p>
+              Keova n'est pas parfait. Il est jeune, il évolue vite,
+              et c'est exactement pour ça qu'il sera meilleur que les autres.
+            </p>
+            <p>
+              Chaque fonctionnalité est pensée avec les praticiennes qui l'utilisent.
+              Pas dans un bureau. Pas sur des suppositions.
+              Avec vous, vos retours, vos besoins réels.
+            </p>
+            <p>
+              Les 50 premières inscrites ne seront pas des testeuses.
+              Elles seront co-fondatrices de l'outil.
+              Ce que vous demandez aujourd'hui, on le construit demain.
+            </p>
+            <p class="font-medium text-[#221d28]">
+              La gestion des programmes par séances&#8239;? Demandée par une praticienne.
+              Livrée en deux semaines.
+            </p>
+          </div>
+
+          <!-- 3 piliers visuels -->
+          <div class="mt-12 grid gap-6 sm:grid-cols-3">
+            <div
+              v-for="(pillar, i) in [
+                { title: 'Vous utilisez', subtitle: 'Keova au quotidien' },
+                { title: 'Vous dites', subtitle: 'ce qui manque' },
+                { title: 'On construit', subtitle: 'la version suivante' }
+              ]"
+              :key="pillar.title"
+              v-bind="reveal({ delay: i * 150 })"
+              class="scroll-reveal rounded-2xl border border-[#ebe7ef] bg-white p-6 text-center"
+            >
+              <p class="font-serif text-xl font-semibold text-[#5b4b6e]">
+                {{ pillar.title }}
+              </p>
+              <p class="mt-2 text-sm text-[#6b6278]">
+                {{ pillar.subtitle }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Citation -->
+          <blockquote class="mt-12 border-l-4 border-[#d4956a] pl-6 font-serif text-xl italic text-[#4a4255]">
+            &laquo;&nbsp;Aucun logiciel du marché n'a été conçu en écoutant des praticiennes ménopause.
+            Keova est le premier.&nbsp;&raquo;
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== BLOC AUTORITÉ (V5) ====================== -->
+    <section class="relative bg-white px-6 py-24 sm:px-12 lg:px-20">
+      <div
+        v-bind="reveal()"
+        class="scroll-reveal mx-auto max-w-3xl"
+      >
+        <h3 class="font-serif text-2xl text-[#221d28] lg:text-3xl">
+          Qui est derrière Keova&#8239;?
+        </h3>
+        <div class="mt-6 space-y-4 text-lg leading-relaxed text-[#4a4255]">
+          <p>
+            Keova est né d'un constat simple : les logiciels du marché sont faits
+            pour les marketeurs, pas pour les praticiennes du soin.
+          </p>
+          <p>
+            L'outil est jeune, l'équipe est petite, et c'est un choix :
+            rester proche de chaque praticienne plutôt que de grossir trop vite.
+          </p>
+          <p class="text-[#6b6278]">
+            Keova est développé et hébergé en France.
+            Chaque membre de la beta a un accès direct à l'équipe — par message, appel ou visio.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== FAQ (V5) ====================== -->
+    <section
+      id="faq"
+      class="relative bg-[#f5f3f7] px-6 py-24 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-3xl">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal mb-12 text-center"
+        >
+          <span class="mb-4 inline-block bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
+            FAQ
+          </span>
+          <h2 class="font-serif text-3xl leading-tight text-[#221d28] lg:text-4xl">
+            Questions fréquentes
+          </h2>
+        </div>
+
+        <UAccordion
+          :items="faqItems"
+          :default-value="faqDefaultValue"
+          multiple
+          aria-label="Questions fréquentes"
+        >
+          <template #content="{ item }">
+            <div class="space-y-3 pb-3.5 text-sm text-[#4a4255]">
+              <p
+                v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
+                :key="i"
+              >
+                {{ paragraph }}
+              </p>
+            </div>
+          </template>
+        </UAccordion>
+      </div>
+    </section>
+
     <!-- ====================== WAITLIST SECTION ====================== -->
     <section
       id="waitlist"
@@ -665,19 +872,30 @@ function scrollTo(id: string) {
         class="scroll-reveal relative mx-auto max-w-2xl text-center"
       >
         <h2 class="font-serif text-4xl leading-tight text-white lg:text-5xl">
-          Rejoindre la
-          <span class="bg-gradient-to-r from-[#e89560] to-[#f0b48f] bg-clip-text text-transparent">beta</span>
+          Réservez votre
+          <span class="bg-gradient-to-r from-[#e89560] to-[#f0b48f] bg-clip-text text-transparent">place</span>
         </h2>
         <p class="mx-auto mt-4 max-w-lg text-lg text-[#c8bfd4]">
-          Inscrivez-vous pour être prévenue dès qu'une place se libère.
-        </p>
-        <p class="mt-2 text-sm text-[#a99bb8]">
-          Aucune carte bancaire. Aucun engagement. Juste un email.
+          50 places pour construire Keova avec nous. Inscrivez-vous en 30 secondes.
+          Aucune carte bancaire. On vous prévient dès qu'un accès se libère.
         </p>
 
         <div class="mt-10">
           <WaitlistForm mode="inline" />
         </div>
+
+        <p class="mx-auto mt-4 max-w-lg text-sm text-[#a99bb8]">
+          Jamais de spam. Données hébergées en France. Conforme RGPD.
+        </p>
+
+        <!-- P.S. V5 -->
+        <p class="mx-auto mt-10 max-w-lg text-left text-sm leading-relaxed text-[#c8bfd4]">
+          <strong class="text-[#f0b48f]">P.S.</strong> — Keova est gratuit pendant toute la beta.
+          Les 50 premières inscrites garderont un tarif fondateur à vie —
+          bien en-dessous de ce que coûtent vos 5 outils actuels —
+          et un accès direct à l'équipe pour orienter les prochaines fonctionnalités.
+          Si vous hésitez, inscrivez-vous — vous pourrez toujours dire non plus tard.
+        </p>
       </div>
     </section>
 

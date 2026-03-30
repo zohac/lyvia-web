@@ -49,8 +49,8 @@ usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.v
 
 const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
-const b2bTitle = 'Keova — L\'espace pro pour spécialistes ménopause et bien-être | Beta privée'
-const b2bDescription = 'Beta privée — rejoignez la liste d\'attente. Keova simplifie les accompagnements ménopause : agenda, paiements, suivi client dans un espace conçu pour les spécialistes.'
+const b2bTitle = 'Keova — Logiciel tout-en-un pour spécialistes ménopause'
+const b2bDescription = 'Keova réunit agenda en ligne, paiements et suivi client pour les coachs ménopause. Logiciel co-construit avec les praticiennes. Beta privée gratuite.'
 const b2cTitle = 'Keova — Trouvez votre spécialiste ménopause et périménopause'
 const b2cDescription = 'Découvrez des spécialistes vérifiées pour un accompagnement ménopause personnalisé. Périménopause, ménopause : trouvez votre spécialiste.'
 
@@ -84,13 +84,22 @@ useSeoMeta({
     isPlatformDomain.value
       ? platformDescription()
       : seo.value?.description ?? `${whiteLabelBrandName.value} - Coaching et accompagnement`,
-  ogImage: () => !isPlatformDomain.value ? (seo.value?.ogImageUrl || null) : null,
+  ogImage: () => isPlatformDomain.value ? `${origin}/images/og-default.png` : (seo.value?.ogImageUrl || null),
   ogUrl: () => canonicalHref.value,
   ogType: 'website',
   twitterCard: 'summary_large_image'
 })
 
 usePublicCanonicalHead(canonicalHref)
+
+// Preload LCP image for B2B landing (AC-19)
+if (isPlatformDomain.value) {
+  useHead({
+    link: [
+      { rel: 'preload', as: 'image', href: '/images/screenshot-dashboard.png' }
+    ]
+  })
+}
 
 // Set header state synchronously during setup (runs on both SSR and client)
 // to avoid hydration mismatch — watchEffect only ran on client, leaving SSR with defaults.
@@ -151,7 +160,8 @@ function updatePublicHeader() {
       navLinks: [
         { label: 'Le problème', href: '#pourquoi' },
         { label: 'La solution', href: '#atelier' },
-        { label: 'Témoignage', href: '#temoignage' }
+        { label: 'Témoignages', href: '#temoignage' },
+        { label: 'FAQ', href: '#faq' }
       ],
       loginLabel: 'Se connecter',
       loginTo: '/login',

@@ -23,7 +23,8 @@ export function useCommonLayoutHead() {
     meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
     link: [
       { rel: 'icon', href: faviconHref.value },
-      { rel: 'alternate', hreflang: 'fr', href: hreflangHref.value }
+      { rel: 'alternate', hreflang: 'fr', href: hreflangHref.value },
+      { rel: 'alternate', hreflang: 'x-default', href: hreflangHref.value }
     ],
     htmlAttrs: { lang: 'fr' }
   }))

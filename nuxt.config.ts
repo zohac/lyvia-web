@@ -112,7 +112,10 @@ export default defineNuxtConfig({
     },
     // Home page is host-dependent (platform marketing vs white-label tenant),
     // so it must stay dynamic at runtime.
-    '/': { prerender: false },
+    '/': {
+      prerender: false,
+      headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' }
+    },
     // Auth pages: noindex (no SEO value, user-specific)
     '/login': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
     '/reset-password': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
