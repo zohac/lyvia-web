@@ -431,22 +431,24 @@ function scrollTo(id: string) {
                 </div>
               </div>
 
-              <!-- Stats intégrées -->
-              <div class="mt-auto grid grid-cols-3 gap-4 border-t border-[#ebe7ef] pt-6">
-                <div
-                  v-for="stat in stats"
-                  :key="stat.label"
-                  class="text-center"
-                >
-                  <span class="block font-serif text-2xl text-[#5b4b6e]">{{ stat.value }}</span>
-                  <span class="text-[10px] font-semibold uppercase tracking-wider text-[#6b6278]">{{ stat.label }}</span>
-                </div>
-              </div>
-
-              <p class="mt-6 text-center text-sm text-[#6b6278]">
-                1 espace · 1 connexion · 0 friction
-              </p>
             </div>
+          </div>
+        </div>
+
+        <!-- Stats — 3 cards séparées sous le split -->
+        <div class="mt-10 grid gap-4 sm:grid-cols-3">
+          <div
+            v-for="(stat, i) in stats"
+            :key="stat.label"
+            v-bind="reveal({ delay: 400 + i * 120 })"
+            class="stat-card scroll-reveal group flex flex-col items-center gap-2 rounded-2xl border border-[#ebe7ef] bg-white px-6 py-8 text-center shadow-sm"
+          >
+            <span class="font-serif text-4xl text-[#5b4b6e] transition-transform duration-300 group-hover:scale-110">
+              {{ stat.value }}
+            </span>
+            <span class="text-xs font-semibold uppercase tracking-wider text-[#6b6278]">
+              {{ stat.label }}
+            </span>
           </div>
         </div>
       </div>
@@ -1134,6 +1136,17 @@ function scrollTo(id: string) {
 @keyframes gradientSlide {
   0%, 100% { background-position: 0% center; }
   50% { background-position: 100% center; }
+}
+
+/* --- Stat cards hover --- */
+.stat-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stat-card:hover {
+  border-color: #d4956a;
+  box-shadow: 0 8px 24px rgba(212, 149, 106, 0.12);
+  transform: translateY(-4px);
 }
 
 /* --- Avant tool rows (dark side hover) --- */
