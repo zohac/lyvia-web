@@ -22,10 +22,12 @@ export default defineEventHandler(async (event) => {
     ]
   }
 
-  // B2B (keova.app): minimal sitemap — landing only (AC-3)
+  // B2B (keova.app): homepage + legal pages with lastmod (AC-16)
   if (ctx.isB2B) {
+    const lastmod = new Date().toISOString().slice(0, 10)
     return [
-      { loc: `${origin}/`, changefreq: 'monthly' as const, priority: 1.0 }
+      { loc: `${origin}/`, lastmod },
+      ...LEGAL_PAGES.map(p => ({ loc: `${origin}${p.loc}`, lastmod }))
     ]
   }
 

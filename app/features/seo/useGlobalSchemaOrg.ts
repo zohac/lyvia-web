@@ -18,12 +18,38 @@ export async function useGlobalSchemaOrg() {
         name: 'Keova',
         url: origin,
         logo: `${origin}/images/keova-logo.png`,
-        description: 'Trouvez votre spécialiste ménopause et périménopause'
+        description: 'Keova réunit agenda, paiements et suivi client dans un espace pro conçu pour les spécialistes ménopause et bien-être.'
       }),
       defineWebSite({
         name: 'Keova',
         inLanguage: 'fr-FR'
-      })
+      }),
+      // SoftwareApplication with Review (AC-14)
+      {
+        '@type': 'SoftwareApplication',
+        'name': 'Keova',
+        'applicationCategory': 'BusinessApplication',
+        'operatingSystem': 'Web',
+        'url': origin,
+        'description': 'Logiciel tout-en-un pour spécialistes ménopause : agenda en ligne, paiements automatiques, suivi client.',
+        'offers': {
+          '@type': 'Offer',
+          'price': '0',
+          'priceCurrency': 'EUR',
+          'description': 'Beta privée gratuite'
+        },
+        'review': {
+          '@type': 'Review',
+          'author': {
+            '@type': 'Person',
+            'name': 'Sophie Jouan',
+            'jobTitle': 'Spécialiste ménopause',
+            'address': { '@type': 'PostalAddress', 'addressLocality': 'Valognes', 'addressRegion': 'Normandie' }
+          },
+          'reviewBody': 'Keova a remplacé mes 5 outils par un seul espace. Ma page pro était en ligne en quelques minutes.',
+          'reviewRating': { '@type': 'Rating', 'ratingValue': '5', 'bestRating': '5' }
+        }
+      }
     ])
     return
   }

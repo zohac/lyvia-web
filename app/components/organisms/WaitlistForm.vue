@@ -61,13 +61,13 @@ const isDark = computed(() => props.mode === 'inline')
 
 // --- Nuxt UI :ui overrides for dark variant (inline on dark bg) ---
 const darkInputUi = {
-  base: 'w-full rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+  base: 'w-full rounded-xl min-h-[44px] bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
 }
-const lightUi = { base: 'w-full rounded-xl' }
+const lightUi = { base: 'w-full rounded-xl min-h-[44px]' }
 const inputUi = computed(() => isDark.value ? darkInputUi : lightUi)
 
 const darkSelectUi = {
-  base: 'w-full rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+  base: 'w-full rounded-xl min-h-[44px] bg-white/10 border-white/18 text-[#f5f3f7] backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
 }
 const selectUi = computed(() => isDark.value ? darkSelectUi : lightUi)
 
