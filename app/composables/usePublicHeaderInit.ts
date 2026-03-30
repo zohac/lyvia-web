@@ -23,11 +23,6 @@ export async function usePublicHeaderInit() {
     const headerState = usePublicHeaderState()
 
     if (ctx.isB2C) {
-      const b2bOrigin = platformDomainB2B
-        ? `${requestUrl.protocol}//${platformDomainB2B}${requestUrl.port ? `:${requestUrl.port}` : ''}`
-        : ''
-      const loginUrl = b2bOrigin ? `${b2bOrigin}/login` : '/login'
-
       headerState.value = {
         ...headerState.value,
         variant: 'marketing',
@@ -41,7 +36,7 @@ export async function usePublicHeaderInit() {
           { label: 'Symptômes', href: '#symptomes' }
         ],
         loginLabel: 'Se connecter',
-        loginTo: loginUrl,
+        loginTo: '/login',
         ctaLabel: 'Trouver ma spécialiste',
         ctaTo: '#specialistes'
       }

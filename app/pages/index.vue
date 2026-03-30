@@ -51,8 +51,8 @@ const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim
 
 const b2bTitle = 'Keova — Logiciel tout-en-un pour spécialistes ménopause'
 const b2bDescription = 'Keova réunit agenda en ligne, paiements et suivi client pour les coachs ménopause. Logiciel co-construit avec les praticiennes. Beta privée gratuite.'
-const b2cTitle = 'Keova — Trouvez votre spécialiste ménopause et périménopause'
-const b2cDescription = 'Découvrez des spécialistes vérifiées pour un accompagnement ménopause personnalisé. Périménopause, ménopause : trouvez votre spécialiste.'
+const b2cTitle = 'Accompagnement ménopause — Spécialistes formées | Keova'
+const b2cDescription = 'Périménopause, ménopause, post-ménopause : comprenez vos symptômes et trouvez une spécialiste près de chez vous. Premier appel gratuit. Keova.'
 
 function platformTitle() {
   return ctx.value.isB2C ? b2cTitle : b2bTitle
@@ -128,12 +128,6 @@ function updatePublicHeader() {
   }
 
   if (ctx.value.isB2C) {
-    // B2C login redirects to the B2B app domain (keova.app in prod, localhost in dev)
-    const b2bOrigin = platformDomainB2B
-      ? `${requestUrl.protocol}//${platformDomainB2B}${requestUrl.port ? `:${requestUrl.port}` : ''}`
-      : ''
-    const loginUrl = b2bOrigin ? `${b2bOrigin}/login` : '/login'
-
     setPublicHeader({
       variant: 'marketing',
       layoutStyle: 'dock',
@@ -146,7 +140,7 @@ function updatePublicHeader() {
         { label: 'Symptômes', href: '#symptomes' }
       ],
       loginLabel: 'Se connecter',
-      loginTo: loginUrl,
+      loginTo: '/login',
       ctaLabel: 'Trouver ma spécialiste',
       ctaTo: '#specialistes'
     })

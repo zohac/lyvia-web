@@ -11,12 +11,7 @@ useSeoMeta({
   ogImage: '/images/og-default-b2c.png'
 })
 
-// Hide the layout footer — B2C has its own footer
-const hideLayoutFooter = useState('hide-layout-footer', () => false)
-hideLayoutFooter.value = true
-onUnmounted(() => {
-  hideLayoutFooter.value = false
-})
+// Layout footer handles all variants (B2B/B2C/WL) — no inline footer needed
 
 // --- Providers featured (SSR-compatible) ---
 const { data: featuredData } = await useFetch<{ providers: FeaturedProvider[] }>('/api/public/providers/featured', {
@@ -354,55 +349,7 @@ function scrollTo(id: string) {
     <!-- ==================== DISCLAIMER ==================== -->
     <AtomsMedicalDisclaimer />
 
-    <!-- ==================== FOOTER B2C ==================== -->
-    <footer class="border-t border-[#e8e2ed]/50 bg-[#faf8f6] px-4 py-14">
-      <div class="mx-auto flex max-w-5xl flex-col items-center gap-7 text-center">
-        <!-- Brand -->
-        <p class="font-serif text-2xl tracking-tight text-[#3d3250]">
-          Keova
-        </p>
-
-        <!-- Legal nav -->
-        <nav class="flex flex-wrap justify-center gap-5 text-sm text-[#857d8c]">
-          <NuxtLink
-            to="/legal/cgu"
-            class="transition-colors duration-200 hover:text-[#5b4b6e]"
-          >
-            CGU
-          </NuxtLink>
-          <NuxtLink
-            to="/legal/mentions-legales"
-            class="transition-colors duration-200 hover:text-[#5b4b6e]"
-          >
-            Mentions légales
-          </NuxtLink>
-          <NuxtLink
-            to="/legal/confidentialite"
-            class="transition-colors duration-200 hover:text-[#5b4b6e]"
-          >
-            Confidentialité
-          </NuxtLink>
-        </nav>
-
-        <!-- Cross-domain CTA -->
-        <a
-          href="https://keova.app"
-          target="_blank"
-          rel="noopener"
-          class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-6 py-2.5 text-sm font-semibold text-[#b07a4a] transition-colors duration-200 hover:bg-[#d4956a]/15"
-        >
-          Vous êtes praticienne ? Rejoignez Keova
-          <UIcon
-            name="i-lucide-arrow-right"
-            class="size-4"
-          />
-        </a>
-
-        <p class="text-xs text-[#b5adc0]">
-          &copy; {{ new Date().getFullYear() }} Keova
-        </p>
-      </div>
-    </footer>
+    <!-- Footer handled by PublicFooter layout component (fix double footer AC-13) -->
   </div>
 </template>
 
