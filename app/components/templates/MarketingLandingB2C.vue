@@ -181,6 +181,28 @@ onMounted(() => {
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
+
+// --- Animated counter (0 → 14) ---
+const statCount = ref(0)
+const statEl = useTemplateRef<HTMLElement>('stat-card')
+
+onMounted(() => {
+  if (!statEl.value) return
+  const observer = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting || statCount.value >= 14) return
+    observer.disconnect()
+    const duration = 1200
+    const start = performance.now()
+    function tick(now: number) {
+      const progress = Math.min((now - start) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+      statCount.value = Math.round(eased * 14)
+      if (progress < 1) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }, { threshold: 0.5 })
+  observer.observe(statEl.value)
+})
 </script>
 
 <template>
@@ -220,7 +242,7 @@ function scrollTo(id: string) {
 
         <!-- Sous-ligne -->
         <p class="hero-appear stagger-1 mt-5 text-lg leading-relaxed text-[#6b6177] sm:text-xl">
-          Bouffées de chaleur, fatigue, douleurs articulaires — la ménopause,
+          Bouffées de chaleur, fatigue, douleurs articulaires<br>La ménopause,
           ça se vit dans le corps. Et on peut se faire aider.
         </p>
 
@@ -242,13 +264,16 @@ function scrollTo(id: string) {
           </button>
           <!-- Micro-copy -->
           <p class="text-sm text-[#857d8c]">
-            Premier appel gratuit · 15 min · Sans engagement
+            Premier appel gratuit · Sans engagement
           </p>
         </div>
 
-        <!-- Stat impact (V2) — full-width, vivante -->
+        <!-- Stat impact — compteur animé -->
         <div class="hero-appear stagger-4 mx-auto mt-16 max-w-2xl">
-          <div class="relative overflow-hidden rounded-3xl border border-[#d4956a]/15 bg-gradient-to-br from-[#3d3250] to-[#4a3d5e] px-8 py-10 text-center shadow-xl sm:px-12">
+          <div
+            ref="stat-card"
+            class="relative overflow-hidden rounded-3xl border border-[#d4956a]/15 bg-gradient-to-br from-[#3d3250] to-[#4a3d5e] px-8 py-10 text-center shadow-xl sm:px-12"
+          >
             <!-- Warm glow -->
             <div
               class="pointer-events-none absolute -right-12 -top-12 size-48 rounded-full opacity-40"
@@ -261,8 +286,8 @@ function scrollTo(id: string) {
               aria-hidden="true"
             />
             <div class="relative">
-              <p class="font-serif text-5xl font-bold text-[#d4956a] sm:text-6xl">
-                14 millions
+              <p class="font-serif text-5xl font-bold tabular-nums text-[#d4956a] sm:text-6xl">
+                {{ statCount }} millions
               </p>
               <p class="mt-4 text-base leading-relaxed text-[#d7cfdf]">
                 de femmes en France.
@@ -396,7 +421,6 @@ function scrollTo(id: string) {
           v-bind="reveal()"
           class="scroll-reveal mx-auto max-w-2xl text-center"
         >
-          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Comprendre</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
             Pourquoi se faire accompagner&#8239;?
           </h2>
@@ -587,7 +611,6 @@ function scrollTo(id: string) {
           v-bind="reveal()"
           class="scroll-reveal mx-auto max-w-2xl text-center"
         >
-          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Identifier</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
             Ce que la ménopause peut changer
           </h2>
@@ -714,20 +737,23 @@ function scrollTo(id: string) {
         </h2>
         <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#6b6177]">
           <p>
-            Trop de femmes traversent la ménopause sans aide.
-            Les infos sont partout et nulle part. Les bonnes spécialistes, difficiles à trouver.
+            Keova est né d'un constat simple&nbsp;: trop de femmes traversent la ménopause sans accompagnement adapté.
+            Les informations sont dispersées, les spécialistes difficiles à trouver, et les solutions souvent génériques.
           </p>
           <p>
-            Simon Jouan a créé Keova pour ça. Un endroit simple pour trouver une pro
-            formée à la ménopause. Pas un cabinet médical. Pas une app bien-être de plus.
+            Simon Jouan, fondateur de Keova, a créé cette plateforme pour mettre en relation les femmes
+            en périménopause, ménopause et post-ménopause avec des professionnelles du bien-être formées
+            spécifiquement à ces transitions. Keova n'est pas un cabinet médical ni une application
+            de bien-être généraliste — c'est un hub dédié à l'accompagnement de la ménopause en France.
           </p>
           <p>
-            Les spécialistes sur Keova sont indépendantes.
-            Leur profil, leurs formations, leur approche : tout est public.
+            Chaque spécialiste référencée sur Keova est une professionnelle indépendante (naturopathe,
+            sophrologue, spécialiste certifiée) dont le profil, les formations et l'approche sont visibles
+            publiquement. Vous choisissez celle qui vous correspond.
           </p>
           <p class="text-[#857d8c]">
-            Conçu en Normandie, hébergé en France (Scalingo, Paris).
-            Conforme RGPD. Vos données restent en France.
+            Keova est conçu en Normandie et hébergé en France par Scalingo (Paris).
+            Conforme RGPD. Vos données personnelles ne quittent jamais le territoire français.
           </p>
         </div>
       </div>
