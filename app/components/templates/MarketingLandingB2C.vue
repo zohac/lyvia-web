@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import type { FeaturedProvider } from '~/components/organisms/SpecialistCard.vue'
+import type { AccordionItem } from '@nuxt/ui'
+import type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
+
 import SpecialistCard from '~/components/organisms/SpecialistCard.vue'
-import LeadCaptureForm from '~/components/organisms/LeadCaptureForm.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+import { useB2CLandingSchemaOrg } from '~/features/seo/useB2CLandingSchemaOrg'
 
 const { reveal, isReady: scrollReady } = useScrollReveal()
 
-// OG image B2C — override global fallback (AC-9, AC-10)
+// OG image B2C — override global fallback
 useSeoMeta({
   ogImage: '/images/og-default-b2c.png'
-})
-
-// Hide the layout footer — B2C has its own footer
-const hideLayoutFooter = useState('hide-layout-footer', () => false)
-hideLayoutFooter.value = true
-onUnmounted(() => {
-  hideLayoutFooter.value = false
 })
 
 // --- Providers featured (SSR-compatible) ---
@@ -24,185 +19,241 @@ const { data: featuredData } = await useFetch<{ providers: FeaturedProvider[] }>
 })
 const providers = computed(() => featuredData.value?.providers ?? [])
 
-// --- Symptômes teaser (hardcodés V1 — dynamiques quand Epic U2 arrive) ---
-const symptoms = [
-  { label: 'Bouffées de chaleur', icon: 'i-lucide-flame', desc: 'Vagues de chaleur soudaines' },
-  { label: 'Troubles du sommeil', icon: 'i-lucide-moon', desc: 'Insomnies et réveils nocturnes' },
-  { label: 'Prise de poids', icon: 'i-lucide-scale', desc: 'Changements métaboliques' },
-  { label: 'Fatigue', icon: 'i-lucide-battery-low', desc: 'Épuisement persistant' },
-  { label: 'Anxiété', icon: 'i-lucide-cloud-rain', desc: 'Stress et inquiétudes' }
+// Schema.org B2C: ProfessionalService + ItemList + BreadcrumbList (AC-17)
+useB2CLandingSchemaOrg(providers)
+
+// --- Symptômes V2 — 10 symptômes en 2 groupes ---
+interface Symptom { icon: string, title: string, text: string, source?: string, sourceUrl?: string }
+
+const symptomsGroup1: Symptom[] = [
+  { icon: 'i-lucide-heart-pulse', title: 'Cycles irréguliers', text: 'Des règles qui deviennent imprévisibles\u00A0: plus abondantes, plus espacées, parfois absentes pendant des mois. C\u2019est souvent le premier signe de la périménopause.' },
+  { icon: 'i-lucide-flame', title: 'Bouffées de chaleur', text: 'Des vagues de chaleur soudaines qui montent du torse au visage. Elles perturbent le sommeil, la concentration et la vie sociale. Ça touche 75 à 80\u00A0% des femmes.' },
+  { icon: 'i-lucide-moon', title: 'Troubles du sommeil', text: 'Réveils nocturnes, insomnies, sommeil fragmenté. Le manque de sommeil amplifie tous les autres symptômes.' },
+  { icon: 'i-lucide-battery-low', title: 'Fatigue chronique', text: 'Un épuisement qui ne passe pas, même après une nuit correcte. La fatigue de la ménopause est hormonale, pas psychologique.' },
+  { icon: 'i-lucide-cloud-rain', title: 'Anxiété et irritabilité', text: 'Des émotions qui débordent sans prévenir. Les fluctuations hormonales affectent directement les neurotransmetteurs du bien-être.' },
+  { icon: 'i-lucide-scale', title: 'Prise de poids', text: 'Un changement métabolique qui redistribue les graisses. Ce n\u2019est pas un manque de volonté. L\u2019alimentation et le mouvement adaptés font une vraie différence.' },
+  { icon: 'i-lucide-brain', title: 'Troubles de la mémoire', text: 'Le brouillard mental\u00A0: vous cherchez vos mots, vous oubliez pourquoi vous êtes entrée dans une pièce. C\u2019est documenté et souvent temporaire.' }
 ]
 
-// --- Éducation pillars ---
-const pillars = [
-  {
-    num: '01',
-    title: 'Ce n\'est pas dans votre tête',
-    text: '77 % des femmes ne font pas le lien entre leurs symptômes et la ménopause. Bouffées de chaleur, insomnie, fatigue, anxiété — ce sont des symptômes réels qui méritent d\'être reconnus.',
-    icon: 'i-lucide-brain'
-  },
-  {
-    num: '02',
-    title: 'Un accompagnement sur mesure',
-    text: 'Chaque femme vit la ménopause différemment. Un accompagnement personnalisé tient compte de votre quotidien, votre alimentation, votre stress — pas un protocole générique.',
-    icon: 'i-lucide-heart-handshake'
-  },
-  {
-    num: '03',
-    title: 'Des spécialistes vérifiées',
-    text: 'Les spécialistes sur Keova sont des professionnelles du bien-être formées et vérifiées. Pas du coaching généraliste — de l\'expertise ciblée.',
-    icon: 'i-lucide-shield-check'
-  },
-  {
-    num: '04',
-    title: 'Au-delà du médical',
-    text: 'L\'accompagnement ménopause complète le suivi médical. Alimentation, gestion du stress, sommeil, mouvement — les 4 piliers d\'un bien-être durable.',
-    icon: 'i-lucide-leaf'
-  }
+const symptomsGroup2: Symptom[] = [
+  { icon: 'i-lucide-bone', title: 'Douleurs articulaires', text: 'Genoux, mains, épaules. Souvent confondues avec de l\u2019arthrose, elles sont liées à la chute des œstrogènes.' },
+  { icon: 'i-lucide-droplets', title: 'Sécheresse intime', text: 'Touche jusqu\u2019à 50\u00A0% des femmes après la ménopause. Ce symptôme tabou a des solutions concrètes.' },
+  { icon: 'i-lucide-shield-alert', title: 'Perte osseuse', text: 'L\u2019ostéoporose touche 1 femme sur 3 après 50 ans. Renforcement musculaire, calcium, vitamine D et suivi médical sont les 3 piliers.', source: 'INSERM', sourceUrl: 'https://www.inserm.fr/dossier/osteoporose' }
 ]
+
+const allSymptoms = [...symptomsGroup1, ...symptomsGroup2]
+
+// --- 4 piliers ---
+const pillars = [
+  { num: '01', title: 'C\u2019est réel.', text: '80\u00A0% des femmes en ménopause ont des symptômes qui leur changent le quotidien (INSERM). Et ça évolue avec les années.', icon: 'i-lucide-brain', sourceLabel: 'INSERM', sourceUrl: 'https://www.inserm.fr/dossier/menopause' },
+  { num: '02', title: 'Chaque situation est différente.', text: 'Votre sommeil, votre alimentation, votre stress, votre histoire. La spécialiste prend le temps de comprendre avant de proposer quoi que ce soit.', icon: 'i-lucide-heart-handshake' },
+  { num: '03', title: 'Des pros, pas des influenceuses.', text: 'Naturopathes, sophrologues, coachs santé. Formées à la ménopause. Leurs formations sont sur leur profil.', icon: 'i-lucide-shield-check' },
+  { num: '04', title: 'Ça va avec votre médecin.', text: 'On ne remplace pas le médecin. On complète\u00A0: alimentation, stress, sommeil, mouvement. Traitement hormonal ou pas.', icon: 'i-lucide-leaf' }
+]
+
+// --- FAQ V2 — 11 questions (AC-7) ---
+const faqItems: AccordionItem[] = [
+  { label: 'Qu\u2019est-ce que la ménopause\u00A0?', content: 'La ménopause est l\u2019arrêt définitif des menstruations, confirmé après 12 mois consécutifs sans règles. Elle survient en moyenne vers 51 ans en France. La périménopause peut commencer dès 38-40 ans et durer 4 à 8 ans.\n\nSource : INSERM (inserm.fr/dossier/menopause)', value: 'faq-1' },
+  { label: 'Quels sont les symptômes de la ménopause\u00A0?', content: 'Bouffées de chaleur (75-80\u00A0% des femmes), troubles du sommeil, fatigue, anxiété, prise de poids, troubles de la mémoire, sécheresse vaginale, douleurs articulaires.\n\nAprès la ménopause : perte osseuse, douleurs chroniques, perte musculaire.\n\nChaque femme les vit différemment.', value: 'faq-2' },
+  { label: 'Quelle différence entre ménopause et périménopause\u00A0?', content: 'La périménopause est la phase de transition hormonale qui précède la ménopause. Elle peut commencer dès 38-40 ans. Les symptômes commencent souvent pendant cette phase. La ménopause est confirmée quand les règles ont cessé depuis 12 mois.', value: 'faq-3' },
+  { label: 'Qu\u2019est-ce que l\u2019accompagnement ménopause\u00A0?', content: 'Un suivi personnalisé avec une professionnelle formée : naturopathe, sophrologue, coach santé. Alimentation, sommeil, stress, mouvement. En complément du médical, pas à sa place.', value: 'faq-4' },
+  { label: 'Qui sont les spécialistes sur Keova\u00A0?', content: 'Des professionnelles du bien-être formées à la ménopause. Chaque profil indique ses formations, ses spécialités et son approche. Vous pouvez vérifier avant de réserver.', value: 'faq-5' },
+  { label: 'Combien coûte un accompagnement\u00A0?', content: 'Le premier appel est gratuit (15 min, sans CB). Ensuite, chaque spécialiste fixe ses tarifs. Comptez 50 à 90\u00A0€ par séance. Des programmes existent pour un suivi régulier.', value: 'faq-6' },
+  { label: 'Est-ce compatible avec un traitement hormonal (THM)\u00A0?', content: 'Oui. L\u2019accompagnement complète le THM sur ce qu\u2019il ne couvre pas toujours : sommeil, alimentation, stress, mouvement.', value: 'faq-7' },
+  { label: 'L\u2019accompagnement remplace-t-il un médecin\u00A0?', content: 'Non. Il complète le suivi médical. Si vous avez des symptômes sévères, consultez d\u2019abord votre médecin.', value: 'faq-8' },
+  { label: 'Comment se déroule un appel découverte\u00A0?', content: '15 minutes en visio. Un échange libre pour comprendre votre situation. Aucun engagement, aucune CB. Vous décidez ensuite.', value: 'faq-9' },
+  { label: 'Je ne suis pas sûre d\u2019être en ménopause. Puis-je quand même consulter\u00A0?', content: 'Oui. La périménopause peut commencer dès 38 ans. Si vous avez un doute, un premier échange peut vous aider à y voir clair.', value: 'faq-10' },
+  { label: 'Et après la ménopause, c\u2019est trop tard\u00A0?', content: 'Pas du tout. La post-ménopause a ses propres défis : os, articulations, muscles, cœur. Un accompagnement aide à construire un plan durable.', value: 'faq-11' }
+]
+
+// FAQ SSR: all items open on server, closed after hydration (crawlability)
+const allFaqValues = faqItems.map(item => item.value).filter((v): v is string => !!v)
+const faqDefaultValue = ref<string[]>(allFaqValues)
+onMounted(() => {
+  faqDefaultValue.value = []
+})
 
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
+
+// --- Animated counter (0 → 14) ---
+const statCount = ref(0)
+const statEl = useTemplateRef<HTMLElement>('stat-card')
+onMounted(() => {
+  if (!statEl.value) return
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries[0]
+    if (!entry?.isIntersecting || statCount.value >= 14) return
+    observer.disconnect()
+    const duration = 1200
+    const start = performance.now()
+    function tick(now: number) {
+      const progress = Math.min((now - start) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      statCount.value = Math.round(eased * 14)
+      if (progress < 1) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  }, { threshold: 0.5 })
+  observer.observe(statEl.value)
+})
 </script>
 
 <template>
-  <div :class="['relative min-h-screen overflow-hidden bg-[#faf8f6]', { 'js-scroll-ready': scrollReady }]">
-    <!-- ========= AMBIENT MESH (fixed, organic biophilic) ========= -->
-    <div
-      aria-hidden="true"
-      class="pointer-events-none fixed inset-0 -z-10"
-    >
+  <div :class="['relative overflow-hidden', { 'js-scroll-ready': scrollReady }]">
+    <!-- ══════════════════════════════════════════════════════════
+         CHAPITRE 1 — HERO (dark, immersif, typo massive)
+         ══════════════════════════════════════════════════════════ -->
+    <section class="relative flex min-h-[100dvh] items-center overflow-hidden bg-[#1a1525] px-6 sm:px-12 lg:px-20">
+      <!-- Ambient glows -->
       <div
-        class="absolute -left-[20%] -top-[8%] h-[80vh] w-[80vh] rounded-full animate-drift-slow"
-        style="background: radial-gradient(circle at 30% 40%, rgba(212,149,106,0.35), rgba(232,149,96,0.08) 55%, transparent 75%); filter: blur(100px);"
+        class="pointer-events-none absolute -left-[20%] top-[10%] h-[70vh] w-[70vh] rounded-full opacity-30"
+        style="background: radial-gradient(circle, rgba(212,149,106,0.5), transparent 65%); filter: blur(120px);"
+        aria-hidden="true"
       />
       <div
-        class="absolute -bottom-[12%] -right-[15%] h-[70vh] w-[70vh] rounded-full animate-drift-slow-reverse"
-        style="background: radial-gradient(circle at 60% 60%, rgba(122,107,142,0.3), rgba(91,75,110,0.06) 55%, transparent 75%); filter: blur(110px);"
+        class="pointer-events-none absolute -right-[10%] bottom-[5%] h-[50vh] w-[50vh] rounded-full opacity-20"
+        style="background: radial-gradient(circle, rgba(122,107,142,0.5), transparent 65%); filter: blur(100px);"
+        aria-hidden="true"
       />
+      <!-- Floating particles -->
       <div
-        class="absolute left-[40%] top-[20%] h-[40vh] w-[55vh] -translate-x-1/2 rounded-full opacity-25"
-        style="background: radial-gradient(ellipse, rgba(212,149,106,0.2), transparent 70%); filter: blur(120px);"
-      />
-    </div>
+        class="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      >
+        <div class="particle particle-1" />
+        <div class="particle particle-2" />
+        <div class="particle particle-3" />
+        <div class="particle particle-4" />
+      </div>
 
-    <!-- ==================== HERO ==================== -->
-    <section class="relative px-4 pb-24 pt-32 sm:pb-36 sm:pt-44">
-      <div class="mx-auto max-w-3xl text-center">
-        <!-- Eyebrow — appear stagger 0ms -->
-        <div class="hero-appear mb-8 inline-flex items-center gap-2.5 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-5 py-2.5 shadow-sm">
-          <span class="size-2 rounded-full bg-[#d4956a] animate-pulse" />
-          <span class="text-sm font-semibold tracking-wide text-[#b07a4a]">Accompagnement ménopause</span>
+      <div class="relative z-10 mx-auto w-full max-w-6xl py-32">
+        <!-- Eyebrow -->
+        <div class="hero-appear mb-10 inline-flex items-center gap-2.5 rounded-full border border-[#d4956a]/25 bg-[#d4956a]/10 px-5 py-2 backdrop-blur-sm">
+          <span class="size-2 animate-pulse rounded-full bg-[#d4956a]" />
+          <span class="text-sm font-medium tracking-wide text-[#d4956a]">Accompagnement ménopause en France</span>
         </div>
 
-        <!-- H1 — appear stagger 120ms -->
-        <h1 class="hero-appear stagger-1 font-serif text-[2.75rem] leading-[1.08] tracking-tight text-[#3d3250] sm:text-6xl lg:text-[4.25rem]">
-          Trouvez votre
-          <span class="relative inline-block">
-            <span class="relative z-10">spécialiste</span>
-            <svg
-              class="hero-underline absolute -bottom-1 left-0 w-full"
-              viewBox="0 0 200 12"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 8 Q50 2 100 7 T198 5"
-                fill="none"
-                stroke="#d4956a"
-                stroke-width="4.5"
-                stroke-linecap="round"
-                opacity="0.45"
-              />
-            </svg>
-          </span>
-          <br class="sm:hidden">
-          ménopause
+        <!-- H1 — massive, asymmetric -->
+        <h1 class="hero-appear stagger-1 max-w-4xl font-serif text-5xl font-bold leading-[1.05] text-white sm:text-7xl lg:text-8xl">
+          Ce n'est pas
+          <br>
+          dans votre
+          <span class="bg-gradient-to-r from-[#d4956a] to-[#e8a878] bg-clip-text text-transparent"> tête.</span>
         </h1>
 
-        <!-- Subtitle — appear stagger 240ms -->
-        <p class="hero-appear stagger-2 mx-auto mt-8 max-w-lg text-lg leading-relaxed text-[#6b6177] sm:text-xl">
-          Accompagnement personnalisé par des spécialistes vérifiées.
-          <br class="hidden sm:block">
-          Périménopause, ménopause : <strong class="font-semibold text-[#3d3250]">vous n'êtes pas seule.</strong>
+        <!-- Sous-ligne -->
+        <p class="hero-appear stagger-2 mt-8 max-w-xl text-xl leading-relaxed text-white/60">
+          Bouffées de chaleur, fatigue, douleurs articulaires.
+          La ménopause, ça se vit dans le corps. Et on peut se faire aider.
         </p>
 
-        <!-- CTA — appear stagger 400ms -->
-        <div class="hero-appear stagger-3 mt-10">
+        <!-- CTA row -->
+        <div class="hero-appear stagger-3 mt-12 flex flex-wrap items-center gap-5">
           <button
-            class="group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#5b4b6e] via-[#6d5c82] to-[#7a6b8e] px-9 py-4 text-base font-semibold text-white shadow-lg shadow-[#5b4b6e]/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#5b4b6e]/30 active:scale-[0.98]"
+            class="cta-glow group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#d4956a] to-[#c8845e] px-10 py-4 text-base font-semibold text-white shadow-lg shadow-[#d4956a]/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.97]"
             @click="scrollTo('specialistes')"
           >
-            <span class="relative z-10 flex items-center gap-2.5">
-              Découvrir nos spécialistes
+            <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+            <span class="relative flex items-center gap-2.5">
+              Parler à une spécialiste
               <UIcon
                 name="i-lucide-arrow-down"
                 class="size-5 transition-transform duration-300 group-hover:translate-y-0.5"
               />
             </span>
           </button>
+          <span class="text-sm text-white/40">Premier appel gratuit · 15 min · Sans engagement</span>
         </div>
+      </div>
 
-        <!-- Social proof — appear stagger 600ms -->
-        <div class="hero-appear stagger-4 mt-16 inline-flex items-center gap-3 rounded-full bg-white/60 px-5 py-2.5 shadow-sm backdrop-blur-sm">
-          <div class="flex -space-x-1.5">
-            <span class="grid size-7 place-items-center rounded-full bg-gradient-to-br from-[#d4956a] to-[#e89560] text-[10px] font-bold text-white ring-2 ring-white">10</span>
-            <span class="grid size-7 place-items-center rounded-full bg-gradient-to-br from-[#5b4b6e] to-[#7a6b8e] text-[10px] font-bold text-white ring-2 ring-white">M+</span>
-          </div>
-          <span class="text-sm text-[#6b6177]">de femmes traversent la ménopause en France</span>
+      <!-- Scroll indicator -->
+      <div class="absolute inset-x-0 bottom-10 flex flex-col items-center gap-2">
+        <span class="text-xs font-medium uppercase tracking-[0.3em] text-white/30">Découvrir</span>
+        <div class="scroll-indicator relative h-10 w-5 rounded-full border border-white/20">
+          <div class="absolute left-1/2 top-2 size-1.5 -translate-x-1/2 animate-scroll-dot rounded-full bg-[#d4956a]" />
         </div>
       </div>
     </section>
 
-    <!-- ==================== ACTE 2 — ÉDUCATION ==================== -->
-    <section
-      id="education"
-      class="relative px-4 py-24 sm:py-32"
-    >
-      <div class="mx-auto max-w-5xl">
+    <!-- ══════════════════════════════════════════════════════════
+         CHAPITRE 2 — LA RÉALITÉ (warm transition, split layout)
+         ══════════════════════════════════════════════════════════ -->
+    <section class="relative bg-gradient-to-b from-[#1a1525] via-[#2d2438] to-[#f5ede6] px-6 py-32 sm:px-12 lg:px-20">
+      <div class="mx-auto grid max-w-6xl gap-16 lg:grid-cols-2 lg:items-center">
+        <!-- Left: text -->
         <div
           v-bind="reveal()"
-          class="scroll-reveal mx-auto max-w-2xl text-center"
+          class="scroll-reveal"
         >
-          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Comprendre</span>
-          <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
-            Pourquoi un accompagnement ?
+          <h2 class="font-serif text-4xl leading-tight text-white sm:text-5xl">
+            Ce que vous vivez<br>a un nom.
           </h2>
-          <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
-            La ménopause n'est pas une maladie. C'est une transition naturelle qui mérite un soutien adapté.
-          </p>
+          <div class="mt-8 space-y-5 text-lg leading-relaxed text-white/70">
+            <p>
+              Vous vous réveillez à 3h du matin, trempée.
+              Vous cherchez un mot que vous connaissiez hier.
+              Vous pleurez sans savoir pourquoi.
+              Vos règles font n'importe quoi.
+            </p>
+            <p class="font-medium text-white/90">
+              Ce n'est pas le stress. Ce n'est pas l'âge.
+              C'est hormonal. Et ça peut commencer dès 38 ans.
+            </p>
+            <p class="text-[#d4956a]">
+              Vous n'avez pas à gérer ça seule.
+            </p>
+          </div>
         </div>
 
-        <!-- Pillar cards — staggered scroll reveal, alternating directions -->
-        <div class="mt-16 grid gap-5 sm:grid-cols-2">
+        <!-- Right: stat card + after-menopause — stacked with reveal -->
+        <div class="flex flex-col gap-10">
+          <!-- Stat card — pillar-card pattern from coach page -->
           <div
-            v-for="(p, i) in pillars"
-            :key="p.num"
-            v-bind="reveal({ delay: i * 120 })"
-            :class="['scroll-reveal group relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(91,75,110,0.1)]', i % 2 === 0 ? 'reveal-from-left' : 'reveal-from-right']"
+            ref="stat-card"
+            class="pillar-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-10 text-center transition-all duration-300 sm:p-12"
           >
-            <!-- Organic corner accent -->
+            <!-- Glow blob top-right (appears on hover) -->
             <div
-              class="absolute -right-6 -top-6 size-28 rounded-full bg-gradient-to-br from-[#d4956a]/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
               aria-hidden="true"
             />
             <div class="relative">
-              <!-- Icon + number row -->
-              <div class="mb-6 flex items-center justify-between">
-                <div class="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#f5f0fa] to-[#ebe4f3] shadow-sm">
-                  <UIcon
-                    :name="p.icon"
-                    class="size-7 text-[#5b4b6e]"
-                  />
-                </div>
-                <span class="font-serif text-3xl font-light text-[#d4956a]/30">{{ p.num }}</span>
-              </div>
-              <h3 class="font-serif text-xl leading-snug text-[#3d3250] lg:text-[1.35rem]">
-                {{ p.title }}
+              <p class="font-serif text-7xl font-bold tabular-nums text-[#d4956a] sm:text-8xl lg:text-9xl">
+                {{ statCount }}<span class="text-4xl sm:text-5xl">M</span>
+              </p>
+              <p class="mt-4 text-lg text-[#6b6177]">
+                de femmes en France.
+              </p>
+              <div class="mx-auto my-5 h-px w-20 bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
+              <p class="text-xl font-semibold text-[#3d3250]">
+                La plupart gèrent ça seules.
+              </p>
+            </div>
+          </div>
+
+          <!-- After menopause — same pillar-card pattern -->
+          <div
+            v-bind="reveal({ delay: 300 })"
+            class="pillar-card scroll-reveal reveal-from-right group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300 sm:p-10"
+          >
+            <!-- Glow blob top-right -->
+            <div
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              aria-hidden="true"
+            />
+            <div class="relative">
+              <h3 class="font-serif text-2xl text-[#3d3250] sm:text-3xl">
+                Et après les bouffées de chaleur...
               </h3>
-              <p class="mt-3 text-[0.9rem] leading-relaxed text-[#6b6177]">
-                {{ p.text }}
+              <p class="mt-5 text-lg leading-relaxed text-[#4a4255]">
+                D'autres choses arrivent. Des douleurs dans les mains au réveil.
+                Du poids qui ne bouge plus. Des os qui se fragilisent.
+                Une fatigue de fond, tout le temps.
+              </p>
+              <p class="mt-4 text-lg font-medium text-[#d4956a]">
+                Même dix ans après, il y a des choses à faire.
               </p>
             </div>
           </div>
@@ -210,35 +261,117 @@ function scrollTo(id: string) {
       </div>
     </section>
 
-    <!-- ==================== SPÉCIALISTES ==================== -->
-    <section
-      id="specialistes"
-      class="relative px-4 py-24 sm:py-32"
-    >
-      <!-- Subtle section bg -->
-      <div
-        aria-hidden="true"
-        class="pointer-events-none absolute inset-0 -z-10"
-        style="background: linear-gradient(180deg, transparent, rgba(122,107,142,0.04) 30%, rgba(122,107,142,0.04) 70%, transparent);"
-      />
-
-      <div class="mx-auto max-w-5xl">
+    <!-- ══════════════════════════════════════════════════════════
+         CHAPITRE 3 — LA RENAISSANCE (lumineux, piliers + étapes)
+         ══════════════════════════════════════════════════════════ -->
+    <section class="relative bg-[#faf8f6] px-6 py-32 sm:px-12 lg:px-20">
+      <div class="mx-auto max-w-6xl">
         <div
           v-bind="reveal()"
-          class="scroll-reveal mx-auto max-w-2xl text-center"
+          class="scroll-reveal mb-20 max-w-2xl"
         >
-          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Accompagnement</span>
-          <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
-            Nos spécialistes
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Comprendre</span>
+          <h2 class="mt-4 font-serif text-4xl leading-tight text-[#3d3250] sm:text-5xl">
+            Pourquoi se faire accompagner&#8239;?
           </h2>
-          <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
-            Des professionnelles formées à l'accompagnement de la ménopause et de la périménopause.
+          <p class="mt-5 text-lg text-[#857d8c]">
+            La ménopause n'est pas une maladie. Mais elle change des choses
+            dans votre corps et dans votre quotidien.
           </p>
         </div>
 
+        <!-- Piliers — alternating left/right full-width -->
+        <div class="space-y-6">
+          <div
+            v-for="(p, i) in pillars"
+            :key="p.num"
+            v-bind="reveal({ delay: i * 100 })"
+            class="scroll-reveal group grid items-center gap-8 rounded-[2rem] border border-[#ebe4f3]/60 bg-white/80 p-8 backdrop-blur-sm transition-all duration-500 hover:shadow-[0_16px_48px_rgba(212,149,106,0.08)] sm:grid-cols-[auto_1fr] sm:p-10"
+          >
+            <div class="grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#d4956a]/15 to-[#e8a878]/10 transition-all duration-500 group-hover:from-[#d4956a]/25 group-hover:shadow-md">
+              <UIcon
+                :name="p.icon"
+                class="size-8 text-[#d4956a] transition-transform duration-500 group-hover:scale-110"
+              />
+            </div>
+            <div>
+              <div class="flex items-baseline gap-3">
+                <span class="font-serif text-2xl font-light text-[#d4956a]/30">{{ p.num }}</span>
+                <h3 class="font-serif text-xl text-[#3d3250]">
+                  {{ p.title }}
+                </h3>
+              </div>
+              <p class="mt-2 text-base leading-relaxed text-[#6b6177]">
+                {{ p.text }}
+              </p>
+              <a
+                v-if="p.sourceUrl"
+                :href="p.sourceUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="mt-2 inline-block text-xs text-[#d4956a] hover:underline"
+              >Source : {{ p.sourceLabel }}</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 étapes — horizontal minimal -->
+        <div class="mt-24">
+          <h2
+            v-bind="reveal()"
+            class="scroll-reveal mb-12 font-serif text-3xl text-[#3d3250] sm:text-4xl"
+          >
+            Comment ça marche
+          </h2>
+          <div class="grid gap-6 sm:grid-cols-3">
+            <div
+              v-for="(step, i) in [
+                { num: '01', title: 'Regardez les profils', text: 'Formations, spécialités, approche. Tout est là.', icon: 'i-lucide-search' },
+                { num: '02', title: 'Appelez gratuitement', text: '15 minutes pour faire connaissance. Pas de CB.', icon: 'i-lucide-phone' },
+                { num: '03', title: 'Vous décidez', text: 'Une séance, un programme, un suivi. C\u2019est vous qui voyez.', icon: 'i-lucide-heart-handshake' }
+              ]"
+              :key="step.num"
+              v-bind="reveal({ delay: i * 150 })"
+              class="scroll-reveal group rounded-2xl border border-transparent bg-gradient-to-br from-[#f5ede6]/80 to-white p-6 transition-all duration-300 hover:border-[#d4956a]/15 hover:shadow-lg"
+            >
+              <span class="text-4xl font-bold text-[#d4956a]/15">{{ step.num }}</span>
+              <h3 class="mt-3 text-lg font-semibold text-[#3d3250]">
+                {{ step.title }}
+              </h3>
+              <p class="mt-2 text-sm text-[#6b6177]">
+                {{ step.text }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════
+         CHAPITRE 4 — LA RENCONTRE (spécialistes + symptômes)
+         ══════════════════════════════════════════════════════════ -->
+    <section
+      id="specialistes"
+      class="relative bg-gradient-to-b from-[#faf8f6] to-[#f0eaf5] px-6 py-32 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-6xl">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal mb-16 text-center"
+        >
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Rencontre</span>
+          <h2 class="mt-4 font-serif text-4xl text-[#3d3250] sm:text-5xl">
+            Les spécialistes
+          </h2>
+          <p class="mt-4 text-lg text-[#857d8c]">
+            Formées à la ménopause. En visio ou en cabinet.
+          </p>
+        </div>
+
+        <!-- Specialist cards -->
         <div
           v-if="providers.length"
-          class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          class="flex flex-wrap justify-center gap-8"
         >
           <SpecialistCard
             v-for="(prov, i) in providers"
@@ -249,275 +382,290 @@ function scrollTo(id: string) {
           />
         </div>
 
-        <!-- Empty state — inviting, not sterile -->
         <div
           v-else
           v-bind="reveal()"
-          class="scroll-reveal mt-14 rounded-3xl border border-dashed border-[#d4956a]/20 bg-white/50 px-8 py-20 text-center backdrop-blur-sm"
+          class="scroll-reveal mx-auto max-w-md rounded-3xl border border-dashed border-[#d4956a]/20 bg-white/50 px-8 py-16 text-center backdrop-blur-sm"
         >
-          <div class="mx-auto mb-6 grid size-20 place-items-center rounded-full bg-gradient-to-br from-[#f5f0fa] to-[#ebe4f3]">
-            <UIcon
-              name="i-lucide-sparkles"
-              class="size-9 text-[#7a6b8e]"
-            />
-          </div>
           <p class="font-serif text-2xl text-[#3d3250]">
             Nos spécialistes arrivent bientôt
           </p>
           <p class="mt-3 text-sm text-[#857d8c]">
-            Inscrivez-vous pour être prévenue du lancement.
+            L'appel gratuit est le meilleur moyen de juger par vous-même.
           </p>
         </div>
-      </div>
-    </section>
 
-    <!-- ==================== SYMPTÔMES ==================== -->
-    <section
-      id="symptomes"
-      class="relative px-4 py-24 sm:py-32"
-    >
-      <div class="mx-auto max-w-4xl">
+        <!-- Symptômes — compact grid below specialists -->
         <div
-          v-bind="reveal()"
-          class="scroll-reveal mx-auto max-w-2xl text-center"
+          id="symptomes"
+          class="mt-28"
         >
-          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Identifier</span>
-          <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl lg:text-[2.75rem]">
-            Symptômes courants
-          </h2>
-          <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
-            La ménopause se manifeste de nombreuses façons. Les reconnaître, c'est le premier pas vers un mieux-être.
-          </p>
-        </div>
-
-        <!-- Symptom cards — staggered scale-in reveal -->
-        <div class="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div
-            v-for="(s, i) in symptoms"
-            :key="s.label"
-            v-bind="reveal({ delay: i * 100 })"
-            class="scroll-reveal reveal-scale group flex items-start gap-4 rounded-2xl border border-white/70 bg-white/70 p-5 shadow-[0_2px_16px_rgba(0,0,0,0.03)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(91,75,110,0.08)]"
+          <h2
+            v-bind="reveal()"
+            class="scroll-reveal mb-4 font-serif text-3xl text-[#3d3250] sm:text-4xl"
           >
-            <div class="grid size-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#d4956a]/12 to-[#e89560]/8">
-              <UIcon
-                :name="s.icon"
-                class="size-6 text-[#d4956a]"
-              />
-            </div>
-            <div>
-              <p class="font-semibold text-[#3d3250]">
-                {{ s.label }}
-              </p>
-              <p class="mt-0.5 text-sm text-[#857d8c]">
-                {{ s.desc }}
-              </p>
+            Ce que la ménopause peut changer
+          </h2>
+          <p
+            v-bind="reveal()"
+            class="scroll-reveal mb-10 max-w-xl text-base text-[#857d8c]"
+          >
+            Pas juste les bouffées de chaleur. Beaucoup de femmes mettent du temps
+            à faire le lien entre ce qu'elles vivent et leurs hormones.
+          </p>
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div
+              v-for="(s, i) in allSymptoms"
+              :key="s.title"
+              v-bind="reveal({ delay: i * 50 })"
+              class="scroll-reveal flex items-start gap-3 rounded-xl border border-white/70 bg-white/60 p-4 backdrop-blur-sm transition-all duration-300 hover:shadow-md"
+            >
+              <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-[#d4956a]/8">
+                <UIcon
+                  :name="s.icon"
+                  class="size-4.5 text-[#d4956a]"
+                />
+              </div>
+              <div>
+                <h4 class="text-sm font-semibold text-[#3d3250]">
+                  {{ s.title }}
+                </h4>
+                <p class="mt-1 text-xs leading-relaxed text-[#6b6177]">
+                  {{ s.text }}
+                </p>
+                <a
+                  v-if="s.sourceUrl"
+                  :href="s.sourceUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mt-1 inline-block text-[0.65rem] text-[#d4956a] hover:underline"
+                >Source : {{ s.source }}</a>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== ACTE 5 — LEAD CAPTURE ==================== -->
-    <section class="relative px-4 py-24 sm:py-32">
+    <!-- ══════════════════════════════════════════════════════════
+         CHAPITRE 5 — L'AVENIR (dark FAQ, Keova, CTA final)
+         ══════════════════════════════════════════════════════════ -->
+
+    <!-- Qui est derrière Keova -->
+    <section class="relative bg-[#faf8f6] px-6 py-24 sm:px-12 lg:px-20">
       <div
         v-bind="reveal()"
-        class="scroll-reveal reveal-clip mx-auto max-w-3xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#3d3250] via-[#4a3d5e] to-[#5b4b6e] p-10 shadow-2xl shadow-[#3d3250]/20 sm:p-14"
+        class="scroll-reveal mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1fr_1.2fr]"
       >
-        <!-- Decorative glows -->
-        <div
-          aria-hidden="true"
-          class="pointer-events-none absolute -right-12 -top-12 size-56 rounded-full opacity-30"
-          style="background: radial-gradient(circle, rgba(212,149,106,0.5), transparent 70%); filter: blur(50px);"
-        />
-        <div
-          aria-hidden="true"
-          class="pointer-events-none absolute -bottom-8 -left-8 size-40 rounded-full opacity-20"
-          style="background: radial-gradient(circle, rgba(122,107,142,0.6), transparent 70%); filter: blur(40px);"
-        />
-        <div class="relative text-center">
-          <h2 class="font-serif text-3xl text-white sm:text-4xl">
-            Recevez nos conseils ménopause
+        <div>
+          <h2 class="font-serif text-3xl text-[#3d3250] sm:text-4xl">
+            Qui est derrière Keova
           </h2>
-          <p class="mt-4 text-base leading-relaxed text-[#c4bdd0]">
-            Guides pratiques, témoignages et actualités — 1 email par semaine, sans spam.
+        </div>
+        <div class="space-y-4 text-lg leading-relaxed text-[#6b6177]">
+          <p>
+            Trop de femmes traversent la ménopause sans aide.
+            Les infos sont partout et nulle part. Les bonnes spécialistes, difficiles à trouver.
           </p>
-          <div class="mx-auto mt-10 max-w-md">
-            <LeadCaptureForm />
-          </div>
-          <p class="mt-6 text-xs text-[#9685ab]">
-            Données hébergées en France. Conforme RGPD. Désinscription en un clic.
+          <p>
+            Simon Jouan a créé Keova pour ça. Un endroit simple pour trouver une pro formée à la ménopause.
+            Pas un cabinet médical. Pas une app bien-être de plus.
+          </p>
+          <p class="text-sm text-[#857d8c]">
+            Conçu en Normandie, hébergé en France (Scalingo, Paris). Conforme RGPD. Vos données restent en France.
           </p>
         </div>
       </div>
     </section>
 
-    <!-- ==================== DISCLAIMER ==================== -->
-    <AtomsMedicalDisclaimer />
-
-    <!-- ==================== FOOTER B2C ==================== -->
-    <footer class="border-t border-[#e8e2ed]/50 bg-[#faf8f6] px-4 py-14">
-      <div class="mx-auto flex max-w-5xl flex-col items-center gap-7 text-center">
-        <!-- Brand -->
-        <p class="font-serif text-2xl tracking-tight text-[#3d3250]">
-          Keova
-        </p>
-
-        <!-- Legal nav -->
-        <nav class="flex flex-wrap justify-center gap-5 text-sm text-[#857d8c]">
-          <NuxtLink
-            to="/legal/cgu"
-            class="transition-colors duration-200 hover:text-[#5b4b6e]"
-          >
-            CGU
-          </NuxtLink>
-          <NuxtLink
-            to="/legal/mentions-legales"
-            class="transition-colors duration-200 hover:text-[#5b4b6e]"
-          >
-            Mentions légales
-          </NuxtLink>
-          <NuxtLink
-            to="/legal/confidentialite"
-            class="transition-colors duration-200 hover:text-[#5b4b6e]"
-          >
-            Confidentialité
-          </NuxtLink>
-        </nav>
-
-        <!-- Cross-domain CTA -->
-        <a
-          href="https://keova.app"
-          target="_blank"
-          rel="noopener"
-          class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-6 py-2.5 text-sm font-semibold text-[#b07a4a] transition-colors duration-200 hover:bg-[#d4956a]/15"
-        >
-          Vous êtes praticienne ? Rejoignez Keova
-          <UIcon
-            name="i-lucide-arrow-right"
-            class="size-4"
-          />
-        </a>
-
-        <p class="text-xs text-[#b5adc0]">
-          &copy; {{ new Date().getFullYear() }} Keova
-        </p>
+    <!-- FAQ — dark warm -->
+    <section
+      id="faq"
+      class="relative bg-gradient-to-br from-[#1a1525] via-[#2d2438] to-[#1a1525] px-6 py-32 sm:px-12 lg:px-20"
+    >
+      <div
+        class="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full opacity-20"
+        style="background: radial-gradient(circle, rgba(212,149,106,0.4), transparent 70%); filter: blur(80px);"
+        aria-hidden="true"
+      />
+      <!-- Floating particles -->
+      <div
+        class="pointer-events-none absolute inset-0 overflow-hidden"
+        aria-hidden="true"
+      >
+        <div class="particle particle-2" />
+        <div class="particle particle-4" />
       </div>
-    </footer>
+      <div class="mx-auto max-w-3xl">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal mb-12 text-center"
+        >
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">FAQ</span>
+          <h2 class="mt-4 font-serif text-3xl text-white sm:text-4xl">
+            Questions fréquentes
+          </h2>
+        </div>
+
+        <UAccordion
+          :items="faqItems"
+          :default-value="faqDefaultValue"
+          multiple
+          aria-label="Questions fréquentes sur la ménopause"
+          class="faq-dark"
+        >
+          <template #content="{ item }">
+            <div class="space-y-3 pb-3.5 text-sm text-[#c4bdd0]">
+              <p
+                v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
+                :key="i"
+              >
+                {{ paragraph }}
+              </p>
+            </div>
+          </template>
+        </UAccordion>
+      </div>
+    </section>
+
+    <!-- CTA final — full-width warm -->
+    <section class="relative bg-gradient-to-r from-[#d4956a] to-[#c8845e] px-6 py-24 text-center sm:px-12">
+      <div class="mx-auto max-w-2xl">
+        <h2 class="font-serif text-3xl font-bold text-white sm:text-4xl">
+          Prête à en parler&#8239;?
+        </h2>
+        <p class="mx-auto mt-4 max-w-md text-lg text-white/80">
+          15 minutes, gratuites, sans engagement. Juste un échange avec une spécialiste.
+        </p>
+        <button
+          class="mt-10 cursor-pointer rounded-full bg-white px-10 py-4 text-base font-semibold text-[#3d3250] shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95"
+          @click="scrollTo('specialistes')"
+        >
+          Réserver un appel gratuit
+        </button>
+      </div>
+    </section>
+
+    <!-- Disclaimer -->
+    <section class="bg-[#1a1525] px-6 py-8 text-center">
+      <p class="mx-auto max-w-2xl text-xs leading-relaxed text-white/30">
+        L'accompagnement proposé sur Keova ne se substitue pas à un suivi médical.
+        En cas de symptômes sévères, consultez votre médecin.
+      </p>
+      <p class="mx-auto mt-2 max-w-2xl text-xs text-white/20">
+        Sources :
+        <a
+          href="https://www.inserm.fr/dossier/menopause"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="underline hover:text-[#d4956a]"
+        >INSERM</a>,
+        <a
+          href="https://www.has-sante.fr"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="underline hover:text-[#d4956a]"
+        >HAS</a>,
+        <a
+          href="https://www.inserm.fr/dossier/osteoporose"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="underline hover:text-[#d4956a]"
+        >INSERM Ostéoporose</a>
+      </p>
+    </section>
   </div>
 </template>
 
 <style scoped>
-/* Hero staggered appear — 21st.dev inspired */
+/* Hero staggered appear */
 @keyframes appear {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.hero-appear {
-  animation: appear 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-.stagger-1 { animation-delay: 120ms; }
-.stagger-2 { animation-delay: 240ms; }
-.stagger-3 { animation-delay: 400ms; }
-.stagger-4 { animation-delay: 600ms; }
+.hero-appear { animation: appear 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.stagger-1 { animation-delay: 150ms; }
+.stagger-2 { animation-delay: 350ms; }
+.stagger-3 { animation-delay: 550ms; }
 
-/* SVG underline draw */
-@keyframes draw-underline {
-  from { stroke-dashoffset: 300; }
-  to { stroke-dashoffset: 0; }
+/* CTA breathing glow */
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 4px 24px rgba(212, 149, 106, 0.3); }
+  50% { box-shadow: 0 8px 48px rgba(212, 149, 106, 0.5); }
 }
+.cta-glow { animation: cta-pulse 3s ease-in-out infinite; }
 
-.hero-underline path {
-  stroke-dasharray: 300;
-  animation: draw-underline 1s ease-out 0.5s backwards;
+/* Pillar cards — coach page pattern (glow blob + lift) */
+.pillar-card:hover {
+  border-color: #d7cfdf;
+  box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
+  transform: translateY(-4px);
 }
-
-/* Ambient mesh drift */
-@keyframes drift-slow {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(15px, -10px); }
-  66% { transform: translate(-10px, 8px); }
+.pillar-card:hover .pillar-card-glow {
+  opacity: 0.15;
+  transition: opacity 0.4s;
 }
 
-@keyframes drift-slow-reverse {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(-12px, 8px); }
-  66% { transform: translate(10px, -12px); }
+/* Scroll indicator bounce */
+@keyframes scroll-dot {
+  0%, 100% { top: 6px; opacity: 1; }
+  50% { top: 22px; opacity: 0.3; }
 }
+.animate-scroll-dot { animation: scroll-dot 2s ease-in-out infinite; }
 
-.animate-drift-slow {
-  animation: drift-slow 20s ease-in-out infinite;
-}
-
-.animate-drift-slow-reverse {
-  animation: drift-slow-reverse 25s ease-in-out infinite;
-}
-
-/* ========= SCROLLTELLING — IntersectionObserver driven ========= */
-
-/* Base: visible by default (SSR-safe for crawlers and no-JS) */
+/* Scroll reveal */
 .scroll-reveal {
   opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(0) translateX(0);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-/* JS-enhanced: hide until IntersectionObserver reveals */
 .js-scroll-ready .scroll-reveal:not(.is-visible) {
   opacity: 0;
-  transform: translateY(32px);
+  transform: translateY(40px);
   will-change: opacity, transform;
 }
-
+.js-scroll-ready .scroll-reveal.reveal-from-right:not(.is-visible) {
+  opacity: 0;
+  transform: translateX(60px) translateY(0);
+}
 .scroll-reveal.is-visible {
   opacity: 1;
-  transform: translateY(0) translateX(0) scale(1);
+  transform: translateY(0) translateX(0);
 }
 
-/* Variant: slide from left (education cards — even) */
-.js-scroll-ready .scroll-reveal.reveal-from-left:not(.is-visible) {
-  transform: translateX(-40px) translateY(0);
+/* FAQ dark theme */
+.faq-dark :deep(button) { color: #f0ebe5; }
+.faq-dark :deep(button:hover) { color: #d4956a; }
+.faq-dark :deep([data-state="open"] > button) { color: #d4956a; }
+
+/* Floating particles */
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(212, 149, 106, 0.4);
+}
+.particle-1 { top: 20%; left: 12%; animation: particleFloat 8s ease-in-out infinite; }
+.particle-2 { top: 55%; left: 82%; animation: particleFloat 10s ease-in-out 1s infinite; }
+.particle-3 { top: 35%; left: 68%; animation: particleFloat 7s ease-in-out 2s infinite; width: 3px; height: 3px; background: rgba(185, 170, 199, 0.3); }
+.particle-4 { top: 75%; left: 28%; animation: particleFloat 9s ease-in-out 3s infinite; width: 5px; height: 5px; background: rgba(212, 149, 106, 0.25); }
+
+@keyframes particleFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  25% { transform: translate(10px, -20px) scale(1.2); opacity: 0.7; }
+  50% { transform: translate(-5px, -40px) scale(0.8); opacity: 0.5; }
+  75% { transform: translate(15px, -20px) scale(1.1); opacity: 0.6; }
 }
 
-/* Variant: slide from right (education cards — odd) */
-.js-scroll-ready .scroll-reveal.reveal-from-right:not(.is-visible) {
-  transform: translateX(40px) translateY(0);
-}
-
-/* Variant: scale in (symptom pills) */
-.js-scroll-ready .scroll-reveal.reveal-scale:not(.is-visible) {
-  transform: scale(0.9) translateY(0);
-}
-
-/* Variant: clip reveal (lead capture dark section) */
-.js-scroll-ready .scroll-reveal.reveal-clip:not(.is-visible) {
-  transform: translateY(48px);
-}
-
-/* Respect reduced motion */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .hero-appear,
-  .hero-underline path,
-  .animate-drift-slow,
-  .animate-drift-slow-reverse {
-    animation: none;
-  }
-  .hero-appear {
-    opacity: 1;
-    transform: none;
-  }
-  .scroll-reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
+  .hero-appear, .cta-glow, .animate-scroll-dot, .particle { animation: none; }
+  .hero-appear { opacity: 1; transform: none; }
+  .scroll-reveal { opacity: 1; transform: none; transition: none; }
+  .pillar-card:hover { transform: none; }
+  .animate-scroll-dot { top: 6px; opacity: 1; }
+  .particle { opacity: 0.3; }
 }
 </style>

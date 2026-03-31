@@ -17,11 +17,26 @@ export async function useGlobalSchemaOrg() {
       defineOrganization({
         name: 'Keova',
         url: origin,
-        logo: `${origin}/images/keova-logo.png`,
-        description: 'Keova réunit agenda, paiements et suivi client dans un espace pro conçu pour les spécialistes ménopause et bien-être.'
+        logo: {
+          '@type': 'ImageObject',
+          '@id': `${origin}/#logo`,
+          'url': `${origin}/images/keova-logo.png`,
+          'contentUrl': `${origin}/images/keova-logo.png`,
+          'caption': 'Keova',
+          'width': 512,
+          'height': 512
+        },
+        description: 'Keova réunit agenda, paiements et suivi client dans un espace pro conçu pour les spécialistes ménopause et bien-être.',
+        foundingDate: '2026',
+        areaServed: { '@type': 'Country', 'name': 'France' },
+        contactPoint: { '@type': 'ContactPoint', 'contactType': 'customer support', 'availableLanguage': 'fr' },
+        sameAs: []
       }),
       defineWebSite({
         name: 'Keova',
+        inLanguage: 'fr-FR'
+      }),
+      defineWebPage({
         inLanguage: 'fr-FR'
       }),
       // SoftwareApplication with Review (AC-14)

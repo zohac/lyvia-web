@@ -51,8 +51,8 @@ const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim
 
 const b2bTitle = 'Keova — Logiciel tout-en-un pour spécialistes ménopause'
 const b2bDescription = 'Keova réunit agenda en ligne, paiements et suivi client pour les coachs ménopause. Logiciel co-construit avec les praticiennes. Beta privée gratuite.'
-const b2cTitle = 'Keova — Trouvez votre spécialiste ménopause et périménopause'
-const b2cDescription = 'Découvrez des spécialistes vérifiées pour un accompagnement ménopause personnalisé. Périménopause, ménopause : trouvez votre spécialiste.'
+const b2cTitle = 'Accompagnement ménopause — Spécialistes formées | Keova'
+const b2cDescription = 'Périménopause, ménopause, post-ménopause : comprenez vos symptômes et trouvez une spécialiste près de chez vous. Premier appel gratuit. Keova.'
 
 function platformTitle() {
   return ctx.value.isB2C ? b2cTitle : b2bTitle
@@ -61,9 +61,9 @@ function platformDescription() {
   return ctx.value.isB2C ? b2cDescription : b2bDescription
 }
 
-// B2B homepage canonical/og:url → keova.fr (SEO reference domain per AC-5)
+// B2B homepage canonical/og:url → keova.app (AC-1, AC-21)
 const canonicalHref = computed(() => {
-  if (ctx.value.isB2B) return `https://${platformDomain}/`
+  if (ctx.value.isB2B) return `https://${platformDomainB2B || platformDomain}/`
   return `${origin}/`
 })
 
@@ -92,11 +92,11 @@ useSeoMeta({
 
 usePublicCanonicalHead(canonicalHref)
 
-// Preload LCP image for B2B landing (AC-19)
+// Preload LCP image for B2B landing (AC-19) — target IPX-processed WebP asset
 if (isPlatformDomain.value) {
   useHead({
     link: [
-      { rel: 'preload', as: 'image', href: '/images/screenshot-dashboard.png' }
+      { rel: 'preload', as: 'image', href: '/_ipx/f_webp/images/screenshot-dashboard.png', type: 'image/webp' }
     ]
   })
 }
@@ -128,12 +128,6 @@ function updatePublicHeader() {
   }
 
   if (ctx.value.isB2C) {
-    // B2C login redirects to the B2B app domain (keova.app in prod, localhost in dev)
-    const b2bOrigin = platformDomainB2B
-      ? `${requestUrl.protocol}//${platformDomainB2B}${requestUrl.port ? `:${requestUrl.port}` : ''}`
-      : ''
-    const loginUrl = b2bOrigin ? `${b2bOrigin}/login` : '/login'
-
     setPublicHeader({
       variant: 'marketing',
       layoutStyle: 'dock',
@@ -141,13 +135,14 @@ function updatePublicHeader() {
       brandTo: '/',
       showBrandIcon: true,
       navLinks: [
-        { label: 'Accompagnement', href: '#education' },
+        { label: 'Comprendre', href: '#education' },
+        { label: 'Symptômes', href: '#symptomes' },
         { label: 'Spécialistes', href: '#specialistes' },
-        { label: 'Symptômes', href: '#symptomes' }
+        { label: 'FAQ', href: '#faq' }
       ],
       loginLabel: 'Se connecter',
-      loginTo: loginUrl,
-      ctaLabel: 'Trouver ma spécialiste',
+      loginTo: '/login',
+      ctaLabel: 'Trouver une spécialiste',
       ctaTo: '#specialistes'
     })
   } else {

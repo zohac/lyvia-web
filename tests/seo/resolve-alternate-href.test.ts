@@ -3,13 +3,13 @@ import test from 'node:test'
 
 import { resolveAlternateHref } from '../../shared/utils/resolve-alternate-href'
 
-test('resolveAlternateHref: B2B fallback uses keova.fr origin', () => {
+test('resolveAlternateHref: B2B fallback uses own domain (keova.app)', () => {
   assert.equal(resolveAlternateHref({
     hostname: 'keova.app',
     pathname: '/coach/sophie-jouan',
     platformDomain: 'keova.fr',
     platformDomainB2B: 'keova.app'
-  }), 'https://keova.fr/coach/sophie-jouan')
+  }), 'https://keova.app/coach/sophie-jouan')
 })
 
 test('resolveAlternateHref: white-label fallback uses actual host', () => {
