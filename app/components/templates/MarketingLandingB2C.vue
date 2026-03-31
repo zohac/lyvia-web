@@ -23,7 +23,9 @@ const providers = computed(() => featuredData.value?.providers ?? [])
 useB2CLandingSchemaOrg(providers)
 
 // --- Symptômes V2 — 10 symptômes en 2 groupes ---
-const symptomsGroup1 = [
+interface Symptom { icon: string; title: string; text: string; source?: string; sourceUrl?: string }
+
+const symptomsGroup1: Symptom[] = [
   { icon: 'i-lucide-heart-pulse', title: 'Cycles irréguliers', text: 'Des règles qui deviennent imprévisibles\u00A0: plus abondantes, plus espacées, parfois absentes pendant des mois. C\u2019est souvent le premier signe de la périménopause.' },
   { icon: 'i-lucide-flame', title: 'Bouffées de chaleur', text: 'Des vagues de chaleur soudaines qui montent du torse au visage. Elles perturbent le sommeil, la concentration et la vie sociale. Ça touche 75 à 80\u00A0% des femmes.' },
   { icon: 'i-lucide-moon', title: 'Troubles du sommeil', text: 'Réveils nocturnes, insomnies, sommeil fragmenté. Le manque de sommeil amplifie tous les autres symptômes.' },
@@ -33,7 +35,7 @@ const symptomsGroup1 = [
   { icon: 'i-lucide-brain', title: 'Troubles de la mémoire', text: 'Le brouillard mental\u00A0: vous cherchez vos mots, vous oubliez pourquoi vous êtes entrée dans une pièce. C\u2019est documenté et souvent temporaire.' }
 ]
 
-const symptomsGroup2 = [
+const symptomsGroup2: Symptom[] = [
   { icon: 'i-lucide-bone', title: 'Douleurs articulaires', text: 'Genoux, mains, épaules. Souvent confondues avec de l\u2019arthrose, elles sont liées à la chute des œstrogènes.' },
   { icon: 'i-lucide-droplets', title: 'Sécheresse intime', text: 'Touche jusqu\u2019à 50\u00A0% des femmes après la ménopause. Ce symptôme tabou a des solutions concrètes.' },
   { icon: 'i-lucide-shield-alert', title: 'Perte osseuse', text: 'L\u2019ostéoporose touche 1 femme sur 3 après 50 ans. Renforcement musculaire, calcium, vitamine D et suivi médical sont les 3 piliers.', source: 'INSERM', sourceUrl: 'https://www.inserm.fr/dossier/osteoporose' }
@@ -80,8 +82,9 @@ const statCount = ref(0)
 const statEl = useTemplateRef<HTMLElement>('stat-card')
 onMounted(() => {
   if (!statEl.value) return
-  const observer = new IntersectionObserver(([entry]) => {
-    if (!entry.isIntersecting || statCount.value >= 14) return
+  const observer = new IntersectionObserver((entries) => {
+    const entry = entries[0]
+    if (!entry?.isIntersecting || statCount.value >= 14) return
     observer.disconnect()
     const duration = 1200
     const start = performance.now()
