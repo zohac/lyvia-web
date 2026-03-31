@@ -559,7 +559,7 @@ onMounted(() => {
 
         <div
           v-if="providers.length"
-          class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          class="mt-14 flex flex-wrap justify-center gap-8"
         >
           <SpecialistCard
             v-for="(prov, i) in providers"

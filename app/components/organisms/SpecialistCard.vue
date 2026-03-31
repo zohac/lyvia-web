@@ -34,31 +34,31 @@ const bookingUrl = computed(() =>
 </script>
 
 <template>
-  <div class="specialist-card group relative w-full overflow-hidden rounded-3xl p-6 shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl">
-    <!-- Radial glow background -->
+  <div class="specialist-card group relative w-full max-w-sm overflow-hidden rounded-[2rem] border border-white/40 p-7 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_64px_rgba(91,75,110,0.15)]">
+    <!-- Animated warm glow on hover -->
     <div
-      class="absolute inset-0 -z-0"
-      style="background: radial-gradient(circle at 20% 50%, rgba(212,149,106,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(122,107,142,0.06) 0%, transparent 50%);"
-    />
-
-    <!-- Decorative blurs — hover amplified -->
-    <div
-      class="absolute -bottom-10 -right-10 size-36 rounded-full bg-gradient-to-br from-[#d4956a]/15 to-[#e89560]/10 blur-3xl transition-all duration-700 group-hover:scale-150"
+      class="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full opacity-0 transition-all duration-700 group-hover:opacity-100"
+      style="background: radial-gradient(circle, rgba(212,149,106,0.25), transparent 70%); filter: blur(40px);"
       aria-hidden="true"
     />
     <div
-      class="absolute -left-10 -top-10 size-36 rounded-full bg-gradient-to-br from-[#7a6b8e]/10 to-[#5b4b6e]/5 blur-3xl transition-all duration-700 group-hover:scale-150"
+      class="pointer-events-none absolute -bottom-12 -left-12 size-40 rounded-full opacity-0 transition-all duration-700 group-hover:opacity-100"
+      style="background: radial-gradient(circle, rgba(122,107,142,0.15), transparent 70%); filter: blur(40px);"
       aria-hidden="true"
     />
 
     <div class="relative z-10 flex flex-col gap-5">
-      <!-- Header: avatar + badges -->
+      <!-- Avatar with glow ring -->
       <div class="flex items-start justify-between">
-        <!-- Avatar -->
-        <div class="transition-transform duration-500 group-hover:scale-105">
+        <div class="relative">
+          <!-- Glow ring — visible on hover -->
+          <div
+            class="absolute -inset-1 rounded-full bg-gradient-to-br from-[#d4956a] to-[#7a6b8e] opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-50"
+            aria-hidden="true"
+          />
           <div
             v-if="provider.profilePhotoUrl"
-            class="size-20 overflow-hidden rounded-full border-4 border-white shadow-md"
+            class="relative size-20 overflow-hidden rounded-full border-[3px] border-white shadow-lg transition-transform duration-500 group-hover:scale-110"
           >
             <NuxtImg
               :src="provider.profilePhotoUrl"
@@ -71,18 +71,19 @@ const bookingUrl = computed(() =>
           </div>
           <div
             v-else
-            class="grid size-20 place-items-center rounded-full border-4 border-white bg-gradient-to-br from-[#5b4b6e] to-[#7a6b8e] text-xl font-bold text-white shadow-md"
+            class="relative grid size-20 place-items-center rounded-full border-[3px] border-white bg-gradient-to-br from-[#d4956a] to-[#7a6b8e] text-xl font-bold text-white shadow-lg transition-transform duration-500 group-hover:scale-110"
           >
             {{ initials }}
           </div>
         </div>
 
-        <!-- Specialty badges -->
-        <div class="flex max-w-[60%] flex-wrap justify-end gap-1.5">
+        <!-- Specialty badges — float up on hover -->
+        <div class="flex max-w-[55%] flex-wrap justify-end gap-1.5">
           <span
-            v-for="s in topSpecialties"
+            v-for="(s, i) in topSpecialties"
             :key="s"
-            class="rounded-full bg-white/80 px-2.5 py-1 text-xs font-medium text-[#5b4b6e] shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md"
+            class="rounded-full border border-[#d4956a]/15 bg-white/90 px-3 py-1 text-xs font-medium text-[#5b4b6e] shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+            :style="{ transitionDelay: `${i * 50}ms` }"
           >
             {{ s }}
           </span>
@@ -90,8 +91,8 @@ const bookingUrl = computed(() =>
       </div>
 
       <!-- Name + city -->
-      <div class="space-y-1.5">
-        <h3 class="font-serif text-2xl font-bold text-[#3d3250] transition-colors duration-300">
+      <div class="space-y-1">
+        <h3 class="font-serif text-2xl font-bold text-[#3d3250] transition-colors duration-300 group-hover:text-[#d4956a]">
           {{ provider.displayName }}
         </h3>
         <div
@@ -100,49 +101,52 @@ const bookingUrl = computed(() =>
         >
           <UIcon
             name="i-lucide-map-pin"
-            class="size-4"
+            class="size-3.5"
           />
           <span>{{ provider.city }}</span>
         </div>
       </div>
 
-      <!-- Bio in glass card -->
+      <!-- Bio — glass inset -->
       <div
         v-if="truncatedBio"
-        class="rounded-2xl bg-white/60 p-4 backdrop-blur-sm transition-all duration-500 group-hover:bg-white/80"
+        class="rounded-xl bg-white/50 p-4 shadow-inner shadow-black/[0.02] backdrop-blur-sm transition-all duration-500 group-hover:bg-white/70"
       >
         <p class="text-sm leading-relaxed text-[#5a5068]">
           {{ truncatedBio }}
         </p>
       </div>
 
-      <!-- CTAs -->
-      <div class="flex flex-col gap-2">
+      <!-- CTAs — warm primary + ghost secondary -->
+      <div class="flex flex-col gap-2.5">
         <NuxtLink
           :to="profileUrl"
           :external="!!provider.customDomain"
           :target="provider.customDomain ? '_blank' : undefined"
           :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
-          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] py-3 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:from-[#4a3d5e] hover:to-[#6d5c82] hover:shadow-lg"
+          class="group/cta relative flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-[#d4956a] to-[#c8845e] py-3.5 text-sm font-semibold text-white shadow-md shadow-[#d4956a]/20 transition-all duration-300 hover:shadow-lg hover:shadow-[#d4956a]/30 hover:brightness-105 active:scale-[0.98]"
         >
-          <span>Voir le profil</span>
-          <UIcon
-            name="i-lucide-arrow-right"
-            class="size-4 transition-transform duration-300 group-hover:translate-x-0.5"
-          />
+          <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-600 group-hover/cta:translate-x-full" />
+          <span class="relative flex items-center gap-2">
+            Voir le profil
+            <UIcon
+              name="i-lucide-arrow-right"
+              class="size-4 transition-transform duration-300 group-hover/cta:translate-x-0.5"
+            />
+          </span>
         </NuxtLink>
         <NuxtLink
           :to="bookingUrl"
           :external="!!provider.customDomain"
           :target="provider.customDomain ? '_blank' : undefined"
           :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
-          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#5b4b6e]/20 bg-white/60 py-2.5 text-sm font-medium text-[#5b4b6e] transition-all duration-300 hover:bg-[#5b4b6e]/5"
+          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#d4956a]/20 bg-white/60 py-3 text-sm font-medium text-[#5b4b6e] backdrop-blur-sm transition-all duration-300 hover:border-[#d4956a]/40 hover:bg-[#d4956a]/5 hover:text-[#d4956a]"
         >
           <UIcon
             name="i-lucide-calendar"
             class="size-4"
           />
-          <span>Réserver un appel gratuit</span>
+          <span>Appel gratuit · 15 min</span>
         </NuxtLink>
       </div>
     </div>
@@ -151,6 +155,15 @@ const bookingUrl = computed(() =>
 
 <style scoped>
 .specialist-card {
-  background: linear-gradient(135deg, #fdf8f4 0%, #f8f0ec 30%, #f3edf7 70%, #faf6fb 100%);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(253, 248, 244, 0.9) 35%,
+    rgba(243, 237, 247, 0.85) 70%,
+    rgba(250, 246, 251, 0.9) 100%
+  );
+  box-shadow:
+    0 4px 24px rgba(91, 75, 110, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 </style>
