@@ -17,7 +17,7 @@ const topSpecialties = computed(() => props.provider.specialties.slice(0, 3))
 
 const truncatedBio = computed(() => {
   const bio = props.provider.bio || ''
-  return bio.length > 150 ? `${bio.slice(0, 147)}...` : bio
+  return bio.length > 120 ? `${bio.slice(0, 117)}...` : bio
 })
 
 const profileUrl = computed(() =>
@@ -34,121 +34,117 @@ const bookingUrl = computed(() =>
 </script>
 
 <template>
-  <div class="specialist-card group relative w-full max-w-sm overflow-hidden rounded-[2rem] border border-white/40 p-7 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_24px_64px_rgba(91,75,110,0.15)]">
-    <!-- Animated warm glow on hover -->
+  <div class="specialist-card group relative w-full max-w-xs overflow-hidden rounded-[2rem] pb-6 pt-8 transition-all duration-500 hover:-translate-y-3 hover:shadow-[0_32px_80px_rgba(91,75,110,0.18)]">
+    <!-- Warm glow behind card on hover -->
     <div
-      class="pointer-events-none absolute -right-16 -top-16 size-48 rounded-full opacity-0 transition-all duration-700 group-hover:opacity-100"
-      style="background: radial-gradient(circle, rgba(212,149,106,0.25), transparent 70%); filter: blur(40px);"
-      aria-hidden="true"
-    />
-    <div
-      class="pointer-events-none absolute -bottom-12 -left-12 size-40 rounded-full opacity-0 transition-all duration-700 group-hover:opacity-100"
-      style="background: radial-gradient(circle, rgba(122,107,142,0.15), transparent 70%); filter: blur(40px);"
+      class="pointer-events-none absolute -inset-4 -z-10 rounded-[3rem] opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+      style="background: radial-gradient(ellipse at 50% 40%, rgba(212,149,106,0.15), transparent 70%); filter: blur(30px);"
       aria-hidden="true"
     />
 
-    <div class="relative z-10 flex flex-col gap-5">
-      <!-- Avatar with glow ring -->
-      <div class="flex items-start justify-between">
-        <div class="relative">
-          <!-- Glow ring — visible on hover -->
-          <div
-            class="absolute -inset-1 rounded-full bg-gradient-to-br from-[#d4956a] to-[#7a6b8e] opacity-0 blur-sm transition-opacity duration-500 group-hover:opacity-50"
-            aria-hidden="true"
-          />
-          <div
-            v-if="provider.profilePhotoUrl"
-            class="relative size-20 overflow-hidden rounded-full border-[3px] border-white shadow-lg transition-transform duration-500 group-hover:scale-110"
-          >
-            <NuxtImg
-              :src="provider.profilePhotoUrl"
-              :alt="provider.profilePhotoAlt || provider.displayName"
-              class="size-full object-cover"
-              loading="lazy"
-              :width="80"
-              :height="80"
-            />
-          </div>
-          <div
-            v-else
-            class="relative grid size-20 place-items-center rounded-full border-[3px] border-white bg-gradient-to-br from-[#d4956a] to-[#7a6b8e] text-xl font-bold text-white shadow-lg transition-transform duration-500 group-hover:scale-110"
-          >
-            {{ initials }}
-          </div>
-        </div>
-
-        <!-- Specialty badges — float up on hover -->
-        <div class="flex max-w-[55%] flex-wrap justify-end gap-1.5">
-          <span
-            v-for="(s, i) in topSpecialties"
-            :key="s"
-            class="rounded-full border border-[#d4956a]/15 bg-white/90 px-3 py-1 text-xs font-medium text-[#5b4b6e] shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
-            :style="{ transitionDelay: `${i * 50}ms` }"
-          >
-            {{ s }}
-          </span>
-        </div>
-      </div>
-
-      <!-- Name + city -->
-      <div class="space-y-1">
-        <h3 class="font-serif text-2xl font-bold text-[#3d3250] transition-colors duration-300 group-hover:text-[#d4956a]">
-          {{ provider.displayName }}
-        </h3>
+    <!-- === PHOTO HERO — the person IS the card === -->
+    <div class="flex flex-col items-center px-6">
+      <div class="relative">
+        <!-- Glow ring on hover -->
         <div
-          v-if="provider.city"
-          class="flex items-center gap-1.5 text-sm text-[#7a6b8e]"
+          class="absolute -inset-2 rounded-full opacity-0 transition-all duration-600 group-hover:opacity-100"
+          style="background: conic-gradient(from 180deg, rgba(212,149,106,0.4), rgba(122,107,142,0.3), rgba(212,149,106,0.4)); filter: blur(8px);"
+          aria-hidden="true"
+        />
+        <!-- Avatar -->
+        <div
+          v-if="provider.profilePhotoUrl"
+          class="relative size-36 overflow-hidden rounded-full border-4 border-white shadow-xl transition-transform duration-500 group-hover:scale-105 sm:size-40"
         >
-          <UIcon
-            name="i-lucide-map-pin"
-            class="size-3.5"
+          <NuxtImg
+            :src="provider.profilePhotoUrl"
+            :alt="provider.profilePhotoAlt || provider.displayName"
+            class="size-full object-cover"
+            loading="lazy"
+            :width="160"
+            :height="160"
           />
-          <span>{{ provider.city }}</span>
+        </div>
+        <div
+          v-else
+          class="relative grid size-36 place-items-center rounded-full border-4 border-white bg-gradient-to-br from-[#d4956a] to-[#7a6b8e] text-4xl font-bold text-white shadow-xl transition-transform duration-500 group-hover:scale-105 sm:size-40"
+        >
+          {{ initials }}
         </div>
       </div>
 
-      <!-- Bio — glass inset -->
-      <div
-        v-if="truncatedBio"
-        class="rounded-xl bg-white/50 p-4 shadow-inner shadow-black/[0.02] backdrop-blur-sm transition-all duration-500 group-hover:bg-white/70"
-      >
-        <p class="text-sm leading-relaxed text-[#5a5068]">
-          {{ truncatedBio }}
-        </p>
-      </div>
+      <!-- Name — big, serif, warm on hover -->
+      <h3 class="mt-5 text-center font-serif text-2xl font-bold leading-tight text-[#3d3250] transition-colors duration-300 group-hover:text-[#d4956a]">
+        {{ provider.displayName }}
+      </h3>
 
-      <!-- CTAs — warm primary + ghost secondary -->
-      <div class="flex flex-col gap-2.5">
-        <NuxtLink
-          :to="profileUrl"
-          :external="!!provider.customDomain"
-          :target="provider.customDomain ? '_blank' : undefined"
-          :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
-          class="group/cta relative flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-[#d4956a] to-[#c8845e] py-3.5 text-sm font-semibold text-white shadow-md shadow-[#d4956a]/20 transition-all duration-300 hover:shadow-lg hover:shadow-[#d4956a]/30 hover:brightness-105 active:scale-[0.98]"
-        >
-          <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-600 group-hover/cta:translate-x-full" />
-          <span class="relative flex items-center gap-2">
-            Voir le profil
-            <UIcon
-              name="i-lucide-arrow-right"
-              class="size-4 transition-transform duration-300 group-hover/cta:translate-x-0.5"
-            />
-          </span>
-        </NuxtLink>
-        <NuxtLink
-          :to="bookingUrl"
-          :external="!!provider.customDomain"
-          :target="provider.customDomain ? '_blank' : undefined"
-          :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
-          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#d4956a]/20 bg-white/60 py-3 text-sm font-medium text-[#5b4b6e] backdrop-blur-sm transition-all duration-300 hover:border-[#d4956a]/40 hover:bg-[#d4956a]/5 hover:text-[#d4956a]"
-        >
-          <UIcon
-            name="i-lucide-calendar"
-            class="size-4"
-          />
-          <span>Appel gratuit · 15 min</span>
-        </NuxtLink>
+      <!-- City -->
+      <div
+        v-if="provider.city"
+        class="mt-1.5 flex items-center gap-1 text-sm text-[#857d8c]"
+      >
+        <UIcon
+          name="i-lucide-map-pin"
+          class="size-3.5"
+        />
+        <span>{{ provider.city }}</span>
       </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="mx-8 my-5 h-px bg-gradient-to-r from-transparent via-[#d4956a]/20 to-transparent" />
+
+    <!-- Specialties — floating pills -->
+    <div class="flex flex-wrap justify-center gap-1.5 px-5">
+      <span
+        v-for="(s, i) in topSpecialties"
+        :key="s"
+        class="rounded-full border border-[#d4956a]/12 bg-[#d4956a]/6 px-3 py-1 text-xs font-medium text-[#6b5a4e] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#d4956a]/25 hover:shadow-sm"
+        :style="{ transitionDelay: `${i * 40}ms` }"
+      >
+        {{ s }}
+      </span>
+    </div>
+
+    <!-- Bio — compact -->
+    <p
+      v-if="truncatedBio"
+      class="mx-6 mt-4 text-center text-sm leading-relaxed text-[#6b6177]"
+    >
+      {{ truncatedBio }}
+    </p>
+
+    <!-- CTAs -->
+    <div class="mx-5 mt-5 flex flex-col gap-2">
+      <NuxtLink
+        :to="profileUrl"
+        :external="!!provider.customDomain"
+        :target="provider.customDomain ? '_blank' : undefined"
+        :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
+        class="group/cta relative flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-[#d4956a] to-[#c8845e] py-3 text-sm font-semibold text-white shadow-md shadow-[#d4956a]/20 transition-all duration-300 hover:shadow-lg hover:shadow-[#d4956a]/30 hover:brightness-105 active:scale-[0.97]"
+      >
+        <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-600 group-hover/cta:translate-x-full" />
+        <span class="relative flex items-center gap-2">
+          Voir le profil
+          <UIcon
+            name="i-lucide-arrow-right"
+            class="size-4 transition-transform duration-300 group-hover/cta:translate-x-0.5"
+          />
+        </span>
+      </NuxtLink>
+      <NuxtLink
+        :to="bookingUrl"
+        :external="!!provider.customDomain"
+        :target="provider.customDomain ? '_blank' : undefined"
+        :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
+        class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[#d4956a]/15 bg-white/50 py-2.5 text-sm font-medium text-[#5b4b6e] backdrop-blur-sm transition-all duration-300 hover:border-[#d4956a]/30 hover:text-[#d4956a]"
+      >
+        <UIcon
+          name="i-lucide-phone"
+          class="size-3.5"
+        />
+        <span>Appel gratuit · 15 min</span>
+      </NuxtLink>
     </div>
   </div>
 </template>
@@ -156,14 +152,14 @@ const bookingUrl = computed(() =>
 <style scoped>
 .specialist-card {
   background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(253, 248, 244, 0.9) 35%,
-    rgba(243, 237, 247, 0.85) 70%,
-    rgba(250, 246, 251, 0.9) 100%
+    170deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(253, 248, 244, 0.95) 40%,
+    rgba(250, 246, 251, 0.92) 100%
   );
   box-shadow:
-    0 4px 24px rgba(91, 75, 110, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    0 8px 32px rgba(91, 75, 110, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(212, 149, 106, 0.1);
 }
 </style>
