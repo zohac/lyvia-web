@@ -23,7 +23,7 @@ const providers = computed(() => featuredData.value?.providers ?? [])
 useB2CLandingSchemaOrg(providers)
 
 // --- Symptômes V2 — 10 symptômes en 2 groupes ---
-interface Symptom { icon: string; title: string; text: string; source?: string; sourceUrl?: string }
+interface Symptom { icon: string, title: string, text: string, source?: string, sourceUrl?: string }
 
 const symptomsGroup1: Symptom[] = [
   { icon: 'i-lucide-heart-pulse', title: 'Cycles irréguliers', text: 'Des règles qui deviennent imprévisibles\u00A0: plus abondantes, plus espacées, parfois absentes pendant des mois. C\u2019est souvent le premier signe de la périménopause.' },
