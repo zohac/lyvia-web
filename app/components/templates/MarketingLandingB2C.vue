@@ -206,63 +206,53 @@ onMounted(() => {
 
         <!-- Right: stat card + after-menopause — stacked with reveal -->
         <div class="flex flex-col gap-10">
-          <!-- Stat card — hero-sized number -->
+          <!-- Stat card — pillar-card pattern from coach page -->
           <div
             ref="stat-card"
-            class="stat-card group relative overflow-hidden rounded-[2rem] border border-white/10 p-10 text-center sm:p-12"
+            class="pillar-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-10 text-center transition-all duration-300 sm:p-12"
           >
-            <!-- Animated warm glow behind number -->
+            <!-- Glow blob top-right (appears on hover) -->
             <div
-              class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-1000"
-              :class="{ 'opacity-100': statCount > 0 }"
-              style="background: radial-gradient(ellipse at 50% 40%, rgba(212,149,106,0.15), transparent 70%);"
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
               aria-hidden="true"
             />
-            <!-- Corner dots — appear on hover -->
-            <div class="pointer-events-none absolute left-4 top-4 size-1.5 rounded-full bg-[#d4956a] opacity-0 transition-all duration-500 group-hover:opacity-60" />
-            <div class="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-[#d4956a] opacity-0 transition-all duration-500 group-hover:opacity-60" />
-            <div class="pointer-events-none absolute bottom-4 left-4 size-1.5 rounded-full bg-[#d4956a] opacity-0 transition-all duration-500 group-hover:opacity-60" />
-            <div class="pointer-events-none absolute bottom-4 right-4 size-1.5 rounded-full bg-[#d4956a] opacity-0 transition-all duration-500 group-hover:opacity-60" />
             <div class="relative">
               <p class="font-serif text-7xl font-bold tabular-nums text-[#d4956a] sm:text-8xl lg:text-9xl">
                 {{ statCount }}<span class="text-4xl sm:text-5xl">M</span>
               </p>
-              <p class="mt-4 text-lg text-white/50">
+              <p class="mt-4 text-lg text-[#6b6177]">
                 de femmes en France.
               </p>
               <div class="mx-auto my-5 h-px w-20 bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
-              <p class="text-xl font-semibold text-white/60">
+              <p class="text-xl font-semibold text-[#3d3250]">
                 La plupart gèrent ça seules.
               </p>
             </div>
           </div>
 
-          <!-- After menopause — editorial card -->
+          <!-- After menopause — same pillar-card pattern -->
           <div
             v-bind="reveal({ delay: 300 })"
-            class="after-card scroll-reveal reveal-from-right group relative overflow-hidden rounded-[2rem] p-8 sm:p-10"
+            class="pillar-card scroll-reveal reveal-from-right group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300 sm:p-10"
           >
-            <!-- Corner dots -->
-            <div class="pointer-events-none absolute left-4 top-4 size-1.5 rounded-full bg-[#5b4b6e] opacity-0 transition-all duration-500 group-hover:opacity-40" />
-            <div class="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-[#5b4b6e] opacity-0 transition-all duration-500 group-hover:opacity-40" />
-            <div class="pointer-events-none absolute bottom-4 left-4 size-1.5 rounded-full bg-[#5b4b6e] opacity-0 transition-all duration-500 group-hover:opacity-40" />
-            <div class="pointer-events-none absolute bottom-4 right-4 size-1.5 rounded-full bg-[#5b4b6e] opacity-0 transition-all duration-500 group-hover:opacity-40" />
-            <!-- Accent top border -->
+            <!-- Glow blob top-right -->
             <div
-              class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#d4956a] via-[#e8a878] to-transparent"
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
               aria-hidden="true"
             />
-            <h3 class="font-serif text-2xl text-[#3d3250] sm:text-3xl">
-              Et après les bouffées de chaleur...
-            </h3>
-            <p class="mt-5 text-lg leading-relaxed text-[#6b6177]">
-              D'autres choses arrivent. Des douleurs dans les mains au réveil.
-              Du poids qui ne bouge plus. Des os qui se fragilisent.
-              Une fatigue de fond, tout le temps.
-            </p>
-            <p class="mt-4 text-lg font-medium text-[#d4956a]">
-              Même dix ans après, il y a des choses à faire.
-            </p>
+            <div class="relative">
+              <h3 class="font-serif text-2xl text-[#3d3250] sm:text-3xl">
+                Et après les bouffées de chaleur...
+              </h3>
+              <p class="mt-5 text-lg leading-relaxed text-[#4a4255]">
+                D'autres choses arrivent. Des douleurs dans les mains au réveil.
+                Du poids qui ne bouge plus. Des os qui se fragilisent.
+                Une fatigue de fond, tout le temps.
+              </p>
+              <p class="mt-4 text-lg font-medium text-[#d4956a]">
+                Même dix ans après, il y a des choses à faire.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -603,15 +593,15 @@ onMounted(() => {
 }
 .cta-glow { animation: cta-pulse 3s ease-in-out infinite; }
 
-/* After-menopause card */
-.after-card {
-  background: linear-gradient(145deg, #f5ede6, #faf5f0);
-  border: 1px solid rgba(212, 149, 106, 0.15);
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+/* Pillar cards — coach page pattern (glow blob + lift) */
+.pillar-card:hover {
+  border-color: #d7cfdf;
+  box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
+  transform: translateY(-4px);
 }
-.after-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 48px rgba(91, 75, 110, 0.1);
+.pillar-card:hover .pillar-card-glow {
+  opacity: 0.15;
+  transition: opacity 0.4s;
 }
 
 /* Scroll indicator bounce */
@@ -620,18 +610,6 @@ onMounted(() => {
   50% { top: 22px; opacity: 0.3; }
 }
 .animate-scroll-dot { animation: scroll-dot 2s ease-in-out infinite; }
-
-/* Stat card glass + hover */
-.stat-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 40px rgba(0, 0, 0, 0.2);
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.stat-card:hover {
-  transform: translateY(-6px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 20px 60px rgba(212, 149, 106, 0.15);
-}
 
 /* Scroll reveal */
 .scroll-reveal {
@@ -683,7 +661,7 @@ onMounted(() => {
   .hero-appear, .cta-glow, .animate-scroll-dot, .particle { animation: none; }
   .hero-appear { opacity: 1; transform: none; }
   .scroll-reveal { opacity: 1; transform: none; transition: none; }
-  .stat-card, .after-card { transition: none; }
+  .pillar-card:hover { transform: none; }
   .animate-scroll-dot { top: 6px; opacity: 1; }
   .particle { opacity: 0.3; }
 }
