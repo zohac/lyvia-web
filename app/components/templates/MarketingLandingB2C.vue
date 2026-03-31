@@ -211,7 +211,7 @@ function scrollTo(id: string) {
 
     <!-- ==================== HERO (AC-1) ==================== -->
     <section class="relative px-4 pb-24 pt-32 sm:pb-36 sm:pt-44">
-      <div class="mx-auto max-w-3xl text-center">
+      <div class="mx-auto max-w-4xl text-center">
         <!-- Eyebrow -->
         <div class="hero-appear mb-8 inline-flex items-center gap-2.5 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-5 py-2.5 shadow-sm">
           <span class="size-2 animate-pulse rounded-full bg-[#d4956a]" />
@@ -219,19 +219,19 @@ function scrollTo(id: string) {
         </div>
 
         <!-- H1 -->
-        <h1 class="hero-appear stagger-1 font-serif text-[2.5rem] leading-[1.1] tracking-tight text-[#3d3250] sm:text-5xl lg:text-[3.5rem]">
+        <h1 class="hero-appear stagger-1 font-serif text-[2.5rem] leading-[1.1] tracking-tight text-[#3d3250] sm:text-5xl lg:text-6xl">
           La ménopause n'est pas une question de courage.
           <br>
-          <span class="text-[#d4956a]">C'est une question d'accompagnement.</span>
+          <span class="bg-gradient-to-r from-[#d4956a] to-[#c87a4a] bg-clip-text text-transparent">C'est une question d'accompagnement.</span>
         </h1>
 
         <!-- Sous-ligne phases (V2) -->
-        <p class="hero-appear stagger-1 mt-4 text-base font-medium text-[#6b6177]">
+        <p class="hero-appear stagger-1 mt-5 text-lg font-medium text-[#6b6177]">
           De la périménopause à l'après — chaque étape mérite un soutien adapté.
         </p>
 
         <!-- Sous-titre inclusif (V2) -->
-        <p class="hero-appear stagger-2 mx-auto mt-6 max-w-xl text-lg leading-relaxed text-[#6b6177]">
+        <p class="hero-appear stagger-2 mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[#6b6177]">
           Bouffées de chaleur, fatigue, douleurs articulaires, perte osseuse —
           à chaque étape de la ménopause, des symptômes réels méritent des réponses.
           <strong class="font-semibold text-[#3d3250]">Des spécialistes peuvent vous aider.</strong>
@@ -259,24 +259,51 @@ function scrollTo(id: string) {
           </p>
         </div>
 
-        <!-- Stat sourcée (V2) -->
-        <div class="hero-appear stagger-4 mx-auto mt-14 max-w-lg rounded-2xl border border-[#d4956a]/15 bg-gradient-to-r from-white/70 via-[#fdf6f0]/60 to-white/70 px-6 py-5 text-center shadow-sm backdrop-blur-sm">
-          <p class="text-base leading-relaxed text-[#4a4255]">
-            Plus de <strong class="font-semibold text-[#3d3250]">14 millions</strong> de femmes vivent la périménopause,
-            la ménopause ou ses suites en France.
-          </p>
-          <p class="mt-1 text-sm text-[#857d8c]">
-            La plupart traversent ces étapes sans accompagnement.
-          </p>
+        <!-- Stat impact (V2) — full-width, vivante -->
+        <div class="hero-appear stagger-4 mx-auto mt-16 max-w-2xl">
+          <div class="relative overflow-hidden rounded-3xl border border-[#d4956a]/15 bg-gradient-to-br from-[#3d3250] to-[#4a3d5e] px-8 py-10 text-center shadow-xl sm:px-12">
+            <!-- Warm glow -->
+            <div
+              class="pointer-events-none absolute -right-12 -top-12 size-48 rounded-full opacity-40"
+              style="background: radial-gradient(circle, rgba(212,149,106,0.5), transparent 70%); filter: blur(50px);"
+              aria-hidden="true"
+            />
+            <div
+              class="pointer-events-none absolute -bottom-8 -left-8 size-32 rounded-full opacity-25"
+              style="background: radial-gradient(circle, rgba(122,107,142,0.6), transparent 70%); filter: blur(40px);"
+              aria-hidden="true"
+            />
+            <div class="relative">
+              <p class="font-serif text-5xl font-bold text-[#d4956a] sm:text-6xl">
+                14 millions
+              </p>
+              <p class="mt-4 text-base leading-relaxed text-[#d7cfdf]">
+                de femmes vivent la périménopause, la ménopause ou ses suites en France.
+              </p>
+              <div class="mx-auto my-4 h-px w-16 bg-gradient-to-r from-transparent via-[#d4956a]/40 to-transparent" />
+              <p class="text-sm font-medium text-[#b9aac7]">
+                La plupart traversent ces étapes sans accompagnement.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
+
+    <!-- Scrolltelling transition: journey begins -->
+    <div
+      v-bind="reveal()"
+      class="scroll-reveal mx-auto -mb-8 max-w-xs text-center"
+    >
+      <div class="mx-auto h-12 w-px bg-gradient-to-b from-transparent via-[#d4956a]/30 to-[#d4956a]/10" />
+      <span class="mt-2 inline-block text-xs font-medium uppercase tracking-[0.25em] text-[#d4956a]/60">Votre réalité</span>
+    </div>
 
     <!-- ==================== BLOC DOULEUR 1 (AC-2) ==================== -->
     <section class="relative bg-gradient-to-b from-transparent via-[#fdf6f0]/60 to-transparent px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
-        class="scroll-reveal mx-auto max-w-3xl"
+        class="scroll-reveal mx-auto max-w-4xl"
       >
         <h2 class="font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
           Ce que vous ressentez a un nom.
@@ -324,7 +351,7 @@ function scrollTo(id: string) {
     <section class="relative bg-[#f5ede6] px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
-        class="scroll-reveal mx-auto max-w-3xl"
+        class="scroll-reveal mx-auto max-w-4xl"
       >
         <h2 class="font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
           Et quand les bouffées de chaleur s'atténuent...
@@ -368,6 +395,15 @@ function scrollTo(id: string) {
           fill="#f5ede6"
         />
       </svg>
+    </div>
+
+    <!-- Scrolltelling transition: understanding -->
+    <div
+      v-bind="reveal()"
+      class="scroll-reveal mx-auto max-w-xs py-4 text-center"
+    >
+      <div class="mx-auto h-12 w-px bg-gradient-to-b from-transparent via-[#5b4b6e]/20 to-[#5b4b6e]/10" />
+      <span class="mt-2 inline-block text-xs font-medium uppercase tracking-[0.25em] text-[#5b4b6e]/50">Comprendre</span>
     </div>
 
     <!-- ==================== COMPRENDRE — 4 piliers (AC-4) ==================== -->
@@ -496,6 +532,15 @@ function scrollTo(id: string) {
       </div>
     </section>
 
+    <!-- Scrolltelling transition: find help -->
+    <div
+      v-bind="reveal()"
+      class="scroll-reveal mx-auto max-w-xs py-4 text-center"
+    >
+      <div class="mx-auto h-12 w-px bg-gradient-to-b from-transparent via-[#d4956a]/25 to-[#d4956a]/10" />
+      <span class="mt-2 inline-block text-xs font-medium uppercase tracking-[0.25em] text-[#d4956a]/60">Trouver de l'aide</span>
+    </div>
+
     <!-- ==================== SPÉCIALISTES (AC-12) ==================== -->
     <section
       id="specialistes"
@@ -556,6 +601,15 @@ function scrollTo(id: string) {
         </div>
       </div>
     </section>
+
+    <!-- Scrolltelling transition: identify -->
+    <div
+      v-bind="reveal()"
+      class="scroll-reveal mx-auto max-w-xs py-4 text-center"
+    >
+      <div class="mx-auto h-12 w-px bg-gradient-to-b from-transparent via-[#5b4b6e]/20 to-[#5b4b6e]/10" />
+      <span class="mt-2 inline-block text-xs font-medium uppercase tracking-[0.25em] text-[#5b4b6e]/50">Identifier</span>
+    </div>
 
     <!-- ==================== SYMPTÔMES — 10 en 2 groupes (AC-6) ==================== -->
     <section
@@ -687,7 +741,7 @@ function scrollTo(id: string) {
     <section class="relative bg-gradient-to-br from-[#f5ede6]/50 via-transparent to-[#f0eaf5]/30 px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
-        class="scroll-reveal mx-auto max-w-3xl"
+        class="scroll-reveal mx-auto max-w-4xl"
       >
         <h2 class="font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
           Qui est derrière Keova&#8239;?
