@@ -85,33 +85,28 @@ const symptomsGroup2 = [
 const pillars = [
   {
     num: '01',
-    title: 'Ce que vous ressentez est réel.',
-    text: 'Qu\u2019il s\u2019agisse de bouffées de chaleur à 45 ans ou de douleurs articulaires à 55 — vos symptômes sont réels, documentés, et reconnus.',
-    detail: 'Selon l\u2019INSERM, 80\u00A0% des femmes en ménopause présentent des symptômes qui impactent leur qualité de vie. Et ils évoluent avec les années\u00A0: ce qui vous gêne aujourd\u2019hui ne sera pas ce qui vous préoccupera dans 5 ans.',
-    coda: 'Vous n\u2019avez rien imaginé.',
+    title: 'C\u2019est réel.',
+    text: '80\u00A0% des femmes en ménopause ont des symptômes qui leur changent le quotidien (INSERM). Et ça évolue\u00A0: ce qui vous gêne maintenant ne sera pas forcément ce qui vous gênera dans 5 ans.',
     icon: 'i-lucide-brain',
     sourceLabel: 'INSERM',
     sourceUrl: 'https://www.inserm.fr/dossier/menopause'
   },
   {
     num: '02',
-    title: 'Un accompagnement qui vous ressemble.',
-    text: 'Chaque femme vit la ménopause différemment. Votre alimentation, votre sommeil, votre niveau de stress, votre histoire — tout compte. Une spécialiste prend le temps de comprendre votre quotidien avant de vous proposer des pistes concrètes.',
-    detail: 'Pas un régime miracle. Pas un protocole copié-collé.',
+    title: 'Chaque situation est différente.',
+    text: 'Votre sommeil, votre alimentation, votre stress, votre histoire. Tout ça compte. La spécialiste prend le temps de comprendre votre situation avant de proposer quoi que ce soit.',
     icon: 'i-lucide-heart-handshake'
   },
   {
     num: '03',
-    title: 'Des professionnelles formées.',
-    text: 'Les spécialistes référencées sur Keova sont des professionnelles du bien-être (naturopathes, sophrologues, coachs certifiées) formées spécifiquement à l\u2019accompagnement de la périménopause, de la ménopause et de la post-ménopause — y compris la prévention osseuse et cardiovasculaire.',
-    detail: 'Chaque profil indique ses formations, ses spécialités et son approche.',
+    title: 'Des professionnelles, pas des influenceuses.',
+    text: 'Naturopathes, sophrologues, coachs santé. Formées à la ménopause. Leurs formations sont sur leur profil. Vous pouvez vérifier.',
     icon: 'i-lucide-shield-check'
   },
   {
     num: '04',
-    title: 'En complément du médical.',
-    text: 'L\u2019accompagnement ménopause ne remplace pas votre médecin ou votre THM. Il complète le suivi médical avec ce que la consultation de 15 minutes ne couvre pas\u00A0: l\u2019alimentation adaptée, la gestion du stress, le sommeil, le mouvement — les 4 piliers d\u2019un mieux-être durable.',
-    detail: 'Que vous soyez sous traitement hormonal ou non, l\u2019accompagnement s\u2019adapte à votre situation.',
+    title: 'Ça va avec votre médecin.',
+    text: 'On ne remplace pas le médecin. On complète\u00A0: alimentation, stress, sommeil, mouvement. Traitement hormonal ou pas.',
     icon: 'i-lucide-leaf'
   }
 ]
@@ -211,30 +206,22 @@ function scrollTo(id: string) {
 
     <!-- ==================== HERO (AC-1) ==================== -->
     <section class="relative px-4 pb-24 pt-32 sm:pb-36 sm:pt-44">
-      <div class="mx-auto max-w-4xl text-center">
+      <div class="mx-auto max-w-5xl text-center">
         <!-- Eyebrow -->
         <div class="hero-appear mb-8 inline-flex items-center gap-2.5 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/8 px-5 py-2.5 shadow-sm">
           <span class="size-2 animate-pulse rounded-full bg-[#d4956a]" />
-          <span class="text-sm font-semibold tracking-wide text-[#b07a4a]">Le hub ménopause en France</span>
+          <span class="text-sm font-semibold tracking-wide text-[#b07a4a]">Accompagnement ménopause en France</span>
         </div>
 
         <!-- H1 -->
         <h1 class="hero-appear stagger-1 font-serif text-[2.5rem] leading-[1.1] tracking-tight text-[#3d3250] sm:text-5xl lg:text-6xl">
-          La ménopause n'est pas une question de courage.
-          <br>
-          <span class="bg-gradient-to-r from-[#d4956a] to-[#c87a4a] bg-clip-text text-transparent">C'est une question d'accompagnement.</span>
+          <span class="bg-gradient-to-r from-[#d4956a] to-[#c87a4a] bg-clip-text text-transparent">Ce n'est pas dans votre tête.</span>
         </h1>
 
-        <!-- Sous-ligne phases (V2) -->
-        <p class="hero-appear stagger-1 mt-5 text-lg font-medium text-[#6b6177]">
-          De la périménopause à l'après — chaque étape mérite un soutien adapté.
-        </p>
-
-        <!-- Sous-titre inclusif (V2) -->
-        <p class="hero-appear stagger-2 mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-[#6b6177]">
-          Bouffées de chaleur, fatigue, douleurs articulaires, perte osseuse —
-          à chaque étape de la ménopause, des symptômes réels méritent des réponses.
-          <strong class="font-semibold text-[#3d3250]">Des spécialistes peuvent vous aider.</strong>
+        <!-- Sous-ligne -->
+        <p class="hero-appear stagger-1 mt-5 text-lg leading-relaxed text-[#6b6177] sm:text-xl">
+          Bouffées de chaleur, fatigue, douleurs articulaires — la ménopause,
+          ça se vit dans le corps. Et on peut se faire aider.
         </p>
 
         <!-- CTA -->
@@ -246,7 +233,7 @@ function scrollTo(id: string) {
             <!-- Shine sweep on hover -->
             <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
             <span class="relative z-10 flex items-center gap-2.5">
-              Trouver une spécialiste
+              Parler à une spécialiste
               <UIcon
                 name="i-lucide-arrow-down"
                 class="size-5 transition-transform duration-300 group-hover:translate-y-0.5"
@@ -255,7 +242,7 @@ function scrollTo(id: string) {
           </button>
           <!-- Micro-copy -->
           <p class="text-sm text-[#857d8c]">
-            Premier appel découverte gratuit · Sans engagement · Partout en France
+            Premier appel gratuit · 15 min · Sans engagement
           </p>
         </div>
 
@@ -278,11 +265,11 @@ function scrollTo(id: string) {
                 14 millions
               </p>
               <p class="mt-4 text-base leading-relaxed text-[#d7cfdf]">
-                de femmes vivent la périménopause, la ménopause ou ses suites en France.
+                de femmes en France.
               </p>
               <div class="mx-auto my-4 h-px w-16 bg-gradient-to-r from-transparent via-[#d4956a]/40 to-transparent" />
               <p class="text-sm font-medium text-[#b9aac7]">
-                La plupart traversent ces étapes sans accompagnement.
+                La plupart gèrent ça seules.
               </p>
             </div>
           </div>
@@ -303,27 +290,27 @@ function scrollTo(id: string) {
     <section class="relative bg-gradient-to-b from-transparent via-[#fdf6f0]/60 to-transparent px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
-        class="scroll-reveal mx-auto max-w-4xl"
+        class="scroll-reveal mx-auto max-w-5xl"
       >
         <h2 class="font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
-          Ce que vous ressentez a un nom.
+          Ce que vous vivez a un nom.
         </h2>
         <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#6b6177]">
           <p>
             Vous vous réveillez à 3h du matin, trempée.
-            Vous oubliez un mot que vous connaissiez par cœur hier.
-            Vous pleurez sans raison — ou vous explosiez pour un rien.
-            Vos règles deviennent imprévisibles — trop abondantes, puis plus rien pendant deux mois.
-            Votre corps a changé, et personne autour de vous ne semble comprendre pourquoi.
-          </p>
-          <p class="font-medium text-[#3d3250]">
-            Ce n'est pas le stress. Ce n'est pas l'âge. Ce n'est pas « dans votre tête ».
+            Vous cherchez un mot que vous connaissiez hier.
+            Vous pleurez sans savoir pourquoi.
+            Vos règles font n'importe quoi.
           </p>
           <p>
-            C'est la ménopause — ou la périménopause, qui peut commencer dès 38-40 ans.
+            Votre corps a changé. Et personne autour de vous ne comprend.
+          </p>
+          <p class="font-medium text-[#3d3250]">
+            Ce n'est pas le stress. Ce n'est pas l'âge.
+            C'est hormonal. Et ça peut commencer dès 38 ans.
           </p>
           <p class="font-medium text-[#d4956a]">
-            Et vous n'avez pas à traverser ça seule.
+            Vous n'avez pas à gérer ça seule.
           </p>
         </div>
       </div>
@@ -351,29 +338,22 @@ function scrollTo(id: string) {
     <section class="relative bg-[#f5ede6] px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
-        class="scroll-reveal mx-auto max-w-4xl"
+        class="scroll-reveal mx-auto max-w-5xl"
       >
         <h2 class="font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
-          Et quand les bouffées de chaleur s'atténuent...
+          Et après les bouffées de chaleur...
         </h2>
         <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#6b6177]">
           <p>
-            ...d'autres changements prennent le relais.
-          </p>
-          <p>
-            Des douleurs articulaires au réveil — genoux, mains, épaules —
-            que personne ne vous avait prévenue.
-            Une prise de poids que rien ne fait bouger.
-            Des os qui se fragilisent en silence.
-            Une fatigue de fond qui ne part jamais vraiment.
+            D'autres choses arrivent. Des douleurs dans les mains au réveil.
+            Du poids qui ne bouge plus. Des os qui se fragilisent.
+            Une fatigue de fond, tout le temps.
           </p>
           <p class="font-medium text-[#3d3250]">
-            La ménopause ne s'arrête pas aux bouffées de chaleur.
-            Et l'accompagnement non plus.
+            Ça ne s'arrête pas là. L'aide non plus.
           </p>
           <p class="font-medium text-[#d4956a]">
-            Que vous soyez en pleine transition ou dix ans après,
-            il n'est jamais trop tard pour agir.
+            Même dix ans après, il y a des choses à faire.
           </p>
         </div>
       </div>
@@ -418,11 +398,11 @@ function scrollTo(id: string) {
         >
           <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Comprendre</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
-            Pourquoi un accompagnement ménopause&#8239;?
+            Pourquoi se faire accompagner&#8239;?
           </h2>
           <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
-            La ménopause n'est pas une maladie. C'est une transition hormonale naturelle —
-            mais elle mérite un soutien adapté à ce que vous vivez, pas un protocole générique.
+            La ménopause n'est pas une maladie. Mais elle change des choses dans votre corps
+            et dans votre quotidien. Un coup de main adapté, ça change tout.
           </p>
         </div>
 
@@ -454,18 +434,6 @@ function scrollTo(id: string) {
               <p class="mt-3 text-[0.9rem] leading-relaxed text-[#6b6177]">
                 {{ p.text }}
               </p>
-              <p
-                v-if="p.detail"
-                class="mt-2 text-[0.9rem] leading-relaxed text-[#6b6177]"
-              >
-                {{ p.detail }}
-              </p>
-              <p
-                v-if="p.coda"
-                class="mt-2 text-[0.9rem] font-medium text-[#3d3250]"
-              >
-                {{ p.coda }}
-              </p>
               <a
                 v-if="p.sourceUrl"
                 :href="p.sourceUrl"
@@ -483,23 +451,23 @@ function scrollTo(id: string) {
 
     <!-- ==================== COMMENT TROUVER DE L'AIDE — 3 étapes (AC-5) ==================== -->
     <section class="relative bg-gradient-to-b from-[#faf5f0] via-[#f8f0ea] to-[#faf8f6] px-4 py-24 sm:py-32">
-      <div class="mx-auto max-w-4xl">
+      <div class="mx-auto max-w-5xl">
         <div
           v-bind="reveal()"
           class="scroll-reveal mx-auto max-w-2xl text-center"
         >
           <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Le parcours</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
-            Comment trouver de l'aide
+            Comment ça marche
           </h2>
         </div>
 
         <div class="mt-14 grid gap-8 sm:grid-cols-3">
           <div
             v-for="(step, i) in [
-              { num: '1', title: 'Consultez les profils', text: 'Parcourez les fiches de nos spécialistes\u00A0: formation, spécialités, approche, localisation. Choisissez celle qui correspond à ce que vous cherchez — que ce soit pour la périménopause, la ménopause ou un suivi après la ménopause.', icon: 'i-lucide-search' },
-              { num: '2', title: 'Réservez un appel gratuit', text: 'Chaque spécialiste propose un premier appel découverte gratuit de 15 minutes. Sans engagement, sans carte bancaire. C\u2019est un échange pour voir si le courant passe.', icon: 'i-lucide-calendar' },
-              { num: '3', title: 'Démarrez à votre rythme', text: 'Si vous vous sentez en confiance, vous décidez ensemble de la suite\u00A0: une consultation ponctuelle, un programme sur plusieurs semaines, ou un suivi préventif régulier. Toujours à votre rythme.', icon: 'i-lucide-heart-handshake' }
+              { num: '1', title: 'Regardez les profils', text: 'Formations, spécialités, approche. Tout est là. Vous choisissez quelqu\u2019un qui vous parle.', icon: 'i-lucide-search' },
+              { num: '2', title: 'Appelez gratuitement', text: '15 minutes pour faire connaissance. Pas de carte bancaire, pas d\u2019engagement. Juste un échange.', icon: 'i-lucide-calendar' },
+              { num: '3', title: 'Vous décidez de la suite', text: 'Une séance, un programme, un suivi régulier. C\u2019est vous qui voyez.', icon: 'i-lucide-heart-handshake' }
             ]"
             :key="step.num"
             v-bind="reveal({ delay: i * 150 })"
@@ -558,12 +526,10 @@ function scrollTo(id: string) {
         >
           <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Accompagnement</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
-            Nos spécialistes accompagnement ménopause
+            Les spécialistes
           </h2>
           <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
-            Des professionnelles formées à l'accompagnement de la périménopause,
-            de la ménopause et de la post-ménopause.
-            Chaque profil détaille ses formations, ses spécialités et son approche.
+            Formées à la ménopause. En visio ou en cabinet.
           </p>
         </div>
 
@@ -623,12 +589,11 @@ function scrollTo(id: string) {
         >
           <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Identifier</span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
-            Symptômes de la ménopause et de la périménopause
+            Ce que la ménopause peut changer
           </h2>
           <p class="mt-5 text-base leading-relaxed text-[#857d8c]">
-            La ménopause se manifeste de dizaines de façons — et beaucoup de femmes ne font pas le lien tout de suite.
-            Les symptômes évoluent avec le temps : certains apparaissent dès la périménopause, d'autres après.
-            Si vous vous reconnaissez, un accompagnement peut vous aider.
+            Pas juste les bouffées de chaleur. Beaucoup de femmes mettent du temps
+            à faire le lien entre ce qu'elles vivent et leurs hormones.
           </p>
         </div>
 
@@ -717,15 +682,16 @@ function scrollTo(id: string) {
       >
         <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Témoignages</span>
         <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
-          Elles ont trouvé leur spécialiste
+          Ce qu'elles en pensent
         </h2>
         <div class="mx-auto mt-8 max-w-lg rounded-2xl border border-[#ebe7ef] bg-white/80 px-8 py-10 backdrop-blur-sm">
           <p class="text-base leading-relaxed text-[#6b6177]">
-            Nous construisons Keova avec les femmes et les spécialistes qui nous font confiance.
+            Keova démarre avec ses premières spécialistes et clientes.
+            Les retours arrivent.
           </p>
           <p class="mt-4 text-base leading-relaxed text-[#6b6177]">
-            Les premiers témoignages arrivent bientôt.
-            En attendant, chaque spécialiste propose un appel gratuit pour que vous puissiez juger par vous-même.
+            En attendant, le meilleur moyen de se faire une idée,
+            c'est l'appel gratuit.
           </p>
           <button
             class="mt-8 cursor-pointer rounded-full bg-gradient-to-r from-[#d4956a] to-[#c8845e] px-8 py-3.5 font-semibold text-white shadow-md shadow-[#d4956a]/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#d4956a]/30 hover:brightness-105"
@@ -741,30 +707,27 @@ function scrollTo(id: string) {
     <section class="relative bg-gradient-to-br from-[#f5ede6]/50 via-transparent to-[#f0eaf5]/30 px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
-        class="scroll-reveal mx-auto max-w-4xl"
+        class="scroll-reveal mx-auto max-w-5xl"
       >
         <h2 class="font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
           Qui est derrière Keova&#8239;?
         </h2>
         <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#6b6177]">
           <p>
-            Keova est né d'un constat simple&nbsp;: trop de femmes traversent la ménopause sans accompagnement adapté.
-            Les informations sont dispersées, les spécialistes difficiles à trouver, et les solutions souvent génériques.
+            Trop de femmes traversent la ménopause sans aide.
+            Les infos sont partout et nulle part. Les bonnes spécialistes, difficiles à trouver.
           </p>
           <p>
-            Simon Jouan, fondateur de Keova, a créé cette plateforme pour mettre en relation les femmes
-            en périménopause, ménopause et post-ménopause avec des professionnelles du bien-être formées
-            spécifiquement à ces transitions. Keova n'est pas un cabinet médical ni une application
-            de bien-être généraliste — c'est un hub dédié à l'accompagnement de la ménopause en France.
+            Simon Jouan a créé Keova pour ça. Un endroit simple pour trouver une pro
+            formée à la ménopause. Pas un cabinet médical. Pas une app bien-être de plus.
           </p>
           <p>
-            Chaque spécialiste référencée sur Keova est une professionnelle indépendante (naturopathe,
-            sophrologue, spécialiste certifiée) dont le profil, les formations et l'approche sont visibles
-            publiquement. Vous choisissez celle qui vous correspond.
+            Les spécialistes sur Keova sont indépendantes.
+            Leur profil, leurs formations, leur approche : tout est public.
           </p>
           <p class="text-[#857d8c]">
-            Keova est conçu en Normandie et hébergé en France par Scalingo (Paris).
-            Conforme RGPD. Vos données personnelles ne quittent jamais le territoire français.
+            Conçu en Normandie, hébergé en France (Scalingo, Paris).
+            Conforme RGPD. Vos données restent en France.
           </p>
         </div>
       </div>
