@@ -10,8 +10,15 @@ import { ApiFetchError } from '~/services/api/api-error'
 const toast = useToast()
 
 const email = ref('')
+const guideChoice = ref('perimenopause')
 const isSubmitting = ref(false)
 const isSubmitted = ref(false)
+
+const guideOptions = [
+  { value: 'perimenopause', label: 'Comprendre la périménopause' },
+  { value: 'menopause', label: 'Vivre la ménopause au quotidien' },
+  { value: 'post-menopause', label: 'Après la ménopause : prévenir et agir' }
+]
 
 const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim()))
 const canSubmit = computed(() => isValidEmail.value && !isSubmitting.value)
@@ -26,7 +33,7 @@ async function handleSubmit() {
       withAuth: false,
       body: {
         email: email.value.trim(),
-        slug: 'keova',
+        slug: `keova:guide-${guideChoice.value}`,
         consent: true
       }
     })
@@ -79,6 +86,30 @@ async function handleSubmit() {
     v-else
     @submit.prevent="handleSubmit"
   >
+    <!-- Guide choice (AC-10) -->
+    <fieldset class="mb-4">
+      <legend class="mb-2 block text-xs font-medium text-[#c4bdd0]">
+        Choisissez votre guide
+      </legend>
+      <div class="space-y-2">
+        <label
+          v-for="opt in guideOptions"
+          :key="opt.value"
+          class="flex cursor-pointer items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 text-sm text-white/90 transition-all duration-200 hover:bg-white/15"
+          :class="{ 'bg-white/20 ring-1 ring-[#d4956a]/40': guideChoice === opt.value }"
+        >
+          <input
+            v-model="guideChoice"
+            type="radio"
+            name="guide-choice"
+            :value="opt.value"
+            class="size-4 accent-[#d4956a]"
+          >
+          <span>{{ opt.label }}</span>
+        </label>
+      </div>
+    </fieldset>
+
     <label
       for="lead-capture-b2c-email"
       class="mb-2 block text-xs font-medium text-[#c4bdd0]"
