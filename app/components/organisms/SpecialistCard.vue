@@ -1,17 +1,7 @@
 <script setup lang="ts">
-export interface FeaturedProvider {
-  slug: string
-  displayName: string
-  firstName: string
-  lastName: string
-  bio: string | null
-  specialties: string[]
-  city: string | null
-  profilePhotoUrl: string | null
-  profilePhotoAlt: string | null
-  customDomain: string | null
-  discoveryDurationMinutes: number
-}
+import type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
+
+export type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
 
 const props = defineProps<{
   provider: FeaturedProvider
@@ -34,6 +24,12 @@ const profileUrl = computed(() =>
   props.provider.customDomain
     ? `https://${props.provider.customDomain}`
     : `/coach/${props.provider.slug}`
+)
+
+const bookingUrl = computed(() =>
+  props.provider.customDomain
+    ? `https://${props.provider.customDomain}/onboarding/discovery`
+    : `/coach/${props.provider.slug}/onboarding/discovery`
 )
 </script>
 
@@ -120,20 +116,35 @@ const profileUrl = computed(() =>
         </p>
       </div>
 
-      <!-- CTA -->
-      <NuxtLink
-        :to="profileUrl"
-        :external="!!provider.customDomain"
-        :target="provider.customDomain ? '_blank' : undefined"
-        :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
-        class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] py-3 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:from-[#4a3d5e] hover:to-[#6d5c82] hover:shadow-lg"
-      >
-        <span>Voir le profil</span>
-        <UIcon
-          name="i-lucide-arrow-right"
-          class="size-4 transition-transform duration-300 group-hover:translate-x-0.5"
-        />
-      </NuxtLink>
+      <!-- CTAs -->
+      <div class="flex flex-col gap-2">
+        <NuxtLink
+          :to="profileUrl"
+          :external="!!provider.customDomain"
+          :target="provider.customDomain ? '_blank' : undefined"
+          :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
+          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] py-3 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:from-[#4a3d5e] hover:to-[#6d5c82] hover:shadow-lg"
+        >
+          <span>Voir le profil</span>
+          <UIcon
+            name="i-lucide-arrow-right"
+            class="size-4 transition-transform duration-300 group-hover:translate-x-0.5"
+          />
+        </NuxtLink>
+        <NuxtLink
+          :to="bookingUrl"
+          :external="!!provider.customDomain"
+          :target="provider.customDomain ? '_blank' : undefined"
+          :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
+          class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#5b4b6e]/20 bg-white/60 py-2.5 text-sm font-medium text-[#5b4b6e] transition-all duration-300 hover:bg-[#5b4b6e]/5"
+        >
+          <UIcon
+            name="i-lucide-calendar"
+            class="size-4"
+          />
+          <span>Réserver un appel gratuit</span>
+        </NuxtLink>
+      </div>
     </div>
   </div>
 </template>

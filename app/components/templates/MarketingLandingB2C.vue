@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AccordionItem } from '@nuxt/ui'
-import type { FeaturedProvider } from '~/components/organisms/SpecialistCard.vue'
+import type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
 
 import SpecialistCard from '~/components/organisms/SpecialistCard.vue'
 import LeadCaptureForm from '~/components/organisms/LeadCaptureForm.vue'
@@ -117,7 +117,7 @@ const pillars = [
   }
 ]
 
-// --- FAQ V2 — 11 questions ---
+// --- FAQ V2 — 11 questions (AC-7, mot-pour-mot) ---
 const faqItems: AccordionItem[] = [
   {
     label: 'Qu\u2019est-ce que la ménopause\u00A0?',
@@ -135,43 +135,43 @@ const faqItems: AccordionItem[] = [
     value: 'faq-3'
   },
   {
-    label: 'Qu\u2019est-ce qu\u2019un accompagnement ménopause\u00A0?',
+    label: 'Qu\u2019est-ce que l\u2019accompagnement ménopause\u00A0?',
     content: 'C\u2019est un suivi personnalisé avec une professionnelle formée à la ménopause : naturopathe, sophrologue, coach santé. L\u2019accompagnement couvre l\u2019alimentation, le sommeil, la gestion du stress et le mouvement — en complément du suivi médical, pas à sa place.\n\nIl s\u2019adapte à votre phase : périménopause, ménopause ou post-ménopause.',
     value: 'faq-4'
   },
   {
-    label: 'Comment choisir une spécialiste ménopause\u00A0?',
-    content: 'Vérifiez ses formations et ses spécialités. Choisissez une approche qui vous parle (naturopathie, sophrologie, coaching holistique\u2026). Assurez-vous qu\u2019elle accompagne votre phase (périménopause, ménopause ou post-ménopause). Profitez du premier appel gratuit pour voir si le courant passe — c\u2019est le meilleur indicateur.',
+    label: 'Qui sont les spécialistes sur Keova\u00A0?',
+    content: 'Les spécialistes référencées sur Keova sont des professionnelles du bien-être formées spécifiquement à l\u2019accompagnement de la ménopause : naturopathes, sophrologues, coachs certifiées. Chaque profil indique ses formations, ses spécialités et son approche. Vous pouvez vérifier leurs qualifications et choisir celle qui vous correspond avant de réserver un appel.',
     value: 'faq-5'
   },
   {
-    label: 'Le premier appel est-il vraiment gratuit\u00A0?',
-    content: 'Oui. Chaque spécialiste sur Keova propose un premier appel découverte de 15 minutes, gratuit et sans engagement. C\u2019est un échange pour comprendre votre situation et voir si l\u2019accompagnement peut vous aider. Aucune carte bancaire n\u2019est demandée.',
+    label: 'Combien coûte un accompagnement\u00A0?',
+    content: 'Le premier appel découverte est toujours gratuit (15 minutes, sans engagement, sans carte bancaire). Ensuite, chaque spécialiste fixe ses propres tarifs pour les consultations et les programmes. Les prix sont affichés sur le profil de chaque spécialiste. Comptez en moyenne entre 50 et 90\u00A0€ par séance, avec des programmes à tarif réduit pour un suivi régulier.',
     value: 'faq-6'
+  },
+  {
+    label: 'Est-ce compatible avec un traitement hormonal (THM)\u00A0?',
+    content: 'Absolument. L\u2019accompagnement sur Keova est conçu comme un complément, pas une alternative. Si vous prenez un THM, une spécialiste peut vous aider sur ce que le traitement ne couvre pas toujours : le sommeil, l\u2019alimentation, le stress, le mouvement. Beaucoup de femmes sous THM constatent que l\u2019accompagnement complète efficacement leur traitement.',
+    value: 'faq-7'
   },
   {
     label: 'L\u2019accompagnement remplace-t-il un médecin\u00A0?',
     content: 'Non. L\u2019accompagnement ménopause complète le suivi médical. Si vous avez des symptômes sévères, consultez d\u2019abord votre médecin ou gynécologue. Les spécialistes sur Keova travaillent en complémentarité : alimentation, gestion du stress, sommeil, mouvement — ce que la consultation médicale de 15 minutes ne couvre pas.',
-    value: 'faq-7'
-  },
-  {
-    label: 'Mes symptômes peuvent-ils être liés à la périménopause, même avant 40 ans\u00A0?',
-    content: 'Oui. La périménopause peut commencer dès 38-40 ans chez certaines femmes. Fatigue persistante, irritabilité inhabituelle, cycles qui changent, sommeil perturbé — ces symptômes sont souvent attribués au stress alors qu\u2019ils sont hormonaux. Si vous avez un doute, un premier échange avec une spécialiste peut vous aider à y voir clair.',
     value: 'faq-8'
   },
   {
-    label: 'L\u2019accompagnement est-il compatible avec un traitement hormonal (THM)\u00A0?',
-    content: 'Absolument. L\u2019accompagnement sur Keova est conçu comme un complément, pas une alternative. Si vous prenez un THM, une spécialiste peut vous aider sur ce que le traitement ne couvre pas toujours : le sommeil, l\u2019alimentation, le stress, le mouvement. Beaucoup de femmes sous THM constatent que l\u2019accompagnement complète efficacement leur traitement.',
+    label: 'Comment se déroule un appel découverte\u00A0?',
+    content: 'L\u2019appel découverte dure 15 minutes, en visio. C\u2019est un échange libre pour comprendre votre situation, vos symptômes et vos attentes. La spécialiste vous explique son approche et vous pouvez poser toutes vos questions. Aucun engagement, aucune carte bancaire demandée. Vous décidez ensuite si vous souhaitez poursuivre avec un accompagnement.',
     value: 'faq-9'
   },
   {
-    label: 'L\u2019accompagnement sert-il encore après la ménopause\u00A0?',
-    content: 'Oui — et c\u2019est souvent là qu\u2019il est le plus utile. La post-ménopause apporte ses propres défis : prévention osseuse, douleurs articulaires, maintien musculaire, santé cardiovasculaire, sécheresse intime. Un accompagnement adapté vous aide à construire un plan durable pour les années qui viennent. Il n\u2019est jamais trop tard pour agir.',
+    label: 'Je ne suis pas sûre d\u2019être en ménopause. Puis-je quand même consulter\u00A0?',
+    content: 'Oui. La périménopause peut commencer dès 38-40 ans chez certaines femmes. Fatigue persistante, irritabilité inhabituelle, cycles qui changent, sommeil perturbé — ces symptômes sont souvent attribués au stress alors qu\u2019ils sont hormonaux. Si vous avez un doute, un premier échange avec une spécialiste peut vous aider à y voir clair.',
     value: 'faq-10'
   },
   {
-    label: 'Comment prévenir l\u2019ostéoporose après la ménopause\u00A0?',
-    content: 'La prévention repose sur 3 piliers : le renforcement musculaire (exercices en charge, pas juste de la marche), l\u2019alimentation (calcium, vitamine D, protéines), et le suivi médical (ostéodensitométrie régulière). Une spécialiste peut vous aider à construire un programme adapté à votre situation, en coordination avec votre médecin.\n\nSource : HAS — Prévention, diagnostic et traitement de l\u2019ostéoporose (has-sante.fr)',
+    label: 'Et après la ménopause, c\u2019est trop tard\u00A0?',
+    content: 'Pas du tout — c\u2019est souvent là que l\u2019accompagnement est le plus utile. La post-ménopause apporte ses propres défis : prévention osseuse, douleurs articulaires, maintien musculaire, santé cardiovasculaire, sécheresse intime. Un accompagnement adapté vous aide à construire un plan durable pour les années qui viennent. Il n\u2019est jamais trop tard pour agir.',
     value: 'faq-11'
   }
 ]
@@ -657,16 +657,24 @@ function scrollTo(id: string) {
         </h2>
         <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#6b6177]">
           <p>
-            Keova est né d'un constat : trop de femmes traversent la ménopause sans accompagnement adapté.
-            Les informations sont dispersées, les spécialistes difficiles à trouver, et les solutions génériques.
+            Keova est né d'un constat simple&nbsp;: trop de femmes traversent la ménopause sans accompagnement adapté.
+            Les informations sont dispersées, les spécialistes difficiles à trouver, et les solutions souvent génériques.
           </p>
           <p>
-            Keova est un hub de mise en relation entre les femmes en ménopause et des spécialistes formées —
-            pas un cabinet médical, pas une application de bien-être généraliste.
+            Simon Music, fondateur de Keova, a créé cette plateforme pour mettre en relation les femmes
+            en périménopause, ménopause et post-ménopause avec des professionnelles du bien-être formées
+            spécifiquement à ces transitions. Keova n'est pas un cabinet médical ni une application
+            de bien-être généraliste — c'est un hub dédié à l'accompagnement de la ménopause en France.
+          </p>
+          <p>
+            Chaque spécialiste référencée sur Keova est une professionnelle indépendante (naturopathe,
+            sophrologue, coach certifiée) dont le profil, les formations et l'approche sont visibles
+            publiquement. Vous choisissez celle qui vous correspond.
           </p>
           <p class="text-[#857d8c]">
-            Keova est développé et hébergé en France par [Nom entité], [Ville].
-            Conforme RGPD. Vos données ne quittent jamais le territoire français.
+            Keova est développé et hébergé en France, à Strasbourg.
+            Conforme RGPD. Vos données personnelles ne quittent jamais le territoire français.
+            Hébergement sécurisé par Scalingo (certifié HDS).
           </p>
         </div>
       </div>

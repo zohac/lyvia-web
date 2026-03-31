@@ -11,6 +11,7 @@ const toast = useToast()
 
 const email = ref('')
 const guideChoice = ref('perimenopause')
+const consent = ref(false)
 const isSubmitting = ref(false)
 const isSubmitted = ref(false)
 
@@ -21,7 +22,7 @@ const guideOptions = [
 ]
 
 const isValidEmail = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim()))
-const canSubmit = computed(() => isValidEmail.value && !isSubmitting.value)
+const canSubmit = computed(() => isValidEmail.value && consent.value && !isSubmitting.value)
 
 async function handleSubmit() {
   if (!canSubmit.value) return
@@ -34,7 +35,7 @@ async function handleSubmit() {
       body: {
         email: email.value.trim(),
         slug: `keova:guide-${guideChoice.value}`,
-        consent: true
+        consent: consent.value
       }
     })
 
@@ -142,6 +143,23 @@ async function handleSubmit() {
         <span v-else>S'inscrire</span>
       </button>
     </div>
+
+    <!-- RGPD consent -->
+    <label class="mt-3 flex items-start gap-2.5">
+      <input
+        v-model="consent"
+        type="checkbox"
+        class="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#d4956a]"
+        :disabled="isSubmitting"
+      >
+      <span class="text-xs leading-relaxed text-[#c4bdd0]">
+        J'accepte de recevoir le guide et des conseils par email. Désabonnement possible à tout moment.
+        <NuxtLink
+          to="/legal/confidentialite"
+          class="underline hover:text-white"
+        >Politique de confidentialité</NuxtLink>
+      </span>
+    </label>
   </form>
 </template>
 
