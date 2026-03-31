@@ -154,6 +154,14 @@ onMounted(() => {
           <span class="text-sm text-white/40">Premier appel gratuit · 15 min · Sans engagement</span>
         </div>
       </div>
+
+      <!-- Scroll indicator -->
+      <div class="absolute inset-x-0 bottom-10 flex flex-col items-center gap-2">
+        <span class="text-xs font-medium uppercase tracking-[0.3em] text-white/30">Découvrir</span>
+        <div class="scroll-indicator relative h-10 w-5 rounded-full border border-white/20">
+          <div class="absolute left-1/2 top-2 size-1.5 -translate-x-1/2 animate-scroll-dot rounded-full bg-[#d4956a]" />
+        </div>
+      </div>
     </section>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -186,40 +194,54 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Right: stat card + after-menopause -->
-        <div class="flex flex-col gap-8">
-          <!-- Stat card animated -->
+        <!-- Right: stat card + after-menopause — stacked with reveal -->
+        <div class="flex flex-col gap-10">
+          <!-- Stat card — hero-sized number -->
           <div
             ref="stat-card"
-            v-bind="reveal({ delay: 200 })"
-            class="scroll-reveal relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur-md"
+            class="stat-card group relative overflow-hidden rounded-[2rem] border border-white/10 p-10 text-center sm:p-12"
           >
-            <p class="font-serif text-6xl font-bold tabular-nums text-[#d4956a] sm:text-7xl">
-              {{ statCount }} millions
-            </p>
-            <p class="mt-3 text-base text-white/50">
-              de femmes en France.
-            </p>
-            <div class="mx-auto my-4 h-px w-16 bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
-            <p class="text-sm font-medium text-white/40">
-              La plupart gèrent ça seules.
-            </p>
+            <!-- Animated warm glow behind number -->
+            <div
+              class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-1000"
+              :class="{ 'opacity-100': statCount > 0 }"
+              style="background: radial-gradient(ellipse at 50% 40%, rgba(212,149,106,0.15), transparent 70%);"
+              aria-hidden="true"
+            />
+            <div class="relative">
+              <p class="font-serif text-7xl font-bold tabular-nums text-[#d4956a] sm:text-8xl lg:text-9xl">
+                {{ statCount }}<span class="text-4xl sm:text-5xl">M</span>
+              </p>
+              <p class="mt-4 text-lg text-white/50">
+                de femmes en France.
+              </p>
+              <div class="mx-auto my-5 h-px w-20 bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
+              <p class="text-base font-medium text-white/40">
+                La plupart gèrent ça seules.
+              </p>
+            </div>
           </div>
 
-          <!-- After menopause -->
+          <!-- After menopause — slides in from right -->
           <div
-            v-bind="reveal({ delay: 400 })"
-            class="scroll-reveal rounded-3xl border border-[#d4956a]/15 bg-[#f5ede6] p-8"
+            v-bind="reveal({ delay: 300 })"
+            class="scroll-reveal reveal-from-right group relative overflow-hidden rounded-[2rem] border border-[#d4956a]/20 p-8 sm:p-10"
+            style="background: linear-gradient(135deg, #f5ede6, #faf5f0);"
           >
-            <h3 class="font-serif text-2xl text-[#3d3250]">
+            <!-- Decorative accent line -->
+            <div
+              class="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-[#d4956a] to-[#d4956a]/20"
+              aria-hidden="true"
+            />
+            <h3 class="font-serif text-2xl text-[#3d3250] sm:text-3xl">
               Et après les bouffées de chaleur...
             </h3>
-            <p class="mt-4 text-base leading-relaxed text-[#6b6177]">
+            <p class="mt-5 text-lg leading-relaxed text-[#6b6177]">
               D'autres choses arrivent. Des douleurs dans les mains au réveil.
               Du poids qui ne bouge plus. Des os qui se fragilisent.
               Une fatigue de fond, tout le temps.
             </p>
-            <p class="mt-3 font-medium text-[#d4956a]">
+            <p class="mt-4 text-lg font-medium text-[#d4956a]">
               Même dix ans après, il y a des choses à faire.
             </p>
           </div>
@@ -554,10 +576,24 @@ onMounted(() => {
 }
 .cta-glow { animation: cta-pulse 3s ease-in-out infinite; }
 
+/* Scroll indicator bounce */
+@keyframes scroll-dot {
+  0%, 100% { top: 6px; opacity: 1; }
+  50% { top: 22px; opacity: 0.3; }
+}
+.animate-scroll-dot { animation: scroll-dot 2s ease-in-out infinite; }
+
+/* Stat card glass */
+.stat-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 40px rgba(0, 0, 0, 0.2);
+}
+
 /* Scroll reveal */
 .scroll-reveal {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) translateX(0);
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .js-scroll-ready .scroll-reveal:not(.is-visible) {
@@ -565,9 +601,13 @@ onMounted(() => {
   transform: translateY(40px);
   will-change: opacity, transform;
 }
+.js-scroll-ready .scroll-reveal.reveal-from-right:not(.is-visible) {
+  opacity: 0;
+  transform: translateX(60px) translateY(0);
+}
 .scroll-reveal.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) translateX(0);
 }
 
 /* FAQ dark theme */
@@ -577,8 +617,9 @@ onMounted(() => {
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .hero-appear, .cta-glow { animation: none; }
+  .hero-appear, .cta-glow, .animate-scroll-dot { animation: none; }
   .hero-appear { opacity: 1; transform: none; }
   .scroll-reveal { opacity: 1; transform: none; transition: none; }
+  .animate-scroll-dot { top: 6px; opacity: 1; }
 }
 </style>
