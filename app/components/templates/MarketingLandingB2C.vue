@@ -114,6 +114,16 @@ onMounted(() => {
         style="background: radial-gradient(circle, rgba(122,107,142,0.5), transparent 65%); filter: blur(100px);"
         aria-hidden="true"
       />
+      <!-- Floating particles -->
+      <div
+        class="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      >
+        <div class="particle particle-1" />
+        <div class="particle particle-2" />
+        <div class="particle particle-3" />
+        <div class="particle particle-4" />
+      </div>
 
       <div class="relative z-10 mx-auto w-full max-w-6xl py-32">
         <!-- Eyebrow -->
@@ -208,6 +218,11 @@ onMounted(() => {
               style="background: radial-gradient(ellipse at 50% 40%, rgba(212,149,106,0.15), transparent 70%);"
               aria-hidden="true"
             />
+            <!-- Corner dots — appear on hover -->
+            <div class="pointer-events-none absolute left-4 top-4 size-1.5 rounded-full bg-[#d4956a] opacity-0 transition-all duration-500 group-hover:opacity-60" />
+            <div class="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-[#d4956a] opacity-0 transition-all duration-500 group-hover:opacity-60" />
+            <div class="pointer-events-none absolute bottom-4 left-4 size-1.5 rounded-full bg-[#d4956a] opacity-0 transition-all duration-500 group-hover:opacity-60" />
+            <div class="pointer-events-none absolute bottom-4 right-4 size-1.5 rounded-full bg-[#d4956a] opacity-0 transition-all duration-500 group-hover:opacity-60" />
             <div class="relative">
               <p class="font-serif text-7xl font-bold tabular-nums text-[#d4956a] sm:text-8xl lg:text-9xl">
                 {{ statCount }}<span class="text-4xl sm:text-5xl">M</span>
@@ -216,21 +231,25 @@ onMounted(() => {
                 de femmes en France.
               </p>
               <div class="mx-auto my-5 h-px w-20 bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
-              <p class="text-base font-medium text-white/40">
+              <p class="text-xl font-semibold text-white/60">
                 La plupart gèrent ça seules.
               </p>
             </div>
           </div>
 
-          <!-- After menopause — slides in from right -->
+          <!-- After menopause — editorial card -->
           <div
             v-bind="reveal({ delay: 300 })"
-            class="scroll-reveal reveal-from-right group relative overflow-hidden rounded-[2rem] border border-[#d4956a]/20 p-8 sm:p-10"
-            style="background: linear-gradient(135deg, #f5ede6, #faf5f0);"
+            class="after-card scroll-reveal reveal-from-right group relative overflow-hidden rounded-[2rem] p-8 sm:p-10"
           >
-            <!-- Decorative accent line -->
+            <!-- Corner dots -->
+            <div class="pointer-events-none absolute left-4 top-4 size-1.5 rounded-full bg-[#5b4b6e] opacity-0 transition-all duration-500 group-hover:opacity-40" />
+            <div class="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-[#5b4b6e] opacity-0 transition-all duration-500 group-hover:opacity-40" />
+            <div class="pointer-events-none absolute bottom-4 left-4 size-1.5 rounded-full bg-[#5b4b6e] opacity-0 transition-all duration-500 group-hover:opacity-40" />
+            <div class="pointer-events-none absolute bottom-4 right-4 size-1.5 rounded-full bg-[#5b4b6e] opacity-0 transition-all duration-500 group-hover:opacity-40" />
+            <!-- Accent top border -->
             <div
-              class="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-[#d4956a] to-[#d4956a]/20"
+              class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#d4956a] via-[#e8a878] to-transparent"
               aria-hidden="true"
             />
             <h3 class="font-serif text-2xl text-[#3d3250] sm:text-3xl">
@@ -476,6 +495,14 @@ onMounted(() => {
         style="background: radial-gradient(circle, rgba(212,149,106,0.4), transparent 70%); filter: blur(80px);"
         aria-hidden="true"
       />
+      <!-- Floating particles -->
+      <div
+        class="pointer-events-none absolute inset-0 overflow-hidden"
+        aria-hidden="true"
+      >
+        <div class="particle particle-2" />
+        <div class="particle particle-4" />
+      </div>
       <div class="mx-auto max-w-3xl">
         <div
           v-bind="reveal()"
@@ -576,6 +603,17 @@ onMounted(() => {
 }
 .cta-glow { animation: cta-pulse 3s ease-in-out infinite; }
 
+/* After-menopause card */
+.after-card {
+  background: linear-gradient(145deg, #f5ede6, #faf5f0);
+  border: 1px solid rgba(212, 149, 106, 0.15);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.after-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(91, 75, 110, 0.1);
+}
+
 /* Scroll indicator bounce */
 @keyframes scroll-dot {
   0%, 100% { top: 6px; opacity: 1; }
@@ -583,11 +621,16 @@ onMounted(() => {
 }
 .animate-scroll-dot { animation: scroll-dot 2s ease-in-out infinite; }
 
-/* Stat card glass */
+/* Stat card glass + hover */
 .stat-card {
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(16px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 40px rgba(0, 0, 0, 0.2);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 20px 60px rgba(212, 149, 106, 0.15);
 }
 
 /* Scroll reveal */
@@ -615,11 +658,33 @@ onMounted(() => {
 .faq-dark :deep(button:hover) { color: #d4956a; }
 .faq-dark :deep([data-state="open"] > button) { color: #d4956a; }
 
+/* Floating particles */
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(212, 149, 106, 0.4);
+}
+.particle-1 { top: 20%; left: 12%; animation: particleFloat 8s ease-in-out infinite; }
+.particle-2 { top: 55%; left: 82%; animation: particleFloat 10s ease-in-out 1s infinite; }
+.particle-3 { top: 35%; left: 68%; animation: particleFloat 7s ease-in-out 2s infinite; width: 3px; height: 3px; background: rgba(185, 170, 199, 0.3); }
+.particle-4 { top: 75%; left: 28%; animation: particleFloat 9s ease-in-out 3s infinite; width: 5px; height: 5px; background: rgba(212, 149, 106, 0.25); }
+
+@keyframes particleFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  25% { transform: translate(10px, -20px) scale(1.2); opacity: 0.7; }
+  50% { transform: translate(-5px, -40px) scale(0.8); opacity: 0.5; }
+  75% { transform: translate(15px, -20px) scale(1.1); opacity: 0.6; }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .hero-appear, .cta-glow, .animate-scroll-dot { animation: none; }
+  .hero-appear, .cta-glow, .animate-scroll-dot, .particle { animation: none; }
   .hero-appear { opacity: 1; transform: none; }
   .scroll-reveal { opacity: 1; transform: none; transition: none; }
+  .stat-card, .after-card { transition: none; }
   .animate-scroll-dot { top: 6px; opacity: 1; }
+  .particle { opacity: 0.3; }
 }
 </style>
