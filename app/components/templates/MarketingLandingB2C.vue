@@ -240,9 +240,11 @@ function scrollTo(id: string) {
         <!-- CTA -->
         <div class="hero-appear stagger-3 mt-10 flex flex-col items-center gap-4">
           <button
-            class="group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#5b4b6e] via-[#6d5c82] to-[#7a6b8e] px-9 py-4 text-base font-semibold text-white shadow-lg shadow-[#5b4b6e]/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#5b4b6e]/30 active:scale-[0.98]"
+            class="cta-glow group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#d4956a] via-[#e0a87d] to-[#c8845e] px-9 py-4 text-base font-semibold text-white shadow-lg shadow-[#d4956a]/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#d4956a]/35 hover:brightness-105 active:scale-[0.98]"
             @click="scrollTo('specialistes')"
           >
+            <!-- Shine sweep on hover -->
+            <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
             <span class="relative z-10 flex items-center gap-2.5">
               Trouver une spécialiste
               <UIcon
@@ -258,7 +260,7 @@ function scrollTo(id: string) {
         </div>
 
         <!-- Stat sourcée (V2) -->
-        <div class="hero-appear stagger-4 mx-auto mt-14 max-w-lg rounded-2xl border border-[#ebe7ef] bg-white/60 px-6 py-5 text-center backdrop-blur-sm">
+        <div class="hero-appear stagger-4 mx-auto mt-14 max-w-lg rounded-2xl border border-[#d4956a]/15 bg-gradient-to-r from-white/70 via-[#fdf6f0]/60 to-white/70 px-6 py-5 text-center shadow-sm backdrop-blur-sm">
           <p class="text-base leading-relaxed text-[#4a4255]">
             Plus de <strong class="font-semibold text-[#3d3250]">14 millions</strong> de femmes vivent la périménopause,
             la ménopause ou ses suites en France.
@@ -271,7 +273,7 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ==================== BLOC DOULEUR 1 (AC-2) ==================== -->
-    <section class="relative px-4 py-20 sm:py-28">
+    <section class="relative bg-gradient-to-b from-transparent via-[#fdf6f0]/60 to-transparent px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto max-w-3xl"
@@ -300,8 +302,26 @@ function scrollTo(id: string) {
       </div>
     </section>
 
+    <!-- Organic wave separator -->
+    <div
+      class="relative -mb-px h-16 overflow-hidden sm:h-24"
+      aria-hidden="true"
+    >
+      <svg
+        class="absolute bottom-0 w-full"
+        viewBox="0 0 1440 80"
+        preserveAspectRatio="none"
+        fill="none"
+      >
+        <path
+          d="M0,50 C360,90 720,10 1080,50 C1260,70 1380,40 1440,50 L1440,80 L0,80 Z"
+          fill="#f5ede6"
+        />
+      </svg>
+    </div>
+
     <!-- ==================== BLOC DOULEUR 2 — post-ménopause (AC-3) ==================== -->
-    <section class="relative bg-white/50 px-4 py-20 sm:py-28">
+    <section class="relative bg-[#f5ede6] px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto max-w-3xl"
@@ -332,6 +352,24 @@ function scrollTo(id: string) {
       </div>
     </section>
 
+    <!-- Organic wave separator bottom -->
+    <div
+      class="relative -mt-px h-16 overflow-hidden sm:h-24"
+      aria-hidden="true"
+    >
+      <svg
+        class="absolute top-0 w-full rotate-180"
+        viewBox="0 0 1440 80"
+        preserveAspectRatio="none"
+        fill="none"
+      >
+        <path
+          d="M0,50 C360,90 720,10 1080,50 C1260,70 1380,40 1440,50 L1440,80 L0,80 Z"
+          fill="#f5ede6"
+        />
+      </svg>
+    </div>
+
     <!-- ==================== COMPRENDRE — 4 piliers (AC-4) ==================== -->
     <section
       id="education"
@@ -358,7 +396,7 @@ function scrollTo(id: string) {
             v-for="(p, i) in pillars"
             :key="p.num"
             v-bind="reveal({ delay: i * 120 })"
-            :class="['scroll-reveal group relative overflow-hidden rounded-3xl border border-white/70 bg-white/70 p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(91,75,110,0.1)]', i % 2 === 0 ? 'reveal-from-left' : 'reveal-from-right']"
+            :class="['scroll-reveal group relative overflow-hidden rounded-3xl border border-[#ebe4f3]/60 bg-white/80 p-8 shadow-[0_4px_24px_rgba(91,75,110,0.06)] backdrop-blur-md transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_16px_48px_rgba(212,149,106,0.12)]', i % 2 === 0 ? 'reveal-from-left' : 'reveal-from-right']"
           >
             <div
               class="absolute -right-6 -top-6 size-28 rounded-full bg-gradient-to-br from-[#d4956a]/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
@@ -366,10 +404,10 @@ function scrollTo(id: string) {
             />
             <div class="relative">
               <div class="mb-6 flex items-center justify-between">
-                <div class="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#f5f0fa] to-[#ebe4f3] shadow-sm">
+                <div class="grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#d4956a]/15 to-[#e8a878]/10 shadow-sm transition-all duration-500 group-hover:from-[#d4956a]/25 group-hover:to-[#e8a878]/15 group-hover:shadow-md">
                   <UIcon
                     :name="p.icon"
-                    class="size-7 text-[#5b4b6e]"
+                    class="size-7 text-[#d4956a] transition-transform duration-500 group-hover:scale-110"
                   />
                 </div>
                 <span class="font-serif text-3xl font-light text-[#d4956a]/30">{{ p.num }}</span>
@@ -408,7 +446,7 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ==================== COMMENT TROUVER DE L'AIDE — 3 étapes (AC-5) ==================== -->
-    <section class="relative bg-white/50 px-4 py-24 sm:py-32">
+    <section class="relative bg-gradient-to-b from-[#faf5f0] via-[#f8f0ea] to-[#faf8f6] px-4 py-24 sm:py-32">
       <div class="mx-auto max-w-4xl">
         <div
           v-bind="reveal()"
@@ -431,10 +469,10 @@ function scrollTo(id: string) {
             v-bind="reveal({ delay: i * 150 })"
             class="scroll-reveal group flex flex-col items-center rounded-3xl border border-white/70 bg-white/70 p-8 text-center shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
           >
-            <div class="mb-4 grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#f5f0fa] to-[#ebe4f3] shadow-sm">
+            <div class="mb-4 grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[#d4956a]/15 to-[#e8a878]/10 shadow-sm">
               <UIcon
                 :name="step.icon"
-                class="size-7 text-[#5b4b6e]"
+                class="size-7 text-[#d4956a]"
               />
             </div>
             <span class="mb-2 text-xs font-bold text-[#d4956a]">
@@ -466,7 +504,7 @@ function scrollTo(id: string) {
       <div
         aria-hidden="true"
         class="pointer-events-none absolute inset-0 -z-10"
-        style="background: linear-gradient(180deg, transparent, rgba(122,107,142,0.04) 30%, rgba(122,107,142,0.04) 70%, transparent);"
+        style="background: linear-gradient(180deg, transparent, rgba(212,149,106,0.05) 30%, rgba(122,107,142,0.05) 70%, transparent);"
       />
       <div class="mx-auto max-w-5xl">
         <div
@@ -553,7 +591,7 @@ function scrollTo(id: string) {
               v-for="(s, i) in symptomsGroup1"
               :key="s.title"
               v-bind="reveal({ delay: i * 80 })"
-              class="scroll-reveal group rounded-2xl border border-white/70 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+              class="scroll-reveal group rounded-2xl border border-white/70 border-l-[3px] border-l-[#d4956a]/30 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-l-[#d4956a]/60 hover:shadow-md"
             >
               <div class="mb-3 flex items-center gap-3">
                 <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#d4956a]/12 to-[#e89560]/8">
@@ -586,7 +624,7 @@ function scrollTo(id: string) {
               v-for="(s, i) in symptomsGroup2"
               :key="s.title"
               v-bind="reveal({ delay: i * 100 })"
-              class="scroll-reveal group rounded-2xl border border-white/70 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+              class="scroll-reveal group rounded-2xl border border-white/70 border-l-[3px] border-l-[#d4956a]/30 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-l-[#d4956a]/60 hover:shadow-md"
             >
               <div class="mb-3 flex items-center gap-3">
                 <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#d4956a]/12 to-[#e89560]/8">
@@ -618,7 +656,7 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ==================== TÉMOIGNAGE placeholder (AC-8) ==================== -->
-    <section class="relative bg-white/50 px-4 py-20 sm:py-28">
+    <section class="relative bg-gradient-to-b from-[#faf8f6] via-[#f8f0ea] to-[#faf8f6] px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto max-w-2xl text-center"
@@ -636,7 +674,7 @@ function scrollTo(id: string) {
             En attendant, chaque spécialiste propose un appel gratuit pour que vous puissiez juger par vous-même.
           </p>
           <button
-            class="mt-8 cursor-pointer rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-8 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+            class="mt-8 cursor-pointer rounded-full bg-gradient-to-r from-[#d4956a] to-[#c8845e] px-8 py-3.5 font-semibold text-white shadow-md shadow-[#d4956a]/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#d4956a]/30 hover:brightness-105"
             @click="scrollTo('specialistes')"
           >
             Réserver un appel gratuit
@@ -646,7 +684,7 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ==================== QUI EST DERRIÈRE KEOVA (AC-9) ==================== -->
-    <section class="relative px-4 py-20 sm:py-28">
+    <section class="relative bg-gradient-to-br from-[#f5ede6]/50 via-transparent to-[#f0eaf5]/30 px-4 py-20 sm:py-28">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto max-w-3xl"
@@ -667,11 +705,11 @@ function scrollTo(id: string) {
           </p>
           <p>
             Chaque spécialiste référencée sur Keova est une professionnelle indépendante (naturopathe,
-            sophrologue, coach certifiée) dont le profil, les formations et l'approche sont visibles
+            sophrologue, spécialiste certifiée) dont le profil, les formations et l'approche sont visibles
             publiquement. Vous choisissez celle qui vous correspond.
           </p>
           <p class="text-[#857d8c]">
-            Keova est conçu en Normandie (Valognes) et hébergé en France par Scalingo (Paris).
+            Keova est conçu en Normandie et hébergé en France par Scalingo (Paris).
             Conforme RGPD. Vos données personnelles ne quittent jamais le territoire français.
           </p>
         </div>
@@ -681,15 +719,21 @@ function scrollTo(id: string) {
     <!-- ==================== FAQ — 11 Q&A (AC-7) ==================== -->
     <section
       id="faq"
-      class="relative bg-white/50 px-4 py-24 sm:py-32"
+      class="relative bg-gradient-to-br from-[#3d3250] via-[#4a3d5e] to-[#352a45] px-4 py-24 sm:py-32"
     >
+      <!-- Warm glow decorations -->
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full opacity-20"
+        style="background: radial-gradient(circle, rgba(212,149,106,0.4), transparent 70%); filter: blur(80px);"
+      />
       <div class="mx-auto max-w-3xl">
         <div
           v-bind="reveal()"
           class="scroll-reveal mb-12 text-center"
         >
           <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">FAQ</span>
-          <h2 class="mt-4 font-serif text-3xl leading-tight text-[#3d3250] sm:text-4xl">
+          <h2 class="mt-4 font-serif text-3xl leading-tight text-white sm:text-4xl">
             Questions fréquentes sur la ménopause
           </h2>
         </div>
@@ -699,9 +743,10 @@ function scrollTo(id: string) {
           :default-value="faqDefaultValue"
           multiple
           aria-label="Questions fréquentes sur la ménopause"
+          class="faq-dark"
         >
           <template #content="{ item }">
-            <div class="space-y-3 pb-3.5 text-sm text-[#6b6177]">
+            <div class="space-y-3 pb-3.5 text-sm text-[#c4bdd0]">
               <p
                 v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
                 :key="i"
@@ -832,12 +877,36 @@ function scrollTo(id: string) {
   transform: translateY(48px);
 }
 
+/* CTA breathing glow */
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 4px 24px rgba(212, 149, 106, 0.25); }
+  50% { box-shadow: 0 8px 40px rgba(212, 149, 106, 0.4); }
+}
+
+.cta-glow {
+  animation: cta-pulse 3s ease-in-out infinite;
+}
+
+/* FAQ dark theme overrides */
+.faq-dark :deep(button) {
+  color: #f0ebe5;
+}
+
+.faq-dark :deep(button:hover) {
+  color: #d4956a;
+}
+
+.faq-dark :deep([data-state="open"] > button) {
+  color: #d4956a;
+}
+
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .hero-appear,
   .hero-underline path,
   .animate-drift-slow,
-  .animate-drift-slow-reverse {
+  .animate-drift-slow-reverse,
+  .cta-glow {
     animation: none;
   }
   .hero-appear {
