@@ -3,7 +3,6 @@ import type { AccordionItem } from '@nuxt/ui'
 import type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
 
 import SpecialistCard from '~/components/organisms/SpecialistCard.vue'
-import LeadCaptureForm from '~/components/organisms/LeadCaptureForm.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import { useB2CLandingSchemaOrg } from '~/features/seo/useB2CLandingSchemaOrg'
 
@@ -661,7 +660,7 @@ function scrollTo(id: string) {
             Les informations sont dispersées, les spécialistes difficiles à trouver, et les solutions souvent génériques.
           </p>
           <p>
-            Simon Music, fondateur de Keova, a créé cette plateforme pour mettre en relation les femmes
+            Simon Jouan, fondateur de Keova, a créé cette plateforme pour mettre en relation les femmes
             en périménopause, ménopause et post-ménopause avec des professionnelles du bien-être formées
             spécifiquement à ces transitions. Keova n'est pas un cabinet médical ni une application
             de bien-être généraliste — c'est un hub dédié à l'accompagnement de la ménopause en France.
@@ -672,9 +671,8 @@ function scrollTo(id: string) {
             publiquement. Vous choisissez celle qui vous correspond.
           </p>
           <p class="text-[#857d8c]">
-            Keova est développé et hébergé en France, à Strasbourg.
+            Keova est conçu en Normandie (Valognes) et hébergé en France par Scalingo (Paris).
             Conforme RGPD. Vos données personnelles ne quittent jamais le territoire français.
-            Hébergement sécurisé par Scalingo (certifié HDS).
           </p>
         </div>
       </div>
@@ -713,41 +711,6 @@ function scrollTo(id: string) {
             </div>
           </template>
         </UAccordion>
-      </div>
-    </section>
-
-    <!-- ==================== LEAD CAPTURE (AC-10) ==================== -->
-    <section class="relative px-4 py-24 sm:py-32">
-      <div
-        v-bind="reveal()"
-        class="scroll-reveal reveal-clip mx-auto max-w-3xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#3d3250] via-[#4a3d5e] to-[#5b4b6e] p-10 shadow-2xl shadow-[#3d3250]/20 sm:p-14"
-      >
-        <div
-          aria-hidden="true"
-          class="pointer-events-none absolute -right-12 -top-12 size-56 rounded-full opacity-30"
-          style="background: radial-gradient(circle, rgba(212,149,106,0.5), transparent 70%); filter: blur(50px);"
-        />
-        <div
-          aria-hidden="true"
-          class="pointer-events-none absolute -bottom-8 -left-8 size-40 rounded-full opacity-20"
-          style="background: radial-gradient(circle, rgba(122,107,142,0.6), transparent 70%); filter: blur(40px);"
-        />
-        <div class="relative text-center">
-          <h2 class="font-serif text-3xl text-white sm:text-4xl">
-            Recevez votre guide gratuit
-          </h2>
-          <p class="mt-4 text-base leading-relaxed text-[#c4bdd0]">
-            Chaque semaine, recevez un conseil actionnable pour mieux vivre votre ménopause —
-            que vous soyez au début, au milieu, ou après.
-            Pas de spam, pas de jargon médical — juste ce qui marche.
-          </p>
-          <div class="mx-auto mt-10 max-w-md">
-            <LeadCaptureForm />
-          </div>
-          <p class="mt-6 text-xs text-[#9685ab]">
-            Données hébergées en France. Conforme RGPD. Désinscription en un clic.
-          </p>
-        </div>
       </div>
     </section>
 
