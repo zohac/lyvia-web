@@ -3,8 +3,8 @@
     <!-- Hero Header -->
     <header class="relative overflow-hidden border-b border-[rgba(212,184,160,0.2)]">
       <!-- Decorative gradient blob -->
-      <div class="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gradient-to-br from-[color:var(--color-keova-100)] via-[color:var(--color-keova-50)] to-transparent opacity-60 blur-[100px]" />
-      <div class="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-gradient-to-tr from-[color:var(--color-stone-100)] to-transparent opacity-40 blur-[80px]" />
+      <div class="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gradient-to-br from-[color:var(--color-crepuscule-100)] via-[color:var(--color-crepuscule-50)] to-transparent opacity-60 blur-[100px]" />
+      <div class="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-gradient-to-tr from-[color:var(--color-neutral-100)] to-transparent opacity-40 blur-[80px]" />
 
       <div class="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
         <div class="flex items-end justify-between gap-8">
@@ -41,7 +41,7 @@
             <div class="h-12 w-px bg-[rgba(212,184,160,0.3)]" />
             <div class="text-right">
               <p class="font-serif text-3xl font-bold text-[color:var(--color-brand-primary)]">
-                6
+                9
               </p>
               <p class="text-xs uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
                 Variantes
@@ -75,16 +75,131 @@
               description="9 compound variants : 5 boutons d'action + 4 couleurs semantiques soft."
             />
 
-            <!-- Color Matrix -->
-            <div class="space-y-8">
-              <ColorVariantSection
-                v-for="color in buttonColors"
-                :key="color.value"
-                :color="color.value"
-                :title="color.title"
-                :description="color.description"
-              />
-            </div>
+            <!-- 5 Action Buttons -->
+            <ComponentCard
+              title="Boutons d'action (5)"
+              description="Les seules combinaisons color+variant supportees pour les actions utilisateur."
+            >
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    1. Primary Solid
+                  </p>
+                  <UButton
+                    color="primary"
+                    variant="solid"
+                    block
+                  >
+                    CTA Principal
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    2. Neutral Outline
+                  </p>
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    block
+                  >
+                    Action Secondaire
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    3. Secondary Solid
+                  </p>
+                  <UButton
+                    color="secondary"
+                    variant="solid"
+                    block
+                  >
+                    CTA Accent
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    4. Error Solid
+                  </p>
+                  <UButton
+                    color="error"
+                    variant="solid"
+                    block
+                  >
+                    Action Destructive
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    5. Neutral Ghost
+                  </p>
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    block
+                  >
+                    Action Tertiaire
+                  </UButton>
+                </div>
+              </div>
+            </ComponentCard>
+
+            <!-- 4 Semantic Soft -->
+            <ComponentCard
+              title="Couleurs semantiques soft (4)"
+              description="Pour les etats et feedbacks — fond leger, texte colore."
+            >
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    6. Success Soft
+                  </p>
+                  <UButton
+                    color="success"
+                    variant="soft"
+                    block
+                  >
+                    Succes
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    7. Warning Soft
+                  </p>
+                  <UButton
+                    color="warning"
+                    variant="soft"
+                    block
+                  >
+                    Attention
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    8. Error Soft
+                  </p>
+                  <UButton
+                    color="error"
+                    variant="soft"
+                    block
+                  >
+                    Erreur
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    9. Info Soft
+                  </p>
+                  <UButton
+                    color="info"
+                    variant="soft"
+                    block
+                  >
+                    Information
+                  </UButton>
+                </div>
+              </div>
+            </ComponentCard>
 
             <!-- Sizes -->
             <ComponentCard
@@ -1204,7 +1319,7 @@
               description="Couleurs de fond et surfaces"
             >
               <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-surface-page)] p-4 text-center">
+                <div class="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4 text-center">
                   <p class="text-xs font-semibold text-[color:var(--color-brand-primary)]">
                     Page
                   </p>
@@ -1212,7 +1327,7 @@
                     --color-surface-page
                   </p>
                 </div>
-                <div class="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-surface-card)] p-4 text-center">
+                <div class="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-4 text-center">
                   <p class="text-xs font-semibold text-[color:var(--color-brand-primary)]">
                     Card
                   </p>
@@ -1220,7 +1335,7 @@
                     --color-surface-card
                   </p>
                 </div>
-                <div class="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-surface-highlight)] p-4 text-center">
+                <div class="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-highlight)] p-4 text-center">
                   <p class="text-xs font-semibold text-[color:var(--color-brand-primary)]">
                     Highlight
                   </p>
@@ -1228,12 +1343,12 @@
                     --color-surface-highlight
                   </p>
                 </div>
-                <div class="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-brand-solid)] p-4 text-center">
-                  <p class="text-xs font-semibold text-[color:var(--color-brand-primary)]">
-                    Solid
+                <div class="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-contrast)] p-4 text-center">
+                  <p class="text-xs font-semibold text-[color:var(--color-text-inverse)]">
+                    Contrast
                   </p>
-                  <p class="text-[10px] text-[color:var(--color-brand-muted)]">
-                    --color-brand-solid
+                  <p class="text-[10px] text-[color:var(--color-text-inverse)]">
+                    --color-surface-contrast
                   </p>
                 </div>
               </div>
@@ -1246,20 +1361,20 @@
             >
               <div class="grid gap-4 font-mono text-xs sm:grid-cols-2">
                 <CssVarDisplay
-                  var-name="--ui-primary"
-                  label="UI Primary"
+                  var-name="--color-brand-primary"
+                  label="Brand Primary"
                 />
                 <CssVarDisplay
-                  var-name="--ui-color-secondary-700"
-                  label="Secondary-700"
+                  var-name="--color-brand-accent"
+                  label="Brand Accent"
                 />
                 <CssVarDisplay
-                  var-name="--color-accent-main"
-                  label="Accent Main"
+                  var-name="--color-surface-highlight"
+                  label="Surface Highlight"
                 />
                 <CssVarDisplay
-                  var-name="--color-accent-contrast"
-                  label="Accent Contrast"
+                  var-name="--color-border-subtle"
+                  label="Border Subtle"
                 />
               </div>
             </ComponentCard>
@@ -1352,15 +1467,5 @@ const tabsWithBadgeItems = [
   { label: 'Articles', value: 'articles', badge: '12' },
   { label: 'Recettes', value: 'recipes', badge: '7' },
   { label: 'Actus', value: 'news' }
-]
-
-const buttonColors = [
-  { value: 'primary', title: 'Primary (Crepuscule-800)', description: 'CTA principal — solid' },
-  { value: 'secondary', title: 'Secondary (Sunset-500)', description: 'CTA accent — solid' },
-  { value: 'neutral', title: 'Neutral', description: 'Actions secondaires — outline + ghost' },
-  { value: 'success', title: 'Success', description: 'Etats positifs — soft' },
-  { value: 'warning', title: 'Warning', description: 'Alertes — soft' },
-  { value: 'error', title: 'Error', description: 'Erreurs/danger — solid + soft' },
-  { value: 'info', title: 'Info', description: 'Informations — soft' }
 ]
 </script>

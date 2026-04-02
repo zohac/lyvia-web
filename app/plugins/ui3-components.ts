@@ -7,7 +7,6 @@ import FormControl from '../components/molecules/FormControl.vue'
 import PasswordCriteriaList from '../components/molecules/PasswordCriteriaList.vue'
 import SystemAlert from '../components/atoms/SystemAlert.vue'
 import CssVarDisplay from '../components/atoms/CssVarDisplay.vue'
-import ColorVariantSection from '../components/molecules/ColorVariantSection.vue'
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('AuthPageTemplate', AuthPageTemplate)
@@ -17,5 +16,4 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.component('PasswordCriteriaList', PasswordCriteriaList)
   nuxtApp.vueApp.component('SystemAlert', SystemAlert)
   nuxtApp.vueApp.component('CssVarDisplay', CssVarDisplay)
-  nuxtApp.vueApp.component('ColorVariantSection', ColorVariantSection)
 })
