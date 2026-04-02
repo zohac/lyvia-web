@@ -139,6 +139,7 @@
   --color-surface-page: var(--color-neutral-50);
   --color-surface-elevated: #ffffff;
   --color-surface-muted: var(--color-neutral-100);
+  --color-surface-highlight: rgba(91, 75, 110, 0.04);
   --color-surface-contrast: var(--color-neutral-900);
   --color-surface-card: #ffffff;
 
