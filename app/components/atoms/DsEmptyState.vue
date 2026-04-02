@@ -32,20 +32,9 @@ withDefaults(defineProps<DsEmptyStateProps>(), {
     >
       {{ description }}
     </p>
-    <NuxtLink
+    <UButton
       v-if="ctaLabel && ctaTo"
       :to="ctaTo"
-      class="mt-6"
-    >
-      <UButton
-        color="primary"
-        size="sm"
-      >
-        {{ ctaLabel }}
-      </UButton>
-    </NuxtLink>
-    <UButton
-      v-else-if="ctaLabel"
       color="primary"
       size="sm"
       class="mt-6"
