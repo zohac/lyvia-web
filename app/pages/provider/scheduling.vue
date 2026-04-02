@@ -246,10 +246,10 @@ async function retryLoad() {
   <div class="mx-auto max-w-3xl space-y-10">
     <!-- Page header -->
     <header>
-      <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
+      <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
         Créneaux & Tarifs
       </h1>
-      <p class="mt-1 text-stone-500">
+      <p class="mt-1 text-[color:var(--color-text-muted)]">
         Configurez les durées et pauses entre vos rendez-vous.
       </p>
     </header>
@@ -292,7 +292,7 @@ async function retryLoad() {
       <!-- Section 1 — Appel Découverte               -->
       <!-- ═══════════════════════════════════════════ -->
       <section class="space-y-5">
-        <h2 class="text-xl font-semibold text-stone-900">
+        <h2 class="text-xl font-semibold text-[color:var(--color-text-primary)]">
           Appel Découverte
         </h2>
 
@@ -347,33 +347,33 @@ async function retryLoad() {
       </section>
 
       <!-- Divider -->
-      <hr class="border-stone-200">
+      <hr class="border-[color:var(--color-brand-subtle)]">
 
       <!-- ═══════════════════════════════════════════ -->
       <!-- Section 2 — Consultations                  -->
       <!-- ═══════════════════════════════════════════ -->
       <section class="space-y-5">
-        <h2 class="text-xl font-semibold text-stone-900">
+        <h2 class="text-xl font-semibold text-[color:var(--color-text-primary)]">
           Consultations
         </h2>
 
         <!-- Empty state -->
         <UCard
           v-if="displayPlans.length === 0"
-          class="bg-white"
+          class="bg-[color:var(--color-surface-card)]"
         >
           <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
-            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
               <UIcon
                 name="lucide:tag"
-                class="h-8 w-8 text-stone-400"
+                class="h-8 w-8 text-[color:var(--color-brand-muted)]"
               />
             </div>
             <div>
-              <p class="font-medium text-stone-900">
+              <p class="font-medium text-[color:var(--color-text-primary)]">
                 Aucun plan tarifaire configuré
               </p>
-              <p class="mt-1 text-sm text-stone-500">
+              <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
                 Créez votre premier plan pour commencer à recevoir des consultations.
               </p>
             </div>
@@ -394,12 +394,12 @@ async function retryLoad() {
           <UCard
             v-for="plan in displayPlans"
             :key="plan.id"
-            class="bg-white"
+            class="bg-[color:var(--color-surface-card)]"
           >
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-semibold text-stone-900">
+                  <h3 class="font-semibold text-[color:var(--color-text-primary)]">
                     {{ plan.label }}
                   </h3>
                   <UBadge
@@ -410,13 +410,13 @@ async function retryLoad() {
                     {{ plan.isActive ? 'Actif' : 'Inactif' }}
                   </UBadge>
                 </div>
-                <p class="mt-1 text-sm text-stone-500">
+                <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
                   {{ plan.bufferLabel }} · Créneau réservé : {{ plan.totalMinutes }} min
                 </p>
               </div>
 
               <div class="flex items-center gap-3">
-                <span class="text-base font-bold text-stone-900">
+                <span class="text-base font-bold text-[color:var(--color-text-primary)]">
                   {{ plan.amountLabel }}
                 </span>
 

@@ -113,10 +113,10 @@ onMounted(() => {
   <div class="space-y-8">
     <!-- Page header -->
     <div>
-      <h1 class="font-serif text-2xl text-stone-900">
+      <h1 class="font-serif text-2xl text-[color:var(--color-text-primary)]">
         Demandes clients
       </h1>
-      <p class="mt-1 text-sm text-stone-500">
+      <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
         {{ pendingCount }} demande{{ pendingCount > 1 ? 's' : '' }} en attente de traitement
       </p>
     </div>
@@ -152,7 +152,7 @@ onMounted(() => {
       <UCard
         v-for="i in 3"
         :key="i"
-        class="bg-white"
+        class="bg-[color:var(--color-surface-card)]"
       >
         <div class="space-y-4">
           <div class="flex items-center gap-2">
@@ -197,16 +197,16 @@ onMounted(() => {
       v-else-if="requests.length === 0"
       class="py-16 text-center"
     >
-      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-100">
+      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[color:var(--color-surface-muted)]">
         <UIcon
           name="lucide:inbox"
-          class="h-8 w-8 text-stone-400"
+          class="h-8 w-8 text-[color:var(--color-brand-muted)]"
         />
       </div>
-      <h3 class="text-lg font-medium text-stone-900">
+      <h3 class="text-lg font-medium text-[color:var(--color-text-primary)]">
         Aucune demande
       </h3>
-      <p class="mt-1 text-sm text-stone-500">
+      <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
         <template v-if="currentStatus === 'pending'">
           Vous n'avez pas de demande en attente de traitement.
         </template>

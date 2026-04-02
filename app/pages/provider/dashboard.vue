@@ -29,7 +29,7 @@
 
       <UCard class="bg-[color:var(--color-surface-card)]">
         <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--color-surface-muted)]">
             <UIcon
               name="lucide:calendar-days"
               class="h-6 w-6 text-[color:var(--color-text-secondary)]"
@@ -130,7 +130,7 @@
           v-else-if="!todayAppointments.length"
           class="py-8 text-center"
         >
-          <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100">
+          <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--color-surface-muted)]">
             <UIcon
               name="lucide:calendar-x"
               class="h-6 w-6 text-[color:var(--color-brand-muted)]"
@@ -161,7 +161,7 @@
           >
             <div
               class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-              :class="appointment.type === 'discovery' ? 'bg-crepuscule-100' : 'bg-stone-100'"
+              :class="appointment.type === 'discovery' ? 'bg-crepuscule-100' : 'bg-[color:var(--color-surface-muted)]'"
             >
               <UIcon
                 :name="appointment.type === 'discovery' ? 'i-lucide-phone' : 'i-lucide-video'"

@@ -40,10 +40,10 @@
     <!-- Page header -->
     <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
+        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
           Appels Discovery
         </h1>
-        <p class="mt-1 text-stone-500">
+        <p class="mt-1 text-[color:var(--color-text-muted)]">
           Gérez vos appels découverte et convertissez vos leads en clientes.
         </p>
       </div>
@@ -86,7 +86,7 @@
 
     <!-- Stats row -->
     <div class="grid gap-4 sm:grid-cols-3">
-      <UCard class="bg-white">
+      <UCard class="bg-[color:var(--color-surface-card)]">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
             <UIcon
@@ -95,42 +95,42 @@
             />
           </div>
           <div>
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               Aujourd'hui
             </p>
-            <p class="text-2xl font-semibold text-stone-900">
+            <p class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
               {{ pending ? '...' : countScheduledToday }}
             </p>
-            <p class="text-xs text-stone-400">
+            <p class="text-xs text-[color:var(--color-brand-muted)]">
               appel(s) planifié(s)
             </p>
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white">
+      <UCard class="bg-[color:var(--color-surface-card)]">
         <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--color-success-100)]">
             <UIcon
               name="lucide:check-circle"
-              class="h-6 w-6 text-green-600"
+              class="h-6 w-6 text-[color:var(--color-success-600)]"
             />
           </div>
           <div>
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               Terminés (7j)
             </p>
-            <p class="text-2xl font-semibold text-stone-900">
+            <p class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
               {{ pending ? '...' : countCompletedLast7Days }}
             </p>
-            <p class="text-xs text-stone-400">
+            <p class="text-xs text-[color:var(--color-brand-muted)]">
               sessions clôturées
             </p>
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white">
+      <UCard class="bg-[color:var(--color-surface-card)]">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sunset-100">
             <UIcon
@@ -139,13 +139,13 @@
             />
           </div>
           <div>
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               À venir (14j)
             </p>
-            <p class="text-2xl font-semibold text-stone-900">
+            <p class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
               {{ pending ? '...' : countUpcomingNext14Days }}
             </p>
-            <p class="text-xs text-stone-400">
+            <p class="text-xs text-[color:var(--color-brand-muted)]">
               appels programmés
             </p>
           </div>
@@ -158,10 +158,10 @@
       <!-- Liste des appels -->
       <div class="space-y-6 lg:col-span-2">
         <!-- Filters -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div class="flex-1">
-              <label class="mb-2 block text-xs font-medium uppercase tracking-wider text-stone-500">
+              <label class="mb-2 block text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Recherche
               </label>
               <UInput
@@ -171,7 +171,7 @@
               />
             </div>
             <div class="sm:w-48">
-              <label class="mb-2 block text-xs font-medium uppercase tracking-wider text-stone-500">
+              <label class="mb-2 block text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Période
               </label>
               <USelect
@@ -223,7 +223,7 @@
                 <UCard
                   v-for="i in 3"
                   :key="i"
-                  class="bg-white"
+                  class="bg-[color:var(--color-surface-card)]"
                 >
                   <div class="flex items-center gap-4">
                     <USkeleton class="h-12 w-12 rounded-full" />
@@ -239,19 +239,19 @@
               <!-- Empty state -->
               <UCard
                 v-else-if="getAppointmentsForTab(item.value).length === 0"
-                class="bg-white"
+                class="bg-[color:var(--color-surface-card)]"
               >
                 <div class="py-8 text-center">
-                  <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-stone-100">
+                  <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
                     <UIcon
                       :name="getEmptyStateIcon(item.value)"
-                      class="h-7 w-7 text-stone-400"
+                      class="h-7 w-7 text-[color:var(--color-brand-muted)]"
                     />
                   </div>
-                  <p class="font-medium text-stone-900">
+                  <p class="font-medium text-[color:var(--color-text-primary)]">
                     {{ getEmptyStateTitle(item.value) }}
                   </p>
-                  <p class="mt-1 text-sm text-stone-500">
+                  <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
                     {{ getEmptyStateDescription(item.value) }}
                   </p>
                 </div>
@@ -278,10 +278,10 @@
       <!-- Sidebar -->
       <aside class="space-y-6">
         <!-- Calendrier -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-stone-900">
+              <h2 class="font-semibold text-[color:var(--color-text-primary)]">
                 Calendrier
               </h2>
               <UButton
@@ -310,9 +310,9 @@
         </UCard>
 
         <!-- Prochains appels -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Prochains appels
             </h2>
           </template>
@@ -336,7 +336,7 @@
 
           <div
             v-else-if="upcomingAppointments.length === 0"
-            class="py-4 text-center text-sm text-stone-500"
+            class="py-4 text-center text-sm text-[color:var(--color-text-muted)]"
           >
             Aucun appel planifié
           </div>
@@ -349,7 +349,7 @@
               v-for="item in upcomingAppointments.slice(0, 5)"
               :key="item.id"
               type="button"
-              class="flex w-full items-center gap-3 py-3 text-left transition-colors first:pt-0 last:pb-0 hover:bg-stone-50"
+              class="flex w-full items-center gap-3 py-3 text-left transition-colors first:pt-0 last:pb-0 hover:bg-[color:var(--color-surface-page)]"
               @click="activateDayFilter(ymdFromIso(item.scheduledAt))"
             >
               <UAvatar
@@ -358,10 +358,10 @@
                 class="bg-crepuscule-100 text-crepuscule-700"
               />
               <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium text-stone-900">
+                <p class="truncate text-sm font-medium text-[color:var(--color-text-primary)]">
                   {{ formatClientName(item) }}
                 </p>
-                <p class="text-xs text-stone-500">
+                <p class="text-xs text-[color:var(--color-text-muted)]">
                   {{ formatSelectedDayLabel(ymdFromIso(item.scheduledAt)) }}
                 </p>
               </div>

@@ -428,7 +428,7 @@ async function refreshPayments() {
             </div>
 
             <!-- Divider -->
-            <div class="h-px bg-stone-100" />
+            <div class="h-px bg-[color:var(--color-surface-muted)]" />
 
             <!-- Info text -->
             <p

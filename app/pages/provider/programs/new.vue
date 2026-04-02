@@ -104,10 +104,10 @@ async function handleSubmit() {
         size="sm"
       />
       <div>
-        <h1 class="text-2xl font-bold text-stone-900">
+        <h1 class="text-2xl font-bold text-[color:var(--color-text-primary)]">
           Nouveau programme
         </h1>
-        <p class="mt-1 text-sm text-stone-500">
+        <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
           Définissez les détails de votre programme d'accompagnement.
         </p>
       </div>
@@ -133,11 +133,11 @@ async function handleSubmit() {
     />
 
     <!-- Form -->
-    <div class="rounded-xl border border-stone-200 bg-white p-6">
+    <div class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6">
       <div class="grid gap-6">
         <!-- Name -->
         <div class="grid gap-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+          <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
             Nom du programme
           </label>
           <UInput
@@ -150,7 +150,7 @@ async function handleSubmit() {
 
         <!-- Description -->
         <div class="grid gap-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+          <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
             Description
           </label>
           <UTextarea
@@ -165,7 +165,7 @@ async function handleSubmit() {
         <!-- Sessions + Duration -->
         <div class="grid gap-4 md:grid-cols-2">
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Nombre de séances
             </label>
             <UInput
@@ -177,7 +177,7 @@ async function handleSubmit() {
             />
           </div>
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Durée par séance
             </label>
             <USelect
@@ -191,7 +191,7 @@ async function handleSubmit() {
         <!-- Validity + Grace period -->
         <div class="grid gap-4 md:grid-cols-2">
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Validité (mois)
             </label>
             <UInput
@@ -203,7 +203,7 @@ async function handleSubmit() {
             />
           </div>
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Délai de grâce (jours)
             </label>
             <UInput
@@ -213,7 +213,7 @@ async function handleSubmit() {
               :max="90"
               :disabled="loading"
             />
-            <p class="text-xs text-stone-400">
+            <p class="text-xs text-[color:var(--color-brand-muted)]">
               Jours supplémentaires après expiration pour utiliser les séances restantes.
             </p>
           </div>
@@ -221,7 +221,7 @@ async function handleSubmit() {
 
         <!-- Price -->
         <div class="grid gap-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+          <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
             Prix total (€)
           </label>
           <UInput
@@ -234,13 +234,13 @@ async function handleSubmit() {
         </div>
 
         <!-- Installments -->
-        <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+        <div class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-4">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-stone-700">
+              <p class="text-sm font-medium text-[color:var(--color-text-secondary)]">
                 Paiement en plusieurs fois
               </p>
-              <p class="text-xs text-stone-400">
+              <p class="text-xs text-[color:var(--color-brand-muted)]">
                 Permettre le paiement en mensualités.
               </p>
             </div>
@@ -251,7 +251,7 @@ async function handleSubmit() {
             v-if="form.allowInstallments"
             class="mt-4 grid gap-2"
           >
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Nombre de mensualités
             </label>
             <UInput
@@ -265,13 +265,13 @@ async function handleSubmit() {
         </div>
 
         <!-- Discovery gate -->
-        <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
+        <div class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-4">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-stone-700">
+              <p class="text-sm font-medium text-[color:var(--color-text-secondary)]">
                 Discovery gate
               </p>
-              <p class="text-xs text-stone-400">
+              <p class="text-xs text-[color:var(--color-brand-muted)]">
                 Exiger un appel découverte avant la souscription.
               </p>
             </div>
@@ -281,7 +281,7 @@ async function handleSubmit() {
 
         <!-- Sort order -->
         <div class="grid gap-2">
-          <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+          <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
             Ordre d'affichage
           </label>
           <UInput
@@ -290,7 +290,7 @@ async function handleSubmit() {
             :min="0"
             :disabled="loading"
           />
-          <p class="text-xs text-stone-400">
+          <p class="text-xs text-[color:var(--color-brand-muted)]">
             0 = premier affiché. Plus le nombre est élevé, plus le programme est affiché en bas.
           </p>
         </div>

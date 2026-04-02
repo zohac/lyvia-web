@@ -82,7 +82,7 @@
             </span>
           </div>
           <!-- Progress bar -->
-          <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+          <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-muted)]">
             <div
               class="h-full rounded-full bg-[color:var(--color-sunset-400)] transition-all duration-500"
               :style="{ width: progressWidth(discoveryCount) }"
@@ -98,7 +98,7 @@
           :class="[
             showCancelledOnly
               ? 'bg-[color:var(--color-error-50)]'
-              : 'hover:bg-stone-50'
+              : 'hover:bg-[color:var(--color-surface-page)]'
           ]"
           @click.stop="toggleCancelledFilter"
         >
@@ -144,10 +144,10 @@
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1">
             <div class="flex items-center gap-2">
-              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[color:var(--color-success-100)]">
                 <UIcon
                   name="lucide:user-check"
-                  class="h-4.5 w-4.5 text-emerald-600"
+                  class="h-4.5 w-4.5 text-[color:var(--color-success-600)]"
                 />
               </div>
               <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">À convertir</span>
@@ -156,13 +156,13 @@
               Discovery effectué, en attente de décision
             </p>
           </div>
-          <span class="text-3xl font-bold tabular-nums text-emerald-600">
+          <span class="text-3xl font-bold tabular-nums text-[color:var(--color-success-600)]">
             {{ pending ? '—' : leadCount }}
           </span>
         </div>
-        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-muted)]">
           <div
-            class="h-full rounded-full bg-emerald-400 transition-all duration-500"
+            class="h-full rounded-full bg-[color:var(--color-success-400)] transition-all duration-500"
             :style="{ width: progressWidth(leadCount) }"
           />
         </div>
@@ -172,7 +172,7 @@
         >
           <UIcon
             name="lucide:check-circle-2"
-            class="h-5 w-5 text-emerald-500"
+            class="h-5 w-5 text-[color:var(--color-success)]"
           />
         </div>
       </button>
@@ -207,7 +207,7 @@
             {{ pending ? '—' : activeCount }}
           </span>
         </div>
-        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-muted)]">
           <div
             class="h-full rounded-full bg-crepuscule-400 transition-all duration-500"
             :style="{ width: progressWidth(activeCount) }"
@@ -238,7 +238,7 @@
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1">
             <div class="flex items-center gap-2">
-              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-100">
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[color:var(--color-surface-muted)]">
                 <UIcon
                   name="lucide:archive"
                   class="h-4.5 w-4.5 text-[color:var(--color-text-secondary)]"
@@ -254,9 +254,9 @@
             {{ pending ? '—' : pausedCount }}
           </span>
         </div>
-        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
+        <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--color-surface-muted)]">
           <div
-            class="h-full rounded-full bg-stone-400 transition-all duration-500"
+            class="h-full rounded-full bg-[color:var(--color-neutral-400)] transition-all duration-500"
             :style="{ width: progressWidth(pausedCount) }"
           />
         </div>
@@ -341,7 +341,7 @@
       class="bg-[color:var(--color-surface-card)]"
     >
       <div class="py-12 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
           <UIcon
             name="lucide:users"
             class="h-8 w-8 text-[color:var(--color-brand-muted)]"

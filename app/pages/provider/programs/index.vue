@@ -46,10 +46,10 @@ function formatValidity(program: ProgramResponse): string {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-stone-900">
+        <h1 class="text-2xl font-bold text-[color:var(--color-text-primary)]">
           Programmes
         </h1>
-        <p class="mt-1 text-sm text-stone-500">
+        <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
           Gérez vos programmes d'accompagnement.
         </p>
       </div>
@@ -100,12 +100,12 @@ function formatValidity(program: ProgramResponse): string {
         v-for="program in programs"
         :key="program.id"
         :to="`/provider/programs/${program.id}`"
-        class="group rounded-xl border border-stone-200 bg-white p-5 transition-all hover:border-crepuscule-300 hover:shadow-sm"
+        class="group rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5 transition-all hover:border-crepuscule-300 hover:shadow-sm"
       >
         <div class="flex items-start justify-between gap-4">
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-3">
-              <h3 class="truncate text-lg font-semibold text-stone-900 group-hover:text-crepuscule-700">
+              <h3 class="truncate text-lg font-semibold text-[color:var(--color-text-primary)] group-hover:text-crepuscule-700">
                 {{ program.name }}
               </h3>
               <UBadge
@@ -116,25 +116,25 @@ function formatValidity(program: ProgramResponse): string {
                 {{ PROGRAM_STATUS_META[program.status].label }}
               </UBadge>
             </div>
-            <p class="mt-1 line-clamp-2 text-sm text-stone-500">
+            <p class="mt-1 line-clamp-2 text-sm text-[color:var(--color-text-muted)]">
               {{ program.description }}
             </p>
-            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-stone-400">
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-muted)]">
               <span>{{ formatSessions(program) }}</span>
               <span>{{ formatValidity(program) }}</span>
               <span
                 v-if="program.discoveryGate"
-                class="text-amber-600"
+                class="text-[color:var(--color-sunset-600)]"
               >Discovery gate</span>
             </div>
           </div>
           <div class="text-right">
-            <p class="text-lg font-bold text-stone-900">
+            <p class="text-lg font-bold text-[color:var(--color-text-primary)]">
               {{ formatCurrency(program.priceCents) }}
             </p>
             <p
               v-if="formatProgramInstallments(program)"
-              class="mt-1 text-xs text-stone-400"
+              class="mt-1 text-xs text-[color:var(--color-brand-muted)]"
             >
               {{ formatProgramInstallments(program) }}
             </p>
