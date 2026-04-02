@@ -21,7 +21,7 @@
       </div>
 
       <!-- Events Skeleton -->
-      <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+      <section class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-elevated)] to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
         <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--ui-color-primary-100)] opacity-30 blur-[100px]" />
 
         <div class="relative z-10 p-8">
@@ -78,7 +78,7 @@
       </section>
 
       <!-- Last Events -->
-      <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+      <section class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-elevated)] to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
         <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--ui-color-primary-100)] opacity-30 blur-[100px]" />
 
         <div class="relative z-10 p-8">
@@ -122,7 +122,7 @@
       <section class="grid gap-6 md:grid-cols-2">
         <NuxtLink
           to="/admin/logs"
-          class="rounded-3xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-solid)] hover:shadow-md"
+          class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-solid)] hover:shadow-md"
         >
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--ui-color-primary-100)]">
@@ -145,7 +145,7 @@
 
         <NuxtLink
           to="/admin/providers"
-          class="rounded-3xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-solid)] hover:shadow-md"
+          class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-solid)] hover:shadow-md"
         >
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--ui-color-primary-100)]">

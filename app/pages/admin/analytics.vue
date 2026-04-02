@@ -79,7 +79,7 @@
       </section>
 
       <!-- Top Providers -->
-      <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+      <section class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-elevated)] to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
         <div class="relative z-10 p-8">
           <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">
             Top providers
@@ -111,7 +111,7 @@
       </section>
 
       <!-- Tenant Stats -->
-      <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+      <section class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-elevated)] to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
         <div class="relative z-10 flex items-center justify-between p-8 pb-4">
           <div>
             <h2 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)]">

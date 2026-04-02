@@ -289,7 +289,7 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
     </section>
 
     <!-- Clients Table -->
-    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-white shadow-soft">
+    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] shadow-soft">
       <!-- Loading State -->
       <div
         v-if="pending"

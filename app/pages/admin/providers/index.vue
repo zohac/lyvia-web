@@ -278,7 +278,7 @@ function goToProvider() {
     </section>
 
     <!-- Providers Table -->
-    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-white shadow-soft">
+    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] shadow-soft">
       <!-- Loading State -->
       <div
         v-if="pending"
@@ -340,7 +340,7 @@ function goToProvider() {
     </section>
 
     <!-- Quick Access Card -->
-    <section class="mt-8 overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-8 shadow-soft backdrop-blur">
+    <section class="mt-8 overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-8 shadow-soft backdrop-blur">
       <div class="flex items-start gap-4">
         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
           <UIcon

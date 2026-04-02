@@ -81,7 +81,7 @@ const TARGET_TYPE_ICONS: Record<string, string> = {
       <section
         v-for="entry in platformEntries"
         :key="entry.targetType"
-        class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-8 shadow-soft backdrop-blur"
+        class="relative overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-8 shadow-soft backdrop-blur"
       >
         <div class="mb-6 flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
@@ -111,7 +111,7 @@ const TARGET_TYPE_ICONS: Record<string, string> = {
 
       <div
         v-if="platformEntries.length === 0"
-        class="rounded-2xl border border-dashed border-[color:var(--color-brand-subtle)] bg-white/75 p-12 text-center shadow-soft"
+        class="rounded-2xl border border-dashed border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-12 text-center shadow-soft"
       >
         <UIcon
           name="lucide:globe"

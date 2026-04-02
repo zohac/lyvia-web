@@ -34,7 +34,7 @@
               'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
               selectedType === typeOption.value
                 ? `${typeOption.activeClass} shadow-sm`
-                : 'border border-[color:var(--color-brand-subtle)] bg-white text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
+                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
             ]"
             @click="selectType(typeOption.value)"
           >
@@ -61,7 +61,7 @@
               'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
               selectedStatus === statusOption.value
                 ? `${statusOption.activeClass} shadow-sm`
-                : 'border border-[color:var(--color-brand-subtle)] bg-white text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
+                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
             ]"
             @click="selectStatus(statusOption.value)"
           >
@@ -90,7 +90,7 @@
             v-model="dateFrom"
             type="datetime-local"
             autocomplete="off"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-white px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @change="applyFilters"
           >
         </div>
@@ -105,7 +105,7 @@
             v-model="dateTo"
             type="datetime-local"
             autocomplete="off"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-white px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @change="applyFilters"
           >
         </div>
@@ -122,7 +122,7 @@
     </section>
 
     <!-- Notification Logs Table -->
-    <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+    <section class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-elevated)] to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
       <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--ui-color-primary-100)] opacity-30 blur-[100px]" />
 
       <!-- Loading State -->
