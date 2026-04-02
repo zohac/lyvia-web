@@ -293,12 +293,13 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
       <!-- Loading State -->
       <div
         v-if="pending"
-        class="flex items-center justify-center py-20"
+        class="space-y-3 p-8"
       >
-        <UIcon
-          name="lucide:loader-2"
-          size="32"
-          class="animate-spin text-[color:var(--color-brand-muted)]"
+        <USkeleton class="h-10 rounded-xl" />
+        <USkeleton
+          v-for="i in 5"
+          :key="i"
+          class="h-14 rounded-xl"
         />
       </div>
 

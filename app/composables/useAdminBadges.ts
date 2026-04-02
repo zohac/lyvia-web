@@ -1,6 +1,6 @@
 /**
  * Composable for admin badge styling functions
- * Used by dashboard, logs, and notification-logs pages
+ * Uses DS semantic tokens — zero Tailwind legacy colors
  */
 
 export type BadgeColor = 'success' | 'error' | 'info' | 'primary' | 'secondary' | 'warning' | 'neutral'
@@ -19,19 +19,19 @@ export function getEventBadgeColor(eventType: string): BadgeColor {
 }
 
 /**
- * Get CSS classes for a badge color
+ * Get CSS classes for a badge color — DS tokens only
  */
 export function getBadgeClasses(color: BadgeColor | string): string {
   const colorMap: Record<string, string> = {
     success: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]',
-    error: 'bg-red-100 text-red-700',
-    info: 'bg-blue-100 text-blue-700',
-    primary: 'bg-[color:var(--ui-color-primary-100)] text-[color:var(--color-brand-solid)]',
-    secondary: 'bg-purple-100 text-purple-700',
-    warning: 'bg-amber-100 text-amber-700',
-    neutral: 'bg-gray-100 text-gray-600'
+    error: 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]',
+    info: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]',
+    primary: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-800)]',
+    secondary: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]',
+    warning: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]',
+    neutral: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
   }
-  return colorMap[color] ?? 'bg-gray-100 text-gray-600'
+  return colorMap[color] ?? 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
 }
 
 /**
@@ -40,9 +40,9 @@ export function getBadgeClasses(color: BadgeColor | string): string {
 export function getNotificationStatusBadgeClasses(status: string): string {
   switch (status) {
     case 'sent': return 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]'
-    case 'failed': return 'bg-red-100 text-red-700'
-    case 'skipped': return 'bg-gray-100 text-gray-600'
-    default: return 'bg-gray-100 text-gray-600'
+    case 'failed': return 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]'
+    case 'skipped': return 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
+    default: return 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
   }
 }
 
@@ -51,9 +51,9 @@ export function getNotificationStatusBadgeClasses(status: string): string {
  */
 export function getNotificationTypeBadgeClasses(type: string): string {
   switch (type) {
-    case 'email': return 'bg-blue-100 text-blue-700'
-    case 'sms': return 'bg-purple-100 text-purple-700'
-    default: return 'bg-gray-100 text-gray-600'
+    case 'email': return 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]'
+    case 'sms': return 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]'
+    default: return 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
   }
 }
 
@@ -79,8 +79,8 @@ export type StatusBadgeVariant = 'success' | 'error' | 'warning' | 'neutral'
 
 const STATUS_BADGE_VARIANTS: Record<StatusBadgeVariant, { badge: string, dot: string }> = {
   success: { badge: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]', dot: 'bg-[color:var(--color-success-500)]' },
-  error: { badge: 'bg-red-100 text-red-700', dot: 'bg-red-500' },
-  warning: { badge: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+  error: { badge: 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]', dot: 'bg-[color:var(--color-error-500)]' },
+  warning: { badge: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]', dot: 'bg-[color:var(--color-sunset-500)]' },
   neutral: { badge: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]', dot: 'bg-[color:var(--color-neutral-400)]' }
 }
 

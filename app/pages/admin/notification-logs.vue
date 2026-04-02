@@ -128,12 +128,13 @@
       <!-- Loading State -->
       <div
         v-if="pending"
-        class="relative z-10 flex items-center justify-center py-20"
+        class="relative z-10 space-y-3 p-8"
       >
-        <UIcon
-          name="lucide:loader-2"
-          size="32"
-          class="animate-spin text-[color:var(--color-brand-muted)]"
+        <USkeleton class="h-10 rounded-xl" />
+        <USkeleton
+          v-for="i in 5"
+          :key="i"
+          class="h-12 rounded-xl"
         />
       </div>
 
@@ -196,27 +197,19 @@
       <template #body>
         <div
           v-if="detailPending"
-          class="flex items-center justify-center py-12"
+          class="space-y-4 py-8"
         >
-          <UIcon
-            name="lucide:loader-2"
-            size="32"
-            class="animate-spin text-[color:var(--color-brand-muted)]"
-          />
+          <USkeleton class="h-6 w-48" />
+          <USkeleton class="h-4 w-full" />
+          <USkeleton class="h-4 w-3/4" />
+          <USkeleton class="h-32 rounded-xl" />
         </div>
 
         <div
           v-else-if="detailError"
-          class="p-4 text-center"
+          class="p-4"
         >
-          <UIcon
-            name="lucide:alert-circle"
-            size="48"
-            class="mx-auto mb-4 text-red-500"
-          />
-          <p class="text-red-800">
-            Erreur lors du chargement du détail
-          </p>
+          <AtomsDsErrorState message="Erreur lors du chargement du détail" />
         </div>
 
         <div
@@ -283,18 +276,18 @@
             <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
               Payload Preview
             </span>
-            <pre class="mt-2 max-h-48 overflow-auto rounded-lg bg-gray-50 p-4 text-xs text-[color:var(--color-brand-primary)]">{{ notificationDetail.payloadPreview }}</pre>
+            <pre class="mt-2 max-h-48 overflow-auto rounded-lg bg-[color:var(--color-surface-muted)] p-4 text-xs text-[color:var(--color-brand-primary)]">{{ notificationDetail.payloadPreview }}</pre>
           </div>
 
           <!-- Error Message -->
           <div
             v-if="notificationDetail.errorMessage"
-            class="rounded-lg bg-red-50 p-4"
+            class="rounded-lg bg-[color:var(--color-error-50)] p-4"
           >
-            <span class="text-xs font-bold uppercase tracking-[0.15em] text-red-600">
+            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-error-600)]">
               Erreur
             </span>
-            <p class="mt-2 text-sm text-red-800">
+            <p class="mt-2 text-sm text-[color:var(--color-error-700)]">
               {{ notificationDetail.errorMessage }}
             </p>
           </div>
@@ -424,14 +417,14 @@ const detailError = ref<Error | null>(null)
 
 // Filter options
 const typeOptions = [
-  { value: 'email', label: 'Email', activeClass: 'bg-blue-100 text-blue-700' },
-  { value: 'sms', label: 'SMS', activeClass: 'bg-purple-100 text-purple-700' }
+  { value: 'email', label: 'Email', activeClass: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]' },
+  { value: 'sms', label: 'SMS', activeClass: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]' }
 ]
 
 const statusOptions = [
   { value: 'sent', label: 'Envoyé', activeClass: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' },
-  { value: 'failed', label: 'Échoué', activeClass: 'bg-red-100 text-red-700' },
-  { value: 'skipped', label: 'Ignoré', activeClass: 'bg-gray-100 text-gray-600' }
+  { value: 'failed', label: 'Échoué', activeClass: 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]' },
+  { value: 'skipped', label: 'Ignoré', activeClass: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]' }
 ]
 
 const hasActiveFilters = computed(() => {

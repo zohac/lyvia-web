@@ -135,7 +135,7 @@ const columns: TableColumn<AdminProviderListItem>[] = [
         h('span', { class: 'font-medium text-[color:var(--color-brand-primary)]' }, provider.displayName)
       ]
       if (provider.isTest) {
-        nameChildren.push(h('span', { class: 'ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700' }, 'Test'))
+        nameChildren.push(h('span', { class: 'ml-2 inline-flex items-center rounded-full bg-[color:var(--color-sunset-100)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--color-sunset-700)]' }, 'Test'))
       }
       return h('div', { class: 'flex flex-col gap-0.5' }, [
         h('div', { class: 'flex items-center' }, nameChildren),
@@ -282,12 +282,13 @@ function goToProvider() {
       <!-- Loading State -->
       <div
         v-if="pending"
-        class="flex items-center justify-center py-20"
+        class="space-y-3 p-8"
       >
-        <UIcon
-          name="lucide:loader-2"
-          size="32"
-          class="animate-spin text-[color:var(--color-brand-muted)]"
+        <USkeleton class="h-10 rounded-xl" />
+        <USkeleton
+          v-for="i in 5"
+          :key="i"
+          class="h-14 rounded-xl"
         />
       </div>
 
@@ -311,7 +312,7 @@ function goToProvider() {
         <UTable
           :data="providers.items"
           :columns="columns"
-          :row-attrs="(row: AdminProviderListItem) => row.isTest ? { class: 'bg-amber-50/40' } : {}"
+          :row-attrs="(row: AdminProviderListItem) => row.isTest ? { class: 'bg-[color:var(--color-sunset-50)]/40' } : {}"
           :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
           @select="onRowSelect"
         />
