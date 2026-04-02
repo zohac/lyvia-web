@@ -21,26 +21,21 @@
     >
       <!-- KPI Skeletons -->
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div
+        <USkeleton
           v-for="i in 4"
           :key="i"
-          class="h-32 animate-pulse rounded-3xl border border-[color:var(--color-border-subtle)] bg-white/75 p-6"
-        >
-          <div class="h-4 w-24 rounded bg-[color:var(--color-brand-subtle)]" />
-          <div class="mt-4 h-8 w-16 rounded bg-[color:var(--color-brand-subtle)]" />
-        </div>
+          class="h-32 rounded-3xl"
+        />
       </div>
 
       <!-- Events Skeleton -->
-      <div class="h-80 animate-pulse rounded-3xl border border-[color:var(--color-border-subtle)] bg-white/75 p-8">
-        <div class="h-6 w-48 rounded bg-[color:var(--color-brand-subtle)]" />
-        <div class="mt-6 space-y-4">
-          <div
-            v-for="j in 5"
-            :key="j"
-            class="h-10 rounded bg-[color:var(--color-brand-subtle)]"
-          />
-        </div>
+      <div class="space-y-4">
+        <USkeleton class="h-6 w-48" />
+        <USkeleton
+          v-for="j in 5"
+          :key="j"
+          class="h-10"
+        />
       </div>
     </div>
 

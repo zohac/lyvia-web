@@ -52,14 +52,11 @@ const isEmpty = computed(() => {
       v-if="analytics.loading.value"
       class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
     >
-      <div
+      <USkeleton
         v-for="i in 4"
         :key="i"
-        class="h-32 animate-pulse rounded-3xl border border-[color:var(--color-border-subtle)] bg-white/75 p-6"
-      >
-        <div class="h-4 w-24 rounded bg-[color:var(--color-brand-subtle)]" />
-        <div class="mt-4 h-8 w-16 rounded bg-[color:var(--color-brand-subtle)]" />
-      </div>
+        class="h-32 rounded-3xl"
+      />
     </div>
 
     <!-- Error State -->

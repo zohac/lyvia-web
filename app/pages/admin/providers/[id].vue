@@ -642,10 +642,10 @@ const SEO_TARGET_ICONS: Record<string, string> = {
             v-if="detailPending"
             class="space-y-4"
           >
-            <div
+            <USkeleton
               v-for="i in 3"
               :key="i"
-              class="h-16 animate-pulse rounded-xl border border-[color:var(--color-border-subtle)] bg-white/75"
+              class="h-16 rounded-xl"
             />
           </div>
 
@@ -1075,10 +1075,10 @@ const SEO_TARGET_ICONS: Record<string, string> = {
               v-if="programsLoading"
               class="space-y-4"
             >
-              <div
+              <USkeleton
                 v-for="i in 3"
                 :key="i"
-                class="h-16 animate-pulse rounded-xl border border-[color:var(--color-border-subtle)] bg-white/75"
+                class="h-16 rounded-xl"
               />
             </div>
 
@@ -1208,10 +1208,10 @@ const SEO_TARGET_ICONS: Record<string, string> = {
             v-if="seoStatus === 'pending'"
             class="space-y-3"
           >
-            <div
+            <USkeleton
               v-for="i in 2"
               :key="i"
-              class="h-20 animate-pulse rounded-2xl border border-[color:var(--color-border-subtle)] bg-white/75"
+              class="h-20 rounded-2xl"
             />
           </div>
 

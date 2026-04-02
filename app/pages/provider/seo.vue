@@ -278,17 +278,11 @@ async function retryLoad() {
       v-else-if="isLoading"
       class="space-y-6"
     >
-      <div
+      <USkeleton
         v-for="i in 3"
         :key="i"
-        class="h-48 animate-pulse rounded-2xl border border-[color:var(--color-border-subtle)] bg-white/75 p-8"
-      >
-        <div class="h-6 w-48 rounded bg-[color:var(--color-brand-subtle)]" />
-        <div class="mt-6 space-y-4">
-          <div class="h-10 rounded bg-[color:var(--color-brand-subtle)]" />
-          <div class="h-20 rounded bg-[color:var(--color-brand-subtle)]" />
-        </div>
-      </div>
+        class="h-48 rounded-2xl"
+      />
     </div>
 
     <template v-else>
