@@ -1,54 +1,23 @@
 import { keovaButton } from './config/design-system/keova-button'
 import { keovaCard } from './config/design-system/keova-card'
 import { keovaColors } from './config/design-system/keova-colors'
+import { keovaBadge } from './config/design-system/keova-badge'
+import { keovaInput } from './config/design-system/keova-input'
+import { keovaAlert } from './config/design-system/keova-alert'
+import { keovaSelect } from './config/design-system/keova-select'
+import { keovaTabs } from './config/design-system/keova-tabs'
+import { keovaLink } from './config/design-system/keova-link'
 
 export default defineAppConfig({
   ui: {
-    // =========================================================================
-    // COLORS — Keova Design System
-    // Maps Nuxt UI color roles to Crepuscule palette (primary=violet, secondary=sunset)
-    // =========================================================================
     colors: keovaColors,
-
-    // =========================================================================
-    // BUTTON — Keova DS (9 compound variants)
-    // =========================================================================
     button: keovaButton,
-
-    // =========================================================================
-    // BADGE — Organic Luxury Theme
-    // =========================================================================
-    // badge: keovaBadge,
-
-    // =========================================================================
-    // CARD — Keova DS (2 variants: base + featured)
-    // =========================================================================
-
-    // link: keovaLink,
-
-    // =========================================================================
-    // CARD — Keova DS (2 variants: base + featured)
-    // =========================================================================
-    card: keovaCard
-
-    // =========================================================================
-    // INPUT — Organic Luxury Theme
-    // =========================================================================
-    // input: keovaInput,
-
-    // =========================================================================
-    // ALERT — Organic Luxury Theme
-    // =========================================================================
-    // alert: keovaAlert,
-
-    // =========================================================================
-    // SELECT — Organic Luxury Theme
-    // =========================================================================
-    // select: keovaSelect,
-
-    // =========================================================================
-    // Tabs — Organic Luxury Theme
-    // =========================================================================
-    // tabs: keovaTabs
+    badge: keovaBadge,
+    card: keovaCard,
+    input: keovaInput,
+    alert: keovaAlert,
+    select: keovaSelect,
+    tabs: keovaTabs,
+    link: keovaLink
   }
 })

@@ -51,13 +51,13 @@ const inputAttrs = computed(() => ({
       <label
         :for="id"
         class="text-sm font-semibold leading-none"
-        :class="error ? 'text-[#c45b5b]' : 'text-[#221d28]'"
+        :class="error ? 'text-[color:var(--color-error)]' : 'text-[color:var(--color-text-primary)]'"
       >
         {{ label }}
         <span
           v-if="required"
           aria-hidden="true"
-          class="text-[#c45b5b]"
+          class="text-[color:var(--color-error)]"
         >*</span>
       </label>
 
@@ -72,7 +72,7 @@ const inputAttrs = computed(() => ({
     <p
       v-if="hint"
       :id="hintId"
-      class="text-sm text-[#857d8c]"
+      class="text-sm text-[color:var(--color-text-muted)]"
     >
       {{ hint }}
     </p>
@@ -80,7 +80,7 @@ const inputAttrs = computed(() => ({
     <p
       v-if="error"
       :id="errorId"
-      class="text-sm text-[#c45b5b]"
+      class="text-sm text-[color:var(--color-error)]"
       role="alert"
       aria-live="assertive"
     >
