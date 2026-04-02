@@ -40,6 +40,19 @@ const acceptModalOpen = ref(false)
 const rejectModalOpen = ref(false)
 const selectedRequest = ref<ProviderRequestItem | null>(null)
 
+const requestsEmptyDescription = computed(() => {
+  switch (currentStatus.value) {
+    case 'pending':
+      return 'Vous n\'avez pas de demande en attente de traitement.'
+    case 'accepted':
+      return 'Aucune demande acceptée.'
+    case 'rejected':
+      return 'Aucune demande refusée.'
+    default:
+      return 'Aucune demande pour le moment.'
+  }
+})
+
 /**
  * Handle filter change
  */
@@ -111,15 +124,10 @@ onMounted(() => {
 
 <template>
   <div class="space-y-8">
-    <!-- Page header -->
-    <div>
-      <h1 class="font-serif text-2xl text-[color:var(--color-text-primary)]">
-        Demandes clients
-      </h1>
-      <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-        {{ pendingCount }} demande{{ pendingCount > 1 ? 's' : '' }} en attente de traitement
-      </p>
-    </div>
+    <AtomsDsPageHeader
+      title="Demandes clients"
+      :subtitle="`${pendingCount} demande${pendingCount > 1 ? 's' : ''} en attente de traitement`"
+    />
 
     <!-- Filter tabs -->
     <div class="flex flex-wrap gap-2">
@@ -173,54 +181,19 @@ onMounted(() => {
     </div>
 
     <!-- Error state -->
-    <UAlert
+    <AtomsDsErrorState
       v-else-if="error"
-      color="error"
-      variant="soft"
-      :title="error"
-      icon="i-lucide-alert-circle"
-    >
-      <template #actions>
-        <UButton
-          variant="link"
-          color="error"
-          size="sm"
-          @click="refresh"
-        >
-          Réessayer
-        </UButton>
-      </template>
-    </UAlert>
+      :message="error"
+      @retry="refresh()"
+    />
 
     <!-- Empty state -->
-    <div
+    <AtomsDsEmptyState
       v-else-if="requests.length === 0"
-      class="py-16 text-center"
-    >
-      <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[color:var(--color-surface-muted)]">
-        <UIcon
-          name="lucide:inbox"
-          class="h-8 w-8 text-[color:var(--color-brand-muted)]"
-        />
-      </div>
-      <h3 class="text-lg font-medium text-[color:var(--color-text-primary)]">
-        Aucune demande
-      </h3>
-      <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-        <template v-if="currentStatus === 'pending'">
-          Vous n'avez pas de demande en attente de traitement.
-        </template>
-        <template v-else-if="currentStatus === 'accepted'">
-          Aucune demande acceptée.
-        </template>
-        <template v-else-if="currentStatus === 'rejected'">
-          Aucune demande refusée.
-        </template>
-        <template v-else>
-          Aucune demande pour le moment.
-        </template>
-      </p>
-    </div>
+      icon="i-lucide-inbox"
+      title="Aucune demande"
+      :description="requestsEmptyDescription"
+    />
 
     <!-- Requests grid -->
     <div

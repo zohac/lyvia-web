@@ -37,52 +37,48 @@
       icon="i-lucide-alert-circle"
     />
 
-    <!-- Page header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
-          Appels Discovery
-        </h1>
-        <p class="mt-1 text-[color:var(--color-text-muted)]">
-          Gérez vos appels découverte et convertissez vos leads en clientes.
-        </p>
-      </div>
-      <div class="flex items-center gap-3">
-        <UButton
-          to="/provider/calendar?action=create&type=discovery"
-          color="primary"
-        >
-          <UIcon
-            name="lucide:plus"
-            class="mr-2 h-4 w-4"
-          />
-          Créer un appel
-        </UButton>
-        <UButton
-          to="/provider/availability"
-          variant="soft"
-          color="neutral"
-        >
-          <UIcon
-            name="lucide:calendar-clock"
-            class="mr-2 h-4 w-4"
-          />
-          Disponibilités
-        </UButton>
-        <UButton
-          :loading="pending"
-          variant="outline"
-          color="neutral"
-          @click="() => refresh()"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            class="mr-2 h-4 w-4"
-          />
-          Actualiser
-        </UButton>
-      </div>
-    </header>
+    <AtomsDsPageHeader
+      title="Appels Discovery"
+      subtitle="Gérez vos appels découverte et convertissez vos leads en clientes."
+    >
+      <template #actions>
+        <div class="flex items-center gap-3">
+          <UButton
+            to="/provider/calendar?action=create&type=discovery"
+            color="primary"
+          >
+            <UIcon
+              name="lucide:plus"
+              class="mr-2 h-4 w-4"
+            />
+            Créer un appel
+          </UButton>
+          <UButton
+            to="/provider/availability"
+            variant="soft"
+            color="neutral"
+          >
+            <UIcon
+              name="lucide:calendar-clock"
+              class="mr-2 h-4 w-4"
+            />
+            Disponibilités
+          </UButton>
+          <UButton
+            :loading="pending"
+            variant="outline"
+            color="neutral"
+            @click="() => refresh()"
+          >
+            <UIcon
+              name="lucide:refresh-cw"
+              class="mr-2 h-4 w-4"
+            />
+            Actualiser
+          </UButton>
+        </div>
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Stats row -->
     <div class="grid gap-4 sm:grid-cols-3">
@@ -343,7 +339,7 @@
 
           <div
             v-else
-            class="divide-y divide-stone-100"
+            class="divide-y divide-[color:var(--color-border-subtle)]"
           >
             <button
               v-for="item in upcomingAppointments.slice(0, 5)"

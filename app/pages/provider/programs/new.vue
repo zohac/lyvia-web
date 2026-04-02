@@ -94,24 +94,21 @@ async function handleSubmit() {
 
 <template>
   <div class="mx-auto max-w-2xl space-y-6">
-    <!-- Header -->
-    <div class="flex items-center gap-4">
-      <UButton
-        to="/provider/programs"
-        color="neutral"
-        variant="ghost"
-        icon="i-lucide-arrow-left"
-        size="sm"
-      />
-      <div>
-        <h1 class="text-2xl font-bold text-[color:var(--color-text-primary)]">
-          Nouveau programme
-        </h1>
-        <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-          Définissez les détails de votre programme d'accompagnement.
-        </p>
-      </div>
-    </div>
+    <AtomsDsPageHeader
+      title="Nouveau programme"
+      subtitle="Définissez les détails de votre programme d'accompagnement."
+      :accent-bar="false"
+    >
+      <template #back>
+        <UButton
+          to="/provider/programs"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-arrow-left"
+          size="sm"
+        />
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Error -->
     <UAlert

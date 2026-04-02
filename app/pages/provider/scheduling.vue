@@ -244,39 +244,17 @@ async function retryLoad() {
 
 <template>
   <div class="mx-auto max-w-3xl space-y-10">
-    <!-- Page header -->
-    <header>
-      <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
-        Créneaux & Tarifs
-      </h1>
-      <p class="mt-1 text-[color:var(--color-text-muted)]">
-        Configurez les durées et pauses entre vos rendez-vous.
-      </p>
-    </header>
+    <AtomsDsPageHeader
+      title="Créneaux & Tarifs"
+      subtitle="Configurez les durées et pauses entre vos rendez-vous."
+    />
 
     <!-- Global error + retry -->
-    <div
+    <AtomsDsErrorState
       v-if="loadError"
-      class="space-y-4"
-    >
-      <UAlert
-        color="error"
-        variant="soft"
-        title="Impossible de charger la configuration"
-        :description="loadError"
-        icon="i-lucide-alert-circle"
-      />
-      <div class="flex justify-center">
-        <UButton
-          color="neutral"
-          variant="soft"
-          :loading="isLoading"
-          @click="retryLoad"
-        >
-          Réessayer
-        </UButton>
-      </div>
-    </div>
+      :message="loadError"
+      @retry="retryLoad()"
+    />
 
     <!-- Loading skeleton -->
     <div

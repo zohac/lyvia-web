@@ -620,29 +620,25 @@ const copyDirectionOptions = [
       icon="i-lucide-check-circle"
     />
 
-    <!-- Page header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
-          Disponibilités
-        </h1>
-        <p class="mt-1 text-[color:var(--color-text-muted)]">
-          Définissez vos règles hebdomadaires et ajoutez des blocages ponctuels.
-        </p>
-      </div>
-      <UButton
-        :loading="pending"
-        variant="outline"
-        color="neutral"
-        @click="() => refresh()"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          class="mr-2 h-4 w-4"
-        />
-        Actualiser
-      </UButton>
-    </header>
+    <AtomsDsPageHeader
+      title="Disponibilités"
+      subtitle="Définissez vos règles hebdomadaires et ajoutez des blocages ponctuels."
+    >
+      <template #actions>
+        <UButton
+          :loading="pending"
+          variant="outline"
+          color="neutral"
+          @click="() => refresh()"
+        >
+          <UIcon
+            name="lucide:refresh-cw"
+            class="mr-2 h-4 w-4"
+          />
+          Actualiser
+        </UButton>
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Main content -->
     <div class="grid gap-8 lg:grid-cols-3">

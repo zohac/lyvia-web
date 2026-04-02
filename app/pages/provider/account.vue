@@ -568,14 +568,10 @@ async function handlePasswordChange() {
 <template>
   <div class="space-y-8">
     <!-- Page header -->
-    <header>
-      <h1 class="font-serif text-2xl font-semibold text-[color:var(--color-brand-primary)] sm:text-3xl">
-        Mon compte
-      </h1>
-      <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-        Gérez vos informations professionnelles, votre email et votre mot de passe.
-      </p>
-    </header>
+    <AtomsDsPageHeader
+      title="Mon compte"
+      subtitle="Gérez vos informations professionnelles, votre email et votre mot de passe."
+    />
 
     <!-- Loading -->
     <div
@@ -588,30 +584,11 @@ async function handlePasswordChange() {
     </div>
 
     <!-- Error state -->
-    <div
+    <AtomsDsErrorState
       v-else-if="error && !account"
-      class="flex flex-col items-center justify-center gap-4 py-16 text-center"
-    >
-      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-surface-highlight)]">
-        <UIcon
-          name="i-lucide-alert-circle"
-          class="h-8 w-8 text-[color:var(--color-error)]"
-        />
-      </div>
-      <div>
-        <p class="font-medium text-[color:var(--color-brand-primary)]">
-          Impossible de charger vos informations
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ error }}
-        </p>
-      </div>
-      <UButton
-        label="Réessayer"
-        variant="outline"
-        @click="fetchAccount()"
-      />
-    </div>
+      :message="error"
+      @retry="fetchAccount()"
+    />
 
     <template v-else>
       <!-- Section 1: Informations personnelles -->

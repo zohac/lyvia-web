@@ -106,53 +106,26 @@
         </div>
 
         <!-- Error -->
-        <UAlert
+        <AtomsDsErrorState
           v-else-if="calendarError"
-          color="error"
-          variant="soft"
-          :title="calendarError"
-          icon="i-lucide-alert-circle"
-        >
-          <template #actions>
-            <UButton
-              variant="link"
-              color="error"
-              size="sm"
-              @click="refreshCalendar"
-            >
-              Réessayer
-            </UButton>
-          </template>
-        </UAlert>
+          :message="calendarError"
+          @retry="refreshCalendar()"
+        />
 
         <!-- Empty -->
-        <div
+        <AtomsDsEmptyState
           v-else-if="!todayAppointments.length"
-          class="py-8 text-center"
-        >
-          <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--color-surface-muted)]">
-            <UIcon
-              name="lucide:calendar-x"
-              class="h-6 w-6 text-[color:var(--color-brand-muted)]"
-            />
-          </div>
-          <p class="text-sm text-[color:var(--color-text-muted)]">
-            Aucun rendez-vous aujourd'hui
-          </p>
-          <UButton
-            to="/provider/calendar"
-            variant="link"
-            size="sm"
-            class="mt-2"
-          >
-            Voir la semaine
-          </UButton>
-        </div>
+          icon="i-lucide-calendar-x"
+          title="Aucun rendez-vous aujourd'hui"
+          description="Votre journée est libre pour le moment."
+          cta-label="Voir la semaine"
+          cta-to="/provider/calendar"
+        />
 
         <!-- Appointments list -->
         <div
           v-else
-          class="divide-y divide-stone-100"
+          class="divide-y divide-[color:var(--color-border-subtle)]"
         >
           <div
             v-for="appointment in todayAppointments.slice(0, 5)"

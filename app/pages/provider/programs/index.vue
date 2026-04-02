@@ -43,38 +43,31 @@ function formatValidity(program: ProgramResponse): string {
 
 <template>
   <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-[color:var(--color-text-primary)]">
-          Programmes
-        </h1>
-        <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-          Gérez vos programmes d'accompagnement.
-        </p>
-      </div>
-      <UButton
-        to="/provider/programs/new"
-        color="primary"
-        icon="i-lucide-plus"
-      >
-        Créer un programme
-      </UButton>
-    </div>
+    <AtomsDsPageHeader
+      title="Programmes"
+      subtitle="Gérez vos programmes d'accompagnement."
+    >
+      <template #actions>
+        <UButton
+          to="/provider/programs/new"
+          color="primary"
+          icon="i-lucide-plus"
+        >
+          Créer un programme
+        </UButton>
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Error -->
-    <UAlert
+    <AtomsDsErrorState
       v-if="errorMessage"
-      color="error"
-      variant="soft"
-      title="Erreur"
-      :description="errorMessage"
-      icon="i-lucide-alert-circle"
+      :message="errorMessage"
+      @retry="loadPrograms()"
     />
 
     <!-- Loading -->
     <div
-      v-if="pending"
+      v-else-if="pending"
       class="space-y-4"
     >
       <USkeleton class="h-24 w-full" />
@@ -82,13 +75,13 @@ function formatValidity(program: ProgramResponse): string {
     </div>
 
     <!-- Empty -->
-    <UAlert
+    <AtomsDsEmptyState
       v-else-if="programs.length === 0 && !errorMessage"
-      color="neutral"
-      variant="soft"
       icon="i-lucide-package"
       title="Aucun programme"
       description="Créez votre premier programme d'accompagnement pour proposer des packs de séances à vos clientes."
+      cta-label="Créer un programme"
+      cta-to="/provider/programs/new"
     />
 
     <!-- Programs list -->

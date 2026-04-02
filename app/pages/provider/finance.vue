@@ -175,289 +175,284 @@ async function refreshPayments() {
 
 <template>
   <div class="space-y-8">
-    <!-- Page header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
-          Finance
-        </h1>
-        <p class="mt-1 text-[color:var(--color-text-muted)]">
-          Suivez vos fonds en attente et activez les virements vers votre banque.
-        </p>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <UButton
-          :to="stripeLinks.paymentsUrl"
-          target="_blank"
-          external
-          variant="outline"
-          color="neutral"
-        >
-          <UIcon
-            name="lucide:external-link"
-            class="mr-2 h-4 w-4"
-          />
-          Gérer sur Stripe
-        </UButton>
-        <UButton
-          :loading="finance.pending.value"
-          variant="outline"
-          color="neutral"
-          @click="onRefresh"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            class="mr-2 h-4 w-4"
-          />
-          Actualiser
-        </UButton>
-      </div>
-    </header>
-
-    <!-- Error alerts -->
-    <UAlert
-      v-if="finance.errorMessage.value"
-      color="error"
-      variant="soft"
-      title="Impossible de charger la page Finance"
-      :description="finance.errorMessage.value"
-      icon="i-lucide-alert-circle"
-    />
-
-    <UAlert
-      v-if="finance.actionErrorMessage.value"
-      color="error"
-      variant="soft"
-      title="Action impossible"
-      :description="finance.actionErrorMessage.value"
-      icon="i-lucide-alert-circle"
-    />
-
-    <!-- Loading skeleton -->
-    <UCard
-      v-if="(finance.pending.value && !uiState) || !hasHandledStripeReturn"
-      class="bg-[color:var(--color-surface-card)]"
+    <AtomsDsPageHeader
+      title="Finance"
+      subtitle="Suivez vos fonds en attente et activez les virements vers votre banque."
     >
-      <div class="space-y-4">
-        <USkeleton class="h-8 w-2/3" />
-        <USkeleton class="h-4 w-1/2" />
-        <USkeleton class="h-12 w-48" />
-      </div>
-    </UCard>
-
-    <!-- Main content -->
-    <template v-else-if="uiState && primaryCta">
-      <!-- Hero card - Funds status -->
-      <UCard
-        class="relative overflow-hidden border-crepuscule-200 bg-gradient-to-br from-crepuscule-50 via-white to-crepuscule-50"
-      >
-        <!-- Decorative elements -->
-        <div class="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-crepuscule-100/50 blur-3xl" />
-        <div class="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-crepuscule-200/30 blur-2xl" />
-
-        <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div class="flex items-start gap-5">
-            <!-- Icon container -->
-            <div
-              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-sm"
-              :class="[
-                uiState.kind === 'ready'
-                  ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-600)]'
-                  : uiState.kind === 'shadow'
-                    ? 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-600)]'
-                    : 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-600)]'
-              ]"
-            >
-              <UIcon
-                :name="uiState.kind === 'ready' ? 'lucide:check-circle' : uiState.kind === 'shadow' ? 'lucide:lock' : 'lucide:wallet'"
-                class="h-7 w-7"
-              />
-            </div>
-
-            <div class="space-y-2">
-              <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                Vos fonds
-              </p>
-              <h2 class="text-xl font-semibold text-[color:var(--color-text-primary)] sm:text-2xl">
-                <template v-if="uiState.kind === 'shadow' && formattedPendingAmount">
-                  {{ formattedPendingAmount }} en attente
-                </template>
-                <template v-else-if="uiState.kind === 'ready'">
-                  Votre compte est prêt
-                </template>
-                <template v-else>
-                  Configurez vos virements
-                </template>
-              </h2>
-              <p class="max-w-lg text-sm text-[color:var(--color-text-secondary)]">
-                {{ primaryCta.description }}
-              </p>
-            </div>
-          </div>
-
+      <template #actions>
+        <div class="flex flex-wrap items-center gap-2">
           <UButton
-            color="primary"
-            size="lg"
-            :disabled="!primaryCta.enabled"
-            :loading="finance.actionPending.value"
-            @click="onConnect"
+            :to="stripeLinks.paymentsUrl"
+            target="_blank"
+            external
+            variant="outline"
+            color="neutral"
           >
             <UIcon
-              :name="primaryCta.enabled ? 'lucide:arrow-right' : 'lucide:check'"
+              name="lucide:external-link"
               class="mr-2 h-4 w-4"
             />
-            {{ primaryCta.label }}
+            Gérer sur Stripe
           </UButton>
+          <UButton
+            :loading="finance.pending.value"
+            variant="outline"
+            color="neutral"
+            @click="onRefresh"
+          >
+            <UIcon
+              name="lucide:refresh-cw"
+              class="mr-2 h-4 w-4"
+            />
+            Actualiser
+          </UButton>
+        </div>
+      </template>
+    </AtomsDsPageHeader>
+
+    <!-- Error alerts -->
+    <AtomsDsErrorState
+      v-if="finance.errorMessage.value"
+      :message="finance.errorMessage.value"
+      @retry="onRefresh()"
+    />
+
+    <template v-else>
+      <UAlert
+        v-if="finance.actionErrorMessage.value"
+        color="error"
+        variant="soft"
+        title="Action impossible"
+        :description="finance.actionErrorMessage.value"
+        icon="i-lucide-alert-circle"
+      />
+
+      <!-- Loading skeleton -->
+      <UCard
+        v-if="(finance.pending.value && !uiState) || !hasHandledStripeReturn"
+        class="bg-[color:var(--color-surface-card)]"
+      >
+        <div class="space-y-4">
+          <USkeleton class="h-8 w-2/3" />
+          <USkeleton class="h-4 w-1/2" />
+          <USkeleton class="h-12 w-48" />
         </div>
       </UCard>
 
-      <!-- Stats cards grid -->
-      <div class="grid gap-6 lg:grid-cols-3">
-        <!-- Bank connection card -->
-        <UCard class="bg-[color:var(--color-surface-card)] lg:col-span-2">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="font-semibold text-[color:var(--color-text-primary)]">
-                  Connexion bancaire
-                </h3>
-                <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-                  Statut et étapes de vérification
-                </p>
-              </div>
-              <UBadge
-                v-if="stripeHumanStatus"
-                :color="stripeHumanStatus.color"
-                variant="soft"
-                size="lg"
+      <!-- Main content -->
+      <template v-else-if="uiState && primaryCta">
+        <!-- Hero card - Funds status -->
+        <UCard
+          class="relative overflow-hidden border-crepuscule-200 bg-gradient-to-br from-crepuscule-50 via-white to-crepuscule-50"
+        >
+          <!-- Decorative elements -->
+          <div class="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-crepuscule-100/50 blur-3xl" />
+          <div class="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-crepuscule-200/30 blur-2xl" />
+
+          <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex items-start gap-5">
+              <!-- Icon container -->
+              <div
+                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-sm"
+                :class="[
+                  uiState.kind === 'ready'
+                    ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-600)]'
+                    : uiState.kind === 'shadow'
+                      ? 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-600)]'
+                      : 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-600)]'
+                ]"
               >
                 <UIcon
-                  :name="stripeHumanStatus.icon"
-                  class="mr-1.5 h-3.5 w-3.5"
+                  :name="uiState.kind === 'ready' ? 'lucide:check-circle' : uiState.kind === 'shadow' ? 'lucide:lock' : 'lucide:wallet'"
+                  class="h-7 w-7"
                 />
-                {{ stripeHumanStatus.label }}
-              </UBadge>
-            </div>
-          </template>
+              </div>
 
-          <!-- Requirements alerts -->
-          <div
-            v-if="uiState.kind !== 'ready' || finance.requirementAlerts.value.length > 0"
-            class="space-y-4"
-          >
-            <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              {{ uiState.kind === 'ready' ? 'À compléter prochainement' : 'Prochaines étapes' }}
-            </p>
-
-            <div
-              v-if="finance.requirementAlerts.value.length"
-              class="space-y-2"
-            >
-              <UAlert
-                v-for="alert in finance.requirementAlerts.value"
-                :key="alert.message"
-                :color="alert.severity === 'critical' ? 'error' : alert.severity === 'warning' ? 'warning' : 'info'"
-                variant="soft"
-                :description="alert.message"
-                :icon="alert.severity === 'critical' ? 'i-lucide-alert-circle' : alert.severity === 'warning' ? 'i-lucide-alert-triangle' : 'i-lucide-info'"
-              />
+              <div class="space-y-2">
+                <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
+                  Vos fonds
+                </p>
+                <h2 class="text-xl font-semibold text-[color:var(--color-text-primary)] sm:text-2xl">
+                  <template v-if="uiState.kind === 'shadow' && formattedPendingAmount">
+                    {{ formattedPendingAmount }} en attente
+                  </template>
+                  <template v-else-if="uiState.kind === 'ready'">
+                    Votre compte est prêt
+                  </template>
+                  <template v-else>
+                    Configurez vos virements
+                  </template>
+                </h2>
+                <p class="max-w-lg text-sm text-[color:var(--color-text-secondary)]">
+                  {{ primaryCta.description }}
+                </p>
+              </div>
             </div>
 
-            <p
-              v-else
-              class="text-sm text-[color:var(--color-text-muted)]"
-            >
-              Connectez votre banque pour finaliser les informations nécessaires.
-            </p>
-
-            <!-- CTA to resolve requirements on Stripe -->
             <UButton
-              v-if="finance.requirementAlerts.value.length > 0"
               color="primary"
-              variant="outline"
+              size="lg"
+              :disabled="!primaryCta.enabled"
               :loading="finance.actionPending.value"
               @click="onConnect"
             >
               <UIcon
-                name="lucide:external-link"
+                :name="primaryCta.enabled ? 'lucide:arrow-right' : 'lucide:check'"
                 class="mr-2 h-4 w-4"
               />
-              Résoudre sur Stripe
+              {{ primaryCta.label }}
             </UButton>
           </div>
-
-          <!-- Ready state -->
-          <div
-            v-else
-            class="flex items-center gap-4 rounded-lg bg-[color:var(--color-success-50)] p-4"
-          >
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-success-100)]">
-              <UIcon
-                name="lucide:check"
-                class="h-5 w-5 text-[color:var(--color-success-600)]"
-              />
-            </div>
-            <div>
-              <p class="font-medium text-[color:var(--color-success-800)]">
-                Tout est en ordre
-              </p>
-              <p class="text-sm text-[color:var(--color-success-700)]">
-                Vos virements seront traités automatiquement.
-              </p>
-            </div>
-          </div>
         </UCard>
 
-        <!-- Pending funds card -->
-        <UCard class="bg-[color:var(--color-surface-card)]">
-          <template #header>
-            <h3 class="font-semibold text-[color:var(--color-text-primary)]">
-              Fonds en attente
-            </h3>
-          </template>
+        <!-- Stats cards grid -->
+        <div class="grid gap-6 lg:grid-cols-3">
+          <!-- Bank connection card -->
+          <UCard class="bg-[color:var(--color-surface-card)] lg:col-span-2">
+            <template #header>
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-semibold text-[color:var(--color-text-primary)]">
+                    Connexion bancaire
+                  </h3>
+                  <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+                    Statut et étapes de vérification
+                  </p>
+                </div>
+                <UBadge
+                  v-if="stripeHumanStatus"
+                  :color="stripeHumanStatus.color"
+                  variant="soft"
+                  size="lg"
+                >
+                  <UIcon
+                    :name="stripeHumanStatus.icon"
+                    class="mr-1.5 h-3.5 w-3.5"
+                  />
+                  {{ stripeHumanStatus.label }}
+                </UBadge>
+              </div>
+            </template>
 
-          <div class="space-y-6">
-            <!-- Amount display -->
-            <div class="text-center">
-              <p class="text-4xl font-bold text-[color:var(--color-text-primary)]">
-                {{ formattedPendingAmount ?? '0,00 €' }}
+            <!-- Requirements alerts -->
+            <div
+              v-if="uiState.kind !== 'ready' || finance.requirementAlerts.value.length > 0"
+              class="space-y-4"
+            >
+              <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
+                {{ uiState.kind === 'ready' ? 'À compléter prochainement' : 'Prochaines étapes' }}
               </p>
-              <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-                {{ uiState.pendingPayoutCount }} paiement{{ uiState.pendingPayoutCount !== 1 ? 's' : '' }} en attente
+
+              <div
+                v-if="finance.requirementAlerts.value.length"
+                class="space-y-2"
+              >
+                <UAlert
+                  v-for="alert in finance.requirementAlerts.value"
+                  :key="alert.message"
+                  :color="alert.severity === 'critical' ? 'error' : alert.severity === 'warning' ? 'warning' : 'info'"
+                  variant="soft"
+                  :description="alert.message"
+                  :icon="alert.severity === 'critical' ? 'i-lucide-alert-circle' : alert.severity === 'warning' ? 'i-lucide-alert-triangle' : 'i-lucide-info'"
+                />
+              </div>
+
+              <p
+                v-else
+                class="text-sm text-[color:var(--color-text-muted)]"
+              >
+                Connectez votre banque pour finaliser les informations nécessaires.
               </p>
+
+              <!-- CTA to resolve requirements on Stripe -->
+              <UButton
+                v-if="finance.requirementAlerts.value.length > 0"
+                color="primary"
+                variant="outline"
+                :loading="finance.actionPending.value"
+                @click="onConnect"
+              >
+                <UIcon
+                  name="lucide:external-link"
+                  class="mr-2 h-4 w-4"
+                />
+                Résoudre sur Stripe
+              </UButton>
             </div>
 
-            <!-- Divider -->
-            <div class="h-px bg-[color:var(--color-surface-muted)]" />
-
-            <!-- Info text -->
-            <p
-              v-if="uiState.pendingPayoutCents === 0"
-              class="text-center text-sm text-[color:var(--color-text-muted)]"
-            >
-              Aucun fonds en attente pour le moment.
-            </p>
-            <p
+            <!-- Ready state -->
+            <div
               v-else
-              class="text-center text-sm text-[color:var(--color-text-muted)]"
+              class="flex items-center gap-4 rounded-lg bg-[color:var(--color-success-50)] p-4"
             >
-              Ces fonds seront virés dès que votre compte bancaire sera connecté.
-            </p>
-          </div>
-        </UCard>
-      </div>
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-success-100)]">
+                <UIcon
+                  name="lucide:check"
+                  class="h-5 w-5 text-[color:var(--color-success-600)]"
+                />
+              </div>
+              <div>
+                <p class="font-medium text-[color:var(--color-success-800)]">
+                  Tout est en ordre
+                </p>
+                <p class="text-sm text-[color:var(--color-success-700)]">
+                  Vos virements seront traités automatiquement.
+                </p>
+              </div>
+            </div>
+          </UCard>
 
-      <!-- Payments section -->
-      <ProviderPaymentsSection
-        :pending="payments.pending.value"
-        :error-message="payments.errorMessage.value"
-        :payments="payments.payments.value"
-        :next-cursor="payments.nextCursor.value"
-        :load-more-pending="payments.loadMorePending.value"
-        :load-more-error-message="payments.loadMoreErrorMessage.value"
-        @refresh="refreshPayments"
-        @load-more="payments.loadMore"
-      />
+          <!-- Pending funds card -->
+          <UCard class="bg-[color:var(--color-surface-card)]">
+            <template #header>
+              <h3 class="font-semibold text-[color:var(--color-text-primary)]">
+                Fonds en attente
+              </h3>
+            </template>
+
+            <div class="space-y-6">
+              <!-- Amount display -->
+              <div class="text-center">
+                <p class="text-4xl font-bold text-[color:var(--color-text-primary)]">
+                  {{ formattedPendingAmount ?? '0,00 €' }}
+                </p>
+                <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+                  {{ uiState.pendingPayoutCount }} paiement{{ uiState.pendingPayoutCount !== 1 ? 's' : '' }} en attente
+                </p>
+              </div>
+
+              <!-- Divider -->
+              <div class="h-px bg-[color:var(--color-surface-muted)]" />
+
+              <!-- Info text -->
+              <p
+                v-if="uiState.pendingPayoutCents === 0"
+                class="text-center text-sm text-[color:var(--color-text-muted)]"
+              >
+                Aucun fonds en attente pour le moment.
+              </p>
+              <p
+                v-else
+                class="text-center text-sm text-[color:var(--color-text-muted)]"
+              >
+                Ces fonds seront virés dès que votre compte bancaire sera connecté.
+              </p>
+            </div>
+          </UCard>
+        </div>
+
+        <!-- Payments section -->
+        <ProviderPaymentsSection
+          :pending="payments.pending.value"
+          :error-message="payments.errorMessage.value"
+          :payments="payments.payments.value"
+          :next-cursor="payments.nextCursor.value"
+          :load-more-pending="payments.loadMorePending.value"
+          :load-more-error-message="payments.loadMoreErrorMessage.value"
+          @refresh="refreshPayments"
+          @load-more="payments.loadMore"
+        />
+      </template>
     </template>
   </div>
 </template>

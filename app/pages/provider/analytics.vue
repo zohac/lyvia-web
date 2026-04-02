@@ -29,23 +29,19 @@ const isEmpty = computed(() => {
 
 <template>
   <div class="mx-auto max-w-5xl space-y-8">
-    <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h1 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)] sm:text-3xl">
-          Analytics
-        </h1>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          Performance de vos pages publiques
-        </p>
-      </div>
-      <USelect
-        v-model="analytics.period.value"
-        :items="periodOptions"
-        value-key="value"
-        class="w-36"
-      />
-    </div>
+    <AtomsDsPageHeader
+      title="Analytics"
+      subtitle="Performance de vos pages publiques"
+    >
+      <template #actions>
+        <USelect
+          v-model="analytics.period.value"
+          :items="periodOptions"
+          value-key="value"
+          class="w-36"
+        />
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Loading State -->
     <div

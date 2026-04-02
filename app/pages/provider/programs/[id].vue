@@ -85,35 +85,31 @@ async function handleDeactivate() {
 
 <template>
   <div class="mx-auto max-w-2xl space-y-6">
-    <!-- Header -->
-    <div class="flex items-center gap-4">
-      <UButton
-        to="/provider/programs"
-        color="neutral"
-        variant="ghost"
-        icon="i-lucide-arrow-left"
-        size="sm"
-      />
-      <div class="min-w-0 flex-1">
-        <h1 class="truncate text-2xl font-bold text-[color:var(--color-text-primary)]">
-          {{ program?.name ?? 'Chargement…' }}
-        </h1>
-      </div>
-    </div>
+    <AtomsDsPageHeader
+      :title="program?.name ?? 'Chargement…'"
+      :accent-bar="false"
+    >
+      <template #back>
+        <UButton
+          to="/provider/programs"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-arrow-left"
+          size="sm"
+        />
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Error -->
-    <UAlert
+    <AtomsDsErrorState
       v-if="errorMessage"
-      color="error"
-      variant="soft"
-      title="Erreur"
-      :description="errorMessage"
-      icon="i-lucide-alert-circle"
+      :message="errorMessage"
+      @retry="loadProgram()"
     />
 
     <!-- Loading -->
     <div
-      v-if="pending"
+      v-else-if="pending"
       class="space-y-4"
     >
       <USkeleton class="h-40 w-full" />
