@@ -1,19 +1,14 @@
 import { keovaButton } from './config/design-system/keova-button'
 import { keovaCard } from './config/design-system/keova-card'
+import { keovaColors } from './config/design-system/keova-colors'
 
 export default defineAppConfig({
   ui: {
     // =========================================================================
-    // COLORS — Keova Design System (Semantic Mapping)
+    // COLORS — Keova Design System
+    // Maps Nuxt UI color roles to Crepuscule palette (primary=violet, secondary=sunset)
     // =========================================================================
-    // Aligned with design system spec:
-    //   - primary: stone (CTA → stone-900 background + white text)
-    //   - secondary: keova (accents/links → keova-700 text/border)
-    //
-    // @see app/config/design-system/keova-colors.ts
-    // @see docs/03_uiux/kaora/COLOR_SYSTEM.md
-    // =========================================================================
-    // colors: keovaColors,
+    colors: keovaColors,
 
     // =========================================================================
     // BUTTON — Keova DS (9 compound variants)

@@ -4,8 +4,9 @@
  * 7 colors × 6 variants = 42 compound variants.
  * All tokens are exclusively defined in main.css — zero ghost vars.
  *
- * Colors: primary, secondary, neutral, success, warning, error, info
- * Variants: solid, outline, soft, subtle, ghost, link
+ * IMPORTANT: Every variant includes `shadow-none [--tw-ring-shadow:...]` to cancel
+ * Nuxt UI's default `ring ring-inset ring-{color}/50` which causes
+ * a teal/blue ring bleeding through our custom borders.
  */
 export const keovaButton = {
   slots: {
@@ -75,6 +76,7 @@ export const keovaButton = {
       color: 'primary',
       variant: 'solid',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-brand-primary-dark)]',
         'text-white',
         'hover:bg-[color:var(--color-brand-primary)]',
@@ -88,8 +90,10 @@ export const keovaButton = {
       color: 'primary',
       variant: 'outline',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'border-2 border-[color:var(--color-brand-primary)]',
         'text-[color:var(--color-brand-primary)]',
+        'bg-transparent',
         'hover:bg-[color:var(--color-surface-highlight)]',
         'focus-visible:outline-[color:var(--color-brand-primary)]',
         'disabled:border-[color:var(--color-neutral-300)] disabled:text-[color:var(--color-neutral-400)]',
@@ -100,6 +104,7 @@ export const keovaButton = {
       color: 'primary',
       variant: 'soft',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-surface-highlight)]',
         'text-[color:var(--color-brand-primary)]',
         'hover:bg-[color:var(--color-brand-subtle)]',
@@ -112,6 +117,7 @@ export const keovaButton = {
       color: 'primary',
       variant: 'subtle',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-surface-highlight)]',
         'text-[color:var(--color-brand-primary)]',
         'border border-[color:var(--color-brand-subtle)]',
@@ -125,7 +131,9 @@ export const keovaButton = {
       color: 'primary',
       variant: 'ghost',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-brand-primary)]',
+        'bg-transparent',
         'hover:bg-[color:var(--color-surface-highlight)]',
         'focus-visible:outline-[color:var(--color-brand-primary)]',
         'disabled:text-[color:var(--color-neutral-400)]',
@@ -136,7 +144,10 @@ export const keovaButton = {
       color: 'primary',
       variant: 'link',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-brand-primary)]',
+        'bg-transparent',
+        'hover:text-[color:var(--color-brand-primary-dark)]',
         'hover:underline underline-offset-4',
         'focus-visible:outline-[color:var(--color-brand-primary)]',
         'disabled:text-[color:var(--color-neutral-400)]',
@@ -151,6 +162,7 @@ export const keovaButton = {
       color: 'secondary',
       variant: 'solid',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-brand-accent)]',
         'text-white',
         'hover:bg-[color:var(--color-brand-accent-hover)]',
@@ -162,8 +174,10 @@ export const keovaButton = {
       color: 'secondary',
       variant: 'outline',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'border-2 border-[color:var(--color-brand-accent)]',
         'text-[color:var(--color-brand-accent)]',
+        'bg-transparent',
         'hover:bg-[color:rgba(212,184,160,0.08)]',
         'focus-visible:outline-[color:var(--color-brand-accent)]'
       ].join(' ')
@@ -172,6 +186,7 @@ export const keovaButton = {
       color: 'secondary',
       variant: 'soft',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:rgba(212,184,160,0.12)]',
         'text-[color:var(--color-brand-accent)]',
         'hover:bg-[color:rgba(212,184,160,0.18)]',
@@ -182,6 +197,7 @@ export const keovaButton = {
       color: 'secondary',
       variant: 'subtle',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:rgba(212,184,160,0.12)]',
         'text-[color:var(--color-brand-accent)]',
         'border border-[color:rgba(212,184,160,0.25)]',
@@ -193,7 +209,9 @@ export const keovaButton = {
       color: 'secondary',
       variant: 'ghost',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-brand-accent)]',
+        'bg-transparent',
         'hover:bg-[color:rgba(212,184,160,0.08)]',
         'focus-visible:outline-[color:var(--color-brand-accent)]'
       ].join(' ')
@@ -202,7 +220,10 @@ export const keovaButton = {
       color: 'secondary',
       variant: 'link',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-brand-accent)]',
+        'bg-transparent',
+        'hover:text-[color:var(--color-brand-accent-hover)]',
         'hover:underline underline-offset-4',
         'focus-visible:outline-[color:var(--color-brand-accent)]'
       ].join(' ')
@@ -215,6 +236,7 @@ export const keovaButton = {
       color: 'neutral',
       variant: 'solid',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-brand-secondary)]',
         'text-white',
         'hover:bg-[color:var(--color-brand-primary)]',
@@ -228,6 +250,7 @@ export const keovaButton = {
       color: 'neutral',
       variant: 'outline',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'border-2 border-[color:var(--color-brand-subtle)]',
         'bg-[color:var(--color-surface-card)]',
         'text-[color:var(--color-brand-primary)]',
@@ -241,6 +264,7 @@ export const keovaButton = {
       color: 'neutral',
       variant: 'soft',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-surface-highlight)]',
         'text-[color:var(--color-brand-primary)]',
         'hover:bg-[color:var(--color-brand-subtle)]',
@@ -253,6 +277,7 @@ export const keovaButton = {
       color: 'neutral',
       variant: 'subtle',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-surface-highlight)]',
         'text-[color:var(--color-brand-secondary)]',
         'border border-[color:var(--color-brand-subtle)]',
@@ -266,7 +291,9 @@ export const keovaButton = {
       color: 'neutral',
       variant: 'ghost',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-brand-secondary)]',
+        'bg-transparent',
         'hover:text-[color:var(--color-brand-primary)]',
         'hover:bg-[color:var(--color-surface-highlight)]',
         'focus-visible:outline-[color:var(--color-brand-secondary)]',
@@ -278,7 +305,9 @@ export const keovaButton = {
       color: 'neutral',
       variant: 'link',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-brand-muted)]',
+        'bg-transparent',
         'hover:text-[color:var(--color-brand-primary)]',
         'hover:underline underline-offset-4',
         'focus-visible:outline-[color:var(--color-brand-secondary)]',
@@ -294,6 +323,7 @@ export const keovaButton = {
       color: 'success',
       variant: 'solid',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-success)]',
         'text-white',
         'hover:bg-[color:var(--color-success-600)]',
@@ -305,8 +335,10 @@ export const keovaButton = {
       color: 'success',
       variant: 'outline',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'border-2 border-[color:var(--color-success)]',
         'text-[color:var(--color-success-600)]',
+        'bg-transparent',
         'hover:bg-[color:var(--color-success-50)]',
         'focus-visible:outline-[color:var(--color-success)]'
       ].join(' ')
@@ -315,6 +347,7 @@ export const keovaButton = {
       color: 'success',
       variant: 'soft',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-success-50)]',
         'text-[color:var(--color-success-600)]',
         'hover:bg-[color:var(--color-success-100)]',
@@ -325,6 +358,7 @@ export const keovaButton = {
       color: 'success',
       variant: 'subtle',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-success-50)]',
         'text-[color:var(--color-success-600)]',
         'border border-[color:var(--color-success-200)]',
@@ -336,7 +370,9 @@ export const keovaButton = {
       color: 'success',
       variant: 'ghost',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-success-600)]',
+        'bg-transparent',
         'hover:bg-[color:var(--color-success-50)]',
         'focus-visible:outline-[color:var(--color-success)]'
       ].join(' ')
@@ -345,7 +381,10 @@ export const keovaButton = {
       color: 'success',
       variant: 'link',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-success-600)]',
+        'bg-transparent',
+        'hover:text-[color:var(--color-success-700)]',
         'hover:underline underline-offset-4',
         'focus-visible:outline-[color:var(--color-success)]'
       ].join(' ')
@@ -358,6 +397,7 @@ export const keovaButton = {
       color: 'warning',
       variant: 'solid',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-warning)]',
         'text-white',
         'hover:opacity-90',
@@ -369,8 +409,10 @@ export const keovaButton = {
       color: 'warning',
       variant: 'outline',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'border-2 border-[color:var(--color-warning)]',
         'text-[color:var(--color-warning)]',
+        'bg-transparent',
         'hover:bg-[color:rgba(217,119,6,0.08)]',
         'focus-visible:outline-[color:var(--color-warning)]'
       ].join(' ')
@@ -379,6 +421,7 @@ export const keovaButton = {
       color: 'warning',
       variant: 'soft',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:rgba(217,119,6,0.14)]',
         'text-[color:var(--color-warning)]',
         'hover:bg-[color:rgba(217,119,6,0.20)]',
@@ -389,6 +432,7 @@ export const keovaButton = {
       color: 'warning',
       variant: 'subtle',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:rgba(217,119,6,0.14)]',
         'text-[color:var(--color-warning)]',
         'border border-[color:rgba(217,119,6,0.25)]',
@@ -400,7 +444,9 @@ export const keovaButton = {
       color: 'warning',
       variant: 'ghost',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-warning)]',
+        'bg-transparent',
         'hover:bg-[color:rgba(217,119,6,0.08)]',
         'focus-visible:outline-[color:var(--color-warning)]'
       ].join(' ')
@@ -409,7 +455,10 @@ export const keovaButton = {
       color: 'warning',
       variant: 'link',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-warning)]',
+        'bg-transparent',
+        'hover:text-[color:var(--color-sunset-700)]',
         'hover:underline underline-offset-4',
         'focus-visible:outline-[color:var(--color-warning)]'
       ].join(' ')
@@ -422,6 +471,7 @@ export const keovaButton = {
       color: 'error',
       variant: 'solid',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-error)]',
         'text-white',
         'hover:opacity-90',
@@ -433,8 +483,10 @@ export const keovaButton = {
       color: 'error',
       variant: 'outline',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'border-2 border-[color:var(--color-error)]',
         'text-[color:var(--color-error)]',
+        'bg-transparent',
         'hover:bg-[color:var(--color-error-50)]',
         'focus-visible:outline-[color:var(--color-error)]'
       ].join(' ')
@@ -443,6 +495,7 @@ export const keovaButton = {
       color: 'error',
       variant: 'soft',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-error-50)]',
         'text-[color:var(--color-error)]',
         'hover:bg-[color:var(--color-error-100)]',
@@ -453,6 +506,7 @@ export const keovaButton = {
       color: 'error',
       variant: 'subtle',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-error-50)]',
         'text-[color:var(--color-error)]',
         'border border-[color:var(--color-error-200)]',
@@ -464,7 +518,9 @@ export const keovaButton = {
       color: 'error',
       variant: 'ghost',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-error)]',
+        'bg-transparent',
         'hover:bg-[color:var(--color-error-50)]',
         'focus-visible:outline-[color:var(--color-error)]'
       ].join(' ')
@@ -473,7 +529,10 @@ export const keovaButton = {
       color: 'error',
       variant: 'link',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-error)]',
+        'bg-transparent',
+        'hover:text-[color:var(--color-error-700)]',
         'hover:underline underline-offset-4',
         'focus-visible:outline-[color:var(--color-error)]'
       ].join(' ')
@@ -486,6 +545,7 @@ export const keovaButton = {
       color: 'info',
       variant: 'solid',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:var(--color-info)]',
         'text-white',
         'hover:opacity-90',
@@ -497,8 +557,10 @@ export const keovaButton = {
       color: 'info',
       variant: 'outline',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'border-2 border-[color:var(--color-info)]',
         'text-[color:var(--color-info)]',
+        'bg-transparent',
         'hover:bg-[color:rgba(91,123,158,0.08)]',
         'focus-visible:outline-[color:var(--color-info)]'
       ].join(' ')
@@ -507,6 +569,7 @@ export const keovaButton = {
       color: 'info',
       variant: 'soft',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:rgba(91,123,158,0.10)]',
         'text-[color:var(--color-info)]',
         'hover:bg-[color:rgba(91,123,158,0.16)]',
@@ -517,6 +580,7 @@ export const keovaButton = {
       color: 'info',
       variant: 'subtle',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'bg-[color:rgba(91,123,158,0.10)]',
         'text-[color:var(--color-info)]',
         'border border-[color:rgba(91,123,158,0.22)]',
@@ -528,7 +592,9 @@ export const keovaButton = {
       color: 'info',
       variant: 'ghost',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-info)]',
+        'bg-transparent',
         'hover:bg-[color:rgba(91,123,158,0.08)]',
         'focus-visible:outline-[color:var(--color-info)]'
       ].join(' ')
@@ -537,7 +603,10 @@ export const keovaButton = {
       color: 'info',
       variant: 'link',
       class: [
+        'shadow-none [--tw-ring-shadow:0_0_rgb(0_0_0/0)]',
         'text-[color:var(--color-info)]',
+        'bg-transparent',
+        'hover:text-[color:rgba(91,123,158,0.8)]',
         'hover:underline underline-offset-4',
         'focus-visible:outline-[color:var(--color-info)]'
       ].join(' ')

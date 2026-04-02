@@ -122,6 +122,39 @@
   --color-error-950: #450a0a;
 
   /* =================================================================================================
+   * TAILWIND UTILITY COLOR ALIASES
+   * Ensures text-primary, ring-primary, bg-primary etc. resolve to Crepuscule palette.
+   * Without these, Nuxt UI's default classes (ring-primary/50, hover:text-primary/75)
+   * resolve to Tailwind's default green/teal instead of our brand violet.
+   * ================================================================================================= */
+
+  /* Primary = Crepuscule (violet) — literal values required in @theme static */
+  --color-primary-50: #f5f3f7;
+  --color-primary-100: #ebe7ef;
+  --color-primary-200: #d7cfdf;
+  --color-primary-300: #b9aac7;
+  --color-primary-400: #9685ab;
+  --color-primary-500: #7a6b8e;
+  --color-primary-600: #5b4b6e;
+  --color-primary-700: #4d3f5c;
+  --color-primary-800: #3d3250;
+  --color-primary-900: #352c44;
+  --color-primary-950: #221d28;
+
+  /* Secondary = Sunset (orange accent) — literal values required in @theme static */
+  --color-secondary-50: #fdf6f1;
+  --color-secondary-100: #fbeade;
+  --color-secondary-200: #f6d2bc;
+  --color-secondary-300: #f0b48f;
+  --color-secondary-400: #e89560;
+  --color-secondary-500: #d4956a;
+  --color-secondary-600: #c47a4a;
+  --color-secondary-700: #a3603e;
+  --color-secondary-800: #854e38;
+  --color-secondary-900: #6d4231;
+  --color-secondary-950: #3a2118;
+
+  /* =================================================================================================
    * SEMANTIC TOKENS (mapped to Crépuscule)
    * ================================================================================================= */
 
