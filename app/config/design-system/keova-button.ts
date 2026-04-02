@@ -1,19 +1,11 @@
 /**
- * Keova Design System — Button Component Configuration (Simplified)
+ * Keova Design System — Button Component Configuration
  *
- * 9 compound variants using ONLY tokens defined in main.css:
+ * 7 colors × 6 variants = 42 compound variants.
+ * All tokens are exclusively defined in main.css — zero ghost vars.
  *
- * Action buttons (5):
- *   - primary solid: CTA principal (crépuscule-800 bg)
- *   - neutral outline: action secondaire (card bg, subtle border)
- *   - secondary solid: accent CTA (sunset-500 bg)
- *   - error solid: action destructive (error bg)
- *   - neutral ghost: action tertiaire discrète
- *
- * Semantic soft badges (4):
- *   - success soft, warning soft, error soft, info soft
- *
- * All other color+variant combinations fall through to Nuxt UI defaults.
+ * Colors: primary, secondary, neutral, success, warning, error, info
+ * Variants: solid, outline, soft, subtle, ghost, link
  */
 export const keovaButton = {
   slots: {
@@ -77,10 +69,8 @@ export const keovaButton = {
 
   compoundVariants: [
     // =========================================================================
-    // ACTION BUTTONS (5)
+    // PRIMARY (Crepuscule-800) — CTA PRINCIPAL
     // =========================================================================
-
-    // 1. Primary solid — CTA principal
     {
       color: 'primary',
       variant: 'solid',
@@ -94,8 +84,146 @@ export const keovaButton = {
         'aria-disabled:bg-[color:var(--color-neutral-400)] aria-disabled:text-white'
       ].join(' ')
     },
+    {
+      color: 'primary',
+      variant: 'outline',
+      class: [
+        'border-2 border-[color:var(--color-brand-primary)]',
+        'text-[color:var(--color-brand-primary)]',
+        'hover:bg-[color:var(--color-surface-highlight)]',
+        'focus-visible:outline-[color:var(--color-brand-primary)]',
+        'disabled:border-[color:var(--color-neutral-300)] disabled:text-[color:var(--color-neutral-400)]',
+        'aria-disabled:border-[color:var(--color-neutral-300)] aria-disabled:text-[color:var(--color-neutral-400)]'
+      ].join(' ')
+    },
+    {
+      color: 'primary',
+      variant: 'soft',
+      class: [
+        'bg-[color:var(--color-surface-highlight)]',
+        'text-[color:var(--color-brand-primary)]',
+        'hover:bg-[color:var(--color-brand-subtle)]',
+        'focus-visible:outline-[color:var(--color-brand-primary)]',
+        'disabled:text-[color:var(--color-neutral-400)]',
+        'aria-disabled:text-[color:var(--color-neutral-400)]'
+      ].join(' ')
+    },
+    {
+      color: 'primary',
+      variant: 'subtle',
+      class: [
+        'bg-[color:var(--color-surface-highlight)]',
+        'text-[color:var(--color-brand-primary)]',
+        'border border-[color:var(--color-brand-subtle)]',
+        'hover:bg-[color:var(--color-brand-subtle)]',
+        'focus-visible:outline-[color:var(--color-brand-primary)]',
+        'disabled:text-[color:var(--color-neutral-400)] disabled:border-[color:var(--color-neutral-300)]',
+        'aria-disabled:text-[color:var(--color-neutral-400)] aria-disabled:border-[color:var(--color-neutral-300)]'
+      ].join(' ')
+    },
+    {
+      color: 'primary',
+      variant: 'ghost',
+      class: [
+        'text-[color:var(--color-brand-primary)]',
+        'hover:bg-[color:var(--color-surface-highlight)]',
+        'focus-visible:outline-[color:var(--color-brand-primary)]',
+        'disabled:text-[color:var(--color-neutral-400)]',
+        'aria-disabled:text-[color:var(--color-neutral-400)]'
+      ].join(' ')
+    },
+    {
+      color: 'primary',
+      variant: 'link',
+      class: [
+        'text-[color:var(--color-brand-primary)]',
+        'hover:underline underline-offset-4',
+        'focus-visible:outline-[color:var(--color-brand-primary)]',
+        'disabled:text-[color:var(--color-neutral-400)]',
+        'aria-disabled:text-[color:var(--color-neutral-400)]'
+      ].join(' ')
+    },
 
-    // 2. Neutral outline — action secondaire
+    // =========================================================================
+    // SECONDARY (Sunset-500) — BRAND ACCENT
+    // =========================================================================
+    {
+      color: 'secondary',
+      variant: 'solid',
+      class: [
+        'bg-[color:var(--color-brand-accent)]',
+        'text-white',
+        'hover:bg-[color:var(--color-brand-accent-hover)]',
+        'focus-visible:outline-[color:var(--color-brand-accent)]',
+        'active:scale-[0.98]'
+      ].join(' ')
+    },
+    {
+      color: 'secondary',
+      variant: 'outline',
+      class: [
+        'border-2 border-[color:var(--color-brand-accent)]',
+        'text-[color:var(--color-brand-accent)]',
+        'hover:bg-[color:rgba(212,184,160,0.08)]',
+        'focus-visible:outline-[color:var(--color-brand-accent)]'
+      ].join(' ')
+    },
+    {
+      color: 'secondary',
+      variant: 'soft',
+      class: [
+        'bg-[color:rgba(212,184,160,0.12)]',
+        'text-[color:var(--color-brand-accent)]',
+        'hover:bg-[color:rgba(212,184,160,0.18)]',
+        'focus-visible:outline-[color:var(--color-brand-accent)]'
+      ].join(' ')
+    },
+    {
+      color: 'secondary',
+      variant: 'subtle',
+      class: [
+        'bg-[color:rgba(212,184,160,0.12)]',
+        'text-[color:var(--color-brand-accent)]',
+        'border border-[color:rgba(212,184,160,0.25)]',
+        'hover:bg-[color:rgba(212,184,160,0.18)]',
+        'focus-visible:outline-[color:var(--color-brand-accent)]'
+      ].join(' ')
+    },
+    {
+      color: 'secondary',
+      variant: 'ghost',
+      class: [
+        'text-[color:var(--color-brand-accent)]',
+        'hover:bg-[color:rgba(212,184,160,0.08)]',
+        'focus-visible:outline-[color:var(--color-brand-accent)]'
+      ].join(' ')
+    },
+    {
+      color: 'secondary',
+      variant: 'link',
+      class: [
+        'text-[color:var(--color-brand-accent)]',
+        'hover:underline underline-offset-4',
+        'focus-visible:outline-[color:var(--color-brand-accent)]'
+      ].join(' ')
+    },
+
+    // =========================================================================
+    // NEUTRAL (Crepuscule-400) — SECONDARY ACTIONS
+    // =========================================================================
+    {
+      color: 'neutral',
+      variant: 'solid',
+      class: [
+        'bg-[color:var(--color-brand-secondary)]',
+        'text-white',
+        'hover:bg-[color:var(--color-brand-primary)]',
+        'focus-visible:outline-[color:var(--color-brand-secondary)]',
+        'active:scale-[0.98]',
+        'disabled:bg-[color:var(--color-neutral-400)] disabled:text-white',
+        'aria-disabled:bg-[color:var(--color-neutral-400)] aria-disabled:text-white'
+      ].join(' ')
+    },
     {
       color: 'neutral',
       variant: 'outline',
@@ -109,34 +237,31 @@ export const keovaButton = {
         'aria-disabled:border-[color:var(--color-neutral-300)] aria-disabled:text-[color:var(--color-neutral-400)]'
       ].join(' ')
     },
-
-    // 3. Secondary solid — accent CTA
     {
-      color: 'secondary',
-      variant: 'solid',
+      color: 'neutral',
+      variant: 'soft',
       class: [
-        'bg-[color:var(--color-brand-accent)]',
-        'text-white',
-        'hover:bg-[color:var(--color-brand-accent-hover)]',
-        'focus-visible:outline-[color:var(--color-brand-accent)]',
-        'active:scale-[0.98]'
+        'bg-[color:var(--color-surface-highlight)]',
+        'text-[color:var(--color-brand-primary)]',
+        'hover:bg-[color:var(--color-brand-subtle)]',
+        'focus-visible:outline-[color:var(--color-brand-secondary)]',
+        'disabled:text-[color:var(--color-neutral-400)]',
+        'aria-disabled:text-[color:var(--color-neutral-400)]'
       ].join(' ')
     },
-
-    // 4. Error solid — action destructive
     {
-      color: 'error',
-      variant: 'solid',
+      color: 'neutral',
+      variant: 'subtle',
       class: [
-        'bg-[color:var(--color-error)]',
-        'text-white',
-        'hover:opacity-90',
-        'focus-visible:outline-[color:var(--color-error)]',
-        'active:scale-[0.98]'
+        'bg-[color:var(--color-surface-highlight)]',
+        'text-[color:var(--color-brand-secondary)]',
+        'border border-[color:var(--color-brand-subtle)]',
+        'hover:bg-[color:var(--color-brand-subtle)]',
+        'focus-visible:outline-[color:var(--color-brand-secondary)]',
+        'disabled:text-[color:var(--color-neutral-400)] disabled:border-[color:var(--color-neutral-300)]',
+        'aria-disabled:text-[color:var(--color-neutral-400)] aria-disabled:border-[color:var(--color-neutral-300)]'
       ].join(' ')
     },
-
-    // 5. Neutral ghost — action tertiaire discrète
     {
       color: 'neutral',
       variant: 'ghost',
@@ -149,12 +274,43 @@ export const keovaButton = {
         'aria-disabled:text-[color:var(--color-neutral-400)]'
       ].join(' ')
     },
+    {
+      color: 'neutral',
+      variant: 'link',
+      class: [
+        'text-[color:var(--color-brand-muted)]',
+        'hover:text-[color:var(--color-brand-primary)]',
+        'hover:underline underline-offset-4',
+        'focus-visible:outline-[color:var(--color-brand-secondary)]',
+        'disabled:text-[color:var(--color-neutral-400)]',
+        'aria-disabled:text-[color:var(--color-neutral-400)]'
+      ].join(' ')
+    },
 
     // =========================================================================
-    // SEMANTIC SOFT BADGES (4)
+    // SUCCESS — POSITIVE STATES
     // =========================================================================
-
-    // 6. Success soft
+    {
+      color: 'success',
+      variant: 'solid',
+      class: [
+        'bg-[color:var(--color-success)]',
+        'text-white',
+        'hover:bg-[color:var(--color-success-600)]',
+        'focus-visible:outline-[color:var(--color-success)]',
+        'active:scale-[0.98]'
+      ].join(' ')
+    },
+    {
+      color: 'success',
+      variant: 'outline',
+      class: [
+        'border-2 border-[color:var(--color-success)]',
+        'text-[color:var(--color-success-600)]',
+        'hover:bg-[color:var(--color-success-50)]',
+        'focus-visible:outline-[color:var(--color-success)]'
+      ].join(' ')
+    },
     {
       color: 'success',
       variant: 'soft',
@@ -165,8 +321,60 @@ export const keovaButton = {
         'focus-visible:outline-[color:var(--color-success)]'
       ].join(' ')
     },
+    {
+      color: 'success',
+      variant: 'subtle',
+      class: [
+        'bg-[color:var(--color-success-50)]',
+        'text-[color:var(--color-success-600)]',
+        'border border-[color:var(--color-success-200)]',
+        'hover:bg-[color:var(--color-success-100)]',
+        'focus-visible:outline-[color:var(--color-success)]'
+      ].join(' ')
+    },
+    {
+      color: 'success',
+      variant: 'ghost',
+      class: [
+        'text-[color:var(--color-success-600)]',
+        'hover:bg-[color:var(--color-success-50)]',
+        'focus-visible:outline-[color:var(--color-success)]'
+      ].join(' ')
+    },
+    {
+      color: 'success',
+      variant: 'link',
+      class: [
+        'text-[color:var(--color-success-600)]',
+        'hover:underline underline-offset-4',
+        'focus-visible:outline-[color:var(--color-success)]'
+      ].join(' ')
+    },
 
-    // 7. Warning soft
+    // =========================================================================
+    // WARNING — ATTENTION STATES
+    // =========================================================================
+    {
+      color: 'warning',
+      variant: 'solid',
+      class: [
+        'bg-[color:var(--color-warning)]',
+        'text-white',
+        'hover:opacity-90',
+        'focus-visible:outline-[color:var(--color-warning)]',
+        'active:scale-[0.98]'
+      ].join(' ')
+    },
+    {
+      color: 'warning',
+      variant: 'outline',
+      class: [
+        'border-2 border-[color:var(--color-warning)]',
+        'text-[color:var(--color-warning)]',
+        'hover:bg-[color:rgba(217,119,6,0.08)]',
+        'focus-visible:outline-[color:var(--color-warning)]'
+      ].join(' ')
+    },
     {
       color: 'warning',
       variant: 'soft',
@@ -177,8 +385,60 @@ export const keovaButton = {
         'focus-visible:outline-[color:var(--color-warning)]'
       ].join(' ')
     },
+    {
+      color: 'warning',
+      variant: 'subtle',
+      class: [
+        'bg-[color:rgba(217,119,6,0.14)]',
+        'text-[color:var(--color-warning)]',
+        'border border-[color:rgba(217,119,6,0.25)]',
+        'hover:bg-[color:rgba(217,119,6,0.20)]',
+        'focus-visible:outline-[color:var(--color-warning)]'
+      ].join(' ')
+    },
+    {
+      color: 'warning',
+      variant: 'ghost',
+      class: [
+        'text-[color:var(--color-warning)]',
+        'hover:bg-[color:rgba(217,119,6,0.08)]',
+        'focus-visible:outline-[color:var(--color-warning)]'
+      ].join(' ')
+    },
+    {
+      color: 'warning',
+      variant: 'link',
+      class: [
+        'text-[color:var(--color-warning)]',
+        'hover:underline underline-offset-4',
+        'focus-visible:outline-[color:var(--color-warning)]'
+      ].join(' ')
+    },
 
-    // 8. Error soft
+    // =========================================================================
+    // ERROR — DESTRUCTIVE ACTIONS
+    // =========================================================================
+    {
+      color: 'error',
+      variant: 'solid',
+      class: [
+        'bg-[color:var(--color-error)]',
+        'text-white',
+        'hover:opacity-90',
+        'focus-visible:outline-[color:var(--color-error)]',
+        'active:scale-[0.98]'
+      ].join(' ')
+    },
+    {
+      color: 'error',
+      variant: 'outline',
+      class: [
+        'border-2 border-[color:var(--color-error)]',
+        'text-[color:var(--color-error)]',
+        'hover:bg-[color:var(--color-error-50)]',
+        'focus-visible:outline-[color:var(--color-error)]'
+      ].join(' ')
+    },
     {
       color: 'error',
       variant: 'soft',
@@ -189,16 +449,97 @@ export const keovaButton = {
         'focus-visible:outline-[color:var(--color-error)]'
       ].join(' ')
     },
+    {
+      color: 'error',
+      variant: 'subtle',
+      class: [
+        'bg-[color:var(--color-error-50)]',
+        'text-[color:var(--color-error)]',
+        'border border-[color:var(--color-error-200)]',
+        'hover:bg-[color:var(--color-error-100)]',
+        'focus-visible:outline-[color:var(--color-error)]'
+      ].join(' ')
+    },
+    {
+      color: 'error',
+      variant: 'ghost',
+      class: [
+        'text-[color:var(--color-error)]',
+        'hover:bg-[color:var(--color-error-50)]',
+        'focus-visible:outline-[color:var(--color-error)]'
+      ].join(' ')
+    },
+    {
+      color: 'error',
+      variant: 'link',
+      class: [
+        'text-[color:var(--color-error)]',
+        'hover:underline underline-offset-4',
+        'focus-visible:outline-[color:var(--color-error)]'
+      ].join(' ')
+    },
 
-    // 9. Info soft
+    // =========================================================================
+    // INFO — INFORMATIONAL STATES
+    // =========================================================================
+    {
+      color: 'info',
+      variant: 'solid',
+      class: [
+        'bg-[color:var(--color-info)]',
+        'text-white',
+        'hover:opacity-90',
+        'focus-visible:outline-[color:var(--color-info)]',
+        'active:scale-[0.98]'
+      ].join(' ')
+    },
+    {
+      color: 'info',
+      variant: 'outline',
+      class: [
+        'border-2 border-[color:var(--color-info)]',
+        'text-[color:var(--color-info)]',
+        'hover:bg-[color:rgba(91,123,158,0.08)]',
+        'focus-visible:outline-[color:var(--color-info)]'
+      ].join(' ')
+    },
     {
       color: 'info',
       variant: 'soft',
       class: [
-        'bg-blue-50',
-        'text-blue-700',
-        'hover:bg-blue-100',
-        'focus-visible:outline-blue-600'
+        'bg-[color:rgba(91,123,158,0.10)]',
+        'text-[color:var(--color-info)]',
+        'hover:bg-[color:rgba(91,123,158,0.16)]',
+        'focus-visible:outline-[color:var(--color-info)]'
+      ].join(' ')
+    },
+    {
+      color: 'info',
+      variant: 'subtle',
+      class: [
+        'bg-[color:rgba(91,123,158,0.10)]',
+        'text-[color:var(--color-info)]',
+        'border border-[color:rgba(91,123,158,0.22)]',
+        'hover:bg-[color:rgba(91,123,158,0.16)]',
+        'focus-visible:outline-[color:var(--color-info)]'
+      ].join(' ')
+    },
+    {
+      color: 'info',
+      variant: 'ghost',
+      class: [
+        'text-[color:var(--color-info)]',
+        'hover:bg-[color:rgba(91,123,158,0.08)]',
+        'focus-visible:outline-[color:var(--color-info)]'
+      ].join(' ')
+    },
+    {
+      color: 'info',
+      variant: 'link',
+      class: [
+        'text-[color:var(--color-info)]',
+        'hover:underline underline-offset-4',
+        'focus-visible:outline-[color:var(--color-info)]'
       ].join(' ')
     }
   ],
