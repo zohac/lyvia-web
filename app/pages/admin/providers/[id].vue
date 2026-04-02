@@ -522,13 +522,49 @@ const SEO_TARGET_ICONS: Record<string, string> = {
     <!-- Loading -->
     <div
       v-if="pending"
-      class="flex items-center justify-center py-20"
+      class="space-y-8"
     >
-      <UIcon
-        name="lucide:loader-2"
-        size="32"
-        class="animate-spin text-[color:var(--color-brand-muted)]"
-      />
+      <section class="rounded-2xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-crepuscule-50)]/55 p-6 shadow-soft sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex min-w-0 flex-1 items-start gap-4">
+            <USkeleton class="h-14 w-14 shrink-0 rounded-2xl" />
+
+            <div class="min-w-0 flex-1 space-y-3">
+              <USkeleton class="h-8 w-56 max-w-full" />
+
+              <div class="flex flex-wrap gap-2">
+                <USkeleton class="h-6 w-24 rounded-full" />
+                <USkeleton class="h-6 w-28 rounded-full" />
+                <USkeleton class="h-6 w-20 rounded-full" />
+              </div>
+
+              <USkeleton class="h-3 w-72 max-w-full" />
+            </div>
+          </div>
+
+          <USkeleton class="h-9 w-9 rounded-full" />
+        </div>
+      </section>
+
+      <div class="space-y-6">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <USkeleton
+            v-for="i in 4"
+            :key="i"
+            class="h-10 rounded-full"
+          />
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+          <USkeleton
+            v-for="i in 3"
+            :key="`stats-${i}`"
+            class="h-24 rounded-xl"
+          />
+        </div>
+
+        <USkeleton class="h-80 rounded-2xl" />
+      </div>
     </div>
 
     <!-- Error -->
