@@ -105,7 +105,7 @@ onMounted(() => {
     <!-- ══════════════════════════════════════════════════════════
          CHAPITRE 1 — HERO (dark, immersif, typo massive)
          ══════════════════════════════════════════════════════════ -->
-    <section class="relative flex min-h-[100dvh] items-center overflow-hidden bg-[#1a1525] px-6 sm:px-12 lg:px-20">
+    <section class="relative flex min-h-[100dvh] items-center overflow-hidden bg-[var(--color-neutral-950)] px-6 sm:px-12 lg:px-20">
       <!-- Ambient glows -->
       <div
         class="pointer-events-none absolute -left-[20%] top-[10%] h-[70vh] w-[70vh] rounded-full opacity-30"
@@ -130,9 +130,9 @@ onMounted(() => {
 
       <div class="relative z-10 mx-auto w-full max-w-6xl py-32">
         <!-- Eyebrow -->
-        <div class="hero-appear mb-10 inline-flex items-center gap-2.5 rounded-full border border-[#d4956a]/25 bg-[#d4956a]/10 px-5 py-2 backdrop-blur-sm">
-          <span class="size-2 animate-pulse rounded-full bg-[#d4956a]" />
-          <span class="text-sm font-medium tracking-wide text-[#d4956a]">Accompagnement ménopause en France</span>
+        <div class="hero-appear mb-10 inline-flex items-center gap-2.5 rounded-full border border-[var(--color-brand-accent)]/25 bg-[var(--color-brand-accent)]/10 px-5 py-2 backdrop-blur-sm">
+          <span class="size-2 animate-pulse rounded-full bg-[var(--color-brand-accent)]" />
+          <span class="text-sm font-medium tracking-wide text-[var(--color-brand-accent)]">Accompagnement ménopause en France</span>
         </div>
 
         <!-- H1 — massive, asymmetric -->
@@ -140,7 +140,7 @@ onMounted(() => {
           Ce n'est pas
           <br>
           dans votre
-          <span class="bg-gradient-to-r from-[#d4956a] to-[#e8a878] bg-clip-text text-transparent"> tête.</span>
+          <span class="bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-300)] bg-clip-text text-transparent"> tête.</span>
         </h1>
 
         <!-- Sous-ligne -->
@@ -152,7 +152,7 @@ onMounted(() => {
         <!-- CTA row -->
         <div class="hero-appear stagger-3 mt-12 flex flex-wrap items-center gap-5">
           <button
-            class="cta-glow group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#d4956a] to-[#c8845e] px-10 py-4 text-base font-semibold text-white shadow-lg shadow-[#d4956a]/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.97]"
+            class="cta-glow group relative cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] px-10 py-4 text-base font-semibold text-white shadow-lg shadow-[var(--color-brand-accent)]/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.97]"
             @click="scrollTo('specialistes')"
           >
             <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
@@ -172,7 +172,7 @@ onMounted(() => {
       <div class="absolute inset-x-0 bottom-10 flex flex-col items-center gap-2">
         <span class="text-xs font-medium uppercase tracking-[0.3em] text-white/30">Découvrir</span>
         <div class="scroll-indicator relative h-10 w-5 rounded-full border border-white/20">
-          <div class="absolute left-1/2 top-2 size-1.5 -translate-x-1/2 animate-scroll-dot rounded-full bg-[#d4956a]" />
+          <div class="absolute left-1/2 top-2 size-1.5 -translate-x-1/2 animate-scroll-dot rounded-full bg-[var(--color-brand-accent)]" />
         </div>
       </div>
     </section>
@@ -180,7 +180,7 @@ onMounted(() => {
     <!-- ══════════════════════════════════════════════════════════
          CHAPITRE 2 — LA RÉALITÉ (warm transition, split layout)
          ══════════════════════════════════════════════════════════ -->
-    <section class="relative bg-gradient-to-b from-[#1a1525] via-[#2d2438] to-[#f5ede6] px-6 py-32 sm:px-12 lg:px-20">
+    <section class="relative bg-gradient-to-b from-[var(--color-neutral-950)] via-[var(--color-crepuscule-950)] to-[var(--color-neutral-50)] px-6 py-32 sm:px-12 lg:px-20">
       <div class="mx-auto grid max-w-6xl gap-16 lg:grid-cols-2 lg:items-center">
         <!-- Left: text -->
         <div
@@ -201,7 +201,7 @@ onMounted(() => {
               Ce n'est pas le stress. Ce n'est pas l'âge.
               C'est hormonal. Et ça peut commencer dès 38 ans.
             </p>
-            <p class="text-[#d4956a]">
+            <p class="text-[var(--color-brand-accent)]">
               Vous n'avez pas à gérer ça seule.
             </p>
           </div>
@@ -212,22 +212,22 @@ onMounted(() => {
           <!-- Stat card — pillar-card pattern from coach page -->
           <div
             ref="stat-card"
-            class="pillar-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-10 text-center transition-all duration-300 sm:p-12"
+            class="pillar-card group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-10 text-center transition-all duration-300 sm:p-12"
           >
             <!-- Glow blob top-right (appears on hover) -->
             <div
-              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
               aria-hidden="true"
             />
             <div class="relative">
-              <p class="font-serif text-7xl font-bold tabular-nums text-[#d4956a] sm:text-8xl lg:text-9xl">
+              <p class="font-serif text-7xl font-bold tabular-nums text-[var(--color-brand-accent)] sm:text-8xl lg:text-9xl">
                 {{ statCount }}<span class="text-4xl sm:text-5xl">M</span>
               </p>
-              <p class="mt-4 text-lg text-[#6b6177]">
+              <p class="mt-4 text-lg text-[var(--color-crepuscule-500)]">
                 de femmes en France.
               </p>
-              <div class="mx-auto my-5 h-px w-20 bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
-              <p class="text-xl font-semibold text-[#3d3250]">
+              <div class="mx-auto my-5 h-px w-20 bg-gradient-to-r from-transparent via-[var(--color-brand-accent)]/30 to-transparent" />
+              <p class="text-xl font-semibold text-[var(--color-crepuscule-800)]">
                 La plupart gèrent ça seules.
               </p>
             </div>
@@ -236,23 +236,23 @@ onMounted(() => {
           <!-- After menopause — same pillar-card pattern -->
           <div
             v-bind="reveal({ delay: 300 })"
-            class="pillar-card scroll-reveal reveal-from-right group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10"
+            class="pillar-card scroll-reveal reveal-from-right group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10"
           >
             <!-- Glow blob top-right -->
             <div
-              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
               aria-hidden="true"
             />
             <div class="relative">
-              <h3 class="font-serif text-2xl text-[#3d3250] sm:text-3xl">
+              <h3 class="font-serif text-2xl text-[var(--color-crepuscule-800)] sm:text-3xl">
                 Et après les bouffées de chaleur...
               </h3>
-              <p class="mt-5 text-lg leading-relaxed text-[#4a4255]">
+              <p class="mt-5 text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
                 D'autres choses arrivent. Des douleurs dans les mains au réveil.
                 Du poids qui ne bouge plus. Des os qui se fragilisent.
                 Une fatigue de fond, tout le temps.
               </p>
-              <p class="mt-4 text-lg font-medium text-[#d4956a]">
+              <p class="mt-4 text-lg font-medium text-[var(--color-brand-accent)]">
                 Même dix ans après, il y a des choses à faire.
               </p>
             </div>
@@ -264,17 +264,17 @@ onMounted(() => {
     <!-- ══════════════════════════════════════════════════════════
          CHAPITRE 3 — LA RENAISSANCE (lumineux, piliers + étapes)
          ══════════════════════════════════════════════════════════ -->
-    <section class="relative bg-[#faf8f6] px-6 py-32 sm:px-12 lg:px-20">
+    <section class="relative bg-[var(--color-surface-page)] px-6 py-32 sm:px-12 lg:px-20">
       <div class="mx-auto max-w-6xl">
         <div
           v-bind="reveal()"
           class="scroll-reveal mb-20 max-w-2xl"
         >
-          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Comprendre</span>
-          <h2 class="mt-4 font-serif text-4xl leading-tight text-[#3d3250] sm:text-5xl">
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-accent)]">Comprendre</span>
+          <h2 class="mt-4 font-serif text-4xl leading-tight text-[var(--color-crepuscule-800)] sm:text-5xl">
             Pourquoi se faire accompagner&#8239;?
           </h2>
-          <p class="mt-5 text-lg text-[#857d8c]">
+          <p class="mt-5 text-lg text-[var(--color-text-muted)]">
             La ménopause n'est pas une maladie. Mais elle change des choses
             dans votre corps et dans votre quotidien.
           </p>
@@ -286,22 +286,22 @@ onMounted(() => {
             v-for="(p, i) in pillars"
             :key="p.num"
             v-bind="reveal({ delay: i * 100 })"
-            class="scroll-reveal group grid items-center gap-8 rounded-[2rem] border border-[#ebe4f3]/60 bg-white/80 p-8 backdrop-blur-sm transition-all duration-500 hover:shadow-[0_16px_48px_rgba(212,149,106,0.08)] sm:grid-cols-[auto_1fr] sm:p-10"
+            class="scroll-reveal group grid items-center gap-8 rounded-[2rem] border border-[var(--color-crepuscule-100)]/60 bg-white/80 p-8 backdrop-blur-sm transition-all duration-500 hover:shadow-[0_16px_48px_rgba(212,149,106,0.08)] sm:grid-cols-[auto_1fr] sm:p-10"
           >
-            <div class="grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#d4956a]/15 to-[#e8a878]/10 transition-all duration-500 group-hover:from-[#d4956a]/25 group-hover:shadow-md">
+            <div class="grid size-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[var(--color-brand-accent)]/15 to-[var(--color-sunset-300)]/10 transition-all duration-500 group-hover:from-[var(--color-brand-accent)]/25 group-hover:shadow-md">
               <UIcon
                 :name="p.icon"
-                class="size-8 text-[#d4956a] transition-transform duration-500 group-hover:scale-110"
+                class="size-8 text-[var(--color-brand-accent)] transition-transform duration-500 group-hover:scale-110"
               />
             </div>
             <div>
               <div class="flex items-baseline gap-3">
-                <span class="font-serif text-2xl font-light text-[#d4956a]/30">{{ p.num }}</span>
-                <h3 class="font-serif text-xl text-[#3d3250]">
+                <span class="font-serif text-2xl font-light text-[var(--color-brand-accent)]/30">{{ p.num }}</span>
+                <h3 class="font-serif text-xl text-[var(--color-crepuscule-800)]">
                   {{ p.title }}
                 </h3>
               </div>
-              <p class="mt-2 text-base leading-relaxed text-[#6b6177]">
+              <p class="mt-2 text-base leading-relaxed text-[var(--color-crepuscule-500)]">
                 {{ p.text }}
               </p>
               <a
@@ -309,7 +309,7 @@ onMounted(() => {
                 :href="p.sourceUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="mt-2 inline-block text-xs text-[#d4956a] hover:underline"
+                class="mt-2 inline-block text-xs text-[var(--color-brand-accent)] hover:underline"
               >Source : {{ p.sourceLabel }}</a>
             </div>
           </div>
@@ -319,7 +319,7 @@ onMounted(() => {
         <div class="mt-24">
           <h2
             v-bind="reveal()"
-            class="scroll-reveal mb-12 font-serif text-3xl text-[#3d3250] sm:text-4xl"
+            class="scroll-reveal mb-12 font-serif text-3xl text-[var(--color-crepuscule-800)] sm:text-4xl"
           >
             Comment ça marche
           </h2>
@@ -332,13 +332,13 @@ onMounted(() => {
               ]"
               :key="step.num"
               v-bind="reveal({ delay: i * 150 })"
-              class="scroll-reveal group rounded-2xl border border-transparent bg-gradient-to-br from-[#f5ede6]/80 to-white p-6 transition-all duration-300 hover:border-[#d4956a]/15 hover:shadow-lg"
+              class="scroll-reveal group rounded-2xl border border-transparent bg-gradient-to-br from-[var(--color-neutral-50)]/80 to-white p-6 transition-all duration-300 hover:border-[var(--color-brand-accent)]/15 hover:shadow-lg"
             >
-              <span class="text-4xl font-bold text-[#d4956a]/15">{{ step.num }}</span>
-              <h3 class="mt-3 text-lg font-semibold text-[#3d3250]">
+              <span class="text-4xl font-bold text-[var(--color-brand-accent)]/15">{{ step.num }}</span>
+              <h3 class="mt-3 text-lg font-semibold text-[var(--color-crepuscule-800)]">
                 {{ step.title }}
               </h3>
-              <p class="mt-2 text-sm text-[#6b6177]">
+              <p class="mt-2 text-sm text-[var(--color-crepuscule-500)]">
                 {{ step.text }}
               </p>
             </div>
@@ -352,18 +352,18 @@ onMounted(() => {
          ══════════════════════════════════════════════════════════ -->
     <section
       id="specialistes"
-      class="relative bg-gradient-to-b from-[#faf8f6] to-[#f0eaf5] px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-gradient-to-b from-[var(--color-surface-page)] to-[var(--color-crepuscule-100)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-6xl">
         <div
           v-bind="reveal()"
           class="scroll-reveal mb-16 text-center"
         >
-          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">Rencontre</span>
-          <h2 class="mt-4 font-serif text-4xl text-[#3d3250] sm:text-5xl">
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-accent)]">Rencontre</span>
+          <h2 class="mt-4 font-serif text-4xl text-[var(--color-crepuscule-800)] sm:text-5xl">
             Les spécialistes
           </h2>
-          <p class="mt-4 text-lg text-[#857d8c]">
+          <p class="mt-4 text-lg text-[var(--color-text-muted)]">
             Formées à la ménopause. En visio ou en cabinet.
           </p>
         </div>
@@ -385,12 +385,12 @@ onMounted(() => {
         <div
           v-else
           v-bind="reveal()"
-          class="scroll-reveal mx-auto max-w-md rounded-3xl border border-dashed border-[#d4956a]/20 bg-white/50 px-8 py-16 text-center backdrop-blur-sm"
+          class="scroll-reveal mx-auto max-w-md rounded-3xl border border-dashed border-[var(--color-brand-accent)]/20 bg-white/50 px-8 py-16 text-center backdrop-blur-sm"
         >
-          <p class="font-serif text-2xl text-[#3d3250]">
+          <p class="font-serif text-2xl text-[var(--color-crepuscule-800)]">
             Nos spécialistes arrivent bientôt
           </p>
-          <p class="mt-3 text-sm text-[#857d8c]">
+          <p class="mt-3 text-sm text-[var(--color-text-muted)]">
             L'appel gratuit est le meilleur moyen de juger par vous-même.
           </p>
         </div>
@@ -402,13 +402,13 @@ onMounted(() => {
         >
           <h2
             v-bind="reveal()"
-            class="scroll-reveal mb-4 font-serif text-3xl text-[#3d3250] sm:text-4xl"
+            class="scroll-reveal mb-4 font-serif text-3xl text-[var(--color-crepuscule-800)] sm:text-4xl"
           >
             Ce que la ménopause peut changer
           </h2>
           <p
             v-bind="reveal()"
-            class="scroll-reveal mb-10 max-w-xl text-base text-[#857d8c]"
+            class="scroll-reveal mb-10 max-w-xl text-base text-[var(--color-text-muted)]"
           >
             Pas juste les bouffées de chaleur. Beaucoup de femmes mettent du temps
             à faire le lien entre ce qu'elles vivent et leurs hormones.
@@ -420,17 +420,17 @@ onMounted(() => {
               v-bind="reveal({ delay: i * 50 })"
               class="scroll-reveal flex items-start gap-3 rounded-xl border border-white/70 bg-white/60 p-4 backdrop-blur-sm transition-all duration-300 hover:shadow-md"
             >
-              <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-[#d4956a]/8">
+              <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-[var(--color-brand-accent)]/8">
                 <UIcon
                   :name="s.icon"
-                  class="size-4.5 text-[#d4956a]"
+                  class="size-4.5 text-[var(--color-brand-accent)]"
                 />
               </div>
               <div>
-                <h4 class="text-sm font-semibold text-[#3d3250]">
+                <h4 class="text-sm font-semibold text-[var(--color-crepuscule-800)]">
                   {{ s.title }}
                 </h4>
-                <p class="mt-1 text-xs leading-relaxed text-[#6b6177]">
+                <p class="mt-1 text-xs leading-relaxed text-[var(--color-crepuscule-500)]">
                   {{ s.text }}
                 </p>
                 <a
@@ -438,7 +438,7 @@ onMounted(() => {
                   :href="s.sourceUrl"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="mt-1 inline-block text-[0.65rem] text-[#d4956a] hover:underline"
+                  class="mt-1 inline-block text-[0.65rem] text-[var(--color-brand-accent)] hover:underline"
                 >Source : {{ s.source }}</a>
               </div>
             </div>
@@ -452,17 +452,17 @@ onMounted(() => {
          ══════════════════════════════════════════════════════════ -->
 
     <!-- Qui est derrière Keova -->
-    <section class="relative bg-[#faf8f6] px-6 py-24 sm:px-12 lg:px-20">
+    <section class="relative bg-[var(--color-surface-page)] px-6 py-24 sm:px-12 lg:px-20">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1fr_1.2fr]"
       >
         <div>
-          <h2 class="font-serif text-3xl text-[#3d3250] sm:text-4xl">
+          <h2 class="font-serif text-3xl text-[var(--color-crepuscule-800)] sm:text-4xl">
             Qui est derrière Keova
           </h2>
         </div>
-        <div class="space-y-4 text-lg leading-relaxed text-[#6b6177]">
+        <div class="space-y-4 text-lg leading-relaxed text-[var(--color-crepuscule-500)]">
           <p>
             Trop de femmes traversent la ménopause sans aide.
             Les infos sont partout et nulle part. Les bonnes spécialistes, difficiles à trouver.
@@ -471,7 +471,7 @@ onMounted(() => {
             Simon Jouan a créé Keova pour ça. Un endroit simple pour trouver une pro formée à la ménopause.
             Pas un cabinet médical. Pas une app bien-être de plus.
           </p>
-          <p class="text-sm text-[#857d8c]">
+          <p class="text-sm text-[var(--color-text-muted)]">
             Conçu en Normandie, hébergé en France (Scalingo, Paris). Conforme RGPD. Vos données restent en France.
           </p>
         </div>
@@ -481,7 +481,7 @@ onMounted(() => {
     <!-- FAQ — dark warm -->
     <section
       id="faq"
-      class="relative bg-gradient-to-br from-[#1a1525] via-[#2d2438] to-[#1a1525] px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-gradient-to-br from-[var(--color-neutral-950)] via-[var(--color-crepuscule-950)] to-[var(--color-neutral-950)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div
         class="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full opacity-20"
@@ -501,7 +501,7 @@ onMounted(() => {
           v-bind="reveal()"
           class="scroll-reveal mb-12 text-center"
         >
-          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[#d4956a]">FAQ</span>
+          <span class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-brand-accent)]">FAQ</span>
           <h2 class="mt-4 font-serif text-3xl text-white sm:text-4xl">
             Questions fréquentes
           </h2>
@@ -515,7 +515,7 @@ onMounted(() => {
           class="faq-dark"
         >
           <template #content="{ item }">
-            <div class="space-y-3 pb-3.5 text-sm text-[#c4bdd0]">
+            <div class="space-y-3 pb-3.5 text-sm text-[var(--color-crepuscule-300)]">
               <p
                 v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
                 :key="i"
@@ -529,7 +529,7 @@ onMounted(() => {
     </section>
 
     <!-- CTA final — full-width warm -->
-    <section class="relative bg-gradient-to-r from-[#d4956a] to-[#c8845e] px-6 py-24 text-center sm:px-12">
+    <section class="relative bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] px-6 py-24 text-center sm:px-12">
       <div class="mx-auto max-w-2xl">
         <h2 class="font-serif text-3xl font-bold text-white sm:text-4xl">
           Prête à en parler&#8239;?
@@ -538,7 +538,7 @@ onMounted(() => {
           15 minutes, gratuites, sans engagement. Juste un échange avec une spécialiste.
         </p>
         <button
-          class="mt-10 cursor-pointer rounded-full bg-[color:var(--color-surface-card)] px-10 py-4 text-base font-semibold text-[#3d3250] shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95"
+          class="mt-10 cursor-pointer rounded-full bg-[color:var(--color-surface-card)] px-10 py-4 text-base font-semibold text-[var(--color-crepuscule-800)] shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95"
           @click="scrollTo('specialistes')"
         >
           Réserver un appel gratuit
@@ -547,7 +547,7 @@ onMounted(() => {
     </section>
 
     <!-- Disclaimer -->
-    <section class="bg-[#1a1525] px-6 py-8 text-center">
+    <section class="bg-[var(--color-neutral-950)] px-6 py-8 text-center">
       <p class="mx-auto max-w-2xl text-xs leading-relaxed text-white/30">
         L'accompagnement proposé sur Keova ne se substitue pas à un suivi médical.
         En cas de symptômes sévères, consultez votre médecin.
@@ -558,19 +558,19 @@ onMounted(() => {
           href="https://www.inserm.fr/dossier/menopause"
           target="_blank"
           rel="noopener noreferrer"
-          class="underline hover:text-[#d4956a]"
+          class="underline hover:text-[var(--color-brand-accent)]"
         >INSERM</a>,
         <a
           href="https://www.has-sante.fr"
           target="_blank"
           rel="noopener noreferrer"
-          class="underline hover:text-[#d4956a]"
+          class="underline hover:text-[var(--color-brand-accent)]"
         >HAS</a>,
         <a
           href="https://www.inserm.fr/dossier/osteoporose"
           target="_blank"
           rel="noopener noreferrer"
-          class="underline hover:text-[#d4956a]"
+          class="underline hover:text-[var(--color-brand-accent)]"
         >INSERM Ostéoporose</a>
       </p>
     </section>
@@ -598,7 +598,7 @@ onMounted(() => {
 
 /* Pillar cards — coach page pattern (glow blob + lift) */
 .pillar-card:hover {
-  border-color: #d7cfdf;
+  border-color: var(--color-crepuscule-200);
   box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
   transform: translateY(-4px);
 }
@@ -635,9 +635,9 @@ onMounted(() => {
 }
 
 /* FAQ dark theme */
-.faq-dark :deep(button) { color: #f0ebe5; }
-.faq-dark :deep(button:hover) { color: #d4956a; }
-.faq-dark :deep([data-state="open"] > button) { color: #d4956a; }
+.faq-dark :deep(button) { color: var(--color-neutral-100); }
+.faq-dark :deep(button:hover) { color: var(--color-brand-accent); }
+.faq-dark :deep([data-state="open"] > button) { color: var(--color-brand-accent); }
 
 /* Floating particles */
 .particle {

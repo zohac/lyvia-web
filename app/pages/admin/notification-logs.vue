@@ -34,7 +34,7 @@
               'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
               selectedType === typeOption.value
                 ? `${typeOption.activeClass} shadow-sm`
-                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
+                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
             @click="selectType(typeOption.value)"
           >
@@ -61,7 +61,7 @@
               'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
               selectedStatus === statusOption.value
                 ? `${statusOption.activeClass} shadow-sm`
-                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
+                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
             @click="selectStatus(statusOption.value)"
           >
@@ -90,7 +90,7 @@
             v-model="dateFrom"
             type="datetime-local"
             autocomplete="off"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @change="applyFilters"
           >
         </div>
@@ -105,7 +105,7 @@
             v-model="dateTo"
             type="datetime-local"
             autocomplete="off"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @change="applyFilters"
           >
         </div>

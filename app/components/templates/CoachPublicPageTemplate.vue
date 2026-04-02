@@ -250,15 +250,15 @@ const heroProps = computed(() => ({
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
     >
-      <div class="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
+      <div class="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[var(--color-brand-accent)]/30 to-transparent" />
       <div class="mx-auto max-w-5xl">
         <blockquote class="relative">
           <span
-            class="absolute -left-4 -top-8 font-serif text-[12rem] leading-none text-[#d4956a]/10 lg:-left-16"
+            class="absolute -left-4 -top-8 font-serif text-[12rem] leading-none text-[var(--color-brand-accent)]/10 lg:-left-16"
             aria-hidden="true"
           >"</span>
           <!-- TODO: Feature V — dynamiser -->
-          <p class="relative font-serif text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] text-[#2d2438]">
+          <p class="relative font-serif text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] text-[var(--color-crepuscule-950)]">
             Je ne comprends pas ce qu'il m'arrive... J'ai 48 ans, j'ai pris
             6 kilos en 6 mois, je suis toujours épuisée, stressée pour un rien.
             J'ai des insomnies, des douleurs articulaires... J'ai l'impression
@@ -268,20 +268,20 @@ const heroProps = computed(() => ({
         </blockquote>
 
         <div class="mt-12 space-y-6">
-          <p class="text-lg leading-relaxed text-[#4a4255]">
+          <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
             Vous vous reconnaissez dans ces mots ?
           </p>
-          <p class="text-lg leading-relaxed text-[#4a4255]">
+          <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
             Épuisement. Prise de poids. Troubles du sommeil. Anxiété.
             Bouffées de chaleur. Irritabilité. Douleurs articulaires.
           </p>
-          <p class="text-lg font-semibold text-[#2d2438]">
+          <p class="text-lg font-semibold text-[var(--color-crepuscule-950)]">
             Ces symptômes ne sont pas « dans votre tête ».
           </p>
-          <p class="text-lg leading-relaxed text-[#4a4255]">
+          <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
             Ils sont réels, ils ont une cause. Et il existe des solutions concrètes.
           </p>
-          <p class="text-lg font-medium italic text-[#5b4b6e]">
+          <p class="text-lg font-medium italic text-[var(--color-brand-primary)]">
             Il est temps de comprendre ce que traverse votre corps.
             Et de vous offrir l'accompagnement que vous méritez.
           </p>
@@ -292,16 +292,16 @@ const heroProps = computed(() => ({
     <!-- ==================== 3. MINI-TÉMOIGNAGE (beige) ==================== -->
     <section
       v-bind="reveal()"
-      class="scroll-reveal bg-[#f5f0eb] px-6 py-20 sm:px-12 lg:px-20"
+      class="scroll-reveal bg-[var(--color-neutral-50)] px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-3xl text-center">
-        <blockquote class="font-serif text-xl italic leading-relaxed text-[#4a4255] lg:text-2xl">
+        <blockquote class="font-serif text-xl italic leading-relaxed text-[var(--color-crepuscule-700)] lg:text-2xl">
           « Je ne cherchais pas à "guérir" de la ménopause. Je cherchais quelqu'un qui comprenne
           que ce n'était pas une maladie. J'ai trouvé bien plus. »
         </blockquote>
         <!-- TODO: Feature V — dynamiser depuis testimonialsJson -->
-        <footer class="mt-6 text-sm text-[#857d8c]">
-          <span class="font-medium text-[#2d2438]">Marie-Claire</span>, 52 ans
+        <footer class="mt-6 text-sm text-[var(--color-text-muted)]">
+          <span class="font-medium text-[var(--color-crepuscule-950)]">Marie-Claire</span>, 52 ans
         </footer>
       </div>
     </section>
@@ -310,12 +310,12 @@ const heroProps = computed(() => ({
     <div id="accompagnement">
       <CoachTransformationBenefits>
         <template #header>
-          <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+          <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
             Ce que cela apporte
           </span>
-          <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          <h2 class="mt-6 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
             Accompagnement ménopause
-            <span class="block text-[#5b4b6e]">personnalisé</span>
+            <span class="block text-[var(--color-brand-primary)]">personnalisé</span>
           </h2>
         </template>
       </CoachTransformationBenefits>
@@ -331,7 +331,7 @@ const heroProps = computed(() => ({
     <section
       id="qui-suis-je"
       v-bind="reveal()"
-      class="scroll-reveal relative overflow-hidden bg-[#2d2438] px-6 py-32 text-white sm:px-12 lg:px-20"
+      class="scroll-reveal relative overflow-hidden bg-[var(--color-crepuscule-950)] px-6 py-32 text-white sm:px-12 lg:px-20"
     >
       <div class="relative mx-auto max-w-7xl">
         <div class="grid gap-16 lg:grid-cols-12 lg:items-center">
@@ -339,7 +339,7 @@ const heroProps = computed(() => ({
           <div class="flex justify-center lg:col-span-5">
             <div class="relative">
               <div
-                class="bio-photo-shape absolute h-[45vh] w-72 translate-x-4 translate-y-4 bg-gradient-to-br from-[#d4956a]/25 to-[#5b4b6e]/15"
+                class="bio-photo-shape absolute h-[45vh] w-72 translate-x-4 translate-y-4 bg-gradient-to-br from-[var(--color-brand-accent)]/25 to-[var(--color-brand-primary)]/15"
                 aria-hidden="true"
               />
               <div class="bio-photo-shape relative h-[45vh] w-72 overflow-hidden shadow-2xl shadow-black/20">
@@ -354,7 +354,7 @@ const heroProps = computed(() => ({
                 />
                 <div
                   v-else
-                  class="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#5b4b6e] to-[#7a6b8e]"
+                  class="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--color-brand-primary)] to-[var(--color-crepuscule-500)]"
                 >
                   <span class="font-serif text-6xl font-bold text-white/40">{{ coachName.charAt(0) }}</span>
                 </div>
@@ -364,7 +364,7 @@ const heroProps = computed(() => ({
 
           <!-- Bio -->
           <div class="lg:col-span-7">
-            <span class="mb-6 inline-block rounded-full border border-[#d4956a]/30 px-6 py-2 text-xs font-medium uppercase tracking-[0.2em] text-[#d4956a]">
+            <span class="mb-6 inline-block rounded-full border border-[var(--color-brand-accent)]/30 px-6 py-2 text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-brand-accent)]">
               Qui suis-je
             </span>
 
@@ -376,7 +376,7 @@ const heroProps = computed(() => ({
             <!-- Credentials subtitle (dynamic from profile) -->
             <p
               v-if="coachProfile?.credentials?.length || coachProfile?.city"
-              class="mt-4 text-lg text-[#d4956a]"
+              class="mt-4 text-lg text-[var(--color-brand-accent)]"
             >
               <template v-if="coachProfile?.credentials?.length">
                 {{ coachProfile.credentials[0]?.title }}
@@ -393,16 +393,16 @@ const heroProps = computed(() => ({
             <div class="mt-6 flex flex-wrap gap-3">
               <span
                 v-if="coachProfile?.credentials?.length"
-                class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]"
+                class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]"
               >
                 {{ coachProfile.credentials[0]?.title }}
               </span>
-              <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
+              <span class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]">
                 Accompagnement en périménopause et ménopause
               </span>
               <span
                 v-if="coachProfile?.city"
-                class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]"
+                class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]"
               >
                 <UIcon
                   name="i-lucide-map-pin"
@@ -410,7 +410,7 @@ const heroProps = computed(() => ({
                 />
                 {{ coachProfile.city }}{{ coachProfile?.region ? ` · ${coachProfile.region}` : '' }}
               </span>
-              <span class="inline-flex items-center gap-2 rounded-full border border-[#d4956a]/20 bg-[#d4956a]/10 px-4 py-1.5 text-sm text-[#f0b48f]">
+              <span class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]">
                 <UIcon
                   name="i-lucide-video"
                   class="size-4"
@@ -419,7 +419,7 @@ const heroProps = computed(() => ({
               </span>
             </div>
 
-            <div class="mt-10 space-y-6 text-base leading-relaxed text-[#b9aac7]">
+            <div class="mt-10 space-y-6 text-base leading-relaxed text-[var(--color-crepuscule-300)]">
               <!-- Priority: longBio (markdown-like paragraphs) → bio (short) → fallback -->
               <template v-if="coachProfile?.longBio">
                 <p
@@ -465,7 +465,7 @@ const heroProps = computed(() => ({
             <a
               v-if="coachProfile?.publicPhone"
               :href="`tel:${coachProfile.publicPhone}`"
-              class="mt-6 inline-flex items-center gap-2 text-[#d4956a] hover:underline"
+              class="mt-6 inline-flex items-center gap-2 text-[var(--color-brand-accent)] hover:underline"
             >
               <UIcon
                 name="i-lucide-phone"
@@ -484,7 +484,7 @@ const heroProps = computed(() => ({
                 :href="coachProfile.socialLinks.linkedin"
                 target="_blank"
                 rel="noopener"
-                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                class="grid size-10 place-items-center rounded-full border border-[var(--color-brand-accent)]/30 text-[var(--color-brand-accent)] transition-colors hover:bg-[var(--color-brand-accent)]/10"
                 aria-label="LinkedIn"
               >
                 <UIcon
@@ -497,7 +497,7 @@ const heroProps = computed(() => ({
                 :href="coachProfile.socialLinks.instagram"
                 target="_blank"
                 rel="noopener"
-                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                class="grid size-10 place-items-center rounded-full border border-[var(--color-brand-accent)]/30 text-[var(--color-brand-accent)] transition-colors hover:bg-[var(--color-brand-accent)]/10"
                 aria-label="Instagram"
               >
                 <UIcon
@@ -510,7 +510,7 @@ const heroProps = computed(() => ({
                 :href="coachProfile.socialLinks.facebook"
                 target="_blank"
                 rel="noopener"
-                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                class="grid size-10 place-items-center rounded-full border border-[var(--color-brand-accent)]/30 text-[var(--color-brand-accent)] transition-colors hover:bg-[var(--color-brand-accent)]/10"
                 aria-label="Facebook"
               >
                 <UIcon
@@ -523,7 +523,7 @@ const heroProps = computed(() => ({
                 :href="coachProfile.socialLinks.website"
                 target="_blank"
                 rel="noopener"
-                class="grid size-10 place-items-center rounded-full border border-[#d4956a]/30 text-[#d4956a] transition-colors hover:bg-[#d4956a]/10"
+                class="grid size-10 place-items-center rounded-full border border-[var(--color-brand-accent)]/30 text-[var(--color-brand-accent)] transition-colors hover:bg-[var(--color-brand-accent)]/10"
                 aria-label="Site web"
               >
                 <UIcon
@@ -546,12 +546,12 @@ const heroProps = computed(() => ({
       >
         <template #header>
           <div class="mb-12 text-center">
-            <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[#d4956a]">
+            <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-accent)]">
               Témoignages
             </span>
-            <h2 class="font-serif text-4xl leading-tight text-[#2d2438]">
+            <h2 class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)]">
               Leurs mots,
-              <span class="text-[#5b4b6e]">leur vérité</span>
+              <span class="text-[var(--color-brand-primary)]">leur vérité</span>
             </h2>
           </div>
         </template>
@@ -571,17 +571,17 @@ const heroProps = computed(() => ({
       class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-7xl">
-        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+        <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
           L'accompagnement
         </span>
 
         <!-- H2 with SEO keyword (P-Y5) -->
-        <h2 class="mt-6 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+        <h2 class="mt-6 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
           Les 4 piliers de
-          <span class="block text-[#5b4b6e]">l'accompagnement ménopause</span>
+          <span class="block text-[var(--color-brand-primary)]">l'accompagnement ménopause</span>
         </h2>
 
-        <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[#4a4255]">
+        <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
           Une approche globale, personnalisée et respectueuse du corps féminin.
           Je vous guide avec douceur à travers 4 axes essentiels.
         </p>
@@ -591,31 +591,31 @@ const heroProps = computed(() => ({
             v-for="(pillar, index) in pillars"
             :key="pillar.title"
             v-bind="reveal({ delay: index * 120 })"
-            class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
+            class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
           >
             <!-- Glow blob top-right (appears on hover, like B2B feature-card) -->
             <div
-              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
               aria-hidden="true"
             />
 
             <div class="relative flex items-start gap-5">
               <!-- Icon with color change on hover (B2B pattern) -->
-              <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+              <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
                 <UIcon
                   :name="pillar.icon"
-                  class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                  class="size-6 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
                 />
               </div>
 
               <div>
-                <span class="font-serif text-sm text-[#d4956a]/60">
+                <span class="font-serif text-sm text-[var(--color-brand-accent)]/60">
                   {{ String(index + 1).padStart(2, '0') }}
                 </span>
-                <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
+                <h3 class="mt-1 font-serif text-xl text-[var(--color-crepuscule-950)]">
                   {{ pillar.title }}
                 </h3>
-                <p class="mt-3 text-base leading-relaxed text-[#4a4255]">
+                <p class="mt-3 text-base leading-relaxed text-[var(--color-crepuscule-700)]">
                   {{ pillar.description }}
                 </p>
               </div>
@@ -626,28 +626,28 @@ const heroProps = computed(() => ({
         <!-- Emotional support callout (5th pillar — distinct treatment) -->
         <div
           v-bind="reveal({ delay: 500 })"
-          class="pillar-card scroll-reveal group relative mt-8 overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
+          class="pillar-card scroll-reveal group relative mt-8 overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
         >
           <div
-            class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+            class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
             aria-hidden="true"
           />
           <div class="relative flex items-start gap-5">
-            <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+            <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
               <UIcon
                 name="i-lucide-hand-heart"
-                class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                class="size-6 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
               />
             </div>
             <div>
-              <span class="font-serif text-sm text-[#d4956a]/60">
+              <span class="font-serif text-sm text-[var(--color-brand-accent)]/60">
                 05
               </span>
-              <h3 class="mt-1 font-serif text-xl text-[#2d2438]">
+              <h3 class="mt-1 font-serif text-xl text-[var(--color-crepuscule-950)]">
                 Un espace d'écoute en plus de tout cela
               </h3>
               <!-- TODO: Feature V — dynamiser -->
-              <p class="mt-3 max-w-3xl text-base leading-relaxed text-[#4a4255]">
+              <p class="mt-3 max-w-3xl text-base leading-relaxed text-[var(--color-crepuscule-700)]">
                 Chaque accompagnement inclut un espace d'écoute bienveillant, à votre rythme.
                 Ce n'est pas un suivi psychologique. C'est un moment pour déposer ce que vous vivez,
                 sans jugement. En cas de besoin, je vous oriente vers un professionnel de santé.
@@ -663,12 +663,12 @@ const heroProps = computed(() => ({
       :discovery-duration-minutes="discoveryDuration"
     >
       <template #header>
-        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+        <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
           Le parcours
         </span>
-        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
           Comment se déroule la séance
-          <span class="block text-[#5b4b6e]">découverte ménopause</span>
+          <span class="block text-[var(--color-brand-primary)]">découverte ménopause</span>
         </h2>
       </template>
     </CoachHowItWorks>
@@ -686,12 +686,12 @@ const heroProps = computed(() => ({
         :current-path="currentPath"
       >
         <template #header>
-          <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+          <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
             Tarifs
           </span>
-          <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+          <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
             Tarifs des séances
-            <span class="block text-[#5b4b6e]">accompagnement ménopause</span>
+            <span class="block text-[var(--color-brand-primary)]">accompagnement ménopause</span>
           </h2>
         </template>
       </CoachPricing>
@@ -707,12 +707,12 @@ const heroProps = computed(() => ({
     <!-- ==================== 10. CONTENU ÉDUCATIF (beige) ==================== -->
     <CoachEducationalContent>
       <template #header>
-        <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+        <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
           Comprendre
         </span>
-        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[#2d2438] lg:text-5xl">
+        <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
           Comprendre la ménopause
-          <span class="block text-[#5b4b6e]">et la pré-ménopause</span>
+          <span class="block text-[var(--color-brand-primary)]">et la pré-ménopause</span>
         </h2>
       </template>
     </CoachEducationalContent>
@@ -732,7 +732,7 @@ const heroProps = computed(() => ({
     >
       <div class="mx-auto max-w-3xl">
         <div class="mb-16 text-center">
-          <h2 class="font-serif text-3xl leading-tight text-[#2d2438]">
+          <h2 class="font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)]">
             Questions fréquentes sur l'accompagnement ménopause
           </h2>
         </div>
@@ -745,7 +745,7 @@ const heroProps = computed(() => ({
           aria-label="Questions fréquentes"
         >
           <template #content="{ item }">
-            <div class="space-y-3 pb-3.5 text-sm text-[#4a4255]">
+            <div class="space-y-3 pb-3.5 text-sm text-[var(--color-crepuscule-700)]">
               <p
                 v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
                 :key="i"
@@ -761,7 +761,7 @@ const heroProps = computed(() => ({
     <!-- ==================== 12. CTA FINAL (gradient) ==================== -->
     <section
       v-bind="reveal()"
-      class="scroll-reveal relative overflow-hidden bg-gradient-to-br from-[#5b4b6e] to-[#3d3250] px-6 py-32 sm:px-12 lg:px-20"
+      class="scroll-reveal relative overflow-hidden bg-gradient-to-br from-[var(--color-brand-primary)] to-[var(--color-crepuscule-800)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div
         class="pointer-events-none absolute -right-[20%] top-1/2 h-[60vh] w-[60vh] -translate-y-1/2 rounded-full"
@@ -772,10 +772,10 @@ const heroProps = computed(() => ({
         <!-- H2 with SEO keyword (P-Y5) -->
         <h2 class="font-serif text-4xl leading-tight text-white lg:text-5xl">
           Réservez votre
-          <span class="block text-[#f0b48f]">séance découverte gratuite</span>
+          <span class="block text-[var(--color-sunset-300)]">séance découverte gratuite</span>
         </h2>
 
-        <p class="mx-auto mt-8 max-w-lg text-lg text-[#d7cfdf]">
+        <p class="mx-auto mt-8 max-w-lg text-lg text-[var(--color-crepuscule-200)]">
           Un premier échange de {{ coachProfile?.discoveryDurationMinutes ?? 15 }} minutes, gratuit et sans engagement,
           pour voir si nous sommes faites pour cheminer ensemble.
         </p>
@@ -785,7 +785,7 @@ const heroProps = computed(() => ({
             :to="ctaTo"
             size="xl"
             data-final-cta
-            class="group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-10 py-5 font-semibold text-white transition-all duration-300 hover:bg-transparent hover:text-[#f0b48f]"
+            class="group rounded-full border-2 border-[var(--color-brand-accent)] bg-[var(--color-brand-accent)] px-10 py-5 font-semibold text-white transition-all duration-300 hover:bg-transparent hover:text-[var(--color-sunset-300)]"
           >
             <!-- CTA final wording intentionnellement différent du hero (M8):
                  Hero = action directe ("Réserver mon appel gratuit")
@@ -797,7 +797,7 @@ const heroProps = computed(() => ({
           </UButton>
         </div>
 
-        <p class="mt-8 text-sm text-[#9685ab]">
+        <p class="mt-8 text-sm text-[var(--color-crepuscule-400)]">
           Fuseau horaire : {{ tenant.timezone }}
         </p>
       </div>
@@ -823,7 +823,7 @@ const heroProps = computed(() => ({
       <template #content>
         <div class="relative p-8 text-center">
           <button
-            class="absolute right-4 top-4 rounded p-1 text-[#857d8c] transition-colors hover:text-[#2d2438]"
+            class="absolute right-4 top-4 rounded p-1 text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-crepuscule-950)]"
             aria-label="Fermer"
             @click="showExitPopup = false"
           >
@@ -833,27 +833,27 @@ const heroProps = computed(() => ({
             />
           </button>
 
-          <h3 class="font-serif text-2xl text-[#2d2438]">
+          <h3 class="font-serif text-2xl text-[var(--color-crepuscule-950)]">
             Avant de partir...
           </h3>
-          <p class="mt-3 text-[#4a4255]">
+          <p class="mt-3 text-[var(--color-crepuscule-700)]">
             Téléchargez gratuitement : {{ leadMagnetTitle }}
           </p>
 
-          <p class="mt-2 text-sm text-[#857d8c]">
+          <p class="mt-2 text-sm text-[var(--color-text-muted)]">
             Laissez votre email pour recevoir le guide
           </p>
 
           <!-- Scroll to inline form and close modal -->
           <UButton
-            class="mt-6 rounded-full bg-[#d4956a] px-8 font-semibold text-white transition-all duration-300 hover:bg-[#c4855a]"
+            class="mt-6 rounded-full bg-[var(--color-brand-accent)] px-8 font-semibold text-white transition-all duration-300 hover:bg-[var(--color-sunset-600)]"
             size="lg"
             @click="closePopupAndScroll"
           >
             Recevoir mon guide →
           </UButton>
 
-          <p class="mt-4 text-xs text-[#857d8c]">
+          <p class="mt-4 text-xs text-[var(--color-text-muted)]">
             Gratuit · Aucun spam · Désinscription en 1 clic
           </p>
         </div>
@@ -892,7 +892,7 @@ const heroProps = computed(() => ({
 
 /* Pillar cards — B2B feature-card pattern */
 .pillar-card:hover {
-  border-color: #d7cfdf;
+  border-color: var(--color-crepuscule-200);
   box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
   transform: translateY(-4px);
 }

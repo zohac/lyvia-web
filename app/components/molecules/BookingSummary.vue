@@ -28,7 +28,7 @@ function formatDateTime(iso: string): string {
         <Icon
           name="lucide:calendar"
           size="18"
-          class="mt-0.5 text-[color:var(--color-accent-main)]"
+          class="mt-0.5 text-[color:var(--color-brand-primary-dark)]"
           aria-hidden="true"
         />
         <div class="grid gap-1">

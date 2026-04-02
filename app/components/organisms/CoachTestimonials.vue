@@ -6,7 +6,7 @@ defineProps<CoachTestimonialsProps>()
 
 const { reveal } = useScrollReveal()
 
-const avatarColors = ['#5b4b6e', '#d4956a', '#7a6b8e', '#b8956a', '#4d3f5c']
+const avatarColors = ['var(--color-brand-primary)', 'var(--color-brand-accent)', 'var(--color-crepuscule-500)', 'var(--color-brand-accent)', 'var(--color-crepuscule-700)']
 
 function getAvatarColor(name: string): string {
   let hash = 0
@@ -20,7 +20,7 @@ function getAvatarColor(name: string): string {
 <template>
   <section
     v-bind="reveal()"
-    class="scroll-reveal relative overflow-hidden bg-[#f5f0eb] px-6 py-24 sm:px-12 lg:px-20"
+    class="scroll-reveal relative overflow-hidden bg-[var(--color-neutral-50)] px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="relative mx-auto max-w-5xl">
       <!-- Parent-provided H2 (P-Y5) -->
@@ -31,17 +31,17 @@ function getAvatarColor(name: string): string {
           v-for="(testimonial, index) in testimonials"
           :key="index"
           v-bind="reveal({ delay: index * 150 })"
-          class="testimonial-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10"
+          class="testimonial-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10"
         >
           <!-- Glow blob (B2B pattern — differentiating: bottom-left instead of top-right) -->
           <div
-            class="testimonial-card-glow absolute -bottom-8 -left-8 size-28 rounded-full bg-gradient-to-tr from-[#5b4b6e] to-[#7a6b8e] opacity-0"
+            class="testimonial-card-glow absolute -bottom-8 -left-8 size-28 rounded-full bg-gradient-to-tr from-[var(--color-brand-primary)] to-[var(--color-crepuscule-500)] opacity-0"
             aria-hidden="true"
           />
 
           <!-- Large quote mark — differentiating element -->
           <span
-            class="absolute -top-2 right-8 font-serif text-[7rem] leading-none text-[#d4956a]/8 transition-colors duration-500 group-hover:text-[#d4956a]/15 sm:right-10"
+            class="absolute -top-2 right-8 font-serif text-[7rem] leading-none text-[var(--color-brand-accent)]/8 transition-colors duration-500 group-hover:text-[var(--color-brand-accent)]/15 sm:right-10"
             aria-hidden="true"
           >"</span>
 
@@ -55,19 +55,19 @@ function getAvatarColor(name: string): string {
                 v-for="star in 5"
                 :key="star"
                 class="text-base transition-colors duration-300"
-                :class="star <= testimonial.rating! ? 'text-[#d4956a]' : 'text-[#d4956a]/15'"
+                :class="star <= testimonial.rating! ? 'text-[var(--color-brand-accent)]' : 'text-[var(--color-brand-accent)]/15'"
               >&#9733;</span>
             </div>
 
             <!-- Quote -->
-            <blockquote class="font-serif text-xl leading-relaxed text-[#2d2438] sm:text-2xl">
+            <blockquote class="font-serif text-xl leading-relaxed text-[var(--color-crepuscule-950)] sm:text-2xl">
               {{ testimonial.quote }}
             </blockquote>
 
             <!-- Result (italic, if present) -->
             <p
               v-if="testimonial.result"
-              class="mt-5 inline-flex items-center gap-2 rounded-full border border-[#d4956a]/15 bg-[#fdf6f1] px-4 py-1.5 text-sm italic text-[#c47a4a]"
+              class="mt-5 inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/15 bg-[var(--color-sunset-50)] px-4 py-1.5 text-sm italic text-[var(--color-sunset-600)]"
             >
               <UIcon
                 name="i-lucide-trending-up"
@@ -87,12 +87,12 @@ function getAvatarColor(name: string): string {
               </div>
 
               <div>
-                <cite class="block text-base font-medium not-italic text-[#2d2438]">
+                <cite class="block text-base font-medium not-italic text-[var(--color-crepuscule-950)]">
                   {{ testimonial.firstName }}<template v-if="testimonial.age">, {{ testimonial.age }} ans</template>
                 </cite>
                 <span
                   v-if="testimonial.location"
-                  class="flex items-center gap-1 text-sm text-[#857d8c]"
+                  class="flex items-center gap-1 text-sm text-[var(--color-text-muted)]"
                 >
                   <UIcon
                     name="i-lucide-map-pin"
@@ -111,7 +111,7 @@ function getAvatarColor(name: string): string {
 
 <style scoped>
 .testimonial-card:hover {
-  border-color: #d7cfdf;
+  border-color: var(--color-crepuscule-200);
   box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
   transform: translateY(-4px);
 }

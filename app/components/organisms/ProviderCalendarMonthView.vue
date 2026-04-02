@@ -148,7 +148,7 @@ function onSelectDay(dayKey: string) {
         >
           <div
             v-if="highlight?.dayKey === cell.key"
-            class="pointer-events-none absolute inset-2 rounded-lg bg-[color:var(--color-sunset-50)]0/10 ring-2 ring-amber-400 shadow-sm animate-pulse"
+            class="pointer-events-none absolute inset-2 rounded-lg bg-[color:var(--color-sunset-50)] ring-2 ring-[color:var(--color-sunset-400)] shadow-sm animate-pulse"
             aria-hidden="true"
           />
 
@@ -197,7 +197,7 @@ function onSelectDay(dayKey: string) {
                       :class="[
                         eventAccentClass(appointment),
                         eventMetaClass(appointment),
-                        highlight?.appointmentId === appointment.id ? 'ring-2 ring-amber-400 animate-pulse' : ''
+                        highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
                       ]"
                       @click="onSelectAppointment(appointment)"
                     >
@@ -232,7 +232,7 @@ function onSelectDay(dayKey: string) {
               :class="[
                 eventAccentClass(appointment),
                 eventMetaClass(appointment),
-                highlight?.appointmentId === appointment.id ? 'ring-2 ring-amber-400 animate-pulse' : ''
+                highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
               ]"
               @click.stop="onSelectAppointment(appointment)"
             >

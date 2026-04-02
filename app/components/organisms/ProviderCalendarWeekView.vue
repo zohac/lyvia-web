@@ -257,7 +257,7 @@ watch(
 
             <div
               v-if="highlight && highlight.dayKey === day.key"
-              class="pointer-events-none absolute left-2 right-2 z-[5] rounded-lg bg-[color:var(--color-sunset-50)]0/10 ring-2 ring-amber-400 shadow-sm animate-pulse"
+              class="pointer-events-none absolute left-2 right-2 z-[5] rounded-lg bg-[color:var(--color-sunset-50)] ring-2 ring-[color:var(--color-sunset-400)] shadow-sm animate-pulse"
               :style="{
                 top: `${highlight.startMinutes * pxPerMinute}px`,
                 height: `${Math.max(24, (highlight.endMinutes - highlight.startMinutes) * pxPerMinute)}px`
@@ -283,7 +283,7 @@ watch(
                 :class="[
                   eventAccentClass(appointment),
                   eventMetaClass(appointment),
-                  highlight?.appointmentId === appointment.id ? 'ring-2 ring-amber-400 animate-pulse' : ''
+                  highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
                 ]"
                 @click.stop="emit('select:appointment', appointment)"
               >

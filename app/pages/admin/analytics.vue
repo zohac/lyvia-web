@@ -253,7 +253,7 @@ const topProviderColumns: TableColumn<TopProviderEntry>[] = [
     accessorKey: 'rank',
     header: '#',
     cell: ({ row }) => h('span', {
-      class: 'inline-flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--ui-color-primary-100)] text-xs font-bold text-[color:var(--color-brand-solid)]'
+      class: 'inline-flex h-6 w-6 items-center justify-center rounded-full bg-[color:var(--ui-color-primary-100)] text-xs font-bold text-[color:var(--color-brand-primary)]'
     }, String(row.original.rank))
   },
   {

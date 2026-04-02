@@ -25,7 +25,7 @@ const stepLabels: Record<string, string> = {
       </span>
       <div class="h-3 flex-1 overflow-hidden rounded-full bg-[color:var(--color-surface-muted)]">
         <div
-          class="h-full rounded-full bg-[color:var(--color-brand-solid)] transition-all duration-500"
+          class="h-full rounded-full bg-[color:var(--color-brand-primary)] transition-all duration-500"
           :style="{ width: `${step.percentage}%`, opacity: 1 - (i * 0.15) }"
         />
       </div>

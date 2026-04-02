@@ -64,7 +64,7 @@
               <UIcon
                 :name="kpi.icon"
                 size="20"
-                class="text-[color:var(--color-brand-solid)]"
+                class="text-[color:var(--color-brand-primary)]"
               />
             </div>
             <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
@@ -122,14 +122,14 @@
       <section class="grid gap-6 md:grid-cols-2">
         <NuxtLink
           to="/admin/logs"
-          class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-solid)] hover:shadow-md"
+          class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-primary)] hover:shadow-md"
         >
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--ui-color-primary-100)]">
               <UIcon
                 name="lucide:scroll-text"
                 size="24"
-                class="text-[color:var(--color-brand-solid)]"
+                class="text-[color:var(--color-brand-primary)]"
               />
             </div>
             <div>
@@ -145,14 +145,14 @@
 
         <NuxtLink
           to="/admin/providers"
-          class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-solid)] hover:shadow-md"
+          class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-primary)] hover:shadow-md"
         >
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--ui-color-primary-100)]">
               <UIcon
                 name="lucide:users"
                 size="24"
-                class="text-[color:var(--color-brand-solid)]"
+                class="text-[color:var(--color-brand-primary)]"
               />
             </div>
             <div>

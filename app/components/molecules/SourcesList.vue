@@ -18,7 +18,7 @@ defineProps<{
       </span>
       <div class="h-2 flex-1 overflow-hidden rounded-full bg-[color:var(--color-surface-muted)]">
         <div
-          class="h-full rounded-full bg-[color:var(--color-brand-solid)] transition-all duration-500"
+          class="h-full rounded-full bg-[color:var(--color-brand-primary)] transition-all duration-500"
           :style="{ width: `${source.percentage}%` }"
         />
       </div>

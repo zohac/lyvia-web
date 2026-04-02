@@ -57,17 +57,17 @@ const cta = computed(() => {
 <template>
   <article class="flex flex-col rounded-2xl bg-[color:var(--color-surface-card)] p-8 shadow-sm transition-shadow duration-300 hover:shadow-md">
     <!-- Name -->
-    <h3 class="font-serif text-xl text-[#2d2438]">
+    <h3 class="font-serif text-xl text-[var(--color-crepuscule-950)]">
       {{ program.name }}
     </h3>
 
     <!-- Description -->
-    <p class="mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-[#4a4255]">
+    <p class="mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-[var(--color-crepuscule-700)]">
       {{ program.description }}
     </p>
 
     <!-- Details -->
-    <div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#857d8c]">
+    <div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--color-text-muted)]">
       <span>{{ program.totalSessions }} séances</span>
       <span>{{ program.sessionDurationMinutes }} min</span>
       <span>{{ program.validityMonths }} mois de validité</span>
@@ -75,12 +75,12 @@ const cta = computed(() => {
 
     <!-- Price -->
     <div class="mt-4">
-      <p class="text-2xl font-bold text-[#2d2438]">
+      <p class="text-2xl font-bold text-[var(--color-crepuscule-950)]">
         {{ formatCurrency(program.priceCents) }}
       </p>
       <p
         v-if="installmentsLabel"
-        class="mt-1 text-sm text-[#857d8c]"
+        class="mt-1 text-sm text-[var(--color-text-muted)]"
       >
         {{ installmentsLabel }}
       </p>

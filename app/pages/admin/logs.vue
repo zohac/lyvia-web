@@ -35,7 +35,7 @@
             type="text"
             placeholder="Rechercher dans les logs..."
             autocomplete="off"
-            class="w-full rounded-full border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] py-3 pl-12 pr-4 text-sm text-[color:var(--color-brand-primary)] placeholder-[color:var(--color-brand-muted)] shadow-sm transition-shadow focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="w-full rounded-full border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] py-3 pl-12 pr-4 text-sm text-[color:var(--color-brand-primary)] placeholder-[color:var(--color-brand-muted)] shadow-sm transition-shadow focus:border-[color:var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @input="debouncedSearch"
           >
         </div>
@@ -50,7 +50,7 @@
               'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
               selectedEventTypes.includes(eventType.value)
                 ? `${eventType.activeClass} shadow-sm`
-                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
+                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
             @click="toggleEventType(eventType.value)"
           >
@@ -78,7 +78,7 @@
             v-model="dateFrom"
             type="datetime-local"
             autocomplete="off"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @change="applyFilters"
           >
         </div>
@@ -93,7 +93,7 @@
             v-model="dateTo"
             type="datetime-local"
             autocomplete="off"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @change="applyFilters"
           >
         </div>

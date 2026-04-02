@@ -18,15 +18,15 @@ function truncate(text: string, max: number): string {
     </p>
     <div class="space-y-0.5">
       <p
-        class="text-lg text-[#1a0dab]"
+        class="text-lg text-[var(--color-crepuscule-700)]"
         style="max-width: 600px"
       >
         {{ truncate(props.title, 60) }}
       </p>
-      <p class="text-sm text-[#006621]">
+      <p class="text-sm text-[var(--color-success-700)]">
         {{ props.url }}
       </p>
-      <p class="line-clamp-2 text-sm text-[#545454]">
+      <p class="line-clamp-2 text-sm text-[var(--color-text-secondary)]">
         {{ truncate(props.description, 155) }}
       </p>
     </div>

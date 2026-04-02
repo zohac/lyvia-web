@@ -77,7 +77,7 @@ async function handleSubmit() {
     <p class="text-lg font-semibold text-white">
       Vous êtes inscrite !
     </p>
-    <p class="text-sm text-[#c4bdd0]">
+    <p class="text-sm text-[var(--color-crepuscule-300)]">
       Vérifiez vos spams si vous ne recevez rien.
     </p>
   </div>
@@ -89,7 +89,7 @@ async function handleSubmit() {
   >
     <!-- Guide choice (AC-10) -->
     <fieldset class="mb-4">
-      <legend class="mb-2 block text-xs font-medium text-[#c4bdd0]">
+      <legend class="mb-2 block text-xs font-medium text-[var(--color-crepuscule-300)]">
         Choisissez votre guide
       </legend>
       <div class="space-y-2">
@@ -97,14 +97,14 @@ async function handleSubmit() {
           v-for="opt in guideOptions"
           :key="opt.value"
           class="flex cursor-pointer items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 text-sm text-white/90 transition-all duration-200 hover:bg-white/15"
-          :class="{ 'bg-white/20 ring-1 ring-[#d4956a]/40': guideChoice === opt.value }"
+          :class="{ 'bg-white/20 ring-1 ring-[var(--color-brand-accent)]/40': guideChoice === opt.value }"
         >
           <input
             v-model="guideChoice"
             type="radio"
             name="guide-choice"
             :value="opt.value"
-            class="size-4 accent-[#d4956a]"
+            class="size-4 accent-[var(--color-brand-accent)]"
           >
           <span>{{ opt.label }}</span>
         </label>
@@ -113,13 +113,13 @@ async function handleSubmit() {
 
     <label
       for="lead-capture-b2c-email"
-      class="mb-2 block text-xs font-medium text-[#c4bdd0]"
+      class="mb-2 block text-xs font-medium text-[var(--color-crepuscule-300)]"
     >Votre adresse email</label>
     <div class="flex items-center rounded-xl bg-white/95 p-1.5 shadow-lg backdrop-blur-sm transition-shadow duration-300 focus-within:shadow-xl sm:rounded-full">
       <div class="relative flex-1">
         <UIcon
           name="i-lucide-mail"
-          class="absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[#b5adc0]"
+          class="absolute left-3.5 top-1/2 size-5 -translate-y-1/2 text-[var(--color-crepuscule-300)]"
         />
         <input
           id="lead-capture-b2c-email"
@@ -127,13 +127,13 @@ async function handleSubmit() {
           type="email"
           placeholder="votre@email.com"
           :disabled="isSubmitting"
-          class="w-full rounded-lg bg-transparent py-3 pl-11 pr-3 text-sm text-[#3d3250] outline-none placeholder:text-[#b5adc0] disabled:opacity-50 sm:rounded-full"
+          class="w-full rounded-lg bg-transparent py-3 pl-11 pr-3 text-sm text-[var(--color-crepuscule-800)] outline-none placeholder:text-[var(--color-crepuscule-300)] disabled:opacity-50 sm:rounded-full"
         >
       </div>
       <button
         type="submit"
         :disabled="!canSubmit || isSubmitting"
-        class="shrink-0 cursor-pointer rounded-lg bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:from-[#4a3d5e] hover:to-[#6d5c82] hover:shadow-md disabled:pointer-events-none disabled:opacity-50 sm:rounded-full"
+        class="shrink-0 cursor-pointer rounded-lg bg-gradient-to-r from-[var(--color-brand-primary)] to-[var(--color-crepuscule-500)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:from-[var(--color-crepuscule-700)] hover:to-[var(--color-crepuscule-600)] hover:shadow-md disabled:pointer-events-none disabled:opacity-50 sm:rounded-full"
       >
         <UIcon
           v-if="isSubmitting"
@@ -149,10 +149,10 @@ async function handleSubmit() {
       <input
         v-model="consent"
         type="checkbox"
-        class="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#d4956a]"
+        class="mt-0.5 size-4 shrink-0 cursor-pointer accent-[var(--color-brand-accent)]"
         :disabled="isSubmitting"
       >
-      <span class="text-xs leading-relaxed text-[#c4bdd0]">
+      <span class="text-xs leading-relaxed text-[var(--color-crepuscule-300)]">
         J'accepte de recevoir le guide et des conseils par email. Désabonnement possible à tout moment.
         <NuxtLink
           to="/legal/confidentialite"

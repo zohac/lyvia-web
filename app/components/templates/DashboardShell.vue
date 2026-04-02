@@ -169,7 +169,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-[100svh] w-full bg-[color:var(--color-surface-page)] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[color:var(--color-keova-50)]/55 via-[color:var(--color-surface-page)] to-[color:var(--color-surface-page)] selection:bg-[rgba(212,184,160,0.35)]">
+  <div class="flex h-[100svh] w-full bg-[color:var(--color-surface-page)] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[color:var(--color-crepuscule-50)]/55 via-[color:var(--color-surface-page)] to-[color:var(--color-surface-page)] selection:bg-[rgba(212,184,160,0.35)]">
     <aside
       class="fixed left-0 top-0 z-30 hidden h-full w-72 flex-col border-r border-[rgba(231,229,228,0.5)] bg-white/60 backdrop-blur-xl md:flex"
       aria-label="Navigation principale"
@@ -388,7 +388,7 @@ watch(
               class="mx-3 opacity-40"
               aria-hidden="true"
             />
-            <span class="border-b-2 border-[color:var(--color-brand-solid)] pb-1 text-[color:var(--color-brand-primary)]">
+            <span class="border-b-2 border-[color:var(--color-brand-primary)] pb-1 text-[color:var(--color-brand-primary)]">
               {{ pageTitle }}
             </span>
           </div>
