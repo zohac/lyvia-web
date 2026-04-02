@@ -344,8 +344,47 @@ export const keovaTabs = {
       orientation: 'vertical',
       variant: 'link',
       class: {
-        list: 'border-s -ms-px', // Border start (left en LTR)
-        indicator: '-start-px w-0.5' // Ligne verticale de 2px
+        list: 'border-s -ms-px',
+        indicator: '-start-px w-0.5'
+      }
+    },
+
+    // =========================================================================
+    // COLOR + VARIANT overrides
+    // Nuxt UI defaults set `data-[state=active]:text-inverted` for pill tabs.
+    // Keova pill uses white bg + dark text — we must override to prevent
+    // white-on-white text.
+    // =========================================================================
+    {
+      color: 'primary',
+      variant: 'pill',
+      class: {
+        indicator: 'bg-[color:var(--color-surface-card)] shadow-[var(--shadow-card)]',
+        trigger: 'data-[state=active]:text-[color:var(--color-brand-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary)]'
+      }
+    },
+    {
+      color: 'neutral',
+      variant: 'pill',
+      class: {
+        indicator: 'bg-[color:var(--color-surface-card)] shadow-[var(--shadow-card)]',
+        trigger: 'data-[state=active]:text-[color:var(--color-brand-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-secondary)]'
+      }
+    },
+    {
+      color: 'primary',
+      variant: 'link',
+      class: {
+        indicator: 'bg-[color:var(--color-brand-primary)]',
+        trigger: 'data-[state=active]:text-[color:var(--color-brand-primary)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-brand-primary)]'
+      }
+    },
+    {
+      color: 'neutral',
+      variant: 'link',
+      class: {
+        indicator: 'bg-[color:var(--color-brand-primary)]',
+        trigger: 'data-[state=active]:text-[color:var(--color-brand-primary)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-brand-secondary)]'
       }
     }
   ],
