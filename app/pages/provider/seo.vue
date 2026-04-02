@@ -229,49 +229,17 @@ async function retryLoad() {
 
 <template>
   <div class="mx-auto max-w-3xl space-y-8">
-    <!-- Page Header -->
-    <section class="relative pl-6">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-      <div class="grid gap-2">
-        <h1 class="font-serif text-3xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] sm:text-4xl">
-          Référencement
-        </h1>
-        <p class="text-base font-medium text-[color:var(--color-brand-secondary)]">
-          Optimisez le SEO de vos pages publiques
-        </p>
-      </div>
-    </section>
+    <AtomsDsPageHeader
+      title="Référencement"
+      subtitle="Optimisez le SEO de vos pages publiques"
+    />
 
     <!-- Global error + retry -->
-    <div
+    <AtomsDsErrorState
       v-if="loadError"
-      class="rounded-2xl border border-red-200 bg-red-50 p-8 text-center"
-    >
-      <UIcon
-        name="lucide:alert-circle"
-        size="48"
-        class="mx-auto mb-4 text-red-500"
-      />
-      <p class="text-lg font-medium text-red-800">
-        Impossible de charger la configuration
-      </p>
-      <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-        {{ loadError }}
-      </p>
-      <UButton
-        color="neutral"
-        variant="outline"
-        class="mt-6 rounded-full"
-        :loading="isLoading"
-        @click="retryLoad"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          size="16"
-        />
-        Réessayer
-      </UButton>
-    </div>
+      :message="String(loadError) || 'Impossible de charger la configuration'"
+      @retry="retryLoad"
+    />
 
     <!-- Loading skeleton -->
     <div

@@ -262,9 +262,9 @@
             <!-- Pause reason (US-7) -->
             <div
               v-if="detail.computedStatus === 'paused' && detail.pauseReason"
-              class="rounded-lg border border-amber-200 bg-amber-50 p-3"
+              class="rounded-lg border border-[color:var(--color-sunset-200)] bg-[color:var(--color-sunset-50)] p-3"
             >
-              <p class="text-xs font-medium uppercase tracking-wider text-amber-700">
+              <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-sunset-700)]">
                 Motif de la pause
               </p>
               <p class="mt-1 text-sm text-amber-900">

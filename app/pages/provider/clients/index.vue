@@ -65,10 +65,10 @@
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <div class="flex items-center gap-2">
-                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100">
+                <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-[color:var(--color-sunset-100)]">
                   <UIcon
                     name="lucide:search"
-                    class="h-4.5 w-4.5 text-amber-600"
+                    class="h-4.5 w-4.5 text-[color:var(--color-sunset-600)]"
                   />
                 </div>
                 <span class="text-sm font-semibold text-stone-900">En découverte</span>
@@ -77,14 +77,14 @@
                 Appel découverte planifié
               </p>
             </div>
-            <span class="text-3xl font-bold tabular-nums text-amber-600">
+            <span class="text-3xl font-bold tabular-nums text-[color:var(--color-sunset-600)]">
               {{ pending ? '—' : discoveryCount }}
             </span>
           </div>
           <!-- Progress bar -->
           <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-stone-100">
             <div
-              class="h-full rounded-full bg-amber-400 transition-all duration-500"
+              class="h-full rounded-full bg-[color:var(--color-sunset-400)] transition-all duration-500"
               :style="{ width: progressWidth(discoveryCount) }"
             />
           </div>
@@ -97,7 +97,7 @@
           class="flex w-full items-center justify-between border-t border-stone-100 px-5 py-2.5 text-left transition-colors"
           :class="[
             showCancelledOnly
-              ? 'bg-red-50'
+              ? 'bg-[color:var(--color-error-50)]'
               : 'hover:bg-stone-50'
           ]"
           @click.stop="toggleCancelledFilter"
@@ -105,16 +105,16 @@
           <div class="flex items-center gap-2">
             <UIcon
               name="lucide:calendar-x"
-              class="h-3.5 w-3.5 text-red-500"
+              class="h-3.5 w-3.5 text-[color:var(--color-error)]"
             />
-            <span class="text-xs font-medium text-red-600">
+            <span class="text-xs font-medium text-[color:var(--color-error-600)]">
               {{ discoveryCancelledCount }} annulé{{ discoveryCancelledCount > 1 ? 's' : '' }}
             </span>
           </div>
           <UIcon
             v-if="showCancelledOnly"
             name="lucide:check"
-            class="h-3.5 w-3.5 text-red-500"
+            class="h-3.5 w-3.5 text-[color:var(--color-error)]"
           />
         </button>
 
@@ -300,7 +300,7 @@
         cliente{{ clients.length > 1 ? 's' : '' }}
         <span
           v-if="showCancelledOnly"
-          class="text-red-600"
+          class="text-[color:var(--color-error-600)]"
         >
           · discovery annulés
         </span>

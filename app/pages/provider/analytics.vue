@@ -60,31 +60,11 @@ const isEmpty = computed(() => {
     </div>
 
     <!-- Error State -->
-    <div
+    <AtomsDsErrorState
       v-else-if="analytics.error.value"
-      class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-12 text-center shadow-card"
-    >
-      <UIcon
-        name="lucide:alert-circle"
-        size="48"
-        class="mx-auto mb-4 text-red-500"
-      />
-      <p class="text-lg font-medium text-red-800">
-        {{ analytics.error.value }}
-      </p>
-      <UButton
-        variant="outline"
-        color="neutral"
-        class="mt-6 rounded-full"
-        @click="analytics.fetchAnalytics()"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          size="16"
-        />
-        Réessayer
-      </UButton>
-    </div>
+      :message="String(analytics.error.value)"
+      @retry="analytics.fetchAnalytics()"
+    />
 
     <!-- Empty State -->
     <template v-else-if="isEmpty">

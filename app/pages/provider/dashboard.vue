@@ -273,10 +273,10 @@
                 <span
                   class="h-2 w-2 rounded-full"
                   :class="{
-                    'bg-green-500': financeUiState.kind === 'ready',
-                    'bg-yellow-500': financeUiState.kind === 'incomplete',
-                    'bg-red-500': financeUiState.kind === 'shadow',
-                    'bg-stone-300': financeUiState.kind === 'start'
+                    'bg-[color:var(--color-success)]': financeUiState.kind === 'ready',
+                    'bg-[color:var(--color-warning)]': financeUiState.kind === 'incomplete',
+                    'bg-[color:var(--color-error)]': financeUiState.kind === 'shadow',
+                    'bg-[color:var(--color-neutral-300)]': financeUiState.kind === 'start'
                   }"
                 />
                 <span class="text-xs text-stone-500">

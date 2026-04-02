@@ -1562,7 +1562,7 @@ async function handlePasswordChange() {
               <span
                 v-if="adsForm.googleAdsId"
                 class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
-                :class="adsIdValid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                :class="adsIdValid ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' : 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]'"
               >
                 {{ adsIdValid ? 'Actif' : 'Format invalide' }}
               </span>

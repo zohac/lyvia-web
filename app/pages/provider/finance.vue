@@ -262,10 +262,10 @@ async function refreshPayments() {
               class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-sm"
               :class="[
                 uiState.kind === 'ready'
-                  ? 'bg-green-100 text-green-600'
+                  ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-600)]'
                   : uiState.kind === 'shadow'
-                    ? 'bg-amber-100 text-amber-600'
-                    : 'bg-crepuscule-100 text-crepuscule-600'
+                    ? 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-600)]'
+                    : 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-600)]'
               ]"
             >
               <UIcon

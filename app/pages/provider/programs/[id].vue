@@ -215,7 +215,7 @@ async function handleDeactivate() {
           <div class="flex flex-wrap gap-3">
             <span
               v-if="program.discoveryGate"
-              class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200"
+              class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-sunset-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-sunset-700)] ring-1 ring-[color:var(--color-sunset-200)]"
             >
               <UIcon
                 name="i-lucide-phone-call"
@@ -225,7 +225,7 @@ async function handleDeactivate() {
             </span>
             <span
               v-if="program.allowInstallments"
-              class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-200"
+              class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-crepuscule-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-crepuscule-700)] ring-1 ring-[color:var(--color-crepuscule-200)]"
             >
               <UIcon
                 name="i-lucide-credit-card"
