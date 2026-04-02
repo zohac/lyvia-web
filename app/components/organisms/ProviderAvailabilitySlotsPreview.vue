@@ -42,14 +42,14 @@ function formatTime(iso: string): string {
 </script>
 
 <template>
-  <UCard class="bg-white">
+  <UCard class="bg-[color:var(--color-surface-card)]">
     <template #header>
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="font-semibold text-stone-900">
+          <h3 class="font-semibold text-[color:var(--color-text-primary)]">
             Aperçu des créneaux
           </h3>
-          <p class="mt-1 text-sm text-stone-500">
+          <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
             {{ timezone }}
           </p>
         </div>
@@ -113,7 +113,7 @@ function formatTime(iso: string): string {
       <!-- Empty -->
       <div
         v-else-if="groups.length === 0"
-        class="py-6 text-center text-sm text-stone-500"
+        class="py-6 text-center text-sm text-[color:var(--color-text-muted)]"
       >
         Aucun créneau généré.
       </div>
@@ -126,10 +126,10 @@ function formatTime(iso: string): string {
         <div
           v-for="group in groups"
           :key="group.key"
-          class="rounded-lg border border-stone-100 bg-stone-50 p-3"
+          class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-3"
         >
           <div class="flex items-center justify-between">
-            <p class="text-sm font-medium text-stone-900">
+            <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
               {{ group.label }}
             </p>
             <UBadge

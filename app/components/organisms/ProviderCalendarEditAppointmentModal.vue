@@ -206,7 +206,7 @@ function submit() {
         >
           {{ typeLabel }}
         </span>
-        <span class="text-stone-500">Fuseau : {{ timeZone }}</span>
+        <span class="text-[color:var(--color-text-muted)]">Fuseau : {{ timeZone }}</span>
       </div>
     </template>
 
@@ -230,11 +230,11 @@ function submit() {
           icon="i-lucide-alert-triangle"
         />
 
-        <section class="rounded-lg border border-stone-200 bg-stone-50 p-5">
+        <section class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5">
           <div class="grid gap-4">
             <div class="grid gap-2 md:grid-cols-2">
               <div class="grid gap-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+                <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Date
                 </label>
                 <UInput
@@ -244,13 +244,13 @@ function submit() {
                 />
                 <p
                   v-if="fieldErrors?.startAt"
-                  class="text-xs font-bold text-red-600"
+                  class="text-xs font-bold text-[color:var(--color-error-600)]"
                 >
                   {{ fieldErrors.startAt }}
                 </p>
               </div>
               <div class="grid gap-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+                <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Heure
                 </label>
                 <UInput
@@ -266,31 +266,31 @@ function submit() {
               v-if="appointment?.type === 'consultation' && currentPlan"
               class="grid gap-3"
             >
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Tarif actuel
               </label>
-              <div class="rounded-lg border border-stone-200 bg-white p-4 shadow-sm">
+              <div class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-4 shadow-sm">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                   <div class="grid gap-1">
                     <div class="flex items-center gap-2">
-                      <span class="text-base font-bold text-stone-900">
+                      <span class="text-base font-bold text-[color:var(--color-text-primary)]">
                         {{ currentPlan.label }}
                       </span>
                       <span
                         v-if="!currentPlan.isActive"
-                        class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700"
+                        class="inline-flex items-center rounded-full bg-[color:var(--color-sunset-100)] px-2 py-0.5 text-xs font-bold text-[color:var(--color-sunset-700)]"
                       >
                         Inactif
                       </span>
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-stone-500">
+                    <div class="flex items-center gap-2 text-sm text-[color:var(--color-text-muted)]">
                       <Icon
                         name="lucide:clock"
                         size="14"
                         aria-hidden="true"
                       />
                       <span>{{ currentPlan.durationMinutes }} min</span>
-                      <span class="text-stone-300">·</span>
+                      <span class="text-[color:var(--color-neutral-300)]">·</span>
                       <span>{{ new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(currentPlan.amountCents / 100) }}</span>
                     </div>
                   </div>
@@ -303,7 +303,7 @@ function submit() {
               v-if="appointment?.type === 'consultation'"
               class="grid gap-3"
             >
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Changer de tarif (optionnel)
               </label>
               <ConsultationPlanSelector
@@ -314,7 +314,7 @@ function submit() {
               />
               <p
                 v-if="!currentPlan?.isActive"
-                class="text-xs text-amber-600"
+                class="text-xs text-[color:var(--color-sunset-600)]"
               >
                 Le tarif actuel est inactif. Sélectionnez un nouveau tarif pour continuer.
               </p>
@@ -322,29 +322,29 @@ function submit() {
 
             <!-- Durée (affichage read-only) -->
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Durée
               </label>
               <div class="flex items-center gap-3">
                 <span
-                  class="inline-flex items-center rounded-full bg-stone-100 px-4 py-2 text-sm font-bold text-stone-900 ring-1 ring-stone-200"
+                  class="inline-flex items-center rounded-full bg-[color:var(--color-surface-muted)] px-4 py-2 text-sm font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)]"
                 >
                   {{ computedDurationMinutes }} min
                   <span
                     v-if="appointment?.type === 'discovery'"
-                    class="ml-2 text-xs text-stone-500"
+                    class="ml-2 text-xs text-[color:var(--color-text-muted)]"
                   >
                     (verrouillé)
                   </span>
                   <span
                     v-else-if="pricePlanId"
-                    class="ml-2 text-xs text-stone-500"
+                    class="ml-2 text-xs text-[color:var(--color-text-muted)]"
                   >
                     (nouveau tarif)
                   </span>
                   <span
                     v-else-if="currentPlan"
-                    class="ml-2 text-xs text-stone-500"
+                    class="ml-2 text-xs text-[color:var(--color-text-muted)]"
                   >
                     (depuis tarif)
                   </span>
@@ -353,7 +353,7 @@ function submit() {
             </div>
 
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Notes (optionnel)
               </label>
               <UTextarea
@@ -364,7 +364,7 @@ function submit() {
               />
               <p
                 v-if="fieldErrors?.notes"
-                class="text-xs font-bold text-red-600"
+                class="text-xs font-bold text-[color:var(--color-error-600)]"
               >
                 {{ fieldErrors.notes }}
               </p>
@@ -375,9 +375,9 @@ function submit() {
               v-if="appointment?.type === 'consultation'"
               class="grid gap-2"
             >
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Lien visio
-                <span class="font-normal text-stone-400">(optionnel)</span>
+                <span class="font-normal text-[color:var(--color-brand-muted)]">(optionnel)</span>
               </label>
               <UInput
                 v-model="meetingLink"
@@ -385,12 +385,12 @@ function submit() {
                 placeholder="https://meet.google.com/xxx-xxxx-xxx"
                 :disabled="loading || !canEdit"
               />
-              <p class="text-xs text-stone-500">
+              <p class="text-xs text-[color:var(--color-text-muted)]">
                 Ce lien sera inclus dans les emails de rappel.
               </p>
               <p
                 v-if="fieldErrors?.meetingLink"
-                class="text-xs font-bold text-red-600"
+                class="text-xs font-bold text-[color:var(--color-error-600)]"
               >
                 {{ fieldErrors.meetingLink }}
               </p>

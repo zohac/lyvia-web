@@ -57,7 +57,7 @@ function getProgramCta(program: PublicProgramListItem) {
 <template>
   <section
     v-bind="reveal()"
-    class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
+    class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="mx-auto max-w-6xl">
       <!-- Parent-provided H2 (P-Y5) -->
@@ -68,7 +68,7 @@ function getProgramCta(program: PublicProgramListItem) {
         v-bind="reveal({ delay: 100 })"
         class="scroll-reveal rounded-2xl bg-gradient-to-br from-[#5b4b6e]/20 via-[#d4956a]/20 to-[#5b4b6e]/10 p-px"
       >
-        <div class="discovery-card group relative rounded-2xl bg-white p-8 transition-all duration-300 sm:p-10">
+        <div class="discovery-card group relative rounded-2xl bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10">
           <!-- Glow blob -->
           <div
             class="discovery-card-glow absolute -right-10 -top-10 size-32 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
@@ -130,7 +130,7 @@ function getProgramCta(program: PublicProgramListItem) {
             v-for="(program, index) in programs"
             :key="program.id"
             v-bind="reveal({ delay: 250 + index * 100 })"
-            class="pricing-card scroll-reveal group relative w-full overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300 md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
+            class="pricing-card scroll-reveal group relative w-full overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
           >
             <!-- Glow blob -->
             <div
@@ -171,7 +171,7 @@ function getProgramCta(program: PublicProgramListItem) {
                 v-if="program.discoveryGate"
                 class="mt-4"
               >
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-sunset-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-sunset-700)] ring-1 ring-amber-200">
                   <UIcon
                     name="i-lucide-phone-call"
                     class="size-3.5"
@@ -209,7 +209,7 @@ function getProgramCta(program: PublicProgramListItem) {
             v-for="(plan, index) in activePlans"
             :key="plan.id"
             v-bind="reveal({ delay: 400 + index * 80 })"
-            class="pricing-card scroll-reveal group relative flex items-center justify-between overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6 transition-all duration-300"
+            class="pricing-card scroll-reveal group relative flex items-center justify-between overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-6 transition-all duration-300"
           >
             <div
               class="pricing-card-glow absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"

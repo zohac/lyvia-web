@@ -103,7 +103,7 @@ const bookingUrl = computed(() =>
           :external="!!provider.customDomain"
           :target="provider.customDomain ? '_blank' : undefined"
           :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
-          class="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-semibold text-[#3d3250] shadow-lg transition-all duration-300 hover:bg-[#d4956a] hover:text-white active:scale-95"
+          class="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-[color:var(--color-surface-card)] py-3 text-sm font-semibold text-[#3d3250] shadow-lg transition-all duration-300 hover:bg-[#d4956a] hover:text-white active:scale-95"
         >
           Voir le profil
           <UIcon

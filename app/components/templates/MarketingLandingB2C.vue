@@ -212,7 +212,7 @@ onMounted(() => {
           <!-- Stat card — pillar-card pattern from coach page -->
           <div
             ref="stat-card"
-            class="pillar-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-10 text-center transition-all duration-300 sm:p-12"
+            class="pillar-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-10 text-center transition-all duration-300 sm:p-12"
           >
             <!-- Glow blob top-right (appears on hover) -->
             <div
@@ -236,7 +236,7 @@ onMounted(() => {
           <!-- After menopause — same pillar-card pattern -->
           <div
             v-bind="reveal({ delay: 300 })"
-            class="pillar-card scroll-reveal reveal-from-right group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300 sm:p-10"
+            class="pillar-card scroll-reveal reveal-from-right group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10"
           >
             <!-- Glow blob top-right -->
             <div
@@ -538,7 +538,7 @@ onMounted(() => {
           15 minutes, gratuites, sans engagement. Juste un échange avec une spécialiste.
         </p>
         <button
-          class="mt-10 cursor-pointer rounded-full bg-white px-10 py-4 text-base font-semibold text-[#3d3250] shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95"
+          class="mt-10 cursor-pointer rounded-full bg-[color:var(--color-surface-card)] px-10 py-4 text-base font-semibold text-[#3d3250] shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl active:scale-95"
           @click="scrollTo('specialistes')"
         >
           Réserver un appel gratuit

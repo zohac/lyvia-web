@@ -42,7 +42,7 @@ const benefits = [
   <!-- TODO: Feature V — dynamiser -->
   <section
     v-bind="reveal()"
-    class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
+    class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="mx-auto max-w-6xl">
       <!-- Parent-provided H2 (P-Y5) -->
@@ -66,7 +66,7 @@ const benefits = [
           v-for="(benefit, index) in benefits"
           :key="benefit.title"
           v-bind="reveal({ delay: index * 100 })"
-          class="benefit-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+          class="benefit-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
         >
           <!-- Glow blob (B2B pattern) -->
           <div

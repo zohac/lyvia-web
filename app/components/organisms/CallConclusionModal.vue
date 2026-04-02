@@ -105,7 +105,7 @@ function submitWithStage(stage: BilanTargetStage) {
             variant="none"
             class="w-full rounded-[var(--radius-md)] border border-[rgba(231,229,228,0.8)] bg-[color:var(--color-surface-highlight)] px-4 py-3 text-sm text-[color:var(--color-brand-primary)] shadow-soft focus:outline-none focus:ring-2 focus:ring-[rgba(212,184,160,0.75)]"
           />
-          <p class="mt-1 text-right text-xs text-stone-400">
+          <p class="mt-1 text-right text-xs text-[color:var(--color-brand-muted)]">
             {{ conversionNote.length }}/1000
           </p>
         </div>

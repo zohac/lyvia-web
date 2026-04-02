@@ -92,7 +92,7 @@ function submit() {
             class="w-full"
           />
           <template #hint>
-            <span class="text-sm text-stone-500">Temps de transition entre deux rendez-vous</span>
+            <span class="text-sm text-[color:var(--color-text-muted)]">Temps de transition entre deux rendez-vous</span>
           </template>
         </UFormField>
 

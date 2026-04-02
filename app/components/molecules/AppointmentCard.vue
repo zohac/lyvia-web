@@ -1,6 +1,6 @@
 <template>
   <UCard
-    class="bg-white transition-shadow hover:shadow-md"
+    class="bg-[color:var(--color-surface-card)] transition-shadow hover:shadow-md"
     :class="{
       'ring-2 ring-amber-200': isPastScheduled,
       'opacity-75': appointment.status === 'cancelled'
@@ -15,23 +15,23 @@
           :class="avatarClass"
         />
         <div class="min-w-0">
-          <p class="truncate font-semibold text-stone-900">
+          <p class="truncate font-semibold text-[color:var(--color-text-primary)]">
             {{ clientName }}
           </p>
-          <p class="mt-0.5 text-sm text-stone-500">
+          <p class="mt-0.5 text-sm text-[color:var(--color-text-muted)]">
             {{ formattedDateTime }}
           </p>
           <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
             <a
               :href="`mailto:${appointment.client.email}`"
-              class="text-stone-600 hover:text-crepuscule-600 hover:underline"
+              class="text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
             >
               {{ appointment.client.email }}
             </a>
-            <span class="text-stone-300">·</span>
+            <span class="text-[color:var(--color-neutral-300)]">·</span>
             <a
               :href="`tel:${appointment.client.phone}`"
-              class="text-stone-600 hover:text-crepuscule-600 hover:underline"
+              class="text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
             >
               {{ appointment.client.phone }}
             </a>
@@ -169,17 +169,17 @@ const clientInitials = computed(() => {
 })
 
 const avatarClass = computed(() => {
-  if (isPastScheduled.value) return 'bg-amber-100 text-amber-700'
+  if (isPastScheduled.value) return 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]'
 
   switch (props.appointment.status) {
     case 'scheduled':
       return 'bg-crepuscule-100 text-crepuscule-700'
     case 'completed':
-      return 'bg-green-100 text-green-700'
+      return 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]'
     case 'cancelled':
-      return 'bg-stone-100 text-stone-500'
+      return 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-muted)]'
     default:
-      return 'bg-stone-100 text-stone-700'
+      return 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-secondary)]'
   }
 })
 

@@ -207,7 +207,7 @@ async function handleResume() {
         <div class="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <button
             type="button"
-            class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
+            class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-5 py-2.5 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
             @click="payment.loadContext()"
           >
             <Icon
@@ -287,7 +287,7 @@ async function handleResume() {
 
           <!-- Date & Time -->
           <div class="flex items-center gap-4 rounded-xl border border-[color:var(--color-brand-subtle)]/60 bg-[color:var(--color-surface-highlight)]/50 p-4">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-card)] shadow-sm">
               <Icon
                 name="lucide:calendar"
                 size="24"
@@ -376,7 +376,7 @@ async function handleResume() {
           <button
             v-if="payment.pageState.value.hasPendingPayment && !payment.actionPending.value"
             type="button"
-            class="flex w-full items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-subtle)] bg-white px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
+            class="flex w-full items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
             @click="handleResume"
           >
             <Icon
@@ -435,7 +435,7 @@ async function handleResume() {
             <!-- Animated shield icon with pulse ring -->
             <div class="checkout-icon-wrapper relative mx-auto mb-6">
               <div class="absolute inset-0 animate-pulse-ring rounded-3xl bg-[color:var(--color-keova-200)]/50" />
-              <div class="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-floating">
+              <div class="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-[color:var(--color-surface-card)] shadow-floating">
                 <Icon
                   name="lucide:shield-check"
                   size="36"

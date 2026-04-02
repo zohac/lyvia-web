@@ -23,7 +23,7 @@ const stepLabels: Record<string, string> = {
       <span class="w-28 shrink-0 text-sm font-medium text-[color:var(--color-brand-secondary)]">
         {{ stepLabels[step.step] ?? step.step }}
       </span>
-      <div class="h-3 flex-1 overflow-hidden rounded-full bg-stone-100">
+      <div class="h-3 flex-1 overflow-hidden rounded-full bg-[color:var(--color-surface-muted)]">
         <div
           class="h-full rounded-full bg-[color:var(--color-brand-solid)] transition-all duration-500"
           :style="{ width: `${step.percentage}%`, opacity: 1 - (i * 0.15) }"

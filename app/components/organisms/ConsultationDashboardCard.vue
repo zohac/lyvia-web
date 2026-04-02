@@ -88,7 +88,7 @@ const confirmedDisplay = computed(() => {
 
 <template>
   <UCard
-    class="bg-white"
+    class="bg-[color:var(--color-surface-card)]"
     aria-labelledby="consultation-card-title"
   >
     <!-- Loading State -->
@@ -153,11 +153,11 @@ const confirmedDisplay = computed(() => {
         <div>
           <h2
             id="consultation-card-title"
-            class="font-semibold text-stone-900"
+            class="font-semibold text-[color:var(--color-text-primary)]"
           >
             Première étape
           </h2>
-          <p class="mt-1 text-sm text-stone-500">
+          <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
             Avant de réserver une consultation payante, faisons connaissance lors d'un appel découverte gratuit.
           </p>
         </div>
@@ -178,26 +178,26 @@ const confirmedDisplay = computed(() => {
       class="space-y-4"
     >
       <div class="flex items-start gap-4">
-        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-stone-100">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-muted)]">
           <UIcon
             name="lucide:calendar-check"
-            class="h-6 w-6 text-stone-500"
+            class="h-6 w-6 text-[color:var(--color-text-muted)]"
           />
         </div>
         <div>
           <h2
             id="consultation-card-title"
-            class="font-semibold text-stone-900"
+            class="font-semibold text-[color:var(--color-text-primary)]"
           >
             Prochain rendez-vous
           </h2>
-          <p class="mt-1 text-sm text-stone-500">
+          <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
             Aucune consultation en attente. Votre prochaine séance apparaîtra ici dès qu'elle sera planifiée.
           </p>
         </div>
       </div>
 
-      <p class="text-sm text-stone-400">
+      <p class="text-sm text-[color:var(--color-brand-muted)]">
         En attendant, consultez vos ressources ou contactez votre coach.
       </p>
     </div>
@@ -213,42 +213,42 @@ const confirmedDisplay = computed(() => {
           variant="subtle"
           size="sm"
         >
-          <span class="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-500" />
+          <span class="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-[color:var(--color-sunset-50)]0" />
           En attente de paiement
         </UBadge>
 
         <h2
           id="consultation-card-title"
-          class="text-lg font-semibold text-stone-900"
+          class="text-lg font-semibold text-[color:var(--color-text-primary)]"
         >
           Votre consultation vous attend
         </h2>
       </div>
 
       <!-- Appointment details -->
-      <div class="rounded-xl border border-stone-200 bg-stone-50 p-4">
+      <div class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-4">
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-card)] shadow-sm">
             <UIcon
               name="lucide:calendar"
               class="h-5 w-5 text-sunset-600"
             />
           </div>
           <div>
-            <p class="text-sm font-semibold capitalize text-stone-900">
+            <p class="text-sm font-semibold capitalize text-[color:var(--color-text-primary)]">
               {{ awaitingPaymentDisplay.date }}
             </p>
-            <p class="text-xs text-stone-500">
+            <p class="text-xs text-[color:var(--color-text-muted)]">
               {{ awaitingPaymentDisplay.timeRange }} ({{ awaitingPaymentDisplay.duration }})
             </p>
           </div>
         </div>
 
-        <div class="mt-3 flex items-center justify-between border-t border-stone-200 pt-3">
-          <span class="text-sm text-stone-600">
+        <div class="mt-3 flex items-center justify-between border-t border-[color:var(--color-brand-subtle)] pt-3">
+          <span class="text-sm text-[color:var(--color-text-secondary)]">
             Montant à régler
           </span>
-          <span class="text-lg font-semibold text-stone-900">
+          <span class="text-lg font-semibold text-[color:var(--color-text-primary)]">
             {{ awaitingPaymentDisplay.price }}
           </span>
         </div>
@@ -267,7 +267,7 @@ const confirmedDisplay = computed(() => {
         Payer {{ awaitingPaymentDisplay.price }} & confirmer
       </UButton>
 
-      <p class="flex items-center gap-1 text-xs text-stone-400">
+      <p class="flex items-center gap-1 text-xs text-[color:var(--color-brand-muted)]">
         <UIcon
           name="lucide:shield-check"
           class="h-3.5 w-3.5"
@@ -296,25 +296,25 @@ const confirmedDisplay = computed(() => {
 
         <h2
           id="consultation-card-title"
-          class="text-lg font-semibold text-stone-900"
+          class="text-lg font-semibold text-[color:var(--color-text-primary)]"
         >
           Prochain rendez-vous
         </h2>
       </div>
 
       <!-- Confirmed appointment details -->
-      <div class="flex items-center gap-4 rounded-xl border border-green-200 bg-green-50 p-4">
-        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100">
+      <div class="flex items-center gap-4 rounded-xl border border-[color:var(--color-success-200)] bg-[color:var(--color-success-50)] p-4">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-success-100)]">
           <UIcon
             name="lucide:video"
-            class="h-6 w-6 text-green-600"
+            class="h-6 w-6 text-[color:var(--color-success-600)]"
           />
         </div>
         <div>
-          <p class="font-semibold capitalize text-stone-900">
+          <p class="font-semibold capitalize text-[color:var(--color-text-primary)]">
             {{ confirmedDisplay.date }}
           </p>
-          <p class="text-sm text-stone-600">
+          <p class="text-sm text-[color:var(--color-text-secondary)]">
             {{ confirmedDisplay.timeRange }} ({{ confirmedDisplay.duration }})
           </p>
         </div>
@@ -335,13 +335,13 @@ const confirmedDisplay = computed(() => {
       </UButton>
       <p
         v-else
-        class="text-sm text-stone-500"
+        class="text-sm text-[color:var(--color-text-muted)]"
       >
         Le lien de visio vous sera envoyé par email.
       </p>
 
       <!-- US-2/US-3: Actions annulation / report -->
-      <div class="flex flex-wrap items-center gap-2 border-t border-stone-100 pt-4">
+      <div class="flex flex-wrap items-center gap-2 border-t border-[color:var(--color-neutral-100)] pt-4">
         <!-- Pending request badge -->
         <template v-if="confirmedDisplay.hasPendingRequest">
           <UBadge
@@ -359,7 +359,7 @@ const confirmedDisplay = computed(() => {
 
         <!-- Too close to appointment message -->
         <template v-else-if="!confirmedDisplay.canRequest">
-          <p class="text-xs text-stone-400">
+          <p class="text-xs text-[color:var(--color-brand-muted)]">
             <UIcon
               name="lucide:info"
               class="mr-1 inline h-3.5 w-3.5"
@@ -384,7 +384,7 @@ const confirmedDisplay = computed(() => {
             color="neutral"
             size="xs"
             leading-icon="i-lucide-calendar-x"
-            class="text-stone-400 hover:text-red-600"
+            class="text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-error-600)]"
             @click="emit('requestCancel', displayState.appointmentId)"
           >
             Demander une annulation

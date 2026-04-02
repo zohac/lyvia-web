@@ -265,9 +265,9 @@ function submit() {
           icon="i-lucide-alert-triangle"
         />
 
-        <div class="grid gap-4 rounded-lg border border-stone-200 bg-stone-50 p-5">
+        <div class="grid gap-4 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5">
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Type
             </label>
             <USelect
@@ -281,7 +281,7 @@ function submit() {
             />
             <p
               v-if="fieldErrors?.type"
-              class="text-xs font-bold text-red-600"
+              class="text-xs font-bold text-[color:var(--color-error-600)]"
             >
               {{ fieldErrors.type }}
             </p>
@@ -289,7 +289,7 @@ function submit() {
 
           <div class="grid gap-2 md:grid-cols-2">
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Date
               </label>
               <UInput
@@ -299,13 +299,13 @@ function submit() {
               />
               <p
                 v-if="fieldErrors?.startAt"
-                class="text-xs font-bold text-red-600"
+                class="text-xs font-bold text-[color:var(--color-error-600)]"
               >
                 {{ fieldErrors.startAt }}
               </p>
             </div>
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Heure
               </label>
               <UInput
@@ -327,7 +327,7 @@ function submit() {
 
           <!-- Durée — sélecteur pour free_followup, read-only sinon -->
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Durée
             </label>
             <div
@@ -345,18 +345,18 @@ function submit() {
               class="flex items-center gap-3"
             >
               <span
-                class="inline-flex items-center rounded-full bg-stone-100 px-4 py-2 text-sm font-bold text-stone-900 ring-1 ring-stone-200"
+                class="inline-flex items-center rounded-full bg-[color:var(--color-surface-muted)] px-4 py-2 text-sm font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)]"
               >
                 {{ computedDurationMinutes }} min
                 <span
                   v-if="type === 'discovery'"
-                  class="ml-2 text-xs text-stone-500"
+                  class="ml-2 text-xs text-[color:var(--color-text-muted)]"
                 >
                   (verrouillé)
                 </span>
                 <span
                   v-else-if="pricePlanId"
-                  class="ml-2 text-xs text-stone-500"
+                  class="ml-2 text-xs text-[color:var(--color-text-muted)]"
                 >
                   (depuis tarif)
                 </span>
@@ -365,7 +365,7 @@ function submit() {
           </div>
 
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Cliente
             </label>
 
@@ -387,26 +387,26 @@ function submit() {
 
             <p
               v-if="inferredClients.length === 0 && type === 'discovery'"
-              class="text-xs text-amber-600"
+              class="text-xs text-[color:var(--color-sunset-600)]"
             >
               Aucun client éligible pour un discovery. Seuls les leads ou clients en découverte (discovery annulé) sans discovery actif peuvent en obtenir un nouveau.
             </p>
             <p
               v-else-if="inferredClients.length === 0 && (type === 'consultation' || type === 'free_followup')"
-              class="text-xs text-amber-600"
+              class="text-xs text-[color:var(--color-sunset-600)]"
             >
               Aucune cliente active éligible. Convertissez d'abord un lead après son appel découverte.
             </p>
             <p
               v-if="fieldErrors?.clientProfileId"
-              class="text-xs font-bold text-red-600"
+              class="text-xs font-bold text-[color:var(--color-error-600)]"
             >
               {{ fieldErrors.clientProfileId }}
             </p>
           </div>
 
           <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Notes (optionnel)
             </label>
             <UTextarea
@@ -417,7 +417,7 @@ function submit() {
             />
             <p
               v-if="fieldErrors?.notes"
-              class="text-xs font-bold text-red-600"
+              class="text-xs font-bold text-[color:var(--color-error-600)]"
             >
               {{ fieldErrors.notes }}
             </p>
@@ -428,9 +428,9 @@ function submit() {
             v-if="type === 'consultation' || type === 'free_followup'"
             class="grid gap-2"
           >
-            <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Lien visio
-              <span class="font-normal text-stone-400">(optionnel)</span>
+              <span class="font-normal text-[color:var(--color-brand-muted)]">(optionnel)</span>
             </label>
             <UInput
               v-model="meetingLink"
@@ -438,13 +438,13 @@ function submit() {
               placeholder="https://meet.google.com/xxx-xxxx-xxx"
               :disabled="loading"
             />
-            <p class="text-xs text-stone-500">
+            <p class="text-xs text-[color:var(--color-text-muted)]">
               Ajoutez le lien maintenant pour éviter de l'oublier.
               Il sera inclus dans l'email de confirmation.
             </p>
             <p
               v-if="fieldErrors?.meetingLink"
-              class="text-xs font-bold text-red-600"
+              class="text-xs font-bold text-[color:var(--color-error-600)]"
             >
               {{ fieldErrors.meetingLink }}
             </p>

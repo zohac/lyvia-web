@@ -248,7 +248,7 @@ const heroProps = computed(() => ({
     <!-- ==================== 2. BLOC PROBLÈME (blanc) ==================== -->
     <section
       v-bind="reveal()"
-      class="scroll-reveal relative overflow-hidden bg-white px-6 py-20 sm:px-12 lg:px-20"
+      class="scroll-reveal relative overflow-hidden bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#d4956a]/30 to-transparent" />
       <div class="mx-auto max-w-5xl">
@@ -568,7 +568,7 @@ const heroProps = computed(() => ({
     <!-- ==================== 7. PILIERS (blanc) ==================== -->
     <section
       v-bind="reveal()"
-      class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
+      class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-7xl">
         <span class="inline-block border-b-2 border-[#d4956a] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
@@ -591,7 +591,7 @@ const heroProps = computed(() => ({
             v-for="(pillar, index) in pillars"
             :key="pillar.title"
             v-bind="reveal({ delay: index * 120 })"
-            class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+            class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
           >
             <!-- Glow blob top-right (appears on hover, like B2B feature-card) -->
             <div
@@ -626,7 +626,7 @@ const heroProps = computed(() => ({
         <!-- Emotional support callout (5th pillar — distinct treatment) -->
         <div
           v-bind="reveal({ delay: 500 })"
-          class="pillar-card scroll-reveal group relative mt-8 overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300"
+          class="pillar-card scroll-reveal group relative mt-8 overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
         >
           <div
             class="pillar-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
@@ -728,7 +728,7 @@ const heroProps = computed(() => ({
     <!-- ==================== 11. FAQ (blanc) ==================== -->
     <section
       v-bind="reveal()"
-      class="scroll-reveal bg-white px-6 py-20 sm:px-12 lg:px-20"
+      class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-3xl">
         <div class="mb-16 text-center">

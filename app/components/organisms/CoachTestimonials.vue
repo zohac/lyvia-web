@@ -31,7 +31,7 @@ function getAvatarColor(name: string): string {
           v-for="(testimonial, index) in testimonials"
           :key="index"
           v-bind="reveal({ delay: index * 150 })"
-          class="testimonial-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300 sm:p-10"
+          class="testimonial-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10"
         >
           <!-- Glow blob (B2B pattern — differentiating: bottom-left instead of top-right) -->
           <div

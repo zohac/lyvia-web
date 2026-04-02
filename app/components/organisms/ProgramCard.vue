@@ -55,7 +55,7 @@ const cta = computed(() => {
 </script>
 
 <template>
-  <article class="flex flex-col rounded-2xl bg-white p-8 shadow-sm transition-shadow duration-300 hover:shadow-md">
+  <article class="flex flex-col rounded-2xl bg-[color:var(--color-surface-card)] p-8 shadow-sm transition-shadow duration-300 hover:shadow-md">
     <!-- Name -->
     <h3 class="font-serif text-xl text-[#2d2438]">
       {{ program.name }}
@@ -91,7 +91,7 @@ const cta = computed(() => {
       v-if="program.discoveryGate"
       class="mt-4"
     >
-      <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+      <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-sunset-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-sunset-700)] ring-1 ring-amber-200">
         <UIcon
           name="i-lucide-phone-call"
           class="h-3.5 w-3.5"

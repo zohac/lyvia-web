@@ -12,8 +12,8 @@ function truncate(text: string, max: number): string {
 </script>
 
 <template>
-  <div class="rounded-lg border border-stone-200 bg-white p-4">
-    <p class="mb-2 text-xs text-stone-500">
+  <div class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-4">
+    <p class="mb-2 text-xs text-[color:var(--color-text-muted)]">
       Aperçu Google
     </p>
     <div class="space-y-0.5">

@@ -3,10 +3,10 @@
     <!-- Page Header -->
     <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
+        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
           Mes paiements
         </h1>
-        <p class="mt-1 text-stone-500">
+        <p class="mt-1 text-[color:var(--color-text-muted)]">
           Retrouvez l'historique de vos transactions et accédez aux reçus.
         </p>
       </div>
@@ -54,7 +54,7 @@
         />
       </div>
       <!-- Table skeleton -->
-      <UCard class="rounded-3xl bg-white">
+      <UCard class="rounded-3xl bg-[color:var(--color-surface-card)]">
         <div class="space-y-4">
           <USkeleton
             v-for="i in 5"
@@ -70,7 +70,7 @@
       <!-- Summary Cards -->
       <div class="grid gap-4 sm:grid-cols-3">
         <!-- Total transactions -->
-        <UCard class="rounded-3xl bg-white">
+        <UCard class="rounded-3xl bg-[color:var(--color-surface-card)]">
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-crepuscule-100">
               <UIcon
@@ -79,10 +79,10 @@
               />
             </div>
             <div>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Transactions
               </p>
-              <p class="text-2xl font-semibold text-stone-900">
+              <p class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
                 {{ list.payments.value.length }}
               </p>
             </div>
@@ -90,19 +90,19 @@
         </UCard>
 
         <!-- Total paid -->
-        <UCard class="rounded-3xl bg-white">
+        <UCard class="rounded-3xl bg-[color:var(--color-surface-card)]">
           <div class="flex items-center gap-4">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-success-100)]">
               <UIcon
                 name="lucide:check-circle"
-                class="h-6 w-6 text-green-600"
+                class="h-6 w-6 text-[color:var(--color-success-600)]"
               />
             </div>
             <div>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Total réglé
               </p>
-              <p class="text-2xl font-semibold text-stone-900">
+              <p class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
                 {{ totalPaidFormatted }}
               </p>
             </div>
@@ -110,7 +110,7 @@
         </UCard>
 
         <!-- Last payment -->
-        <UCard class="rounded-3xl bg-white">
+        <UCard class="rounded-3xl bg-[color:var(--color-surface-card)]">
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sunset-100">
               <UIcon
@@ -119,10 +119,10 @@
               />
             </div>
             <div>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Dernier paiement
               </p>
-              <p class="text-lg font-semibold text-stone-900">
+              <p class="text-lg font-semibold text-[color:var(--color-text-primary)]">
                 {{ lastPaymentDate }}
               </p>
             </div>
@@ -133,19 +133,19 @@
       <!-- Empty State -->
       <UCard
         v-if="list.payments.value.length === 0"
-        class="rounded-3xl bg-white"
+        class="rounded-3xl bg-[color:var(--color-surface-card)]"
       >
         <div class="py-12 text-center">
-          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
+          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
             <UIcon
               name="lucide:credit-card"
-              class="h-8 w-8 text-stone-400"
+              class="h-8 w-8 text-[color:var(--color-brand-muted)]"
             />
           </div>
-          <h3 class="text-lg font-semibold text-stone-900">
+          <h3 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
             Aucun paiement
           </h3>
-          <p class="mx-auto mt-2 max-w-sm text-sm text-stone-500">
+          <p class="mx-auto mt-2 max-w-sm text-sm text-[color:var(--color-text-muted)]">
             Vos paiements apparaîtront ici une fois que vous aurez réglé votre première consultation.
           </p>
           <UButton
@@ -162,11 +162,11 @@
       <!-- Payments Table (Desktop) -->
       <UCard
         v-else
-        class="hidden rounded-3xl bg-white md:block"
+        class="hidden rounded-3xl bg-[color:var(--color-surface-card)] md:block"
       >
         <template #header>
           <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Historique des paiements
             </h2>
             <UBadge
@@ -183,16 +183,16 @@
           <table class="min-w-full divide-y divide-stone-200">
             <thead>
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
+                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Date
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
+                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Montant
                 </th>
-                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
+                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Statut
                 </th>
-                <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-stone-500">
+                <th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Reçu
                 </th>
               </tr>
@@ -201,7 +201,7 @@
               <tr
                 v-for="payment in formattedPayments"
                 :key="payment.id"
-                class="transition-colors hover:bg-stone-50"
+                class="transition-colors hover:bg-[color:var(--color-surface-page)]"
               >
                 <td class="whitespace-nowrap px-6 py-4">
                   <div class="flex items-center gap-3">
@@ -216,17 +216,17 @@
                       />
                     </div>
                     <div>
-                      <p class="font-medium text-stone-900">
+                      <p class="font-medium text-[color:var(--color-text-primary)]">
                         {{ payment.dateLong }}
                       </p>
-                      <p class="text-xs text-stone-500">
+                      <p class="text-xs text-[color:var(--color-text-muted)]">
                         {{ payment.time }}
                       </p>
                     </div>
                   </div>
                 </td>
                 <td class="whitespace-nowrap px-6 py-4">
-                  <span class="text-lg font-semibold text-stone-900">
+                  <span class="text-lg font-semibold text-[color:var(--color-text-primary)]">
                     {{ payment.amount }}
                   </span>
                 </td>
@@ -256,7 +256,7 @@
                   </UButton>
                   <span
                     v-else
-                    class="text-xs text-stone-400"
+                    class="text-xs text-[color:var(--color-brand-muted)]"
                   >
                     {{ payment.status.tone === 'success' ? 'Bientôt disponible' : '—' }}
                   </span>
@@ -284,7 +284,7 @@
           </div>
           <p
             v-if="list.loadMoreErrorMessage.value"
-            class="mt-2 text-center text-sm text-red-600"
+            class="mt-2 text-center text-sm text-[color:var(--color-error-600)]"
           >
             {{ list.loadMoreErrorMessage.value }}
           </p>
@@ -293,14 +293,14 @@
 
       <!-- Payments Cards (Mobile) -->
       <div class="space-y-4 md:hidden">
-        <h2 class="font-semibold text-stone-900">
+        <h2 class="font-semibold text-[color:var(--color-text-primary)]">
           Historique des paiements
         </h2>
 
         <UCard
           v-for="payment in formattedPayments"
           :key="payment.id"
-          class="rounded-3xl bg-white"
+          class="rounded-3xl bg-[color:var(--color-surface-card)]"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -315,10 +315,10 @@
                 />
               </div>
               <div>
-                <p class="text-lg font-semibold text-stone-900">
+                <p class="text-lg font-semibold text-[color:var(--color-text-primary)]">
                   {{ payment.amount }}
                 </p>
-                <p class="text-sm text-stone-500">
+                <p class="text-sm text-[color:var(--color-text-muted)]">
                   {{ payment.dateLong }}
                 </p>
               </div>
@@ -335,9 +335,9 @@
 
           <div
             v-if="payment.receiptUrl || payment.status.tone === 'success'"
-            class="mt-4 flex items-center justify-between border-t border-stone-100 pt-4"
+            class="mt-4 flex items-center justify-between border-t border-[color:var(--color-neutral-100)] pt-4"
           >
-            <span class="text-sm text-stone-500">Reçu</span>
+            <span class="text-sm text-[color:var(--color-text-muted)]">Reçu</span>
             <UButton
               v-if="payment.receiptUrl"
               variant="soft"
@@ -350,7 +350,7 @@
             </UButton>
             <span
               v-else
-              class="text-xs text-stone-400"
+              class="text-xs text-[color:var(--color-brand-muted)]"
             >
               Bientôt disponible
             </span>
@@ -373,7 +373,7 @@
           </UButton>
           <p
             v-if="list.loadMoreErrorMessage.value"
-            class="text-sm text-red-600"
+            class="text-sm text-[color:var(--color-error-600)]"
           >
             {{ list.loadMoreErrorMessage.value }}
           </p>
@@ -383,17 +383,17 @@
       <!-- Info Card -->
       <UCard class="rounded-3xl bg-gradient-to-br from-crepuscule-50 to-white">
         <div class="flex items-start gap-4">
-          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-card)] shadow-sm">
             <UIcon
               name="lucide:info"
               class="h-5 w-5 text-crepuscule-600"
             />
           </div>
           <div>
-            <h3 class="font-semibold text-stone-900">
+            <h3 class="font-semibold text-[color:var(--color-text-primary)]">
               À propos des reçus
             </h3>
-            <p class="mt-1 text-sm text-stone-600">
+            <p class="mt-1 text-sm text-[color:var(--color-text-secondary)]">
               Les reçus sont générés par Stripe et peuvent prendre quelques minutes à être disponibles après un paiement réussi. Vous pouvez les télécharger pour vos justificatifs.
             </p>
           </div>
@@ -494,21 +494,21 @@ function getStatusBadgeColor(tone: StatusTone): 'success' | 'error' | 'neutral' 
 }
 
 function getStatusDotColor(tone: StatusTone): string {
-  if (tone === 'success') return 'bg-green-500'
-  if (tone === 'danger') return 'bg-red-500'
-  return 'bg-stone-400'
+  if (tone === 'success') return 'bg-[color:var(--color-success-50)]0'
+  if (tone === 'danger') return 'bg-[color:var(--color-error-50)]0'
+  return 'bg-[color:var(--color-neutral-400)]'
 }
 
 function getStatusIconBg(tone: StatusTone): string {
-  if (tone === 'success') return 'bg-green-100'
-  if (tone === 'danger') return 'bg-red-100'
-  return 'bg-stone-100'
+  if (tone === 'success') return 'bg-[color:var(--color-success-100)]'
+  if (tone === 'danger') return 'bg-[color:var(--color-error-100)]'
+  return 'bg-[color:var(--color-surface-muted)]'
 }
 
 function getStatusIconColor(tone: StatusTone): string {
-  if (tone === 'success') return 'text-green-600'
-  if (tone === 'danger') return 'text-red-600'
-  return 'text-stone-500'
+  if (tone === 'success') return 'text-[color:var(--color-success-600)]'
+  if (tone === 'danger') return 'text-[color:var(--color-error-600)]'
+  return 'text-[color:var(--color-text-muted)]'
 }
 
 function getStatusIcon(tone: StatusTone): string {

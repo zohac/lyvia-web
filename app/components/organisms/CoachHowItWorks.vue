@@ -74,7 +74,7 @@ const steps = computed(() => [
             v-for="(step, index) in steps"
             :key="`card-${step.number}`"
             v-bind="reveal({ delay: index * 150 + 80 })"
-            class="step-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6 text-center transition-all duration-300"
+            class="step-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-6 text-center transition-all duration-300"
           >
             <!-- Glow blob (B2B pattern) -->
             <div
@@ -114,7 +114,7 @@ const steps = computed(() => [
             v-for="(step, index) in steps"
             :key="`mobile-${step.number}`"
             v-bind="reveal({ delay: index * 100 })"
-            class="step-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6 transition-all duration-300"
+            class="step-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-6 transition-all duration-300"
           >
             <!-- Number dot on the line -->
             <div class="absolute -left-16 top-6 flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-[#5b4b6e] to-[#3d3250] text-sm font-bold text-white shadow-md ring-4 ring-[#f5f0eb]">

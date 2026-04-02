@@ -21,13 +21,13 @@ onMounted(() => load())
 </script>
 
 <template>
-  <UCard class="bg-white">
+  <UCard class="bg-[color:var(--color-surface-card)]">
     <template #header>
       <div class="flex items-center justify-between">
-        <h2 class="font-semibold text-stone-900">
+        <h2 class="font-semibold text-[color:var(--color-text-primary)]">
           <UIcon
             name="lucide:package"
-            class="mr-2 inline-block h-5 w-5 text-stone-500"
+            class="mr-2 inline-block h-5 w-5 text-[color:var(--color-text-muted)]"
           />
           Programmes
         </h2>
@@ -55,7 +55,7 @@ onMounted(() => load())
     <!-- Empty state -->
     <p
       v-else-if="subscriptions.length === 0"
-      class="py-4 text-center text-sm text-stone-500"
+      class="py-4 text-center text-sm text-[color:var(--color-text-muted)]"
     >
       Aucun programme souscrit
     </p>
@@ -73,13 +73,13 @@ onMounted(() => load())
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
-              <p class="truncate font-medium text-stone-900">
+              <p class="truncate font-medium text-[color:var(--color-text-primary)]">
                 {{ sub.snapshotName }}
               </p>
               <SubscriptionStatusBadge :status="sub.status" />
             </div>
 
-            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone-500">
+            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--color-text-muted)]">
               <span>{{ formatCurrency(sub.snapshotPriceCents) }}</span>
               <span>{{ sub.snapshotValidityMonths }} mois</span>
               <span>Expire {{ formatDateShort(sub.expiresAt) }}</span>

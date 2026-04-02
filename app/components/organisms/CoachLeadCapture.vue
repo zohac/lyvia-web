@@ -92,10 +92,10 @@ async function handleSubmit() {
         v-if="isSubmitted"
         class="flex flex-col items-center gap-4"
       >
-        <div class="grid size-16 place-items-center rounded-full bg-emerald-500/20 ring-2 ring-emerald-400/30">
+        <div class="grid size-16 place-items-center rounded-full bg-[color:var(--color-success-50)]0/20 ring-2 ring-emerald-400/30">
           <UIcon
             name="i-lucide-check-circle"
-            class="size-8 text-emerald-400"
+            class="size-8 text-[color:var(--color-success-400)]"
           />
         </div>
         <p class="text-xl font-semibold text-white">

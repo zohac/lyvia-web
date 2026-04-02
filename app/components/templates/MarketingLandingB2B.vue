@@ -310,7 +310,7 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== BLOC DOULEUR (V5) ====================== -->
-    <section class="relative bg-white px-6 py-24 sm:px-12 lg:px-20">
+    <section class="relative bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto max-w-3xl"
@@ -404,7 +404,7 @@ function scrollTo(id: string) {
             </div>
 
             <!-- RIGHT — Avec Keova (light, calm) — 5 items mapping 1:1 -->
-            <div class="relative flex flex-col bg-white px-8 py-10 lg:px-10 lg:py-12">
+            <div class="relative flex flex-col bg-[color:var(--color-surface-card)] px-8 py-10 lg:px-10 lg:py-12">
               <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#d4956a]">
                 Avec Keova
               </p>
@@ -449,7 +449,7 @@ function scrollTo(id: string) {
                 {{ stat.value }}
               </span>
             </div>
-            <div class="bg-white px-4 py-4 text-center">
+            <div class="bg-[color:var(--color-surface-card)] px-4 py-4 text-center">
               <span class="text-xs font-semibold uppercase tracking-wider text-[#6b6278]">
                 {{ stat.label }}
               </span>
@@ -462,7 +462,7 @@ function scrollTo(id: string) {
     <!-- ====================== FEATURES V5 ====================== -->
     <section
       id="atelier"
-      class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-[color:var(--color-surface-card)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-5xl">
         <div
@@ -488,7 +488,7 @@ function scrollTo(id: string) {
             v-for="(feature, i) in features"
             :key="feature.title"
             v-bind="reveal({ delay: i * 150 })"
-            class="scroll-reveal feature-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8"
+            class="scroll-reveal feature-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] p-8"
           >
             <div class="feature-card-glow absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0" />
             <div class="flex items-start gap-5">
@@ -674,7 +674,7 @@ function scrollTo(id: string) {
     <!-- ====================== CASE STUDY SOPHIE ====================== -->
     <section
       id="temoignage"
-      class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-[color:var(--color-surface-card)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-4xl">
         <!-- Badge -->
@@ -693,7 +693,7 @@ function scrollTo(id: string) {
 
         <div
           v-bind="reveal({ delay: 200 })"
-          class="scroll-reveal case-study-card group overflow-hidden rounded-3xl bg-white p-8 shadow-xl lg:p-12"
+          class="scroll-reveal case-study-card group overflow-hidden rounded-3xl bg-[color:var(--color-surface-card)] p-8 shadow-xl lg:p-12"
         >
           <div class="flex flex-col items-center gap-8 lg:flex-row lg:gap-12">
             <!-- Avatar initiales — elevated -->
@@ -814,7 +814,7 @@ function scrollTo(id: string) {
               <!-- Step card -->
               <div
                 v-bind="reveal({ delay: i * 150 })"
-                class="scroll-reveal group relative flex flex-col items-center gap-3 rounded-2xl border border-[#ebe7ef] bg-white px-6 py-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#d7cfdf] hover:shadow-lg"
+                class="scroll-reveal group relative flex flex-col items-center gap-3 rounded-2xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] px-6 py-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#d7cfdf] hover:shadow-lg"
               >
                 <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-3 py-0.5 text-[10px] font-bold text-white">
                   {{ pillar.num }}
@@ -845,7 +845,7 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== BLOC AUTORITÉ (V5) ====================== -->
-    <section class="relative bg-white px-6 py-24 sm:px-12 lg:px-20">
+    <section class="relative bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto max-w-3xl"
@@ -968,7 +968,7 @@ function scrollTo(id: string) {
         title="Rejoindre la beta Keova"
         description="Votre demande reste confidentielle. Aucun engagement."
         :ui="{
-          content: 'rounded-3xl border border-[#ebe7ef] bg-white shadow-2xl max-w-lg overflow-hidden',
+          content: 'rounded-3xl border border-[#ebe7ef] bg-[color:var(--color-surface-card)] shadow-2xl max-w-lg overflow-hidden',
           header: 'relative overflow-hidden bg-gradient-to-r from-[#5b4b6e] via-[#7a6b8e] to-[#5b4b6e] px-8 pt-8 pb-6',
           body: 'px-8 pb-8 pt-6',
           title: 'font-serif text-2xl text-white',

@@ -612,7 +612,7 @@ async function submitBooking() {
             </div>
 
             <!-- Mobile fixed CTA -->
-            <div class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white p-4 sm:hidden">
+            <div class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-[color:var(--color-surface-card)] p-4 sm:hidden">
               <UButton
                 size="lg"
                 color="primary"
