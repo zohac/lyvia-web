@@ -225,19 +225,11 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
 
 <template>
   <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-crepuscule-600)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Clients
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Supervision cross-provider
-        </p>
-      </div>
-    </section>
+    <AtomsDsPageHeader
+      title="Clients"
+      subtitle="Supervision cross-provider"
+      class="mb-10"
+    />
 
     <!-- Filters -->
     <section class="mb-8 space-y-4">
@@ -311,49 +303,19 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
       </div>
 
       <!-- Error State -->
-      <div
+      <AtomsDsErrorState
         v-else-if="error"
-        class="p-8 text-center"
-      >
-        <UIcon
-          name="lucide:alert-circle"
-          size="48"
-          class="mx-auto mb-4 text-red-500"
-        />
-        <p class="text-lg font-medium text-red-800">
-          Erreur lors du chargement des clients
-        </p>
-        <UButton
-          variant="outline"
-          color="neutral"
-          class="mt-4 rounded-full"
-          @click="() => refresh()"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            size="16"
-          />
-          Réessayer
-        </UButton>
-      </div>
+        message="Erreur lors du chargement des clients"
+        @retry="refresh()"
+      />
 
       <!-- Empty State -->
-      <div
+      <AtomsDsEmptyState
         v-else-if="!clients?.items?.length"
-        class="p-12 text-center"
-      >
-        <UIcon
-          name="lucide:users"
-          size="48"
-          class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
-        />
-        <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
-          Aucun client trouvé
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun client n\'est encore inscrit.' }}
-        </p>
-      </div>
+        icon="i-lucide-users"
+        title="Aucun client trouvé"
+        :description="searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun client n\'est encore inscrit.'"
+      />
 
       <!-- Table -->
       <div v-else>

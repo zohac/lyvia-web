@@ -1,18 +1,10 @@
 <template>
   <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Administration
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Supervisez la plateforme Keova et les opérations.
-        </p>
-      </div>
-    </section>
+    <AtomsDsPageHeader
+      title="Administration"
+      subtitle="Supervisez la plateforme Keova et les opérations."
+      class="mb-10"
+    />
 
     <!-- Loading State -->
     <div
@@ -29,45 +21,31 @@
       </div>
 
       <!-- Events Skeleton -->
-      <div class="space-y-4">
-        <USkeleton class="h-6 w-48" />
-        <USkeleton
-          v-for="j in 5"
-          :key="j"
-          class="h-10"
-        />
-      </div>
+      <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+        <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--ui-color-primary-100)] opacity-30 blur-[100px]" />
+
+        <div class="relative z-10 p-8">
+          <USkeleton class="h-8 w-56" />
+          <USkeleton class="mt-2 h-4 w-72 max-w-full" />
+        </div>
+
+        <div class="relative z-10 space-y-3 px-8 pb-8">
+          <USkeleton class="h-10 rounded-xl" />
+          <USkeleton
+            v-for="j in 4"
+            :key="j"
+            class="h-12 rounded-xl"
+          />
+        </div>
+      </section>
     </div>
 
     <!-- Error State -->
-    <div
+    <AtomsDsErrorState
       v-else-if="status === 'error'"
-      class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-12 text-center shadow-card"
-    >
-      <UIcon
-        name="lucide:alert-circle"
-        size="48"
-        class="mx-auto mb-4 text-red-500"
-      />
-      <p class="text-lg font-medium text-red-800">
-        Erreur lors du chargement du dashboard
-      </p>
-      <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-        {{ error?.message || 'Une erreur inattendue est survenue.' }}
-      </p>
-      <UButton
-        variant="outline"
-        color="neutral"
-        class="mt-6 rounded-full"
-        @click="() => refresh()"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          size="16"
-        />
-        Réessayer
-      </UButton>
-    </div>
+      :message="error?.message || 'Erreur lors du chargement du dashboard'"
+      @retry="refresh()"
+    />
 
     <!-- Data State -->
     <div

@@ -1263,22 +1263,18 @@
                   <ColorSwatch
                     name="--color-brand-primary"
                     label="Primary"
-                    hex="#1c1917"
                   />
                   <ColorSwatch
                     name="--color-brand-secondary"
                     label="Secondary"
-                    hex="#57534e"
                   />
                   <ColorSwatch
                     name="--color-brand-accent"
                     label="Accent"
-                    hex="#7a6251"
                   />
                   <ColorSwatch
                     name="--color-brand-muted"
                     label="Muted"
-                    hex="#a8a29e"
                   />
                 </div>
               </ComponentCard>
@@ -1292,22 +1288,18 @@
                   <ColorSwatch
                     name="--color-success"
                     label="Success"
-                    hex="#b5c0a3"
                   />
                   <ColorSwatch
                     name="--color-warning"
                     label="Warning"
-                    hex="#d97706"
                   />
                   <ColorSwatch
                     name="--color-error"
                     label="Error"
-                    hex="#b60010"
                   />
                   <ColorSwatch
                     name="--color-info"
                     label="Info"
-                    hex="#0284c7"
                   />
                 </div>
               </ComponentCard>

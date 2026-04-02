@@ -1,25 +1,19 @@
 <template>
   <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Analytics plateforme
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Vue d'ensemble de la performance de tous les providers
-        </p>
-      </div>
-
-      <USelect
-        v-model="selectedPeriod"
-        :items="periodOptions"
-        value-key="value"
-        class="w-36"
-      />
-    </section>
+    <AtomsDsPageHeader
+      title="Analytics plateforme"
+      subtitle="Vue d'ensemble de la performance de tous les providers"
+      class="mb-10"
+    >
+      <template #actions>
+        <USelect
+          v-model="selectedPeriod"
+          :items="periodOptions"
+          value-key="value"
+          class="w-36"
+        />
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Loading State -->
     <div
@@ -36,46 +30,19 @@
     </div>
 
     <!-- Error State -->
-    <div
+    <AtomsDsErrorState
       v-else-if="status === 'error'"
-      class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-12 text-center shadow-card"
-    >
-      <UIcon
-        name="lucide:alert-circle"
-        size="48"
-        class="mx-auto mb-4 text-red-500"
-      />
-      <p class="text-lg font-medium text-red-800">
-        Erreur lors du chargement des analytics
-      </p>
-      <UButton
-        variant="outline"
-        color="neutral"
-        class="mt-6 rounded-full"
-        @click="() => refresh()"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          size="16"
-        />
-        Réessayer
-      </UButton>
-    </div>
+      message="Erreur lors du chargement des analytics"
+      @retry="refresh()"
+    />
 
     <!-- Empty State -->
-    <div
+    <AtomsDsEmptyState
       v-else-if="data && isEmpty"
-      class="rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-12 text-center"
-    >
-      <UIcon
-        name="lucide:bar-chart-3"
-        size="48"
-        class="mx-auto text-stone-300"
-      />
-      <p class="mt-4 text-lg text-[color:var(--color-brand-secondary)]">
-        Aucune donnée disponible pour cette période
-      </p>
-    </div>
+      icon="i-lucide-bar-chart-3"
+      title="Aucune donnée disponible"
+      description="Aucune donnée disponible pour cette période."
+    />
 
     <!-- Data State -->
     <div

@@ -1,29 +1,23 @@
 <template>
   <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Business Logs
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Historique des événements métier de la plateforme
-        </p>
-      </div>
-
-      <NuxtLink
-        to="/admin/dashboard"
-        class="flex items-center gap-2 text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:text-[color:var(--color-brand-primary)]"
-      >
-        <UIcon
-          name="lucide:arrow-left"
-          size="16"
-        />
-        Retour au dashboard
-      </NuxtLink>
-    </section>
+    <AtomsDsPageHeader
+      title="Business Logs"
+      subtitle="Historique des événements métier de la plateforme"
+      class="mb-10"
+    >
+      <template #actions>
+        <NuxtLink
+          to="/admin/dashboard"
+          class="flex items-center gap-2 text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:text-[color:var(--color-brand-primary)]"
+        >
+          <UIcon
+            name="lucide:arrow-left"
+            size="16"
+          />
+          Retour au dashboard
+        </NuxtLink>
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Filters -->
     <section class="mb-8 space-y-4">
@@ -131,52 +125,21 @@
       </div>
 
       <!-- Error State -->
-      <div
+      <AtomsDsErrorState
         v-else-if="error"
-        class="relative z-10 p-8 text-center"
-      >
-        <UIcon
-          name="lucide:alert-circle"
-          size="48"
-          class="mx-auto mb-4 text-red-500"
-        />
-        <p class="text-lg font-medium text-red-800">
-          Erreur lors du chargement des logs
-        </p>
-        <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ error?.message || 'Une erreur inattendue est survenue.' }}
-        </p>
-        <UButton
-          variant="outline"
-          color="neutral"
-          class="mt-4 rounded-full"
-          @click="() => refresh()"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            size="16"
-          />
-          Réessayer
-        </UButton>
-      </div>
+        :message="error?.message || 'Erreur lors du chargement des logs'"
+        class="relative z-10"
+        @retry="refresh()"
+      />
 
       <!-- Empty State -->
-      <div
+      <AtomsDsEmptyState
         v-else-if="!logs?.items?.length"
-        class="relative z-10 p-12 text-center"
-      >
-        <UIcon
-          name="lucide:scroll-text"
-          size="48"
-          class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
-        />
-        <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
-          Aucun log trouvé
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ hasActiveFilters ? 'Essayez avec d\'autres filtres.' : 'Aucun événement n\'a encore été enregistré.' }}
-        </p>
-      </div>
+        icon="i-lucide-scroll-text"
+        title="Aucun log trouvé"
+        :description="hasActiveFilters ? 'Essayez avec d\'autres filtres.' : 'Aucun événement n\'a encore été enregistré.'"
+        class="relative z-10"
+      />
 
       <!-- Table -->
       <div
