@@ -109,15 +109,10 @@ async function handlePasswordChange() {
 
 <template>
   <div class="space-y-8">
-    <!-- Page header -->
-    <header>
-      <h1 class="font-serif text-2xl font-semibold text-[color:var(--color-brand-primary)] sm:text-3xl">
-        Mon compte
-      </h1>
-      <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-        Gérez vos informations personnelles, votre email et votre mot de passe.
-      </p>
-    </header>
+    <AtomsDsPageHeader
+      title="Mon compte"
+      subtitle="Gérez vos informations personnelles, votre email et votre mot de passe."
+    />
 
     <!-- Loading -->
     <div
@@ -130,25 +125,11 @@ async function handlePasswordChange() {
     </div>
 
     <!-- Error State (no data) -->
-    <div
+    <AtomsDsErrorState
       v-else-if="error && !account"
-      class="rounded-[var(--radius-lg)] border border-[color:var(--color-error)]/20 bg-[color:var(--color-error)]/5 p-6 text-center"
-    >
-      <UIcon
-        name="i-lucide-alert-circle"
-        class="mx-auto h-10 w-10 text-[color:var(--color-error)]"
-      />
-      <p class="mt-3 font-medium text-[color:var(--color-error)]">
-        {{ error }}
-      </p>
-      <UButton
-        variant="outline"
-        class="mt-4"
-        @click="fetchAccount"
-      >
-        Réessayer
-      </UButton>
-    </div>
+      :message="error"
+      @retry="fetchAccount()"
+    />
 
     <template v-else>
       <!-- Section 1: Informations personnelles -->

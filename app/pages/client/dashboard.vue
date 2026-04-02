@@ -138,7 +138,7 @@
             <!-- Payments list -->
             <div
               v-else
-              class="divide-y divide-stone-100"
+              class="divide-y divide-[color:var(--color-border-subtle)]"
             >
               <div
                 v-for="payment in payments.slice(0, 3)"
@@ -149,9 +149,9 @@
                   <span
                     class="h-2 w-2 rounded-full"
                     :class="{
-                      'bg-[color:var(--color-success-50)]0': payment.status === 'succeeded',
-                      'bg-[color:var(--color-sunset-50)]0': payment.status === 'pending',
-                      'bg-[color:var(--color-error-50)]0': payment.status === 'failed'
+                      'bg-[color:var(--color-success-500)]': payment.status === 'succeeded',
+                      'bg-[color:var(--color-warning)]': payment.status === 'pending',
+                      'bg-[color:var(--color-error-500)]': payment.status === 'failed'
                     }"
                   />
                   <span class="text-sm text-[color:var(--color-text-secondary)]">

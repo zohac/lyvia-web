@@ -1,12 +1,16 @@
 <template>
   <section class="grid gap-6">
-    <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-      <h2 class="font-serif text-[1.25rem] font-semibold leading-[var(--leading-normal)]">
-        Ressources
-      </h2>
-      <p class="mt-2 text-[color:var(--color-brand-secondary)]">
-        Page placeholder (V0) — contenus à venir.
-      </p>
+    <AtomsDsPageHeader
+      title="Ressources"
+      subtitle="Retrouvez bientôt vos contenus et supports d’accompagnement."
+    />
+
+    <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] shadow-[var(--shadow-card)]">
+      <AtomsDsEmptyState
+        icon="i-lucide-book-open"
+        title="Contenus à venir"
+        description="Cette section sera bientôt alimentée avec vos ressources et recommandations."
+      />
     </div>
   </section>
 </template>

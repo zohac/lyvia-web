@@ -2,7 +2,7 @@
   <UCard
     class="bg-[color:var(--color-surface-card)] transition-shadow hover:shadow-md"
     :class="{
-      'ring-2 ring-amber-200': isPastScheduled,
+      'ring-2 ring-[color:var(--color-sunset-200)]': isPastScheduled,
       'opacity-75': appointment.status === 'cancelled'
     }"
   >

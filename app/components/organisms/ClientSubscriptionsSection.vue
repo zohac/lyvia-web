@@ -44,26 +44,23 @@ onMounted(() => load())
     </div>
 
     <!-- Error -->
-    <UAlert
+    <AtomsDsErrorState
       v-else-if="error"
-      color="error"
-      variant="soft"
-      :description="error"
-      icon="i-lucide-alert-circle"
+      :message="error"
+      @retry="load()"
     />
 
     <!-- Empty state -->
-    <p
+    <AtomsDsEmptyState
       v-else-if="subscriptions.length === 0"
-      class="py-4 text-center text-sm text-[color:var(--color-text-muted)]"
-    >
-      Aucun programme souscrit
-    </p>
+      icon="i-lucide-package"
+      title="Aucun programme souscrit"
+    />
 
     <!-- Subscriptions list -->
     <div
       v-else
-      class="divide-y divide-stone-100"
+      class="divide-y divide-[color:var(--color-border-subtle)]"
     >
       <div
         v-for="sub in subscriptions"

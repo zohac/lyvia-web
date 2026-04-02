@@ -1,25 +1,20 @@
 <template>
   <div class="space-y-8">
-    <!-- Page Header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
-          Mes rendez-vous
-        </h1>
-        <p class="mt-1 text-[color:var(--color-text-muted)]">
-          Consultez vos consultations programmées avec votre coach.
-        </p>
-      </div>
-
-      <UButton
-        to="/client/dashboard"
-        variant="ghost"
-        color="neutral"
-        leading-icon="i-lucide-arrow-left"
-      >
-        Retour
-      </UButton>
-    </header>
+    <AtomsDsPageHeader
+      title="Mes rendez-vous"
+      subtitle="Consultez vos consultations programmées avec votre coach."
+    >
+      <template #actions>
+        <UButton
+          to="/client/dashboard"
+          variant="ghost"
+          color="neutral"
+          leading-icon="i-lucide-arrow-left"
+        >
+          Retour
+        </UButton>
+      </template>
+    </AtomsDsPageHeader>
 
     <div class="grid gap-6 lg:grid-cols-3">
       <!-- Main Content -->
@@ -86,12 +81,10 @@
           </div>
 
           <!-- Error state -->
-          <UAlert
+          <AtomsDsErrorState
             v-else-if="historyError"
-            color="error"
-            variant="soft"
-            :description="historyError"
-            icon="i-lucide-alert-circle"
+            :message="historyError"
+            @retry="refreshHistory()"
           />
 
           <!-- Empty state -->
@@ -99,15 +92,11 @@
             v-else-if="allAppointments.length === 0"
             class="bg-[color:var(--color-surface-card)]"
           >
-            <div class="py-6 text-center">
-              <UIcon
-                name="lucide:calendar-check"
-                class="mx-auto h-10 w-10 text-[color:var(--color-neutral-300)]"
-              />
-              <p class="mt-3 text-sm text-[color:var(--color-text-muted)]">
-                Aucun rendez-vous pour le moment.
-              </p>
-            </div>
+            <AtomsDsEmptyState
+              icon="i-lucide-calendar-check"
+              title="Aucun rendez-vous"
+              description="Aucun rendez-vous pour le moment."
+            />
           </UCard>
 
           <!-- Appointments list -->

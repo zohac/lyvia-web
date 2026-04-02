@@ -171,7 +171,7 @@ function getProgramCta(program: PublicProgramListItem) {
                 v-if="program.discoveryGate"
                 class="mt-4"
               >
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-sunset-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-sunset-700)] ring-1 ring-amber-200">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-sunset-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-sunset-700)] ring-1 ring-[color:var(--color-sunset-200)]">
                   <UIcon
                     name="i-lucide-phone-call"
                     class="size-3.5"

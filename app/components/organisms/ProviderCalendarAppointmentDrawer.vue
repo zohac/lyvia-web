@@ -599,7 +599,7 @@ async function copyMeetingLink() {
             <button
               v-else
               type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-success-50)] px-4 py-2 text-xs font-bold text-[color:var(--color-success-700)] ring-1 ring-green-200 transition-all hover:bg-[color:var(--color-success-100)] disabled:cursor-not-allowed disabled:opacity-60"
+              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-success-50)] px-4 py-2 text-xs font-bold text-[color:var(--color-success-700)] ring-1 ring-[color:var(--color-success-200)] transition-all hover:bg-[color:var(--color-success-100)] disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="actionPending"
               @click="requestMarkCompleted"
             >

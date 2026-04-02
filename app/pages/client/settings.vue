@@ -39,6 +39,11 @@ async function handleSmsToggle(value: boolean) {
 
 <template>
   <section class="grid gap-6">
+    <AtomsDsPageHeader
+      title="Paramètres"
+      subtitle="Gérez vos préférences de communication et vos consentements."
+    />
+
     <!-- Loading State -->
     <div
       v-if="loading"
@@ -56,25 +61,11 @@ async function handleSmsToggle(value: boolean) {
     </div>
 
     <!-- Error State (no data) -->
-    <div
+    <AtomsDsErrorState
       v-else-if="error && !preferences"
-      class="rounded-[var(--radius-lg)] border border-[color:var(--color-error)]/20 bg-[color:var(--color-error)]/5 p-6 text-center"
-    >
-      <UIcon
-        name="i-lucide-alert-circle"
-        class="mx-auto h-10 w-10 text-[color:var(--color-error)]"
-      />
-      <p class="mt-3 font-medium text-[color:var(--color-error)]">
-        {{ error }}
-      </p>
-      <UButton
-        variant="outline"
-        class="mt-4"
-        @click="fetchPreferences"
-      >
-        Réessayer
-      </UButton>
-    </div>
+      :message="error"
+      @retry="fetchPreferences()"
+    />
 
     <!-- Content -->
     <template v-else-if="preferences">

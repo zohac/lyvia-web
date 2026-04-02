@@ -1,47 +1,27 @@
 <template>
   <div class="space-y-8">
-    <!-- Page Header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
-          Mes paiements
-        </h1>
-        <p class="mt-1 text-[color:var(--color-text-muted)]">
-          Retrouvez l'historique de vos transactions et accédez aux reçus.
-        </p>
-      </div>
-
-      <UButton
-        to="/client/dashboard"
-        variant="ghost"
-        color="neutral"
-        leading-icon="i-lucide-arrow-left"
-      >
-        Retour
-      </UButton>
-    </header>
-
-    <!-- Error State -->
-    <UAlert
-      v-if="list.errorMessage.value"
-      color="error"
-      variant="soft"
-      title="Impossible de charger vos paiements"
-      :description="list.errorMessage.value"
-      icon="i-lucide-alert-circle"
+    <AtomsDsPageHeader
+      title="Mes paiements"
+      subtitle="Retrouvez l'historique de vos transactions et accédez aux reçus."
     >
       <template #actions>
         <UButton
-          variant="link"
-          color="error"
-          size="sm"
-          leading-icon="i-lucide-refresh-cw"
-          @click="list.refresh"
+          to="/client/dashboard"
+          variant="ghost"
+          color="neutral"
+          leading-icon="i-lucide-arrow-left"
         >
-          Réessayer
+          Retour
         </UButton>
       </template>
-    </UAlert>
+    </AtomsDsPageHeader>
+
+    <!-- Error State -->
+    <AtomsDsErrorState
+      v-if="list.errorMessage.value"
+      :message="list.errorMessage.value"
+      @retry="list.refresh()"
+    />
 
     <!-- Loading State -->
     <template v-else-if="list.pending.value">
@@ -135,28 +115,13 @@
         v-if="list.payments.value.length === 0"
         class="rounded-3xl bg-[color:var(--color-surface-card)]"
       >
-        <div class="py-12 text-center">
-          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
-            <UIcon
-              name="lucide:credit-card"
-              class="h-8 w-8 text-[color:var(--color-brand-muted)]"
-            />
-          </div>
-          <h3 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
-            Aucun paiement
-          </h3>
-          <p class="mx-auto mt-2 max-w-sm text-sm text-[color:var(--color-text-muted)]">
-            Vos paiements apparaîtront ici une fois que vous aurez réglé votre première consultation.
-          </p>
-          <UButton
-            to="/client/dashboard"
-            variant="soft"
-            color="primary"
-            class="mt-6"
-          >
-            Retour au tableau de bord
-          </UButton>
-        </div>
+        <AtomsDsEmptyState
+          icon="i-lucide-credit-card"
+          title="Aucun paiement"
+          description="Vos paiements apparaîtront ici une fois que vous aurez réglé votre première consultation."
+          cta-label="Retour au tableau de bord"
+          cta-to="/client/dashboard"
+        />
       </UCard>
 
       <!-- Payments Table (Desktop) -->
@@ -180,7 +145,7 @@
         </template>
 
         <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6">
-          <table class="min-w-full divide-y divide-stone-200">
+          <table class="min-w-full divide-y divide-[color:var(--color-border-subtle)]">
             <thead>
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
@@ -197,7 +162,7 @@
                 </th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-stone-100">
+            <tbody class="divide-y divide-[color:var(--color-border-subtle)]">
               <tr
                 v-for="payment in formattedPayments"
                 :key="payment.id"
@@ -335,7 +300,7 @@
 
           <div
             v-if="payment.receiptUrl || payment.status.tone === 'success'"
-            class="mt-4 flex items-center justify-between border-t border-[color:var(--color-neutral-100)] pt-4"
+            class="mt-4 flex items-center justify-between border-t border-[color:var(--color-border-subtle)] pt-4"
           >
             <span class="text-sm text-[color:var(--color-text-muted)]">Reçu</span>
             <UButton
@@ -494,8 +459,8 @@ function getStatusBadgeColor(tone: StatusTone): 'success' | 'error' | 'neutral' 
 }
 
 function getStatusDotColor(tone: StatusTone): string {
-  if (tone === 'success') return 'bg-[color:var(--color-success-50)]0'
-  if (tone === 'danger') return 'bg-[color:var(--color-error-50)]0'
+  if (tone === 'success') return 'bg-[color:var(--color-success-500)]'
+  if (tone === 'danger') return 'bg-[color:var(--color-error-500)]'
   return 'bg-[color:var(--color-neutral-400)]'
 }
 
