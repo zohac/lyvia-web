@@ -664,7 +664,8 @@
 
               <div class="grid gap-6 lg:grid-cols-2">
                 <UCard
-                  class="rounded-blob-b border-t-2 border-t-[color:var(--color-brand-accent)]"
+                  variant="featured"
+                  class="rounded-blob-b"
                 >
                   <template #header>
                     <div>
@@ -672,7 +673,7 @@
                         Programme Accompagnement
                       </h4>
                       <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
-                        Card avec accent bar top (sunset). Sera variant="featured" apres DS1.2.
+                        Card avec accent bar top (sunset) via variant="featured".
                       </p>
                     </div>
                   </template>
@@ -690,7 +691,8 @@
                 </UCard>
 
                 <UCard
-                  class="rounded-blob-a border-t-2 border-t-[color:var(--color-brand-accent)]"
+                  variant="featured"
+                  class="rounded-blob-a"
                 >
                   <template #header>
                     <div class="flex items-start justify-between gap-4">

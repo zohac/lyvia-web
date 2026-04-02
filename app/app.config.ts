@@ -1,3 +1,6 @@
+import { keovaButton } from './config/design-system/keova-button'
+import { keovaCard } from './config/design-system/keova-card'
+
 export default defineAppConfig({
   ui: {
     // =========================================================================
@@ -13,9 +16,9 @@ export default defineAppConfig({
     // colors: keovaColors,
 
     // =========================================================================
-    // BUTTON — Organic Luxury Theme
+    // BUTTON — Keova DS (9 compound variants)
     // =========================================================================
-    // button: keovaButton,
+    button: keovaButton,
 
     // =========================================================================
     // BADGE — Organic Luxury Theme
@@ -23,15 +26,15 @@ export default defineAppConfig({
     // badge: keovaBadge,
 
     // =========================================================================
-    // CARD — Organic Luxury Theme
+    // CARD — Keova DS (2 variants: base + featured)
     // =========================================================================
 
     // link: keovaLink,
 
     // =========================================================================
-    // CARD — Organic Luxury Theme
+    // CARD — Keova DS (2 variants: base + featured)
     // =========================================================================
-    // card: keovaCard,
+    card: keovaCard
 
     // =========================================================================
     // INPUT — Organic Luxury Theme
