@@ -95,7 +95,7 @@ async function handleDeactivate() {
         size="sm"
       />
       <div class="min-w-0 flex-1">
-        <h1 class="truncate text-2xl font-bold text-stone-900">
+        <h1 class="truncate text-2xl font-bold text-[color:var(--color-text-primary)]">
           {{ program?.name ?? 'Chargement…' }}
         </h1>
       </div>
@@ -122,7 +122,7 @@ async function handleDeactivate() {
     <!-- Content -->
     <template v-else-if="program">
       <!-- Status + Actions -->
-      <div class="flex items-center justify-between rounded-xl border border-stone-200 bg-white p-5">
+      <div class="flex items-center justify-between rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5">
         <div class="flex items-center gap-3">
           <UBadge
             :color="PROGRAM_STATUS_META[program.status].color"
@@ -130,7 +130,7 @@ async function handleDeactivate() {
           >
             {{ PROGRAM_STATUS_META[program.status].label }}
           </UBadge>
-          <span class="text-sm text-stone-500">
+          <span class="text-sm text-[color:var(--color-text-muted)]">
             Créé le {{ formattedCreatedAt }}
           </span>
         </div>
@@ -157,54 +157,54 @@ async function handleDeactivate() {
       </div>
 
       <!-- Details -->
-      <div class="rounded-xl border border-stone-200 bg-white p-6">
+      <div class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6">
         <div class="grid gap-6">
           <!-- Description -->
           <section>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Description
             </h3>
-            <p class="mt-2 whitespace-pre-line text-sm text-stone-700">
+            <p class="mt-2 whitespace-pre-line text-sm text-[color:var(--color-text-secondary)]">
               {{ program.description }}
             </p>
           </section>
 
           <!-- Key details grid -->
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div class="rounded-lg border border-stone-100 bg-stone-50 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-stone-400">
+            <div class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4">
+              <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
                 Séances
               </p>
-              <p class="mt-1 text-lg font-bold text-stone-900">
+              <p class="mt-1 text-lg font-bold text-[color:var(--color-text-primary)]">
                 {{ program.totalSessions }}
               </p>
-              <p class="text-xs text-stone-400">
+              <p class="text-xs text-[color:var(--color-brand-muted)]">
                 {{ program.sessionDurationMinutes }} min chacune
               </p>
             </div>
 
-            <div class="rounded-lg border border-stone-100 bg-stone-50 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-stone-400">
+            <div class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4">
+              <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
                 Validité
               </p>
-              <p class="mt-1 text-lg font-bold text-stone-900">
+              <p class="mt-1 text-lg font-bold text-[color:var(--color-text-primary)]">
                 {{ program.validityMonths }} mois
               </p>
-              <p class="text-xs text-stone-400">
+              <p class="text-xs text-[color:var(--color-brand-muted)]">
                 + {{ program.gracePeriodDays }} jours de grâce
               </p>
             </div>
 
-            <div class="rounded-lg border border-stone-100 bg-stone-50 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-stone-400">
+            <div class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4">
+              <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
                 Prix
               </p>
-              <p class="mt-1 text-lg font-bold text-stone-900">
+              <p class="mt-1 text-lg font-bold text-[color:var(--color-text-primary)]">
                 {{ formatCurrency(program.priceCents) }}
               </p>
               <p
                 v-if="installmentsLabel"
-                class="text-xs text-stone-400"
+                class="text-xs text-[color:var(--color-brand-muted)]"
               >
                 {{ installmentsLabel }}
               </p>

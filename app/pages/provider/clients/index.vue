@@ -3,10 +3,10 @@
     <!-- Page header -->
     <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
+        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
           Mes clientes
         </h1>
-        <p class="mt-1 text-stone-500">
+        <p class="mt-1 text-[color:var(--color-text-muted)]">
           Cliquez sur une carte pour filtrer par statut.
         </p>
       </div>
@@ -50,11 +50,11 @@
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <!-- En découverte -->
       <div
-        class="group relative overflow-hidden rounded-2xl border bg-white transition-all duration-200"
+        class="group relative overflow-hidden rounded-2xl border bg-[color:var(--color-surface-card)]transition-all duration-200"
         :class="[
           statusFilter === 'discovery'
-            ? 'border-amber-300 ring-2 ring-amber-200 shadow-md'
-            : 'border-stone-200 hover:border-amber-200 hover:shadow-sm'
+            ? 'border-[color:var(--color-sunset-300)] ring-2 ring-[color:var(--color-sunset-200)] shadow-md'
+            : 'border-[color:var(--color-brand-subtle)] hover:border-[color:var(--color-sunset-200)] hover:shadow-sm'
         ]"
       >
         <button
@@ -71,9 +71,9 @@
                     class="h-4.5 w-4.5 text-[color:var(--color-sunset-600)]"
                   />
                 </div>
-                <span class="text-sm font-semibold text-stone-900">En découverte</span>
+                <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">En découverte</span>
               </div>
-              <p class="mt-3 text-xs leading-relaxed text-stone-500">
+              <p class="mt-3 text-xs leading-relaxed text-[color:var(--color-text-muted)]">
                 Appel découverte planifié
               </p>
             </div>
@@ -94,7 +94,7 @@
         <button
           v-if="discoveryCancelledCount > 0"
           type="button"
-          class="flex w-full items-center justify-between border-t border-stone-100 px-5 py-2.5 text-left transition-colors"
+          class="flex w-full items-center justify-between border-t border-[color:var(--color-neutral-100)] px-5 py-2.5 text-left transition-colors"
           :class="[
             showCancelledOnly
               ? 'bg-[color:var(--color-error-50)]'
@@ -125,7 +125,7 @@
         >
           <UIcon
             name="lucide:check-circle-2"
-            class="h-5 w-5 text-amber-500"
+            class="h-5 w-5 text-[color:var(--color-sunset-500)]"
           />
         </div>
       </div>
@@ -133,11 +133,11 @@
       <!-- Leads -->
       <button
         type="button"
-        class="group relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all duration-200"
+        class="group relative overflow-hidden rounded-2xl border bg-[color:var(--color-surface-card)]p-5 text-left transition-all duration-200"
         :class="[
           statusFilter === 'lead'
             ? 'border-emerald-300 ring-2 ring-emerald-200 shadow-md'
-            : 'border-stone-200 hover:border-emerald-200 hover:shadow-sm'
+            : 'border-[color:var(--color-brand-subtle)] hover:border-[color:var(--color-success-200)] hover:shadow-sm'
         ]"
         @click="toggleFilter('lead')"
       >
@@ -150,9 +150,9 @@
                   class="h-4.5 w-4.5 text-emerald-600"
                 />
               </div>
-              <span class="text-sm font-semibold text-stone-900">À convertir</span>
+              <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">À convertir</span>
             </div>
-            <p class="mt-3 text-xs leading-relaxed text-stone-500">
+            <p class="mt-3 text-xs leading-relaxed text-[color:var(--color-text-muted)]">
               Discovery effectué, en attente de décision
             </p>
           </div>
@@ -180,11 +180,11 @@
       <!-- Actives -->
       <button
         type="button"
-        class="group relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all duration-200"
+        class="group relative overflow-hidden rounded-2xl border bg-[color:var(--color-surface-card)]p-5 text-left transition-all duration-200"
         :class="[
           statusFilter === 'active'
             ? 'border-crepuscule-300 ring-2 ring-crepuscule-200 shadow-md'
-            : 'border-stone-200 hover:border-crepuscule-200 hover:shadow-sm'
+            : 'border-[color:var(--color-brand-subtle)] hover:border-crepuscule-200 hover:shadow-sm'
         ]"
         @click="toggleFilter('active')"
       >
@@ -197,9 +197,9 @@
                   class="h-4.5 w-4.5 text-crepuscule-600"
                 />
               </div>
-              <span class="text-sm font-semibold text-stone-900">Actives</span>
+              <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">Actives</span>
             </div>
-            <p class="mt-3 text-xs leading-relaxed text-stone-500">
+            <p class="mt-3 text-xs leading-relaxed text-[color:var(--color-text-muted)]">
               Accompagnement en cours
             </p>
           </div>
@@ -227,11 +227,11 @@
       <!-- Archivées -->
       <button
         type="button"
-        class="group relative overflow-hidden rounded-2xl border bg-white p-5 text-left transition-all duration-200"
+        class="group relative overflow-hidden rounded-2xl border bg-[color:var(--color-surface-card)]p-5 text-left transition-all duration-200"
         :class="[
           statusFilter === 'paused'
-            ? 'border-stone-400 ring-2 ring-stone-300 shadow-md'
-            : 'border-stone-200 hover:border-stone-300 hover:shadow-sm'
+            ? 'border-[color:var(--color-neutral-400)] ring-2 ring-[color:var(--color-neutral-300)] shadow-md'
+            : 'border-[color:var(--color-brand-subtle)] hover:border-[color:var(--color-neutral-300)] hover:shadow-sm'
         ]"
         @click="toggleFilter('paused')"
       >
@@ -241,16 +241,16 @@
               <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-100">
                 <UIcon
                   name="lucide:archive"
-                  class="h-4.5 w-4.5 text-stone-600"
+                  class="h-4.5 w-4.5 text-[color:var(--color-text-secondary)]"
                 />
               </div>
-              <span class="text-sm font-semibold text-stone-900">Archivées</span>
+              <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">Archivées</span>
             </div>
-            <p class="mt-3 text-xs leading-relaxed text-stone-500">
+            <p class="mt-3 text-xs leading-relaxed text-[color:var(--color-text-muted)]">
               Parcours clôturé ou en pause
             </p>
           </div>
-          <span class="text-3xl font-bold tabular-nums text-stone-600">
+          <span class="text-3xl font-bold tabular-nums text-[color:var(--color-text-secondary)]">
             {{ pending ? '—' : pausedCount }}
           </span>
         </div>
@@ -266,7 +266,7 @@
         >
           <UIcon
             name="lucide:check-circle-2"
-            class="h-5 w-5 text-stone-500"
+            class="h-5 w-5 text-[color:var(--color-text-muted)]"
           />
         </div>
       </button>
@@ -295,8 +295,8 @@
           Réinitialiser
         </UButton>
       </div>
-      <p class="text-sm tabular-nums text-stone-500">
-        <span class="font-semibold text-stone-900">{{ clients.length }}</span>
+      <p class="text-sm tabular-nums text-[color:var(--color-text-muted)]">
+        <span class="font-semibold text-[color:var(--color-text-primary)]">{{ clients.length }}</span>
         cliente{{ clients.length > 1 ? 's' : '' }}
         <span
           v-if="showCancelledOnly"
@@ -309,7 +309,7 @@
         </span>
         <span
           v-if="pending"
-          class="ml-2 text-stone-400"
+          class="ml-2 text-[color:var(--color-brand-muted)]"
         >— Chargement...</span>
       </p>
     </div>
@@ -322,7 +322,7 @@
       <UCard
         v-for="i in 4"
         :key="i"
-        class="bg-white"
+        class="bg-[color:var(--color-surface-card)]"
       >
         <div class="flex items-center gap-4">
           <USkeleton class="h-12 w-12 rounded-full" />
@@ -338,19 +338,19 @@
     <!-- Empty state -->
     <UCard
       v-else-if="clients.length === 0"
-      class="bg-white"
+      class="bg-[color:var(--color-surface-card)]"
     >
       <div class="py-12 text-center">
         <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
           <UIcon
             name="lucide:users"
-            class="h-8 w-8 text-stone-400"
+            class="h-8 w-8 text-[color:var(--color-brand-muted)]"
           />
         </div>
-        <p class="text-lg font-medium text-stone-900">
+        <p class="text-lg font-medium text-[color:var(--color-text-primary)]">
           Aucune cliente
         </p>
-        <p class="mt-2 text-stone-500">
+        <p class="mt-2 text-[color:var(--color-text-muted)]">
           Les clientes apparaîtront ici dès qu'un premier rendez-vous sera créé.
         </p>
         <UButton

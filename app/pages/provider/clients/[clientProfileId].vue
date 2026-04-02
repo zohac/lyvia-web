@@ -17,7 +17,7 @@
       </UButton>
 
       <!-- Header card -->
-      <UCard class="bg-white">
+      <UCard class="bg-[color:var(--color-surface-card)]">
         <div
           v-if="pending"
           class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
@@ -43,17 +43,17 @@
               :class="avatarClass"
             />
             <div>
-              <h1 class="text-2xl font-semibold text-stone-900">
+              <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
                 {{ formatClientName(client) }}
               </h1>
-              <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-stone-500">
+              <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-[color:var(--color-text-muted)]">
                 <a
                   :href="`mailto:${client.email}`"
                   class="hover:text-crepuscule-600 hover:underline"
                 >
                   {{ client.email }}
                 </a>
-                <span class="text-stone-300">·</span>
+                <span class="text-[color:var(--color-neutral-300)]">·</span>
                 <a
                   :href="`tel:${client.phone}`"
                   class="hover:text-crepuscule-600 hover:underline"
@@ -117,10 +117,10 @@
         <!-- Quick actions card (first for mobile visibility) -->
         <UCard
           v-if="client"
-          class="bg-white"
+          class="bg-[color:var(--color-surface-card)]"
         >
           <template #header>
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Actions rapides
             </h2>
           </template>
@@ -223,10 +223,10 @@
         </UCard>
 
         <!-- Synthesis card -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-stone-900">
+              <h2 class="font-semibold text-[color:var(--color-text-primary)]">
                 Synthèse
               </h2>
               <UBadge
@@ -255,7 +255,7 @@
             class="space-y-6"
           >
             <!-- Status description -->
-            <p class="text-sm text-stone-600">
+            <p class="text-sm text-[color:var(--color-text-secondary)]">
               {{ currentStatusMicrocopy }}
             </p>
 
@@ -267,12 +267,12 @@
               <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-sunset-700)]">
                 Motif de la pause
               </p>
-              <p class="mt-1 text-sm text-amber-900">
+              <p class="mt-1 text-sm text-[color:var(--color-sunset-800)]">
                 {{ detail.pauseReason }}
               </p>
               <p
                 v-if="pausedAtLabel"
-                class="mt-1 text-xs text-amber-600"
+                class="mt-1 text-xs text-[color:var(--color-sunset-600)]"
               >
                 Mise en pause {{ pausedAtLabel }}
               </p>
@@ -281,28 +281,28 @@
             <!-- Stats -->
             <div class="divide-y divide-stone-100">
               <div class="py-3 first:pt-0">
-                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <span class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Prochain RDV
                 </span>
-                <p class="mt-1 font-medium text-stone-900">
+                <p class="mt-1 font-medium text-[color:var(--color-text-primary)]">
                   {{ nextAppointmentLabel }}
                 </p>
               </div>
 
               <div class="py-3">
-                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <span class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Consultations terminées
                 </span>
-                <p class="mt-1 font-medium text-stone-900">
+                <p class="mt-1 font-medium text-[color:var(--color-text-primary)]">
                   {{ detail.stats.consultationsCompleted }}
                 </p>
               </div>
 
               <div class="py-3 last:pb-0">
-                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <span class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Fuseau horaire
                 </span>
-                <p class="mt-1 font-medium text-stone-900">
+                <p class="mt-1 font-medium text-[color:var(--color-text-primary)]">
                   {{ timezoneLabel }}
                 </p>
               </div>
@@ -313,10 +313,10 @@
         <!-- Edit form card (Story 14-2) -->
         <UCard
           v-if="client"
-          class="bg-white"
+          class="bg-[color:var(--color-surface-card)]"
         >
           <template #header>
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Informations
             </h2>
           </template>
@@ -451,7 +451,7 @@ const timezoneLabel = computed(() => detail.value?.timezone ?? 'Europe/Paris')
 
 // Avatar color based on status
 const avatarClass = computed(() => {
-  if (!detail.value) return 'bg-stone-100 text-stone-700'
+  if (!detail.value) return 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-700)]'
   return getClientAvatarClass(detail.value.computedStatus)
 })
 

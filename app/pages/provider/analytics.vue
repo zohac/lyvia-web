@@ -67,21 +67,12 @@ const isEmpty = computed(() => {
     />
 
     <!-- Empty State -->
-    <template v-else-if="isEmpty">
-      <div class="rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-12 text-center">
-        <UIcon
-          name="lucide:bar-chart-3"
-          size="48"
-          class="mx-auto text-stone-300"
-        />
-        <p class="mt-4 text-lg text-[color:var(--color-brand-secondary)]">
-          Pas encore de données
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
-          Partagez votre page pour commencer à collecter des statistiques
-        </p>
-      </div>
-    </template>
+    <AtomsDsEmptyState
+      v-else-if="isEmpty"
+      icon="i-lucide-bar-chart-3"
+      title="Pas encore de données"
+      description="Partagez votre page pour commencer à collecter des statistiques."
+    />
 
     <!-- Data State -->
     <template v-else-if="analytics.data.value">

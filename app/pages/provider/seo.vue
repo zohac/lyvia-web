@@ -255,7 +255,7 @@ async function retryLoad() {
 
     <template v-else>
       <!-- Section 1 — Coach-slug -->
-      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+      <section class="relative overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-6 shadow-soft backdrop-blur sm:p-8">
         <div class="mb-6 flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
             <UIcon
@@ -310,7 +310,7 @@ async function retryLoad() {
       </section>
 
       <!-- Section 2 — Page profil SEO -->
-      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+      <section class="relative overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-6 shadow-soft backdrop-blur sm:p-8">
         <div class="mb-6 flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
             <UIcon
@@ -412,7 +412,7 @@ async function retryLoad() {
       </section>
 
       <!-- Section 3 — Page booking SEO -->
-      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+      <section class="relative overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-6 shadow-soft backdrop-blur sm:p-8">
         <div class="mb-6 flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
             <UIcon

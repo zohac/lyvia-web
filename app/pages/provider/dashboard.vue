@@ -8,7 +8,7 @@
 
     <!-- Stats row -->
     <div class="grid gap-4 sm:grid-cols-3">
-      <UCard class="bg-white">
+      <UCard class="bg-[color:var(--color-surface-card)]">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
             <UIcon
@@ -17,36 +17,36 @@
             />
           </div>
           <div>
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               Aujourd'hui
             </p>
-            <p class="text-xl font-semibold text-stone-900">
+            <p class="text-xl font-semibold text-[color:var(--color-text-primary)]">
               {{ calendarPending ? '...' : todayAppointments.length }}
             </p>
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white">
+      <UCard class="bg-[color:var(--color-surface-card)]">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100">
             <UIcon
               name="lucide:calendar-days"
-              class="h-6 w-6 text-stone-600"
+              class="h-6 w-6 text-[color:var(--color-text-secondary)]"
             />
           </div>
           <div>
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               Cette semaine
             </p>
-            <p class="text-xl font-semibold text-stone-900">
+            <p class="text-xl font-semibold text-[color:var(--color-text-primary)]">
               {{ calendarPending ? '...' : weekAppointments.length }}
             </p>
           </div>
         </div>
       </UCard>
 
-      <UCard class="bg-white">
+      <UCard class="bg-[color:var(--color-surface-card)]">
         <div class="flex items-center gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sunset-100">
             <UIcon
@@ -55,10 +55,10 @@
             />
           </div>
           <div>
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               Clientes
             </p>
-            <p class="text-xl font-semibold text-stone-900">
+            <p class="text-xl font-semibold text-[color:var(--color-text-primary)]">
               {{ clientsPending ? '...' : clientsCount }}
             </p>
           </div>
@@ -69,10 +69,10 @@
     <!-- Main content grid -->
     <div class="grid gap-6 lg:grid-cols-3">
       <!-- Today's agenda -->
-      <UCard class="bg-white lg:col-span-2">
+      <UCard class="bg-[color:var(--color-surface-card)] lg:col-span-2">
         <template #header>
           <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Agenda du jour
             </h2>
             <UButton
@@ -133,10 +133,10 @@
           <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100">
             <UIcon
               name="lucide:calendar-x"
-              class="h-6 w-6 text-stone-400"
+              class="h-6 w-6 text-[color:var(--color-brand-muted)]"
             />
           </div>
-          <p class="text-sm text-stone-500">
+          <p class="text-sm text-[color:var(--color-text-muted)]">
             Aucun rendez-vous aujourd'hui
           </p>
           <UButton
@@ -166,14 +166,14 @@
               <UIcon
                 :name="appointment.type === 'discovery' ? 'i-lucide-phone' : 'i-lucide-video'"
                 class="h-5 w-5"
-                :class="appointment.type === 'discovery' ? 'text-crepuscule-600' : 'text-stone-600'"
+                :class="appointment.type === 'discovery' ? 'text-crepuscule-600' : 'text-[color:var(--color-text-secondary)]'"
               />
             </div>
             <div class="min-w-0 flex-1">
-              <p class="truncate font-medium text-stone-900">
+              <p class="truncate font-medium text-[color:var(--color-text-primary)]">
                 {{ appointment.firstname }} {{ appointment.lastname }}
               </p>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 {{ formatAppointmentTime(appointment.startAt) }} · {{ appointment.durationMinutes }} min
               </p>
             </div>
@@ -188,7 +188,7 @@
 
           <p
             v-if="todayAppointments.length > 5"
-            class="pt-3 text-center text-xs text-stone-400"
+            class="pt-3 text-center text-xs text-[color:var(--color-brand-muted)]"
           >
             + {{ todayAppointments.length - 5 }} autre{{ todayAppointments.length - 5 > 1 ? 's' : '' }}
           </p>
@@ -198,9 +198,9 @@
       <!-- Sidebar -->
       <div class="space-y-6">
         <!-- Quick actions -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Accès rapide
             </h2>
           </template>
@@ -260,10 +260,10 @@
         </UCard>
 
         <!-- Finance card -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-stone-900">
+              <h2 class="font-semibold text-[color:var(--color-text-primary)]">
                 Finance
               </h2>
               <div
@@ -279,7 +279,7 @@
                     'bg-[color:var(--color-neutral-300)]': financeUiState.kind === 'start'
                   }"
                 />
-                <span class="text-xs text-stone-500">
+                <span class="text-xs text-[color:var(--color-text-muted)]">
                   {{ stripeStatusLabel }}
                 </span>
               </div>
@@ -297,7 +297,7 @@
 
           <!-- Content -->
           <template v-else>
-            <p class="text-sm text-stone-600">
+            <p class="text-sm text-[color:var(--color-text-secondary)]">
               {{ financeStatusLabel }}
             </p>
 

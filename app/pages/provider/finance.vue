@@ -178,10 +178,10 @@ async function refreshPayments() {
     <!-- Page header -->
     <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
+        <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
           Finance
         </h1>
-        <p class="mt-1 text-stone-500">
+        <p class="mt-1 text-[color:var(--color-text-muted)]">
           Suivez vos fonds en attente et activez les virements vers votre banque.
         </p>
       </div>
@@ -236,7 +236,7 @@ async function refreshPayments() {
     <!-- Loading skeleton -->
     <UCard
       v-if="(finance.pending.value && !uiState) || !hasHandledStripeReturn"
-      class="bg-white"
+      class="bg-[color:var(--color-surface-card)]"
     >
       <div class="space-y-4">
         <USkeleton class="h-8 w-2/3" />
@@ -275,10 +275,10 @@ async function refreshPayments() {
             </div>
 
             <div class="space-y-2">
-              <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+              <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Vos fonds
               </p>
-              <h2 class="text-xl font-semibold text-stone-900 sm:text-2xl">
+              <h2 class="text-xl font-semibold text-[color:var(--color-text-primary)] sm:text-2xl">
                 <template v-if="uiState.kind === 'shadow' && formattedPendingAmount">
                   {{ formattedPendingAmount }} en attente
                 </template>
@@ -289,7 +289,7 @@ async function refreshPayments() {
                   Configurez vos virements
                 </template>
               </h2>
-              <p class="max-w-lg text-sm text-stone-600">
+              <p class="max-w-lg text-sm text-[color:var(--color-text-secondary)]">
                 {{ primaryCta.description }}
               </p>
             </div>
@@ -314,14 +314,14 @@ async function refreshPayments() {
       <!-- Stats cards grid -->
       <div class="grid gap-6 lg:grid-cols-3">
         <!-- Bank connection card -->
-        <UCard class="bg-white lg:col-span-2">
+        <UCard class="bg-[color:var(--color-surface-card)] lg:col-span-2">
           <template #header>
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-semibold text-stone-900">
+                <h3 class="font-semibold text-[color:var(--color-text-primary)]">
                   Connexion bancaire
                 </h3>
-                <p class="mt-1 text-sm text-stone-500">
+                <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
                   Statut et étapes de vérification
                 </p>
               </div>
@@ -345,7 +345,7 @@ async function refreshPayments() {
             v-if="uiState.kind !== 'ready' || finance.requirementAlerts.value.length > 0"
             class="space-y-4"
           >
-            <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+            <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
               {{ uiState.kind === 'ready' ? 'À compléter prochainement' : 'Prochaines étapes' }}
             </p>
 
@@ -365,7 +365,7 @@ async function refreshPayments() {
 
             <p
               v-else
-              class="text-sm text-stone-500"
+              class="text-sm text-[color:var(--color-text-muted)]"
             >
               Connectez votre banque pour finaliser les informations nécessaires.
             </p>
@@ -389,19 +389,19 @@ async function refreshPayments() {
           <!-- Ready state -->
           <div
             v-else
-            class="flex items-center gap-4 rounded-lg bg-green-50 p-4"
+            class="flex items-center gap-4 rounded-lg bg-[color:var(--color-success-50)] p-4"
           >
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-success-100)]">
               <UIcon
                 name="lucide:check"
-                class="h-5 w-5 text-green-600"
+                class="h-5 w-5 text-[color:var(--color-success-600)]"
               />
             </div>
             <div>
-              <p class="font-medium text-green-900">
+              <p class="font-medium text-[color:var(--color-success-800)]">
                 Tout est en ordre
               </p>
-              <p class="text-sm text-green-700">
+              <p class="text-sm text-[color:var(--color-success-700)]">
                 Vos virements seront traités automatiquement.
               </p>
             </div>
@@ -409,9 +409,9 @@ async function refreshPayments() {
         </UCard>
 
         <!-- Pending funds card -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
-            <h3 class="font-semibold text-stone-900">
+            <h3 class="font-semibold text-[color:var(--color-text-primary)]">
               Fonds en attente
             </h3>
           </template>
@@ -419,10 +419,10 @@ async function refreshPayments() {
           <div class="space-y-6">
             <!-- Amount display -->
             <div class="text-center">
-              <p class="text-4xl font-bold text-stone-900">
+              <p class="text-4xl font-bold text-[color:var(--color-text-primary)]">
                 {{ formattedPendingAmount ?? '0,00 €' }}
               </p>
-              <p class="mt-1 text-sm text-stone-500">
+              <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
                 {{ uiState.pendingPayoutCount }} paiement{{ uiState.pendingPayoutCount !== 1 ? 's' : '' }} en attente
               </p>
             </div>
@@ -433,13 +433,13 @@ async function refreshPayments() {
             <!-- Info text -->
             <p
               v-if="uiState.pendingPayoutCents === 0"
-              class="text-center text-sm text-stone-500"
+              class="text-center text-sm text-[color:var(--color-text-muted)]"
             >
               Aucun fonds en attente pour le moment.
             </p>
             <p
               v-else
-              class="text-center text-sm text-stone-500"
+              class="text-center text-sm text-[color:var(--color-text-muted)]"
             >
               Ces fonds seront virés dès que votre compte bancaire sera connecté.
             </p>
