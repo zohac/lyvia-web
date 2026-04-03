@@ -1,5 +1,5 @@
 import { getDomainContext } from '#shared/utils/domain-context'
-import { shouldInjectBrandColor, applyBrandColors, removeBrandColors } from '#shared/utils/brand-color-helpers'
+import { bindBrandColorScope } from '#shared/utils/brand-color-scope'
 import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 
 /**
@@ -26,23 +26,10 @@ export function useBrandColorInjection() {
 
   const { data: tenant } = usePublicTenantHome()
 
-  watch(
-    () => tenant.value?.brand?.brandColor,
-    (brandColor) => {
-      if (import.meta.server) return
-      const style = document.documentElement.style
-      if (shouldInjectBrandColor(true, brandColor)) {
-        applyBrandColors(style, brandColor)
-      } else {
-        removeBrandColors(style)
-      }
-    },
-    { immediate: true }
-  )
+  if (import.meta.server) return
 
-  if (import.meta.client) {
-    onScopeDispose(() => {
-      removeBrandColors(document.documentElement.style)
-    })
-  }
+  bindBrandColorScope(
+    document.documentElement.style,
+    () => tenant.value?.brand?.brandColor
+  )
 }

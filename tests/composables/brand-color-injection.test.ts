@@ -1,8 +1,10 @@
 import * as assert from 'node:assert/strict'
 import test from 'node:test'
+import { effectScope, nextTick, ref } from 'vue'
 
 import { getDomainContext } from '../../shared/utils/domain-context'
 import type { CSSStyleSetter } from '../../shared/utils/brand-color-helpers'
+import { bindBrandColorScope } from '../../shared/utils/brand-color-scope'
 import {
   shouldInjectBrandColor,
   parseHex,
@@ -193,6 +195,46 @@ test('isolation: removeBrandColors after applyBrandColors leaves clean state', (
   removeBrandColors(style)
 
   // After cleanup, no brand CSS vars should remain (public page would see CSS defaults)
+  assert.deepEqual(style._store, {})
+})
+
+test('bindBrandColorScope: reacts to brand color changes with a real watch', async () => {
+  const style = createMockStyle()
+  const brandColor = ref<string | null>('#8B5CF6')
+  const scope = effectScope()
+
+  scope.run(() => {
+    bindBrandColorScope(style, brandColor)
+  })
+
+  await nextTick()
+  assert.equal(style._store[BRAND_CSS_VARS.primary], '#8B5CF6')
+
+  brandColor.value = '#FF5733'
+  await nextTick()
+  assert.equal(style._store[BRAND_CSS_VARS.primary], '#FF5733')
+
+  brandColor.value = null
+  await nextTick()
+  assert.deepEqual(style._store, {})
+
+  scope.stop()
+})
+
+test('bindBrandColorScope: scope cleanup removes injected variables', async () => {
+  const style = createMockStyle()
+  const brandColor = ref<string | null>('#FF5733')
+  const scope = effectScope()
+
+  scope.run(() => {
+    bindBrandColorScope(style, brandColor)
+  })
+
+  await nextTick()
+  assert.ok(style._store[BRAND_CSS_VARS.primary], 'brand color should be injected before cleanup')
+
+  scope.stop()
+
   assert.deepEqual(style._store, {})
 })
 
