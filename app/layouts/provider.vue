@@ -41,7 +41,7 @@ const navigation = computed(() => ({
         },
         {
           label: 'Appels discovery',
-          to: '/provider/discovery',
+          to: '/provider/calendar',
           icon: 'lucide:phone-call',
           match: 'prefix' as const
         },
@@ -71,7 +71,7 @@ const navigation = computed(() => ({
         },
         {
           label: 'Demandes',
-          to: '/provider/requests',
+          to: '/provider/calendar?tab=demandes',
           icon: 'lucide:inbox',
           match: 'prefix' as const,
           badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null

@@ -7,6 +7,7 @@ import ProviderCalendarDisplayOptions from '../../components/organisms/ProviderC
 import ProviderCalendarTopBar from '../../components/organisms/ProviderCalendarTopBar.vue'
 import ProviderCalendarMonthView from '../../components/organisms/ProviderCalendarMonthView.vue'
 import ProviderCalendarWeekView from '../../components/organisms/ProviderCalendarWeekView.vue'
+import ProviderRequestsPanel from '../../components/organisms/ProviderRequestsPanel.vue'
 import { useProviderCalendar } from '../../features/calendar/useProviderCalendar'
 import { listProviderClients } from '../../features/clients/services/provider-clients.service'
 import type { ProviderClientListItem } from '../../features/clients/api/clients.contract'
@@ -24,10 +25,44 @@ definePageMeta({
   pageTitle: 'Calendrier'
 })
 
+// --- Tab management with deep-linking (DS3.1) ---
+type CalendarTab = 'semaine' | 'mois' | 'demandes'
+
+const tabItems = [
+  { label: 'Semaine', value: 'semaine' as const, icon: 'i-lucide-calendar-days' },
+  { label: 'Mois', value: 'mois' as const, icon: 'i-lucide-calendar' },
+  { label: 'Demandes', value: 'demandes' as const, icon: 'i-lucide-inbox' }
+]
+
+const route = useRoute()
+const router = useRouter()
+
+const activeTab = computed<CalendarTab>({
+  get() {
+    const tab = route.query.tab
+    if (tab === 'mois' || tab === 'demandes') return tab
+    return 'semaine'
+  },
+  set(tab: CalendarTab) {
+    const query = tab === 'semaine' ? {} : { tab }
+    router.replace({ query })
+  }
+})
+
+function onTabChange(value: string | number) {
+  activeTab.value = value as CalendarTab
+}
+
 const noticeMessage = ref<string | null>(null)
 const toast = useToast()
 
 const calendar = await useProviderCalendar()
+
+// Sync calendar view with active tab
+watch(activeTab, (tab) => {
+  if (tab === 'semaine') calendar.setView('week')
+  else if (tab === 'mois') calendar.setView('month')
+}, { immediate: true })
 
 // Load all provider clients for the create modal dropdown
 const allClients = ref<ProviderClientListItem[]>([])
@@ -44,9 +79,6 @@ async function loadAllClients() {
 }
 
 // Handle query params for opening create modal (e.g., ?action=create&type=discovery)
-const route = useRoute()
-const router = useRouter()
-
 onMounted(async () => {
   // Load clients first (needed for pre-selection in modal)
   await loadAllClients()
@@ -398,7 +430,7 @@ async function onCreateAppointmentSubmit(payload: { body: CreateProviderManualAp
       color: 'warning',
       actions: [{
         label: 'Voir les discoveries',
-        onClick: () => { void navigateTo('/provider/discovery') }
+        onClick: () => { void navigateTo('/provider/calendar') }
       }]
     })
     return
@@ -560,123 +592,130 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
 
 <template>
   <div class="space-y-6">
-    <!-- Top bar with navigation and actions -->
-    <ProviderCalendarTopBar
-      :view="calendar.view.value"
-      :is-loading="calendar.pending.value"
-      :range-label="weekRangeLabel ?? dayLabel ?? monthLabel"
-      @prev="calendar.goPrev"
-      @today="calendar.goToday"
-      @next="calendar.goNext"
-      @update:view="calendar.setView"
-      @refresh="onRetry"
-      @create="onCreateAppointment"
+    <AtomsDsPageHeader
+      title="Calendrier"
+      subtitle="Planning, rendez-vous et demandes clients."
     />
 
-    <!-- Display options -->
-    <ProviderCalendarDisplayOptions
-      :type-filter="displayTypeFilter"
-      :disabled="calendar.pending.value"
-      @update:type-filter="setDisplayTypeFilter"
-    />
-
-    <!-- Alerts -->
-    <UAlert
-      v-if="noticeMessage"
-      color="info"
-      variant="soft"
-      :description="noticeMessage"
-      icon="i-lucide-info"
-    />
-
-    <UAlert
-      v-else-if="isFilterEmpty"
-      color="info"
-      variant="soft"
-      title="Filtre actif"
-      description="Aucun rendez-vous ne correspond à ce filtre sur la période."
-      icon="i-lucide-filter"
-    />
-
-    <UAlert
-      v-if="calendar.errorMessage.value"
-      color="error"
-      variant="soft"
-      title="Erreur"
-      :description="calendar.errorMessage.value"
-      icon="i-lucide-alert-circle"
-    />
-
-    <!-- Loading state -->
-    <UCard
-      v-if="calendar.pending.value && !calendar.data.value"
-      class="bg-[color:var(--color-surface-card)]"
+    <!-- Tabs: Semaine / Mois / Demandes -->
+    <UTabs
+      :model-value="activeTab"
+      :items="tabItems"
+      variant="link"
+      @update:model-value="onTabChange"
     >
-      <div class="space-y-4">
-        <div class="flex items-center gap-3">
-          <USkeleton class="h-5 w-5 rounded-full" />
-          <USkeleton class="h-5 w-32" />
+      <template #content="{ item }">
+        <!-- Calendar tabs (Semaine / Mois) -->
+        <div
+          v-if="item.value !== 'demandes'"
+          class="mt-6 space-y-6"
+        >
+          <!-- Top bar: navigation + actions (view selector hidden, tabs handle it) -->
+          <ProviderCalendarTopBar
+            :view="calendar.view.value"
+            :is-loading="calendar.pending.value"
+            :range-label="item.value === 'semaine' ? (weekRangeLabel ?? dayLabel) : monthLabel"
+            hide-view-selector
+            @prev="calendar.goPrev"
+            @today="calendar.goToday"
+            @next="calendar.goNext"
+            @refresh="onRetry"
+            @create="onCreateAppointment"
+          />
+
+          <!-- Display options (type filter) -->
+          <ProviderCalendarDisplayOptions
+            :type-filter="displayTypeFilter"
+            :disabled="calendar.pending.value"
+            @update:type-filter="setDisplayTypeFilter"
+          />
+
+          <!-- Alerts -->
+          <UAlert
+            v-if="noticeMessage"
+            color="info"
+            variant="soft"
+            :description="noticeMessage"
+            icon="i-lucide-info"
+          />
+
+          <UAlert
+            v-else-if="isFilterEmpty"
+            color="info"
+            variant="soft"
+            title="Filtre actif"
+            description="Aucun rendez-vous ne correspond à ce filtre sur la période."
+            icon="i-lucide-filter"
+          />
+
+          <UAlert
+            v-if="calendar.errorMessage.value"
+            color="error"
+            variant="soft"
+            title="Erreur"
+            :description="calendar.errorMessage.value"
+            icon="i-lucide-alert-circle"
+          />
+
+          <!-- Loading state -->
+          <UCard
+            v-if="calendar.pending.value && !calendar.data.value"
+            class="bg-[color:var(--color-surface-card)]"
+          >
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <USkeleton class="h-5 w-5 rounded-full" />
+                <USkeleton class="h-5 w-32" />
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <USkeleton class="h-24 w-full" />
+                <USkeleton class="h-24 w-full" />
+                <USkeleton class="h-24 w-full" />
+                <USkeleton class="h-24 w-full" />
+              </div>
+            </div>
+          </UCard>
+
+          <!-- Empty state -->
+          <UAlert
+            v-if="isRangeEmpty"
+            color="neutral"
+            variant="soft"
+            icon="i-lucide-calendar-x"
+            title="Aucun rendez-vous sur cette période"
+            description="Cliquez sur un créneau du calendrier pour créer un RDV."
+          />
+
+          <!-- Week view -->
+          <ProviderCalendarWeekView
+            v-if="item.value === 'semaine' && (!calendar.pending.value || calendar.data.value)"
+            :time-zone="calendar.timeZone.value"
+            :days="weekDays"
+            :appointments="visibleAppointments"
+            :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
+            :px-per-minute="1"
+            :highlight="conflictHighlight"
+            @select:appointment="onSelectAppointment"
+            @select:empty="onSelectEmpty"
+          />
+
+          <!-- Month view -->
+          <ProviderCalendarMonthView
+            v-if="item.value === 'mois' && (!calendar.pending.value || calendar.data.value)"
+            :time-zone="calendar.timeZone.value"
+            :anchor-date="calendar.anchorDate.value"
+            :appointments="visibleAppointments"
+            :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
+            :highlight="monthHighlight"
+            @select:appointment="onSelectAppointment"
+            @select:day="onSelectMonthDay"
+          />
         </div>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <USkeleton class="h-24 w-full" />
-          <USkeleton class="h-24 w-full" />
-          <USkeleton class="h-24 w-full" />
-          <USkeleton class="h-24 w-full" />
-        </div>
-      </div>
-    </UCard>
 
-    <!-- Empty state (non-bloquant) -->
-    <UAlert
-      v-if="isRangeEmpty"
-      color="neutral"
-      variant="soft"
-      icon="i-lucide-calendar-x"
-      title="Aucun rendez-vous sur cette période"
-      description="Cliquez sur un créneau du calendrier pour créer un RDV."
-    />
-
-    <!-- Week view -->
-    <ProviderCalendarWeekView
-      v-if="!calendar.pending.value || calendar.data.value"
-      v-show="calendar.view.value === 'week'"
-      :time-zone="calendar.timeZone.value"
-      :days="weekDays"
-      :appointments="visibleAppointments"
-      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
-      :px-per-minute="1"
-      :highlight="conflictHighlight"
-      @select:appointment="onSelectAppointment"
-      @select:empty="onSelectEmpty"
-    />
-
-    <!-- Day view -->
-    <ProviderCalendarWeekView
-      v-if="!calendar.pending.value || calendar.data.value"
-      v-show="calendar.view.value === 'day'"
-      mode="day"
-      :time-zone="calendar.timeZone.value"
-      :days="dayDays"
-      :appointments="visibleAppointments"
-      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
-      :px-per-minute="1"
-      :highlight="conflictHighlight"
-      @select:appointment="onSelectAppointment"
-      @select:empty="onSelectEmpty"
-    />
-
-    <!-- Month view -->
-    <ProviderCalendarMonthView
-      v-if="!calendar.pending.value || calendar.data.value"
-      v-show="calendar.view.value === 'month'"
-      :time-zone="calendar.timeZone.value"
-      :anchor-date="calendar.anchorDate.value"
-      :appointments="visibleAppointments"
-      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
-      :highlight="monthHighlight"
-      @select:appointment="onSelectAppointment"
-      @select:day="onSelectMonthDay"
-    />
+        <!-- Demandes tab -->
+        <ProviderRequestsPanel v-else />
+      </template>
+    </UTabs>
 
     <!-- Drawers and Modals -->
     <ProviderCalendarAppointmentDrawer

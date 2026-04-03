@@ -332,7 +332,7 @@
         :title="clientsEmptyTitle"
         :description="clientsEmptyDescription"
         :cta-label="hasClientFilters ? undefined : 'Voir les appels discovery'"
-        :cta-to="hasClientFilters ? undefined : '/provider/discovery'"
+        :cta-to="hasClientFilters ? undefined : '/provider/calendar'"
       />
 
       <!-- Clients list -->

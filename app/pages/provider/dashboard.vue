@@ -180,7 +180,7 @@
 
           <div class="space-y-2">
             <UButton
-              to="/provider/discovery"
+              to="/provider/calendar"
               variant="soft"
               color="primary"
               block
