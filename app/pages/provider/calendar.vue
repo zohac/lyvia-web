@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CallConclusionModal from '../../components/organisms/CallConclusionModal.vue'
 import ProviderCalendarAppointmentDrawer from '../../components/organisms/ProviderCalendarAppointmentDrawer.vue'
 import ProviderCalendarCancelAppointmentModal from '../../components/organisms/ProviderCalendarCancelAppointmentModal.vue'
 import ProviderCalendarCreateAppointmentModal from '../../components/organisms/ProviderCalendarCreateAppointmentModal.vue'
@@ -18,6 +19,9 @@ import { buildDay, buildWeekDays } from '../../features/calendar/domain/range'
 import { buildConflictHighlight } from '../../features/calendar/domain/conflict-highlight'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { createUuidV4 } from '../../utils/uuid'
+import { ApiFetchError } from '../../services/api/api-error'
+import { mapAppointmentErrorCodeToUserMessage } from '../../features/appointments/api/appointments-error'
+import { apiFetch } from '../../services/api/apiFetch'
 
 definePageMeta({
   layout: 'provider',
@@ -44,7 +48,9 @@ const activeTab = computed<CalendarTab>({
     return 'semaine'
   },
   set(tab: CalendarTab) {
-    const query = tab === 'semaine' ? {} : { tab }
+    // Preserve existing query params, only update tab
+    const { tab: _oldTab, ...rest } = route.query
+    const query = tab === 'semaine' ? { ...rest } : { ...rest, tab }
     router.replace({ query })
   }
 })
@@ -103,8 +109,9 @@ onMounted(async () => {
       clientProfileId
     })
 
-    // Clean up query params
-    router.replace({ query: {} })
+    // Clean up action params but preserve tab
+    const { action: _a, type: _t, clientProfileId: _c, ...keepQuery } = route.query
+    router.replace({ query: keepQuery })
   }
 })
 
@@ -588,6 +595,63 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
     color: 'error'
   })
 }
+
+// --- Discovery bilan (RF1 — DS3.1 review) ---
+const conclusionModalOpen = ref(false)
+const conclusionError = ref<string | null>(null)
+const conclusionAppointment = ref<ProviderAppointmentListItem | null>(null)
+const conclusionLoading = ref(false)
+
+const conclusionClientName = computed(() => {
+  const a = conclusionAppointment.value
+  if (!a) return ''
+  return `${a.firstname} ${a.lastname}`.trim()
+})
+
+function onConcludeDiscovery(payload: { appointmentId: string }) {
+  const appointment = calendar.sortedAppointments.value.find(a => a.id === payload.appointmentId)
+  if (!appointment) return
+  closeDrawer()
+  conclusionError.value = null
+  conclusionAppointment.value = appointment
+  conclusionModalOpen.value = true
+}
+
+type BilanTargetStage = 'active' | 'lead' | 'paused'
+
+async function submitConclusion(payload: { targetStage: BilanTargetStage, note?: string }) {
+  const appointment = conclusionAppointment.value
+  if (!appointment || conclusionLoading.value) return
+
+  conclusionLoading.value = true
+  conclusionError.value = null
+
+  try {
+    await apiFetch(`/appointments/${appointment.id}/bilan`, {
+      method: 'POST',
+      body: { targetStage: payload.targetStage, note: payload.note }
+    })
+
+    const messages: Record<BilanTargetStage, string> = {
+      active: 'Cliente activée avec succès.',
+      lead: 'Cliente en attente de décision.',
+      paused: 'Cliente archivée.'
+    }
+    toast.add({ title: messages[payload.targetStage], color: 'primary' })
+
+    conclusionModalOpen.value = false
+    conclusionAppointment.value = null
+    await calendar.refresh({ revalidate: true })
+  } catch (err: unknown) {
+    if (err instanceof ApiFetchError) {
+      conclusionError.value = mapAppointmentErrorCodeToUserMessage(err.apiError.code)
+    } else {
+      conclusionError.value = 'Une erreur est survenue. Veuillez réessayer.'
+    }
+  } finally {
+    conclusionLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -730,6 +794,7 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
       @edit="onEditAppointment"
       @request-cancel="onRequestCancelAppointment"
       @mark-completed="onMarkCompletedAppointment"
+      @conclude-discovery="onConcludeDiscovery"
     />
 
     <ProviderCalendarCreateAppointmentModal
@@ -770,6 +835,14 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
       :field-errors="cancelFieldErrors"
       @update:open="setCancelModalOpen"
       @submit="onCancelAppointmentSubmit"
+    />
+
+    <CallConclusionModal
+      v-model:open="conclusionModalOpen"
+      :client-name="conclusionClientName"
+      :loading="conclusionLoading"
+      :error="conclusionError"
+      @submit="submitConclusion"
     />
   </div>
 </template>

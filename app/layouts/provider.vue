@@ -37,13 +37,8 @@ const navigation = computed(() => ({
           label: 'Calendrier',
           to: '/provider/calendar',
           icon: 'lucide:calendar',
-          match: 'prefix' as const
-        },
-        {
-          label: 'Appels discovery',
-          to: '/provider/calendar',
-          icon: 'lucide:phone-call',
-          match: 'prefix' as const
+          match: 'prefix' as const,
+          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null
         },
         {
           label: 'Mes clientes',
@@ -73,8 +68,7 @@ const navigation = computed(() => ({
           label: 'Demandes',
           to: '/provider/calendar?tab=demandes',
           icon: 'lucide:inbox',
-          match: 'prefix' as const,
-          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null
+          match: 'exact' as const
         }
       ]
     },

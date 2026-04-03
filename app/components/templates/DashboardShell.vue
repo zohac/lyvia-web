@@ -141,8 +141,24 @@ const userMenuItems = computed(() => [
 ])
 
 function isItemActive(item: NavItem): boolean {
-  if (item.match === 'prefix') return route.path.startsWith(item.to)
-  return route.path === item.to
+  const qIdx = item.to.indexOf('?')
+  const itemPath = qIdx >= 0 ? item.to.slice(0, qIdx) : item.to
+
+  const pathMatch = item.match === 'prefix'
+    ? route.path.startsWith(itemPath)
+    : route.path === itemPath
+
+  if (!pathMatch) return false
+
+  // If item specifies query params, ALL must match current route
+  if (qIdx >= 0) {
+    const params = new URLSearchParams(item.to.slice(qIdx + 1))
+    for (const [key, value] of params) {
+      if (route.query[key] !== value) return false
+    }
+  }
+
+  return true
 }
 
 async function onLogout() {
