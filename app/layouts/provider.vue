@@ -2,8 +2,10 @@
 import { useProviderStripeStatus } from '../features/stripe/useProviderStripeStatus'
 import { useProviderRequestsBadge } from '../features/provider-requests/useProviderRequestsBadge'
 import { useCurrentUser } from '../features/auth/useCurrentUser'
+import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
 
 useCommonLayoutHead()
+useBrandColorInjection()
 
 const { user } = useCurrentUser()
 const isTestAccount = computed(() => user.value?.isTest === true)

@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
+
 useCommonLayoutHead()
+useBrandColorInjection()
 
 const navigation = {
   home: {
