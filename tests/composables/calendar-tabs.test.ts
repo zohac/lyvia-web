@@ -131,7 +131,8 @@ function isItemActive(
   itemTo: string,
   match: NavMatchMode,
   routePath: string,
-  routeQuery: Record<string, string>
+  routeQuery: Record<string, string>,
+  excludeQuery?: Record<string, string>
 ): boolean {
   const qIdx = itemTo.indexOf('?')
   const itemPath = qIdx >= 0 ? itemTo.slice(0, qIdx) : itemTo
@@ -149,19 +150,18 @@ function isItemActive(
     }
   }
 
+  if (excludeQuery) {
+    for (const [key, value] of Object.entries(excludeQuery)) {
+      if (routeQuery[key] === value) return false
+    }
+  }
+
   return true
 }
 
 test('isItemActive: prefix match without query → active on path', () => {
   assert.equal(
     isItemActive('/provider/calendar', 'prefix', '/provider/calendar', {}),
-    true
-  )
-})
-
-test('isItemActive: prefix match without query → active with any query', () => {
-  assert.equal(
-    isItemActive('/provider/calendar', 'prefix', '/provider/calendar', { tab: 'demandes' }),
     true
   )
 })
@@ -192,4 +192,65 @@ test('isItemActive: different path → always inactive', () => {
     isItemActive('/provider/clients', 'prefix', '/provider/calendar', {}),
     false
   )
+})
+
+// --- Exclusivity: Calendrier vs Demandes (RF2) ---
+
+test('Calendrier NOT active when tab=demandes (excludeQuery)', () => {
+  const calendrier = isItemActive(
+    '/provider/calendar', 'prefix', '/provider/calendar',
+    { tab: 'demandes' },
+    { tab: 'demandes' } // excludeQuery
+  )
+  assert.equal(calendrier, false, 'Calendrier must yield to Demandes')
+})
+
+test('Calendrier active when tab=semaine (excludeQuery does not match)', () => {
+  const calendrier = isItemActive(
+    '/provider/calendar', 'prefix', '/provider/calendar',
+    { tab: 'semaine' },
+    { tab: 'demandes' }
+  )
+  assert.equal(calendrier, true)
+})
+
+test('Calendrier active when no tab (excludeQuery does not match)', () => {
+  const calendrier = isItemActive(
+    '/provider/calendar', 'prefix', '/provider/calendar',
+    {},
+    { tab: 'demandes' }
+  )
+  assert.equal(calendrier, true)
+})
+
+test('Demandes active when tab=demandes', () => {
+  const demandes = isItemActive(
+    '/provider/calendar?tab=demandes', 'exact', '/provider/calendar',
+    { tab: 'demandes' }
+  )
+  assert.equal(demandes, true)
+})
+
+test('exclusivity: on tab=demandes, exactly ONE of Calendrier/Demandes is active', () => {
+  const routeQuery = { tab: 'demandes' }
+  const calendrier = isItemActive('/provider/calendar', 'prefix', '/provider/calendar', routeQuery, { tab: 'demandes' })
+  const demandes = isItemActive('/provider/calendar?tab=demandes', 'exact', '/provider/calendar', routeQuery)
+  assert.equal(calendrier, false, 'Calendrier must be inactive')
+  assert.equal(demandes, true, 'Demandes must be active')
+})
+
+test('exclusivity: on tab=mois, exactly ONE of Calendrier/Demandes is active', () => {
+  const routeQuery = { tab: 'mois' }
+  const calendrier = isItemActive('/provider/calendar', 'prefix', '/provider/calendar', routeQuery, { tab: 'demandes' })
+  const demandes = isItemActive('/provider/calendar?tab=demandes', 'exact', '/provider/calendar', routeQuery)
+  assert.equal(calendrier, true, 'Calendrier must be active')
+  assert.equal(demandes, false, 'Demandes must be inactive')
+})
+
+test('exclusivity: on /provider/calendar (no query), only Calendrier active', () => {
+  const routeQuery = {}
+  const calendrier = isItemActive('/provider/calendar', 'prefix', '/provider/calendar', routeQuery, { tab: 'demandes' })
+  const demandes = isItemActive('/provider/calendar?tab=demandes', 'exact', '/provider/calendar', routeQuery)
+  assert.equal(calendrier, true, 'Calendrier must be active')
+  assert.equal(demandes, false, 'Demandes must be inactive')
 })

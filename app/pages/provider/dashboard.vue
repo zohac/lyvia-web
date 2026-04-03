@@ -187,10 +187,10 @@
               class="justify-start"
             >
               <UIcon
-                name="lucide:phone-call"
+                name="lucide:calendar"
                 class="mr-2 h-4 w-4"
               />
-              Appels discovery
+              Calendrier
             </UButton>
 
             <UButton

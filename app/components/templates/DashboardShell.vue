@@ -8,6 +8,8 @@ type NavItem = {
   icon: string
   match?: 'exact' | 'prefix'
   badge?: number | null
+  /** When set, this item is NOT active if any of these query key=value pairs match the current route */
+  excludeQuery?: Record<string, string>
 }
 
 type NavGroup = {
@@ -155,6 +157,13 @@ function isItemActive(item: NavItem): boolean {
     const params = new URLSearchParams(item.to.slice(qIdx + 1))
     for (const [key, value] of params) {
       if (route.query[key] !== value) return false
+    }
+  }
+
+  // Exclusion rule: yield to a more specific sibling item
+  if (item.excludeQuery) {
+    for (const [key, value] of Object.entries(item.excludeQuery)) {
+      if (route.query[key] === value) return false
     }
   }
 

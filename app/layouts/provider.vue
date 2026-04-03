@@ -38,7 +38,8 @@ const navigation = computed(() => ({
           to: '/provider/calendar',
           icon: 'lucide:calendar',
           match: 'prefix' as const,
-          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null
+          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null,
+          excludeQuery: { tab: 'demandes' }
         },
         {
           label: 'Mes clientes',
