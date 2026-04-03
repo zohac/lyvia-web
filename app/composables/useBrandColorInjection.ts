@@ -1,19 +1,19 @@
 import { getDomainContext } from '#shared/utils/domain-context'
+import { shouldInjectBrandColor, applyBrandColors, removeBrandColors } from '#shared/utils/brand-color-helpers'
 import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 
 /**
- * Injects --color-brand-primary CSS custom property on white-label domains
+ * Injects --color-brand-primary, --color-brand-primary-light, and
+ * --color-brand-primary-dark CSS custom properties on white-label domains
  * when the provider has configured a brandColor.
  *
  * Call this in dashboard layouts (provider, client) only.
  * Public pages are NOT impacted — isolation is guaranteed by layout boundary.
  *
- * On unmount (layout change), the override is removed so the CSS default
- * from main.css (var(--color-crepuscule-600)) takes over.
+ * On unmount (layout change), the overrides are removed so the CSS defaults
+ * from main.css (Crépuscule palette) take over.
  */
 export function useBrandColorInjection() {
-  const { data: tenant } = usePublicTenantHome()
-
   const requestUrl = useRequestURL()
   const hostname = requestUrl.hostname.toLowerCase()
   const runtimeConfig = useRuntimeConfig()
@@ -21,16 +21,20 @@ export function useBrandColorInjection() {
   const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
   const ctx = getDomainContext(hostname, platformDomain, platformDomainB2B || undefined)
 
+  // RF5: early return BEFORE any network fetch on platform domains
   if (!ctx.isWhiteLabel) return
+
+  const { data: tenant } = usePublicTenantHome()
 
   watch(
     () => tenant.value?.brand?.brandColor,
     (brandColor) => {
       if (import.meta.server) return
-      if (brandColor) {
-        document.documentElement.style.setProperty('--color-brand-primary', brandColor)
+      const style = document.documentElement.style
+      if (shouldInjectBrandColor(true, brandColor)) {
+        applyBrandColors(style, brandColor)
       } else {
-        document.documentElement.style.removeProperty('--color-brand-primary')
+        removeBrandColors(style)
       }
     },
     { immediate: true }
@@ -38,7 +42,7 @@ export function useBrandColorInjection() {
 
   if (import.meta.client) {
     onScopeDispose(() => {
-      document.documentElement.style.removeProperty('--color-brand-primary')
+      removeBrandColors(document.documentElement.style)
     })
   }
 }

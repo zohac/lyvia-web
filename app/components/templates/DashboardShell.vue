@@ -208,8 +208,8 @@ watch(
           class="group relative mb-6 flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200"
           :class="
             isItemActive(navigation.home)
-              ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md hover:text-white focus-visible:text-white'
-              : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface-muted)] hover:text-[color:var(--color-crepuscule-800)]'
+              ? 'bg-[color:var(--color-brand-primary-dark)] text-white shadow-md hover:text-white focus-visible:text-white'
+              : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface-muted)] hover:text-[color:var(--color-brand-primary-dark)]'
           "
           :aria-current="isItemActive(navigation.home) ? 'page' : undefined"
         >
@@ -277,7 +277,7 @@ watch(
                   class="group relative flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200"
                   :class="
                     isItemActive(item)
-                      ? 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-crepuscule-800)]'
+                      ? 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-brand-primary-dark)]'
                       : 'text-[color:var(--color-text-muted)] hover:bg-[color:var(--color-surface-page)] hover:text-[color:var(--color-text-secondary)]'
                   "
                   :aria-current="isItemActive(item) ? 'page' : undefined"
@@ -285,7 +285,7 @@ watch(
                   <!-- Active indicator bar -->
                   <span
                     v-if="isItemActive(item)"
-                    class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-crepuscule-800)]"
+                    class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-brand-primary-dark)]"
                     aria-hidden="true"
                   />
                   <span
@@ -295,7 +295,7 @@ watch(
                     <UIcon
                       :name="item.icon"
                       size="18"
-                      :class="isItemActive(item) ? 'text-[color:var(--color-crepuscule-800)]' : 'text-[color:var(--color-brand-muted)] group-hover:text-[color:var(--color-text-secondary)]'"
+                      :class="isItemActive(item) ? 'text-[color:var(--color-brand-primary-dark)]' : 'text-[color:var(--color-brand-muted)] group-hover:text-[color:var(--color-text-secondary)]'"
                     />
                   </span>
                   <span class="min-w-0 truncate">
@@ -493,8 +493,8 @@ watch(
               class="group relative mb-6 flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200"
               :class="
                 isItemActive(navigation.home)
-                  ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md hover:text-white focus-visible:text-white'
-                  : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface-muted)] hover:text-[color:var(--color-crepuscule-800)]'
+                  ? 'bg-[color:var(--color-brand-primary-dark)] text-white shadow-md hover:text-white focus-visible:text-white'
+                  : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface-muted)] hover:text-[color:var(--color-brand-primary-dark)]'
               "
               :aria-current="isItemActive(navigation.home) ? 'page' : undefined"
             >
@@ -552,7 +552,7 @@ watch(
                     class="group relative flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200"
                     :class="
                       isItemActive(item)
-                        ? 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-crepuscule-800)]'
+                        ? 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-brand-primary-dark)]'
                         : 'text-[color:var(--color-text-muted)] hover:bg-[color:var(--color-surface-page)] hover:text-[color:var(--color-text-secondary)]'
                     "
                     :aria-current="isItemActive(item) ? 'page' : undefined"
@@ -560,7 +560,7 @@ watch(
                     <!-- Active indicator bar -->
                     <span
                       v-if="isItemActive(item)"
-                      class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-crepuscule-800)]"
+                      class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-brand-primary-dark)]"
                       aria-hidden="true"
                     />
                     <span
@@ -570,7 +570,7 @@ watch(
                       <UIcon
                         :name="item.icon"
                         size="18"
-                        :class="isItemActive(item) ? 'text-[color:var(--color-crepuscule-800)]' : 'text-[color:var(--color-brand-muted)] group-hover:text-[color:var(--color-text-secondary)]'"
+                        :class="isItemActive(item) ? 'text-[color:var(--color-brand-primary-dark)]' : 'text-[color:var(--color-brand-muted)] group-hover:text-[color:var(--color-text-secondary)]'"
                       />
                     </span>
                     <span class="min-w-0 truncate">
