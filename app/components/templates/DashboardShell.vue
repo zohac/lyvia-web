@@ -234,8 +234,9 @@ watch(
           :key="group.key"
           class="mb-4"
         >
-          <!-- Group header (collapsible trigger) -->
+          <!-- Group header (collapsible trigger) — hidden if no label -->
           <button
+            v-if="group.label"
             type="button"
             class="group mb-2 flex w-full items-center gap-2 px-3 py-1.5 text-left"
             :aria-expanded="isGroupOpen(group.key)"
@@ -254,7 +255,7 @@ watch(
             </span>
           </button>
 
-          <!-- Group items (collapsible content) -->
+          <!-- Group items (collapsible content, or always visible if no label) -->
           <Transition
             enter-active-class="transition-all duration-200 ease-out"
             enter-from-class="opacity-0 -translate-y-1 max-h-0"
@@ -264,7 +265,7 @@ watch(
             leave-to-class="opacity-0 -translate-y-1 max-h-0"
           >
             <ul
-              v-show="isGroupOpen(group.key)"
+              v-show="!group.label || isGroupOpen(group.key)"
               :id="`nav-group-${group.key}`"
               class="grid gap-0.5 overflow-hidden"
             >
@@ -519,8 +520,9 @@ watch(
               :key="group.key"
               class="mb-4"
             >
-              <!-- Group header -->
+              <!-- Group header — hidden if no label -->
               <button
+                v-if="group.label"
                 type="button"
                 class="group mb-2 flex w-full items-center gap-2 px-3 py-1.5 text-left"
                 :aria-expanded="isGroupOpen(group.key)"
@@ -540,7 +542,7 @@ watch(
 
               <!-- Group items -->
               <ul
-                v-show="isGroupOpen(group.key)"
+                v-show="!group.label || isGroupOpen(group.key)"
                 class="grid gap-0.5"
               >
                 <li
