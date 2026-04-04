@@ -9,18 +9,19 @@ definePageMeta({
   pageTitle: 'Outils'
 })
 
-type TabValue = 'analytics' | 'logs' | 'notifications'
+type TabValue = 'analytics' | 'logs' | 'notifications' | 'waitlist'
 
 const tabItems = [
   { label: 'Analytics', value: 'analytics' as const, icon: 'i-lucide-bar-chart-3', slot: 'analytics' as const },
   { label: 'Business Logs', value: 'logs' as const, icon: 'i-lucide-scroll-text', slot: 'logs' as const },
-  { label: 'Notifications', value: 'notifications' as const, icon: 'i-lucide-bell', slot: 'notifications' as const }
+  { label: 'Notifications', value: 'notifications' as const, icon: 'i-lucide-bell', slot: 'notifications' as const },
+  { label: 'Waitlist', value: 'waitlist' as const, icon: 'i-lucide-list', slot: 'waitlist' as const }
 ]
 
 const route = useRoute()
 const router = useRouter()
 
-const validTabs: TabValue[] = ['analytics', 'logs', 'notifications']
+const validTabs: TabValue[] = ['analytics', 'logs', 'notifications', 'waitlist']
 const activeTab = computed<TabValue>({
   get() {
     const tab = route.query.tab as string
@@ -34,9 +35,10 @@ const activeTab = computed<TabValue>({
 
 <template>
   <div class="space-y-6">
-    <h1 class="font-heading text-2xl font-bold text-[color:var(--color-text-primary)]">
-      Outils
-    </h1>
+    <AtomsDsPageHeader
+      title="Outils"
+      subtitle="Analytics, logs et monitoring de la plateforme."
+    />
 
     <UTabs
       :model-value="activeTab"
@@ -61,6 +63,16 @@ const activeTab = computed<TabValue>({
       <template #notifications>
         <div class="mt-6">
           <AdminNotificationLogsPanel />
+        </div>
+      </template>
+
+      <template #waitlist>
+        <div class="mt-6">
+          <AtomsDsEmptyState
+            icon="i-lucide-list"
+            title="Waitlist"
+            description="Cette section sera bientôt disponible pour gérer les leads en attente."
+          />
         </div>
       </template>
     </UTabs>

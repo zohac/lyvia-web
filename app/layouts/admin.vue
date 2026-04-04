@@ -31,12 +31,6 @@ const navigation = {
           to: '/admin/tools',
           icon: 'lucide:wrench',
           match: 'prefix' as const
-        },
-        {
-          label: 'SEO',
-          to: '/admin/seo',
-          icon: 'lucide:globe',
-          match: 'exact' as const
         }
       ]
     }
