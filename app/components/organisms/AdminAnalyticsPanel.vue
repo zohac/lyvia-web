@@ -1,19 +1,13 @@
 <template>
   <div>
-    <AtomsDsPageHeader
-      title="Analytics plateforme"
-      subtitle="Vue d'ensemble de la performance de tous les providers"
-      class="mb-10"
-    >
-      <template #actions>
-        <USelect
-          v-model="selectedPeriod"
-          :items="periodOptions"
-          value-key="value"
-          class="w-36"
-        />
-      </template>
-    </AtomsDsPageHeader>
+    <div class="mb-6 flex items-center justify-between">
+      <USelect
+        v-model="selectedPeriod"
+        :items="periodOptions"
+        value-key="value"
+        class="w-36"
+      />
+    </div>
 
     <!-- Loading State -->
     <div
@@ -162,12 +156,6 @@ import { ANALYTICS_PERIOD_OPTIONS } from '~/features/analytics/api/analytics.con
 import type { AnalyticsPeriod, KpiWithDelta } from '~/features/analytics/api/analytics.contract'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
 import { apiFetch } from '~/services/api/apiFetch'
-
-definePageMeta({
-  layout: 'admin',
-  middleware: 'auth-admin',
-  pageTitle: 'Analytics'
-})
 
 // ── Types inline (pattern admin — verified against AdminAnalyticsResponseDto) ──
 

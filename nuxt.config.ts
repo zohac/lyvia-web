@@ -138,6 +138,9 @@ export default defineNuxtConfig({
     '/client/content': { redirect: { to: '/client/dashboard', statusCode: 301 } },
     '/client/**': { ssr: false },
     '/provider/**': { ssr: false },
+    '/admin/analytics': { redirect: { to: '/admin/tools?tab=analytics', statusCode: 301 } },
+    '/admin/logs': { redirect: { to: '/admin/tools?tab=logs', statusCode: 301 } },
+    '/admin/notification-logs': { redirect: { to: '/admin/tools?tab=notifications', statusCode: 301 } },
     '/admin/**': { ssr: false }
   },
 

@@ -10,8 +10,8 @@ const navigation = {
   },
   groups: [
     {
-      key: 'gestion',
-      label: 'Gestion',
+      key: 'principal',
+      label: '',
       defaultOpen: true,
       items: [
         {
@@ -27,40 +27,15 @@ const navigation = {
           match: 'prefix' as const
         },
         {
+          label: 'Outils',
+          to: '/admin/tools',
+          icon: 'lucide:wrench',
+          match: 'prefix' as const
+        },
+        {
           label: 'SEO',
           to: '/admin/seo',
           icon: 'lucide:globe',
-          match: 'exact' as const
-        }
-      ]
-    },
-    {
-      key: 'outils',
-      label: 'Outils',
-      defaultOpen: true,
-      items: [
-        {
-          label: 'Business Logs',
-          to: '/admin/logs',
-          icon: 'lucide:scroll-text',
-          match: 'exact' as const
-        },
-        {
-          label: 'Notifications',
-          to: '/admin/notification-logs',
-          icon: 'lucide:bell',
-          match: 'exact' as const
-        },
-        {
-          label: 'Analytics',
-          to: '/admin/analytics',
-          icon: 'lucide:bar-chart-3',
-          match: 'exact' as const
-        },
-        {
-          label: 'Design System',
-          to: '/admin/design-system',
-          icon: 'lucide:file-sliders',
           match: 'exact' as const
         }
       ]

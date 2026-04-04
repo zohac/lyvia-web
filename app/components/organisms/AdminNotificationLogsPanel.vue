@@ -1,24 +1,5 @@
 <template>
   <div>
-    <AtomsDsPageHeader
-      title="Notification Logs"
-      subtitle="Historique des notifications envoyées (emails, SMS)"
-      class="mb-10"
-    >
-      <template #actions>
-        <NuxtLink
-          to="/admin/dashboard"
-          class="flex items-center gap-2 text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:text-[color:var(--color-brand-primary)]"
-        >
-          <UIcon
-            name="lucide:arrow-left"
-            size="16"
-          />
-          Retour au dashboard
-        </NuxtLink>
-      </template>
-    </AtomsDsPageHeader>
-
     <!-- Filters -->
     <section class="mb-8 space-y-4">
       <!-- Row 1: Type + Status -->
@@ -360,12 +341,6 @@ import {
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
 
 const toast = useToast()
-
-definePageMeta({
-  layout: 'admin',
-  middleware: 'auth-admin',
-  pageTitle: 'Notification Logs'
-})
 
 // Types
 type NotificationLogListItem = {

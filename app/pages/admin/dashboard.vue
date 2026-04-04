@@ -121,7 +121,7 @@
       <!-- Quick Links -->
       <section class="grid gap-6 md:grid-cols-2">
         <NuxtLink
-          to="/admin/logs"
+          to="/admin/tools?tab=logs"
           class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-primary)] hover:shadow-md"
         >
           <div class="flex items-center gap-4">

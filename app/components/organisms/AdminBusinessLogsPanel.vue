@@ -1,24 +1,5 @@
 <template>
   <div>
-    <AtomsDsPageHeader
-      title="Business Logs"
-      subtitle="Historique des événements métier de la plateforme"
-      class="mb-10"
-    >
-      <template #actions>
-        <NuxtLink
-          to="/admin/dashboard"
-          class="flex items-center gap-2 text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:text-[color:var(--color-brand-primary)]"
-        >
-          <UIcon
-            name="lucide:arrow-left"
-            size="16"
-          />
-          Retour au dashboard
-        </NuxtLink>
-      </template>
-    </AtomsDsPageHeader>
-
     <!-- Filters -->
     <section class="mb-8 space-y-4">
       <!-- Row 1: Search + Event Type -->
@@ -264,12 +245,6 @@ import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import { getEventBadgeColor, getBadgeClasses } from '~/composables/useAdminBadges'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
-
-definePageMeta({
-  layout: 'admin',
-  middleware: 'auth-admin',
-  pageTitle: 'Business Logs'
-})
 
 // Types
 type AdminBusinessLogListItem = {
