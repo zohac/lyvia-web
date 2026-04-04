@@ -331,9 +331,10 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
 
         <!-- Cards (mobile) -->
         <div class="block space-y-3 p-4 md:hidden">
-          <NuxtLink
+          <ULink
             v-for="client in clients.items"
             :key="client.clientProfileId"
+            raw
             :to="`/admin/clients/${client.clientProfileId}`"
             class="block rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
           >
@@ -362,7 +363,7 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
               <span>{{ client.stats.consultationsCompleted }} consultation{{ client.stats.consultationsCompleted !== 1 ? 's' : '' }}</span>
               <span>{{ formatDateShort(client.createdAt) }}</span>
             </div>
-          </NuxtLink>
+          </ULink>
         </div>
 
         <!-- Pagination -->

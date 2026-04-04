@@ -341,9 +341,10 @@ function goToProvider() {
 
         <!-- Cards (mobile) -->
         <div class="block space-y-3 p-4 md:hidden">
-          <NuxtLink
+          <ULink
             v-for="provider in providers.items"
             :key="provider.id"
+            raw
             :to="`/admin/providers/${provider.id}`"
             class="block rounded-xl border border-[color:var(--color-border-subtle)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
             :class="provider.isTest ? 'bg-[color:var(--color-sunset-50)]/40' : 'bg-[color:var(--color-surface-elevated)]'"
@@ -376,7 +377,7 @@ function goToProvider() {
               </span>
               <span>{{ formatDateShort(provider.createdAt) }}</span>
             </div>
-          </NuxtLink>
+          </ULink>
         </div>
 
         <!-- Pagination -->

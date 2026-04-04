@@ -30,10 +30,10 @@ test('DS4.3: providers mobile cards show Stripe status badge', () => {
   assert.match(src, /getMobileStripeStatus/)
 })
 
-test('DS4.3: providers mobile cards use NuxtLink (not div @click)', () => {
+test('DS4.3: providers mobile cards use ULink (not div @click)', () => {
   const src = readAppFile('pages/admin/providers/index.vue')
   const mobileSection = src.split('md:hidden')[1]?.split('Pagination')[0] ?? ''
-  assert.match(mobileSection, /NuxtLink/)
+  assert.match(mobileSection, /ULink/)
   assert.equal(mobileSection.includes('<div') && mobileSection.includes('@click'), false)
 })
 
@@ -58,10 +58,10 @@ test('DS4.3: clients page has mobile cards in md:hidden', () => {
   assert.match(src, /md:hidden/)
 })
 
-test('DS4.3: clients mobile cards use NuxtLink (not div @click)', () => {
+test('DS4.3: clients mobile cards use ULink (not div @click)', () => {
   const src = readAppFile('pages/admin/clients/index.vue')
   const mobileSection = src.split('md:hidden')[1]?.split('Pagination')[0] ?? ''
-  assert.match(mobileSection, /NuxtLink/)
+  assert.match(mobileSection, /ULink/)
   assert.equal(mobileSection.includes('<div') && mobileSection.includes('@click'), false)
 })
 
