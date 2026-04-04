@@ -2,6 +2,11 @@
 import AdminAnalyticsPanel from '../../components/organisms/AdminAnalyticsPanel.vue'
 import AdminBusinessLogsPanel from '../../components/organisms/AdminBusinessLogsPanel.vue'
 import AdminNotificationLogsPanel from '../../components/organisms/AdminNotificationLogsPanel.vue'
+import {
+  ADMIN_TOOL_TABS,
+  buildAdminToolTabQuery,
+  parseAdminToolTab
+} from '../../features/admin/domain/admin-tools-tabs'
 
 definePageMeta({
   layout: 'admin',
@@ -9,26 +14,19 @@ definePageMeta({
   pageTitle: 'Outils'
 })
 
-type TabValue = 'analytics' | 'logs' | 'notifications' | 'waitlist'
+type TabValue = typeof ADMIN_TOOL_TABS[number]['value']
 
-const tabItems = [
-  { label: 'Analytics', value: 'analytics' as const, icon: 'i-lucide-bar-chart-3', slot: 'analytics' as const },
-  { label: 'Business Logs', value: 'logs' as const, icon: 'i-lucide-scroll-text', slot: 'logs' as const },
-  { label: 'Notifications', value: 'notifications' as const, icon: 'i-lucide-bell', slot: 'notifications' as const },
-  { label: 'Waitlist', value: 'waitlist' as const, icon: 'i-lucide-list', slot: 'waitlist' as const }
-]
+const tabItems = ADMIN_TOOL_TABS
 
 const route = useRoute()
 const router = useRouter()
 
-const validTabs: TabValue[] = ['analytics', 'logs', 'notifications', 'waitlist']
 const activeTab = computed<TabValue>({
   get() {
-    const tab = route.query.tab as string
-    return validTabs.includes(tab as TabValue) ? (tab as TabValue) : 'analytics'
+    return parseAdminToolTab(route.query.tab)
   },
   set(value: TabValue) {
-    router.replace({ query: { ...route.query, tab: value === 'analytics' ? undefined : value } })
+    router.replace({ query: buildAdminToolTabQuery(route.query, value) })
   }
 })
 </script>

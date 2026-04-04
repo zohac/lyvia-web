@@ -1,112 +1,113 @@
-import { describe, it } from 'node:test'
-import assert from 'node:assert/strict'
+import * as assert from 'node:assert/strict'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import test from 'node:test'
 
-/**
- * DS4.2 — Admin navigation restructure tests.
- * Validates the admin nav has exactly 4 visible entries and the tools page
- * exposes the correct tabs with proper deep-linking fallback.
- */
+import {
+  ADMIN_TOOL_TAB_VALUES,
+  buildAdminToolTabQuery,
+  parseAdminToolTab
+} from '../../app/features/admin/domain/admin-tools-tabs'
+import {
+  ADMIN_NAVIGATION,
+  getAdminNavigationItems
+} from '../../app/features/navigation/domain/admin-navigation'
 
-// ── Admin navigation config (mirrors admin.vue) ──
+const repoRoot = process.cwd()
+const appRoot = path.resolve(repoRoot, 'app')
 
-const ADMIN_NAV_ITEMS = [
-  { label: 'Providers', to: '/admin/providers' },
-  { label: 'Clients', to: '/admin/clients' },
-  { label: 'Outils', to: '/admin/tools' }
-] as const
-
-const ADMIN_HOME = { label: 'Dashboard', to: '/admin/dashboard' }
-
-const ALL_VISIBLE_ENTRIES = [ADMIN_HOME, ...ADMIN_NAV_ITEMS]
-
-// ── Tools tabs config (mirrors tools.vue) ──
-
-const VALID_TOOL_TABS = ['analytics', 'logs', 'notifications', 'waitlist'] as const
-type ToolTab = typeof VALID_TOOL_TABS[number]
-
-function parseToolTab(raw: unknown): ToolTab {
-  if (typeof raw === 'string' && (VALID_TOOL_TABS as readonly string[]).includes(raw)) {
-    return raw as ToolTab
-  }
-  return 'analytics'
+function readAppFile(relativePath: string): string {
+  return fs.readFileSync(path.join(appRoot, relativePath), 'utf-8')
 }
 
-// ── Admin legacy redirects (mirrors nuxt.config.ts routeRules) ──
+test('DS4.2: admin navigation exposes exactly 4 visible entries', () => {
+  const labels = getAdminNavigationItems().map(item => item.label)
 
-const ADMIN_LEGACY_REDIRECTS: Record<string, string> = {
-  '/admin/analytics': '/admin/tools?tab=analytics',
-  '/admin/logs': '/admin/tools?tab=logs',
-  '/admin/business-logs': '/admin/tools?tab=logs',
-  '/admin/notification-logs': '/admin/tools?tab=notifications'
-}
-
-// ── Tests ──
-
-describe('DS4.2 — Admin navigation', () => {
-  it('exposes exactly 4 visible entries (Dashboard + 3 items)', () => {
-    assert.equal(ALL_VISIBLE_ENTRIES.length, 4)
-  })
-
-  it('includes Dashboard, Providers, Clients, Outils', () => {
-    const labels = ALL_VISIBLE_ENTRIES.map(e => e.label)
-    assert.deepEqual(labels, ['Dashboard', 'Providers', 'Clients', 'Outils'])
-  })
-
-  it('does NOT include SEO as a visible nav item', () => {
-    const labels = ALL_VISIBLE_ENTRIES.map(e => e.label)
-    assert.ok(!labels.includes('SEO'))
-  })
-
-  it('does NOT include Design System as a visible nav item', () => {
-    const labels = ALL_VISIBLE_ENTRIES.map(e => e.label)
-    assert.ok(!labels.includes('Design System'))
-  })
+  assert.deepStrictEqual(labels, ['Dashboard', 'Providers', 'Clients', 'Outils'])
+  assert.equal(labels.length, 4)
+  assert.equal(ADMIN_NAVIGATION.home.to, '/admin/dashboard')
 })
 
-describe('DS4.2 — Admin tools tabs', () => {
-  it('exposes exactly 4 tabs', () => {
-    assert.equal(VALID_TOOL_TABS.length, 4)
-  })
+test('DS4.2: admin navigation no longer exposes SEO or Design System as visible items', () => {
+  const labels = getAdminNavigationItems().map(item => item.label)
 
-  it('includes analytics, logs, notifications, waitlist', () => {
-    assert.deepEqual([...VALID_TOOL_TABS], ['analytics', 'logs', 'notifications', 'waitlist'])
-  })
-
-  it('parses valid tab "logs"', () => {
-    assert.equal(parseToolTab('logs'), 'logs')
-  })
-
-  it('parses valid tab "waitlist"', () => {
-    assert.equal(parseToolTab('waitlist'), 'waitlist')
-  })
-
-  it('falls back to "analytics" for unknown tab', () => {
-    assert.equal(parseToolTab('abc'), 'analytics')
-  })
-
-  it('falls back to "analytics" for undefined', () => {
-    assert.equal(parseToolTab(undefined), 'analytics')
-  })
-
-  it('falls back to "analytics" for null', () => {
-    assert.equal(parseToolTab(null), 'analytics')
-  })
+  assert.equal(labels.includes('SEO'), false)
+  assert.equal(labels.includes('Design System'), false)
 })
 
-describe('DS4.2 — Admin legacy redirects', () => {
-  it('redirects /admin/analytics', () => {
-    assert.equal(ADMIN_LEGACY_REDIRECTS['/admin/analytics'], '/admin/tools?tab=analytics')
-  })
+test('DS4.2: admin tools tabs stay explicit and stable', () => {
+  assert.deepStrictEqual(ADMIN_TOOL_TAB_VALUES, ['analytics', 'logs', 'notifications', 'waitlist'])
+})
 
-  it('redirects /admin/logs', () => {
-    assert.equal(ADMIN_LEGACY_REDIRECTS['/admin/logs'], '/admin/tools?tab=logs')
-  })
+test('DS4.2: admin tools tab parser accepts valid values', () => {
+  assert.equal(parseAdminToolTab('logs'), 'logs')
+  assert.equal(parseAdminToolTab('notifications'), 'notifications')
+  assert.equal(parseAdminToolTab('waitlist'), 'waitlist')
+})
 
-  it('redirects /admin/business-logs', () => {
-    assert.equal(ADMIN_LEGACY_REDIRECTS['/admin/business-logs'], '/admin/tools?tab=logs')
-  })
+test('DS4.2: admin tools tab parser falls back safely to analytics', () => {
+  assert.equal(parseAdminToolTab(undefined), 'analytics')
+  assert.equal(parseAdminToolTab(null), 'analytics')
+  assert.equal(parseAdminToolTab('abc'), 'analytics')
+})
 
-  it('redirects /admin/notification-logs', () => {
-    assert.equal(ADMIN_LEGACY_REDIRECTS['/admin/notification-logs'], '/admin/tools?tab=notifications')
-  })
+test('DS4.2: admin tools tab query builder removes tab for default analytics tab', () => {
+  assert.deepStrictEqual(
+    buildAdminToolTabQuery({ tab: 'logs', page: '2' }, 'analytics'),
+    { page: '2' }
+  )
+})
+
+test('DS4.2: admin tools tab query builder preserves other params for waitlist', () => {
+  assert.deepStrictEqual(
+    buildAdminToolTabQuery({ page: '2', filter: 'all' }, 'waitlist'),
+    { page: '2', filter: 'all', tab: 'waitlist' }
+  )
+})
+
+test('DS4.2: tools page uses DsPageHeader and keeps tabs mounted', () => {
+  const source = readAppFile('pages/admin/tools.vue')
+
+  assert.ok(source.includes('<AtomsDsPageHeader'))
+  assert.ok(source.includes(':unmount-on-hide="false"'))
+})
+
+test('DS4.2: tools page renders waitlist placeholder and does not expose SEO as a tab', () => {
+  const source = readAppFile('pages/admin/tools.vue')
+
+  assert.ok(source.includes('title="Waitlist"'))
+  assert.ok(source.includes('description="Cette section sera bientôt disponible pour gérer les leads en attente."'))
+  assert.equal(source.includes('value: \'seo\''), false)
+})
+
+test('DS4.2: dashboard logs CTA points directly to tools logs tab', () => {
+  const source = readAppFile('pages/admin/dashboard.vue')
+
+  assert.ok(source.includes('to="/admin/tools?tab=logs"'))
+  assert.equal(source.includes('to="/admin/logs"'), false)
+})
+
+test('DS4.2: routeRules preserve admin legacy redirects', () => {
+  const configSource = fs.readFileSync(path.resolve(repoRoot, 'nuxt.config.ts'), 'utf-8')
+
+  assert.ok(
+    configSource.includes('\'/admin/analytics\': { redirect: { to: \'/admin/tools?tab=analytics\', statusCode: 301 } }')
+  )
+  assert.ok(
+    configSource.includes('\'/admin/logs\': { redirect: { to: \'/admin/tools?tab=logs\', statusCode: 301 } }')
+  )
+  assert.ok(
+    configSource.includes('\'/admin/business-logs\': { redirect: { to: \'/admin/tools?tab=logs\', statusCode: 301 } }')
+  )
+  assert.ok(
+    configSource.includes('\'/admin/notification-logs\': { redirect: { to: \'/admin/tools?tab=notifications\', statusCode: 301 } }')
+  )
+})
+
+test('DS4.2: SEO remains accessible via direct URL and is not redirected away', () => {
+  const configSource = fs.readFileSync(path.resolve(repoRoot, 'nuxt.config.ts'), 'utf-8')
+  const seoPageSource = readAppFile('pages/admin/seo.vue')
+
+  assert.equal(configSource.includes('\'/admin/seo\': { redirect:'), false)
+  assert.ok(seoPageSource.includes('pageTitle: \'SEO\''))
 })

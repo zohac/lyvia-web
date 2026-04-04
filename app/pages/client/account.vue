@@ -2,6 +2,11 @@
 import { useClientAccount } from '../../features/account/useClientAccount'
 import { useAuthActions } from '../../features/auth/useAuthActions'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
+import {
+  buildClientAccountTabQuery,
+  CLIENT_ACCOUNT_TABS,
+  parseClientAccountTab
+} from '../../features/account/domain/client-account-tabs'
 import ClientPaymentsPanel from '../../components/organisms/ClientPaymentsPanel.vue'
 import ClientPreferencesSection from '../../components/organisms/ClientPreferencesSection.vue'
 
@@ -12,25 +17,19 @@ definePageMeta({
 })
 
 // ── Tab deep-linking ───────────────────────────────
-type TabValue = 'informations' | 'paiements' | 'preferences'
+type TabValue = typeof CLIENT_ACCOUNT_TABS[number]['value']
 
-const tabItems = [
-  { label: 'Informations', value: 'informations' as const, icon: 'i-lucide-user', slot: 'informations' as const },
-  { label: 'Paiements', value: 'paiements' as const, icon: 'i-lucide-receipt', slot: 'paiements' as const },
-  { label: 'Préférences', value: 'preferences' as const, icon: 'i-lucide-settings', slot: 'preferences' as const }
-]
+const tabItems = CLIENT_ACCOUNT_TABS
 
 const route = useRoute()
 const router = useRouter()
 
-const validTabs: TabValue[] = ['informations', 'paiements', 'preferences']
 const activeTab = computed<TabValue>({
   get() {
-    const tab = route.query.tab as string
-    return validTabs.includes(tab as TabValue) ? (tab as TabValue) : 'informations'
+    return parseClientAccountTab(route.query.tab)
   },
   set(value: TabValue) {
-    router.replace({ query: { ...route.query, tab: value === 'informations' ? undefined : value } })
+    router.replace({ query: buildClientAccountTabQuery(route.query, value) })
   }
 })
 

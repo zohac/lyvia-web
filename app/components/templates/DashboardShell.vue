@@ -338,7 +338,7 @@ watch(
                 :ui="{ root: 'bg-crepuscule-100', fallback: 'text-crepuscule-700 font-semibold' }"
               />
               <!-- Online indicator -->
-              <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-[color:var(--color-success-50)]0" />
+              <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-[color:var(--color-success-500)]" />
             </div>
 
             <!-- User info -->
