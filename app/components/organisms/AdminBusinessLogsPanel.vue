@@ -123,16 +123,41 @@
         class="relative z-10"
       />
 
-      <!-- Table -->
+      <!-- Table (desktop) -->
       <div
         v-else
         class="relative z-10"
       >
-        <UTable
-          :data="logs.items"
-          :columns="columns"
-          :class="ADMIN_TABLE_CLASSES"
-        />
+        <div class="hidden md:block">
+          <UTable
+            :data="logs.items"
+            :columns="columns"
+            :class="ADMIN_TABLE_CLASSES"
+          />
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="block space-y-3 p-4 md:hidden">
+          <div
+            v-for="log in logs.items"
+            :key="log.id"
+            class="cursor-pointer rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30"
+            @click="openDetail(log)"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <span :class="`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getBadgeClasses(getEventBadgeColor(log.eventType))}`">
+                {{ log.eventType }}
+              </span>
+              <span class="shrink-0 text-xs text-[color:var(--color-brand-secondary)]">{{ formatDate(log.createdAt) }}</span>
+            </div>
+            <p
+              v-if="log.metadataPreview"
+              class="mt-2 truncate text-sm text-[color:var(--color-brand-muted)]"
+            >
+              {{ log.metadataPreview }}
+            </p>
+          </div>
+        </div>
 
         <!-- Pagination -->
         <div

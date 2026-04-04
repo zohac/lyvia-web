@@ -307,15 +307,61 @@ function goToProvider() {
         :description="searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun provider n\'est encore inscrit.'"
       />
 
-      <!-- Table -->
+      <!-- Table (desktop) -->
       <div v-else>
-        <UTable
-          :data="providers.items"
-          :columns="columns"
-          :row-attrs="(row: AdminProviderListItem) => row.isTest ? { class: 'bg-[color:var(--color-sunset-50)]/40' } : {}"
-          :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
-          @select="onRowSelect"
-        />
+        <div class="hidden md:block">
+          <UTable
+            :data="providers.items"
+            :columns="columns"
+            :row-attrs="(row: AdminProviderListItem) => row.isTest ? { class: 'bg-[color:var(--color-sunset-50)]/40' } : {}"
+            :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
+            @select="onRowSelect"
+          />
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="block space-y-3 p-4 md:hidden">
+          <div
+            v-for="provider in providers.items"
+            :key="provider.id"
+            class="cursor-pointer rounded-xl border border-[color:var(--color-border-subtle)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30"
+            :class="provider.isTest ? 'bg-[color:var(--color-sunset-50)]/40' : 'bg-[color:var(--color-surface-elevated)]'"
+            @click="router.push(`/admin/providers/${provider.id}`)"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="truncate font-medium text-[color:var(--color-brand-primary)]">{{ provider.displayName }}</span>
+                  <span
+                    v-if="provider.isTest"
+                    class="shrink-0 rounded-full bg-[color:var(--color-sunset-100)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--color-sunset-700)]"
+                  >Test</span>
+                </div>
+                <p class="mt-0.5 truncate text-xs text-[color:var(--color-brand-muted)]">
+                  {{ provider.email }}
+                </p>
+              </div>
+              <span
+                :class="getStatusBadgeClasses(provider.isActive ? 'success' : 'error').badge"
+                class="shrink-0"
+              >
+                <span :class="getStatusBadgeClasses(provider.isActive ? 'success' : 'error').dot" />
+                {{ provider.isActive ? 'Actif' : 'Désactivé' }}
+              </span>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-secondary)]">
+              <span
+                v-if="provider.stripe.stripeAccountId"
+                class="font-mono"
+              >{{ provider.stripe.stripeAccountId }}</span>
+              <span
+                v-else
+                class="text-[color:var(--color-brand-muted)]"
+              >Stripe non lié</span>
+              <span>{{ formatDateShort(provider.createdAt) }}</span>
+            </div>
+          </div>
+        </div>
 
         <!-- Pagination -->
         <div

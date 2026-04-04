@@ -318,14 +318,52 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
         :description="searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun client n\'est encore inscrit.'"
       />
 
-      <!-- Table -->
+      <!-- Table (desktop) -->
       <div v-else>
-        <UTable
-          :data="clients.items"
-          :columns="columns"
-          :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
-          @select="onRowSelect"
-        />
+        <div class="hidden md:block">
+          <UTable
+            :data="clients.items"
+            :columns="columns"
+            :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
+            @select="onRowSelect"
+          />
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="block space-y-3 p-4 md:hidden">
+          <div
+            v-for="client in clients.items"
+            :key="client.clientProfileId"
+            class="cursor-pointer rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30"
+            @click="router.push(`/admin/clients/${client.clientProfileId}`)"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <span class="truncate font-medium text-[color:var(--color-brand-primary)]">{{ client.firstname }} {{ client.lastname }}</span>
+                <p class="mt-0.5 truncate text-xs text-[color:var(--color-brand-muted)]">
+                  {{ client.email }}
+                </p>
+              </div>
+              <span
+                :class="getStatusBadgeClasses(STAGE_VARIANT[client.computedStatus]).badge"
+                class="shrink-0"
+              >
+                <span :class="getStatusBadgeClasses(STAGE_VARIANT[client.computedStatus]).dot" />
+                {{ STAGE_LABELS[client.computedStatus] }}
+              </span>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-secondary)]">
+              <span
+                :class="getStatusBadgeClasses(client.isActive ? 'success' : 'error').badge"
+              >
+                <span :class="getStatusBadgeClasses(client.isActive ? 'success' : 'error').dot" />
+                {{ client.isActive ? 'Actif' : 'Désactivé' }}
+              </span>
+              <span>{{ client.stats.consultationsCompleted }} consultation{{ client.stats.consultationsCompleted !== 1 ? 's' : '' }}</span>
+              <span>{{ formatDateShort(client.createdAt) }}</span>
+            </div>
+          </div>
+        </div>
 
         <!-- Pagination -->
         <div

@@ -136,16 +136,46 @@
         class="relative z-10"
       />
 
-      <!-- Table -->
+      <!-- Table (desktop) -->
       <div
         v-else
         class="relative z-10"
       >
-        <UTable
-          :data="notificationLogs.items"
-          :columns="columns"
-          :class="ADMIN_TABLE_CLASSES"
-        />
+        <div class="hidden md:block">
+          <UTable
+            :data="notificationLogs.items"
+            :columns="columns"
+            :class="ADMIN_TABLE_CLASSES"
+          />
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="block space-y-3 p-4 md:hidden">
+          <div
+            v-for="notif in notificationLogs.items"
+            :key="notif.id"
+            class="cursor-pointer rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30"
+            @click="openDetail(notif)"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <span :class="`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getNotificationTypeBadgeClasses(notif.type)}`">
+                {{ notif.type }}
+              </span>
+              <span :class="`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getNotificationStatusBadgeClasses(notif.status)}`">
+                {{ getNotificationStatusLabel(notif.status) }}
+              </span>
+            </div>
+            <div class="mt-2 space-y-1">
+              <p class="text-sm text-[color:var(--color-brand-primary)]">
+                {{ notif.channel }}
+              </p>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--color-brand-muted)]">
+                <span class="font-mono">{{ formatRecipient(notif.recipient) }}</span>
+                <span>{{ formatDate(notif.createdAt) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Pagination -->
         <div
