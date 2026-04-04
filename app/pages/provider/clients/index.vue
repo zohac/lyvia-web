@@ -331,8 +331,8 @@
         icon="i-lucide-users"
         :title="clientsEmptyTitle"
         :description="clientsEmptyDescription"
-        :cta-label="hasClientFilters ? undefined : 'Voir le calendrier'"
-        :cta-to="hasClientFilters ? undefined : '/provider/calendar'"
+        :cta-label="hasClientFilters ? undefined : 'Voir les appels découverte'"
+        :cta-to="hasClientFilters ? undefined : '/provider/discovery'"
       />
 
       <!-- Clients list -->

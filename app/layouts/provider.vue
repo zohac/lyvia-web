@@ -29,30 +29,67 @@ const navigation = computed(() => ({
   // Groupes collapsibles
   groups: [
     {
-      key: 'pilotage',
-      label: 'Pilotage',
+      key: 'activite',
+      label: 'Activité',
       defaultOpen: true,
       items: [
         {
           label: 'Calendrier',
           to: '/provider/calendar',
           icon: 'lucide:calendar',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Appels découverte',
+          to: '/provider/discovery',
+          icon: 'lucide:phone-call',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Demandes',
+          to: '/provider/requests',
+          icon: 'lucide:inbox',
           match: 'prefix' as const,
-          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null,
-          excludeQuery: { tab: 'demandes' }
+          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null
         },
         {
           label: 'Mes clientes',
           to: '/provider/clients',
           icon: 'lucide:users',
           match: 'prefix' as const
-        },
+        }
+      ]
+    },
+    {
+      key: 'offre',
+      label: 'Mon offre',
+      defaultOpen: true,
+      items: [
         {
           label: 'Programmes',
           to: '/provider/programs',
           icon: 'lucide:package',
           match: 'prefix' as const
         },
+        {
+          label: 'Créneaux & Tarifs',
+          to: '/provider/scheduling',
+          icon: 'lucide:clock',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Disponibilités',
+          to: '/provider/availability',
+          icon: 'lucide:calendar-clock',
+          match: 'prefix' as const
+        }
+      ]
+    },
+    {
+      key: 'suivi',
+      label: 'Suivi',
+      defaultOpen: true,
+      items: [
         {
           label: 'Finance',
           to: '/provider/finance',
@@ -64,12 +101,6 @@ const navigation = computed(() => ({
           to: '/provider/analytics',
           icon: 'lucide:bar-chart-3',
           match: 'prefix' as const
-        },
-        {
-          label: 'Demandes',
-          to: '/provider/calendar?tab=demandes',
-          icon: 'lucide:inbox',
-          match: 'exact' as const
         }
       ]
     },
@@ -85,27 +116,15 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
-          label: 'Disponibilités',
-          to: '/provider/availability',
-          icon: 'lucide:calendar-clock',
-          match: 'prefix' as const
-        },
-        {
-          label: 'Créneaux & Tarifs',
-          to: '/provider/scheduling',
-          icon: 'lucide:clock',
+          label: 'Contenus',
+          to: '/provider/content',
+          icon: 'lucide:file-text',
           match: 'prefix' as const
         },
         {
           label: 'SEO',
           to: '/provider/seo',
           icon: 'lucide:globe',
-          match: 'prefix' as const
-        },
-        {
-          label: 'Contenus',
-          to: '/provider/content',
-          icon: 'lucide:file-text',
           match: 'prefix' as const
         },
         {

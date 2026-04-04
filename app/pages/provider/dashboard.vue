@@ -155,7 +155,7 @@
               variant="subtle"
               size="sm"
             >
-              {{ appointment.type === 'discovery' ? 'Discovery' : 'Consultation' }}
+              {{ appointment.type === 'discovery' ? 'Découverte' : 'Consultation' }}
             </UBadge>
           </div>
 
@@ -180,17 +180,17 @@
 
           <div class="space-y-2">
             <UButton
-              to="/provider/calendar"
+              to="/provider/discovery"
               variant="soft"
               color="primary"
               block
               class="justify-start"
             >
               <UIcon
-                name="lucide:calendar"
+                name="lucide:phone-call"
                 class="mr-2 h-4 w-4"
               />
-              Calendrier
+              Appels découverte
             </UButton>
 
             <UButton

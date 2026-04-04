@@ -5,7 +5,6 @@ const props = defineProps<{
   view: CalendarViewMode
   isLoading?: boolean
   rangeLabel?: string | null
-  hideViewSelector?: boolean
 }>()
 
 defineEmits<{
@@ -28,11 +27,8 @@ function isViewActive(value: CalendarViewMode) {
   <div class="flex flex-wrap items-center justify-between gap-4">
     <!-- Left side: View selector -->
     <div class="flex flex-wrap items-center gap-3">
-      <!-- View selector (hidden when tabs handle view switching) -->
-      <div
-        v-if="!hideViewSelector"
-        class="inline-flex rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-1"
-      >
+      <!-- View selector -->
+      <div class="inline-flex rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-1">
         <button
           v-for="option in viewOptions"
           :key="option.value"

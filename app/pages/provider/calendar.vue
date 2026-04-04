@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import CallConclusionModal from '../../components/organisms/CallConclusionModal.vue'
 import ProviderCalendarAppointmentDrawer from '../../components/organisms/ProviderCalendarAppointmentDrawer.vue'
 import ProviderCalendarCancelAppointmentModal from '../../components/organisms/ProviderCalendarCancelAppointmentModal.vue'
 import ProviderCalendarCreateAppointmentModal from '../../components/organisms/ProviderCalendarCreateAppointmentModal.vue'
@@ -8,7 +7,6 @@ import ProviderCalendarDisplayOptions from '../../components/organisms/ProviderC
 import ProviderCalendarTopBar from '../../components/organisms/ProviderCalendarTopBar.vue'
 import ProviderCalendarMonthView from '../../components/organisms/ProviderCalendarMonthView.vue'
 import ProviderCalendarWeekView from '../../components/organisms/ProviderCalendarWeekView.vue'
-import ProviderRequestsPanel from '../../components/organisms/ProviderRequestsPanel.vue'
 import { useProviderCalendar } from '../../features/calendar/useProviderCalendar'
 import { listProviderClients } from '../../features/clients/services/provider-clients.service'
 import type { ProviderClientListItem } from '../../features/clients/api/clients.contract'
@@ -19,9 +17,6 @@ import { buildDay, buildWeekDays } from '../../features/calendar/domain/range'
 import { buildConflictHighlight } from '../../features/calendar/domain/conflict-highlight'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { createUuidV4 } from '../../utils/uuid'
-import { ApiFetchError } from '../../services/api/api-error'
-import { mapAppointmentErrorCodeToUserMessage } from '../../features/appointments/api/appointments-error'
-import { apiFetch } from '../../services/api/apiFetch'
 
 definePageMeta({
   layout: 'provider',
@@ -29,46 +24,10 @@ definePageMeta({
   pageTitle: 'Calendrier'
 })
 
-// --- Tab management with deep-linking (DS3.1) ---
-type CalendarTab = 'semaine' | 'mois' | 'demandes'
-
-const tabItems = [
-  { label: 'Semaine', value: 'semaine' as const, icon: 'i-lucide-calendar-days' },
-  { label: 'Mois', value: 'mois' as const, icon: 'i-lucide-calendar' },
-  { label: 'Demandes', value: 'demandes' as const, icon: 'i-lucide-inbox' }
-]
-
-const route = useRoute()
-const router = useRouter()
-
-const activeTab = computed<CalendarTab>({
-  get() {
-    const tab = route.query.tab
-    if (tab === 'mois' || tab === 'demandes') return tab
-    return 'semaine'
-  },
-  set(tab: CalendarTab) {
-    // Preserve existing query params, only update tab
-    const { tab: _oldTab, ...rest } = route.query
-    const query = tab === 'semaine' ? { ...rest } : { ...rest, tab }
-    router.replace({ query })
-  }
-})
-
-function onTabChange(value: string | number) {
-  activeTab.value = value as CalendarTab
-}
-
 const noticeMessage = ref<string | null>(null)
 const toast = useToast()
 
 const calendar = await useProviderCalendar()
-
-// Sync calendar view with active tab
-watch(activeTab, (tab) => {
-  if (tab === 'semaine') calendar.setView('week')
-  else if (tab === 'mois') calendar.setView('month')
-}, { immediate: true })
 
 // Load all provider clients for the create modal dropdown
 const allClients = ref<ProviderClientListItem[]>([])
@@ -85,6 +44,9 @@ async function loadAllClients() {
 }
 
 // Handle query params for opening create modal (e.g., ?action=create&type=discovery)
+const route = useRoute()
+const router = useRouter()
+
 onMounted(async () => {
   // Load clients first (needed for pre-selection in modal)
   await loadAllClients()
@@ -109,9 +71,8 @@ onMounted(async () => {
       clientProfileId
     })
 
-    // Clean up action params but preserve tab
-    const { action: _a, type: _t, clientProfileId: _c, ...keepQuery } = route.query
-    router.replace({ query: keepQuery })
+    // Clean up query params
+    router.replace({ query: {} })
   }
 })
 
@@ -437,7 +398,7 @@ async function onCreateAppointmentSubmit(payload: { body: CreateProviderManualAp
       color: 'warning',
       actions: [{
         label: 'Voir les discoveries',
-        onClick: () => { void navigateTo('/provider/calendar') }
+        onClick: () => { void navigateTo('/provider/discovery') }
       }]
     })
     return
@@ -595,191 +556,127 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
     color: 'error'
   })
 }
-
-// --- Discovery bilan (RF1 — DS3.1 review) ---
-const conclusionModalOpen = ref(false)
-const conclusionError = ref<string | null>(null)
-const conclusionAppointment = ref<ProviderAppointmentListItem | null>(null)
-const conclusionLoading = ref(false)
-
-const conclusionClientName = computed(() => {
-  const a = conclusionAppointment.value
-  if (!a) return ''
-  return `${a.firstname} ${a.lastname}`.trim()
-})
-
-function onConcludeDiscovery(payload: { appointmentId: string }) {
-  const appointment = calendar.sortedAppointments.value.find(a => a.id === payload.appointmentId)
-  if (!appointment) return
-  closeDrawer()
-  conclusionError.value = null
-  conclusionAppointment.value = appointment
-  conclusionModalOpen.value = true
-}
-
-type BilanTargetStage = 'active' | 'lead' | 'paused'
-
-async function submitConclusion(payload: { targetStage: BilanTargetStage, note?: string }) {
-  const appointment = conclusionAppointment.value
-  if (!appointment || conclusionLoading.value) return
-
-  conclusionLoading.value = true
-  conclusionError.value = null
-
-  try {
-    await apiFetch(`/appointments/${appointment.id}/bilan`, {
-      method: 'POST',
-      body: { targetStage: payload.targetStage, note: payload.note }
-    })
-
-    const messages: Record<BilanTargetStage, string> = {
-      active: 'Cliente activée avec succès.',
-      lead: 'Cliente en attente de décision.',
-      paused: 'Cliente archivée.'
-    }
-    toast.add({ title: messages[payload.targetStage], color: 'primary' })
-
-    conclusionModalOpen.value = false
-    conclusionAppointment.value = null
-    await calendar.refresh({ revalidate: true })
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError) {
-      conclusionError.value = mapAppointmentErrorCodeToUserMessage(err.apiError.code)
-    } else {
-      conclusionError.value = 'Une erreur est survenue. Veuillez réessayer.'
-    }
-  } finally {
-    conclusionLoading.value = false
-  }
-}
 </script>
 
 <template>
   <div class="space-y-6">
-    <AtomsDsPageHeader
-      title="Calendrier"
-      subtitle="Planning, rendez-vous et demandes clients."
+    <!-- Top bar with navigation and actions -->
+    <ProviderCalendarTopBar
+      :view="calendar.view.value"
+      :is-loading="calendar.pending.value"
+      :range-label="weekRangeLabel ?? dayLabel ?? monthLabel"
+      @prev="calendar.goPrev"
+      @today="calendar.goToday"
+      @next="calendar.goNext"
+      @update:view="calendar.setView"
+      @refresh="onRetry"
+      @create="onCreateAppointment"
     />
 
-    <!-- Tabs: Semaine / Mois / Demandes -->
-    <UTabs
-      :model-value="activeTab"
-      :items="tabItems"
-      variant="link"
-      @update:model-value="onTabChange"
+    <!-- Display options -->
+    <ProviderCalendarDisplayOptions
+      :type-filter="displayTypeFilter"
+      :disabled="calendar.pending.value"
+      @update:type-filter="setDisplayTypeFilter"
+    />
+
+    <!-- Alerts -->
+    <UAlert
+      v-if="noticeMessage"
+      color="info"
+      variant="soft"
+      :description="noticeMessage"
+      icon="i-lucide-info"
+    />
+
+    <UAlert
+      v-else-if="isFilterEmpty"
+      color="info"
+      variant="soft"
+      title="Filtre actif"
+      description="Aucun rendez-vous ne correspond à ce filtre sur la période."
+      icon="i-lucide-filter"
+    />
+
+    <UAlert
+      v-if="calendar.errorMessage.value"
+      color="error"
+      variant="soft"
+      title="Erreur"
+      :description="calendar.errorMessage.value"
+      icon="i-lucide-alert-circle"
+    />
+
+    <!-- Loading state -->
+    <UCard
+      v-if="calendar.pending.value && !calendar.data.value"
+      class="bg-[color:var(--color-surface-card)]"
     >
-      <template #content="{ item }">
-        <!-- Calendar tabs (Semaine / Mois) -->
-        <div
-          v-if="item.value !== 'demandes'"
-          class="mt-6 space-y-6"
-        >
-          <!-- Top bar: navigation + actions (view selector hidden, tabs handle it) -->
-          <ProviderCalendarTopBar
-            :view="calendar.view.value"
-            :is-loading="calendar.pending.value"
-            :range-label="item.value === 'semaine' ? (weekRangeLabel ?? dayLabel) : monthLabel"
-            hide-view-selector
-            @prev="calendar.goPrev"
-            @today="calendar.goToday"
-            @next="calendar.goNext"
-            @refresh="onRetry"
-            @create="onCreateAppointment"
-          />
-
-          <!-- Display options (type filter) -->
-          <ProviderCalendarDisplayOptions
-            :type-filter="displayTypeFilter"
-            :disabled="calendar.pending.value"
-            @update:type-filter="setDisplayTypeFilter"
-          />
-
-          <!-- Alerts -->
-          <UAlert
-            v-if="noticeMessage"
-            color="info"
-            variant="soft"
-            :description="noticeMessage"
-            icon="i-lucide-info"
-          />
-
-          <UAlert
-            v-else-if="isFilterEmpty"
-            color="info"
-            variant="soft"
-            title="Filtre actif"
-            description="Aucun rendez-vous ne correspond à ce filtre sur la période."
-            icon="i-lucide-filter"
-          />
-
-          <UAlert
-            v-if="calendar.errorMessage.value"
-            color="error"
-            variant="soft"
-            title="Erreur"
-            :description="calendar.errorMessage.value"
-            icon="i-lucide-alert-circle"
-          />
-
-          <!-- Loading state -->
-          <UCard
-            v-if="calendar.pending.value && !calendar.data.value"
-            class="bg-[color:var(--color-surface-card)]"
-          >
-            <div class="space-y-4">
-              <div class="flex items-center gap-3">
-                <USkeleton class="h-5 w-5 rounded-full" />
-                <USkeleton class="h-5 w-32" />
-              </div>
-              <div class="grid gap-4 sm:grid-cols-2">
-                <USkeleton class="h-24 w-full" />
-                <USkeleton class="h-24 w-full" />
-                <USkeleton class="h-24 w-full" />
-                <USkeleton class="h-24 w-full" />
-              </div>
-            </div>
-          </UCard>
-
-          <!-- Empty state -->
-          <UAlert
-            v-if="isRangeEmpty"
-            color="neutral"
-            variant="soft"
-            icon="i-lucide-calendar-x"
-            title="Aucun rendez-vous sur cette période"
-            description="Cliquez sur un créneau du calendrier pour créer un RDV."
-          />
-
-          <!-- Week view -->
-          <ProviderCalendarWeekView
-            v-if="item.value === 'semaine' && (!calendar.pending.value || calendar.data.value)"
-            :time-zone="calendar.timeZone.value"
-            :days="weekDays"
-            :appointments="visibleAppointments"
-            :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
-            :px-per-minute="1"
-            :highlight="conflictHighlight"
-            @select:appointment="onSelectAppointment"
-            @select:empty="onSelectEmpty"
-          />
-
-          <!-- Month view -->
-          <ProviderCalendarMonthView
-            v-if="item.value === 'mois' && (!calendar.pending.value || calendar.data.value)"
-            :time-zone="calendar.timeZone.value"
-            :anchor-date="calendar.anchorDate.value"
-            :appointments="visibleAppointments"
-            :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
-            :highlight="monthHighlight"
-            @select:appointment="onSelectAppointment"
-            @select:day="onSelectMonthDay"
-          />
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <USkeleton class="h-5 w-5 rounded-full" />
+          <USkeleton class="h-5 w-32" />
         </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <USkeleton class="h-24 w-full" />
+          <USkeleton class="h-24 w-full" />
+          <USkeleton class="h-24 w-full" />
+          <USkeleton class="h-24 w-full" />
+        </div>
+      </div>
+    </UCard>
 
-        <!-- Demandes tab -->
-        <ProviderRequestsPanel v-else />
-      </template>
-    </UTabs>
+    <!-- Empty state (non-bloquant) -->
+    <UAlert
+      v-if="isRangeEmpty"
+      color="neutral"
+      variant="soft"
+      icon="i-lucide-calendar-x"
+      title="Aucun rendez-vous sur cette période"
+      description="Cliquez sur un créneau du calendrier pour créer un RDV."
+    />
+
+    <!-- Week view -->
+    <ProviderCalendarWeekView
+      v-if="!calendar.pending.value || calendar.data.value"
+      v-show="calendar.view.value === 'week'"
+      :time-zone="calendar.timeZone.value"
+      :days="weekDays"
+      :appointments="visibleAppointments"
+      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
+      :px-per-minute="1"
+      :highlight="conflictHighlight"
+      @select:appointment="onSelectAppointment"
+      @select:empty="onSelectEmpty"
+    />
+
+    <!-- Day view -->
+    <ProviderCalendarWeekView
+      v-if="!calendar.pending.value || calendar.data.value"
+      v-show="calendar.view.value === 'day'"
+      mode="day"
+      :time-zone="calendar.timeZone.value"
+      :days="dayDays"
+      :appointments="visibleAppointments"
+      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
+      :px-per-minute="1"
+      :highlight="conflictHighlight"
+      @select:appointment="onSelectAppointment"
+      @select:empty="onSelectEmpty"
+    />
+
+    <!-- Month view -->
+    <ProviderCalendarMonthView
+      v-if="!calendar.pending.value || calendar.data.value"
+      v-show="calendar.view.value === 'month'"
+      :time-zone="calendar.timeZone.value"
+      :anchor-date="calendar.anchorDate.value"
+      :appointments="visibleAppointments"
+      :consultation-price-plans-by-id="calendar.consultationPricePlansById.value"
+      :highlight="monthHighlight"
+      @select:appointment="onSelectAppointment"
+      @select:day="onSelectMonthDay"
+    />
 
     <!-- Drawers and Modals -->
     <ProviderCalendarAppointmentDrawer
@@ -794,7 +691,6 @@ async function submitConclusion(payload: { targetStage: BilanTargetStage, note?:
       @edit="onEditAppointment"
       @request-cancel="onRequestCancelAppointment"
       @mark-completed="onMarkCompletedAppointment"
-      @conclude-discovery="onConcludeDiscovery"
     />
 
     <ProviderCalendarCreateAppointmentModal
@@ -835,14 +731,6 @@ async function submitConclusion(payload: { targetStage: BilanTargetStage, note?:
       :field-errors="cancelFieldErrors"
       @update:open="setCancelModalOpen"
       @submit="onCancelAppointmentSubmit"
-    />
-
-    <CallConclusionModal
-      v-model:open="conclusionModalOpen"
-      :client-name="conclusionClientName"
-      :loading="conclusionLoading"
-      :error="conclusionError"
-      @submit="submitConclusion"
     />
   </div>
 </template>

@@ -134,9 +134,6 @@ export default defineNuxtConfig({
       headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400' }
     },
     '/client/**': { ssr: false },
-    // DS3.1: Discovery + Requests pages merged into Calendar tabs
-    '/provider/discovery': { redirect: { to: '/provider/calendar', statusCode: 301 } },
-    '/provider/requests': { redirect: { to: '/provider/calendar?tab=demandes', statusCode: 301 } },
     '/provider/**': { ssr: false },
     '/admin/**': { ssr: false }
   },

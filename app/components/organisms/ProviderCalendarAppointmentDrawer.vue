@@ -26,7 +26,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
-  (e: 'edit' | 'request-cancel' | 'mark-completed' | 'conclude-discovery', payload: { appointmentId: string }): void
+  (e: 'edit' | 'request-cancel' | 'mark-completed', payload: { appointmentId: string }): void
 }>()
 
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
@@ -110,37 +110,6 @@ const canMarkCompleted = computed(() => {
   const appointmentStart = new Date(appointment.startAt)
   return appointmentStart < now
 })
-
-/**
- * Can conclude a discovery when:
- * - type = 'discovery'
- * - status = 'scheduled'
- * - startAt < now (date passée)
- */
-const canConcludeDiscovery = computed(() => {
-  const appointment = props.appointment
-  if (!appointment) return false
-  if (appointment.type !== 'discovery') return false
-  if (appointment.status !== 'scheduled') return false
-  const now = new Date()
-  return new Date(appointment.startAt) < now
-})
-
-const concludeDiscoveryDisabledReason = computed(() => {
-  const appointment = props.appointment
-  if (!appointment) return 'Aucun rendez-vous sélectionné.'
-  if (appointment.type !== 'discovery') return 'Seuls les appels discovery peuvent être clôturés via bilan.'
-  if (appointment.status !== 'scheduled') return 'Cet appel est déjà clôturé.'
-  const now = new Date()
-  if (new Date(appointment.startAt) >= now) return 'L\'appel doit être passé pour pouvoir le clôturer.'
-  return null
-})
-
-function requestConcludeDiscovery() {
-  const appointment = props.appointment
-  if (!appointment || !canConcludeDiscovery.value) return
-  emit('conclude-discovery', { appointmentId: appointment.id })
-}
 
 const markCompletedDisabledReason = computed(() => {
   const appointment = props.appointment
@@ -598,54 +567,6 @@ async function copyMeetingLink() {
           <div class="mt-4 text-sm text-[color:var(--color-sunset-700)]">
             <p class="opacity-90">
               Ce rendez-vous a été annulé après paiement. Vous pouvez effectuer un remboursement total ou partiel via Stripe.
-            </p>
-          </div>
-        </section>
-
-        <!-- Clôture Discovery (bilan 3 options) -->
-        <section
-          v-if="appointment.type === 'discovery'"
-          class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5"
-        >
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              Bilan discovery
-            </h3>
-
-            <UTooltip
-              v-if="!canConcludeDiscovery"
-              :text="concludeDiscoveryDisabledReason ?? ''"
-            >
-              <span class="inline-flex">
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled
-                >
-                  Clôturer
-                </button>
-              </span>
-            </UTooltip>
-
-            <button
-              v-else
-              type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-success-50)] px-4 py-2 text-xs font-bold text-[color:var(--color-success-700)] ring-1 ring-[color:var(--color-success-200)] transition-all hover:bg-[color:var(--color-success-100)] disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="actionPending"
-              @click="requestConcludeDiscovery"
-            >
-              <Icon
-                name="lucide:check-circle"
-                size="16"
-                aria-hidden="true"
-              />
-              Clôturer
-            </button>
-          </div>
-
-          <div class="mt-4 text-sm text-[color:var(--color-text-muted)]">
-            <p class="opacity-90">
-              Clôturer cet appel discovery avec un bilan : convertir, laisser en attente ou archiver.
             </p>
           </div>
         </section>

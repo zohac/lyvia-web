@@ -8,8 +8,6 @@ type NavItem = {
   icon: string
   match?: 'exact' | 'prefix'
   badge?: number | null
-  /** When set, this item is NOT active if any of these query key=value pairs match the current route */
-  excludeQuery?: Record<string, string>
 }
 
 type NavGroup = {
@@ -143,31 +141,8 @@ const userMenuItems = computed(() => [
 ])
 
 function isItemActive(item: NavItem): boolean {
-  const qIdx = item.to.indexOf('?')
-  const itemPath = qIdx >= 0 ? item.to.slice(0, qIdx) : item.to
-
-  const pathMatch = item.match === 'prefix'
-    ? route.path.startsWith(itemPath)
-    : route.path === itemPath
-
-  if (!pathMatch) return false
-
-  // If item specifies query params, ALL must match current route
-  if (qIdx >= 0) {
-    const params = new URLSearchParams(item.to.slice(qIdx + 1))
-    for (const [key, value] of params) {
-      if (route.query[key] !== value) return false
-    }
-  }
-
-  // Exclusion rule: yield to a more specific sibling item
-  if (item.excludeQuery) {
-    for (const [key, value] of Object.entries(item.excludeQuery)) {
-      if (route.query[key] === value) return false
-    }
-  }
-
-  return true
+  if (item.match === 'prefix') return route.path.startsWith(item.to)
+  return route.path === item.to
 }
 
 async function onLogout() {

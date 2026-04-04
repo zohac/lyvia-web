@@ -1,7 +1,7 @@
 <!--
-  Provider Requests Panel (extracted from requests.vue for DS3.1 tab fusion)
+  Provider Requests Page
 
-  Lists client requests (cancellation/reschedule) with status filter.
+  Lists all client requests (cancellation/reschedule) with status filter.
   Allows provider to accept or reject pending requests.
 
   @see US-6 - Provider request processing
@@ -10,6 +10,12 @@
 import type { ProviderRequestItem, ProviderRequestStatusFilter } from '../../features/provider-requests/api/provider-requests.contract'
 import { REQUEST_STATUS_LABELS } from '../../features/provider-requests/api/provider-requests.contract'
 import { useProviderRequests } from '../../features/provider-requests/useProviderRequests'
+
+definePageMeta({
+  layout: 'provider',
+  middleware: 'auth-provider',
+  pageTitle: 'Demandes clients'
+})
 
 const {
   requests,
@@ -26,8 +32,10 @@ const {
   reject
 } = useProviderRequests()
 
+// Filter tabs
 const statusFilters: ProviderRequestStatusFilter[] = ['pending', 'accepted', 'rejected', 'all']
 
+// Modal states
 const acceptModalOpen = ref(false)
 const rejectModalOpen = ref(false)
 const selectedRequest = ref<ProviderRequestItem | null>(null)
@@ -45,10 +53,16 @@ const requestsEmptyDescription = computed(() => {
   }
 })
 
+/**
+ * Handle filter change
+ */
 function handleFilterChange(status: ProviderRequestStatusFilter) {
   fetchRequests(status)
 }
 
+/**
+ * Open accept modal
+ */
 function handleAcceptClick(requestId: string) {
   const request = requests.value.find(r => r.id === requestId)
   if (request) {
@@ -57,6 +71,9 @@ function handleAcceptClick(requestId: string) {
   }
 }
 
+/**
+ * Open reject modal
+ */
 function handleRejectClick(requestId: string) {
   const request = requests.value.find(r => r.id === requestId)
   if (request) {
@@ -65,6 +82,9 @@ function handleRejectClick(requestId: string) {
   }
 }
 
+/**
+ * Handle accept confirmation
+ */
 async function handleAcceptConfirm(providerNote: string | null, newScheduledAt?: string) {
   if (!selectedRequest.value) return
 
@@ -82,6 +102,9 @@ async function handleAcceptConfirm(providerNote: string | null, newScheduledAt?:
   }
 }
 
+/**
+ * Handle reject confirmation
+ */
 async function handleRejectConfirm(providerNote: string | null) {
   if (!selectedRequest.value) return
 
@@ -93,18 +116,18 @@ async function handleRejectConfirm(providerNote: string | null) {
   }
 }
 
+// Load requests on mount
 onMounted(() => {
   fetchRequests('pending')
 })
 </script>
 
 <template>
-  <div class="mt-6 space-y-6">
-    <div class="flex items-center justify-between">
-      <p class="text-sm text-[color:var(--color-text-muted)]">
-        {{ pendingCount }} demande{{ pendingCount > 1 ? 's' : '' }} en attente
-      </p>
-    </div>
+  <div class="space-y-8">
+    <AtomsDsPageHeader
+      title="Demandes clients"
+      :subtitle="`${pendingCount} demande${pendingCount > 1 ? 's' : ''} en attente de traitement`"
+    />
 
     <!-- Filter tabs -->
     <div class="flex flex-wrap gap-2">
