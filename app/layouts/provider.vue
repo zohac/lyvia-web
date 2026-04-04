@@ -61,9 +61,28 @@ const navigation = computed(() => ({
       ]
     },
     {
+      key: 'suivi',
+      label: 'Suivi',
+      defaultOpen: true,
+      items: [
+        {
+          label: 'Finance',
+          to: '/provider/finance',
+          icon: 'lucide:wallet',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Analytics',
+          to: '/provider/analytics',
+          icon: 'lucide:bar-chart-3',
+          match: 'prefix' as const
+        }
+      ]
+    },
+    {
       key: 'offre',
       label: 'Mon offre',
-      defaultOpen: true,
+      defaultOpen: false,
       items: [
         {
           label: 'Programmes',
@@ -81,25 +100,6 @@ const navigation = computed(() => ({
           label: 'Disponibilités',
           to: '/provider/availability',
           icon: 'lucide:calendar-clock',
-          match: 'prefix' as const
-        }
-      ]
-    },
-    {
-      key: 'suivi',
-      label: 'Suivi',
-      defaultOpen: true,
-      items: [
-        {
-          label: 'Finance',
-          to: '/provider/finance',
-          icon: 'lucide:wallet',
-          match: 'prefix' as const
-        },
-        {
-          label: 'Analytics',
-          to: '/provider/analytics',
-          icon: 'lucide:bar-chart-3',
           match: 'prefix' as const
         }
       ]
