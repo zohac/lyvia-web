@@ -426,7 +426,7 @@ function retry() {
           >
             Un paiement est déjà en cours pour ce créneau. Reprenez-le depuis votre espace Paiements.
             <ULink
-              to="/client/payments"
+              to="/client/account?tab=paiements"
               class="mt-3 inline-flex w-fit items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-accent)] underline-offset-4 hover:underline"
             >
               Voir mes paiements

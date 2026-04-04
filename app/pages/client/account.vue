@@ -137,6 +137,7 @@ async function handlePasswordChange() {
       :model-value="activeTab"
       :items="tabItems"
       variant="link"
+      :unmount-on-hide="false"
       class="w-full"
       @update:model-value="activeTab = $event as TabValue"
     >

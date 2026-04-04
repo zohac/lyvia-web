@@ -85,7 +85,7 @@
                 </div>
                 <UButton
                   v-if="payments.length > 0"
-                  to="/client/payments"
+                  to="/client/account?tab=paiements"
                   variant="ghost"
                   color="neutral"
                   size="xs"
