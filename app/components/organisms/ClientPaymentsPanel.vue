@@ -1,21 +1,107 @@
-<template>
-  <div class="space-y-8">
-    <AtomsDsPageHeader
-      title="Mes paiements"
-      subtitle="Retrouvez l'historique de vos transactions et accédez aux reçus."
-    >
-      <template #actions>
-        <UButton
-          to="/client/dashboard"
-          variant="ghost"
-          color="neutral"
-          leading-icon="i-lucide-arrow-left"
-        >
-          Retour
-        </UButton>
-      </template>
-    </AtomsDsPageHeader>
+<script setup lang="ts">
+import { getPaymentStatusDisplay } from '../../features/payments/domain/payment-display'
+import { useClientPayments } from '../../features/payments/useClientPayments'
 
+const list = await useClientPayments()
+
+const formattedPayments = computed(() => list.payments.value.map((payment) => {
+  const status = getPaymentStatusDisplay(payment.status)
+  const amount = new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: payment.currency
+  }).format(payment.amountCents / 100)
+
+  const date = new Date(payment.createdAt)
+  const dateLong = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(date)
+
+  const time = new Intl.DateTimeFormat('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date)
+
+  return {
+    ...payment,
+    status,
+    amount,
+    dateLong,
+    time
+  }
+}))
+
+const totalPaidFormatted = computed(() => {
+  const succeeded = list.payments.value.filter(p => p.status === 'succeeded')
+  if (!succeeded.length) return '0 €'
+
+  const total = succeeded.reduce((sum, p) => sum + p.amountCents, 0)
+  return new Intl.NumberFormat('fr-FR', {
+    style: 'currency',
+    currency: succeeded[0]?.currency ?? 'EUR'
+  }).format(total / 100)
+})
+
+const lastPaymentDate = computed(() => {
+  const succeeded = list.payments.value.filter(p => p.status === 'succeeded')
+  if (!succeeded.length) return '—'
+
+  const sorted = succeeded.sort((a, b) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+
+  const lastPayment = sorted[0]
+  if (!lastPayment) return '—'
+
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  }).format(new Date(lastPayment.createdAt))
+})
+
+type StatusTone = 'success' | 'danger' | 'neutral'
+
+function getStatusBadgeColor(tone: StatusTone): 'success' | 'error' | 'neutral' {
+  if (tone === 'success') return 'success'
+  if (tone === 'danger') return 'error'
+  return 'neutral'
+}
+
+function getStatusDotColor(tone: StatusTone): string {
+  if (tone === 'success') return 'bg-[color:var(--color-success-500)]'
+  if (tone === 'danger') return 'bg-[color:var(--color-error-500)]'
+  return 'bg-[color:var(--color-neutral-400)]'
+}
+
+function getStatusIconBg(tone: StatusTone): string {
+  if (tone === 'success') return 'bg-[color:var(--color-success-100)]'
+  if (tone === 'danger') return 'bg-[color:var(--color-error-100)]'
+  return 'bg-[color:var(--color-surface-muted)]'
+}
+
+function getStatusIconColor(tone: StatusTone): string {
+  if (tone === 'success') return 'text-[color:var(--color-success-600)]'
+  if (tone === 'danger') return 'text-[color:var(--color-error-600)]'
+  return 'text-[color:var(--color-text-muted)]'
+}
+
+function getStatusIcon(tone: StatusTone): string {
+  if (tone === 'success') return 'lucide:check'
+  if (tone === 'danger') return 'lucide:x'
+  return 'lucide:clock'
+}
+
+function openReceipt(url: string) {
+  if (!import.meta.client) return
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+</script>
+
+<template>
+  <div class="space-y-6">
     <!-- Error State -->
     <AtomsDsErrorState
       v-if="list.errorMessage.value"
@@ -25,7 +111,6 @@
 
     <!-- Loading State -->
     <template v-else-if="list.pending.value">
-      <!-- Summary skeleton -->
       <div class="grid gap-4 sm:grid-cols-3">
         <USkeleton
           v-for="i in 3"
@@ -33,7 +118,6 @@
           class="h-24 rounded-xl"
         />
       </div>
-      <!-- Table skeleton -->
       <UCard class="rounded-3xl bg-[color:var(--color-surface-card)]">
         <div class="space-y-4">
           <USkeleton
@@ -49,7 +133,6 @@
     <template v-else>
       <!-- Summary Cards -->
       <div class="grid gap-4 sm:grid-cols-3">
-        <!-- Total transactions -->
         <UCard class="rounded-3xl bg-[color:var(--color-surface-card)]">
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-crepuscule-100">
@@ -69,7 +152,6 @@
           </div>
         </UCard>
 
-        <!-- Total paid -->
         <UCard class="rounded-3xl bg-[color:var(--color-surface-card)]">
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-success-100)]">
@@ -89,7 +171,6 @@
           </div>
         </UCard>
 
-        <!-- Last payment -->
         <UCard class="rounded-3xl bg-[color:var(--color-surface-card)]">
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sunset-100">
@@ -119,8 +200,6 @@
           icon="i-lucide-credit-card"
           title="Aucun paiement"
           description="Vos paiements apparaîtront ici une fois que vous aurez réglé votre première consultation."
-          cta-label="Retour au tableau de bord"
-          cta-to="/client/dashboard"
         />
       </UCard>
 
@@ -231,7 +310,6 @@
           </table>
         </div>
 
-        <!-- Load more -->
         <template
           v-if="list.nextCursor.value"
           #footer
@@ -322,7 +400,6 @@
           </div>
         </UCard>
 
-        <!-- Load more (mobile) -->
         <div
           v-if="list.nextCursor.value"
           class="flex flex-col items-center gap-2"
@@ -367,126 +444,3 @@
     </template>
   </div>
 </template>
-
-<script setup lang="ts">
-import { getPaymentStatusDisplay } from '../../features/payments/domain/payment-display'
-import { useClientPayments } from '../../features/payments/useClientPayments'
-
-definePageMeta({
-  layout: 'client',
-  middleware: 'auth-client',
-  pageTitle: 'Paiements'
-})
-
-const list = await useClientPayments()
-
-/**
- * Formatted payments with display values
- */
-const formattedPayments = computed(() => list.payments.value.map((payment) => {
-  const status = getPaymentStatusDisplay(payment.status)
-  const amount = new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: payment.currency
-  }).format(payment.amountCents / 100)
-
-  const date = new Date(payment.createdAt)
-  const dateLong = new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  }).format(date)
-
-  const time = new Intl.DateTimeFormat('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date)
-
-  return {
-    ...payment,
-    status,
-    amount,
-    dateLong,
-    time
-  }
-}))
-
-/**
- * Total paid (succeeded payments only)
- */
-const totalPaidFormatted = computed(() => {
-  const succeeded = list.payments.value.filter(p => p.status === 'succeeded')
-  if (!succeeded.length) return '0 €'
-
-  const total = succeeded.reduce((sum, p) => sum + p.amountCents, 0)
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: succeeded[0]?.currency ?? 'EUR'
-  }).format(total / 100)
-})
-
-/**
- * Last payment date
- */
-const lastPaymentDate = computed(() => {
-  const succeeded = list.payments.value.filter(p => p.status === 'succeeded')
-  if (!succeeded.length) return '—'
-
-  const sorted = succeeded.sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
-
-  const lastPayment = sorted[0]
-  if (!lastPayment) return '—'
-
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric'
-  }).format(new Date(lastPayment.createdAt))
-})
-
-/**
- * Status-based styling helpers
- */
-type StatusTone = 'success' | 'danger' | 'neutral'
-
-function getStatusBadgeColor(tone: StatusTone): 'success' | 'error' | 'neutral' {
-  if (tone === 'success') return 'success'
-  if (tone === 'danger') return 'error'
-  return 'neutral'
-}
-
-function getStatusDotColor(tone: StatusTone): string {
-  if (tone === 'success') return 'bg-[color:var(--color-success-500)]'
-  if (tone === 'danger') return 'bg-[color:var(--color-error-500)]'
-  return 'bg-[color:var(--color-neutral-400)]'
-}
-
-function getStatusIconBg(tone: StatusTone): string {
-  if (tone === 'success') return 'bg-[color:var(--color-success-100)]'
-  if (tone === 'danger') return 'bg-[color:var(--color-error-100)]'
-  return 'bg-[color:var(--color-surface-muted)]'
-}
-
-function getStatusIconColor(tone: StatusTone): string {
-  if (tone === 'success') return 'text-[color:var(--color-success-600)]'
-  if (tone === 'danger') return 'text-[color:var(--color-error-600)]'
-  return 'text-[color:var(--color-text-muted)]'
-}
-
-function getStatusIcon(tone: StatusTone): string {
-  if (tone === 'success') return 'lucide:check'
-  if (tone === 'danger') return 'lucide:x'
-  return 'lucide:clock'
-}
-
-/**
- * Open receipt in new tab
- */
-function openReceipt(url: string) {
-  if (!import.meta.client) return
-  window.open(url, '_blank', 'noopener,noreferrer')
-}
-</script>

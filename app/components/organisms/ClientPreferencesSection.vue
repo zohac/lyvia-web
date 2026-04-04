@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { useClientPreferences } from '../../features/preferences/useClientPreferences'
 
-definePageMeta({
-  layout: 'client',
-  middleware: 'auth-client',
-  pageTitle: 'Paramètres'
-})
-
 const {
   preferences,
   loading,
@@ -38,29 +32,21 @@ async function handleSmsToggle(value: boolean) {
 </script>
 
 <template>
-  <section class="grid gap-6">
-    <AtomsDsPageHeader
-      title="Paramètres"
-      subtitle="Gérez vos préférences de communication et vos consentements."
-    />
-
+  <div class="space-y-6">
     <!-- Loading State -->
     <div
       v-if="loading"
       class="flex items-center justify-center py-16"
     >
       <div class="flex flex-col items-center gap-4">
-        <div class="relative h-10 w-10">
-          <div class="absolute inset-0 animate-ping rounded-full bg-[color:var(--color-crepuscule-200)] opacity-75" />
-          <div class="relative h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--color-brand-subtle)] border-t-[color:var(--color-brand-primary)]" />
-        </div>
+        <USkeleton class="h-10 w-10 rounded-full" />
         <p class="text-sm text-[color:var(--color-brand-muted)]">
           Chargement de vos préférences...
         </p>
       </div>
     </div>
 
-    <!-- Error State (no data) -->
+    <!-- Error State -->
     <AtomsDsErrorState
       v-else-if="error && !preferences"
       :message="error"
@@ -182,5 +168,5 @@ async function handleSmsToggle(value: boolean) {
         </div>
       </div>
     </template>
-  </section>
+  </div>
 </template>

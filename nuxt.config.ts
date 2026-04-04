@@ -133,6 +133,9 @@ export default defineNuxtConfig({
     '/legal/**': {
       headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400' }
     },
+    '/client/payments': { redirect: { to: '/client/account?tab=paiements', statusCode: 301 } },
+    '/client/settings': { redirect: { to: '/client/account?tab=preferences', statusCode: 301 } },
+    '/client/content': { redirect: { to: '/client/dashboard', statusCode: 301 } },
     '/client/**': { ssr: false },
     '/provider/**': { ssr: false },
     '/admin/**': { ssr: false }
