@@ -151,10 +151,11 @@
 
         <!-- Cards (mobile) -->
         <div class="block space-y-3 p-4 md:hidden">
-          <div
+          <button
             v-for="notif in notificationLogs.items"
             :key="notif.id"
-            class="cursor-pointer rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30"
+            type="button"
+            class="w-full rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 text-left transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
             @click="openDetail(notif)"
           >
             <div class="flex items-start justify-between gap-3">
@@ -174,7 +175,7 @@
                 <span>{{ formatDate(notif.createdAt) }}</span>
               </div>
             </div>
-          </div>
+          </button>
         </div>
 
         <!-- Pagination -->

@@ -200,6 +200,26 @@ const columns: TableColumn<AdminProviderListItem>[] = [
   }
 ]
 
+// Mobile Stripe status helper
+function getMobileStripeStatus(stripe: AdminProviderListItem['stripe']) {
+  let variant: 'neutral' | 'success' | 'warning' | 'error' = 'neutral'
+  let label = 'Non lié'
+  if (stripe.stripeAccountId) {
+    if (stripe.chargesEnabled && stripe.payoutsEnabled) {
+      variant = 'success'
+      label = 'Actif'
+    } else if (stripe.requirementsDueCount > 0) {
+      variant = 'warning'
+      label = `${stripe.requirementsDueCount} action${stripe.requirementsDueCount > 1 ? 's' : ''}`
+    } else {
+      variant = 'error'
+      label = 'Bloqué'
+    }
+  }
+  const s = getStatusBadgeClasses(variant)
+  return { classes: s.badge, dotClass: s.dot, label }
+}
+
 // Row click
 function onRowSelect(_e: Event, row: TableRow<AdminProviderListItem>) {
   router.push(`/admin/providers/${row.original.id}`)
@@ -321,12 +341,12 @@ function goToProvider() {
 
         <!-- Cards (mobile) -->
         <div class="block space-y-3 p-4 md:hidden">
-          <div
+          <NuxtLink
             v-for="provider in providers.items"
             :key="provider.id"
-            class="cursor-pointer rounded-xl border border-[color:var(--color-border-subtle)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30"
+            :to="`/admin/providers/${provider.id}`"
+            class="block rounded-xl border border-[color:var(--color-border-subtle)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
             :class="provider.isTest ? 'bg-[color:var(--color-sunset-50)]/40' : 'bg-[color:var(--color-surface-elevated)]'"
-            @click="router.push(`/admin/providers/${provider.id}`)"
           >
             <div class="flex items-start justify-between gap-3">
               <div class="min-w-0 flex-1">
@@ -350,17 +370,13 @@ function goToProvider() {
               </span>
             </div>
             <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-secondary)]">
-              <span
-                v-if="provider.stripe.stripeAccountId"
-                class="font-mono"
-              >{{ provider.stripe.stripeAccountId }}</span>
-              <span
-                v-else
-                class="text-[color:var(--color-brand-muted)]"
-              >Stripe non lié</span>
+              <span :class="getMobileStripeStatus(provider.stripe).classes">
+                <span :class="getMobileStripeStatus(provider.stripe).dotClass" />
+                {{ getMobileStripeStatus(provider.stripe).label }}
+              </span>
               <span>{{ formatDateShort(provider.createdAt) }}</span>
             </div>
-          </div>
+          </NuxtLink>
         </div>
 
         <!-- Pagination -->
