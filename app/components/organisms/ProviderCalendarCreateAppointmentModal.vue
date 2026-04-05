@@ -50,9 +50,6 @@ const emit = defineEmits<{
   (event: 'reset'): void
 }>()
 
-const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
-const isFullScreen = computed(() => !isDesktop.value)
-
 const type = ref<ProviderCalendarAppointmentType>('consultation')
 const dayKey = ref('')
 const time = ref('09:00')
@@ -237,9 +234,8 @@ function submit() {
 </script>
 
 <template>
-  <UModal
+  <USlideover
     :open="open"
-    :fullscreen="isFullScreen"
     :dismissible="!loading"
     title="Créer un rendez-vous"
     :description="`Fuseau : ${timeZone} · Choisissez un type, une date et une cliente.`"
@@ -472,5 +468,5 @@ function submit() {
         </UButton>
       </div>
     </template>
-  </UModal>
+  </USlideover>
 </template>

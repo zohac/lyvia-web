@@ -111,7 +111,7 @@ const copyDirectionOptions = [
 <template>
   <div class="space-y-8">
     <!-- Create Block Modal -->
-    <UModal
+    <USlideover
       v-model:open="createBlockModalOpen"
       :dismissible="!isCreatingBlock"
       title="Ajouter un blocage"
@@ -200,7 +200,7 @@ const copyDirectionOptions = [
           </UButton>
         </div>
       </template>
-    </UModal>
+    </USlideover>
 
     <!-- Delete Block Modal -->
     <ConfirmActionModal
@@ -214,7 +214,7 @@ const copyDirectionOptions = [
     />
 
     <!-- Create Rule Modal -->
-    <UModal
+    <USlideover
       v-model:open="createRuleModalOpen"
       :dismissible="!isCreatingRule"
       title="Ajouter une règle"
@@ -382,10 +382,10 @@ const copyDirectionOptions = [
           </UButton>
         </div>
       </template>
-    </UModal>
+    </USlideover>
 
     <!-- Update Rule Modal -->
-    <UModal
+    <USlideover
       v-model:open="updateRuleModalOpen"
       :dismissible="!isUpdatingRule"
       title="Modifier une règle"
@@ -502,7 +502,7 @@ const copyDirectionOptions = [
           </UButton>
         </div>
       </template>
-    </UModal>
+    </USlideover>
 
     <!-- Delete Rule Modal -->
     <ConfirmActionModal

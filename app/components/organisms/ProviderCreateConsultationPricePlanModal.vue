@@ -88,7 +88,7 @@ function submit() {
 </script>
 
 <template>
-  <UModal
+  <USlideover
     :open="open"
     :dismissible="!loading"
     title="Créer un tarif consultation"
@@ -213,5 +213,5 @@ function submit() {
         </UButton>
       </div>
     </template>
-  </UModal>
+  </USlideover>
 </template>

@@ -32,9 +32,6 @@ const emit = defineEmits<{
   (event: 'submit', payload: { appointmentId: string, body: UpdateProviderAppointmentRequest }): void
 }>()
 
-const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
-const isFullScreen = computed(() => !isDesktop.value)
-
 const dayKey = ref('')
 const time = ref('09:00')
 const pricePlanId = ref<string | null>(null)
@@ -190,9 +187,8 @@ function submit() {
 </script>
 
 <template>
-  <UModal
+  <USlideover
     :open="open"
-    :fullscreen="isFullScreen"
     :dismissible="!loading"
     title="Modifier le rendez-vous"
     @update:open="updateOpen"
@@ -435,5 +431,5 @@ function submit() {
         </UButton>
       </div>
     </template>
-  </UModal>
+  </USlideover>
 </template>
