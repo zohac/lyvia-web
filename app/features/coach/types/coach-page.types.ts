@@ -3,6 +3,14 @@
  * Each organism receives exactly the data it needs — no `provider: any`.
  */
 
+import type {
+  BenefitsJson,
+  EducationalContentJson,
+  HowItWorksStep,
+  PillarsJson,
+  ProblemStatementJson
+} from '~/features/seo/api/public-provider-profile.contract'
+
 export interface Credential {
   title: string
   institution?: string
@@ -42,10 +50,27 @@ export interface CoachFaqItem {
   content: string
 }
 
-// --- Y1.3 Props ---
+// --- YC2.1 Props (organisms read data from API via props) ---
 
 export interface CoachHowItWorksProps {
   discoveryDurationMinutes: number
+  steps?: HowItWorksStep[] | null
+}
+
+export interface CoachTransformationBenefitsProps {
+  benefits?: BenefitsJson | null
+}
+
+export interface CoachEducationalContentProps {
+  content?: EducationalContentJson | null
+}
+
+export interface CoachProblemStatementProps {
+  content?: ProblemStatementJson | null
+}
+
+export interface CoachPillarsProps {
+  pillars?: PillarsJson | null
 }
 
 export interface CoachPricingProps {

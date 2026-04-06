@@ -6,33 +6,30 @@ const props = defineProps<CoachHowItWorksProps>()
 
 const { reveal } = useScrollReveal()
 
-// <!-- TODO: Feature V — dynamiser -->
-const steps = computed(() => [
-  {
-    number: '01',
-    title: 'Vous réservez votre appel',
-    description: `Choisissez un créneau qui vous convient. C'est gratuit, sans engagement.`,
-    icon: 'i-lucide-calendar'
-  },
-  {
-    number: '02',
-    title: `On fait connaissance (${props.discoveryDurationMinutes} min)`,
-    description: 'Je vous écoute, je vous pose quelques questions sur vos symptômes et votre quotidien. Pas de pression, pas de discours commercial.',
-    icon: 'i-lucide-phone'
-  },
-  {
-    number: '03',
-    title: 'On voit ensemble si c\'est le bon chemin',
-    description: 'Je vous dis honnêtement si un accompagnement peut vous aider, et si je suis la bonne personne pour ça.',
-    icon: 'i-lucide-compass'
-  },
-  {
-    number: '04',
-    title: 'Vous décidez, à votre rythme',
-    description: `Si c'est le bon moment pour vous, on démarre ensemble. Sinon, pas de pression\u00A0— c'est un échange, pas une vente.`,
-    icon: 'i-lucide-heart-handshake'
+const DEFAULT_STEPS = [
+  { number: '01', title: 'Vous réservez votre appel', description: 'Choisissez un créneau qui vous convient. C\'est gratuit, sans engagement.' },
+  { number: '02', title: 'On fait connaissance', description: 'Un échange pour comprendre vos symptômes et votre quotidien. Pas de pression, pas de discours commercial.' },
+  { number: '03', title: 'On voit ensemble si c\'est le bon chemin', description: 'Un avis honnête sur ce qu\'un accompagnement peut apporter et si c\'est le bon moment.' },
+  { number: '04', title: 'Vous décidez, à votre rythme', description: 'Si c\'est le bon moment pour vous, on démarre ensemble. Sinon, pas de pression\u00A0— c\'est un échange, pas une vente.' }
+]
+
+const STEP_ICONS = ['i-lucide-calendar', 'i-lucide-phone', 'i-lucide-compass', 'i-lucide-heart-handshake']
+
+const steps = computed(() => {
+  const apiSteps = props.steps
+  if (apiSteps && apiSteps.length > 0) {
+    return apiSteps.map((s, i) => ({
+      ...s,
+      icon: STEP_ICONS[i] ?? 'i-lucide-circle'
+    }))
   }
-])
+  // Default steps — inject discovery duration into step 2
+  return DEFAULT_STEPS.map((s, i) => ({
+    ...s,
+    title: i === 1 ? `On fait connaissance (${props.discoveryDurationMinutes} min)` : s.title,
+    icon: STEP_ICONS[i]
+  }))
+})
 </script>
 
 <template>

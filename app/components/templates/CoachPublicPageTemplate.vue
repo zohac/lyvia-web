@@ -2,6 +2,7 @@
 import type { AccordionItem } from '@nuxt/ui'
 
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
+import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { ListConsultationPricePlansResponse } from '~/features/consultation/api/consultation.contract'
 import { listPublicPrograms } from '~/features/programs/services/public-programs.service'
@@ -54,147 +55,76 @@ const { data: pricingData } = await useAsyncData<ListConsultationPricePlansRespo
   { default: () => null }
 )
 
-const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre coach')
+const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 
 // Provider enriched profile data (loaded by useCoachSchemaOrg in parent page)
-const { data: coachProfile } = useNuxtData<{
-  specialties?: string[]
-  displayName?: string
-  credentials?: Array<{ title: string, institution?: string, year?: number, verified?: boolean }>
-  bio?: string | null
-  longBio?: string | null
-  city?: string | null
-  imageUrl?: string | null
-  heroImageUrl?: string | null
-  secondaryPhotoUrl?: string | null
-  publicPhone?: string | null
-  urgencyText?: string | null
-  heroHeadline?: string | null
-  socialLinks?: { linkedin?: string, instagram?: string, facebook?: string, website?: string }
-  region?: string | null
-  testimonialsJson?: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
-  discoveryDurationMinutes?: number
-  leadMagnetUrl?: string | null
-  leadMagnetTitle?: string | null
-}>(`public-provider-profile:${props.tenant.slug}`)
+const { data: coachProfile } = useNuxtData<PublicProviderProfile>(`public-provider-profile:${props.tenant.slug}`)
 
-// --- Content data ---
+// --- Section visibility (P-Y3) ---
+function isSectionVisible(section: string): boolean {
+  const config = coachProfile.value?.sectionsConfig
+  if (!config) return true
+  return config[section] !== false
+}
 
-// <!-- TODO: Feature V — dynamiser -->
-const pillars = [
-  {
-    title: 'Alimentation bienveillante',
-    description: 'Des repères simples pour soutenir votre métabolisme et vos hormones. Pas de régime, pas de privation. Une alimentation anti-inflammatoire adaptée à votre quotidien, votre budget et vos goûts.',
-    icon: 'i-lucide-apple'
-  },
-  {
-    title: 'Gestion du stress',
-    description: 'Des outils accessibles pour calmer votre système nerveux\u00A0: techniques de respiration, routines apaisantes, gestion des émotions. Parce que le stress amplifie tous les autres symptômes de la ménopause.',
-    icon: 'i-lucide-wind'
-  },
-  {
-    title: 'Sommeil réparateur',
-    description: 'Des stratégies naturelles pour retrouver des nuits paisibles\u00A0: rituel du soir, gestion des réveils nocturnes, environnement de sommeil. Le sommeil est souvent le premier résultat visible, en quelques semaines.',
-    icon: 'i-lucide-moon-star'
-  },
-  {
-    title: 'Mouvement adapté',
-    description: 'Bouger en douceur, selon votre énergie du jour\u00A0: marche, yoga, pilates, renforcement doux. Pas de performance, pas de comparaison. Des mouvements qui font du bien à votre corps sans l\'épuiser davantage.',
-    icon: 'i-lucide-heart-pulse'
-  }
-]
+// --- Content data from API (YC2.1) ---
 
-// <!-- TODO: Feature V — dynamiser -->
-const faqItems: AccordionItem[] = [
-  {
-    label: `Combien coûte un accompagnement avec ${coachName.value}\u00A0?`,
-    content: `L'appel découverte de 15 minutes est gratuit et sans engagement, c'est le point de départ idéal.\n\nEnsuite, deux formules s'offrent à vous. À la séance\u00A0: le premier mois inclut une séance bilan d'1h30 (160\u00A0€), puis des séances de suivi de 45 minutes (140\u00A0€/mois), avec un soutien par mail entre les rendez-vous. Le paiement est à effectuer en ligne 48 heures avant chaque séance, la séance est confirmée à ce moment-là.\n\nEn forfait 6 mois\u00A0: 840\u00A0€ en une fois ou en plusieurs mensualités sans frais, prélevées automatiquement.\n\n6 mois, c'est en général le temps nécessaire pour ancrer de nouvelles habitudes et constater une amélioration durable de votre bien-être.`,
-    value: 'faq-1'
-  },
-  {
-    label: `L'accompagnement de ${coachName.value} est-il médical\u00A0?`,
-    content: `Non. C'est un accompagnement en bien-être, pas un acte médical. Je suis infirmière de formation et j'accompagne sur 4 axes\u00A0: alimentation, gestion du stress, sommeil et mouvement. Mon approche complète le suivi médical, elle ne le remplace pas. En cas de besoin, je vous oriente vers un professionnel de santé.`,
-    value: 'faq-2'
-  },
-  {
-    label: 'Est-ce adapté si je suis déjà ménopausée depuis plusieurs années\u00A0?',
-    content: `Oui. L'accompagnement s'adapte à chaque étape\u00A0: périménopause, ménopause récente ou installée. Les 4 piliers (alimentation, stress, sommeil, mouvement) sont pertinents quel que soit le stade. L'appel découverte gratuit permet justement de voir ensemble ce qui serait le plus utile pour vous.`,
-    value: 'faq-3'
-  },
-  {
-    label: 'Les accompagnements se font-ils en présentiel ou en visio\u00A0?',
-    content: `Tout se fait en visio (appel vidéo). Vous êtes chez vous, au calme, sans déplacement. Ça fonctionne partout en France. L'appel découverte de 15 minutes vous permettra de voir si le format vous convient.`,
-    value: 'faq-4'
-  },
-  {
-    label: 'L\'appel gratuit est-il vraiment sans engagement\u00A0?',
-    content: `Oui, totalement. Pas de carte bancaire, pas de vente forcée. C'est un échange de 15 minutes pour être écoutée et voir ensemble si un accompagnement peut vous aider. Vous décidez ensuite, sans aucune obligation.`,
-    value: 'faq-5'
-  },
-  {
-    label: 'À quel moment commencer un accompagnement pour la ménopause\u00A0?',
-    content: 'Le plus tôt possible. Plus on comprend ce qui se passe dans son corps, plus on peut agir efficacement. Mais il n\'est jamais trop tard. Les femmes qui me rejoignent après plusieurs années de symptômes voient aussi des améliorations significatives.',
-    value: 'faq-6'
-  },
-  {
-    label: 'Quels sont les symptômes de la pré-ménopause (périménopause)\u00A0?',
-    content: 'La pré-ménopause (ou périménopause) peut provoquer des règles irrégulières, des bouffées de chaleur, des troubles du sommeil, de la fatigue, une prise de poids, de l\'anxiété, de l\'irritabilité, des douleurs articulaires et un brouillard mental. Ces symptômes apparaissent généralement entre 45 et 50 ans, parfois plus tôt. L\'accompagnement ménopause aide à les identifier et à les gérer au quotidien.',
-    value: 'faq-7'
-  },
-  {
-    label: 'Peut-on soulager les bouffées de chaleur sans traitement hormonal\u00A0?',
-    content: 'Oui. Des ajustements en alimentation, gestion du stress, qualité du sommeil et activité physique adaptée permettent de réduire significativement les bouffées de chaleur. C\'est l\'approche que je propose dans mon accompagnement ménopause, sans hormones, sans médicaments. Les résultats sont souvent visibles dès les premières semaines.',
-    value: 'faq-8'
-  },
-  {
-    label: 'Combien de temps dure la ménopause\u00A0?',
-    content: 'La périménopause (la transition) dure en moyenne 4 à 8 ans. La ménopause est confirmée après 12 mois consécutifs sans règles. Les symptômes peuvent persister plusieurs années après, mais un accompagnement adapté aide à les gérer efficacement quel que soit le stade.',
-    value: 'faq-9'
-  }
-]
+// Pillars: API data or generic fallback
+const pillars = computed(() => {
+  const api = coachProfile.value?.pillarsJson
+  if (api?.items?.length) return api
+  return null
+})
+
+const DEFAULT_PILLAR_ICONS = ['i-lucide-apple', 'i-lucide-wind', 'i-lucide-moon-star', 'i-lucide-heart-pulse']
+
+const pillarItems = computed(() => {
+  const items = pillars.value?.items ?? []
+  return items.map((p, i) => ({
+    ...p,
+    icon: p.icon || DEFAULT_PILLAR_ICONS[i] || 'i-lucide-circle'
+  }))
+})
+
+const emotionalSupport = computed(() => pillars.value?.emotionalSupport ?? null)
+
+// FAQ: API data or empty (no hardcoded fallback)
+const faqItems = computed<AccordionItem[]>(() => {
+  const api = coachProfile.value?.faqJson
+  if (!api?.length) return []
+  return api.map((item, i) => ({
+    label: item.label,
+    content: item.content,
+    value: `faq-${i + 1}`
+  }))
+})
 
 // FAQ SSR: all items open on server, closed after hydration (AC-5)
-const allFaqValues = faqItems.map(item => item.value).filter((v): v is string => !!v)
-const faqDefaultValue = ref<string[]>(allFaqValues)
+const allFaqValues = computed(() => faqItems.value.map(item => item.value).filter((v): v is string => !!v))
+const faqDefaultValue = ref<string[]>([])
+
+// Initialize to all values for SSR crawlability
+watchEffect(() => {
+  if (import.meta.server) {
+    faqDefaultValue.value = allFaqValues.value
+  }
+})
 
 onMounted(() => {
   // Close all FAQ items after hydration — UX preserved, content was crawlable in SSR
   faqDefaultValue.value = []
 })
 
-// <!-- TODO: Feature V — dynamiser depuis testimonialsJson -->
-const fallbackTestimonials = [
-  {
-    quote: 'Après 6 mois avec Sophie, je dors enfin 7 heures par nuit. J\'ai retrouvé mon énergie, perdu les 4 kilos qui m\'obsédaient, et surtout, j\'ai compris mon corps. Ce qui a fait la différence\u00A0? L\'approche globale\u00A0: alimentation, sommeil, stress, tout en même temps. Et le fait de pouvoir lui écrire entre les séances quand j\'avais un doute.',
-    firstName: 'Anne M.',
-    age: 55,
-    location: 'Nantes',
-    rating: 5,
-    result: '6 mois d\'accompagnement'
-  },
-  {
-    quote: 'Je ne cherchais pas à « guérir » de la ménopause. Je cherchais quelqu\'un qui comprenne que ce n\'était pas une maladie. J\'ai trouvé bien plus. Pour la première fois, quelqu\'un m\'a dit\u00A0: « Ce que vous vivez est réel. » Ça a tout changé.',
-    firstName: 'Françoise L.',
-    age: 52,
-    location: 'Bordeaux',
-    rating: 5,
-    result: '4 mois d\'accompagnement'
-  },
-  {
-    quote: 'J\'avais déjà vu une naturopathe et dépensé des centaines d\'euros en compléments. Rien ne tenait dans la durée. Avec Sophie, j\'ai eu un plan concret, un suivi régulier, et des résultats dès le premier mois. Le sommeil d\'abord, puis l\'énergie. Je recommande sans hésiter.',
-    firstName: 'Valérie D.',
-    age: 49,
-    location: 'Lyon',
-    rating: 5,
-    result: '3 mois d\'accompagnement'
-  }
-]
+// Problem statement: API data or null (no hardcoded fallback)
+const problemStatement = computed(() => coachProfile.value?.problemStatementJson ?? null)
 
-// Pricing & testimonials visibility (pattern AD-Y2: v-if at parent level)
-const consultationPlans = computed(() => pricingData.value?.plans ?? [])
+// Testimonials: API data only, no hardcoded fallback mentioning a specific coach
 const apiTestimonials = computed(() => coachProfile.value?.testimonialsJson ?? [])
-const displayTestimonials = computed(() => apiTestimonials.value.length > 0 ? apiTestimonials.value : fallbackTestimonials)
-const hasTestimonials = computed(() => displayTestimonials.value.length > 0)
+const hasTestimonials = computed(() => apiTestimonials.value.length > 0)
+const firstTestimonial = computed(() => apiTestimonials.value[0] ?? null)
+
+// Pricing & programs
+const consultationPlans = computed(() => pricingData.value?.plans ?? [])
 const hasPricing = computed(() => consultationPlans.value.length > 0 || publicPrograms.value.length > 0)
 const discoveryDuration = computed(() => coachProfile.value?.discoveryDurationMinutes ?? 15)
 
@@ -247,6 +177,7 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 2. BLOC PROBLÈME (blanc) ==================== -->
     <section
+      v-if="problemStatement && isSectionVisible('problemStatement')"
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
     >
@@ -257,33 +188,21 @@ const heroProps = computed(() => ({
             class="absolute -left-4 -top-8 font-serif text-[12rem] leading-none text-[var(--color-brand-accent)]/10 lg:-left-16"
             aria-hidden="true"
           >"</span>
-          <!-- TODO: Feature V — dynamiser -->
           <p class="relative font-serif text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] text-[var(--color-crepuscule-950)]">
-            Je ne comprends pas ce qu'il m'arrive... J'ai 48 ans, j'ai pris
-            6 kilos en 6 mois, je suis toujours épuisée, stressée pour un rien.
-            J'ai des insomnies, des douleurs articulaires... J'ai l'impression
-            d'avoir pris 20 ans en quelques mois. Et mon médecin me dit
-            que tout est normal.
+            {{ problemStatement.blockquote }}
           </p>
         </blockquote>
 
-        <div class="mt-12 space-y-6">
-          <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
-            Vous vous reconnaissez dans ces mots ?
-          </p>
-          <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
-            Épuisement. Prise de poids. Troubles du sommeil. Anxiété.
-            Bouffées de chaleur. Irritabilité. Douleurs articulaires.
-          </p>
-          <p class="text-lg font-semibold text-[var(--color-crepuscule-950)]">
-            Ces symptômes ne sont pas « dans votre tête ».
-          </p>
-          <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
-            Ils sont réels, ils ont une cause. Et il existe des solutions concrètes.
-          </p>
-          <p class="text-lg font-medium italic text-[var(--color-brand-primary)]">
-            Il est temps de comprendre ce que traverse votre corps.
-            Et de vous offrir l'accompagnement que vous méritez.
+        <div
+          v-if="problemStatement.paragraphs?.length"
+          class="mt-12 space-y-6"
+        >
+          <p
+            v-for="(paragraph, i) in problemStatement.paragraphs"
+            :key="i"
+            class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]"
+          >
+            {{ paragraph }}
           </p>
         </div>
       </div>
@@ -291,24 +210,31 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 3. MINI-TÉMOIGNAGE (beige) ==================== -->
     <section
+      v-if="apiTestimonials.length > 0 && isSectionVisible('miniTestimonial')"
       v-bind="reveal()"
       class="scroll-reveal bg-[var(--color-neutral-50)] px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-3xl text-center">
         <blockquote class="font-serif text-xl italic leading-relaxed text-[var(--color-crepuscule-700)] lg:text-2xl">
-          « Je ne cherchais pas à "guérir" de la ménopause. Je cherchais quelqu'un qui comprenne
-          que ce n'était pas une maladie. J'ai trouvé bien plus. »
+          « {{ firstTestimonial?.quote }} »
         </blockquote>
-        <!-- TODO: Feature V — dynamiser depuis testimonialsJson -->
         <footer class="mt-6 text-sm text-[var(--color-text-muted)]">
-          <span class="font-medium text-[var(--color-crepuscule-950)]">Marie-Claire</span>, 52 ans
+          <span class="font-medium text-[var(--color-crepuscule-950)]">
+            {{ firstTestimonial?.firstName }}
+          </span>
+          <template v-if="firstTestimonial?.age">
+            , {{ firstTestimonial.age }} ans
+          </template>
         </footer>
       </div>
     </section>
 
     <!-- ==================== 4. CE QUE L'ACCOMPAGNEMENT APPORTE (blanc) ==================== -->
-    <div id="accompagnement">
-      <CoachTransformationBenefits>
+    <div
+      v-if="isSectionVisible('benefits')"
+      id="accompagnement"
+    >
+      <CoachTransformationBenefits :benefits="coachProfile?.benefitsJson ?? null">
         <template #header>
           <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
             Ce que cela apporte
@@ -420,7 +346,7 @@ const heroProps = computed(() => ({
             </div>
 
             <div class="mt-10 space-y-6 text-base leading-relaxed text-[var(--color-crepuscule-300)]">
-              <!-- Priority: longBio (markdown-like paragraphs) → bio (short) → fallback -->
+              <!-- Priority: longBio (markdown-like paragraphs) → bio (short) → generic fallback -->
               <template v-if="coachProfile?.longBio">
                 <p
                   v-for="(paragraph, i) in coachProfile.longBio.split('\n\n').filter(Boolean)"
@@ -432,31 +358,10 @@ const heroProps = computed(() => ({
               <template v-else-if="coachProfile?.bio">
                 <p>{{ coachProfile.bio }}</p>
               </template>
-              <!-- TODO: Feature V — dynamiser -->
               <template v-else>
                 <p>
-                  Pendant 20 ans, j'ai accompagné des patients en milieu hospitalier.
-                  L'écoute, l'empathie, la rigueur clinique — c'est mon métier, pas un diplôme de week-end.
-                </p>
-                <p>Et puis la périménopause m'est tombée dessus.</p>
-                <p>
-                  Prise de poids soudaine. Insomnies. Anxiété. Chute d'énergie.
-                  Et des réponses médicales souvent vagues : « C'est le stress », « C'est l'âge ».
-                </p>
-                <p>Je ne me reconnaissais plus.</p>
-                <p>
-                  Alors j'ai cherché. J'ai testé. Je me suis formée.
-                  J'ai compris ce qui fonctionne vraiment. Pas les modes, pas les compléments miracles.
-                  Des ajustements concrets en alimentation, en gestion du stress, en sommeil, en mouvement.
-                </p>
-                <p>
-                  Aujourd'hui, c'est ce que je propose aux femmes qui traversent la même chose :
-                  un accompagnement global, humain, sans jugement.
-                </p>
-                <p>
-                  Ce que je fais, c'est simple : je vous écoute, je vous explique,
-                  et je vous donne les outils pour reprendre le contrôle de votre corps.
-                  Et entre les séances, je reste disponible par email — vous n'êtes jamais seule.
+                  Spécialiste en accompagnement bien-être, je propose un suivi personnalisé
+                  et adapté à chaque étape de votre parcours.
                 </p>
               </template>
             </div>
@@ -542,7 +447,7 @@ const heroProps = computed(() => ({
     <div id="temoignages">
       <CoachTestimonials
         v-if="hasTestimonials"
-        :testimonials="displayTestimonials"
+        :testimonials="apiTestimonials"
       >
         <template #header>
           <div class="mb-12 text-center">
@@ -567,6 +472,7 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 7. PILIERS (blanc) ==================== -->
     <section
+      v-if="pillarItems.length > 0 && isSectionVisible('pillars')"
       v-bind="reveal()"
       class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
     >
@@ -577,18 +483,17 @@ const heroProps = computed(() => ({
 
         <!-- H2 with SEO keyword (P-Y5) -->
         <h2 class="mt-6 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
-          Les 4 piliers de
-          <span class="block text-[var(--color-brand-primary)]">l'accompagnement ménopause</span>
+          Les {{ pillarItems.length }} piliers de
+          <span class="block text-[var(--color-brand-primary)]">l'accompagnement</span>
         </h2>
 
         <p class="mt-8 max-w-2xl text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
-          Une approche globale, personnalisée et respectueuse du corps féminin.
-          Je vous guide avec douceur à travers 4 axes essentiels.
+          Une approche globale, personnalisée et respectueuse.
         </p>
 
         <div class="mt-16 grid gap-8 md:grid-cols-2">
           <article
-            v-for="(pillar, index) in pillars"
+            v-for="(pillar, index) in pillarItems"
             :key="pillar.title"
             v-bind="reveal({ delay: index * 120 })"
             class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
@@ -625,6 +530,7 @@ const heroProps = computed(() => ({
 
         <!-- Emotional support callout (5th pillar — distinct treatment) -->
         <div
+          v-if="emotionalSupport"
           v-bind="reveal({ delay: 500 })"
           class="pillar-card scroll-reveal group relative mt-8 overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
         >
@@ -635,22 +541,19 @@ const heroProps = computed(() => ({
           <div class="relative flex items-start gap-5">
             <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
               <UIcon
-                name="i-lucide-hand-heart"
+                :name="emotionalSupport.icon || 'i-lucide-hand-heart'"
                 class="size-6 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
               />
             </div>
             <div>
               <span class="font-serif text-sm text-[var(--color-brand-accent)]/60">
-                05
+                {{ String(pillarItems.length + 1).padStart(2, '0') }}
               </span>
               <h3 class="mt-1 font-serif text-xl text-[var(--color-crepuscule-950)]">
-                Un espace d'écoute en plus de tout cela
+                {{ emotionalSupport.title }}
               </h3>
-              <!-- TODO: Feature V — dynamiser -->
               <p class="mt-3 max-w-3xl text-base leading-relaxed text-[var(--color-crepuscule-700)]">
-                Chaque accompagnement inclut un espace d'écoute bienveillant, à votre rythme.
-                Ce n'est pas un suivi psychologique. C'est un moment pour déposer ce que vous vivez,
-                sans jugement. En cas de besoin, je vous oriente vers un professionnel de santé.
+                {{ emotionalSupport.description }}
               </p>
             </div>
           </div>
@@ -660,7 +563,9 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 8. COMMENT ÇA MARCHE (beige) ==================== -->
     <CoachHowItWorks
+      v-if="isSectionVisible('howItWorks')"
       :discovery-duration-minutes="discoveryDuration"
+      :steps="coachProfile?.howItWorksJson ?? null"
     >
       <template #header>
         <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
@@ -705,7 +610,10 @@ const heroProps = computed(() => ({
     />
 
     <!-- ==================== 10. CONTENU ÉDUCATIF (beige) ==================== -->
-    <CoachEducationalContent>
+    <CoachEducationalContent
+      v-if="isSectionVisible('educationalContent')"
+      :content="coachProfile?.educationalContentJson ?? null"
+    >
       <template #header>
         <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
           Comprendre
@@ -727,6 +635,7 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 11. FAQ (blanc) ==================== -->
     <section
+      v-if="faqItems.length > 0 && isSectionVisible('faq')"
       v-bind="reveal()"
       class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
     >

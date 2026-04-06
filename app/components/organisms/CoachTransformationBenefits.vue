@@ -1,45 +1,26 @@
 <script setup lang="ts">
+import type { CoachTransformationBenefitsProps } from '~/features/coach/types/coach-page.types'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+
+const props = defineProps<CoachTransformationBenefitsProps>()
 
 const { reveal } = useScrollReveal()
 
-// <!-- TODO: Feature V — dynamiser -->
-const benefits = [
-  {
-    icon: 'i-lucide-moon-star',
-    title: 'Sommeil retrouvé',
-    description: 'Des nuits complètes, sans réveils à 3h du matin'
-  },
-  {
-    icon: 'i-lucide-sun',
-    title: 'Énergie stable',
-    description: 'Finies les journées où vous survivez au lieu de vivre'
-  },
-  {
-    icon: 'i-lucide-heart-pulse',
-    title: 'Bouffées de chaleur apaisées',
-    description: 'Des outils concrets qui fonctionnent'
-  },
-  {
-    icon: 'i-lucide-leaf',
-    title: 'Poids stabilisé',
-    description: 'Sans régime ni frustration'
-  },
-  {
-    icon: 'i-lucide-brain',
-    title: 'Concentration retrouvée',
-    description: 'Mémoire, motivation qui reviennent'
-  },
-  {
-    icon: 'i-lucide-smile',
-    title: 'Sérénité au quotidien',
-    description: 'Moins d\'irritabilité, plus de sérénité'
-  }
+const DEFAULT_BENEFITS = [
+  { icon: 'i-lucide-moon-star', title: 'Sommeil retrouvé', description: 'Des nuits complètes et reposantes' },
+  { icon: 'i-lucide-sun', title: 'Énergie stable', description: 'Une vitalité retrouvée au quotidien' },
+  { icon: 'i-lucide-heart-pulse', title: 'Bouffées de chaleur apaisées', description: 'Des outils concrets qui fonctionnent' },
+  { icon: 'i-lucide-leaf', title: 'Poids stabilisé', description: 'Sans régime ni frustration' },
+  { icon: 'i-lucide-brain', title: 'Concentration retrouvée', description: 'Mémoire et motivation qui reviennent' },
+  { icon: 'i-lucide-smile', title: 'Sérénité au quotidien', description: 'Plus de calme, moins d\'irritabilité' }
 ]
+
+const displayBenefits = computed(() => props.benefits?.items ?? DEFAULT_BENEFITS)
+const visionIntro = computed(() => props.benefits?.visionIntro ?? 'Imaginez-vous dans 3 mois.')
+const visionText = computed(() => props.benefits?.visionText ?? 'Vous dormez mieux. Vous vous sentez plus légère, plus apaisée. Vous comprenez enfin ce qui se passe dans votre corps. Et vous savez quoi faire. Vous vous reconnaissez à nouveau.')
 </script>
 
 <template>
-  <!-- TODO: Feature V — dynamiser -->
   <section
     v-bind="reveal()"
     class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
@@ -48,22 +29,20 @@ const benefits = [
       <!-- Parent-provided H2 (P-Y5) -->
       <slot name="header" />
 
-      <!-- Intro text V3 — vision + promesse -->
+      <!-- Intro text — vision + promesse -->
       <div class="mx-auto mt-12 max-w-3xl space-y-6 text-center">
         <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
-          Imaginez-vous dans 3 mois.
+          {{ visionIntro }}
         </p>
         <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
-          Vous dormez mieux. Vous vous sentez plus légère, plus apaisée.
-          Vous comprenez enfin ce qui se passe dans votre corps. Et vous savez quoi faire.
-          Vous vous reconnaissez à nouveau.
+          {{ visionText }}
         </p>
       </div>
 
       <!-- Benefit cards — B2B feature-card pattern harmonized -->
       <div class="mt-20 grid gap-6 sm:grid-cols-2">
         <article
-          v-for="(benefit, index) in benefits"
+          v-for="(benefit, index) in displayBenefits"
           :key="benefit.title"
           v-bind="reveal({ delay: index * 100 })"
           class="benefit-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"

@@ -1,12 +1,27 @@
 <script setup lang="ts">
+import type { CoachEducationalContentProps } from '~/features/coach/types/coach-page.types'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
+const props = defineProps<CoachEducationalContentProps>()
+
 const { reveal } = useScrollReveal()
+
+const DEFAULT_PARAGRAPHS = [
+  'La pré-ménopause (ou périménopause, son terme médical) commence souvent vers 45 ans, parfois plus tôt. C\'est une transition hormonale qui peut durer de 4 à 8 ans et provoquer des symptômes que beaucoup de femmes ne savent pas relier à la ménopause.',
+  'Prise de poids soudaine, insomnies, fatigue chronique, bouffées de chaleur, anxiété, irritabilité, douleurs articulaires, brouillard mental, sueurs nocturnes... Ces symptômes sont réels. Ils ne sont pas « dans votre tête ». Et ils ne sont pas une fatalité.',
+  'Ce n\'est ni du médical, ni du « bien-être » générique. C\'est un accompagnement structuré et personnalisé, qui complète votre suivi médical.'
+]
+
+const DEFAULT_INSIGHT = {
+  title: 'Alternatives naturelles',
+  content: 'Beaucoup de femmes cherchent des alternatives naturelles au traitement hormonal. L\'accompagnement ménopause agit sur ce que votre médecin n\'a pas le temps d\'aborder en 15 minutes de consultation\u00A0: alimentation anti-inflammatoire, gestion du stress, qualité du sommeil, mouvement adapté.'
+}
+
+const paragraphs = computed(() => props.content?.paragraphs ?? DEFAULT_PARAGRAPHS)
+const insightBox = computed(() => props.content?.insightBox ?? DEFAULT_INSIGHT)
 </script>
 
 <template>
-  <!-- TODO: Feature V — dynamiser -->
-  <!-- TODO: Asset Sophie — remplacer par contenu rédigé -->
   <section
     v-bind="reveal()"
     class="scroll-reveal relative overflow-hidden bg-[var(--color-neutral-50)] px-6 py-24 sm:px-12 lg:px-20"
@@ -15,25 +30,15 @@ const { reveal } = useScrollReveal()
       <!-- Parent-provided H2 (P-Y5) -->
       <slot name="header" />
 
-      <!-- TODO: Feature V — dynamiser -->
       <div class="space-y-8 text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
+        <!-- Paragraphs before insight box -->
         <p
-          v-bind="reveal({ delay: 100 })"
+          v-for="(paragraph, i) in paragraphs.slice(0, -1)"
+          :key="i"
+          v-bind="reveal({ delay: (i + 1) * 100 })"
           class="scroll-reveal"
         >
-          La pré-ménopause (ou périménopause, son terme médical) commence souvent vers 45 ans, parfois plus tôt.
-          C'est une transition hormonale qui peut durer de 4 à 8 ans
-          et provoquer des symptômes que beaucoup de femmes ne savent pas relier à la ménopause.
-        </p>
-
-        <p
-          v-bind="reveal({ delay: 200 })"
-          class="scroll-reveal"
-        >
-          Prise de poids soudaine, insomnies, fatigue chronique, bouffées de chaleur,
-          anxiété, irritabilité, douleurs articulaires, brouillard mental, sueurs nocturnes...
-          Ces symptômes sont réels. Ils ne sont pas « dans votre tête ».
-          Et ils ne sont pas une fatalité.
+          {{ paragraph }}
         </p>
 
         <!-- Highlighted insight box — B2B pattern with glow -->
@@ -56,25 +61,22 @@ const { reveal } = useScrollReveal()
             </div>
             <div>
               <h3 class="font-serif text-lg text-[var(--color-crepuscule-950)]">
-                Alternatives naturelles
+                {{ insightBox.title }}
               </h3>
               <p class="mt-2 text-base leading-relaxed text-[var(--color-crepuscule-700)]">
-                Beaucoup de femmes cherchent des alternatives naturelles au traitement hormonal.
-                L'accompagnement ménopause agit sur ce que votre médecin
-                n'a pas le temps d'aborder en 15 minutes de consultation :
-                alimentation anti-inflammatoire, gestion du stress, qualité du sommeil, mouvement adapté.
+                {{ insightBox.content }}
               </p>
             </div>
           </div>
         </div>
 
+        <!-- Last paragraph after insight box -->
         <p
+          v-if="paragraphs.length > 0"
           v-bind="reveal({ delay: 400 })"
           class="scroll-reveal"
         >
-          Ce n'est ni du médical, ni du « bien-être » générique.
-          C'est un accompagnement structuré par une infirmière de 20 ans d'expérience,
-          personnalisé, qui complète votre suivi médical.
+          {{ paragraphs[paragraphs.length - 1] }}
         </p>
       </div>
     </div>

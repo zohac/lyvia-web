@@ -106,7 +106,15 @@ describe('mapProfileToSchemaRefs', () => {
     leadMagnetUrl: null,
     leadMagnetTitle: null,
     googleAdsId: null,
-    googleAdsConversionLabel: null
+    googleAdsConversionLabel: null,
+    templateCode: 'essentiel',
+    sectionsConfig: {},
+    pillarsJson: null,
+    faqJson: null,
+    benefitsJson: null,
+    howItWorksJson: null,
+    educationalContentJson: null,
+    problemStatementJson: null
   }
 
   test('maps all profile fields to refs', () => {
