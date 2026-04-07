@@ -150,7 +150,8 @@ describe('YC2.2 — P-Y6 convention (no hardcoded /coach/ construction)', () => 
     'components/organisms/SpecialistCard.vue',
     'pages/client/consultation/choose-slot.vue',
     'features/seo/breadcrumb-helpers.ts',
-    'features/seo/b2c-landing-schema-helpers.ts'
+    'features/seo/b2c-landing-schema-helpers.ts',
+    'features/seo/schema-helpers.ts'
   ]
 
   for (const file of MIGRATED_FILES) {
