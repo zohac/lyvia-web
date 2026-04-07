@@ -20,6 +20,7 @@ import type { PublicProviderProfile } from '~/features/seo/api/public-provider-p
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import CoachHeroProfile from '~/components/organisms/CoachHeroProfile.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
 import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
@@ -48,52 +49,16 @@ const { reveal, isReady } = useScrollReveal()
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 
 // --- Section visibility (P-Y3 : toggle actif ET contenu non vide) ---
+// Logique factorisée dans useCoachSectionVisibility (DRY, YC2.3).
+const { show } = useCoachSectionVisibility(() => props.coachProfile)
 
-function isToggleOn(section: string): boolean {
-  const config = props.coachProfile?.sectionsConfig
-  if (!config) return true
-  return config[section] !== false
-}
-
-// Content presence checks — return true only if the backing JSONB is actually populated.
-const hasProblemStatement = computed(() => {
-  const p = props.coachProfile?.problemStatementJson
-  return !!(p && p.blockquote && p.blockquote.trim().length > 0)
-})
-
-const hasBenefits = computed(() => {
-  const b = props.coachProfile?.benefitsJson
-  return !!(b && Array.isArray(b.items) && b.items.length > 0)
-})
-
-const hasPillars = computed(() => {
-  const p = props.coachProfile?.pillarsJson
-  return !!(p && Array.isArray(p.items) && p.items.length > 0)
-})
-
-const hasHowItWorks = computed(() => {
-  const steps = props.coachProfile?.howItWorksJson
-  return !!(steps && Array.isArray(steps) && steps.length > 0)
-})
-
-const hasEducationalContent = computed(() => {
-  const c = props.coachProfile?.educationalContentJson
-  return !!(c && Array.isArray(c.paragraphs) && c.paragraphs.length > 0)
-})
-
-const hasFaqContent = computed(() => {
-  const faq = props.coachProfile?.faqJson
-  return !!(faq && faq.length > 0)
-})
-
-// --- Visibility = toggle AND content non-empty (P-Y3) ---
-
-const showProblemStatement = computed(() => isToggleOn('problemStatement') && hasProblemStatement.value)
-const showBenefits = computed(() => isToggleOn('benefits') && hasBenefits.value)
-const showPillars = computed(() => isToggleOn('pillars') && hasPillars.value)
-const showHowItWorks = computed(() => isToggleOn('howItWorks') && hasHowItWorks.value)
-const showEducationalContent = computed(() => isToggleOn('educationalContent') && hasEducationalContent.value)
-const showFaq = computed(() => isToggleOn('faq') && hasFaqContent.value)
+const showProblemStatement = show.problemStatement
+const showBenefits = show.benefits
+const showPillars = show.pillars
+const showHowItWorks = show.howItWorks
+const showEducationalContent = show.educationalContent
+const showFaq = show.faq
+const showMiniTestimonial = show.miniTestimonial
 
 // --- Derived content ---
 
@@ -102,7 +67,6 @@ const problemStatement = computed(() => props.coachProfile?.problemStatementJson
 // Testimonials — API only, no hardcoded fallback
 const apiTestimonials = computed(() => props.coachProfile?.testimonialsJson ?? [])
 const hasTestimonials = computed(() => apiTestimonials.value.length > 0)
-const showMiniTestimonial = computed(() => isToggleOn('miniTestimonial') && hasTestimonials.value)
 const firstTestimonial = computed(() => apiTestimonials.value[0] ?? null)
 
 // FAQ items

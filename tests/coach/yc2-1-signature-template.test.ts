@@ -83,20 +83,17 @@ describe('YC2.1 — P-Y3 visibility rule (F2)', () => {
     }
   })
 
-  test('Signature visibility computeds combine toggle AND content check', () => {
+  test('Signature delegates visibility rule to useCoachSectionVisibility (YC2.3 DRY)', () => {
     const content = readFile('components/templates/coach-pages/CoachPageSignature.vue')
-    // Each show* computed must AND isToggleOn(...) with has* check
+    // Since YC2.3, the P-Y3 rule is factorised in the composable and reused
+    // by Signature + Essentiel. The template must import and call it.
     assert.ok(
-      /showBenefits.*isToggleOn\('benefits'\)\s*&&\s*hasBenefits\.value/s.test(content),
-      'showBenefits must combine isToggleOn + hasBenefits'
+      content.includes('useCoachSectionVisibility'),
+      'Signature must import useCoachSectionVisibility composable'
     )
     assert.ok(
-      /showPillars.*isToggleOn\('pillars'\)\s*&&\s*hasPillars\.value/s.test(content),
-      'showPillars must combine isToggleOn + hasPillars'
-    )
-    assert.ok(
-      /showHowItWorks.*isToggleOn\('howItWorks'\)\s*&&\s*hasHowItWorks\.value/s.test(content),
-      'showHowItWorks must combine isToggleOn + hasHowItWorks'
+      /useCoachSectionVisibility\(\s*\(\)\s*=>\s*props\.coachProfile\s*\)/.test(content),
+      'Signature must call useCoachSectionVisibility with a getter on props.coachProfile'
     )
   })
 
