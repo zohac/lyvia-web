@@ -1,4 +1,5 @@
 import type { FeaturedProvider } from './api/featured-provider.contract'
+import { useCoachLink } from '../../composables/useCoachLink'
 
 /**
  * Pure helpers for B2C landing Schema.org — testable without Nuxt context.
@@ -7,6 +8,12 @@ import type { FeaturedProvider } from './api/featured-provider.contract'
 
 /** Map a provider to a Schema.org ListItem. */
 export function buildProviderListItem(provider: FeaturedProvider, index: number, origin: string) {
+  // P-Y6: centralised route building via useCoachLink (YC2.2).
+  const { site } = useCoachLink({
+    slug: provider.slug,
+    domain: provider.customDomain,
+    origin
+  })
   return {
     '@type': 'ListItem' as const,
     'position': index + 1,
@@ -17,7 +24,7 @@ export function buildProviderListItem(provider: FeaturedProvider, index: number,
       ...(provider.profilePhotoUrl ? { image: provider.profilePhotoUrl } : {}),
       ...(provider.city ? { address: { '@type': 'PostalAddress' as const, 'addressLocality': provider.city } } : {}),
       ...(provider.specialties?.length ? { knowsAbout: provider.specialties } : {}),
-      ...(provider.customDomain ? { url: `https://${provider.customDomain}` } : { url: `${origin}/coach/${provider.slug}` })
+      'url': site
     }
   }
 }

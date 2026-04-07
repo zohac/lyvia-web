@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
+import { useCoachLink } from '~/composables/useCoachLink'
 
 export type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
 
@@ -20,17 +21,12 @@ const truncatedBio = computed(() => {
   return bio.length > 100 ? `${bio.slice(0, 97)}...` : bio
 })
 
-const profileUrl = computed(() =>
-  props.provider.customDomain
-    ? `https://${props.provider.customDomain}`
-    : `/coach/${props.provider.slug}`
+// P-Y6: route resolution centralised in useCoachLink (YC2.2).
+const link = computed(() =>
+  useCoachLink({ slug: props.provider.slug, domain: props.provider.customDomain })
 )
-
-const bookingUrl = computed(() =>
-  props.provider.customDomain
-    ? `https://${props.provider.customDomain}/onboarding/discovery`
-    : `/coach/${props.provider.slug}/onboarding/discovery`
-)
+const profileUrl = computed(() => link.value.site)
+const bookingUrl = computed(() => link.value.booking)
 </script>
 
 <template>

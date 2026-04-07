@@ -23,6 +23,8 @@
     "app/features/seo/api/public-provider-profile.contract.ts",
     "shared/utils/**/*.ts",
     "app/utils/**/*.ts",
+    "app/composables/useCoachLink.ts",
+    "app/composables/coach-template-registry.ts",
     "app/services/api/api-error.ts",
     "app/services/api/contracts/error-response.ts",
     "tests/types/**/*.d.ts",

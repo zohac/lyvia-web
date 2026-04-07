@@ -3,11 +3,13 @@
  * CoachPublicPageTemplate — Data loader de la page coach publique.
  *
  * Fetch les données (programmes, pricing, profil enrichi) et délègue le rendu
- * au template résolu (actuellement CoachPageSignature — YC2.2 ajoutera la
- * résolution dynamique via templateCode).
+ * au template résolu dynamiquement via `useCoachPageTemplate(templateCode)`
+ * (YC2.2). Le `templateCode` provient du profil enrichi, fallback sur
+ * "essentiel" si absent ou inconnu.
  *
- * YC2.1 : les données sont passées en props EXPLICITES au template. Le template
- * ne lit plus useNuxtData en interne.
+ * YC2.1 : les données sont passées en props EXPLICITES au template.
+ * YC2.2 : le template concret (Signature, Essentiel, ...) est résolu au
+ * runtime via `<component :is="...">` avec code-splitting natif.
  */
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
@@ -15,7 +17,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ListConsultationPricePlansResponse } from '~/features/consultation/api/consultation.contract'
 import { listPublicPrograms } from '~/features/programs/services/public-programs.service'
 import { listConsultationPricePlans } from '~/features/consultation/services/client-consultation.service'
-import CoachPageSignature from '~/components/templates/coach-pages/CoachPageSignature.vue'
+import { useCoachPageTemplate } from '~/composables/useCoachPageTemplate'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -56,10 +58,15 @@ const { data: pricingData } = await useAsyncData<ListConsultationPricePlansRespo
 const { data: coachProfile } = useNuxtData<PublicProviderProfile>(`public-provider-profile:${props.tenant.slug}`)
 
 const consultationPlans = computed(() => pricingData.value?.plans ?? [])
+
+// YC2.2 — Dynamic template resolution based on provider.template_code.
+// Fallback to "essentiel" when code is unknown or absent.
+const resolvedTemplate = computed(() => useCoachPageTemplate(coachProfile.value?.templateCode))
 </script>
 
 <template>
-  <CoachPageSignature
+  <component
+    :is="resolvedTemplate"
     :tenant="tenant"
     :cta-to="ctaTo"
     :coach-profile="coachProfile ?? null"

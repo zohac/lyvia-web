@@ -36,15 +36,18 @@ describe('YC2.1 — CoachPageSignature wiring (F1)', () => {
     )
   })
 
-  test('CoachPublicPageTemplate delegates rendering to CoachPageSignature', () => {
+  test('CoachPublicPageTemplate delegates rendering with explicit coach-profile prop', () => {
     const content = readFile('components/templates/CoachPublicPageTemplate.vue')
+    // YC2.2: rendering is now delegated via useCoachPageTemplate (dynamic
+    // component resolution). The thin loader must still pass the profile
+    // explicitly, whether via <CoachPageSignature> or <component :is="...">.
     assert.ok(
-      content.includes('CoachPageSignature'),
-      'CoachPublicPageTemplate must mount CoachPageSignature'
+      content.includes('useCoachPageTemplate') || content.includes('CoachPageSignature'),
+      'CoachPublicPageTemplate must delegate rendering (via useCoachPageTemplate or direct Signature mount)'
     )
     assert.ok(
       /:coach-profile=/.test(content),
-      'CoachPublicPageTemplate must pass coach-profile prop explicitly to CoachPageSignature'
+      'CoachPublicPageTemplate must pass coach-profile prop explicitly to the resolved template'
     )
   })
 
