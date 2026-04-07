@@ -33,7 +33,8 @@ import type { PublicProviderProfile } from '~/features/seo/api/public-provider-p
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
-import CoachHeroProfile from '~/components/organisms/CoachHeroProfile.vue'
+import CoachEssentielHeader from '~/components/templates/coach-pages/essentiel/CoachEssentielHeader.vue'
+import CoachEssentielHero from '~/components/templates/coach-pages/essentiel/CoachEssentielHero.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
 import CoachPillars from '~/components/organisms/CoachPillars.vue'
 import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
@@ -51,6 +52,14 @@ const props = defineProps<{
   currentPath: string
 }>()
 
+// --- Hide the global PublicHeader — Essentiel owns its own header ---
+// Uses the parallel pattern of `hide-layout-footer` already present in public.vue.
+const hideLayoutHeader = useState('hide-layout-header', () => false)
+hideLayoutHeader.value = true
+onBeforeUnmount(() => {
+  hideLayoutHeader.value = false
+})
+
 // --- Section visibility (P-Y3 via composable partagé YC2.3) ---
 const { show } = useCoachSectionVisibility(() => props.coachProfile)
 
@@ -64,6 +73,16 @@ const showFaq = show.faq
 
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMinutes ?? 15)
+
+// --- Header navigation links (anchor scroll) ---
+const navLinks = computed(() => {
+  const links: { label: string, href: string }[] = []
+  if (showBenefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
+  links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
+  if (hasPricing.value) links.push({ label: 'Tarifs', href: '#tarifs' })
+  if (showTestimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
+  return links
+})
 
 const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
 
@@ -128,8 +147,19 @@ const heroProps = computed(() => ({
 
 <template>
   <div class="min-h-screen bg-[color:var(--color-surface-card)]">
+    <!-- ==================== 0. HEADER (sticky pleine largeur) ==================== -->
+    <CoachEssentielHeader
+      brand-label="Keova"
+      :coach-name="coachName"
+      :nav-links="navLinks"
+      cta-label="Réserver"
+      :cta-to="ctaTo"
+      login-to="/login"
+      :is-authenticated="isAuthenticated"
+    />
+
     <!-- ==================== 1. HERO ==================== -->
-    <CoachHeroProfile v-bind="heroProps" />
+    <CoachEssentielHero v-bind="heroProps" />
 
     <!-- ==================== 2. À PROPOS (light, 2-col asymétrique) ==================== -->
     <section
