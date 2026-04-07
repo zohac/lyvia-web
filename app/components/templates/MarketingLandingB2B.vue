@@ -285,6 +285,7 @@ function scrollTo(id: string) {
                   alt="Interface Keova — agenda, paiements et suivi client"
                   loading="eager"
                   fetchpriority="high"
+                  preload
                   width="1200"
                   height="800"
                 />

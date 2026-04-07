@@ -92,14 +92,10 @@ useSeoMeta({
 
 usePublicCanonicalHead(canonicalHref)
 
-// Preload LCP image for B2B landing (AC-19) — target IPX-processed WebP asset
-if (isPlatformDomain.value) {
-  useHead({
-    link: [
-      { rel: 'preload', as: 'image', href: '/_ipx/f_webp/images/screenshot-dashboard.png', type: 'image/webp' }
-    ]
-  })
-}
+// Preload LCP image for B2B landing (AC-19) : géré par l'attribut `preload`
+// sur le `<NuxtImg>` du hero (MarketingLandingB2B.vue). Le preload manuel via
+// `useHead` ciblait une URL IPX qui ne correspondait pas à celle réellement
+// générée par NuxtImg (warning "preload unused"), donc retiré.
 
 // Set header state synchronously during setup (runs on both SSR and client)
 // to avoid hydration mismatch — watchEffect only ran on client, leaving SSR with defaults.

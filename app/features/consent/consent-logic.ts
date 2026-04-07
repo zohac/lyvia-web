@@ -23,6 +23,30 @@ export type AdsContext = {
 export const COOKIE_CONSENT_NAME = 'cookieConsent'
 export const COOKIE_CONSENT_MAX_AGE = 60 * 60 * 24 * 365
 
+/**
+ * Options de cookie pour `useCookie(COOKIE_CONSENT_NAME, ...)`.
+ *
+ * `secure` est désactivé en dev pour que le cookie fonctionne sur HTTP local
+ * (`http://keova-local.fr:3000`). En production le cookie est servi via HTTPS
+ * et la flag est activée. Centralisé pour éviter la duplication entre
+ * `CookieConsentBanner.vue` et `CookieSettingsModal.vue`.
+ *
+ * Le flag `isDev` est injecté par l'appelant (via `import.meta.dev` côté Nuxt)
+ * pour garder ce fichier 100% pur et compilable par la config tsc des tests
+ * (qui utilise `module: CommonJS`, incompatible avec `import.meta`).
+ */
+export function getConsentCookieOptions(isDev: boolean): {
+  maxAge: number
+  sameSite: 'lax'
+  secure: boolean
+} {
+  return {
+    maxAge: COOKIE_CONSENT_MAX_AGE,
+    sameSite: 'lax',
+    secure: !isDev
+  }
+}
+
 export const GOOGLE_ADS_ID_REGEX = /^AW-\d{5,12}$/
 export const GOOGLE_ADS_CONVERSION_LABEL_REGEX = /^[a-zA-Z0-9_-]{1,50}$/
 

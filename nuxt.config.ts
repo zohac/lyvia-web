@@ -101,9 +101,13 @@ export default defineNuxtConfig({
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-        'X-Powered-By': '',
-        // eslint-disable-next-line @stylistic/quotes
-        'Content-Security-Policy-Report-Only': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://keova-assets.s3.fr-par.scw.cloud data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+        'X-Powered-By': ''
+        // Note: CSP Report-Only retiré (YC2.2 console cleanup) — la politique
+        // Report-Only sans `report-uri`/`report-to` est purement informationnelle
+        // (ne bloque rien, ne remonte rien) et génère un warning navigateur.
+        // Quand un endpoint de reporting sera prêt (Sentry CSP reports ou
+        // équivalent), réactiver via la propriété `reportTo` d'un header
+        // `Content-Security-Policy` enforcing, pas Report-Only.
       }
     },
     // Static images: immutable cache (Y2.5 AC-3)
