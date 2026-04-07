@@ -6,19 +6,11 @@ const props = defineProps<CoachEducationalContentProps>()
 
 const { reveal } = useScrollReveal()
 
-const DEFAULT_PARAGRAPHS = [
-  'La pré-ménopause (ou périménopause, son terme médical) commence souvent vers 45 ans, parfois plus tôt. C\'est une transition hormonale qui peut durer de 4 à 8 ans et provoquer des symptômes que beaucoup de femmes ne savent pas relier à la ménopause.',
-  'Prise de poids soudaine, insomnies, fatigue chronique, bouffées de chaleur, anxiété, irritabilité, douleurs articulaires, brouillard mental, sueurs nocturnes... Ces symptômes sont réels. Ils ne sont pas « dans votre tête ». Et ils ne sont pas une fatalité.',
-  'Ce n\'est ni du médical, ni du « bien-être » générique. C\'est un accompagnement structuré et personnalisé, qui complète votre suivi médical.'
-]
-
-const DEFAULT_INSIGHT = {
-  title: 'Alternatives naturelles',
-  content: 'Beaucoup de femmes cherchent des alternatives naturelles au traitement hormonal. L\'accompagnement ménopause agit sur ce que votre médecin n\'a pas le temps d\'aborder en 15 minutes de consultation\u00A0: alimentation anti-inflammatoire, gestion du stress, qualité du sommeil, mouvement adapté.'
-}
-
-const paragraphs = computed(() => props.content?.paragraphs ?? DEFAULT_PARAGRAPHS)
-const insightBox = computed(() => props.content?.insightBox ?? DEFAULT_INSIGHT)
+// P-Y3: no fallback content at organism level.
+// The parent template is responsible for mounting this component only when
+// content.paragraphs is non-empty (visibility rule = toggle AND content non-empty).
+const paragraphs = computed(() => props.content?.paragraphs ?? [])
+const insightBox = computed(() => props.content?.insightBox ?? null)
 </script>
 
 <template>
@@ -41,8 +33,9 @@ const insightBox = computed(() => props.content?.insightBox ?? DEFAULT_INSIGHT)
           {{ paragraph }}
         </p>
 
-        <!-- Highlighted insight box — B2B pattern with glow -->
+        <!-- Highlighted insight box — B2B pattern with glow (rendu si fourni) -->
         <div
+          v-if="insightBox"
           v-bind="reveal({ delay: 300 })"
           class="insight-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[var(--color-crepuscule-50)] p-6 transition-all duration-300"
         >

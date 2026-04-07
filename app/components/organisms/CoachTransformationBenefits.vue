@@ -6,18 +6,12 @@ const props = defineProps<CoachTransformationBenefitsProps>()
 
 const { reveal } = useScrollReveal()
 
-const DEFAULT_BENEFITS = [
-  { icon: 'i-lucide-moon-star', title: 'Sommeil retrouvé', description: 'Des nuits complètes et reposantes' },
-  { icon: 'i-lucide-sun', title: 'Énergie stable', description: 'Une vitalité retrouvée au quotidien' },
-  { icon: 'i-lucide-heart-pulse', title: 'Bouffées de chaleur apaisées', description: 'Des outils concrets qui fonctionnent' },
-  { icon: 'i-lucide-leaf', title: 'Poids stabilisé', description: 'Sans régime ni frustration' },
-  { icon: 'i-lucide-brain', title: 'Concentration retrouvée', description: 'Mémoire et motivation qui reviennent' },
-  { icon: 'i-lucide-smile', title: 'Sérénité au quotidien', description: 'Plus de calme, moins d\'irritabilité' }
-]
-
-const displayBenefits = computed(() => props.benefits?.items ?? DEFAULT_BENEFITS)
-const visionIntro = computed(() => props.benefits?.visionIntro ?? 'Imaginez-vous dans 3 mois.')
-const visionText = computed(() => props.benefits?.visionText ?? 'Vous dormez mieux. Vous vous sentez plus légère, plus apaisée. Vous comprenez enfin ce qui se passe dans votre corps. Et vous savez quoi faire. Vous vous reconnaissez à nouveau.')
+// P-Y3: no fallback content at organism level.
+// The parent template is responsible for mounting this component only when
+// benefits.items is non-empty (visibility rule = toggle AND content non-empty).
+const displayBenefits = computed(() => props.benefits?.items ?? [])
+const visionIntro = computed(() => props.benefits?.visionIntro ?? null)
+const visionText = computed(() => props.benefits?.visionText ?? null)
 </script>
 
 <template>
@@ -29,12 +23,21 @@ const visionText = computed(() => props.benefits?.visionText ?? 'Vous dormez mie
       <!-- Parent-provided H2 (P-Y5) -->
       <slot name="header" />
 
-      <!-- Intro text — vision + promesse -->
-      <div class="mx-auto mt-12 max-w-3xl space-y-6 text-center">
-        <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
+      <!-- Intro text — vision + promesse (rendu uniquement si contenu présent) -->
+      <div
+        v-if="visionIntro || visionText"
+        class="mx-auto mt-12 max-w-3xl space-y-6 text-center"
+      >
+        <p
+          v-if="visionIntro"
+          class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]"
+        >
           {{ visionIntro }}
         </p>
-        <p class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
+        <p
+          v-if="visionText"
+          class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]"
+        >
           {{ visionText }}
         </p>
       </div>

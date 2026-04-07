@@ -53,7 +53,6 @@ export interface CoachFaqItem {
 // --- YC2.1 Props (organisms read data from API via props) ---
 
 export interface CoachHowItWorksProps {
-  discoveryDurationMinutes: number
   steps?: HowItWorksStep[] | null
 }
 
