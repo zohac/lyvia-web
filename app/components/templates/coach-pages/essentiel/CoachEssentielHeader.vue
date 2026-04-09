@@ -8,7 +8,7 @@
  *
  * Philosophie visuelle :
  *   - Bar pleine largeur `w-full` + backdrop-blur + border-b discret
- *   - Brand texte (pas de logo image Keova script)
+ *   - Brand logo image Keova + séparateur + nom coach
  *   - Nav links inline avec underline animation
  *   - CTA bouton `rounded-lg` carré (vs rounded-full pilule)
  *   - Mobile : burger → USlideover Nuxt UI v4 avec nav verticale
@@ -61,30 +61,32 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
 
 <template>
   <header
-    class="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md transition-shadow duration-300"
-    :class="[hasScrolled ? 'border-b border-[var(--color-crepuscule-100)] shadow-sm' : 'border-b border-transparent']"
+    class="sticky top-0 z-40 w-full border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]/95 backdrop-blur-md transition-shadow duration-300"
+    :class="[hasScrolled ? 'shadow-md' : 'shadow-sm']"
     aria-label="Navigation principale"
   >
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6 sm:h-18 lg:px-8">
-      <!-- Brand zone — text only, no image logo -->
+      <!-- Brand zone — logo image + coach name -->
       <NuxtLink
         to="/"
         class="flex items-center gap-3 whitespace-nowrap"
         aria-label="Accueil Keova"
       >
-        <span class="font-serif text-lg italic text-[var(--color-brand-primary)] sm:text-xl">
-          {{ brandLabel }}
-        </span>
+        <img
+          src="/images/keova-logo.png"
+          alt="Keova"
+          class="h-7 w-auto sm:h-8"
+        >
         <span
-          class="hidden h-5 w-px bg-[var(--color-crepuscule-200)] sm:block"
+          class="hidden h-5 w-px bg-[color:var(--color-border-emphasis)] sm:block"
           aria-hidden="true"
         />
-        <span class="hidden text-sm font-medium text-[var(--color-crepuscule-700)] sm:inline">
+        <span class="hidden text-sm font-medium text-[color:var(--color-brand-secondary)] sm:inline">
           {{ coachName }}
         </span>
       </NuxtLink>
 
-      <!-- Nav links — desktop only -->
+      <!-- Nav links — desktop only (in-page anchors stay as <a>) -->
       <nav
         v-if="navLinks.length"
         class="hidden items-center gap-8 lg:flex"
@@ -94,48 +96,48 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           v-for="link in navLinks"
           :key="link.href"
           :href="link.href"
-          class="essentiel-nav-link relative text-sm font-medium text-[var(--color-crepuscule-700)] transition-colors duration-200 hover:text-[var(--color-brand-primary)]"
+          class="text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors duration-200 hover:text-[color:var(--color-brand-primary)]"
         >
           {{ link.label }}
         </a>
       </nav>
 
-      <!-- Actions right -->
+      <!-- Actions right — all interactive controls via UButton (DS keovaButton) -->
       <div class="flex items-center gap-2 sm:gap-3">
-        <!-- Login icon (desktop only) -->
-        <NuxtLink
+        <!-- Login icon (desktop only) — Neutral Ghost variant DS -->
+        <UButton
           v-if="showLogin"
           :to="loginTo"
-          class="hidden size-9 place-items-center rounded-lg text-[var(--color-crepuscule-700)] transition-colors hover:bg-[var(--color-neutral-50)] hover:text-[var(--color-brand-primary)] sm:grid"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-user"
+          size="sm"
           aria-label="Se connecter"
-        >
-          <UIcon
-            name="i-lucide-user"
-            class="size-5"
-          />
-        </NuxtLink>
+          class="hidden sm:inline-flex"
+        />
 
-        <!-- CTA Réserver — rounded-lg (distinct from dock's rounded-full pill) -->
+        <!-- CTA Réserver — Secondary Solid (DS Sunset accent) -->
         <UButton
           :to="ctaTo"
-          class="hidden rounded-lg bg-[var(--color-brand-accent)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-[var(--color-sunset-600)] hover:shadow-md sm:inline-flex"
+          color="secondary"
+          variant="solid"
+          size="sm"
+          class="hidden sm:inline-flex"
         >
           {{ ctaLabel }}
         </UButton>
 
-        <!-- Mobile burger -->
-        <button
-          type="button"
-          class="grid size-10 place-items-center rounded-lg text-[var(--color-crepuscule-700)] transition-colors hover:bg-[var(--color-neutral-50)] lg:hidden"
+        <!-- Mobile burger — Neutral Ghost variant DS -->
+        <UButton
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-menu"
+          size="md"
           :aria-expanded="isMobileOpen"
           aria-label="Ouvrir le menu"
+          class="lg:hidden"
           @click="isMobileOpen = true"
-        >
-          <UIcon
-            name="i-lucide-menu"
-            class="size-6"
-          />
-        </button>
+        />
       </div>
     </div>
 
@@ -148,29 +150,28 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
       <template #content>
         <div class="flex h-full flex-col">
           <!-- Header with close -->
-          <div class="flex items-center justify-between border-b border-[var(--color-crepuscule-100)] px-6 py-4">
-            <span class="font-serif text-lg italic text-[var(--color-brand-primary)]">
-              {{ brandLabel }}
-            </span>
-            <button
-              type="button"
-              class="grid size-9 place-items-center rounded-lg text-[var(--color-crepuscule-700)] hover:bg-[var(--color-neutral-50)]"
+          <div class="flex items-center justify-between border-b border-[color:var(--color-border-subtle)] px-6 py-4">
+            <img
+              src="/images/keova-logo.png"
+              alt="Keova"
+              class="h-7 w-auto"
+            >
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-x"
+              size="sm"
               aria-label="Fermer le menu"
               @click="closeMobile"
-            >
-              <UIcon
-                name="i-lucide-x"
-                class="size-5"
-              />
-            </button>
+            />
           </div>
 
           <!-- Coach name -->
-          <div class="border-b border-[var(--color-crepuscule-100)] px-6 py-4 text-sm text-[var(--color-crepuscule-700)]">
+          <div class="border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-sm text-[color:var(--color-brand-secondary)]">
             {{ coachName }}
           </div>
 
-          <!-- Nav links vertical -->
+          <!-- Nav links vertical (in-page anchors stay as <a>) -->
           <nav
             class="flex flex-1 flex-col gap-1 px-4 py-6"
             aria-label="Sections de la page"
@@ -179,60 +180,39 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
               v-for="link in navLinks"
               :key="link.href"
               :href="link.href"
-              class="rounded-lg px-4 py-3 text-base font-medium text-[var(--color-crepuscule-900)] transition-colors hover:bg-[var(--color-neutral-50)] hover:text-[var(--color-brand-primary)]"
+              class="rounded-2xl px-4 py-3 text-base font-medium text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-surface-highlight)] hover:text-[color:var(--color-brand-primary)]"
               @click="closeMobile"
             >
               {{ link.label }}
             </a>
           </nav>
 
-          <!-- Footer CTA -->
-          <div class="space-y-3 border-t border-[var(--color-crepuscule-100)] px-6 py-5">
+          <!-- Footer CTA — DS Secondary Solid + Neutral Ghost -->
+          <div class="space-y-3 border-t border-[color:var(--color-border-subtle)] px-6 py-5">
             <UButton
               :to="ctaTo"
+              color="secondary"
+              variant="solid"
+              size="md"
               block
-              class="rounded-lg bg-[var(--color-brand-accent)] px-5 py-3 text-sm font-semibold text-white hover:bg-[var(--color-sunset-600)]"
               @click="closeMobile"
             >
               {{ ctaLabel }}
             </UButton>
-            <NuxtLink
+            <UButton
               v-if="showLogin"
               :to="loginTo"
-              class="block text-center text-sm text-[var(--color-crepuscule-700)] underline-offset-4 hover:underline"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              block
               @click="closeMobile"
             >
               Se connecter
-            </NuxtLink>
+            </UButton>
           </div>
         </div>
       </template>
     </USlideover>
   </header>
 </template>
-
-<style scoped>
-/* Underline animation on desktop nav links */
-.essentiel-nav-link::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 2px;
-  background-color: var(--color-brand-accent);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.essentiel-nav-link:hover::after {
-  transform: scaleX(1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .essentiel-nav-link::after {
-    transition: none;
-  }
-}
-</style>

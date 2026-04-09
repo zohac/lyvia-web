@@ -404,21 +404,28 @@ describe('YC2.3 iter 2 — CoachEssentielHeader component', () => {
     )
   })
 
-  test('CoachEssentielHeader CTA button is rounded-lg (not rounded-full dock pill)', () => {
+  test('CoachEssentielHeader CTA uses DS Secondary Solid (no raw bg/text classes)', () => {
     const content = readFile(ESSENTIEL_HEADER_PATH)
-    // The "Réserver" UButton desktop should use rounded-lg
+    // DS rule: every interactive button MUST use color/variant via keovaButton.
+    // Raw bg-[var(--color-brand-accent)] / rounded-lg overrides are forbidden.
     assert.ok(
-      /rounded-lg[^"]*bg-\[var\(--color-brand-accent\)\]/.test(content)
-      || /bg-\[var\(--color-brand-accent\)\][^"]*rounded-lg/.test(content),
-      'Header CTA must be rounded-lg with brand accent background'
+      !/rounded-lg[^"]*bg-\[var\(--color-brand-accent\)\]/.test(content)
+      && !/bg-\[var\(--color-brand-accent\)\][^"]*rounded-lg/.test(content),
+      'Header CTA must NOT raw-style bg + rounded — must use DS color/variant'
+    )
+    // Must declare the DS Secondary Solid CTA
+    assert.ok(
+      /color="secondary"[\s\S]{0,80}variant="solid"/.test(content)
+      || /variant="solid"[\s\S]{0,80}color="secondary"/.test(content),
+      'Header CTA must declare color="secondary" variant="solid" (DS keovaButton)'
     )
   })
 
-  test('CoachEssentielHeader does NOT import the Keova image logo', () => {
+  test('CoachEssentielHeader uses the Keova image logo', () => {
     const content = readFile(ESSENTIEL_HEADER_PATH)
     assert.ok(
-      !/keova-logo\.png/.test(content),
-      'Essentiel header must use text branding, not keova-logo.png image'
+      /keova-logo\.png/.test(content),
+      'Essentiel header must use keova-logo.png image for brand zone'
     )
   })
 
@@ -462,11 +469,15 @@ describe('YC2.3 iter 2 — CoachEssentielHero component', () => {
     )
   })
 
-  test('CoachEssentielHero photo container is rounded-3xl (clean card)', () => {
-    const content = readFile(ESSENTIEL_HERO_PATH)
+  test('CoachEssentielHero photo container is rounded-2xl (DS-compliant)', () => {
+    const template = readTemplateBlock(ESSENTIEL_HERO_PATH)
     assert.ok(
-      /rounded-3xl/.test(content),
-      'Hero photo card must use rounded-3xl (clean card shape)'
+      /rounded-2xl/.test(template),
+      'Hero photo card must use rounded-2xl (DS rule: rounded-3xl is forbidden)'
+    )
+    assert.ok(
+      !/rounded-3xl/.test(template),
+      'Hero must NOT use rounded-3xl — DS forbids it (use rounded-2xl)'
     )
   })
 
@@ -510,11 +521,189 @@ describe('YC2.3 iter 2 — CoachEssentielHero component', () => {
   test('CoachEssentielHero does NOT reference "SOPHIE" eyebrow pattern', () => {
     const content = readFile(ESSENTIEL_HERO_PATH)
     // Signature hero eyebrow uses "{displayName} - EI" hardcoded.
-    // Essentiel uses a neutral "Praticienne bien-être" pill.
+    // Essentiel derives the eyebrow from props.specialties[0].
     assert.ok(
       !/-\s*EI/.test(content),
       'Essentiel hero eyebrow must not use "PRÉNOM NOM - EI" pattern'
     )
+  })
+
+  // YC2.3 follow-up — eyebrow is data-driven from specialties (not hardcoded)
+  test('CoachEssentielHero eyebrow is derived from props.specialties (no hardcoded label)', () => {
+    const template = readTemplateBlock(ESSENTIEL_HERO_PATH)
+    assert.ok(
+      !template.includes('Praticienne bien-être'),
+      'Essentiel hero must not hardcode "Praticienne bien-être" — derive from specialties'
+    )
+    const content = readFile(ESSENTIEL_HERO_PATH)
+    assert.ok(
+      /eyebrowLabel\s*=\s*computed/.test(content),
+      'Hero must declare an eyebrowLabel computed'
+    )
+    assert.ok(
+      /props\.specialties/.test(content),
+      'eyebrowLabel must read from props.specialties'
+    )
+    assert.ok(
+      /v-if="eyebrowLabel"/.test(template),
+      'Eyebrow pill must be gated on v-if="eyebrowLabel" (hidden when none)'
+    )
+  })
+
+  test('CoachEssentielHero declares optional specialties prop via CoachHeroProps', () => {
+    const typesContent = readFile('features/coach/types/coach-page.types.ts')
+    assert.ok(
+      /specialties\?:\s*string\[\]/.test(typesContent),
+      'CoachHeroProps must include optional specialties?: string[]'
+    )
+  })
+})
+
+describe('YC2.3 follow-up — micro-animations & scrolltelling', () => {
+  test('CoachEssentielHero declares hero-anim entrance keyframes', () => {
+    const content = readFile(ESSENTIEL_HERO_PATH)
+    assert.ok(
+      /@keyframes\s+hero-fade-up/.test(content),
+      'Hero must declare @keyframes hero-fade-up for entrance animation'
+    )
+    assert.ok(
+      /\.hero-anim/.test(content),
+      'Hero must define .hero-anim utility class'
+    )
+    assert.ok(
+      /prefers-reduced-motion/.test(content),
+      'Hero animations must respect prefers-reduced-motion'
+    )
+  })
+
+  test('CoachEssentielHeader has always-visible bottom border via semantic token', () => {
+    const template = readTemplateBlock(ESSENTIEL_HEADER_PATH)
+    // Border must be visible at rest (no border-transparent fallback)
+    assert.ok(
+      !/border-b\s+border-transparent/.test(template),
+      'Header must not use border-transparent at rest — always visible border'
+    )
+    // Must use the semantic token --color-border-subtle (DS), not raw crepuscule
+    assert.ok(
+      /border-\[color:var\(--color-border-subtle\)\]/.test(template),
+      'Header bottom border must use the --color-border-subtle semantic token (DS)'
+    )
+  })
+
+  test('CoachPageEssentiel uses useScrollReveal for scrolltelling', () => {
+    const content = readFile(ESSENTIEL_PATH)
+    assert.ok(
+      /import\s*\{\s*useScrollReveal\s*\}\s*from\s*'~\/composables\/useScrollReveal'/.test(content),
+      'Essentiel must import useScrollReveal'
+    )
+    assert.ok(
+      /const\s*\{\s*reveal,\s*isReady\s*\}\s*=\s*useScrollReveal\(\)/.test(content),
+      'Essentiel must call useScrollReveal() and destructure { reveal, isReady }'
+    )
+    assert.ok(
+      /js-scroll-ready/.test(content),
+      'Essentiel root must bind the js-scroll-ready class for SSR-safe reveal'
+    )
+  })
+
+  test('CoachPageEssentiel applies scroll-reveal class to body sections', () => {
+    const template = readTemplateBlock(ESSENTIEL_PATH)
+    const matches = template.match(/scroll-reveal/g) ?? []
+    // At least: bio, benefits (when shown), pillars, howItWorks, testimonials, pricing, cta final
+    assert.ok(
+      matches.length >= 6,
+      `Essentiel must apply .scroll-reveal to multiple sections (found ${matches.length}, expected >= 6)`
+    )
+    assert.ok(
+      /v-bind="reveal\(\)"/.test(template),
+      'Essentiel must bind reveal() on at least one section'
+    )
+  })
+
+  test('CoachPageEssentiel declares scroll-reveal CSS in scoped style', () => {
+    const content = readFile(ESSENTIEL_PATH)
+    assert.ok(
+      /\.js-scroll-ready\s+\.scroll-reveal:not\(\.is-visible\)/.test(content),
+      'Essentiel must declare hide-by-default scroll-reveal CSS'
+    )
+    assert.ok(
+      /\.scroll-reveal\.is-visible/.test(content),
+      'Essentiel must declare the visible state CSS'
+    )
+  })
+
+  test('CoachPageEssentiel passes specialties to the hero props', () => {
+    const content = readFile(ESSENTIEL_PATH)
+    assert.ok(
+      /specialties:\s*props\.coachProfile\?\.specialties\s*\?\?\s*\[\]/.test(content),
+      'CoachPageEssentiel must forward props.coachProfile?.specialties to heroProps'
+    )
+  })
+})
+
+describe('YC2.3 follow-up — DS compliance (no raw classes overriding keovaButton)', () => {
+  const FILES = [ESSENTIEL_PATH, ESSENTIEL_HERO_PATH, ESSENTIEL_HEADER_PATH]
+
+  test('no rounded-3xl anywhere in Essentiel templates (DS forbids it)', () => {
+    for (const file of FILES) {
+      const template = readTemplateBlock(file)
+      assert.ok(
+        !/rounded-3xl/.test(template),
+        `${file} template must not use rounded-3xl (DS rule: use rounded-2xl)`
+      )
+    }
+  })
+
+  test('no raw <button> tags — all interactive controls via UButton', () => {
+    for (const file of FILES) {
+      const template = readTemplateBlock(file)
+      assert.ok(
+        !/<button\b/.test(template),
+        `${file} must not use raw <button> — wrap interactions in UButton (DS rule)`
+      )
+    }
+  })
+
+  test('no UButton with raw bg-[var(--color-brand-accent)] override', () => {
+    for (const file of FILES) {
+      const content = readFile(file)
+      // A UButton must not be styled by hand with the brand-accent bg + rounding —
+      // that's the keovaButton secondary-solid compound variant's job.
+      assert.ok(
+        !/<UButton[^>]*class="[^"]*bg-\[var\(--color-brand-accent\)\]/.test(content),
+        `${file} must not override UButton with raw bg-[var(--color-brand-accent)] — use color="secondary" variant="solid"`
+      )
+    }
+  })
+
+  test('Essentiel final CTA uses DS Secondary Solid', () => {
+    const content = readFile(ESSENTIEL_PATH)
+    // The final CTA button must declare DS color/variant, not raw class overrides.
+    // Capture the whole UButton block that owns the data-final-cta marker.
+    const finalCtaBlock = content.match(/<UButton[\s\S]*?data-final-cta[\s\S]*?<\/UButton>/)?.[0] ?? ''
+    assert.ok(finalCtaBlock.length > 0, 'Could not locate the data-final-cta UButton block')
+    assert.ok(
+      /color="secondary"/.test(finalCtaBlock) && /variant="solid"/.test(finalCtaBlock),
+      'Final CTA must declare color="secondary" variant="solid" (DS keovaButton)'
+    )
+    assert.ok(
+      !/bg-\[var\(--color-sunset-600\)\]/.test(finalCtaBlock),
+      'Final CTA must not raw-override hover bg — DS handles it'
+    )
+  })
+
+  test('semantic surface tokens used (no raw bg-[var(--color-neutral-50)] / crepuscule-100)', () => {
+    for (const file of FILES) {
+      const template = readTemplateBlock(file)
+      assert.ok(
+        !/bg-\[var\(--color-neutral-50\)\]/.test(template),
+        `${file} must use bg-[color:var(--color-surface-page)] semantic token`
+      )
+      assert.ok(
+        !/border-\[var\(--color-crepuscule-100\)\]/.test(template),
+        `${file} must use border-[color:var(--color-border-subtle)] semantic token`
+      )
+    }
   })
 })
 

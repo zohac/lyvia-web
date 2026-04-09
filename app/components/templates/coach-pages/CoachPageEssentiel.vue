@@ -33,6 +33,7 @@ import type { PublicProviderProfile } from '~/features/seo/api/public-provider-p
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
+import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachEssentielHeader from '~/components/templates/coach-pages/essentiel/CoachEssentielHeader.vue'
 import CoachEssentielHero from '~/components/templates/coach-pages/essentiel/CoachEssentielHero.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
@@ -62,6 +63,9 @@ onBeforeUnmount(() => {
 
 // --- Section visibility (P-Y3 via composable partagé YC2.3) ---
 const { show } = useCoachSectionVisibility(() => props.coachProfile)
+
+// --- Scroll reveal (SSR-safe — visible by default, hidden only after JS) ---
+const { reveal, isReady } = useScrollReveal()
 
 const showBenefits = show.benefits
 const showPillars = show.pillars
@@ -130,7 +134,8 @@ onMounted(() => {
   faqDefaultValue.value = []
 })
 
-// Hero props (identique à Signature — même composant)
+// Hero props — Essentiel passes specialties so the eyebrow pill is data-driven
+// (no hardcoded "Praticienne bien-être" label).
 const heroProps = computed(() => ({
   displayName: coachName.value,
   heroHeadline: props.coachProfile?.heroHeadline ?? null,
@@ -141,12 +146,16 @@ const heroProps = computed(() => ({
   profilePhotoAlt: props.coachProfile?.imageUrl ? `${coachName.value}, spécialiste accompagnement ménopause` : null,
   discoveryDurationMinutes: props.coachProfile?.discoveryDurationMinutes ?? 15,
   urgencyText: props.coachProfile?.urgencyText ?? null,
-  ctaTo: props.ctaTo
+  ctaTo: props.ctaTo,
+  specialties: props.coachProfile?.specialties ?? []
 }))
 </script>
 
 <template>
-  <div class="min-h-screen bg-[color:var(--color-surface-card)]">
+  <div
+    class="min-h-screen bg-[color:var(--color-surface-card)]"
+    :class="{ 'js-scroll-ready': isReady }"
+  >
     <!-- ==================== 0. HEADER (sticky pleine largeur) ==================== -->
     <CoachEssentielHeader
       brand-label="Keova"
@@ -161,17 +170,18 @@ const heroProps = computed(() => ({
     <!-- ==================== 1. HERO ==================== -->
     <CoachEssentielHero v-bind="heroProps" />
 
-    <!-- ==================== 2. À PROPOS (light, 2-col asymétrique) ==================== -->
+    <!-- ==================== 2. À PROPOS (crepuscule-50 bg — rupture visuelle "preuve") ==================== -->
     <section
       id="qui-suis-je"
-      class="relative bg-[var(--color-neutral-50)] px-6 py-20 sm:px-12 lg:px-20"
+      v-bind="reveal()"
+      class="scroll-reveal relative bg-[color:var(--color-crepuscule-50)] px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-6xl">
         <div class="grid gap-12 lg:grid-cols-12 lg:items-start">
           <!-- Photo — left column (compact, clean) -->
           <div class="lg:col-span-5">
             <div class="relative mx-auto max-w-sm">
-              <div class="aspect-[4/5] overflow-hidden rounded-3xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] shadow-sm">
+              <div class="aspect-[4/5] overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] shadow-sm">
                 <NuxtImg
                   v-if="coachProfile?.secondaryPhotoUrl || coachProfile?.imageUrl"
                   :src="(coachProfile?.secondaryPhotoUrl ?? coachProfile?.imageUrl)!"
@@ -183,9 +193,9 @@ const heroProps = computed(() => ({
                 />
                 <div
                   v-else
-                  class="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-neutral-50)]"
+                  class="flex h-full w-full items-center justify-center bg-gradient-to-br from-[color:var(--color-surface-highlight)] to-[color:var(--color-surface-page)]"
                 >
-                  <span class="font-serif text-7xl text-[var(--color-brand-primary)]/30">
+                  <span class="font-serif text-7xl text-[color:var(--color-brand-primary)]/30">
                     {{ coachName.charAt(0) }}
                   </span>
                 </div>
@@ -194,7 +204,7 @@ const heroProps = computed(() => ({
               <!-- Location & session badge under the photo -->
               <div
                 v-if="coachProfile?.city || coachProfile?.publicPhone"
-                class="mt-6 space-y-3 text-sm text-[var(--color-crepuscule-700)]"
+                class="mt-6 space-y-3 text-sm text-[color:var(--color-brand-secondary)]"
               >
                 <div
                   v-if="coachProfile?.city"
@@ -202,7 +212,7 @@ const heroProps = computed(() => ({
                 >
                   <UIcon
                     name="i-lucide-map-pin"
-                    class="size-4 text-[var(--color-brand-accent)]"
+                    class="size-4 text-[color:var(--color-brand-accent)]"
                   />
                   <span>
                     {{ coachProfile.city }}<template v-if="coachProfile?.region"> · {{ coachProfile.region }}</template>
@@ -211,14 +221,14 @@ const heroProps = computed(() => ({
                 <div class="flex items-center gap-2">
                   <UIcon
                     name="i-lucide-video"
-                    class="size-4 text-[var(--color-brand-accent)]"
+                    class="size-4 text-[color:var(--color-brand-accent)]"
                   />
                   <span>100 % en visio · Toute la France</span>
                 </div>
                 <a
                   v-if="coachProfile?.publicPhone"
                   :href="`tel:${coachProfile.publicPhone}`"
-                  class="flex items-center gap-2 text-[var(--color-brand-primary)] hover:underline"
+                  class="flex items-center gap-2 text-[color:var(--color-brand-primary)] hover:underline"
                 >
                   <UIcon
                     name="i-lucide-phone"
@@ -239,7 +249,7 @@ const heroProps = computed(() => ({
                   target="_blank"
                   rel="noopener"
                   aria-label="LinkedIn"
-                  class="grid size-9 place-items-center rounded-full border border-[var(--color-crepuscule-100)] text-[var(--color-brand-primary)] transition-colors hover:border-[var(--color-brand-accent)] hover:text-[var(--color-brand-accent)]"
+                  class="grid size-9 place-items-center rounded-full border border-[color:var(--color-border-subtle)] text-[color:var(--color-brand-primary)] transition-colors hover:border-[color:var(--color-brand-accent)] hover:text-[color:var(--color-brand-accent)]"
                 >
                   <UIcon
                     name="i-simple-icons-linkedin"
@@ -252,7 +262,7 @@ const heroProps = computed(() => ({
                   target="_blank"
                   rel="noopener"
                   aria-label="Instagram"
-                  class="grid size-9 place-items-center rounded-full border border-[var(--color-crepuscule-100)] text-[var(--color-brand-primary)] transition-colors hover:border-[var(--color-brand-accent)] hover:text-[var(--color-brand-accent)]"
+                  class="grid size-9 place-items-center rounded-full border border-[color:var(--color-border-subtle)] text-[color:var(--color-brand-primary)] transition-colors hover:border-[color:var(--color-brand-accent)] hover:text-[color:var(--color-brand-accent)]"
                 >
                   <UIcon
                     name="i-simple-icons-instagram"
@@ -265,7 +275,7 @@ const heroProps = computed(() => ({
                   target="_blank"
                   rel="noopener"
                   aria-label="Facebook"
-                  class="grid size-9 place-items-center rounded-full border border-[var(--color-crepuscule-100)] text-[var(--color-brand-primary)] transition-colors hover:border-[var(--color-brand-accent)] hover:text-[var(--color-brand-accent)]"
+                  class="grid size-9 place-items-center rounded-full border border-[color:var(--color-border-subtle)] text-[color:var(--color-brand-primary)] transition-colors hover:border-[color:var(--color-brand-accent)] hover:text-[color:var(--color-brand-accent)]"
                 >
                   <UIcon
                     name="i-simple-icons-facebook"
@@ -278,7 +288,7 @@ const heroProps = computed(() => ({
                   target="_blank"
                   rel="noopener"
                   aria-label="Site web"
-                  class="grid size-9 place-items-center rounded-full border border-[var(--color-crepuscule-100)] text-[var(--color-brand-primary)] transition-colors hover:border-[var(--color-brand-accent)] hover:text-[var(--color-brand-accent)]"
+                  class="grid size-9 place-items-center rounded-full border border-[color:var(--color-border-subtle)] text-[color:var(--color-brand-primary)] transition-colors hover:border-[color:var(--color-brand-accent)] hover:text-[color:var(--color-brand-accent)]"
                 >
                   <UIcon
                     name="i-lucide-globe"
@@ -289,18 +299,18 @@ const heroProps = computed(() => ({
             </div>
           </div>
 
-          <!-- Bio — right column (generous line-height, clean) -->
+          <!-- Bio — right column (generous line-height) -->
           <div class="lg:col-span-7">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
               Qui suis-je
             </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
               Votre spécialiste ménopause — {{ coachName }}
             </h2>
 
             <p
               v-if="credentialLine"
-              class="mt-4 text-base text-[var(--color-brand-accent)]"
+              class="mt-4 text-base text-[color:var(--color-brand-accent)]"
             >
               {{ credentialLine }}
             </p>
@@ -313,18 +323,18 @@ const heroProps = computed(() => ({
               <span
                 v-for="cred in coachProfile.credentials"
                 :key="cred.title"
-                class="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[var(--color-crepuscule-700)]"
+                class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
               >
                 <UIcon
                   v-if="cred.verified"
                   name="i-lucide-badge-check"
-                  class="size-3.5 text-[var(--color-brand-accent)]"
+                  class="size-3.5 text-[color:var(--color-brand-accent)]"
                 />
                 {{ cred.title }}
               </span>
             </div>
 
-            <div class="mt-8 space-y-5 text-base leading-relaxed text-[var(--color-crepuscule-700)]">
+            <div class="mt-8 space-y-5 text-base leading-relaxed text-[color:var(--color-brand-secondary)]">
               <template v-if="bioParagraphs.length">
                 <p
                   v-for="(paragraph, i) in bioParagraphs"
@@ -349,14 +359,16 @@ const heroProps = computed(() => ({
     <div
       v-if="showBenefits"
       id="accompagnement"
+      v-bind="reveal()"
+      class="scroll-reveal"
     >
       <CoachTransformationBenefits :benefits="coachProfile?.benefitsJson ?? null">
         <template #header>
           <div class="text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
               Ce que l'accompagnement apporte
             </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
               Un parcours adapté
             </h2>
           </div>
@@ -365,51 +377,61 @@ const heroProps = computed(() => ({
     </div>
 
     <!-- ==================== 4. PILIERS (optionnel) ==================== -->
-    <CoachPillars
+    <div
       v-if="showPillars"
-      :pillars="coachProfile?.pillarsJson ?? null"
+      v-bind="reveal()"
+      class="scroll-reveal"
     >
-      <template #header>
-        <div class="text-center">
-          <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
-            L'approche
-          </span>
-          <h2 class="mt-4 font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
-            Les piliers de l'accompagnement
-          </h2>
-        </div>
-      </template>
-    </CoachPillars>
+      <CoachPillars :pillars="coachProfile?.pillarsJson ?? null">
+        <template #header>
+          <div class="text-center">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
+              L'approche
+            </span>
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
+              Les piliers de l'accompagnement
+            </h2>
+          </div>
+        </template>
+      </CoachPillars>
+    </div>
 
     <!-- ==================== 5. COMMENT ÇA MARCHE (optionnel) ==================== -->
-    <CoachHowItWorks
+    <div
       v-if="showHowItWorks"
-      :steps="coachProfile?.howItWorksJson ?? null"
+      v-bind="reveal()"
+      class="scroll-reveal"
     >
-      <template #header>
-        <div class="mb-12 text-center">
-          <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
-            Le parcours
-          </span>
-          <h2 class="mt-4 font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
-            Comment se déroule l'accompagnement
-          </h2>
-        </div>
-      </template>
-    </CoachHowItWorks>
+      <CoachHowItWorks :steps="coachProfile?.howItWorksJson ?? null">
+        <template #header>
+          <div class="mb-12 text-center">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
+              Le parcours
+            </span>
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
+              Comment se déroule l'accompagnement
+            </h2>
+          </div>
+        </template>
+      </CoachHowItWorks>
+    </div>
 
     <!-- ==================== 6. TÉMOIGNAGES (optionnel) ==================== -->
-    <div id="temoignages">
+    <div
+      id="temoignages"
+      v-bind="reveal()"
+      class="scroll-reveal"
+    >
       <CoachTestimonials
         v-if="showTestimonials"
         :testimonials="apiTestimonials"
       >
         <template #header>
           <div class="mb-12 text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
               Témoignages
             </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
               Ce qu'elles en disent
             </h2>
           </div>
@@ -418,7 +440,11 @@ const heroProps = computed(() => ({
     </div>
 
     <!-- ==================== 7. TARIFS ==================== -->
-    <div id="tarifs">
+    <div
+      id="tarifs"
+      v-bind="reveal()"
+      class="scroll-reveal"
+    >
       <CoachPricing
         v-if="hasPricing"
         :plans="consultationPlans"
@@ -430,10 +456,10 @@ const heroProps = computed(() => ({
       >
         <template #header>
           <div class="text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
               Tarifs
             </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
               Tarifs des séances
             </h2>
           </div>
@@ -444,14 +470,15 @@ const heroProps = computed(() => ({
     <!-- ==================== 8. FAQ (optionnel) ==================== -->
     <section
       v-if="showFaq"
-      class="bg-[var(--color-neutral-50)] px-6 py-20 sm:px-12 lg:px-20"
+      v-bind="reveal()"
+      class="scroll-reveal bg-[color:var(--color-surface-page)] px-6 py-20 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-3xl">
         <div class="mb-12 text-center">
-          <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
+          <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
             Questions fréquentes
           </span>
-          <h2 class="mt-4 font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)]">
+          <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)]">
             Questions fréquentes sur l'accompagnement
           </h2>
         </div>
@@ -463,7 +490,7 @@ const heroProps = computed(() => ({
           aria-label="Questions fréquentes"
         >
           <template #content="{ item }">
-            <div class="space-y-3 pb-3.5 text-sm text-[var(--color-crepuscule-700)]">
+            <div class="space-y-3 pb-3.5 text-sm text-[color:var(--color-brand-secondary)]">
               <p
                 v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
                 :key="i"
@@ -476,38 +503,62 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 9. CTA FINAL (sobre, light, card-borderée) ==================== -->
-    <section class="bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20">
-      <div class="mx-auto max-w-3xl">
-        <div class="rounded-3xl border-2 border-[var(--color-brand-accent)]/30 bg-[var(--color-neutral-50)] px-8 py-14 text-center sm:px-12">
-          <h2 class="font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
-            Réservez votre
-            <span class="text-[var(--color-brand-primary)]">séance découverte gratuite</span>
-          </h2>
+    <!-- ==================== 9. CTA FINAL (warm close — secondary CTA, crepuscule bg) ==================== -->
+    <section
+      v-bind="reveal()"
+      class="scroll-reveal bg-[color:var(--color-crepuscule-50)] px-6 py-24 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-3xl text-center">
+        <h2 class="font-serif text-3xl leading-tight text-[color:var(--color-brand-primary)] lg:text-4xl">
+          Réservez votre séance découverte gratuite
+        </h2>
 
-          <p class="mx-auto mt-6 max-w-xl text-base text-[var(--color-crepuscule-700)]">
-            Un premier échange de {{ discoveryDuration }} minutes, gratuit et sans engagement,
-            pour définir ensemble vos besoins.
-          </p>
+        <p class="mx-auto mt-6 max-w-xl text-base text-[color:var(--color-brand-secondary)]">
+          Un premier échange de {{ discoveryDuration }} minutes, gratuit et sans engagement,
+          pour définir ensemble vos besoins.
+        </p>
 
-          <div class="mt-10">
-            <UButton
-              :to="ctaTo"
-              size="xl"
-              data-final-cta
-              class="group rounded-full bg-[var(--color-brand-accent)] px-10 py-5 font-semibold text-white transition-all duration-300 hover:bg-[var(--color-sunset-600)]"
-            >
-              <span class="flex items-center gap-3">
-                Prendre rendez-vous
-                <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
-              </span>
-            </UButton>
+        <div class="mt-10 flex flex-col items-center gap-4">
+          <UButton
+            :to="ctaTo"
+            color="secondary"
+            variant="solid"
+            size="xl"
+            trailing-icon="i-lucide-arrow-right"
+            data-final-cta
+          >
+            Prendre rendez-vous
+          </UButton>
+
+          <!-- Reassurance repeat — same checkmarks as hero for consistency -->
+          <div class="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-[color:var(--color-brand-muted)]">
+            <span class="inline-flex items-center gap-1.5">
+              <UIcon
+                name="i-lucide-check"
+                class="size-3.5 text-[color:var(--color-brand-primary)]"
+              />
+              Gratuit
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+              <UIcon
+                name="i-lucide-check"
+                class="size-3.5 text-[color:var(--color-brand-primary)]"
+              />
+              Sans engagement
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+              <UIcon
+                name="i-lucide-check"
+                class="size-3.5 text-[color:var(--color-brand-primary)]"
+              />
+              {{ discoveryDuration }} min
+            </span>
           </div>
-
-          <p class="mt-6 text-xs text-[var(--color-text-muted)]">
-            Fuseau horaire : {{ tenant.timezone }}
-          </p>
         </div>
+
+        <p class="mt-8 text-xs text-[color:var(--color-text-muted)]">
+          Fuseau horaire : {{ tenant.timezone }}
+        </p>
       </div>
     </section>
 
@@ -523,3 +574,41 @@ const heroProps = computed(() => ({
     />
   </div>
 </template>
+
+<style scoped>
+/*
+ * Scroll reveal — visible by default for SSR (no JS = no flash).
+ * The .js-scroll-ready class is added by useScrollReveal AFTER it has
+ * marked any in-viewport elements as visible, so the hide-by-default
+ * CSS only applies once the observer is active.
+ *
+ * Same pattern as CoachPageSignature for visual consistency between templates.
+ */
+.js-scroll-ready .scroll-reveal:not(.is-visible) {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.scroll-reveal {
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js-scroll-ready .scroll-reveal:not(.is-visible) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .scroll-reveal {
+    transition: none;
+  }
+}
+</style>

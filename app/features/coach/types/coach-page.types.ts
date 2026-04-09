@@ -38,6 +38,7 @@ export interface CoachHeroProps {
   discoveryDurationMinutes: number
   urgencyText?: string | null
   ctaTo: string
+  specialties?: string[]
 }
 
 export interface CoachPillar {
