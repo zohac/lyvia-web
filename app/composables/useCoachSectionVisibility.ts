@@ -36,6 +36,7 @@ export type CoachConfigurableSection
 export interface CoachSectionVisibility {
   /** Chaque drapeau `show*` combine toggle actif ET contenu non vide (P-Y3). */
   show: {
+    bio: ComputedRef<boolean>
     benefits: ComputedRef<boolean>
     pillars: ComputedRef<boolean>
     howItWorks: ComputedRef<boolean>
@@ -49,6 +50,7 @@ export interface CoachSectionVisibility {
   isToggleOn: (section: CoachConfigurableSection) => boolean
   /** Présence réelle du contenu JSONB, ignore le toggle. */
   has: {
+    bio: ComputedRef<boolean>
     benefits: ComputedRef<boolean>
     pillars: ComputedRef<boolean>
     howItWorks: ComputedRef<boolean>
@@ -71,6 +73,13 @@ export function useCoachSectionVisibility(source: ProfileSource): CoachSectionVi
   }
 
   // --- Content presence (ignore le toggle) ---
+
+  const hasBio = computed(() => {
+    const longBio = profile.value?.longBio
+    if (longBio && longBio.trim().length > 0) return true
+    const bio = profile.value?.bio
+    return !!(bio && bio.trim().length > 0)
+  })
 
   const hasBenefits = computed(() => {
     const b = profile.value?.benefitsJson
@@ -109,6 +118,7 @@ export function useCoachSectionVisibility(source: ProfileSource): CoachSectionVi
 
   // --- Visibility = toggle AND content non-empty (P-Y3) ---
 
+  const showBio = computed(() => isToggleOn('bio') && hasBio.value)
   const showBenefits = computed(() => isToggleOn('benefits') && hasBenefits.value)
   const showPillars = computed(() => isToggleOn('pillars') && hasPillars.value)
   const showHowItWorks = computed(() => isToggleOn('howItWorks') && hasHowItWorks.value)
@@ -120,6 +130,7 @@ export function useCoachSectionVisibility(source: ProfileSource): CoachSectionVi
 
   return {
     show: {
+      bio: showBio,
       benefits: showBenefits,
       pillars: showPillars,
       howItWorks: showHowItWorks,
@@ -131,6 +142,7 @@ export function useCoachSectionVisibility(source: ProfileSource): CoachSectionVi
     },
     isToggleOn,
     has: {
+      bio: hasBio,
       benefits: hasBenefits,
       pillars: hasPillars,
       howItWorks: hasHowItWorks,

@@ -67,6 +67,7 @@ const { show } = useCoachSectionVisibility(() => props.coachProfile)
 // --- Scroll reveal (SSR-safe — visible by default, hidden only after JS) ---
 const { reveal, isReady } = useScrollReveal()
 
+const showBio = show.bio
 const showBenefits = show.benefits
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
@@ -82,7 +83,7 @@ const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMi
 const navLinks = computed(() => {
   const links: { label: string, href: string }[] = []
   if (showBenefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
-  links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
+  if (showBio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
   if (hasPricing.value) links.push({ label: 'Tarifs', href: '#tarifs' })
   if (showTestimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
   return links
@@ -172,6 +173,7 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 2. À PROPOS (crepuscule-50 bg — rupture visuelle "preuve") ==================== -->
     <section
+      v-if="showBio"
       id="qui-suis-je"
       v-bind="reveal()"
       class="scroll-reveal relative bg-[color:var(--color-crepuscule-50)] px-6 py-20 sm:px-12 lg:px-20"
@@ -335,20 +337,12 @@ const heroProps = computed(() => ({
             </div>
 
             <div class="mt-8 space-y-5 text-base leading-relaxed text-[color:var(--color-brand-secondary)]">
-              <template v-if="bioParagraphs.length">
-                <p
-                  v-for="(paragraph, i) in bioParagraphs"
-                  :key="i"
-                >
-                  {{ paragraph }}
-                </p>
-              </template>
-              <template v-else>
-                <p>
-                  Spécialiste en accompagnement bien-être, je propose un suivi personnalisé
-                  et adapté à chaque étape de votre parcours.
-                </p>
-              </template>
+              <p
+                v-for="(paragraph, i) in bioParagraphs"
+                :key="i"
+              >
+                {{ paragraph }}
+              </p>
             </div>
           </div>
         </div>

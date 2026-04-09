@@ -318,13 +318,12 @@ describe('YC2.3 — neutral fallbacks (FR-Y18, AC-5)', () => {
     }
   })
 
-  test('Essentiel fallback bio text is generic (no coach name)', () => {
+  test('Essentiel bio has NO generic fallback text (section hidden when empty)', () => {
     const template = readTemplateBlock(ESSENTIEL_PATH)
-    // Fallback must contain "Spécialiste en accompagnement" generic phrasing,
-    // without mentioning any specific coach name.
+    // Bio section is gated by showBio — when empty, it's hidden, not filled with placeholder.
     assert.ok(
-      /Spécialiste en accompagnement bien-être/.test(template),
-      'Essentiel must have a neutral generic bio fallback'
+      !/Spécialiste en accompagnement bien-être, je propose/.test(template),
+      'Essentiel must NOT have a generic bio fallback (section hidden when bio is empty)'
     )
   })
 })
@@ -770,5 +769,123 @@ describe('YC2.3 iter 2 — neutral fallbacks in new components (FR-Y18)', () => 
         )
       }
     }
+  })
+})
+
+// =====================================================================
+// Review follow-up F1+F2: Bio visibility gate + behavioral assertions
+// =====================================================================
+
+describe('YC2.3 review — bio section obeys toggle/empty gate (AC-2, AC-3)', () => {
+  test('composable exports show.bio and has.bio', () => {
+    const content = readFile(VISIBILITY_COMPOSABLE)
+    assert.ok(/showBio/.test(content), 'composable must define showBio computed')
+    assert.ok(/hasBio/.test(content), 'composable must define hasBio computed')
+    assert.ok(/show:\s*\{[^}]*bio/.test(content), 'composable must expose show.bio in return')
+    assert.ok(/has:\s*\{[^}]*bio/.test(content), 'composable must expose has.bio in return')
+  })
+
+  test('hasBio checks longBio and bio fields', () => {
+    const content = readFile(VISIBILITY_COMPOSABLE)
+    assert.ok(/longBio/.test(content), 'hasBio must read profile.longBio')
+    assert.ok(/\.bio\b/.test(content), 'hasBio must read profile.bio')
+    assert.ok(/trim\(\)/.test(content), 'hasBio must trim content before checking')
+  })
+
+  test('showBio combines toggle AND hasBio', () => {
+    const content = readFile(VISIBILITY_COMPOSABLE)
+    assert.ok(
+      /showBio\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('bio'\)\s*&&\s*hasBio\.value\)/.test(content),
+      'showBio must be computed(() => isToggleOn("bio") && hasBio.value)'
+    )
+  })
+
+  test('bio section in Essentiel is gated by v-if="showBio"', () => {
+    const template = readTemplateBlock(ESSENTIEL_PATH)
+    assert.ok(
+      /v-if="showBio"[\s\S]{0,200}id="qui-suis-je"/.test(template)
+      || /id="qui-suis-je"[\s\S]{0,10}v-if="showBio"/.test(template),
+      'bio section must have v-if="showBio" gate'
+    )
+  })
+
+  test('nav link "Qui suis-je" is conditional on showBio', () => {
+    const content = readFile(ESSENTIEL_PATH)
+    assert.ok(
+      /if\s*\(showBio\.value\)\s*links\.push\(\{[^}]*Qui suis-je/.test(content),
+      'nav link "Qui suis-je" must be conditional on showBio.value'
+    )
+  })
+
+  test('no generic fallback bio text when section should be hidden', () => {
+    const template = readTemplateBlock(ESSENTIEL_PATH)
+    assert.ok(
+      !/Spécialiste en accompagnement bien-être, je propose/.test(template),
+      'Essentiel must NOT have a generic bio fallback (section is hidden when empty, not filled with placeholder)'
+    )
+  })
+})
+
+describe('YC2.3 review — always-on sections with minimal profile (AC-1)', () => {
+  test('hero is rendered without any v-if gate', () => {
+    const template = readTemplateBlock(ESSENTIEL_PATH)
+    // CoachEssentielHero must not have a v-if on it
+    assert.ok(
+      /<CoachEssentielHero/.test(template),
+      'Hero component must be present in template'
+    )
+    // Ensure no v-if directly on the hero
+    assert.ok(
+      !/<CoachEssentielHero[^>]*v-if/.test(template),
+      'Hero must NOT have a v-if gate — always rendered'
+    )
+  })
+
+  test('final CTA is rendered without any show* gate', () => {
+    const template = readTemplateBlock(ESSENTIEL_PATH)
+    assert.ok(
+      /data-final-cta/.test(template),
+      'Final CTA marker must be present'
+    )
+    // Find the <section that directly contains data-final-cta by looking backwards
+    // from data-final-cta to the nearest <section opening tag.
+    const idx = template.indexOf('data-final-cta')
+    assert.ok(idx > 0, 'Could not locate data-final-cta in template')
+    const before = template.slice(Math.max(0, idx - 1500), idx)
+    const lastSectionOpen = before.match(/<section[^>]*>/g) ?? []
+    assert.ok(lastSectionOpen.length > 0, 'Could not find the parent <section> of final CTA')
+    const parentSection = lastSectionOpen[lastSectionOpen.length - 1]!
+    assert.ok(
+      !/v-if="show/.test(parentSection),
+      'Final CTA parent section must NOT be gated by a show* computed'
+    )
+  })
+
+  test('disclaimer is always rendered (FR-Y9)', () => {
+    const template = readTemplateBlock(ESSENTIEL_PATH)
+    assert.ok(
+      /AtomsMedicalDisclaimer/.test(template),
+      'Disclaimer must be present'
+    )
+    assert.ok(
+      !/<AtomsMedicalDisclaimer[^>]*v-if/.test(template),
+      'Disclaimer must NOT have a v-if gate'
+    )
+  })
+})
+
+describe('YC2.3 review — hero CTA uses primary solid (design refonte)', () => {
+  test('hero CTA is color="primary" variant="solid"', () => {
+    const content = readFile(ESSENTIEL_HERO_PATH)
+    const heroCtaBlock = content.match(/<UButton[\s\S]*?data-hero-cta[\s\S]*?>/)?.[0] ?? ''
+    assert.ok(heroCtaBlock.length > 0, 'Could not locate the data-hero-cta UButton')
+    assert.ok(
+      /color="primary"/.test(heroCtaBlock),
+      'Hero CTA must use color="primary" (violet, not secondary orange)'
+    )
+    assert.ok(
+      /variant="solid"/.test(heroCtaBlock),
+      'Hero CTA must use variant="solid"'
+    )
   })
 })
