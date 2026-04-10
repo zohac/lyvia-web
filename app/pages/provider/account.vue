@@ -88,17 +88,23 @@ const leadMagnetError = ref<string | null>(null)
 // ── Testimonials form state ─────────────────────────
 const testimonialsForm = ref<TestimonialItem[]>([])
 
-// ── Google Ads form state ───────────────────────────
-const adsForm = reactive({
+// ── Marketing form state (Google Ads + Clarity) ─────
+const CLARITY_ID_REGEX = /^[a-z0-9]{6,20}$/
+const marketingForm = reactive({
   googleAdsId: '' as string | undefined,
-  googleAdsConversionLabel: '' as string | undefined
+  googleAdsConversionLabel: '' as string | undefined,
+  microsoftClarityId: '' as string | undefined
+})
+const clarityIdValid = computed(() => {
+  const v = (marketingForm.microsoftClarityId ?? '').trim()
+  return v === '' || CLARITY_ID_REGEX.test(v)
 })
 const adsIdValid = computed(() => {
-  const v = (adsForm.googleAdsId ?? '').trim()
+  const v = (marketingForm.googleAdsId ?? '').trim()
   return v === '' || GOOGLE_ADS_ID_REGEX.test(v)
 })
 const adsLabelValid = computed(() => {
-  const v = (adsForm.googleAdsConversionLabel ?? '').trim()
+  const v = (marketingForm.googleAdsConversionLabel ?? '').trim()
   return v === '' || GOOGLE_ADS_CONVERSION_LABEL_REGEX.test(v)
 })
 
@@ -178,9 +184,10 @@ function syncFormsFromAccount() {
     ? acc.testimonialsJson.map(t => ({ ...t }))
     : []
 
-  // Google Ads
-  adsForm.googleAdsId = acc.googleAdsId ?? undefined
-  adsForm.googleAdsConversionLabel = acc.googleAdsConversionLabel ?? undefined
+  // Marketing (Google Ads + Clarity)
+  marketingForm.googleAdsId = acc.googleAdsId ?? undefined
+  marketingForm.googleAdsConversionLabel = acc.googleAdsConversionLabel ?? undefined
+  marketingForm.microsoftClarityId = acc.microsoftClarityId ?? undefined
 }
 
 // ── Specialty tag handlers ──────────────────────────
@@ -512,14 +519,15 @@ function removeLeadMagnet() {
   leadMagnetFile.value = null
 }
 
-async function handleGoogleAdsSubmit() {
-  if (!adsIdValid.value || !adsLabelValid.value) return
+async function handleMarketingSubmit() {
+  if (!adsIdValid.value || !adsLabelValid.value || !clarityIdValid.value) return
   const success = await updateAccount({
-    googleAdsId: adsForm.googleAdsId?.trim() || null,
-    googleAdsConversionLabel: adsForm.googleAdsConversionLabel?.trim() || null
+    googleAdsId: marketingForm.googleAdsId?.trim() || null,
+    googleAdsConversionLabel: marketingForm.googleAdsConversionLabel?.trim() || null,
+    microsoftClarityId: marketingForm.microsoftClarityId?.trim() || null
   })
   if (success) {
-    toast.add({ title: 'Configuration Google Ads enregistrée', color: 'primary' })
+    toast.add({ title: 'Configuration Marketing enregistrée', color: 'primary' })
   } else {
     toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
   }
@@ -1526,7 +1534,7 @@ async function handlePasswordChange() {
 
         <form
           class="mt-6 space-y-4"
-          @submit.prevent="handleGoogleAdsSubmit"
+          @submit.prevent="handleMarketingSubmit"
         >
           <div>
             <div class="flex items-center gap-2">
@@ -1537,7 +1545,7 @@ async function handlePasswordChange() {
                 ID de conversion Google Ads
               </label>
               <span
-                v-if="adsForm.googleAdsId"
+                v-if="marketingForm.googleAdsId"
                 class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
                 :class="adsIdValid ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' : 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]'"
               >
@@ -1546,7 +1554,7 @@ async function handlePasswordChange() {
             </div>
             <UInput
               id="googleAdsId"
-              v-model="adsForm.googleAdsId"
+              v-model="marketingForm.googleAdsId"
               placeholder="AW-123456789"
               :maxlength="20"
               class="mt-1"
@@ -1571,7 +1579,7 @@ async function handlePasswordChange() {
             </label>
             <UInput
               id="googleAdsConversionLabel"
-              v-model="adsForm.googleAdsConversionLabel"
+              v-model="marketingForm.googleAdsConversionLabel"
               placeholder="abcDEF123"
               :maxlength="50"
               class="mt-1"
@@ -1587,11 +1595,46 @@ async function handlePasswordChange() {
             </p>
           </div>
 
+          <!-- Microsoft Clarity (same Marketing section) -->
+          <div class="border-t border-[color:var(--color-brand-subtle)] pt-4">
+            <div class="flex items-center gap-2">
+              <label
+                for="microsoftClarityId"
+                class="block text-sm font-medium text-[color:var(--color-brand-primary)]"
+              >
+                ID de projet Microsoft Clarity
+              </label>
+              <span
+                v-if="marketingForm.microsoftClarityId"
+                class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                :class="clarityIdValid ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' : 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]'"
+              >
+                {{ clarityIdValid ? 'Actif' : 'Format invalide' }}
+              </span>
+            </div>
+            <UInput
+              id="microsoftClarityId"
+              v-model="marketingForm.microsoftClarityId"
+              placeholder="lz1abc2def"
+              :maxlength="20"
+              class="mt-1"
+            />
+            <p
+              v-if="!clarityIdValid"
+              class="mt-1 text-xs text-[color:var(--color-error)]"
+            >
+              Format attendu : 6 à 20 caractères alphanumériques minuscules
+            </p>
+            <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
+              Trouvez cette valeur dans Clarity > Settings > Overview > Project ID
+            </p>
+          </div>
+
           <div class="flex justify-end">
             <UButton
               type="submit"
               :loading="saving"
-              :disabled="saving || !adsIdValid || !adsLabelValid"
+              :disabled="saving || !adsIdValid || !adsLabelValid || !clarityIdValid"
               label="Enregistrer"
             />
           </div>
