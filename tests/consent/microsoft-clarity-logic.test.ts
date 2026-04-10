@@ -5,8 +5,18 @@ import {
   CLARITY_ID_REGEX,
   resolveClarityContext,
   shouldLoadClarity,
-  shouldFetchClarityProfile
+  shouldFetchClarityProfile,
+  type ClarityProfile
 } from '../../app/plugins/microsoft-clarity-helpers'
+import {
+  injectClarityTag,
+  runMicrosoftClarityMounted
+} from '../../app/plugins/microsoft-clarity-runtime'
+
+type MockScript = {
+  async: boolean
+  src: string
+}
 
 describe('Microsoft Clarity helpers (real code)', () => {
   describe('CLARITY_ID_REGEX', () => {
@@ -42,7 +52,29 @@ describe('Microsoft Clarity helpers (real code)', () => {
         tenantDiscoverySlug: null,
         tenantRouteSlug: null
       })
-      assert.deepEqual(result, { slug: 'sophie', clarityId: 'abc123', googleAdsId: 'AW-111' })
+      assert.deepEqual(result, {
+        slug: 'sophie',
+        clarityId: 'abc123',
+        googleAdsId: 'AW-111',
+        profileResolved: true
+      })
+    })
+
+    it('keeps route slug when profile is not cached yet', () => {
+      const result = resolveClarityContext({
+        routeSlug: 'sophie',
+        routeProfile: null,
+        tenantHomeSlug: null,
+        tenantHomeProfile: null,
+        tenantDiscoverySlug: null,
+        tenantRouteSlug: null
+      })
+      assert.deepEqual(result, {
+        slug: 'sophie',
+        clarityId: null,
+        googleAdsId: null,
+        profileResolved: false
+      })
     })
 
     it('resolves from tenant home profile', () => {
@@ -54,22 +86,15 @@ describe('Microsoft Clarity helpers (real code)', () => {
         tenantDiscoverySlug: null,
         tenantRouteSlug: null
       })
-      assert.deepEqual(result, { slug: 'sophie', clarityId: 'def456', googleAdsId: null })
-    })
-
-    it('returns null for all fields when no source available', () => {
-      const result = resolveClarityContext({
-        routeSlug: null,
-        routeProfile: null,
-        tenantHomeSlug: null,
-        tenantHomeProfile: null,
-        tenantDiscoverySlug: null,
-        tenantRouteSlug: null
+      assert.deepEqual(result, {
+        slug: 'sophie',
+        clarityId: 'def456',
+        googleAdsId: null,
+        profileResolved: true
       })
-      assert.deepEqual(result, { slug: null, clarityId: null, googleAdsId: null })
     })
 
-    it('resolves slug from discovery tenant but no profile', () => {
+    it('resolves slug from discovery tenant but marks profile unresolved', () => {
       const result = resolveClarityContext({
         routeSlug: null,
         routeProfile: null,
@@ -78,19 +103,29 @@ describe('Microsoft Clarity helpers (real code)', () => {
         tenantDiscoverySlug: 'sophie',
         tenantRouteSlug: null
       })
-      assert.deepEqual(result, { slug: 'sophie', clarityId: null, googleAdsId: null })
+      assert.deepEqual(result, {
+        slug: 'sophie',
+        clarityId: null,
+        googleAdsId: null,
+        profileResolved: false
+      })
     })
 
-    it('carries googleAdsId from the same profile as clarityId', () => {
+    it('returns null for all fields when no source is available', () => {
       const result = resolveClarityContext({
-        routeSlug: 'sophie',
-        routeProfile: { microsoftClarityId: 'abc123', googleAdsId: 'AW-999' },
+        routeSlug: null,
+        routeProfile: null,
         tenantHomeSlug: null,
         tenantHomeProfile: null,
         tenantDiscoverySlug: null,
         tenantRouteSlug: null
       })
-      assert.equal(result.googleAdsId, 'AW-999')
+      assert.deepEqual(result, {
+        slug: null,
+        clarityId: null,
+        googleAdsId: null,
+        profileResolved: false
+      })
     })
   })
 
@@ -120,16 +155,182 @@ describe('Microsoft Clarity helpers (real code)', () => {
   })
 
   describe('shouldFetchClarityProfile', () => {
-    it('returns true when slug exists but no clarity ID', () => {
-      assert.ok(shouldFetchClarityProfile('sophie', null))
+    it('returns true when slug exists and profile is not resolved yet', () => {
+      assert.ok(shouldFetchClarityProfile('sophie', false))
     })
 
-    it('returns false when no slug', () => {
-      assert.ok(!shouldFetchClarityProfile(null, null))
+    it('returns false when no slug is known', () => {
+      assert.ok(!shouldFetchClarityProfile(null, false))
     })
 
-    it('returns false when clarity ID already resolved', () => {
-      assert.ok(!shouldFetchClarityProfile('sophie', 'abc123'))
+    it('returns false when profile is already resolved with no Clarity ID', () => {
+      assert.ok(!shouldFetchClarityProfile('sophie', true))
     })
+  })
+})
+
+describe('Microsoft Clarity runtime (real behavior)', () => {
+  it('injectClarityTag registers window.clarity and appends the Clarity script', () => {
+    const appendedScripts: MockScript[] = []
+    const targetWindow: Record<string, unknown> = {}
+
+    injectClarityTag(
+      targetWindow,
+      () => ({ async: false, src: '' }),
+      (element: MockScript) => {
+        appendedScripts.push(element)
+      },
+      'lz1abc2def'
+    )
+
+    assert.equal(typeof targetWindow.clarity, 'function')
+    assert.ok(Array.isArray((targetWindow.clarity as { q?: unknown[] }).q))
+    assert.equal(appendedScripts.length, 1)
+  })
+
+  it('injectClarityTag appends exactly one async Clarity script', () => {
+    const appendedScripts: MockScript[] = []
+    const targetWindow: Record<string, unknown> = {}
+
+    injectClarityTag(
+      targetWindow,
+      () => ({ async: false, src: '' }),
+      (element: MockScript) => {
+        appendedScripts.push(element)
+      },
+      'lz1abc2def'
+    )
+
+    assert.equal(appendedScripts.length, 1)
+    assert.equal(appendedScripts[0].async, true)
+    assert.equal(appendedScripts[0].src, 'https://www.clarity.ms/tag/lz1abc2def')
+  })
+
+  it('loads immediately when Clarity ID is resolved in simple mode', async () => {
+    const injectedIds: string[] = []
+    const fetchCalls: string[] = []
+
+    await runMicrosoftClarityMounted({
+      context: {
+        slug: 'sophie',
+        clarityId: 'lz1abc2def',
+        googleAdsId: null,
+        profileResolved: true
+      },
+      cookieConsent: null,
+      fetchProfile: async (slug: string) => {
+        fetchCalls.push(slug)
+        return {}
+      },
+      injectClarity: (clarityId: string) => {
+        injectedIds.push(clarityId)
+      }
+    })
+
+    assert.deepEqual(injectedIds, ['lz1abc2def'])
+    assert.equal(fetchCalls.length, 0)
+  })
+
+  it('does not inject in full mode without consent', async () => {
+    const injectedIds: string[] = []
+    const fetchCalls: string[] = []
+
+    await runMicrosoftClarityMounted({
+      context: {
+        slug: 'sophie',
+        clarityId: 'lz1abc2def',
+        googleAdsId: 'AW-123456789',
+        profileResolved: true
+      },
+      cookieConsent: 'essential',
+      fetchProfile: async (slug: string) => {
+        fetchCalls.push(slug)
+        return {}
+      },
+      injectClarity: (clarityId: string) => {
+        injectedIds.push(clarityId)
+      }
+    })
+
+    assert.equal(injectedIds.length, 0)
+    assert.equal(fetchCalls.length, 0)
+  })
+
+  it('fetches the public profile only when the slug is known but the profile is not cached', async () => {
+    const injectedIds: string[] = []
+    const fetchCalls: string[] = []
+
+    await runMicrosoftClarityMounted({
+      context: {
+        slug: 'sophie',
+        clarityId: null,
+        googleAdsId: null,
+        profileResolved: false
+      },
+      cookieConsent: 'all',
+      fetchProfile: async (slug: string): Promise<ClarityProfile> => {
+        fetchCalls.push(slug)
+        return {
+          microsoftClarityId: 'lz1abc2def',
+          googleAdsId: 'AW-123456789'
+        }
+      },
+      injectClarity: (clarityId: string) => {
+        injectedIds.push(clarityId)
+      }
+    })
+
+    assert.deepEqual(fetchCalls, ['sophie'])
+    assert.deepEqual(injectedIds, ['lz1abc2def'])
+  })
+
+  it('does not fetch again when the profile is already resolved with no Clarity ID', async () => {
+    const injectedIds: string[] = []
+    const fetchCalls: string[] = []
+
+    await runMicrosoftClarityMounted({
+      context: {
+        slug: 'sophie',
+        clarityId: null,
+        googleAdsId: null,
+        profileResolved: true
+      },
+      cookieConsent: null,
+      fetchProfile: async (slug: string): Promise<ClarityProfile> => {
+        fetchCalls.push(slug)
+        return {
+          microsoftClarityId: 'should-not-run'
+        }
+      },
+      injectClarity: (clarityId: string) => {
+        injectedIds.push(clarityId)
+      }
+    })
+
+    assert.equal(fetchCalls.length, 0)
+    assert.equal(injectedIds.length, 0)
+  })
+
+  it('does not inject fetched Clarity when Google Ads exists and consent is essential', async () => {
+    const injectedIds: string[] = []
+
+    await runMicrosoftClarityMounted({
+      context: {
+        slug: 'sophie',
+        clarityId: null,
+        googleAdsId: null,
+        profileResolved: false
+      },
+      cookieConsent: 'essential',
+      fetchProfile: async (): Promise<ClarityProfile> => ({
+        microsoftClarityId: 'lz1abc2def',
+        googleAdsId: 'AW-123456789'
+      }),
+      injectClarity: (clarityId: string) => {
+        injectedIds.push(clarityId)
+      }
+    })
+
+    assert.equal(injectedIds.length, 0)
   })
 })

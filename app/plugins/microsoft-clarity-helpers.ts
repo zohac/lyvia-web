@@ -14,6 +14,7 @@ export type ClarityResolution = {
   slug: string | null
   clarityId: string | null
   googleAdsId: string | null
+  profileResolved: boolean
 }
 
 export type ClarityNuxtDataSources = {
@@ -31,31 +32,61 @@ export type ClarityNuxtDataSources = {
  * to avoid the race condition where Google Ads state hasn't been set yet.
  */
 export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityResolution {
-  if (input.routeSlug && input.routeProfile) {
+  if (input.routeSlug) {
+    if (input.routeProfile) {
+      return {
+        slug: input.routeSlug,
+        clarityId: input.routeProfile.microsoftClarityId ?? null,
+        googleAdsId: input.routeProfile.googleAdsId ?? null,
+        profileResolved: true
+      }
+    }
+
     return {
       slug: input.routeSlug,
-      clarityId: input.routeProfile.microsoftClarityId ?? null,
-      googleAdsId: input.routeProfile.googleAdsId ?? null
+      clarityId: null,
+      googleAdsId: null,
+      profileResolved: false
     }
   }
 
-  if (input.tenantHomeSlug && input.tenantHomeProfile) {
+  if (input.tenantHomeSlug) {
+    if (input.tenantHomeProfile) {
+      return {
+        slug: input.tenantHomeSlug,
+        clarityId: input.tenantHomeProfile.microsoftClarityId ?? null,
+        googleAdsId: input.tenantHomeProfile.googleAdsId ?? null,
+        profileResolved: true
+      }
+    }
+
     return {
       slug: input.tenantHomeSlug,
-      clarityId: input.tenantHomeProfile.microsoftClarityId ?? null,
-      googleAdsId: input.tenantHomeProfile.googleAdsId ?? null
+      clarityId: null,
+      googleAdsId: null,
+      profileResolved: false
     }
   }
 
   if (input.tenantDiscoverySlug) {
-    return { slug: input.tenantDiscoverySlug, clarityId: null, googleAdsId: null }
+    return {
+      slug: input.tenantDiscoverySlug,
+      clarityId: null,
+      googleAdsId: null,
+      profileResolved: false
+    }
   }
 
   if (input.tenantRouteSlug) {
-    return { slug: input.tenantRouteSlug, clarityId: null, googleAdsId: null }
+    return {
+      slug: input.tenantRouteSlug,
+      clarityId: null,
+      googleAdsId: null,
+      profileResolved: false
+    }
   }
 
-  return { slug: null, clarityId: null, googleAdsId: null }
+  return { slug: null, clarityId: null, googleAdsId: null, profileResolved: false }
 }
 
 /**
@@ -84,7 +115,7 @@ export function shouldLoadClarity(
  */
 export function shouldFetchClarityProfile(
   slug: string | null,
-  clarityId: string | null
+  profileResolved: boolean
 ): boolean {
-  return Boolean(slug) && clarityId === null
+  return Boolean(slug) && !profileResolved
 }

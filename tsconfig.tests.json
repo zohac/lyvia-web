@@ -31,6 +31,7 @@
     "app/composables/coach-template-registry.ts",
     "app/composables/useCoachSectionVisibility.ts",
     "app/plugins/microsoft-clarity-helpers.ts",
+    "app/plugins/microsoft-clarity-runtime.ts",
     "app/services/api/api-error.ts",
     "app/services/api/contracts/error-response.ts",
     "tests/types/**/*.d.ts",

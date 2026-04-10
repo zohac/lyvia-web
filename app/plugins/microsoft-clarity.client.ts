@@ -12,14 +12,16 @@
  *   (analytics/functional). In full mode, only with 'all' or 'acknowledged'.
  */
 
-import { apiFetch } from '~/services/api/apiFetch'
-import { COOKIE_CONSENT_NAME, type ConsentValue } from '~/features/consent/consent-logic'
+import { apiFetch } from '../services/api/apiFetch'
+import { COOKIE_CONSENT_NAME, type ConsentValue } from '../features/consent/consent-logic'
 import {
   resolveClarityContext,
-  shouldLoadClarity,
-  shouldFetchClarityProfile,
   type ClarityProfile
 } from './microsoft-clarity-helpers'
+import {
+  injectClarityTag,
+  runMicrosoftClarityMounted
+} from './microsoft-clarity-runtime'
 
 export default defineNuxtPlugin(() => {
   const route = useRoute()
@@ -55,43 +57,27 @@ export default defineNuxtPlugin(() => {
   function injectClarity(clarityId: string) {
     if (injected) return
     injected = true
-
-    const w = window as unknown as Record<string, unknown>
-    const fn = function (...args: unknown[]) {
-      ((w['clarity'] as { q?: unknown[] }).q = (w['clarity'] as { q?: unknown[] }).q || []).push(args)
-    }
-    fn.q = [] as unknown[]
-    w['clarity'] = fn
-
-    const script = document.createElement('script')
-    script.async = true
-    script.src = `https://www.clarity.ms/tag/${clarityId}`
-    document.head.appendChild(script)
+    injectClarityTag(
+      window as unknown as Record<string, unknown>,
+      () => document.createElement('script'),
+      (script) => {
+        document.head.appendChild(script)
+      },
+      clarityId
+    )
   }
 
   const nuxtApp = useNuxtApp()
   nuxtApp.hook('app:mounted', async () => {
     const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME)
-    const { slug, clarityId, googleAdsId } = gatherNuxtData()
-
-    if (clarityId && shouldLoadClarity(googleAdsId, consent.value)) {
-      injectClarity(clarityId)
-      return
-    }
-
-    // If we have a slug but no profile data yet (booking pages), fetch it
-    if (shouldFetchClarityProfile(slug, clarityId)) {
-      try {
-        const profile = await apiFetch<ClarityProfile>(
-          `/public/provider/${slug}/profile`,
-          { method: 'GET', withAuth: false }
-        )
-        if (profile.microsoftClarityId && shouldLoadClarity(profile.googleAdsId ?? null, consent.value)) {
-          injectClarity(profile.microsoftClarityId)
-        }
-      } catch {
-        // Silent fail — no Clarity tracking on this page
-      }
-    }
+    await runMicrosoftClarityMounted({
+      context: gatherNuxtData(),
+      cookieConsent: consent.value,
+      fetchProfile: async (slug: string) => apiFetch<ClarityProfile>(
+        `/public/provider/${slug}/profile`,
+        { method: 'GET', withAuth: false }
+      ),
+      injectClarity
+    })
   })
 })
