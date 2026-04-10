@@ -116,6 +116,12 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
+          label: 'Ma page coach',
+          to: '/provider/coach-page',
+          icon: 'lucide:layout',
+          match: 'prefix' as const
+        },
+        {
           label: 'Contenus',
           to: '/provider/content',
           icon: 'lucide:file-text',
