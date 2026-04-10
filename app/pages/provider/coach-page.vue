@@ -68,12 +68,14 @@ function sectionLabel(section: string): string {
   return SECTION_LABELS[section] ?? section
 }
 
-// ── Template selection ──
+// ── Template selection (F4: explicit TEMPLATE_NOT_AVAILABLE handling) ──
 async function onSelectTemplate(templateId: string) {
   if (templateId === selectedTemplateId.value) return
-  const ok = await saveTemplate(templateId)
-  if (ok) {
+  const result = await saveTemplate(templateId)
+  if (result.ok) {
     toast.add({ title: 'Template mis à jour', color: 'primary' })
+  } else if (result.errorCode === 'TEMPLATE_NOT_AVAILABLE') {
+    toast.add({ title: 'Ce template n\'est pas disponible pour votre compte', description: 'Contactez l\'équipe Keova pour y accéder.', color: 'error' })
   } else {
     toast.add({ title: 'Erreur lors du changement de template', color: 'error' })
   }
@@ -188,6 +190,15 @@ const EDITABLE_SECTIONS = ['pillars', 'faq', 'benefits', 'howItWorks', 'educatio
 function hasEditor(section: string): boolean {
   return EDITABLE_SECTIONS.includes(section)
 }
+
+// F2: Sections edited elsewhere — show link instead of form
+const EXTERNAL_SECTIONS: Record<string, { label: string, to: string }> = {
+  bio: { label: 'Modifiable dans Mon compte', to: '/provider/account' },
+  testimonials: { label: 'Modifiable dans Mon compte', to: '/provider/account' }
+}
+function isExternalSection(section: string): boolean {
+  return section in EXTERNAL_SECTIONS
+}
 </script>
 
 <template>
@@ -243,6 +254,16 @@ function hasEditor(section: string): boolean {
                 class="size-5 text-[color:var(--color-brand-primary)]"
               />
             </div>
+            <!-- F5: template preview image when available -->
+            <NuxtImg
+              v-if="tmpl.previewImageUrl"
+              :src="tmpl.previewImageUrl"
+              :alt="`Aperçu du template ${tmpl.name}`"
+              class="mb-3 aspect-[16/9] w-full rounded-lg object-cover"
+              width="320"
+              height="180"
+              loading="lazy"
+            />
             <h3 class="font-semibold text-[color:var(--color-text-primary)]">
               {{ tmpl.name }}
             </h3>
@@ -298,6 +319,30 @@ function hasEditor(section: string): boolean {
         v-for="section in editableSections"
         :key="section"
       >
+        <!-- F2: Sections edited elsewhere — show link to /provider/account -->
+        <div
+          v-if="isExternalSection(section) && isSectionOn(section)"
+          class="mb-10 flex items-center justify-between rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-6 py-4"
+        >
+          <div>
+            <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+              {{ sectionLabel(section) }}
+            </h2>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              {{ EXTERNAL_SECTIONS[section]?.label }}
+            </p>
+          </div>
+          <UButton
+            :to="EXTERNAL_SECTIONS[section]?.to"
+            color="neutral"
+            variant="outline"
+            size="sm"
+            trailing-icon="i-lucide-arrow-right"
+          >
+            Modifier
+          </UButton>
+        </div>
+
         <section
           v-if="hasEditor(section) && isSectionOn(section)"
           class="mb-10 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6"
@@ -361,6 +406,45 @@ function hasEditor(section: string): boolean {
             >
               Ajouter un pilier
             </UButton>
+
+            <!-- F1: Emotional Support sub-section (Signature template only) -->
+            <div class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4">
+              <h3 class="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                Soutien émotionnel (optionnel)
+              </h3>
+              <div class="space-y-3">
+                <UInput
+                  :model-value="pillarsForm?.emotionalSupport?.title ?? ''"
+                  placeholder="Titre (ex: Un espace d'écoute bienveillant)"
+                  size="sm"
+                  @update:model-value="(v: string) => {
+                    if (!pillarsForm) {
+                      pillarsForm = { items: [] }
+                    }
+                    if (!pillarsForm.emotionalSupport) {
+                      pillarsForm.emotionalSupport = { title: '', description: '' }
+                    }
+                    pillarsForm.emotionalSupport.title = v
+                  }"
+                />
+                <UTextarea
+                  :model-value="pillarsForm?.emotionalSupport?.description ?? ''"
+                  placeholder="Description (max 1000 caractères)"
+                  :maxlength="1000"
+                  :rows="3"
+                  size="sm"
+                  @update:model-value="(v: string) => {
+                    if (!pillarsForm) {
+                      pillarsForm = { items: [] }
+                    }
+                    if (!pillarsForm.emotionalSupport) {
+                      pillarsForm.emotionalSupport = { title: '', description: '' }
+                    }
+                    pillarsForm.emotionalSupport.description = v
+                  }"
+                />
+              </div>
+            </div>
           </template>
 
           <!-- ── FAQ ── -->
