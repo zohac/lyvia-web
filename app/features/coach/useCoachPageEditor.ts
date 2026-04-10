@@ -1,11 +1,14 @@
 import { ref, reactive, computed, readonly } from 'vue'
 import { useProviderAccount } from '../account/useProviderAccount'
-import { ApiFetchError } from '../../services/api/api-error'
-import { apiFetch } from '../../services/api/apiFetch'
+import {
+  getCoachPageEditableSections,
+  getCoachPageConfigurableSections,
+  isCoachPageAlwaysOnSection,
+  supportsEmotionalSupportSection
+} from './domain/coach-page-editor'
 import { listCoachPageTemplates } from './services/coach-page-templates.service'
 import type { CoachPageTemplate } from './api/coach-page-template.contract'
 import type {
-  ProviderAccountResponse,
   PillarsJson,
   FaqItem,
   BenefitsJson,
@@ -14,11 +17,8 @@ import type {
   ProblemStatementJson
 } from '../account/api/provider-account.contract'
 
-/** Sections that cannot be toggled off (always visible per spec: hero + disclaimer only). */
-const ALWAYS_ON_SECTIONS = ['hero', 'disclaimer']
-
 export function useCoachPageEditor() {
-  const { account, loading, saving, error, fetchAccount, updateAccount } = useProviderAccount()
+  const { account, loading, saving, error, fetchAccount, updateAccount, updateAccountDetailed } = useProviderAccount()
 
   const templates = ref<CoachPageTemplate[]>([])
   const templatesLoading = ref(false)
@@ -45,12 +45,20 @@ export function useCoachPageEditor() {
     selectedTemplate.value?.sectionsAvailable ?? []
   )
 
+  const configurableSections = computed(() =>
+    getCoachPageConfigurableSections(availableSections.value)
+  )
+
   const editableSections = computed(() =>
-    availableSections.value.filter(s => !ALWAYS_ON_SECTIONS.includes(s))
+    getCoachPageEditableSections(availableSections.value)
+  )
+
+  const hasEmotionalSupportSection = computed(() =>
+    supportsEmotionalSupportSection(availableSections.value)
   )
 
   function isAlwaysOn(section: string): boolean {
-    return ALWAYS_ON_SECTIONS.includes(section)
+    return isCoachPageAlwaysOnSection(section)
   }
 
   function isSectionOn(section: string): boolean {
@@ -102,26 +110,15 @@ export function useCoachPageEditor() {
     problemStatementForm.value = acc.problemStatementJson ? structuredClone(acc.problemStatementJson) as ProblemStatementJson : null
   }
 
-  // ── Sauvegarde template (F4: handle TEMPLATE_NOT_AVAILABLE explicitly) ──
-  const templateError = ref<string | null>(null)
-
   async function saveTemplate(templateId: string): Promise<{ ok: boolean, errorCode?: string }> {
-    templateError.value = null
-    try {
-      const result = await apiFetch<ProviderAccountResponse>('/provider/account', {
-        method: 'PATCH',
-        body: { coachPageTemplateId: templateId }
-      })
-      selectedTemplateId.value = result.coachPageTemplateId
+    const result = await updateAccountDetailed({ coachPageTemplateId: templateId })
+
+    if (result.ok) {
+      syncFromAccount()
       return { ok: true }
-    } catch (e: unknown) {
-      if (e instanceof ApiFetchError && e.apiError.code === 'TEMPLATE_NOT_AVAILABLE') {
-        templateError.value = 'Ce template n\'est pas disponible pour votre compte.'
-        return { ok: false, errorCode: 'TEMPLATE_NOT_AVAILABLE' }
-      }
-      templateError.value = 'Erreur lors du changement de template'
-      return { ok: false }
     }
+
+    return { ok: false, errorCode: result.errorCode }
   }
 
   // ── Sauvegarde toggles ──
@@ -160,13 +157,14 @@ export function useCoachPageEditor() {
     loading: readonly(loading),
     saving: readonly(saving),
     error: readonly(error),
-    templateError: readonly(templateError),
     templates: readonly(templates),
     templatesLoading: readonly(templatesLoading),
     selectedTemplateId: readonly(selectedTemplateId),
     selectedTemplate,
     availableSections,
+    configurableSections,
     editableSections,
+    hasEmotionalSupportSection,
     sectionsConfig,
 
     // Content forms

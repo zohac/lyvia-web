@@ -9,6 +9,11 @@
  *
  * Each section saves independently (AC-6).
  */
+import {
+  getCoachPageExternalEditorSection,
+  getCoachPageTemplateSaveErrorToast,
+  isCoachPageInlineEditorSection
+} from '~/features/coach/domain/coach-page-editor'
 import { useCoachPageEditor } from '~/features/coach/useCoachPageEditor'
 
 definePageMeta({
@@ -25,8 +30,9 @@ const {
   templates,
   templatesLoading,
   selectedTemplateId,
-  availableSections,
+  configurableSections,
   editableSections,
+  hasEmotionalSupportSection,
   sectionsConfig,
   pillarsForm,
   faqForm,
@@ -70,14 +76,13 @@ function sectionLabel(section: string): string {
 
 // ── Template selection (F4: explicit TEMPLATE_NOT_AVAILABLE handling) ──
 async function onSelectTemplate(templateId: string) {
-  if (templateId === selectedTemplateId.value) return
+  if (saving.value || templateId === selectedTemplateId.value) return
   const result = await saveTemplate(templateId)
   if (result.ok) {
     toast.add({ title: 'Template mis à jour', color: 'primary' })
-  } else if (result.errorCode === 'TEMPLATE_NOT_AVAILABLE') {
-    toast.add({ title: 'Ce template n\'est pas disponible pour votre compte', description: 'Contactez l\'équipe Keova pour y accéder.', color: 'error' })
   } else {
-    toast.add({ title: 'Erreur lors du changement de template', color: 'error' })
+    const message = getCoachPageTemplateSaveErrorToast(result.errorCode)
+    toast.add({ title: message.title, description: message.description, color: 'error' })
   }
 }
 
@@ -186,18 +191,12 @@ async function onSaveProblemStatement() {
 }
 
 // ── Section has editable form? ──
-const EDITABLE_SECTIONS = ['pillars', 'faq', 'benefits', 'howItWorks', 'educationalContent', 'problemStatement']
 function hasEditor(section: string): boolean {
-  return EDITABLE_SECTIONS.includes(section)
+  return isCoachPageInlineEditorSection(section)
 }
 
-// F2: Sections edited elsewhere — show link instead of form
-const EXTERNAL_SECTIONS: Record<string, { label: string, to: string }> = {
-  bio: { label: 'Modifiable dans Mon compte', to: '/provider/account' },
-  testimonials: { label: 'Modifiable dans Mon compte', to: '/provider/account' }
-}
-function isExternalSection(section: string): boolean {
-  return section in EXTERNAL_SECTIONS
+function externalSection(section: string) {
+  return getCoachPageExternalEditorSection(section)
 }
 </script>
 
@@ -298,7 +297,7 @@ function isExternalSection(section: string): boolean {
         </div>
         <div class="space-y-3">
           <div
-            v-for="section in availableSections"
+            v-for="section in configurableSections"
             :key="section"
             class="flex items-center justify-between rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-4 py-3"
           >
@@ -321,7 +320,7 @@ function isExternalSection(section: string): boolean {
       >
         <!-- F2: Sections edited elsewhere — show link to /provider/account -->
         <div
-          v-if="isExternalSection(section) && isSectionOn(section)"
+          v-if="externalSection(section) && isSectionOn(section)"
           class="mb-10 flex items-center justify-between rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-6 py-4"
         >
           <div>
@@ -329,11 +328,11 @@ function isExternalSection(section: string): boolean {
               {{ sectionLabel(section) }}
             </h2>
             <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-              {{ EXTERNAL_SECTIONS[section]?.label }}
+              {{ externalSection(section)?.label }}
             </p>
           </div>
           <UButton
-            :to="EXTERNAL_SECTIONS[section]?.to"
+            :to="externalSection(section)?.to"
             color="neutral"
             variant="outline"
             size="sm"
@@ -345,6 +344,7 @@ function isExternalSection(section: string): boolean {
 
         <section
           v-if="hasEditor(section) && isSectionOn(section)"
+          :id="section === 'pillars' ? 'section-pillars' : undefined"
           class="mb-10 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6"
         >
           <!-- ── PILLARS ── -->
@@ -408,7 +408,10 @@ function isExternalSection(section: string): boolean {
             </UButton>
 
             <!-- F1: Emotional Support sub-section (Signature template only) -->
-            <div class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4">
+            <div
+              v-if="hasEmotionalSupportSection"
+              class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
+            >
               <h3 class="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
                 Soutien émotionnel (optionnel)
               </h3>

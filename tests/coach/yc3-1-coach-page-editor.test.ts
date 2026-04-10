@@ -1,151 +1,128 @@
 import * as assert from 'node:assert/strict'
-import test, { describe } from 'node:test'
+import test from 'node:test'
 
-/**
- * YC3.1 — Tests for coach page editor logic.
- *
- * Tests pure domain rules extracted from useCoachPageEditor:
- * - ALWAYS_ON sections (hero + disclaimer only)
- * - EDITABLE_SECTIONS vs external sections
- * - Template error code handling
- */
+import {
+  COACH_PAGE_ALWAYS_ON_SECTIONS,
+  COACH_PAGE_INLINE_EDITOR_SECTIONS,
+  getCoachPageConfigurableSections,
+  getCoachPageEditableSections,
+  getCoachPageExternalEditorSection,
+  getCoachPageTemplateSaveErrorToast,
+  isCoachPageAlwaysOnSection,
+  isCoachPageInlineEditorSection,
+  isCoachPageNestedEditorSection,
+  supportsEmotionalSupportSection
+} from '../../app/features/coach/domain/coach-page-editor'
 
-// ── ALWAYS_ON sections rule (F3) ──
+const signatureSections = [
+  'hero',
+  'bio',
+  'pillars',
+  'faq',
+  'testimonials',
+  'benefits',
+  'howItWorks',
+  'educationalContent',
+  'problemStatement',
+  'emotionalSupport',
+  'pricing',
+  'disclaimer'
+]
 
-describe('YC3.1 — ALWAYS_ON sections', () => {
-  // Must match useCoachPageEditor.ts
-  const ALWAYS_ON_SECTIONS = ['hero', 'disclaimer']
+const essentielSections = [
+  'hero',
+  'bio',
+  'pillars',
+  'faq',
+  'testimonials',
+  'benefits',
+  'howItWorks',
+  'pricing',
+  'disclaimer'
+]
 
-  function isAlwaysOn(section: string): boolean {
-    return ALWAYS_ON_SECTIONS.includes(section)
-  }
-
-  test('hero is always on', () => {
-    assert.equal(isAlwaysOn('hero'), true)
-  })
-
-  test('disclaimer is always on', () => {
-    assert.equal(isAlwaysOn('disclaimer'), true)
-  })
-
-  test('pricing is NOT always on (F3 fix)', () => {
-    assert.equal(isAlwaysOn('pricing'), false)
-  })
-
-  test('bio is NOT always on', () => {
-    assert.equal(isAlwaysOn('bio'), false)
-  })
-
-  test('pillars is NOT always on', () => {
-    assert.equal(isAlwaysOn('pillars'), false)
-  })
-
-  test('faq is NOT always on', () => {
-    assert.equal(isAlwaysOn('faq'), false)
-  })
-
-  test('testimonials is NOT always on', () => {
-    assert.equal(isAlwaysOn('testimonials'), false)
-  })
+test('ALWAYS_ON sections stay limited to hero and disclaimer', () => {
+  assert.deepStrictEqual(COACH_PAGE_ALWAYS_ON_SECTIONS, ['hero', 'disclaimer'])
+  assert.equal(isCoachPageAlwaysOnSection('hero'), true)
+  assert.equal(isCoachPageAlwaysOnSection('disclaimer'), true)
+  assert.equal(isCoachPageAlwaysOnSection('pricing'), false)
 })
 
-// ── Section toggle logic ──
-
-describe('YC3.1 — isSectionOn logic', () => {
-  const ALWAYS_ON_SECTIONS = ['hero', 'disclaimer']
-
-  function isSectionOn(section: string, config: Record<string, boolean>): boolean {
-    if (ALWAYS_ON_SECTIONS.includes(section)) return true
-    return config[section] !== false
-  }
-
-  test('hero always on even if config says false', () => {
-    assert.equal(isSectionOn('hero', { hero: false }), true)
-  })
-
-  test('disclaimer always on even if config says false', () => {
-    assert.equal(isSectionOn('disclaimer', { disclaimer: false }), true)
-  })
-
-  test('pillars on when absent from config (defaults true)', () => {
-    assert.equal(isSectionOn('pillars', {}), true)
-  })
-
-  test('pillars off when config says false', () => {
-    assert.equal(isSectionOn('pillars', { pillars: false }), false)
-  })
-
-  test('pillars on when config says true', () => {
-    assert.equal(isSectionOn('pillars', { pillars: true }), true)
-  })
+test('inline editor sections stay aligned with the provider editor forms', () => {
+  assert.deepStrictEqual(COACH_PAGE_INLINE_EDITOR_SECTIONS, [
+    'pillars',
+    'faq',
+    'benefits',
+    'howItWorks',
+    'educationalContent',
+    'problemStatement'
+  ])
+  assert.equal(isCoachPageInlineEditorSection('pillars'), true)
+  assert.equal(isCoachPageInlineEditorSection('bio'), false)
 })
 
-// ── Editable vs external sections (F2) ──
-
-describe('YC3.1 — editable vs external sections', () => {
-  const EDITABLE_SECTIONS = ['pillars', 'faq', 'benefits', 'howItWorks', 'educationalContent', 'problemStatement']
-  const EXTERNAL_SECTIONS = ['bio', 'testimonials']
-
-  test('bio is external (edited on /provider/account)', () => {
-    assert.equal(EXTERNAL_SECTIONS.includes('bio'), true)
-    assert.equal(EDITABLE_SECTIONS.includes('bio'), false)
-  })
-
-  test('testimonials is external (edited on /provider/account)', () => {
-    assert.equal(EXTERNAL_SECTIONS.includes('testimonials'), true)
-    assert.equal(EDITABLE_SECTIONS.includes('testimonials'), false)
-  })
-
-  test('pillars is editable (inline form)', () => {
-    assert.equal(EDITABLE_SECTIONS.includes('pillars'), true)
-    assert.equal(EXTERNAL_SECTIONS.includes('pillars'), false)
-  })
-
-  test('faq is editable (inline form)', () => {
-    assert.equal(EDITABLE_SECTIONS.includes('faq'), true)
-  })
-
-  test('no section is both editable and external', () => {
-    const overlap = EDITABLE_SECTIONS.filter(s => EXTERNAL_SECTIONS.includes(s))
-    assert.deepStrictEqual(overlap, [])
-  })
+test('emotionalSupport is treated as a nested section, not a top-level toggle/editor card', () => {
+  assert.equal(isCoachPageNestedEditorSection('emotionalSupport'), true)
+  assert.equal(supportsEmotionalSupportSection(signatureSections), true)
+  assert.equal(supportsEmotionalSupportSection(essentielSections), false)
 })
 
-// ── Template error codes (F4) ──
-
-describe('YC3.1 — template error handling', () => {
-  test('TEMPLATE_NOT_AVAILABLE is a known error code', () => {
-    const knownCodes = ['TEMPLATE_NOT_AVAILABLE']
-    assert.equal(knownCodes.includes('TEMPLATE_NOT_AVAILABLE'), true)
-  })
+test('configurable sections hide nested emotionalSupport while keeping pricing configurable', () => {
+  assert.deepStrictEqual(getCoachPageConfigurableSections(signatureSections), [
+    'hero',
+    'bio',
+    'pillars',
+    'faq',
+    'testimonials',
+    'benefits',
+    'howItWorks',
+    'educationalContent',
+    'problemStatement',
+    'pricing',
+    'disclaimer'
+  ])
 })
 
-// ── EmotionalSupport in PillarsJson (F1) ──
+test('editable sections exclude hero, disclaimer and nested emotionalSupport', () => {
+  assert.deepStrictEqual(getCoachPageEditableSections(signatureSections), [
+    'bio',
+    'pillars',
+    'faq',
+    'testimonials',
+    'benefits',
+    'howItWorks',
+    'educationalContent',
+    'problemStatement',
+    'pricing'
+  ])
+})
 
-describe('YC3.1 — emotionalSupport structure', () => {
-  interface EmotionalSupport {
-    icon?: string
-    title: string
-    description: string
-  }
-
-  interface PillarsJson {
-    items: Array<{ title: string, description: string }>
-    emotionalSupport?: EmotionalSupport
-  }
-
-  test('pillarsJson can have emotionalSupport', () => {
-    const pillars: PillarsJson = {
-      items: [{ title: 'Pilier 1', description: 'Description' }],
-      emotionalSupport: { title: 'Soutien', description: 'Texte' }
-    }
-    assert.equal(pillars.emotionalSupport?.title, 'Soutien')
+test('external editor links point to the right screens', () => {
+  assert.deepStrictEqual(getCoachPageExternalEditorSection('bio'), {
+    label: 'Modifiable dans Mon compte',
+    to: '/provider/account'
   })
 
-  test('pillarsJson without emotionalSupport is valid', () => {
-    const pillars: PillarsJson = {
-      items: [{ title: 'Pilier 1', description: 'Description' }]
-    }
-    assert.equal(pillars.emotionalSupport, undefined)
+  assert.deepStrictEqual(getCoachPageExternalEditorSection('testimonials'), {
+    label: 'Modifiable dans Mon compte',
+    to: '/provider/account'
+  })
+
+  assert.deepStrictEqual(getCoachPageExternalEditorSection('pricing'), {
+    label: 'Modifiable dans Mes tarifs',
+    to: '/provider/scheduling'
+  })
+
+  assert.equal(getCoachPageExternalEditorSection('pillars'), null)
+})
+
+test('template save error toast maps TEMPLATE_NOT_AVAILABLE to an explicit message', () => {
+  assert.deepStrictEqual(getCoachPageTemplateSaveErrorToast('TEMPLATE_NOT_AVAILABLE'), {
+    title: 'Ce template n\'est pas disponible pour votre compte',
+    description: 'Contactez l\'équipe Keova pour y accéder.'
+  })
+
+  assert.deepStrictEqual(getCoachPageTemplateSaveErrorToast('UNKNOWN'), {
+    title: 'Erreur lors du changement de template'
   })
 })
