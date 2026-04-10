@@ -65,6 +65,10 @@ export function mapProfileToSchemaRefs(
     credentials: Ref<Array<{ title: string, institution?: string, year?: number }>>
     sameAs: Ref<string[]>
     city: Ref<string | undefined>
+  },
+  options?: {
+    /** YC2.4: white-label domain to add as sameAs (hub → WL cross-reference) */
+    whiteLabeldomain?: string | null
   }
 ): void {
   if (!profile) return
@@ -83,6 +87,9 @@ export function mapProfileToSchemaRefs(
   }
 
   const sameAsUrls: string[] = []
+  // YC2.4: cross-reference WL domain in Person.sameAs (AC-6)
+  const wlDomain = options?.whiteLabeldomain?.trim()
+  if (wlDomain) sameAsUrls.push(`https://${wlDomain}`)
   if (profile.socialLinks.linkedin) sameAsUrls.push(profile.socialLinks.linkedin)
   if (profile.socialLinks.instagram) sameAsUrls.push(profile.socialLinks.instagram)
   if (profile.socialLinks.website) sameAsUrls.push(profile.socialLinks.website)

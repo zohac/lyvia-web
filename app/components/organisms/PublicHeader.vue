@@ -112,8 +112,9 @@ function closeMobileMenu() {
             </template>
           </ULink>
 
-          <!-- CTA — branded gradient for marketing, solid for coach -->
+          <!-- CTA — branded gradient for marketing, solid for coach (hidden when ctaLabel empty — F4 YC2.4) -->
           <ULink
+            v-if="headerState.ctaLabel"
             :to="headerState.ctaTo"
             :class="[
               'dock-cta group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white hover:text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg',
@@ -179,9 +180,9 @@ function closeMobileMenu() {
                 class="sr-only"
               >{{ headerState.loginLabel }}</span>
             </ULink>
-            <!-- Mobile CTA full-width (coach/white-label variant) -->
+            <!-- Mobile CTA full-width (coach/white-label variant, hidden when ctaLabel empty — F4 YC2.4) -->
             <ULink
-              v-if="useIconOnlyLogin"
+              v-if="useIconOnlyLogin && headerState.ctaLabel"
               :to="headerState.ctaTo"
               class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-400)] px-6 py-3 text-sm font-semibold text-white shadow-md"
               @click="closeMobileMenu"
@@ -264,6 +265,7 @@ function closeMobileMenu() {
             </ULink>
 
             <UButton
+              v-if="headerState.ctaLabel"
               :to="headerState.ctaTo"
               size="lg"
               class="rounded-full bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-400)] px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
