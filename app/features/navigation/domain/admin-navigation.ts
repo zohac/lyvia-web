@@ -47,6 +47,12 @@ export const ADMIN_NAVIGATION: AdminNavigationConfig = {
           to: '/admin/tools',
           icon: 'lucide:wrench',
           match: 'prefix'
+        },
+        {
+          label: 'Design System',
+          to: '/admin/design-system',
+          icon: 'lucide:palette',
+          match: 'exact'
         }
       ]
     }
