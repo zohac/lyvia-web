@@ -50,10 +50,23 @@ const {
   saveBenefits,
   saveHowItWorks,
   saveEducationalContent,
-  saveProblemStatement
+  saveProblemStatement,
+  setBenefitsVisionIntro,
+  setBenefitsVisionText,
+  addBenefit,
+  removeBenefit,
+  addEducationalParagraph,
+  removeEducationalParagraph,
+  setEducationalInsightTitle,
+  setEducationalInsightContent,
+  setProblemStatementBlockquote,
+  addProblemParagraph,
+  removeProblemParagraph
 } = useCoachPageEditor()
 
 onMounted(() => init())
+
+const PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH = 500
 
 // ── Section labels ──
 const SECTION_LABELS: Record<string, string> = {
@@ -132,18 +145,6 @@ async function onSaveFaq() {
   toast.add({ title: ok ? 'FAQ sauvegardée' : 'Erreur de sauvegarde', color: ok ? 'primary' : 'error' })
 }
 
-// ── Benefits ──
-function addBenefit() {
-  if (!benefitsForm.value) {
-    benefitsForm.value = { items: [] }
-  }
-  benefitsForm.value.items.push({ title: '', description: '' })
-}
-
-function removeBenefit(index: number) {
-  benefitsForm.value?.items.splice(index, 1)
-}
-
 async function onSaveBenefits() {
   const ok = await saveBenefits()
   toast.add({ title: ok ? 'Bénéfices sauvegardés' : 'Erreur de sauvegarde', color: ok ? 'primary' : 'error' })
@@ -167,33 +168,9 @@ async function onSaveHowItWorks() {
   toast.add({ title: ok ? 'Étapes sauvegardées' : 'Erreur de sauvegarde', color: ok ? 'primary' : 'error' })
 }
 
-// ── Educational content ──
-function addParagraph() {
-  if (!educationalContentForm.value) {
-    educationalContentForm.value = { paragraphs: [] }
-  }
-  educationalContentForm.value.paragraphs.push('')
-}
-
-function removeParagraph(index: number) {
-  educationalContentForm.value?.paragraphs.splice(index, 1)
-}
-
 async function onSaveEducationalContent() {
   const ok = await saveEducationalContent()
   toast.add({ title: ok ? 'Contenu éducatif sauvegardé' : 'Erreur de sauvegarde', color: ok ? 'primary' : 'error' })
-}
-
-// ── Problem statement ──
-function addProblemParagraph() {
-  if (!problemStatementForm.value) {
-    problemStatementForm.value = { blockquote: '', paragraphs: [] }
-  }
-  problemStatementForm.value.paragraphs.push('')
-}
-
-function removeProblemParagraph(index: number) {
-  problemStatementForm.value?.paragraphs.splice(index, 1)
 }
 
 async function onSaveProblemStatement() {
@@ -543,20 +520,14 @@ function externalSection(section: string) {
                 :model-value="benefitsForm?.visionIntro ?? ''"
                 placeholder="Introduction vision (optionnel)"
                 size="sm"
-                @update:model-value="(v: string) => {
-                  if (!benefitsForm) benefitsForm = { items: [] }
-                  benefitsForm.visionIntro = v || undefined
-                }"
+                @update:model-value="setBenefitsVisionIntro"
               />
               <UTextarea
                 :model-value="benefitsForm?.visionText ?? ''"
                 placeholder="Texte vision (optionnel)"
                 :rows="2"
                 size="sm"
-                @update:model-value="(v: string) => {
-                  if (!benefitsForm) benefitsForm = { items: [] }
-                  benefitsForm.visionText = v || undefined
-                }"
+                @update:model-value="setBenefitsVisionText"
               />
             </div>
             <div class="space-y-4">
@@ -699,7 +670,7 @@ function externalSection(section: string) {
                 <button
                   type="button"
                   class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
-                  @click="removeParagraph(idx)"
+                  @click="removeEducationalParagraph(idx)"
                 >
                   <UIcon
                     name="i-lucide-x"
@@ -722,7 +693,7 @@ function externalSection(section: string) {
               size="sm"
               icon="i-lucide-plus"
               :disabled="(educationalContentForm?.paragraphs?.length ?? 0) >= 10"
-              @click="addParagraph"
+              @click="addEducationalParagraph"
             >
               Ajouter un paragraphe
             </UButton>
@@ -737,22 +708,14 @@ function externalSection(section: string) {
                   :model-value="educationalContentForm?.insightBox?.title ?? ''"
                   placeholder="Titre de l'encadré"
                   size="sm"
-                  @update:model-value="(v: string) => {
-                    if (!educationalContentForm) educationalContentForm = { paragraphs: [] }
-                    if (!educationalContentForm.insightBox) educationalContentForm.insightBox = { title: '', content: '' }
-                    educationalContentForm.insightBox.title = v
-                  }"
+                  @update:model-value="setEducationalInsightTitle"
                 />
                 <UTextarea
                   :model-value="educationalContentForm?.insightBox?.content ?? ''"
                   placeholder="Contenu de l'encadré"
                   :rows="2"
                   size="sm"
-                  @update:model-value="(v: string) => {
-                    if (!educationalContentForm) educationalContentForm = { paragraphs: [] }
-                    if (!educationalContentForm.insightBox) educationalContentForm.insightBox = { title: '', content: '' }
-                    educationalContentForm.insightBox.content = v
-                  }"
+                  @update:model-value="setEducationalInsightContent"
                 />
               </div>
             </div>
@@ -781,12 +744,7 @@ function externalSection(section: string) {
                 :maxlength="2000"
                 :rows="3"
                 size="sm"
-                @update:model-value="(v: string) => {
-                  if (!problemStatementForm) {
-                    problemStatementForm = { blockquote: '', paragraphs: [] }
-                  }
-                  problemStatementForm.blockquote = v
-                }"
+                @update:model-value="setProblemStatementBlockquote"
               />
             </div>
 
@@ -812,8 +770,8 @@ function externalSection(section: string) {
                 </button>
                 <UTextarea
                   v-model="problemStatementForm!.paragraphs[idx]"
-                  :placeholder="`Paragraphe ${idx + 1} (max 2000 caractères)`"
-                  :maxlength="2000"
+                  :placeholder="`Paragraphe ${idx + 1} (max ${PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH} caractères)`"
+                  :maxlength="PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH"
                   :rows="3"
                   size="sm"
                 />
