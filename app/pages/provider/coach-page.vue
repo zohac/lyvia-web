@@ -185,6 +185,17 @@ async function onSaveEducationalContent() {
 }
 
 // ── Problem statement ──
+function addProblemParagraph() {
+  if (!problemStatementForm.value) {
+    problemStatementForm.value = { blockquote: '', paragraphs: [] }
+  }
+  problemStatementForm.value.paragraphs.push('')
+}
+
+function removeProblemParagraph(index: number) {
+  problemStatementForm.value?.paragraphs.splice(index, 1)
+}
+
 async function onSaveProblemStatement() {
   const ok = await saveProblemStatement()
   toast.add({ title: ok ? 'Énoncé sauvegardé' : 'Erreur de sauvegarde', color: ok ? 'primary' : 'error' })
@@ -532,14 +543,20 @@ function externalSection(section: string) {
                 :model-value="benefitsForm?.visionIntro ?? ''"
                 placeholder="Introduction vision (optionnel)"
                 size="sm"
-                @update:model-value="(v: string) => { if (benefitsForm) benefitsForm.visionIntro = v || undefined }"
+                @update:model-value="(v: string) => {
+                  if (!benefitsForm) benefitsForm = { items: [] }
+                  benefitsForm.visionIntro = v || undefined
+                }"
               />
               <UTextarea
                 :model-value="benefitsForm?.visionText ?? ''"
                 placeholder="Texte vision (optionnel)"
                 :rows="2"
                 size="sm"
-                @update:model-value="(v: string) => { if (benefitsForm) benefitsForm.visionText = v || undefined }"
+                @update:model-value="(v: string) => {
+                  if (!benefitsForm) benefitsForm = { items: [] }
+                  benefitsForm.visionText = v || undefined
+                }"
               />
             </div>
             <div class="space-y-4">
@@ -570,6 +587,12 @@ function externalSection(section: string) {
                     :maxlength="300"
                     :rows="2"
                     size="sm"
+                  />
+                  <UInput
+                    :model-value="item.icon ?? ''"
+                    placeholder="Icône (ex: i-lucide-heart) — par défaut : sparkles"
+                    size="sm"
+                    @update:model-value="(v: string) => { item.icon = v || undefined }"
                   />
                 </div>
               </div>
@@ -715,7 +738,7 @@ function externalSection(section: string) {
                   placeholder="Titre de l'encadré"
                   size="sm"
                   @update:model-value="(v: string) => {
-                    if (!educationalContentForm) return
+                    if (!educationalContentForm) educationalContentForm = { paragraphs: [] }
                     if (!educationalContentForm.insightBox) educationalContentForm.insightBox = { title: '', content: '' }
                     educationalContentForm.insightBox.title = v
                   }"
@@ -726,7 +749,7 @@ function externalSection(section: string) {
                   :rows="2"
                   size="sm"
                   @update:model-value="(v: string) => {
-                    if (!educationalContentForm) return
+                    if (!educationalContentForm) educationalContentForm = { paragraphs: [] }
                     if (!educationalContentForm.insightBox) educationalContentForm.insightBox = { title: '', content: '' }
                     educationalContentForm.insightBox.content = v
                   }"
@@ -766,6 +789,47 @@ function externalSection(section: string) {
                 }"
               />
             </div>
+
+            <!-- Paragraphs under the blockquote -->
+            <h3 class="mb-3 mt-6 text-sm font-semibold text-[color:var(--color-text-primary)]">
+              Paragraphes explicatifs (optionnel)
+            </h3>
+            <div class="space-y-4">
+              <div
+                v-for="(_, idx) in (problemStatementForm?.paragraphs ?? [])"
+                :key="idx"
+                class="relative"
+              >
+                <button
+                  type="button"
+                  class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
+                  @click="removeProblemParagraph(idx)"
+                >
+                  <UIcon
+                    name="i-lucide-x"
+                    class="size-4"
+                  />
+                </button>
+                <UTextarea
+                  v-model="problemStatementForm!.paragraphs[idx]"
+                  :placeholder="`Paragraphe ${idx + 1} (max 2000 caractères)`"
+                  :maxlength="2000"
+                  :rows="3"
+                  size="sm"
+                />
+              </div>
+            </div>
+            <UButton
+              class="mt-4"
+              color="neutral"
+              variant="outline"
+              size="sm"
+              icon="i-lucide-plus"
+              :disabled="(problemStatementForm?.paragraphs?.length ?? 0) >= 10"
+              @click="addProblemParagraph"
+            >
+              Ajouter un paragraphe
+            </UButton>
           </template>
         </section>
       </template>

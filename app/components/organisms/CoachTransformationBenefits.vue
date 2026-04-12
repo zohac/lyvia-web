@@ -9,7 +9,14 @@ const { reveal } = useScrollReveal()
 // P-Y3: no fallback content at organism level.
 // The parent template is responsible for mounting this component only when
 // benefits.items is non-empty (visibility rule = toggle AND content non-empty).
-const displayBenefits = computed(() => props.benefits?.items ?? [])
+const DEFAULT_BENEFIT_ICON = 'i-lucide-sparkles'
+
+const displayBenefits = computed(() =>
+  (props.benefits?.items ?? []).map(item => ({
+    ...item,
+    icon: item.icon || DEFAULT_BENEFIT_ICON
+  }))
+)
 const visionIntro = computed(() => props.benefits?.visionIntro ?? null)
 const visionText = computed(() => props.benefits?.visionText ?? null)
 </script>
