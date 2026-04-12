@@ -1,4 +1,6 @@
 import * as assert from 'node:assert/strict'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import test from 'node:test'
 
 import {
@@ -6,16 +8,18 @@ import {
   getAdminNavigationItems
 } from '../../app/features/navigation/domain/admin-navigation'
 
+const appRoot = path.resolve(process.cwd(), 'app')
+
 // ═══════════════════════════════════════════════════════════
 // YC3.2 — Admin templates navigation
 // ═══════════════════════════════════════════════════════════
 
 test('YC3.2: admin navigation includes Templates pages link', () => {
   const items = getAdminNavigationItems()
-  const templatesItem = items.find((i) => i.to === '/admin/coach-templates')
+  const templatesItem = items.find(i => i.to === '/admin/coach-templates')
 
   assert.ok(templatesItem, 'Templates pages nav item should exist')
-  if (!templatesItem) return
+  if (!templatesItem) return // TS narrowing
   assert.equal(templatesItem.label, 'Templates pages')
   assert.equal(templatesItem.icon, 'lucide:layout-template')
   assert.equal(templatesItem.match, 'prefix')
@@ -88,4 +92,69 @@ test('YC3.2: empty array does not count as filled', () => {
   const val: unknown[] = []
   const filled = Array.isArray(val) && val.length > 0
   assert.equal(filled, false)
+})
+
+// ═══════════════════════════════════════════════════════════
+// R2-F1 — bio section counts longBio
+// ═══════════════════════════════════════════════════════════
+
+function isBioFilled(bio: string | null, longBio: string | null): boolean {
+  if (bio && bio.trim().length > 0) return true
+  if (longBio && longBio.trim().length > 0) return true
+  return false
+}
+
+test('R2-F1: bio counts as filled when only longBio has content', () => {
+  assert.equal(isBioFilled(null, 'Sophie accompagne les femmes en perimenopause...'), true)
+})
+
+test('R2-F1: bio counts as filled when only bio has content', () => {
+  assert.equal(isBioFilled('Coach certifiee', null), true)
+})
+
+test('R2-F1: bio counts as NOT filled when both are null', () => {
+  assert.equal(isBioFilled(null, null), false)
+})
+
+test('R2-F1: bio counts as NOT filled when both are empty strings', () => {
+  assert.equal(isBioFilled('', '   '), false)
+})
+
+// ═══════════════════════════════════════════════════════════
+// R2-F2 — Screen structure tests
+// ═══════════════════════════════════════════════════════════
+
+test('R2-F2: admin coach-templates page uses UTable and USlideover', () => {
+  const source = fs.readFileSync(path.join(appRoot, 'pages/admin/coach-templates.vue'), 'utf-8')
+
+  assert.ok(source.includes('<UTable'), 'Page should use UTable')
+  assert.ok(source.includes('<USlideover'), 'Page should use USlideover for edit')
+  assert.ok(source.includes('ADMIN_TABLE_CLASSES'), 'Table should use admin styling')
+  assert.ok(source.includes('getStatusBadgeClasses'), 'Should use status badges')
+})
+
+test('R2-F2: admin coach-templates page has provider USelect in slideover', () => {
+  const source = fs.readFileSync(path.join(appRoot, 'pages/admin/coach-templates.vue'), 'utf-8')
+
+  assert.ok(source.includes('<USelect'), 'Slideover should use USelect for provider')
+  assert.ok(source.includes('providerOptions'), 'Should load provider options')
+  assert.ok(source.includes('loadProviders'), 'Should fetch providers lazily')
+  assert.equal(source.includes('placeholder="UUID provider'), false, 'Should NOT have raw UUID placeholder')
+})
+
+test('R2-F2: admin provider detail has coach-page tab with public link and fill rate', () => {
+  const source = fs.readFileSync(path.join(appRoot, 'pages/admin/providers/[id].vue'), 'utf-8')
+
+  assert.ok(source.includes('#coach-page'), 'Should have coach-page tab slot')
+  assert.ok(source.includes('coachPageFillRate'), 'Should display fill rate')
+  assert.ok(source.includes('coachPageTemplateName'), 'Should display template name')
+  assert.ok(source.includes('Voir la page publique'), 'Should have public page link')
+  assert.ok(source.includes('Aucun slug'), 'Should handle missing slug')
+})
+
+test('R2-F2: admin coach-templates page handles toggle active/inactive', () => {
+  const source = fs.readFileSync(path.join(appRoot, 'pages/admin/coach-templates.vue'), 'utf-8')
+
+  assert.ok(source.includes('toggleActive'), 'Should have toggle function')
+  assert.ok(source.includes('isActive: !tmpl.isActive'), 'Toggle should flip isActive')
 })
