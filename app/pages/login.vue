@@ -112,6 +112,7 @@
                 :aria-label="showPassword ? 'Masquer' : 'Afficher'"
                 :aria-pressed="showPassword"
                 aria-controls="password"
+                class="pointer-events-auto"
                 @click="showPassword = !showPassword"
               />
             </template>

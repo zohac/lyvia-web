@@ -85,6 +85,7 @@
               :aria-label="showNewPassword ? 'Masquer' : 'Afficher'"
               :aria-pressed="showNewPassword"
               aria-controls="new-password"
+              class="pointer-events-auto"
               @click="showNewPassword = !showNewPassword"
             />
           </template>
@@ -122,6 +123,7 @@
               :aria-label="showConfirmPassword ? 'Masquer' : 'Afficher'"
               :aria-pressed="showConfirmPassword"
               aria-controls="confirm-password"
+              class="pointer-events-auto"
               @click="showConfirmPassword = !showConfirmPassword"
             />
           </template>
