@@ -43,6 +43,12 @@ export const ADMIN_NAVIGATION: AdminNavigationConfig = {
           match: 'prefix'
         },
         {
+          label: 'Templates pages',
+          to: '/admin/coach-templates',
+          icon: 'lucide:layout-template',
+          match: 'prefix'
+        },
+        {
           label: 'Outils',
           to: '/admin/tools',
           icon: 'lucide:wrench',

@@ -73,6 +73,11 @@ type AdminProviderDetail = {
   clientsCount: number
   createdAt: string
   updatedAt: string
+  // Coach page (YC3.2)
+  coachPageTemplateName: string | null
+  sectionsConfig: Record<string, boolean>
+  sectionsAvailable: string[]
+  coachPageFillRate: number
 }
 
 type DeactivationImpact = {
@@ -165,6 +170,7 @@ const tabItems = [
   { label: 'Profil', icon: 'i-lucide-user', slot: 'profil' as const },
   { label: 'Stripe Connect', icon: 'i-lucide-credit-card', slot: 'stripe' as const },
   { label: 'Offres', icon: 'i-lucide-package', slot: 'programs' as const },
+  { label: 'Page coach', icon: 'i-lucide-layout-template', slot: 'coach-page' as const },
   { label: 'Référencement', icon: 'i-lucide-globe', slot: 'seo' as const }
 ] satisfies TabsItem[]
 
@@ -1234,6 +1240,80 @@ const SEO_TARGET_ICONS: Record<string, string> = {
                   </div>
                 </div>
               </section>
+            </div>
+          </div>
+        </template>
+
+        <template #coach-page>
+          <div
+            v-if="detail"
+            class="space-y-6"
+          >
+            <!-- Template info -->
+            <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6">
+              <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                Template sélectionné
+              </h3>
+              <p class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                {{ detail.coachPageTemplateName ?? 'Aucun template' }}
+              </p>
+            </div>
+
+            <!-- Fill rate -->
+            <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6">
+              <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                Taux de remplissage
+              </h3>
+              <div class="flex items-center gap-4">
+                <div class="h-3 flex-1 overflow-hidden rounded-full bg-[color:var(--color-neutral-100)]">
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    :class="[
+                      detail.coachPageFillRate >= 75
+                        ? 'bg-[color:var(--color-success-500)]'
+                        : detail.coachPageFillRate >= 40
+                          ? 'bg-[color:var(--color-sunset-500)]'
+                          : 'bg-[color:var(--color-error-500)]'
+                    ]"
+                    :style="{ width: `${detail.coachPageFillRate}%` }"
+                  />
+                </div>
+                <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                  {{ detail.coachPageFillRate }}%
+                </span>
+              </div>
+            </div>
+
+            <!-- Sections -->
+            <div
+              v-if="detail.sectionsAvailable.length > 0"
+              class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6"
+            >
+              <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                Sections activées
+              </h3>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="section in detail.sectionsAvailable"
+                  :key="section"
+                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
+                  :class="[
+                    detail.sectionsConfig[section] !== false
+                      ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]'
+                      : 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
+                  ]"
+                >
+                  <span
+                    class="h-1.5 w-1.5 rounded-full"
+                    :class="[
+                      detail.sectionsConfig[section] !== false
+                        ? 'bg-[color:var(--color-success-500)]'
+                        : 'bg-[color:var(--color-neutral-400)]'
+                    ]"
+                  />
+                  {{ section }}
+                </span>
+              </div>
             </div>
           </div>
         </template>

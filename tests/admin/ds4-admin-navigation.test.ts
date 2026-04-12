@@ -20,19 +20,18 @@ function readAppFile(relativePath: string): string {
   return fs.readFileSync(path.join(appRoot, relativePath), 'utf-8')
 }
 
-test('DS4.2: admin navigation exposes exactly 4 visible entries', () => {
+test('DS4.2: admin navigation exposes exactly 5 visible entries', () => {
   const labels = getAdminNavigationItems().map(item => item.label)
 
-  assert.deepStrictEqual(labels, ['Dashboard', 'Providers', 'Clients', 'Outils'])
-  assert.equal(labels.length, 4)
+  assert.deepStrictEqual(labels, ['Dashboard', 'Providers', 'Clients', 'Templates pages', 'Outils', 'Design System'])
+  assert.equal(labels.length, 6)
   assert.equal(ADMIN_NAVIGATION.home.to, '/admin/dashboard')
 })
 
-test('DS4.2: admin navigation no longer exposes SEO or Design System as visible items', () => {
+test('DS4.2: admin navigation no longer exposes SEO as visible item', () => {
   const labels = getAdminNavigationItems().map(item => item.label)
 
   assert.equal(labels.includes('SEO'), false)
-  assert.equal(labels.includes('Design System'), false)
 })
 
 test('DS4.2: admin tools tabs stay explicit and stable', () => {
