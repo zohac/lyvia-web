@@ -7,11 +7,11 @@ import {
   shouldLoadClarity,
   shouldFetchClarityProfile,
   type ClarityProfile
-} from '../../app/plugins/microsoft-clarity-helpers'
+} from '../../app/features/clarity/microsoft-clarity-helpers'
 import {
   injectClarityTag,
   runMicrosoftClarityMounted
-} from '../../app/plugins/microsoft-clarity-runtime'
+} from '../../app/features/clarity/microsoft-clarity-runtime'
 
 type MockScript = {
   async: boolean

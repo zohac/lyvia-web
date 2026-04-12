@@ -17,11 +17,11 @@ import { COOKIE_CONSENT_NAME, type ConsentValue } from '../features/consent/cons
 import {
   resolveClarityContext,
   type ClarityProfile
-} from './microsoft-clarity-helpers'
+} from '../features/clarity/microsoft-clarity-helpers'
 import {
   injectClarityTag,
   runMicrosoftClarityMounted
-} from './microsoft-clarity-runtime'
+} from '../features/clarity/microsoft-clarity-runtime'
 
 export default defineNuxtPlugin(() => {
   const route = useRoute()
