@@ -1249,14 +1249,35 @@ const SEO_TARGET_ICONS: Record<string, string> = {
             v-if="detail"
             class="space-y-6"
           >
-            <!-- Template info -->
+            <!-- Template info + public link (F1) -->
             <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6">
-              <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
-                Template sélectionné
-              </h3>
-              <p class="text-lg font-semibold text-[color:var(--color-text-primary)]">
-                {{ detail.coachPageTemplateName ?? 'Aucun template' }}
-              </p>
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="mb-2 text-sm font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                    Template sélectionné
+                  </h3>
+                  <p class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                    {{ detail.coachPageTemplateName ?? 'Aucun template' }}
+                  </p>
+                </div>
+                <UButton
+                  v-if="detail.slug"
+                  :to="`/coach/${detail.slug}`"
+                  target="_blank"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  trailing-icon="i-lucide-external-link"
+                >
+                  Voir la page publique
+                </UButton>
+                <span
+                  v-else
+                  class="text-xs text-[color:var(--color-text-muted)]"
+                >
+                  Aucun slug configuré
+                </span>
+              </div>
             </div>
 
             <!-- Fill rate -->

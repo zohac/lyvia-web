@@ -29,11 +29,40 @@ type AdminTemplate = {
   createdAt: string
 }
 
+type ProviderOption = {
+  id: string
+  displayName: string
+}
+
+type AdminProvidersResponse = {
+  items: ProviderOption[]
+}
+
 // ── Data ──
 const { data: templates, pending, refresh } = await useAsyncData<AdminTemplate[]>(
   'admin-coach-templates',
   () => apiFetch<AdminTemplate[]>('/admin/coach-page-templates')
 )
+
+// Fetch providers for the exclusive select
+const providerOptions = ref<{ label: string, value: string }[]>([])
+const providersLoaded = ref(false)
+
+async function loadProviders() {
+  if (providersLoaded.value) return
+  try {
+    const res = await apiFetch<AdminProvidersResponse>('/admin/providers', {
+      params: { limit: '200' }
+    })
+    providerOptions.value = [
+      { label: 'Aucun (tous les coaches)', value: '' },
+      ...res.items.map(p => ({ label: p.displayName, value: p.id }))
+    ]
+    providersLoaded.value = true
+  } catch {
+    providerOptions.value = [{ label: 'Aucun (tous les coaches)', value: '' }]
+  }
+}
 
 // ── Slideover state ──
 const slideoverOpen = ref(false)
@@ -47,7 +76,7 @@ const editForm = reactive({
   exclusiveProviderId: ''
 })
 
-function openEdit(tmpl: AdminTemplate) {
+async function openEdit(tmpl: AdminTemplate) {
   editingTemplate.value = tmpl
   editForm.name = tmpl.name
   editForm.description = tmpl.description ?? ''
@@ -55,6 +84,7 @@ function openEdit(tmpl: AdminTemplate) {
   editForm.isActive = tmpl.isActive
   editForm.exclusiveProviderId = tmpl.exclusiveProviderId ?? ''
   slideoverOpen.value = true
+  await loadProviders()
 }
 
 async function saveEdit() {
@@ -292,10 +322,13 @@ const columns: TableColumn<AdminTemplate>[] = [
             />
           </UFormField>
 
-          <UFormField label="Provider exclusif (UUID)">
-            <UInput
+          <UFormField label="Provider exclusif">
+            <USelect
               v-model="editForm.exclusiveProviderId"
-              placeholder="UUID provider (optionnel)"
+              :items="providerOptions"
+              value-key="value"
+              label-key="label"
+              placeholder="Sélectionner un provider (optionnel)"
             />
           </UFormField>
 
