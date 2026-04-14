@@ -1,7 +1,5 @@
 import {
-  shouldFetchClarityProfile,
   shouldLoadClarity,
-  type ClarityProfile,
   type ClarityResolution
 } from './microsoft-clarity-helpers'
 
@@ -28,33 +26,6 @@ export function injectClarityTag<TScript extends ClarityScriptElement>(
   script.async = true
   script.src = `https://www.clarity.ms/tag/${clarityId}`
   appendToHead(script)
-}
-
-export async function runMicrosoftClarityMounted(input: {
-  context: ClarityResolution
-  cookieConsent: string | null
-  fetchProfile: (slug: string) => Promise<ClarityProfile>
-  injectClarity: (clarityId: string) => void
-}): Promise<void> {
-  const { context, cookieConsent, fetchProfile, injectClarity } = input
-
-  if (context.clarityId && shouldLoadClarity(context.googleAdsId, cookieConsent)) {
-    injectClarity(context.clarityId)
-    return
-  }
-
-  if (!shouldFetchClarityProfile(context.slug, context.profileResolved)) {
-    return
-  }
-
-  try {
-    const profile = await fetchProfile(context.slug as string)
-    if (profile.microsoftClarityId && shouldLoadClarity(profile.googleAdsId ?? null, cookieConsent)) {
-      injectClarity(profile.microsoftClarityId)
-    }
-  } catch {
-    // Silent fail — no Clarity tracking on this page
-  }
 }
 
 export function mountMicrosoftClarity(input: {

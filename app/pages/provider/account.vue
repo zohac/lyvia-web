@@ -6,6 +6,7 @@ import {
   GOOGLE_ADS_CONVERSION_LABEL_REGEX,
   GOOGLE_ADS_ID_REGEX
 } from '../../features/consent/consent-logic'
+import { CLARITY_ID_REGEX } from '../../features/clarity/microsoft-clarity-helpers'
 import { apiFetch } from '../../services/api/apiFetch'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
 import type { CredentialItem, SocialLinks, TestimonialItem } from '../../features/account/api/provider-account.contract'
@@ -91,7 +92,6 @@ const leadMagnetError = ref<string | null>(null)
 const testimonialsForm = ref<TestimonialItem[]>([])
 
 // ── Marketing form state (Google Ads + Clarity) ─────
-const CLARITY_ID_REGEX = /^[a-z0-9]{6,20}$/
 const marketingForm = reactive({
   googleAdsId: '' as string | undefined,
   googleAdsConversionLabel: '' as string | undefined,

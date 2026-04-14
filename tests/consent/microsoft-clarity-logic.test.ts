@@ -5,12 +5,10 @@ import {
   CLARITY_ID_REGEX,
   resolveClarityContext,
   shouldLoadClarity,
-  shouldFetchClarityProfile,
-  type ClarityProfile
+  shouldFetchClarityProfile
 } from '../../app/features/clarity/microsoft-clarity-helpers'
 import {
-  injectClarityTag,
-  runMicrosoftClarityMounted
+  injectClarityTag
 } from '../../app/features/clarity/microsoft-clarity-runtime'
 
 type MockScript = {
@@ -227,133 +225,5 @@ describe('Microsoft Clarity runtime (real behavior)', () => {
     assert.equal(appendedScripts.length, 1)
     assert.equal(appendedScripts[0].async, true)
     assert.equal(appendedScripts[0].src, 'https://www.clarity.ms/tag/lz1abc2def')
-  })
-
-  it('loads immediately when Clarity ID is resolved in simple mode', async () => {
-    const injectedIds: string[] = []
-    const fetchCalls: string[] = []
-
-    await runMicrosoftClarityMounted({
-      context: {
-        slug: 'sophie',
-        clarityId: 'lz1abc2def',
-        googleAdsId: null,
-        profileResolved: true
-      },
-      cookieConsent: null,
-      fetchProfile: async (slug: string) => {
-        fetchCalls.push(slug)
-        return {}
-      },
-      injectClarity: (clarityId: string) => {
-        injectedIds.push(clarityId)
-      }
-    })
-
-    assert.deepEqual(injectedIds, ['lz1abc2def'])
-    assert.equal(fetchCalls.length, 0)
-  })
-
-  it('does not inject in full mode without consent', async () => {
-    const injectedIds: string[] = []
-    const fetchCalls: string[] = []
-
-    await runMicrosoftClarityMounted({
-      context: {
-        slug: 'sophie',
-        clarityId: 'lz1abc2def',
-        googleAdsId: 'AW-123456789',
-        profileResolved: true
-      },
-      cookieConsent: 'essential',
-      fetchProfile: async (slug: string) => {
-        fetchCalls.push(slug)
-        return {}
-      },
-      injectClarity: (clarityId: string) => {
-        injectedIds.push(clarityId)
-      }
-    })
-
-    assert.equal(injectedIds.length, 0)
-    assert.equal(fetchCalls.length, 0)
-  })
-
-  it('fetches the public profile only when the slug is known but the profile is not cached', async () => {
-    const injectedIds: string[] = []
-    const fetchCalls: string[] = []
-
-    await runMicrosoftClarityMounted({
-      context: {
-        slug: 'sophie',
-        clarityId: null,
-        googleAdsId: null,
-        profileResolved: false
-      },
-      cookieConsent: 'all',
-      fetchProfile: async (slug: string): Promise<ClarityProfile> => {
-        fetchCalls.push(slug)
-        return {
-          microsoftClarityId: 'lz1abc2def',
-          googleAdsId: 'AW-123456789'
-        }
-      },
-      injectClarity: (clarityId: string) => {
-        injectedIds.push(clarityId)
-      }
-    })
-
-    assert.deepEqual(fetchCalls, ['sophie'])
-    assert.deepEqual(injectedIds, ['lz1abc2def'])
-  })
-
-  it('does not fetch again when the profile is already resolved with no Clarity ID', async () => {
-    const injectedIds: string[] = []
-    const fetchCalls: string[] = []
-
-    await runMicrosoftClarityMounted({
-      context: {
-        slug: 'sophie',
-        clarityId: null,
-        googleAdsId: null,
-        profileResolved: true
-      },
-      cookieConsent: null,
-      fetchProfile: async (slug: string): Promise<ClarityProfile> => {
-        fetchCalls.push(slug)
-        return {
-          microsoftClarityId: 'should-not-run'
-        }
-      },
-      injectClarity: (clarityId: string) => {
-        injectedIds.push(clarityId)
-      }
-    })
-
-    assert.equal(fetchCalls.length, 0)
-    assert.equal(injectedIds.length, 0)
-  })
-
-  it('does not inject fetched Clarity when Google Ads exists and consent is essential', async () => {
-    const injectedIds: string[] = []
-
-    await runMicrosoftClarityMounted({
-      context: {
-        slug: 'sophie',
-        clarityId: null,
-        googleAdsId: null,
-        profileResolved: false
-      },
-      cookieConsent: 'essential',
-      fetchProfile: async (): Promise<ClarityProfile> => ({
-        microsoftClarityId: 'lz1abc2def',
-        googleAdsId: 'AW-123456789'
-      }),
-      injectClarity: (clarityId: string) => {
-        injectedIds.push(clarityId)
-      }
-    })
-
-    assert.equal(injectedIds.length, 0)
   })
 })
