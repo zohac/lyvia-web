@@ -14,7 +14,7 @@ useCommonLayoutHead()
           aria-label="Retour à l'accueil Keova"
         >
           <NuxtImg
-            src="/images/keova-logo.png"
+            src="/images/keova-logo.webp"
             alt=""
             class="h-6 w-auto"
             width="90"

@@ -218,12 +218,12 @@ const columns: TableColumn<AdminTemplate>[] = [
 
 <template>
   <div>
-    <DsPageHeader>
+    <AtomsDsPageHeader>
       Templates pages coaches
       <template #subtitle>
         Gérez le registre de templates et supervisez les pages des coaches.
       </template>
-    </DsPageHeader>
+    </AtomsDsPageHeader>
 
     <!-- Loading -->
     <div
@@ -336,7 +336,7 @@ const columns: TableColumn<AdminTemplate>[] = [
             <span class="text-sm font-medium text-[color:var(--color-text-primary)]">
               Template actif
             </span>
-            <UToggle v-model="editForm.isActive" />
+            <USwitch v-model="editForm.isActive" />
           </div>
         </div>
       </template>

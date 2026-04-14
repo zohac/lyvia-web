@@ -137,6 +137,9 @@
 </template>
 
 <script setup lang="ts">
+import FormControl from '../components/molecules/FormControl.vue'
+import SystemAlert from '../components/atoms/SystemAlert.vue'
+
 definePageMeta({
   layout: 'auth',
   middleware: 'guest-only'

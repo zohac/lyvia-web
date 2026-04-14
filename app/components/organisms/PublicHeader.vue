@@ -48,7 +48,7 @@ function closeMobileMenu() {
         >
           <template v-if="useKeovaLogoImage">
             <NuxtImg
-              src="/images/keova-logo.png"
+              src="/images/keova-logo.webp"
               alt="Keova"
               class="h-10 w-auto sm:h-12"
               width="104"
@@ -213,7 +213,7 @@ function closeMobileMenu() {
           >
             <template v-if="useKeovaLogoImage">
               <NuxtImg
-                src="/images/keova-logo.png"
+                src="/images/keova-logo.webp"
                 alt="Keova"
                 class="h-8 w-auto sm:h-9"
                 width="78"

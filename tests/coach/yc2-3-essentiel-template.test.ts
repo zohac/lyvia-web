@@ -423,8 +423,8 @@ describe('YC2.3 iter 2 — CoachEssentielHeader component', () => {
   test('CoachEssentielHeader uses the Keova image logo', () => {
     const content = readFile(ESSENTIEL_HEADER_PATH)
     assert.ok(
-      /keova-logo\.png/.test(content),
-      'Essentiel header must use keova-logo.png image for brand zone'
+      /keova-logo\.webp/.test(content),
+      'Essentiel header must use keova-logo.webp image for brand zone'
     )
   })
 

@@ -292,7 +292,7 @@ function externalSection(section: string) {
             <span class="text-sm font-medium text-[color:var(--color-text-primary)]">
               {{ sectionLabel(section) }}
             </span>
-            <UToggle
+            <USwitch
               :model-value="isSectionOn(section)"
               :disabled="isAlwaysOn(section)"
               @update:model-value="toggleSection(section)"

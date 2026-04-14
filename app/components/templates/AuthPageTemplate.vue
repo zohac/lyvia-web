@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AuthCard from '../organisms/AuthCard.vue'
+
 withDefaults(
   defineProps<{
     title: string

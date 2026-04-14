@@ -7,7 +7,7 @@
         class="mb-12 inline-flex w-fit items-center justify-center"
       >
         <NuxtImg
-          src="/images/keova-logo.png"
+          src="/images/keova-logo.webp"
           alt="Keova"
           class="h-10 w-auto"
           loading="eager"
@@ -155,6 +155,9 @@ import type { ResetPasswordResponse } from '../features/auth/api/auth.contract'
 import { isPasswordStrong } from '../features/auth/password/password-policy'
 import { apiFetch } from '../services/api/apiFetch'
 import { ApiFetchError, mapAuthErrorCodeToUserMessage } from '../services/api/api-error'
+import FormControl from '../components/molecules/FormControl.vue'
+import PasswordCriteriaList from '../components/molecules/PasswordCriteriaList.vue'
+import SystemAlert from '../components/atoms/SystemAlert.vue'
 
 definePageMeta({
   layout: 'auth'

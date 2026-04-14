@@ -3,6 +3,7 @@ import { useProviderStripeStatus } from '../features/stripe/useProviderStripeSta
 import { useProviderRequestsBadge } from '../features/provider-requests/useProviderRequestsBadge'
 import { useCurrentUser } from '../features/auth/useCurrentUser'
 import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
+import DashboardShell from '../components/templates/DashboardShell.vue'
 
 useCommonLayoutHead()
 useBrandColorInjection()

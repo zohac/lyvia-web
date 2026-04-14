@@ -9,6 +9,8 @@ import {
 import { apiFetch } from '../../services/api/apiFetch'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
 import type { CredentialItem, SocialLinks, TestimonialItem } from '../../features/account/api/provider-account.contract'
+import FormControl from '../../components/molecules/FormControl.vue'
+import SystemAlert from '../../components/atoms/SystemAlert.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -24,7 +26,7 @@ const { changingPassword, requestingEmailChange, changePassword, requestEmailCha
 const personalForm = reactive({
   firstname: '',
   lastname: '',
-  bio: '' as string | null,
+  bio: '',
   specialties: [] as string[]
 })
 const specialtyInput = ref('')
@@ -32,9 +34,9 @@ const specialtyError = ref<string | null>(null)
 
 // ── Professional profile form state ─────────────────
 const profileForm = reactive({
-  longBio: '' as string | null,
-  city: '' as string | null,
-  region: '' as string | null
+  longBio: '',
+  city: '',
+  region: ''
 })
 
 // ── Credentials form state ──────────────────────────
@@ -50,7 +52,7 @@ const socialForm = reactive<SocialLinks>({
 const socialError = ref<string | null>(null)
 
 // ── Public phone form state ─────────────────────────
-const phoneForm = reactive({ publicPhone: '' as string | null })
+const phoneForm = reactive({ publicPhone: '' })
 const phoneValid = computed(() => {
   const p = (phoneForm.publicPhone ?? '').trim()
   return p === '' || /^\+[1-9]\d{6,14}$/.test(p)
@@ -71,10 +73,10 @@ const secondaryPhotoError = ref<string | null>(null)
 const secondaryFileInputRef = ref<HTMLInputElement | null>(null)
 
 // ── Hero headline form state ────────────────────────
-const heroHeadlineForm = reactive({ heroHeadline: '' as string | null })
+const heroHeadlineForm = reactive({ heroHeadline: '' })
 
 // ── Urgency text form state ─────────────────────────
-const urgencyForm = reactive({ urgencyText: '' as string | null })
+const urgencyForm = reactive({ urgencyText: '' })
 
 // ── Lead magnet form state ──────────────────────────
 const leadMagnetForm = reactive({
@@ -147,13 +149,13 @@ function syncFormsFromAccount() {
   // Personal
   personalForm.firstname = acc.firstname
   personalForm.lastname = acc.lastname
-  personalForm.bio = acc.bio
+  personalForm.bio = acc.bio ?? ''
   personalForm.specialties = [...(acc.specialties ?? [])]
 
   // Professional profile
-  profileForm.longBio = acc.longBio
-  profileForm.city = acc.city
-  profileForm.region = acc.region
+  profileForm.longBio = acc.longBio ?? ''
+  profileForm.city = acc.city ?? ''
+  profileForm.region = acc.region ?? ''
 
   // Credentials — preserve verified flag on round-trip (CR1 HIGH fix)
   credentialsForm.value = acc.credentials?.length
@@ -167,13 +169,13 @@ function syncFormsFromAccount() {
   socialForm.website = acc.socialLinks?.website ?? ''
 
   // Phone
-  phoneForm.publicPhone = acc.publicPhone
+  phoneForm.publicPhone = acc.publicPhone ?? ''
 
   // Hero headline
-  heroHeadlineForm.heroHeadline = acc.heroHeadline
+  heroHeadlineForm.heroHeadline = acc.heroHeadline ?? ''
 
   // Urgency
-  urgencyForm.urgencyText = acc.urgencyText
+  urgencyForm.urgencyText = acc.urgencyText ?? ''
 
   // Lead magnet
   leadMagnetForm.url = acc.leadMagnetUrl

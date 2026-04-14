@@ -106,7 +106,7 @@ function updatePublicHeader() {
       variant: 'white-label',
       layoutStyle: 'dock',
       brandLabel: coachName,
-      brandLogoSrc: '/images/keova-logo-white-label.png',
+      brandLogoSrc: '/images/keova-logo-white-label.webp',
       brandTo: '/',
       showBrandIcon: false,
       navLinks: [

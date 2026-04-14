@@ -13,7 +13,8 @@ export default defineNuxtConfig({
         { name: 'Fraunces', preload: true }
       ]
     }],
-    '@nuxtjs/seo'
+    '@nuxtjs/seo',
+    '@nuxtjs/critters'
   ],
 
   site: {

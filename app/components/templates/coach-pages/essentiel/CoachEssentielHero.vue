@@ -203,6 +203,7 @@ const initials = computed(() => {
                 class="h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 loading="eager"
                 fetchpriority="high"
+                sizes="(max-width: 768px) 100vw, 480px"
                 width="480"
                 height="600"
               />

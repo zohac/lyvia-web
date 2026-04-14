@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ADMIN_NAVIGATION } from '../features/navigation/domain/admin-navigation'
+import DashboardShell from '../components/templates/DashboardShell.vue'
 
 useCommonLayoutHead()
 </script>

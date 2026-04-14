@@ -1393,6 +1393,7 @@
 
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
+import CssVarDisplay from '../../components/atoms/CssVarDisplay.vue'
 
 /**
  * Keova Design System — Complete Component Showcase

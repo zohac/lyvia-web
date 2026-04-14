@@ -74,7 +74,7 @@ function updateConsents(value: typeof consents.value) {
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
 const isWhiteLabelTenant = computed(() => tenant.value?.brand.mode === 'custom_domain')
 const headerLogoSrc = computed(() =>
-  isWhiteLabelTenant.value ? '/images/keova-logo-white-label.png' : '/images/keova-logo.png'
+  isWhiteLabelTenant.value ? '/images/keova-logo-white-label.webp' : '/images/keova-logo.webp'
 )
 const headerLogoAlt = computed(() =>
   isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Keova'

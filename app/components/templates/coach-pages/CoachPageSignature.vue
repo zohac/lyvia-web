@@ -244,6 +244,7 @@ const heroProps = computed(() => ({
                   :src="(coachProfile?.secondaryPhotoUrl ?? coachProfile?.imageUrl)!"
                   :alt="`${coachName}, spécialiste accompagnement ménopause`"
                   class="h-full w-full object-cover object-top"
+                  sizes="(max-width: 768px) 80vw, 288px"
                   width="288"
                   height="400"
                   loading="lazy"

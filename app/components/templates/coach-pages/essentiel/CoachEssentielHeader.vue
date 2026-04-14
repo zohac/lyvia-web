@@ -73,7 +73,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
         aria-label="Accueil Keova"
       >
         <img
-          src="/images/keova-logo.png"
+          src="/images/keova-logo.webp"
           alt="Keova"
           class="h-7 w-auto sm:h-8"
         >
@@ -152,7 +152,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           <!-- Header with close -->
           <div class="flex items-center justify-between border-b border-[color:var(--color-border-subtle)] px-6 py-4">
             <img
-              src="/images/keova-logo.png"
+              src="/images/keova-logo.webp"
               alt="Keova"
               class="h-7 w-auto"
             >

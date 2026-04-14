@@ -2,6 +2,8 @@
 import { useClientAccount } from '../../features/account/useClientAccount'
 import { useAuthActions } from '../../features/auth/useAuthActions'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
+import FormControl from '../../components/molecules/FormControl.vue'
+import SystemAlert from '../../components/atoms/SystemAlert.vue'
 import {
   buildClientAccountTabQuery,
   CLIENT_ACCOUNT_TABS,
