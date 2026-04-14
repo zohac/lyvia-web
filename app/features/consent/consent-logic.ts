@@ -17,6 +17,7 @@ export type AdsContext = {
   tenantHomeSlug?: string | null
   tenantHomeProfile?: AdsConfig | null
   tenantDiscoverySlug?: string | null
+  tenantDiscoveryProfile?: AdsConfig | null
   tenantRouteSlug?: string | null
 }
 
@@ -113,7 +114,10 @@ export function resolveAdsContext(input: AdsContext): { slug: string | null, ads
   }
 
   if (input.tenantDiscoverySlug) {
-    return { slug: input.tenantDiscoverySlug, ads: { id: null, label: null } }
+    return {
+      slug: input.tenantDiscoverySlug,
+      ads: input.tenantDiscoveryProfile?.id ? input.tenantDiscoveryProfile : { id: null, label: null }
+    }
   }
 
   if (input.tenantRouteSlug) {

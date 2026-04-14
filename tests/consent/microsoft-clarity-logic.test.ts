@@ -50,6 +50,7 @@ describe('Microsoft Clarity helpers (real code)', () => {
         tenantHomeSlug: null,
         tenantHomeProfile: null,
         tenantDiscoverySlug: null,
+        tenantDiscoveryProfile: null,
         tenantRouteSlug: null
       })
       assert.deepEqual(result, {
@@ -67,6 +68,7 @@ describe('Microsoft Clarity helpers (real code)', () => {
         tenantHomeSlug: null,
         tenantHomeProfile: null,
         tenantDiscoverySlug: null,
+        tenantDiscoveryProfile: null,
         tenantRouteSlug: null
       })
       assert.deepEqual(result, {
@@ -84,6 +86,7 @@ describe('Microsoft Clarity helpers (real code)', () => {
         tenantHomeSlug: 'sophie',
         tenantHomeProfile: { microsoftClarityId: 'def456', googleAdsId: null },
         tenantDiscoverySlug: null,
+        tenantDiscoveryProfile: null,
         tenantRouteSlug: null
       })
       assert.deepEqual(result, {
@@ -101,6 +104,7 @@ describe('Microsoft Clarity helpers (real code)', () => {
         tenantHomeSlug: null,
         tenantHomeProfile: null,
         tenantDiscoverySlug: 'sophie',
+        tenantDiscoveryProfile: null,
         tenantRouteSlug: null
       })
       assert.deepEqual(result, {
@@ -111,6 +115,24 @@ describe('Microsoft Clarity helpers (real code)', () => {
       })
     })
 
+    it('resolves discovery profile when booking tenant profile is preloaded', () => {
+      const result = resolveClarityContext({
+        routeSlug: null,
+        routeProfile: null,
+        tenantHomeSlug: null,
+        tenantHomeProfile: null,
+        tenantDiscoverySlug: 'sophie',
+        tenantDiscoveryProfile: { microsoftClarityId: 'def456', googleAdsId: 'AW-111' },
+        tenantRouteSlug: null
+      })
+      assert.deepEqual(result, {
+        slug: 'sophie',
+        clarityId: 'def456',
+        googleAdsId: 'AW-111',
+        profileResolved: true
+      })
+    })
+
     it('returns null for all fields when no source is available', () => {
       const result = resolveClarityContext({
         routeSlug: null,
@@ -118,6 +140,7 @@ describe('Microsoft Clarity helpers (real code)', () => {
         tenantHomeSlug: null,
         tenantHomeProfile: null,
         tenantDiscoverySlug: null,
+        tenantDiscoveryProfile: null,
         tenantRouteSlug: null
       })
       assert.deepEqual(result, {

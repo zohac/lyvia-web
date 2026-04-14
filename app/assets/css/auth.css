@@ -1,0 +1,15 @@
+@import "tailwindcss" source(none);
+@import "@nuxt/ui";
+@import "./shared.css";
+
+@source "../../app/layouts/auth.vue";
+@source "../../app/pages/login.vue";
+@source "../../app/pages/reset-password.vue";
+@source "../../app/pages/verify-email.vue";
+@source "../../app/pages/forgot-password/**/*.vue";
+@source "../../app/components/atoms/LegalFooterLinks.vue";
+@source "../../app/components/molecules/CookieSettingsModal.vue";
+@source "../../app/components/molecules/PasswordCriteriaList.vue";
+@source "../../app/components/organisms/AuthCard.vue";
+@source "../../app/components/organisms/CookieConsentBanner.vue";
+@source "../../app/components/templates/AuthPageTemplate.vue";

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '~/assets/css/dashboard.css'
+
 import { useProviderStripeStatus } from '../features/stripe/useProviderStripeStatus'
 import { useProviderRequestsBadge } from '../features/provider-requests/useProviderRequestsBadge'
 import { useCurrentUser } from '../features/auth/useCurrentUser'

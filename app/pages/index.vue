@@ -3,6 +3,7 @@ import { setPublicHeader } from '~/features/public/state/public-header.state'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
+import { useGlobalSchemaOrg } from '~/features/seo/useGlobalSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
@@ -20,6 +21,8 @@ definePageMeta({
 const requestUrl = useRequestURL()
 const origin = requestUrl.origin
 const hostname = computed(() => requestUrl.hostname.toLowerCase())
+
+await useGlobalSchemaOrg()
 
 const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'

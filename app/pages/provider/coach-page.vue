@@ -190,12 +190,12 @@ function externalSection(section: string) {
 
 <template>
   <div>
-    <DsPageHeader>
+    <AtomsDsPageHeader>
       Ma page coach
       <template #subtitle>
         Choisissez un template et personnalisez le contenu de votre page publique.
       </template>
-    </DsPageHeader>
+    </AtomsDsPageHeader>
 
     <!-- Loading -->
     <div

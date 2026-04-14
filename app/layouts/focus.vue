@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '~/assets/css/main.css'
+
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
 import { getDomainContext } from '#shared/utils/domain-context'
 
@@ -31,5 +33,8 @@ const copyrightName = computed(() => {
         <p>© {{ currentYear }} {{ copyrightName }}</p>
       </footer>
     </div>
+    <ClientOnly>
+      <LazyCookieConsentBanner />
+    </ClientOnly>
   </div>
 </template>

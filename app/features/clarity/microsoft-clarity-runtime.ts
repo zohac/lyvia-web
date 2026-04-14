@@ -56,3 +56,28 @@ export async function runMicrosoftClarityMounted(input: {
     // Silent fail — no Clarity tracking on this page
   }
 }
+
+export function mountMicrosoftClarity(input: {
+  context: ClarityResolution
+  cookieConsent: string | null
+}): void {
+  const { context, cookieConsent } = input
+
+  if (!context.clarityId || !shouldLoadClarity(context.googleAdsId, cookieConsent)) {
+    return
+  }
+
+  const targetWindow = window as unknown as Record<string, unknown>
+  if (typeof targetWindow.clarity === 'function') {
+    return
+  }
+
+  injectClarityTag(
+    targetWindow,
+    () => document.createElement('script'),
+    (script) => {
+      document.head.appendChild(script)
+    },
+    context.clarityId
+  )
+}

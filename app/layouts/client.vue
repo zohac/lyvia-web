@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '~/assets/css/dashboard.css'
+
 import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
 import { CLIENT_NAVIGATION } from '../features/navigation/domain/client-navigation'
 import DashboardShell from '../components/templates/DashboardShell.vue'

@@ -15,6 +15,7 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { ListConsultationPricePlansResponse } from '~/features/consultation/api/consultation.contract'
+import { useAuthState } from '~/features/auth/state/auth.state'
 import { listPublicPrograms } from '~/features/programs/services/public-programs.service'
 import { listConsultationPricePlans } from '~/features/consultation/services/client-consultation.service'
 import { useCoachPageTemplate } from '~/composables/useCoachPageTemplate'
@@ -25,9 +26,16 @@ const props = defineProps<{
 }>()
 
 const route = useRoute()
-const { isAuthenticated: checkAuth } = useAuth()
-const isAuthenticated = computed(() => checkAuth())
+const authState = useAuthState()
+const isAuthenticated = computed(() => authState.value.status === 'authenticated')
 const currentPath = computed(() => route.fullPath)
+
+onMounted(async () => {
+  if (authState.value.status !== 'unknown') return
+
+  const { useAuth } = await import('~/composables/useAuth')
+  await useAuth().bootstrap()
+})
 
 const { data: publicPrograms } = await useAsyncData<PublicProgramListItem[]>(
   `public-programs:${props.tenant.slug}`,

@@ -77,8 +77,6 @@ export default defineNuxtConfig({
     }
   },
 
-  css: ['~/assets/css/main.css'],
-
   runtimeConfig: {
     // Server-only upstream for Nitro proxy `/api/**`.
     // Never fall back to the public runtime config (can be relative like `/api`).

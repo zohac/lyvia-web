@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '~/assets/css/auth.css'
+
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
 
 useCommonLayoutHead()
@@ -123,6 +125,9 @@ useCommonLayoutHead()
         </div>
       </aside>
     </div>
+    <ClientOnly>
+      <LazyCookieConsentBanner />
+    </ClientOnly>
   </div>
 </template>
 

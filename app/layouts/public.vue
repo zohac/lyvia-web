@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import '~/assets/css/main.css'
+
 import PublicFooter from '../components/organisms/PublicFooter.vue'
 import PublicHeader from '../components/organisms/PublicHeader.vue'
 
 useCommonLayoutHead()
+await usePublicHeaderInit()
 
 const route = useRoute()
 
@@ -50,5 +53,8 @@ const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
     </main>
 
     <PublicFooter v-if="showFooter" />
+    <ClientOnly>
+      <LazyCookieConsentBanner />
+    </ClientOnly>
   </div>
 </template>

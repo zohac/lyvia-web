@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '~/assets/css/dashboard.css'
+
 import { ADMIN_NAVIGATION } from '../features/navigation/domain/admin-navigation'
 import DashboardShell from '../components/templates/DashboardShell.vue'
 

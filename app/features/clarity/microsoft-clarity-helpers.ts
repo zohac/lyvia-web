@@ -23,6 +23,7 @@ export type ClarityNuxtDataSources = {
   tenantHomeSlug: string | null
   tenantHomeProfile: ClarityProfile | null
   tenantDiscoverySlug: string | null
+  tenantDiscoveryProfile: ClarityProfile | null
   tenantRouteSlug: string | null
 }
 
@@ -69,6 +70,15 @@ export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityRes
   }
 
   if (input.tenantDiscoverySlug) {
+    if (input.tenantDiscoveryProfile) {
+      return {
+        slug: input.tenantDiscoverySlug,
+        clarityId: input.tenantDiscoveryProfile.microsoftClarityId ?? null,
+        googleAdsId: input.tenantDiscoveryProfile.googleAdsId ?? null,
+        profileResolved: true
+      }
+    }
+
     return {
       slug: input.tenantDiscoverySlug,
       clarityId: null,
