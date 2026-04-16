@@ -29,82 +29,46 @@ const isEmpty = computed(() => {
 
 <template>
   <div class="mx-auto max-w-5xl space-y-8">
-    <!-- Header -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h1 class="font-serif text-2xl italic text-[color:var(--color-brand-primary)] sm:text-3xl">
-          Analytics
-        </h1>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          Performance de vos pages publiques
-        </p>
-      </div>
-      <USelect
-        v-model="analytics.period.value"
-        :items="periodOptions"
-        value-key="value"
-        class="w-36"
-      />
-    </div>
+    <AtomsDsPageHeader
+      title="Analytics"
+      subtitle="Performance de vos pages publiques"
+    >
+      <template #actions>
+        <USelect
+          v-model="analytics.period.value"
+          :items="periodOptions"
+          value-key="value"
+          class="w-36"
+        />
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Loading State -->
     <div
       v-if="analytics.loading.value"
       class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
     >
-      <div
+      <USkeleton
         v-for="i in 4"
         :key="i"
-        class="h-32 animate-pulse rounded-3xl border border-[color:var(--color-border-subtle)] bg-white/75 p-6"
-      >
-        <div class="h-4 w-24 rounded bg-[color:var(--color-brand-subtle)]" />
-        <div class="mt-4 h-8 w-16 rounded bg-[color:var(--color-brand-subtle)]" />
-      </div>
+        class="h-32 rounded-3xl"
+      />
     </div>
 
     <!-- Error State -->
-    <div
+    <AtomsDsErrorState
       v-else-if="analytics.error.value"
-      class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-12 text-center shadow-card"
-    >
-      <UIcon
-        name="lucide:alert-circle"
-        size="48"
-        class="mx-auto mb-4 text-red-500"
-      />
-      <p class="text-lg font-medium text-red-800">
-        {{ analytics.error.value }}
-      </p>
-      <UButton
-        variant="outline"
-        color="neutral"
-        class="mt-6 rounded-full"
-        @click="analytics.fetchAnalytics()"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          size="16"
-        />
-        Réessayer
-      </UButton>
-    </div>
+      :message="String(analytics.error.value)"
+      @retry="analytics.fetchAnalytics()"
+    />
 
     <!-- Empty State -->
-    <template v-else-if="isEmpty">
-      <div class="rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-12 text-center">
-        <UIcon
-          name="lucide:bar-chart-3"
-          size="48"
-          class="mx-auto text-stone-300"
-        />
-        <p class="mt-4 text-lg text-[color:var(--color-brand-secondary)]">
-          Pas encore de données
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
-          Partagez votre page pour commencer à collecter des statistiques
-        </p>
-      </div>
-    </template>
+    <AtomsDsEmptyState
+      v-else-if="isEmpty"
+      icon="i-lucide-bar-chart-3"
+      title="Pas encore de données"
+      description="Partagez votre page pour commencer à collecter des statistiques."
+    />
 
     <!-- Data State -->
     <template v-else-if="analytics.data.value">

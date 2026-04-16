@@ -1,5 +1,5 @@
 <template>
-  <UCard class="bg-white transition-all hover:shadow-md hover:ring-1 hover:ring-crepuscule-100">
+  <UCard class="bg-[color:var(--color-surface-card)] transition-all hover:shadow-md hover:ring-1 hover:ring-crepuscule-100">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <!-- Client info -->
       <div class="flex items-center gap-4">
@@ -9,17 +9,17 @@
           :class="avatarClass"
         />
         <div class="min-w-0">
-          <p class="truncate font-semibold text-stone-900">
+          <p class="truncate font-semibold text-[color:var(--color-text-primary)]">
             {{ clientName }}
           </p>
-          <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-stone-500">
+          <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-[color:var(--color-text-muted)]">
             <a
               :href="`mailto:${client.email}`"
               class="hover:text-crepuscule-600 hover:underline"
             >
               {{ client.email }}
             </a>
-            <span class="text-stone-300">·</span>
+            <span class="text-[color:var(--color-neutral-300)]">·</span>
             <a
               :href="`tel:${client.phone}`"
               class="hover:text-crepuscule-600 hover:underline"
@@ -77,10 +77,10 @@
 
         <!-- Next appointment -->
         <div class="text-sm">
-          <span class="text-stone-400">Prochain RDV :</span>
+          <span class="text-[color:var(--color-brand-muted)]">Prochain RDV :</span>
           <span
             class="ml-1 font-medium"
-            :class="nextAppointment ? 'text-stone-700' : 'text-stone-400'"
+            :class="nextAppointment ? 'text-[color:var(--color-text-secondary)]' : 'text-[color:var(--color-brand-muted)]'"
           >
             {{ nextAppointment || 'Aucun' }}
           </span>

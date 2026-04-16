@@ -1,23 +1,26 @@
 import type { Ref } from 'vue'
 import type { PublicProviderProfile } from './api/public-provider-profile.contract'
+import { useCoachLink } from '../../composables/useCoachLink'
 
 /**
  * Builds coach page and booking URLs based on platform vs white-label context.
+ *
+ * P-Y6: route construction is delegated to `useCoachLink` so the coach URL
+ * pattern stays defined in a single place (YC2.2).
  */
 export function buildCoachUrls(
   origin: string,
   slug: string,
   isPlatform: boolean
 ): { coachUrl: string, bookingUrl: string } {
-  return isPlatform
-    ? {
-        coachUrl: `${origin}/coach/${slug}`,
-        bookingUrl: `${origin}/coach/${slug}/onboarding/discovery`
-      }
-    : {
-        coachUrl: `${origin}/`,
-        bookingUrl: `${origin}/onboarding/discovery`
-      }
+  if (!isPlatform) {
+    return {
+      coachUrl: `${origin}/`,
+      bookingUrl: `${origin}/onboarding/discovery`
+    }
+  }
+  const { site, booking } = useCoachLink({ slug, origin })
+  return { coachUrl: site, bookingUrl: booking }
 }
 
 /**
@@ -25,6 +28,8 @@ export function buildCoachUrls(
  *
  * Platform:    Accueil > {displayName} > Appel découverte
  * White-label: Accueil > Appel découverte
+ *
+ * P-Y6: route construction is delegated to `useCoachLink` (YC2.2).
  */
 export function buildBookingBreadcrumbItems(
   origin: string,
@@ -33,10 +38,11 @@ export function buildBookingBreadcrumbItems(
   isPlatform: boolean
 ): Array<{ name: string | (() => string), item: string }> {
   if (isPlatform) {
+    const { site, booking } = useCoachLink({ slug, origin })
     return [
       { name: 'Accueil', item: `${origin}/` },
-      { name: displayName, item: `${origin}/coach/${slug}` },
-      { name: 'Appel découverte', item: `${origin}/coach/${slug}/onboarding/discovery` }
+      { name: displayName, item: site },
+      { name: 'Appel découverte', item: booking }
     ]
   }
   return [
@@ -59,6 +65,10 @@ export function mapProfileToSchemaRefs(
     credentials: Ref<Array<{ title: string, institution?: string, year?: number }>>
     sameAs: Ref<string[]>
     city: Ref<string | undefined>
+  },
+  options?: {
+    /** YC2.4: white-label domain to add as sameAs (hub → WL cross-reference) */
+    whiteLabeldomain?: string | null
   }
 ): void {
   if (!profile) return
@@ -77,6 +87,9 @@ export function mapProfileToSchemaRefs(
   }
 
   const sameAsUrls: string[] = []
+  // YC2.4: cross-reference WL domain in Person.sameAs (AC-6)
+  const wlDomain = options?.whiteLabeldomain?.trim()
+  if (wlDomain) sameAsUrls.push(`https://${wlDomain}`)
   if (profile.socialLinks.linkedin) sameAsUrls.push(profile.socialLinks.linkedin)
   if (profile.socialLinks.instagram) sameAsUrls.push(profile.socialLinks.instagram)
   if (profile.socialLinks.website) sameAsUrls.push(profile.socialLinks.website)

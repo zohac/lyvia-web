@@ -1,94 +1,54 @@
 <template>
   <div class="space-y-6">
-    <!-- Back link + Header -->
-    <div class="space-y-4">
-      <UButton
-        to="/provider/clients"
-        variant="link"
-        color="neutral"
-        size="sm"
-        class="px-0"
-      >
-        <UIcon
-          name="lucide:arrow-left"
-          class="mr-1.5 h-4 w-4"
-        />
-        Retour aux clientes
-      </UButton>
-
-      <!-- Header card -->
-      <UCard class="bg-white">
-        <div
-          v-if="pending"
-          class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    <AtomsDsPageHeader
+      :title="client ? formatClientName(client) : 'Chargement…'"
+      :subtitle="client ? `${client.email} · ${client.phone}` : undefined"
+      :accent-bar="false"
+    >
+      <template #back>
+        <UButton
+          to="/provider/clients"
+          variant="link"
+          color="neutral"
+          size="sm"
+          class="px-0"
         >
-          <div class="flex items-center gap-4">
-            <USkeleton class="h-14 w-14 rounded-full" />
-            <div class="space-y-2">
-              <USkeleton class="h-5 w-40" />
-              <USkeleton class="h-4 w-56" />
-            </div>
-          </div>
+          <UIcon
+            name="lucide:arrow-left"
+            class="mr-1.5 h-4 w-4"
+          />
+          Retour aux clientes
+        </UButton>
+      </template>
+      <template #actions>
+        <template v-if="pending">
           <USkeleton class="h-10 w-36 rounded-lg" />
-        </div>
-
-        <div
+        </template>
+        <UButton
           v-else-if="client"
-          class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+          :to="`/provider/calendar?action=create&type=consultation&clientProfileId=${clientProfileId}`"
+          color="primary"
         >
-          <div class="flex items-center gap-4">
-            <UAvatar
-              :text="getClientInitials(client)"
-              size="xl"
-              :class="avatarClass"
-            />
-            <div>
-              <h1 class="text-2xl font-semibold text-stone-900">
-                {{ formatClientName(client) }}
-              </h1>
-              <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-stone-500">
-                <a
-                  :href="`mailto:${client.email}`"
-                  class="hover:text-crepuscule-600 hover:underline"
-                >
-                  {{ client.email }}
-                </a>
-                <span class="text-stone-300">·</span>
-                <a
-                  :href="`tel:${client.phone}`"
-                  class="hover:text-crepuscule-600 hover:underline"
-                >
-                  {{ client.phone }}
-                </a>
-              </div>
-            </div>
-          </div>
-          <UButton
-            :to="`/provider/calendar?action=create&type=consultation&clientProfileId=${clientProfileId}`"
-            color="primary"
-          >
-            <UIcon
-              name="lucide:calendar-plus"
-              class="mr-2 h-4 w-4"
-            />
-            Planifier un RDV
-          </UButton>
-        </div>
-      </UCard>
-    </div>
+          <UIcon
+            name="lucide:calendar-plus"
+            class="mr-2 h-4 w-4"
+          />
+          Planifier un RDV
+        </UButton>
+      </template>
+    </AtomsDsPageHeader>
 
-    <!-- Error alert -->
-    <UAlert
+    <AtomsDsErrorState
       v-if="errorMessage"
-      color="error"
-      variant="soft"
-      title="Chargement impossible"
-      :description="errorMessage"
-      icon="i-lucide-alert-circle"
+      :message="errorMessage"
+      @retry="refresh()"
     />
 
     <!-- Main content grid -->
-    <div class="grid gap-6 lg:grid-cols-3">
+    <div
+      v-else
+      class="grid gap-6 lg:grid-cols-3"
+    >
       <!-- Main content (2 cols) -->
       <div class="space-y-6 lg:col-span-2">
         <!-- Appointments section -->
@@ -117,10 +77,10 @@
         <!-- Quick actions card (first for mobile visibility) -->
         <UCard
           v-if="client"
-          class="bg-white"
+          class="bg-[color:var(--color-surface-card)]"
         >
           <template #header>
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Actions rapides
             </h2>
           </template>
@@ -223,10 +183,10 @@
         </UCard>
 
         <!-- Synthesis card -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-stone-900">
+              <h2 class="font-semibold text-[color:var(--color-text-primary)]">
                 Synthèse
               </h2>
               <UBadge
@@ -255,54 +215,54 @@
             class="space-y-6"
           >
             <!-- Status description -->
-            <p class="text-sm text-stone-600">
+            <p class="text-sm text-[color:var(--color-text-secondary)]">
               {{ currentStatusMicrocopy }}
             </p>
 
             <!-- Pause reason (US-7) -->
             <div
               v-if="detail.computedStatus === 'paused' && detail.pauseReason"
-              class="rounded-lg border border-amber-200 bg-amber-50 p-3"
+              class="rounded-lg border border-[color:var(--color-sunset-200)] bg-[color:var(--color-sunset-50)] p-3"
             >
-              <p class="text-xs font-medium uppercase tracking-wider text-amber-700">
+              <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-sunset-700)]">
                 Motif de la pause
               </p>
-              <p class="mt-1 text-sm text-amber-900">
+              <p class="mt-1 text-sm text-[color:var(--color-sunset-800)]">
                 {{ detail.pauseReason }}
               </p>
               <p
                 v-if="pausedAtLabel"
-                class="mt-1 text-xs text-amber-600"
+                class="mt-1 text-xs text-[color:var(--color-sunset-600)]"
               >
                 Mise en pause {{ pausedAtLabel }}
               </p>
             </div>
 
             <!-- Stats -->
-            <div class="divide-y divide-stone-100">
+            <div class="divide-y divide-[color:var(--color-border-subtle)]">
               <div class="py-3 first:pt-0">
-                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <span class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Prochain RDV
                 </span>
-                <p class="mt-1 font-medium text-stone-900">
+                <p class="mt-1 font-medium text-[color:var(--color-text-primary)]">
                   {{ nextAppointmentLabel }}
                 </p>
               </div>
 
               <div class="py-3">
-                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <span class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Consultations terminées
                 </span>
-                <p class="mt-1 font-medium text-stone-900">
+                <p class="mt-1 font-medium text-[color:var(--color-text-primary)]">
                   {{ detail.stats.consultationsCompleted }}
                 </p>
               </div>
 
               <div class="py-3 last:pb-0">
-                <span class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <span class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Fuseau horaire
                 </span>
-                <p class="mt-1 font-medium text-stone-900">
+                <p class="mt-1 font-medium text-[color:var(--color-text-primary)]">
                   {{ timezoneLabel }}
                 </p>
               </div>
@@ -313,10 +273,10 @@
         <!-- Edit form card (Story 14-2) -->
         <UCard
           v-if="client"
-          class="bg-white"
+          class="bg-[color:var(--color-surface-card)]"
         >
           <template #header>
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Informations
             </h2>
           </template>
@@ -416,10 +376,8 @@ import { validateClientFields } from '../../../utils/validate-client-fields'
 import {
   formatClientName,
   formatNextAppointment,
-  getClientInitials,
   getClientStatusMeta,
-  getClientStatusMicrocopy,
-  getClientAvatarClass
+  getClientStatusMicrocopy
 } from '../../../features/clients/domain/clients'
 import ClientAppointmentHistorySection from '../../../components/organisms/ClientAppointmentHistorySection.vue'
 import ClientPaymentHistorySection from '../../../components/organisms/ClientPaymentHistorySection.vue'
@@ -448,12 +406,6 @@ const toast = useToast()
 
 const client = computed(() => detail.value?.client ?? null)
 const timezoneLabel = computed(() => detail.value?.timezone ?? 'Europe/Paris')
-
-// Avatar color based on status
-const avatarClass = computed(() => {
-  if (!detail.value) return 'bg-stone-100 text-stone-700'
-  return getClientAvatarClass(detail.value.computedStatus)
-})
 
 // ============================================================================
 // Program Month Update (D5-b)

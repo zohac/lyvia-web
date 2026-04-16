@@ -57,7 +57,7 @@ function getProgramCta(program: PublicProgramListItem) {
 <template>
   <section
     v-bind="reveal()"
-    class="scroll-reveal bg-white px-6 py-24 sm:px-12 lg:px-20"
+    class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="mx-auto max-w-6xl">
       <!-- Parent-provided H2 (P-Y5) -->
@@ -66,29 +66,29 @@ function getProgramCta(program: PublicProgramListItem) {
       <!-- Discovery card — featured, gradient border wrapper -->
       <div
         v-bind="reveal({ delay: 100 })"
-        class="scroll-reveal rounded-2xl bg-gradient-to-br from-[#5b4b6e]/20 via-[#d4956a]/20 to-[#5b4b6e]/10 p-px"
+        class="scroll-reveal rounded-2xl bg-gradient-to-br from-[var(--color-brand-primary)]/20 via-[var(--color-brand-accent)]/20 to-[var(--color-brand-primary)]/10 p-px"
       >
-        <div class="discovery-card group relative rounded-2xl bg-white p-8 transition-all duration-300 sm:p-10">
+        <div class="discovery-card group relative rounded-2xl bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10">
           <!-- Glow blob -->
           <div
-            class="discovery-card-glow absolute -right-10 -top-10 size-32 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+            class="discovery-card-glow absolute -right-10 -top-10 size-32 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
             aria-hidden="true"
           />
 
           <div class="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div class="max-w-xl">
               <div class="flex flex-wrap items-center gap-3">
-                <div class="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+                <div class="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
                   <UIcon
                     name="i-lucide-phone"
-                    class="size-5 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                    class="size-5 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
                   />
                 </div>
-                <h3 class="font-serif text-2xl text-[#2d2438]">
+                <h3 class="font-serif text-2xl text-[var(--color-crepuscule-950)]">
                   Appel découverte
                 </h3>
               </div>
-              <p class="mt-4 text-base leading-relaxed text-[#4a4255]">
+              <p class="mt-4 text-base leading-relaxed text-[var(--color-crepuscule-700)]">
                 Avant de commencer l'accompagnement, je vous propose un appel découverte gratuit.
                 Cet échange de {{ discoveryDurationMinutes }} minutes vous permet de m'expliquer ce que vous traversez
                 actuellement, de poser vos questions et de voir ensemble si cet accompagnement
@@ -97,15 +97,15 @@ function getProgramCta(program: PublicProgramListItem) {
             </div>
 
             <div class="flex shrink-0 flex-col items-center gap-3 sm:items-end">
-              <span class="font-serif text-4xl font-bold text-[#2d2438]">
+              <span class="font-serif text-4xl font-bold text-[var(--color-crepuscule-950)]">
                 Gratuit
               </span>
-              <span class="rounded-full bg-[#d4956a]/10 px-4 py-1.5 text-sm font-medium text-[#d4956a]">
+              <span class="rounded-full bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm font-medium text-[var(--color-brand-accent)]">
                 {{ discoveryDurationMinutes }} min · Sans engagement
               </span>
               <UButton
                 :to="ctaTo"
-                class="mt-1 rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+                class="mt-1 rounded-full bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-400)] px-6 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 Réserver mon appel
               </UButton>
@@ -121,7 +121,7 @@ function getProgramCta(program: PublicProgramListItem) {
       >
         <p
           v-bind="reveal({ delay: 200 })"
-          class="scroll-reveal mb-8 text-center text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]"
+          class="scroll-reveal mb-8 text-center text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]"
         >
           Programmes d'accompagnement
         </p>
@@ -130,16 +130,16 @@ function getProgramCta(program: PublicProgramListItem) {
             v-for="(program, index) in programs"
             :key="program.id"
             v-bind="reveal({ delay: 250 + index * 100 })"
-            class="pricing-card scroll-reveal group relative w-full overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8 transition-all duration-300 md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
+            class="pricing-card scroll-reveal group relative w-full overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 md:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)]"
           >
             <!-- Glow blob -->
             <div
-              class="pricing-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              class="pricing-card-glow absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
               aria-hidden="true"
             />
 
             <div class="relative">
-              <span class="inline-flex items-center gap-1.5 rounded-full border border-[#ebe7ef] bg-[#f5f3f7] px-3 py-1 text-xs font-medium text-[#5b4b6e]">
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-crepuscule-100)] bg-[var(--color-crepuscule-50)] px-3 py-1 text-xs font-medium text-[var(--color-brand-primary)]">
                 <UIcon
                   name="i-lucide-calendar-check"
                   class="size-3.5"
@@ -147,20 +147,20 @@ function getProgramCta(program: PublicProgramListItem) {
                 {{ program.totalSessions }} séances · {{ program.validityMonths }} mois
               </span>
 
-              <h4 class="mt-5 font-serif text-xl text-[#2d2438]">
+              <h4 class="mt-5 font-serif text-xl text-[var(--color-crepuscule-950)]">
                 {{ program.name }}
               </h4>
-              <p class="mt-3 text-sm leading-relaxed text-[#4a4255]">
+              <p class="mt-3 text-sm leading-relaxed text-[var(--color-crepuscule-700)]">
                 {{ program.description }}
               </p>
 
-              <div class="mt-8 border-t border-[#ebe7ef] pt-6">
-                <p class="font-serif text-3xl font-bold text-[#2d2438]">
+              <div class="mt-8 border-t border-[var(--color-crepuscule-100)] pt-6">
+                <p class="font-serif text-3xl font-bold text-[var(--color-crepuscule-950)]">
                   {{ formatCurrency(program.priceCents) }}
                 </p>
                 <p
                   v-if="formatProgramInstallments(program)"
-                  class="mt-1 text-sm text-[#857d8c]"
+                  class="mt-1 text-sm text-[var(--color-text-muted)]"
                 >
                   ou {{ formatProgramInstallments(program) }}
                 </p>
@@ -171,7 +171,7 @@ function getProgramCta(program: PublicProgramListItem) {
                 v-if="program.discoveryGate"
                 class="mt-4"
               >
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-sunset-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-sunset-700)] ring-1 ring-[color:var(--color-sunset-200)]">
                   <UIcon
                     name="i-lucide-phone-call"
                     class="size-3.5"
@@ -183,7 +183,7 @@ function getProgramCta(program: PublicProgramListItem) {
               <!-- CTA per program (CR-1: discoveryGate-aware matrix) -->
               <UButton
                 :to="getProgramCta(program).to"
-                class="mt-6 w-full rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c] text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+                class="mt-6 w-full rounded-full bg-gradient-to-r from-[var(--color-brand-primary)] to-[var(--color-crepuscule-700)] text-sm font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
                 @click="getProgramCta(program).action?.()"
               >
                 {{ getProgramCta(program).label }}
@@ -200,7 +200,7 @@ function getProgramCta(program: PublicProgramListItem) {
       >
         <p
           v-bind="reveal({ delay: 350 })"
-          class="scroll-reveal mb-8 text-center text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]"
+          class="scroll-reveal mb-8 text-center text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]"
         >
           Séances de consultation
         </p>
@@ -209,29 +209,29 @@ function getProgramCta(program: PublicProgramListItem) {
             v-for="(plan, index) in activePlans"
             :key="plan.id"
             v-bind="reveal({ delay: 400 + index * 80 })"
-            class="pricing-card scroll-reveal group relative flex items-center justify-between overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6 transition-all duration-300"
+            class="pricing-card scroll-reveal group relative flex items-center justify-between overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-6 transition-all duration-300"
           >
             <div
-              class="pricing-card-glow absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              class="pricing-card-glow absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
               aria-hidden="true"
             />
             <div class="relative flex items-center gap-4">
-              <div class="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+              <div class="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
                 <UIcon
                   name="i-lucide-clock"
-                  class="size-5 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                  class="size-5 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
                 />
               </div>
               <div>
-                <h4 class="font-serif text-lg text-[#2d2438]">
+                <h4 class="font-serif text-lg text-[var(--color-crepuscule-950)]">
                   {{ plan.label }}
                 </h4>
-                <p class="text-sm text-[#857d8c]">
+                <p class="text-sm text-[var(--color-text-muted)]">
                   {{ plan.durationMinutes }} min
                 </p>
               </div>
             </div>
-            <span class="relative font-serif text-2xl font-bold text-[#2d2438]">
+            <span class="relative font-serif text-2xl font-bold text-[var(--color-crepuscule-950)]">
               {{ formatCurrency(plan.amountCents) }}
             </span>
           </article>
@@ -258,7 +258,7 @@ function getProgramCta(program: PublicProgramListItem) {
 }
 
 .pricing-card:hover {
-  border-color: #d7cfdf;
+  border-color: var(--color-crepuscule-200);
   box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
   transform: translateY(-4px);
 }

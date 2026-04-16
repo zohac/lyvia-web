@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import '~/assets/css/dashboard.css'
+
 import { useProviderStripeStatus } from '../features/stripe/useProviderStripeStatus'
 import { useProviderRequestsBadge } from '../features/provider-requests/useProviderRequestsBadge'
 import { useCurrentUser } from '../features/auth/useCurrentUser'
+import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
+import DashboardShell from '../components/templates/DashboardShell.vue'
 
 useCommonLayoutHead()
+useBrandColorInjection()
 
 const { user } = useCurrentUser()
 const isTestAccount = computed(() => user.value?.isTest === true)
@@ -27,8 +32,8 @@ const navigation = computed(() => ({
   // Groupes collapsibles
   groups: [
     {
-      key: 'pilotage',
-      label: 'Pilotage',
+      key: 'activite',
+      label: 'Activité',
       defaultOpen: true,
       items: [
         {
@@ -38,23 +43,31 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
-          label: 'Appels discovery',
+          label: 'Appels découverte',
           to: '/provider/discovery',
           icon: 'lucide:phone-call',
           match: 'prefix' as const
+        },
+        {
+          label: 'Demandes',
+          to: '/provider/requests',
+          icon: 'lucide:inbox',
+          match: 'prefix' as const,
+          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null
         },
         {
           label: 'Mes clientes',
           to: '/provider/clients',
           icon: 'lucide:users',
           match: 'prefix' as const
-        },
-        {
-          label: 'Programmes',
-          to: '/provider/programs',
-          icon: 'lucide:package',
-          match: 'prefix' as const
-        },
+        }
+      ]
+    },
+    {
+      key: 'suivi',
+      label: 'Suivi',
+      defaultOpen: true,
+      items: [
         {
           label: 'Finance',
           to: '/provider/finance',
@@ -66,13 +79,31 @@ const navigation = computed(() => ({
           to: '/provider/analytics',
           icon: 'lucide:bar-chart-3',
           match: 'prefix' as const
+        }
+      ]
+    },
+    {
+      key: 'offre',
+      label: 'Mon offre',
+      defaultOpen: false,
+      items: [
+        {
+          label: 'Programmes',
+          to: '/provider/programs',
+          icon: 'lucide:package',
+          match: 'prefix' as const
         },
         {
-          label: 'Demandes',
-          to: '/provider/requests',
-          icon: 'lucide:inbox',
-          match: 'prefix' as const,
-          badge: requestsBadge.pendingCount.value > 0 ? requestsBadge.pendingCount.value : null
+          label: 'Créneaux & Tarifs',
+          to: '/provider/scheduling',
+          icon: 'lucide:clock',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Disponibilités',
+          to: '/provider/availability',
+          icon: 'lucide:calendar-clock',
+          match: 'prefix' as const
         }
       ]
     },
@@ -88,27 +119,21 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
-          label: 'Disponibilités',
-          to: '/provider/availability',
-          icon: 'lucide:calendar-clock',
-          match: 'prefix' as const
-        },
-        {
-          label: 'Créneaux & Tarifs',
-          to: '/provider/scheduling',
-          icon: 'lucide:clock',
-          match: 'prefix' as const
-        },
-        {
-          label: 'SEO',
-          to: '/provider/seo',
-          icon: 'lucide:globe',
+          label: 'Ma page coach',
+          to: '/provider/coach-page',
+          icon: 'lucide:layout',
           match: 'prefix' as const
         },
         {
           label: 'Contenus',
           to: '/provider/content',
           icon: 'lucide:file-text',
+          match: 'prefix' as const
+        },
+        {
+          label: 'SEO',
+          to: '/provider/seo',
+          icon: 'lucide:globe',
           match: 'prefix' as const
         },
         {

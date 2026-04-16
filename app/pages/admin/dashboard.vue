@@ -1,18 +1,10 @@
 <template>
   <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Administration
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Supervisez la plateforme Keova et les opérations.
-        </p>
-      </div>
-    </section>
+    <AtomsDsPageHeader
+      title="Administration"
+      subtitle="Supervisez la plateforme Keova et les opérations."
+      class="mb-10"
+    />
 
     <!-- Loading State -->
     <div
@@ -21,58 +13,39 @@
     >
       <!-- KPI Skeletons -->
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div
+        <USkeleton
           v-for="i in 4"
           :key="i"
-          class="h-32 animate-pulse rounded-3xl border border-[color:var(--color-border-subtle)] bg-white/75 p-6"
-        >
-          <div class="h-4 w-24 rounded bg-[color:var(--color-brand-subtle)]" />
-          <div class="mt-4 h-8 w-16 rounded bg-[color:var(--color-brand-subtle)]" />
-        </div>
+          class="h-32 rounded-3xl"
+        />
       </div>
 
       <!-- Events Skeleton -->
-      <div class="h-80 animate-pulse rounded-3xl border border-[color:var(--color-border-subtle)] bg-white/75 p-8">
-        <div class="h-6 w-48 rounded bg-[color:var(--color-brand-subtle)]" />
-        <div class="mt-6 space-y-4">
-          <div
-            v-for="j in 5"
+      <section class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-elevated)] to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+        <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--ui-color-primary-100)] opacity-30 blur-[100px]" />
+
+        <div class="relative z-10 p-8">
+          <USkeleton class="h-8 w-56" />
+          <USkeleton class="mt-2 h-4 w-72 max-w-full" />
+        </div>
+
+        <div class="relative z-10 space-y-3 px-8 pb-8">
+          <USkeleton class="h-10 rounded-xl" />
+          <USkeleton
+            v-for="j in 4"
             :key="j"
-            class="h-10 rounded bg-[color:var(--color-brand-subtle)]"
+            class="h-12 rounded-xl"
           />
         </div>
-      </div>
+      </section>
     </div>
 
     <!-- Error State -->
-    <div
+    <AtomsDsErrorState
       v-else-if="status === 'error'"
-      class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-12 text-center shadow-card"
-    >
-      <UIcon
-        name="lucide:alert-circle"
-        size="48"
-        class="mx-auto mb-4 text-red-500"
-      />
-      <p class="text-lg font-medium text-red-800">
-        Erreur lors du chargement du dashboard
-      </p>
-      <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-        {{ error?.message || 'Une erreur inattendue est survenue.' }}
-      </p>
-      <UButton
-        variant="outline"
-        color="neutral"
-        class="mt-6 rounded-full"
-        @click="() => refresh()"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          size="16"
-        />
-        Réessayer
-      </UButton>
-    </div>
+      :message="error?.message || 'Erreur lors du chargement du dashboard'"
+      @retry="refresh()"
+    />
 
     <!-- Data State -->
     <div
@@ -91,7 +64,7 @@
               <UIcon
                 :name="kpi.icon"
                 size="20"
-                class="text-[color:var(--color-brand-solid)]"
+                class="text-[color:var(--color-brand-primary)]"
               />
             </div>
             <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
@@ -105,7 +78,7 @@
       </section>
 
       <!-- Last Events -->
-      <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+      <section class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-elevated)] to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
         <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--ui-color-primary-100)] opacity-30 blur-[100px]" />
 
         <div class="relative z-10 p-8">
@@ -148,15 +121,15 @@
       <!-- Quick Links -->
       <section class="grid gap-6 md:grid-cols-2">
         <NuxtLink
-          to="/admin/logs"
-          class="rounded-3xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-solid)] hover:shadow-md"
+          to="/admin/tools?tab=logs"
+          class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-primary)] hover:shadow-md"
         >
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--ui-color-primary-100)]">
               <UIcon
                 name="lucide:scroll-text"
                 size="24"
-                class="text-[color:var(--color-brand-solid)]"
+                class="text-[color:var(--color-brand-primary)]"
               />
             </div>
             <div>
@@ -172,14 +145,14 @@
 
         <NuxtLink
           to="/admin/providers"
-          class="rounded-3xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-solid)] hover:shadow-md"
+          class="rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-7 shadow-soft backdrop-blur transition-all hover:border-[color:var(--color-brand-primary)] hover:shadow-md"
         >
           <div class="flex items-center gap-4">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--ui-color-primary-100)]">
               <UIcon
                 name="lucide:users"
                 size="24"
-                class="text-[color:var(--color-brand-solid)]"
+                class="text-[color:var(--color-brand-primary)]"
               />
             </div>
             <div>

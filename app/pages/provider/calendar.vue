@@ -610,7 +610,7 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
     <!-- Loading state -->
     <UCard
       v-if="calendar.pending.value && !calendar.data.value"
-      class="bg-white"
+      class="bg-[color:var(--color-surface-card)]"
     >
       <div class="space-y-4">
         <div class="flex items-center gap-3">

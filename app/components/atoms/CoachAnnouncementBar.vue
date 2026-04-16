@@ -56,7 +56,7 @@ function scrollToCapture() {
   >
     <div
       v-if="isVisible"
-      class="fixed bottom-6 left-6 z-50 max-w-sm rounded-2xl border border-white/10 bg-[#2d2438]/95 p-5 shadow-2xl shadow-[#2d2438]/30 backdrop-blur-md"
+      class="fixed bottom-6 left-6 z-50 max-w-sm rounded-2xl border border-white/10 bg-[var(--color-crepuscule-950)]/95 p-5 shadow-2xl shadow-[var(--color-crepuscule-950)]/30 backdrop-blur-md"
     >
       <button
         class="absolute right-3 top-3 rounded p-1 text-white/40 transition-colors hover:text-white"
@@ -70,21 +70,21 @@ function scrollToCapture() {
       </button>
 
       <div class="flex items-start gap-3.5">
-        <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-[#d4956a]/15">
+        <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--color-brand-accent)]/15">
           <UIcon
             name="i-lucide-book-open"
-            class="size-5 text-[#d4956a]"
+            class="size-5 text-[var(--color-brand-accent)]"
           />
         </div>
         <div class="pr-4">
           <p class="text-sm font-semibold text-white">
             Guide gratuit
           </p>
-          <p class="mt-1 text-xs leading-relaxed text-[#b9aac7]">
+          <p class="mt-1 text-xs leading-relaxed text-[var(--color-crepuscule-300)]">
             {{ leadMagnetTitle }}
           </p>
           <button
-            class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[#d4956a] transition-colors hover:text-[#f0b48f]"
+            class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--color-brand-accent)] transition-colors hover:text-[var(--color-sunset-300)]"
             @click="scrollToCapture"
           >
             Télécharger

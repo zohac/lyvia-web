@@ -20,8 +20,8 @@ export async function useGlobalSchemaOrg() {
         logo: {
           '@type': 'ImageObject',
           '@id': `${origin}/#logo`,
-          'url': `${origin}/images/keova-logo.png`,
-          'contentUrl': `${origin}/images/keova-logo.png`,
+          'url': `${origin}/images/keova-logo.webp`,
+          'contentUrl': `${origin}/images/keova-logo.webp`,
           'caption': 'Keova',
           'width': 512,
           'height': 512

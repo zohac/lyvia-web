@@ -29,10 +29,10 @@
       <div class="min-w-0 flex-1">
         <!-- Amount + Date -->
         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <span class="font-semibold text-stone-900">
+          <span class="font-semibold text-[color:var(--color-text-primary)]">
             {{ formattedAmount }}
           </span>
-          <span class="text-sm text-stone-500">
+          <span class="text-sm text-[color:var(--color-text-muted)]">
             {{ formattedDate }}
           </span>
         </div>
@@ -56,7 +56,7 @@
           </UButton>
           <span
             v-else
-            class="text-stone-400"
+            class="text-[color:var(--color-brand-muted)]"
           >
             Reçu non disponible
           </span>
@@ -99,21 +99,21 @@ const formattedDate = computed(() => formatPaymentDate(props.payment.createdAt, 
 
 const lineClasses = computed(() => {
   if (props.payment.status === 'failed') {
-    return 'border-red-200 bg-red-50'
+    return 'border-[color:var(--color-error-200)] bg-[color:var(--color-error-50)]'
   }
   if (props.payment.status === 'pending') {
-    return 'border-amber-200 bg-amber-50'
+    return 'border-[color:var(--color-sunset-200)] bg-[color:var(--color-sunset-50)]'
   }
-  return 'border-stone-100 bg-stone-50'
+  return 'border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)]'
 })
 
 const iconClasses = computed(() => {
   if (props.payment.status === 'succeeded') {
-    return 'text-green-600'
+    return 'text-[color:var(--color-success-600)]'
   }
   if (props.payment.status === 'failed') {
-    return 'text-red-600'
+    return 'text-[color:var(--color-error-600)]'
   }
-  return 'text-amber-600'
+  return 'text-[color:var(--color-sunset-600)]'
 })
 </script>

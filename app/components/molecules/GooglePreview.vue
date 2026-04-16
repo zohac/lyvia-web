@@ -12,21 +12,21 @@ function truncate(text: string, max: number): string {
 </script>
 
 <template>
-  <div class="rounded-lg border border-stone-200 bg-white p-4">
-    <p class="mb-2 text-xs text-stone-500">
+  <div class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-4">
+    <p class="mb-2 text-xs text-[color:var(--color-text-muted)]">
       Aperçu Google
     </p>
     <div class="space-y-0.5">
       <p
-        class="text-lg text-[#1a0dab]"
+        class="text-lg text-[var(--color-crepuscule-700)]"
         style="max-width: 600px"
       >
         {{ truncate(props.title, 60) }}
       </p>
-      <p class="text-sm text-[#006621]">
+      <p class="text-sm text-[var(--color-success-700)]">
         {{ props.url }}
       </p>
-      <p class="line-clamp-2 text-sm text-[#545454]">
+      <p class="line-clamp-2 text-sm text-[var(--color-text-secondary)]">
         {{ truncate(props.description, 155) }}
       </p>
     </div>

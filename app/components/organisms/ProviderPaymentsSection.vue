@@ -70,14 +70,14 @@ function openReceipt(url: string) {
 </script>
 
 <template>
-  <UCard class="bg-white">
+  <UCard class="bg-[color:var(--color-surface-card)]">
     <template #header>
       <div class="flex items-center justify-between">
         <div>
-          <h3 class="font-semibold text-stone-900">
+          <h3 class="font-semibold text-[color:var(--color-text-primary)]">
             Paiements
           </h3>
-          <p class="mt-1 text-sm text-stone-500">
+          <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
             Montants, commission Keova et reçus
           </p>
         </div>
@@ -114,7 +114,7 @@ function openReceipt(url: string) {
       <div
         v-for="i in 2"
         :key="i"
-        class="rounded-lg border border-stone-100 bg-stone-50 p-6"
+        class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-6"
       >
         <div class="flex items-center gap-4">
           <USkeleton class="h-10 w-10 rounded-full" />
@@ -132,13 +132,13 @@ function openReceipt(url: string) {
       v-else-if="formattedPayments.length === 0"
       class="flex flex-col items-center justify-center gap-3 py-12 text-center"
     >
-      <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
         <UIcon
           name="lucide:credit-card"
-          class="h-6 w-6 text-stone-400"
+          class="h-6 w-6 text-[color:var(--color-brand-muted)]"
         />
       </div>
-      <p class="text-sm text-stone-500">
+      <p class="text-sm text-[color:var(--color-text-muted)]">
         Aucun paiement à afficher pour le moment.
       </p>
     </div>
@@ -151,14 +151,14 @@ function openReceipt(url: string) {
       <article
         v-for="payment in formattedPayments"
         :key="payment.id"
-        class="rounded-lg border border-stone-100 bg-stone-50 p-5 transition-colors hover:bg-stone-100/50"
+        class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-5 transition-colors hover:bg-[color:var(--color-surface-muted)]/50"
       >
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <!-- Client info and dates -->
           <div class="space-y-3">
             <!-- Client name and badges -->
             <div class="flex flex-wrap items-center gap-2">
-              <p class="font-semibold text-stone-900">
+              <p class="font-semibold text-[color:var(--color-text-primary)]">
                 {{ payment.client.firstname }} {{ payment.client.lastname }}
               </p>
               <UBadge
@@ -178,36 +178,36 @@ function openReceipt(url: string) {
             </div>
 
             <!-- Dates -->
-            <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-500">
+            <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[color:var(--color-text-muted)]">
               <span>
-                Paiement : <span class="font-medium text-stone-700">{{ payment.paymentDate }}</span>
+                Paiement : <span class="font-medium text-[color:var(--color-text-secondary)]">{{ payment.paymentDate }}</span>
               </span>
               <span v-if="payment.appointmentWhen">
-                RDV : <span class="font-medium text-stone-700">{{ payment.appointmentWhen }}</span>
+                RDV : <span class="font-medium text-[color:var(--color-text-secondary)]">{{ payment.appointmentWhen }}</span>
               </span>
             </div>
 
             <!-- Amount breakdown -->
-            <div class="grid grid-cols-2 gap-3 rounded-lg bg-white p-4 sm:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 rounded-lg bg-[color:var(--color-surface-card)] p-4 sm:grid-cols-4">
               <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Montant
                 </p>
-                <p class="mt-1 font-semibold text-stone-900">
+                <p class="mt-1 font-semibold text-[color:var(--color-text-primary)]">
                   {{ payment.amount }}
                 </p>
               </div>
               <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Commission
                 </p>
-                <p class="mt-1 font-semibold text-stone-900">
+                <p class="mt-1 font-semibold text-[color:var(--color-text-primary)]">
                   {{ payment.fee }}
                 </p>
               </div>
               <div>
                 <UTooltip text="Frais prélevés par Stripe pour le traitement du paiement">
-                  <p class="flex cursor-help items-center gap-1 text-xs font-medium uppercase tracking-wider text-stone-500">
+                  <p class="flex cursor-help items-center gap-1 text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                     Frais Stripe
                     <UIcon
                       name="lucide:info"
@@ -215,15 +215,15 @@ function openReceipt(url: string) {
                     />
                   </p>
                 </UTooltip>
-                <p class="mt-1 font-semibold text-stone-900">
+                <p class="mt-1 font-semibold text-[color:var(--color-text-primary)]">
                   {{ payment.stripeFee ?? '—' }}
                 </p>
               </div>
               <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                   Vous recevez
                 </p>
-                <p class="mt-1 font-semibold text-green-600">
+                <p class="mt-1 font-semibold text-[color:var(--color-success-600)]">
                   {{ payment.net }}
                 </p>
               </div>
@@ -246,7 +246,7 @@ function openReceipt(url: string) {
             </UButton>
             <span
               v-if="!payment.receiptUrl"
-              class="text-xs text-stone-400"
+              class="text-xs text-[color:var(--color-brand-muted)]"
             >
               {{ payment.status.tone === 'success' ? 'Disponible sous peu' : 'Reçu indisponible' }}
             </span>

@@ -29,7 +29,7 @@ const deviceLabels: Record<string, string> = {
         <UIcon
           :name="deviceIcons[device.type] ?? 'lucide:help-circle'"
           size="20"
-          class="text-[color:var(--color-brand-solid)]"
+          class="text-[color:var(--color-brand-primary)]"
         />
       </div>
       <div class="flex-1">

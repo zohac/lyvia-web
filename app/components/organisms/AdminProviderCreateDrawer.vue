@@ -119,10 +119,10 @@ async function handleSubmit() {
           />
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-stone-900">
+          <h3 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
             Nouveau provider
           </h3>
-          <p class="text-sm text-stone-500">
+          <p class="text-sm text-[color:var(--color-text-muted)]">
             Un email d'activation sera envoyé
           </p>
         </div>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {
-  COOKIE_CONSENT_MAX_AGE,
   COOKIE_CONSENT_NAME,
   getAcceptConsentValue,
   getBannerMode,
+  getConsentCookieOptions,
   hasGoogleAdsConfig,
   shouldShowConsentBanner,
   toConsentSignals,
@@ -11,11 +11,7 @@ import {
 } from '~/features/consent/consent-logic'
 import CookieSettingsModal from '~/components/molecules/CookieSettingsModal.vue'
 
-const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, {
-  maxAge: COOKIE_CONSENT_MAX_AGE,
-  sameSite: 'lax',
-  secure: true
-})
+const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, getConsentCookieOptions(import.meta.dev))
 
 const showBanner = ref(false)
 const showSettings = ref(false)

@@ -97,10 +97,10 @@ async function handleSubmit() {
           />
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-stone-900">
+          <h3 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
             Nouvelle cliente
           </h3>
-          <p class="text-sm text-stone-500">
+          <p class="text-sm text-[color:var(--color-text-muted)]">
             Remplissez les informations pour créer le compte
           </p>
         </div>

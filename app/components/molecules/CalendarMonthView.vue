@@ -139,7 +139,7 @@ function formatAriaDateLabel(ymd: string): string {
 </script>
 
 <template>
-  <section class="grid gap-4 sm:min-w-[340px] lg:min-w-[400px]">
+  <section class="grid gap-4">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-0.5">
         <h3 class="text-lg font-semibold capitalize text-neutral-900 sm:text-xl">
@@ -172,11 +172,11 @@ function formatAriaDateLabel(ymd: string): string {
       </div>
     </div>
 
-    <div class="grid grid-cols-7 gap-1.5 text-center text-xs font-medium text-neutral-500 sm:gap-2">
+    <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-neutral-500">
       <span
         v-for="(label, index) in weekdayLabels"
         :key="index"
-        class="py-2 sm:py-2.5 sm:text-sm"
+        class="py-1.5"
         aria-hidden="true"
       >
         {{ label }}
@@ -184,7 +184,7 @@ function formatAriaDateLabel(ymd: string): string {
     </div>
 
     <div
-      class="grid grid-cols-7 gap-1.5 sm:gap-2"
+      class="grid grid-cols-7 gap-1"
       role="grid"
       aria-label="Calendrier des disponibilités"
     >
@@ -192,7 +192,7 @@ function formatAriaDateLabel(ymd: string): string {
         v-for="d in days"
         :key="d.ymd"
         type="button"
-        class="flex aspect-square items-center justify-center rounded-xl text-sm font-medium transition-all duration-150 sm:text-base"
+        class="flex aspect-square items-center justify-center rounded-lg text-xs font-medium transition-all duration-150 sm:text-sm"
         :class="[
           !d.inMonth
             ? 'pointer-events-none text-transparent'

@@ -2,7 +2,7 @@
   <div class="flex flex-wrap items-end gap-3">
     <!-- Status filter -->
     <div class="grid w-full gap-1.5 sm:w-auto sm:min-w-[160px]">
-      <label class="text-xs font-medium uppercase tracking-wider text-stone-500">
+      <label class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
         Statut
       </label>
       <USelect

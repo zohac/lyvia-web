@@ -13,7 +13,8 @@ export default defineNuxtConfig({
         { name: 'Fraunces', preload: true }
       ]
     }],
-    '@nuxtjs/seo'
+    '@nuxtjs/seo',
+    '@nuxtjs/critters'
   ],
 
   site: {
@@ -76,8 +77,6 @@ export default defineNuxtConfig({
     }
   },
 
-  css: ['~/assets/css/main.css'],
-
   runtimeConfig: {
     // Server-only upstream for Nitro proxy `/api/**`.
     // Never fall back to the public runtime config (can be relative like `/api`).
@@ -101,9 +100,13 @@ export default defineNuxtConfig({
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-        'X-Powered-By': '',
-        // eslint-disable-next-line @stylistic/quotes
-        'Content-Security-Policy-Report-Only': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://keova-assets.s3.fr-par.scw.cloud data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+        'X-Powered-By': ''
+        // Note: CSP Report-Only retiré (YC2.2 console cleanup) — la politique
+        // Report-Only sans `report-uri`/`report-to` est purement informationnelle
+        // (ne bloque rien, ne remonte rien) et génère un warning navigateur.
+        // Quand un endpoint de reporting sera prêt (Sentry CSP reports ou
+        // équivalent), réactiver via la propriété `reportTo` d'un header
+        // `Content-Security-Policy` enforcing, pas Report-Only.
       }
     },
     // Static images: immutable cache (Y2.5 AC-3)
@@ -133,8 +136,15 @@ export default defineNuxtConfig({
     '/legal/**': {
       headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=86400' }
     },
+    '/client/payments': { redirect: { to: '/client/account?tab=paiements', statusCode: 301 } },
+    '/client/settings': { redirect: { to: '/client/account?tab=preferences', statusCode: 301 } },
+    '/client/content': { redirect: { to: '/client/dashboard', statusCode: 301 } },
     '/client/**': { ssr: false },
     '/provider/**': { ssr: false },
+    '/admin/analytics': { redirect: { to: '/admin/tools?tab=analytics', statusCode: 301 } },
+    '/admin/logs': { redirect: { to: '/admin/tools?tab=logs', statusCode: 301 } },
+    '/admin/business-logs': { redirect: { to: '/admin/tools?tab=logs', statusCode: 301 } },
+    '/admin/notification-logs': { redirect: { to: '/admin/tools?tab=notifications', statusCode: 301 } },
     '/admin/**': { ssr: false }
   },
 

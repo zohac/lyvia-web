@@ -42,7 +42,7 @@ function formatTime(iso: string): string {
         :class="[
           selectedStartAt === slot.startAt
             ? 'border-crepuscule-600 bg-crepuscule-600 text-white shadow-md ring-2 ring-crepuscule-600/20'
-            : 'border-neutral-200 bg-white text-neutral-700 hover:border-crepuscule-300 hover:bg-crepuscule-50 hover:shadow-sm'
+            : 'border-neutral-200 bg-[color:var(--color-surface-card)] text-neutral-700 hover:border-crepuscule-300 hover:bg-crepuscule-50 hover:shadow-sm'
         ]"
         @click="emit('select', slot)"
       >

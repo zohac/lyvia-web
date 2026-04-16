@@ -188,6 +188,18 @@ test('ads context resolution: falls back to booking tenant slug when only public
   })
 })
 
+test('ads context resolution: uses preloaded discovery profile when booking tenant profile is cached', () => {
+  const result = resolveAdsContext({
+    tenantDiscoverySlug: 'sophie-jouan',
+    tenantDiscoveryProfile: { id: 'AW-123456789', label: 'abcDEF123' }
+  })
+
+  assert.deepStrictEqual(result, {
+    slug: 'sophie-jouan',
+    ads: { id: 'AW-123456789', label: 'abcDEF123' }
+  })
+})
+
 test('ads context resolution: falls back to platform booking tenant slug when public-tenant route data is loaded', () => {
   const result = resolveAdsContext({
     tenantRouteSlug: 'sophie-jouan'

@@ -69,7 +69,7 @@ const whiteLabelLocation = computed(() => {
 
       <ULink
         :to="headerState.loginTo"
-        class="inline-flex min-h-[44px] items-center font-semibold hover:underline"
+        class="inline-flex min-h-[44px] items-center justify-center font-semibold hover:underline"
       >
         {{ headerState.loginLabel }}
       </ULink>

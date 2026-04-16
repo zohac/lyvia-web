@@ -41,7 +41,7 @@ const initials = computed(() => {
 <template>
   <section
     id="essence"
-    class="relative flex min-h-[100svh] items-center overflow-hidden bg-[#f5f0eb]"
+    class="relative flex min-h-[100svh] items-center overflow-hidden bg-[var(--color-neutral-50)]"
     :class="heroTopOffsetClass"
   >
     <!-- Gradient atmosphere -->
@@ -66,25 +66,25 @@ const initials = computed(() => {
           <!-- Left — Typography -->
           <div class="flex flex-col justify-center lg:col-span-7">
             <!-- Coach name eyebrow -->
-            <p class="hero-label mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[#d4956a]">
+            <p class="hero-label mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[var(--color-brand-accent)]">
               {{ displayName }} - EI
             </p>
 
             <!-- H1 — dynamic SEO (AC-2) -->
-            <h1 class="font-serif text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.05] tracking-tight text-[#2d2438]">
+            <h1 class="font-serif text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.05] tracking-tight text-[var(--color-crepuscule-950)]">
               {{ heroH1 }}
             </h1>
 
             <!-- Subtitle line 1: credentials + city -->
             <p
               v-if="heroSubtitleLine1"
-              class="mt-4 text-lg font-medium text-[#5b4b6e]"
+              class="mt-4 text-lg font-medium text-[var(--color-brand-primary)]"
             >
               {{ heroSubtitleLine1 }}
             </p>
 
             <!-- Subtitle line 2: descriptive text -->
-            <p class="mt-2 max-w-lg text-lg leading-relaxed text-[#4a4255]">
+            <p class="mt-2 max-w-lg text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
               <!-- TODO: Feature V — dynamiser -->
               Accompagnement personnalisé en périménopause et ménopause.
               Alimentation, stress, sommeil, mouvement. Une approche complète, à votre rythme.
@@ -96,7 +96,7 @@ const initials = computed(() => {
                 :to="ctaTo"
                 size="xl"
                 data-hero-cta
-                class="hero-cta group rounded-full border-2 border-[#d4956a] bg-[#d4956a] px-8 py-4 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-[#c47a4a] hover:bg-[#c47a4a] hover:text-white hover:shadow-lg active:scale-[0.98]"
+                class="hero-cta group rounded-full border-2 border-[var(--color-brand-accent)] bg-[var(--color-brand-accent)] px-8 py-4 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-sunset-600)] hover:bg-[var(--color-sunset-600)] hover:text-white hover:shadow-lg active:scale-[0.98]"
               >
                 <span class="flex items-center gap-3">
                   Réserver mon appel gratuit
@@ -108,7 +108,7 @@ const initials = computed(() => {
               </UButton>
 
               <!-- Triple reassurance -->
-              <span class="flex items-center gap-2 text-sm text-[#857d8c]">
+              <span class="flex items-center gap-2 text-sm text-[var(--color-text-muted)]">
                 <UIcon
                   name="i-lucide-clock"
                   class="size-4"
@@ -120,7 +120,7 @@ const initials = computed(() => {
             <!-- Urgency text (v-if, graceful degradation AD-Y2) -->
             <p
               v-if="urgencyText"
-              class="mt-4 text-sm font-medium text-[#d4956a]"
+              class="mt-4 text-sm font-medium text-[var(--color-brand-accent)]"
             >
               {{ urgencyText }}
             </p>
@@ -131,11 +131,11 @@ const initials = computed(() => {
             <div class="relative">
               <!-- Ghost shape offset -->
               <div
-                class="hero-photo-shape absolute h-[50vh] w-80 translate-x-4 translate-y-4 bg-gradient-to-br from-[#5b4b6e]/20 to-[#d4956a]/15"
+                class="hero-photo-shape absolute h-[50vh] w-80 translate-x-4 translate-y-4 bg-gradient-to-br from-[var(--color-brand-primary)]/20 to-[var(--color-brand-accent)]/15"
                 aria-hidden="true"
               />
               <!-- Photo or initials placeholder -->
-              <div class="hero-photo-shape relative h-[50vh] w-80 overflow-hidden shadow-2xl shadow-[#5b4b6e]/15">
+              <div class="hero-photo-shape relative h-[50vh] w-80 overflow-hidden shadow-2xl shadow-[var(--color-brand-primary)]/15">
                 <NuxtImg
                   v-if="heroPhotoUrl || profilePhotoUrl"
                   :src="(heroPhotoUrl || profilePhotoUrl)!"
@@ -149,7 +149,7 @@ const initials = computed(() => {
                 <!-- Fallback: gradient initials -->
                 <div
                   v-else
-                  class="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#5b4b6e] to-[#7a6b8e]"
+                  class="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--color-brand-primary)] to-[var(--color-crepuscule-500)]"
                 >
                   <span class="font-serif text-7xl font-bold text-white/60">{{ initials }}</span>
                 </div>
@@ -161,7 +161,7 @@ const initials = computed(() => {
               </div>
               <!-- Decorative accents -->
               <div
-                class="accent-ring absolute -bottom-8 -left-12 h-32 w-32 rounded-full border border-[#5b4b6e]/20"
+                class="accent-ring absolute -bottom-8 -left-12 h-32 w-32 rounded-full border border-[var(--color-brand-primary)]/20"
               />
             </div>
           </div>
@@ -171,7 +171,7 @@ const initials = computed(() => {
 
     <!-- Scroll indicator -->
     <div class="absolute bottom-8 left-1/2 z-10 -translate-x-1/2">
-      <div class="scroll-indicator h-12 w-px bg-gradient-to-b from-transparent via-[#5b4b6e]/40 to-transparent" />
+      <div class="scroll-indicator h-12 w-px bg-gradient-to-b from-transparent via-[var(--color-brand-primary)]/40 to-transparent" />
     </div>
   </section>
 </template>

@@ -225,19 +225,11 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
 
 <template>
   <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-crepuscule-600)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Clients
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Supervision cross-provider
-        </p>
-      </div>
-    </section>
+    <AtomsDsPageHeader
+      title="Clients"
+      subtitle="Supervision cross-provider"
+      class="mb-10"
+    />
 
     <!-- Filters -->
     <section class="mb-8 space-y-4">
@@ -297,72 +289,82 @@ function onRowSelect(_e: Event, row: TableRow<ClientListItem>) {
     </section>
 
     <!-- Clients Table -->
-    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-white shadow-soft">
+    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] shadow-soft">
       <!-- Loading State -->
       <div
         v-if="pending"
-        class="flex items-center justify-center py-20"
+        class="space-y-3 p-8"
       >
-        <UIcon
-          name="lucide:loader-2"
-          size="32"
-          class="animate-spin text-[color:var(--color-brand-muted)]"
+        <USkeleton class="h-10 rounded-xl" />
+        <USkeleton
+          v-for="i in 5"
+          :key="i"
+          class="h-14 rounded-xl"
         />
       </div>
 
       <!-- Error State -->
-      <div
+      <AtomsDsErrorState
         v-else-if="error"
-        class="p-8 text-center"
-      >
-        <UIcon
-          name="lucide:alert-circle"
-          size="48"
-          class="mx-auto mb-4 text-red-500"
-        />
-        <p class="text-lg font-medium text-red-800">
-          Erreur lors du chargement des clients
-        </p>
-        <UButton
-          variant="outline"
-          color="neutral"
-          class="mt-4 rounded-full"
-          @click="() => refresh()"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            size="16"
-          />
-          Réessayer
-        </UButton>
-      </div>
+        message="Erreur lors du chargement des clients"
+        @retry="refresh()"
+      />
 
       <!-- Empty State -->
-      <div
+      <AtomsDsEmptyState
         v-else-if="!clients?.items?.length"
-        class="p-12 text-center"
-      >
-        <UIcon
-          name="lucide:users"
-          size="48"
-          class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
-        />
-        <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
-          Aucun client trouvé
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun client n\'est encore inscrit.' }}
-        </p>
-      </div>
+        icon="i-lucide-users"
+        title="Aucun client trouvé"
+        :description="searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun client n\'est encore inscrit.'"
+      />
 
-      <!-- Table -->
+      <!-- Table (desktop) -->
       <div v-else>
-        <UTable
-          :data="clients.items"
-          :columns="columns"
-          :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
-          @select="onRowSelect"
-        />
+        <div class="hidden md:block">
+          <UTable
+            :data="clients.items"
+            :columns="columns"
+            :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
+            @select="onRowSelect"
+          />
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="block space-y-3 p-4 md:hidden">
+          <ULink
+            v-for="client in clients.items"
+            :key="client.clientProfileId"
+            raw
+            :to="`/admin/clients/${client.clientProfileId}`"
+            class="block rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <span class="truncate font-medium text-[color:var(--color-brand-primary)]">{{ client.firstname }} {{ client.lastname }}</span>
+                <p class="mt-0.5 truncate text-xs text-[color:var(--color-brand-muted)]">
+                  {{ client.email }}
+                </p>
+              </div>
+              <span
+                :class="getStatusBadgeClasses(STAGE_VARIANT[client.computedStatus]).badge"
+                class="shrink-0"
+              >
+                <span :class="getStatusBadgeClasses(STAGE_VARIANT[client.computedStatus]).dot" />
+                {{ STAGE_LABELS[client.computedStatus] }}
+              </span>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-secondary)]">
+              <span
+                :class="getStatusBadgeClasses(client.isActive ? 'success' : 'error').badge"
+              >
+                <span :class="getStatusBadgeClasses(client.isActive ? 'success' : 'error').dot" />
+                {{ client.isActive ? 'Actif' : 'Désactivé' }}
+              </span>
+              <span>{{ client.stats.consultationsCompleted }} consultation{{ client.stats.consultationsCompleted !== 1 ? 's' : '' }}</span>
+              <span>{{ formatDateShort(client.createdAt) }}</span>
+            </div>
+          </ULink>
+        </div>
 
         <!-- Pagination -->
         <div
