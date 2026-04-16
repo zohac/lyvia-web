@@ -6,39 +6,24 @@ const props = defineProps<CoachHowItWorksProps>()
 
 const { reveal } = useScrollReveal()
 
-// <!-- TODO: Feature V — dynamiser -->
-const steps = computed(() => [
-  {
-    number: '01',
-    title: 'Vous réservez votre appel',
-    description: `Choisissez un créneau qui vous convient. C'est gratuit, sans engagement.`,
-    icon: 'i-lucide-calendar'
-  },
-  {
-    number: '02',
-    title: `On fait connaissance (${props.discoveryDurationMinutes} min)`,
-    description: 'Je vous écoute, je vous pose quelques questions sur vos symptômes et votre quotidien. Pas de pression, pas de discours commercial.',
-    icon: 'i-lucide-phone'
-  },
-  {
-    number: '03',
-    title: 'On voit ensemble si c\'est le bon chemin',
-    description: 'Je vous dis honnêtement si un accompagnement peut vous aider, et si je suis la bonne personne pour ça.',
-    icon: 'i-lucide-compass'
-  },
-  {
-    number: '04',
-    title: 'Vous décidez, à votre rythme',
-    description: `Si c'est le bon moment pour vous, on démarre ensemble. Sinon, pas de pression\u00A0— c'est un échange, pas une vente.`,
-    icon: 'i-lucide-heart-handshake'
-  }
-])
+// P-Y3: no fallback content at organism level.
+// The parent template mounts this component only when steps is non-empty
+// (visibility rule = toggle AND content non-empty).
+const STEP_ICONS = ['i-lucide-calendar', 'i-lucide-phone', 'i-lucide-compass', 'i-lucide-heart-handshake']
+
+const steps = computed(() => {
+  const apiSteps = props.steps ?? []
+  return apiSteps.map((s, i) => ({
+    ...s,
+    icon: STEP_ICONS[i] ?? 'i-lucide-circle'
+  }))
+})
 </script>
 
 <template>
   <section
     v-bind="reveal()"
-    class="scroll-reveal bg-[#f5f0eb] px-6 py-24 sm:px-12 lg:px-20"
+    class="scroll-reveal bg-[var(--color-neutral-50)] px-6 py-24 sm:px-12 lg:px-20"
   >
     <div class="mx-auto max-w-6xl">
       <!-- Parent-provided H2 (P-Y5) -->
@@ -49,7 +34,7 @@ const steps = computed(() => [
         <!-- Progress line with numbered badges -->
         <div class="relative mb-16">
           <div
-            class="absolute left-[12.5%] right-[12.5%] top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-[#5b4b6e]/20 via-[#d4956a]/30 to-[#5b4b6e]/20"
+            class="absolute left-[12.5%] right-[12.5%] top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-[var(--color-brand-primary)]/20 via-[var(--color-brand-accent)]/30 to-[var(--color-brand-primary)]/20"
             aria-hidden="true"
           />
           <div class="relative grid grid-cols-4">
@@ -59,7 +44,7 @@ const steps = computed(() => [
               v-bind="reveal({ delay: index * 150 })"
               class="scroll-reveal flex justify-center"
             >
-              <div class="step-badge relative flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-[#5b4b6e] to-[#3d3250] shadow-lg shadow-[#5b4b6e]/20 ring-4 ring-[#f5f0eb] transition-all duration-500">
+              <div class="step-badge relative flex size-14 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-brand-primary)] to-[var(--color-crepuscule-800)] shadow-lg shadow-[var(--color-brand-primary)]/20 ring-4 ring-[var(--color-neutral-50)] transition-all duration-500">
                 <span class="font-serif text-base font-bold text-white">
                   {{ step.number }}
                 </span>
@@ -74,26 +59,26 @@ const steps = computed(() => [
             v-for="(step, index) in steps"
             :key="`card-${step.number}`"
             v-bind="reveal({ delay: index * 150 + 80 })"
-            class="step-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6 text-center transition-all duration-300"
+            class="step-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-6 text-center transition-all duration-300"
           >
             <!-- Glow blob (B2B pattern) -->
             <div
-              class="step-card-glow absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              class="step-card-glow absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
               aria-hidden="true"
             />
 
             <div class="relative">
               <!-- Icon with color change (B2B pattern) -->
-              <div class="mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+              <div class="mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
                 <UIcon
                   :name="step.icon"
-                  class="size-5 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                  class="size-5 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
                 />
               </div>
-              <h3 class="font-serif text-lg text-[#2d2438]">
+              <h3 class="font-serif text-lg text-[var(--color-crepuscule-950)]">
                 {{ step.title }}
               </h3>
-              <p class="mt-3 text-sm leading-relaxed text-[#4a4255]">
+              <p class="mt-3 text-sm leading-relaxed text-[var(--color-crepuscule-700)]">
                 {{ step.description }}
               </p>
             </div>
@@ -106,7 +91,7 @@ const steps = computed(() => [
         <div class="relative space-y-8 pl-16">
           <!-- Vertical line -->
           <div
-            class="absolute bottom-0 left-6 top-0 w-px bg-gradient-to-b from-[#5b4b6e]/30 via-[#d4956a]/20 to-[#5b4b6e]/10"
+            class="absolute bottom-0 left-6 top-0 w-px bg-gradient-to-b from-[var(--color-brand-primary)]/30 via-[var(--color-brand-accent)]/20 to-[var(--color-brand-primary)]/10"
             aria-hidden="true"
           />
 
@@ -114,31 +99,31 @@ const steps = computed(() => [
             v-for="(step, index) in steps"
             :key="`mobile-${step.number}`"
             v-bind="reveal({ delay: index * 100 })"
-            class="step-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-6 transition-all duration-300"
+            class="step-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-6 transition-all duration-300"
           >
             <!-- Number dot on the line -->
-            <div class="absolute -left-16 top-6 flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-[#5b4b6e] to-[#3d3250] text-sm font-bold text-white shadow-md ring-4 ring-[#f5f0eb]">
+            <div class="absolute -left-16 top-6 flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-brand-primary)] to-[var(--color-crepuscule-800)] text-sm font-bold text-white shadow-md ring-4 ring-[var(--color-neutral-50)]">
               {{ step.number }}
             </div>
 
             <!-- Glow blob -->
             <div
-              class="step-card-glow absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0"
+              class="step-card-glow absolute -right-6 -top-6 size-20 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0"
               aria-hidden="true"
             />
 
             <div class="relative flex items-start gap-4">
-              <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+              <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
                 <UIcon
                   :name="step.icon"
-                  class="size-5 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                  class="size-5 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
                 />
               </div>
               <div>
-                <h3 class="font-serif text-lg text-[#2d2438]">
+                <h3 class="font-serif text-lg text-[var(--color-crepuscule-950)]">
                   {{ step.title }}
                 </h3>
-                <p class="mt-2 text-base leading-relaxed text-[#4a4255]">
+                <p class="mt-2 text-base leading-relaxed text-[var(--color-crepuscule-700)]">
                   {{ step.description }}
                 </p>
               </div>
@@ -152,7 +137,7 @@ const steps = computed(() => [
 
 <style scoped>
 .step-card:hover {
-  border-color: #d7cfdf;
+  border-color: var(--color-crepuscule-200);
   box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
   transform: translateY(-4px);
 }

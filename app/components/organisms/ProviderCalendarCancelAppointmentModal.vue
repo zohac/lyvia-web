@@ -105,7 +105,7 @@ function submit() {
         >
           {{ typeLabel }}
         </span>
-        <span class="text-stone-500">Fuseau : {{ timeZone }}</span>
+        <span class="text-[color:var(--color-text-muted)]">Fuseau : {{ timeZone }}</span>
       </div>
     </template>
 
@@ -129,10 +129,10 @@ function submit() {
           icon="i-lucide-alert-triangle"
         />
 
-        <section class="rounded-lg border border-stone-200 bg-stone-50 p-5">
+        <section class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5">
           <div class="grid gap-4">
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Motif
               </label>
               <USelect
@@ -147,14 +147,14 @@ function submit() {
               />
               <p
                 v-if="fieldErrors?.reason"
-                class="text-xs font-bold text-red-600"
+                class="text-xs font-bold text-[color:var(--color-error-600)]"
               >
                 {{ fieldErrors.reason }}
               </p>
             </div>
 
             <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-wider text-stone-500">
+              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                 Précision (optionnel)
               </label>
               <UTextarea
@@ -165,13 +165,13 @@ function submit() {
               />
               <p
                 v-if="fieldErrors?.reasonText"
-                class="text-xs font-bold text-red-600"
+                class="text-xs font-bold text-[color:var(--color-error-600)]"
               >
                 {{ fieldErrors.reasonText }}
               </p>
             </div>
 
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               L'annulation envoie une notification et libère le créneau (si applicable).
             </p>
           </div>

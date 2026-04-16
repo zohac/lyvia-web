@@ -15,6 +15,7 @@ export type TenantBrand = {
   mode: 'platform' | 'custom_domain'
   displayName: string
   domain: string | null
+  brandColor: string | null // verified against OpenAPI spec
 }
 
 export type PublicTenantResponse = {

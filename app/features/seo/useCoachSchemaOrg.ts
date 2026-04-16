@@ -10,8 +10,10 @@ import { buildCoachUrls, buildCredentialSchemaItems, buildPersonAddress, mapProf
  * Reactive refs bridge post-await data updates into the schema nodes.
  *
  * @param slug - Coach slug (API fetch + URL construction)
+ * @param options - Optional: whiteLabeldomain for sameAs cross-reference (YC2.4),
+ *   hubMode skips ProfessionalService (F2 YC2.4)
  */
-export async function useCoachSchemaOrg(slug: string) {
+export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldomain?: string | null, hubMode?: boolean }) {
   const requestUrl = useRequestURL()
   const origin = requestUrl.origin
   const runtimeConfig = useRuntimeConfig()
@@ -56,17 +58,20 @@ export async function useCoachSchemaOrg(slug: string) {
   }])
 
   // ProfessionalService as raw JSON-LD (AC-1, AC-2)
+  // F2 YC2.4: hub mode skips ProfessionalService — hub only emits Person + sameAs
   // Raw object avoids defineLocalBusiness injecting unwanted LocalBusiness defaults
   // (address, geo, openingHours). availableChannel omitted — it's a Service property,
   // not valid on ProfessionalService (schema.org).
   // E-E-A-T: areaServed uses city when available (Story U1.1)
-  useSchemaOrg([{
-    '@type': 'ProfessionalService',
-    'name': () => `${name.value} — Accompagnement Ménopause`,
-    'serviceType': 'Accompagnement périménopause et ménopause',
-    'areaServed': () => city.value || 'France',
-    'url': bookingUrl
-  }])
+  if (!options?.hubMode) {
+    useSchemaOrg([{
+      '@type': 'ProfessionalService',
+      'name': () => `${name.value} — Accompagnement Ménopause`,
+      'serviceType': 'Accompagnement périménopause et ménopause',
+      'areaServed': () => city.value || 'France',
+      'url': bookingUrl
+    }])
+  }
 
   // BreadcrumbList — platform only (AC-1: Accueil > {displayName})
   // White-label: page racine, pas de breadcrumb (AC-2)
@@ -99,6 +104,10 @@ export async function useCoachSchemaOrg(slug: string) {
 
   // Update refs reactively — schemas pick up new values automatically
   watchEffect(() => {
-    mapProfileToSchemaRefs(profile.value, { name, bio, imageUrl, specialties, credentials, sameAs, city })
+    mapProfileToSchemaRefs(
+      profile.value,
+      { name, bio, imageUrl, specialties, credentials, sameAs, city },
+      { whiteLabeldomain: options?.whiteLabeldomain }
+    )
   })
 }

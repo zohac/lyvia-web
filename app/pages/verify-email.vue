@@ -7,7 +7,7 @@
         class="mb-12 inline-flex w-fit items-center justify-center"
       >
         <NuxtImg
-          src="/images/keova-logo.png"
+          src="/images/keova-logo.webp"
           alt="Keova"
           class="h-10 w-auto"
           loading="eager"
@@ -57,6 +57,7 @@
 import type { VerifyEmailChangeResponse } from '../features/auth/api/auth.contract'
 import { apiFetch } from '../services/api/apiFetch'
 import { ApiFetchError, mapAuthErrorCodeToUserMessage } from '../services/api/api-error'
+import SystemAlert from '../components/atoms/SystemAlert.vue'
 
 definePageMeta({
   layout: 'auth'

@@ -126,6 +126,7 @@
 <script setup lang="ts">
 import type { ForgotPasswordResponse } from '../../features/auth/api/auth.contract'
 import { apiFetch } from '../../services/api/apiFetch'
+import FormControl from '../../components/molecules/FormControl.vue'
 
 definePageMeta({
   layout: 'auth',

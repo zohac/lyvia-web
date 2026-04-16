@@ -6,9 +6,12 @@ import {
   GOOGLE_ADS_CONVERSION_LABEL_REGEX,
   GOOGLE_ADS_ID_REGEX
 } from '../../features/consent/consent-logic'
+import { CLARITY_ID_REGEX } from '../../features/clarity/microsoft-clarity-helpers'
 import { apiFetch } from '../../services/api/apiFetch'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
 import type { CredentialItem, SocialLinks, TestimonialItem } from '../../features/account/api/provider-account.contract'
+import FormControl from '../../components/molecules/FormControl.vue'
+import SystemAlert from '../../components/atoms/SystemAlert.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -24,7 +27,7 @@ const { changingPassword, requestingEmailChange, changePassword, requestEmailCha
 const personalForm = reactive({
   firstname: '',
   lastname: '',
-  bio: '' as string | null,
+  bio: '',
   specialties: [] as string[]
 })
 const specialtyInput = ref('')
@@ -32,9 +35,9 @@ const specialtyError = ref<string | null>(null)
 
 // ── Professional profile form state ─────────────────
 const profileForm = reactive({
-  longBio: '' as string | null,
-  city: '' as string | null,
-  region: '' as string | null
+  longBio: '',
+  city: '',
+  region: ''
 })
 
 // ── Credentials form state ──────────────────────────
@@ -50,7 +53,7 @@ const socialForm = reactive<SocialLinks>({
 const socialError = ref<string | null>(null)
 
 // ── Public phone form state ─────────────────────────
-const phoneForm = reactive({ publicPhone: '' as string | null })
+const phoneForm = reactive({ publicPhone: '' })
 const phoneValid = computed(() => {
   const p = (phoneForm.publicPhone ?? '').trim()
   return p === '' || /^\+[1-9]\d{6,14}$/.test(p)
@@ -71,10 +74,10 @@ const secondaryPhotoError = ref<string | null>(null)
 const secondaryFileInputRef = ref<HTMLInputElement | null>(null)
 
 // ── Hero headline form state ────────────────────────
-const heroHeadlineForm = reactive({ heroHeadline: '' as string | null })
+const heroHeadlineForm = reactive({ heroHeadline: '' })
 
 // ── Urgency text form state ─────────────────────────
-const urgencyForm = reactive({ urgencyText: '' as string | null })
+const urgencyForm = reactive({ urgencyText: '' })
 
 // ── Lead magnet form state ──────────────────────────
 const leadMagnetForm = reactive({
@@ -88,17 +91,22 @@ const leadMagnetError = ref<string | null>(null)
 // ── Testimonials form state ─────────────────────────
 const testimonialsForm = ref<TestimonialItem[]>([])
 
-// ── Google Ads form state ───────────────────────────
-const adsForm = reactive({
+// ── Marketing form state (Google Ads + Clarity) ─────
+const marketingForm = reactive({
   googleAdsId: '' as string | undefined,
-  googleAdsConversionLabel: '' as string | undefined
+  googleAdsConversionLabel: '' as string | undefined,
+  microsoftClarityId: '' as string | undefined
+})
+const clarityIdValid = computed(() => {
+  const v = (marketingForm.microsoftClarityId ?? '').trim()
+  return v === '' || CLARITY_ID_REGEX.test(v)
 })
 const adsIdValid = computed(() => {
-  const v = (adsForm.googleAdsId ?? '').trim()
+  const v = (marketingForm.googleAdsId ?? '').trim()
   return v === '' || GOOGLE_ADS_ID_REGEX.test(v)
 })
 const adsLabelValid = computed(() => {
-  const v = (adsForm.googleAdsConversionLabel ?? '').trim()
+  const v = (marketingForm.googleAdsConversionLabel ?? '').trim()
   return v === '' || GOOGLE_ADS_CONVERSION_LABEL_REGEX.test(v)
 })
 
@@ -141,13 +149,13 @@ function syncFormsFromAccount() {
   // Personal
   personalForm.firstname = acc.firstname
   personalForm.lastname = acc.lastname
-  personalForm.bio = acc.bio
+  personalForm.bio = acc.bio ?? ''
   personalForm.specialties = [...(acc.specialties ?? [])]
 
   // Professional profile
-  profileForm.longBio = acc.longBio
-  profileForm.city = acc.city
-  profileForm.region = acc.region
+  profileForm.longBio = acc.longBio ?? ''
+  profileForm.city = acc.city ?? ''
+  profileForm.region = acc.region ?? ''
 
   // Credentials — preserve verified flag on round-trip (CR1 HIGH fix)
   credentialsForm.value = acc.credentials?.length
@@ -161,13 +169,13 @@ function syncFormsFromAccount() {
   socialForm.website = acc.socialLinks?.website ?? ''
 
   // Phone
-  phoneForm.publicPhone = acc.publicPhone
+  phoneForm.publicPhone = acc.publicPhone ?? ''
 
   // Hero headline
-  heroHeadlineForm.heroHeadline = acc.heroHeadline
+  heroHeadlineForm.heroHeadline = acc.heroHeadline ?? ''
 
   // Urgency
-  urgencyForm.urgencyText = acc.urgencyText
+  urgencyForm.urgencyText = acc.urgencyText ?? ''
 
   // Lead magnet
   leadMagnetForm.url = acc.leadMagnetUrl
@@ -178,9 +186,10 @@ function syncFormsFromAccount() {
     ? acc.testimonialsJson.map(t => ({ ...t }))
     : []
 
-  // Google Ads
-  adsForm.googleAdsId = acc.googleAdsId ?? undefined
-  adsForm.googleAdsConversionLabel = acc.googleAdsConversionLabel ?? undefined
+  // Marketing (Google Ads + Clarity)
+  marketingForm.googleAdsId = acc.googleAdsId ?? undefined
+  marketingForm.googleAdsConversionLabel = acc.googleAdsConversionLabel ?? undefined
+  marketingForm.microsoftClarityId = acc.microsoftClarityId ?? undefined
 }
 
 // ── Specialty tag handlers ──────────────────────────
@@ -512,14 +521,15 @@ function removeLeadMagnet() {
   leadMagnetFile.value = null
 }
 
-async function handleGoogleAdsSubmit() {
-  if (!adsIdValid.value || !adsLabelValid.value) return
+async function handleMarketingSubmit() {
+  if (!adsIdValid.value || !adsLabelValid.value || !clarityIdValid.value) return
   const success = await updateAccount({
-    googleAdsId: adsForm.googleAdsId?.trim() || null,
-    googleAdsConversionLabel: adsForm.googleAdsConversionLabel?.trim() || null
+    googleAdsId: marketingForm.googleAdsId?.trim() || null,
+    googleAdsConversionLabel: marketingForm.googleAdsConversionLabel?.trim() || null,
+    microsoftClarityId: marketingForm.microsoftClarityId?.trim() || null
   })
   if (success) {
-    toast.add({ title: 'Configuration Google Ads enregistrée', color: 'primary' })
+    toast.add({ title: 'Configuration Marketing enregistrée', color: 'primary' })
   } else {
     toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
   }
@@ -568,14 +578,10 @@ async function handlePasswordChange() {
 <template>
   <div class="space-y-8">
     <!-- Page header -->
-    <header>
-      <h1 class="font-serif text-2xl font-semibold text-[color:var(--color-brand-primary)] sm:text-3xl">
-        Mon compte
-      </h1>
-      <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-        Gérez vos informations professionnelles, votre email et votre mot de passe.
-      </p>
-    </header>
+    <AtomsDsPageHeader
+      title="Mon compte"
+      subtitle="Gérez vos informations professionnelles, votre email et votre mot de passe."
+    />
 
     <!-- Loading -->
     <div
@@ -588,30 +594,11 @@ async function handlePasswordChange() {
     </div>
 
     <!-- Error state -->
-    <div
+    <AtomsDsErrorState
       v-else-if="error && !account"
-      class="flex flex-col items-center justify-center gap-4 py-16 text-center"
-    >
-      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-surface-highlight)]">
-        <UIcon
-          name="i-lucide-alert-circle"
-          class="h-8 w-8 text-[color:var(--color-error)]"
-        />
-      </div>
-      <div>
-        <p class="font-medium text-[color:var(--color-brand-primary)]">
-          Impossible de charger vos informations
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ error }}
-        </p>
-      </div>
-      <UButton
-        label="Réessayer"
-        variant="outline"
-        @click="fetchAccount()"
-      />
-    </div>
+      :message="error"
+      @retry="fetchAccount()"
+    />
 
     <template v-else>
       <!-- Section 1: Informations personnelles -->
@@ -1549,7 +1536,7 @@ async function handlePasswordChange() {
 
         <form
           class="mt-6 space-y-4"
-          @submit.prevent="handleGoogleAdsSubmit"
+          @submit.prevent="handleMarketingSubmit"
         >
           <div>
             <div class="flex items-center gap-2">
@@ -1560,16 +1547,16 @@ async function handlePasswordChange() {
                 ID de conversion Google Ads
               </label>
               <span
-                v-if="adsForm.googleAdsId"
+                v-if="marketingForm.googleAdsId"
                 class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
-                :class="adsIdValid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
+                :class="adsIdValid ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' : 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]'"
               >
                 {{ adsIdValid ? 'Actif' : 'Format invalide' }}
               </span>
             </div>
             <UInput
               id="googleAdsId"
-              v-model="adsForm.googleAdsId"
+              v-model="marketingForm.googleAdsId"
               placeholder="AW-123456789"
               :maxlength="20"
               class="mt-1"
@@ -1594,7 +1581,7 @@ async function handlePasswordChange() {
             </label>
             <UInput
               id="googleAdsConversionLabel"
-              v-model="adsForm.googleAdsConversionLabel"
+              v-model="marketingForm.googleAdsConversionLabel"
               placeholder="abcDEF123"
               :maxlength="50"
               class="mt-1"
@@ -1610,11 +1597,46 @@ async function handlePasswordChange() {
             </p>
           </div>
 
+          <!-- Microsoft Clarity (same Marketing section) -->
+          <div class="border-t border-[color:var(--color-brand-subtle)] pt-4">
+            <div class="flex items-center gap-2">
+              <label
+                for="microsoftClarityId"
+                class="block text-sm font-medium text-[color:var(--color-brand-primary)]"
+              >
+                ID de projet Microsoft Clarity
+              </label>
+              <span
+                v-if="marketingForm.microsoftClarityId"
+                class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                :class="clarityIdValid ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' : 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]'"
+              >
+                {{ clarityIdValid ? 'Actif' : 'Format invalide' }}
+              </span>
+            </div>
+            <UInput
+              id="microsoftClarityId"
+              v-model="marketingForm.microsoftClarityId"
+              placeholder="lz1abc2def"
+              :maxlength="20"
+              class="mt-1"
+            />
+            <p
+              v-if="!clarityIdValid"
+              class="mt-1 text-xs text-[color:var(--color-error)]"
+            >
+              Format attendu : 6 à 20 caractères alphanumériques minuscules
+            </p>
+            <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
+              Trouvez cette valeur dans Clarity > Settings > Overview > Project ID
+            </p>
+          </div>
+
           <div class="flex justify-end">
             <UButton
               type="submit"
               :loading="saving"
-              :disabled="saving || !adsIdValid || !adsLabelValid"
+              :disabled="saving || !adsIdValid || !adsLabelValid || !clarityIdValid"
               label="Enregistrer"
             />
           </div>

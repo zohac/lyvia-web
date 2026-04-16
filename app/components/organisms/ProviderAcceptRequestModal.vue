@@ -80,14 +80,14 @@ function updateOpen(value: boolean) {
       content: 'rounded-2xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] shadow-lg max-w-md',
       header: 'px-6 pt-6 pb-4',
       body: 'px-6 pb-6',
-      footer: 'px-6 pb-6 pt-4 border-t border-stone-100',
-      title: 'font-serif text-xl text-stone-900'
+      footer: 'px-6 pb-6 pt-4 border-t border-[color:var(--color-neutral-100)]',
+      title: 'font-serif text-xl text-[color:var(--color-text-primary)]'
     }"
     @update:open="updateOpen"
   >
     <template #title>
       <div class="flex items-center gap-3">
-        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--color-success-100)] text-[color:var(--color-success-600)]">
           <UIcon
             :name="isReschedule ? 'lucide:calendar-clock' : 'lucide:check-circle'"
             class="h-5 w-5"
@@ -100,7 +100,7 @@ function updateOpen(value: boolean) {
     <template #body>
       <div class="space-y-5">
         <!-- Info message -->
-        <p class="text-sm text-stone-600">
+        <p class="text-sm text-[color:var(--color-text-secondary)]">
           <template v-if="isReschedule">
             En acceptant cette demande de report de <strong>{{ clientName }}</strong>,
             vous devez proposer une nouvelle date. Le client sera notifié par email.
@@ -125,8 +125,8 @@ function updateOpen(value: boolean) {
           v-if="isReschedule"
           class="space-y-2"
         >
-          <label class="text-sm font-medium text-stone-700">
-            Nouvelle date et heure <span class="text-red-500">*</span>
+          <label class="text-sm font-medium text-[color:var(--color-text-secondary)]">
+            Nouvelle date et heure <span class="text-[color:var(--color-error)]">*</span>
           </label>
           <UInput
             v-model="newScheduledAt"
@@ -139,7 +139,7 @@ function updateOpen(value: boolean) {
 
         <!-- Provider note -->
         <div class="space-y-2">
-          <label class="text-sm font-medium text-stone-700">
+          <label class="text-sm font-medium text-[color:var(--color-text-secondary)]">
             Message pour le client (optionnel)
           </label>
           <UTextarea
@@ -149,7 +149,7 @@ function updateOpen(value: boolean) {
             :disabled="processing"
             placeholder="Ex: Merci de votre compréhension..."
           />
-          <p class="text-right text-xs text-stone-400">
+          <p class="text-right text-xs text-[color:var(--color-brand-muted)]">
             {{ providerNote.length }}/500
           </p>
         </div>

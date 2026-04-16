@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import { useClientPreferences } from '../../features/preferences/useClientPreferences'
 
-definePageMeta({
-  layout: 'client',
-  middleware: 'auth-client',
-  pageTitle: 'Paramètres'
-})
-
 const {
   preferences,
   loading,
@@ -38,43 +32,26 @@ async function handleSmsToggle(value: boolean) {
 </script>
 
 <template>
-  <section class="grid gap-6">
+  <div class="space-y-6">
     <!-- Loading State -->
     <div
       v-if="loading"
       class="flex items-center justify-center py-16"
     >
       <div class="flex flex-col items-center gap-4">
-        <div class="relative h-10 w-10">
-          <div class="absolute inset-0 animate-ping rounded-full bg-[color:var(--color-keova-200)] opacity-75" />
-          <div class="relative h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--color-brand-subtle)] border-t-[color:var(--color-brand-primary)]" />
-        </div>
+        <USkeleton class="h-10 w-10 rounded-full" />
         <p class="text-sm text-[color:var(--color-brand-muted)]">
           Chargement de vos préférences...
         </p>
       </div>
     </div>
 
-    <!-- Error State (no data) -->
-    <div
+    <!-- Error State -->
+    <AtomsDsErrorState
       v-else-if="error && !preferences"
-      class="rounded-[var(--radius-lg)] border border-[color:var(--color-error)]/20 bg-[color:var(--color-error)]/5 p-6 text-center"
-    >
-      <UIcon
-        name="i-lucide-alert-circle"
-        class="mx-auto h-10 w-10 text-[color:var(--color-error)]"
-      />
-      <p class="mt-3 font-medium text-[color:var(--color-error)]">
-        {{ error }}
-      </p>
-      <UButton
-        variant="outline"
-        class="mt-4"
-        @click="fetchPreferences"
-      >
-        Réessayer
-      </UButton>
-    </div>
+      :message="error"
+      @retry="fetchPreferences()"
+    />
 
     <!-- Content -->
     <template v-else-if="preferences">
@@ -191,5 +168,5 @@ async function handleSmsToggle(value: boolean) {
         </div>
       </div>
     </template>
-  </section>
+  </div>
 </template>

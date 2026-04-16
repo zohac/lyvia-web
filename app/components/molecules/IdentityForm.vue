@@ -60,7 +60,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
           :class="
             slotProps?.invalid
               ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
-              : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-accent-main)] focus:ring-[rgba(200,121,100,0.2)]'
+              : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-brand-primary-dark)] focus:ring-[rgba(200,121,100,0.2)]'
           "
           :value="modelValue.firstname"
           @input="updateField('firstname', ($event.target as HTMLInputElement).value)"
@@ -84,7 +84,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
           :class="
             slotProps?.invalid
               ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
-              : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-accent-main)] focus:ring-[rgba(200,121,100,0.2)]'
+              : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-brand-primary-dark)] focus:ring-[rgba(200,121,100,0.2)]'
           "
           :value="modelValue.lastname"
           @input="updateField('lastname', ($event.target as HTMLInputElement).value)"
@@ -110,7 +110,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
         :class="
           slotProps?.invalid
             ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
-            : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-accent-main)] focus:ring-[rgba(200,121,100,0.2)]'
+            : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-brand-primary-dark)] focus:ring-[rgba(200,121,100,0.2)]'
         "
         :value="modelValue.email"
         @input="updateField('email', ($event.target as HTMLInputElement).value)"
@@ -136,7 +136,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
         :class="
           slotProps?.invalid
             ? 'border-[color:var(--color-error)] focus:ring-[rgba(186,63,63,0.18)]'
-            : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-accent-main)] focus:ring-[rgba(200,121,100,0.2)]'
+            : 'border-[color:var(--color-brand-subtle)] focus:border-[color:var(--color-brand-primary-dark)] focus:ring-[rgba(200,121,100,0.2)]'
         "
         :value="modelValue.phone"
         @input="updateField('phone', ($event.target as HTMLInputElement).value)"
@@ -147,7 +147,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
       <label class="flex items-start gap-3">
         <input
           type="checkbox"
-          class="mt-1 h-4 w-4 rounded border-[color:var(--color-brand-subtle)] text-[color:var(--color-accent-main)] focus:ring-4 focus:ring-[rgba(200,121,100,0.2)]"
+          class="mt-1 h-4 w-4 rounded border-[color:var(--color-brand-subtle)] text-[color:var(--color-brand-primary-dark)] focus:ring-4 focus:ring-[rgba(200,121,100,0.2)]"
           :checked="consents.legalAccepted"
           :disabled="disabled"
           @change="updateConsent('legalAccepted', ($event.target as HTMLInputElement).checked)"
@@ -168,7 +168,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
       <label class="flex items-start gap-3">
         <input
           type="checkbox"
-          class="mt-1 h-4 w-4 rounded border-[color:var(--color-brand-subtle)] text-[color:var(--color-accent-main)] focus:ring-4 focus:ring-[rgba(200,121,100,0.2)]"
+          class="mt-1 h-4 w-4 rounded border-[color:var(--color-brand-subtle)] text-[color:var(--color-brand-primary-dark)] focus:ring-4 focus:ring-[rgba(200,121,100,0.2)]"
           :checked="consents.emailMarketingOptIn"
           :disabled="disabled"
           @change="updateConsent('emailMarketingOptIn', ($event.target as HTMLInputElement).checked)"
@@ -184,7 +184,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
       >
         <input
           type="checkbox"
-          class="mt-1 h-4 w-4 rounded border-[color:var(--color-brand-subtle)] text-[color:var(--color-accent-main)] focus:ring-4 focus:ring-[rgba(200,121,100,0.2)]"
+          class="mt-1 h-4 w-4 rounded border-[color:var(--color-brand-subtle)] text-[color:var(--color-brand-primary-dark)] focus:ring-4 focus:ring-[rgba(200,121,100,0.2)]"
           :checked="consents.smsMarketingOptIn"
           :disabled="disabled || !modelValue.phone.trim()"
           @change="updateConsent('smsMarketingOptIn', ($event.target as HTMLInputElement).checked)"

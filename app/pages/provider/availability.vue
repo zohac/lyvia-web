@@ -111,7 +111,7 @@ const copyDirectionOptions = [
 <template>
   <div class="space-y-8">
     <!-- Create Block Modal -->
-    <UModal
+    <USlideover
       v-model:open="createBlockModalOpen"
       :dismissible="!isCreatingBlock"
       title="Ajouter un blocage"
@@ -200,7 +200,7 @@ const copyDirectionOptions = [
           </UButton>
         </div>
       </template>
-    </UModal>
+    </USlideover>
 
     <!-- Delete Block Modal -->
     <ConfirmActionModal
@@ -214,7 +214,7 @@ const copyDirectionOptions = [
     />
 
     <!-- Create Rule Modal -->
-    <UModal
+    <USlideover
       v-model:open="createRuleModalOpen"
       :dismissible="!isCreatingRule"
       title="Ajouter une règle"
@@ -252,12 +252,12 @@ const copyDirectionOptions = [
             </template>
           </UFormField>
 
-          <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-4">
             <div>
-              <p class="font-medium text-stone-900">
+              <p class="font-medium text-[color:var(--color-text-primary)]">
                 Appliquer à tous les types
               </p>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Crée la règle pour Discovery et Consultation.
               </p>
             </div>
@@ -346,12 +346,12 @@ const copyDirectionOptions = [
             </UFormField>
           </div>
 
-          <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-4">
             <div>
-              <p class="font-medium text-stone-900">
+              <p class="font-medium text-[color:var(--color-text-primary)]">
                 Activer la règle
               </p>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Désactivez temporairement sans supprimer.
               </p>
             </div>
@@ -382,10 +382,10 @@ const copyDirectionOptions = [
           </UButton>
         </div>
       </template>
-    </UModal>
+    </USlideover>
 
     <!-- Update Rule Modal -->
-    <UModal
+    <USlideover
       v-model:open="updateRuleModalOpen"
       :dismissible="!isUpdatingRule"
       title="Modifier une règle"
@@ -466,12 +466,12 @@ const copyDirectionOptions = [
             />
           </UFormField>
 
-          <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-4">
             <div>
-              <p class="font-medium text-stone-900">
+              <p class="font-medium text-[color:var(--color-text-primary)]">
                 Activer la règle
               </p>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Désactivez temporairement sans supprimer.
               </p>
             </div>
@@ -502,7 +502,7 @@ const copyDirectionOptions = [
           </UButton>
         </div>
       </template>
-    </UModal>
+    </USlideover>
 
     <!-- Delete Rule Modal -->
     <ConfirmActionModal
@@ -542,27 +542,27 @@ const copyDirectionOptions = [
             />
           </UFormField>
 
-          <div class="rounded-lg border border-stone-200 bg-stone-50 p-4">
-            <p class="font-medium text-stone-900">
+          <div class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-4">
+            <p class="font-medium text-[color:var(--color-text-primary)]">
               Résumé
             </p>
-            <p class="mt-2 text-sm text-stone-600">
+            <p class="mt-2 text-sm text-[color:var(--color-text-secondary)]">
               {{ copyRulesSummary.sourceCount }} règle(s) source • {{ copyRulesSummary.targetCount }} règle(s) déjà configurée(s)
             </p>
             <p
               v-if="copyRulesSummary.duplicatesCount"
-              class="mt-1 text-xs text-stone-500"
+              class="mt-1 text-xs text-[color:var(--color-text-muted)]"
             >
               {{ copyRulesSummary.duplicatesCount }} créneau(x) identique(s) ignoré(s).
             </p>
           </div>
 
-          <div class="flex items-center justify-between gap-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+          <div class="flex items-center justify-between gap-4 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-4">
             <div>
-              <p class="font-medium text-stone-900">
+              <p class="font-medium text-[color:var(--color-text-primary)]">
                 Adapter aux durées recommandées
               </p>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Discovery : 30 min • Consultation : 60 min.
               </p>
             </div>
@@ -620,43 +620,39 @@ const copyDirectionOptions = [
       icon="i-lucide-check-circle"
     />
 
-    <!-- Page header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
-          Disponibilités
-        </h1>
-        <p class="mt-1 text-stone-500">
-          Définissez vos règles hebdomadaires et ajoutez des blocages ponctuels.
-        </p>
-      </div>
-      <UButton
-        :loading="pending"
-        variant="outline"
-        color="neutral"
-        @click="() => refresh()"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          class="mr-2 h-4 w-4"
-        />
-        Actualiser
-      </UButton>
-    </header>
+    <AtomsDsPageHeader
+      title="Disponibilités"
+      subtitle="Définissez vos règles hebdomadaires et ajoutez des blocages ponctuels."
+    >
+      <template #actions>
+        <UButton
+          :loading="pending"
+          variant="outline"
+          color="neutral"
+          @click="() => refresh()"
+        >
+          <UIcon
+            name="lucide:refresh-cw"
+            class="mr-2 h-4 w-4"
+          />
+          Actualiser
+        </UButton>
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Main content -->
     <div class="grid gap-8 lg:grid-cols-3">
       <!-- Main column -->
       <div class="space-y-8 lg:col-span-2">
         <!-- Recurring rules section -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 class="font-semibold text-stone-900">
+                <h2 class="font-semibold text-[color:var(--color-text-primary)]">
                   Règles récurrentes
                 </h2>
-                <p class="mt-1 text-sm text-stone-500">
+                <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
                   Vos créneaux récurrents (Europe/Paris)
                 </p>
               </div>
@@ -704,13 +700,13 @@ const copyDirectionOptions = [
             v-else-if="!hasRules"
             class="flex flex-col items-center justify-center gap-3 py-12 text-center"
           >
-            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
               <UIcon
                 name="lucide:calendar-clock"
-                class="h-6 w-6 text-stone-400"
+                class="h-6 w-6 text-[color:var(--color-brand-muted)]"
               />
             </div>
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               Aucune règle configurée. Ajoutez vos plages horaires récurrentes.
             </p>
           </div>
@@ -723,10 +719,10 @@ const copyDirectionOptions = [
             <div
               v-for="group in groupedRules"
               :key="group.weekday"
-              class="rounded-lg border border-stone-100 bg-stone-50 p-4"
+              class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4"
             >
               <div class="flex items-center justify-between">
-                <p class="font-semibold text-stone-900">
+                <p class="font-semibold text-[color:var(--color-text-primary)]">
                   {{ weekdayLabel(group.weekday) }}
                 </p>
                 <UBadge
@@ -742,10 +738,10 @@ const copyDirectionOptions = [
                 <div
                   v-for="typeGroup in group.groups"
                   :key="typeGroup.type"
-                  class="rounded-lg border border-stone-200 bg-white p-4"
+                  class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-4"
                 >
                   <div class="flex items-center justify-between">
-                    <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+                    <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
                       {{ appointmentTypeLabel(typeGroup.type) }}
                     </p>
                     <UBadge
@@ -761,10 +757,10 @@ const copyDirectionOptions = [
                     <div
                       v-for="rule in typeGroup.rules"
                       :key="rule.id"
-                      class="flex flex-col gap-3 rounded-lg bg-stone-50 p-3 sm:flex-row sm:items-center sm:justify-between"
+                      class="flex flex-col gap-3 rounded-lg bg-[color:var(--color-surface-page)] p-3 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div class="flex flex-wrap items-center gap-2">
-                        <span class="font-medium text-stone-900">
+                        <span class="font-medium text-[color:var(--color-text-primary)]">
                           {{ normalizeRuleTime(rule.startTime) }}–{{ normalizeRuleTime(rule.endTime) }}
                         </span>
                         <UBadge
@@ -785,7 +781,7 @@ const copyDirectionOptions = [
 
                       <div class="flex flex-wrap items-center gap-2">
                         <div class="flex items-center gap-2">
-                          <span class="text-xs text-stone-500">
+                          <span class="text-xs text-[color:var(--color-text-muted)]">
                             {{ rule.isActive ? 'Actif' : 'Inactif' }}
                           </span>
                           <USwitch
@@ -829,14 +825,14 @@ const copyDirectionOptions = [
         </UCard>
 
         <!-- Blocks section -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 class="font-semibold text-stone-900">
+                <h2 class="font-semibold text-[color:var(--color-text-primary)]">
                   Blocages ponctuels
                 </h2>
-                <p class="mt-1 text-sm text-stone-500">
+                <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
                   Bloquez des créneaux (vacances, indisponibilités)
                 </p>
               </div>
@@ -869,13 +865,13 @@ const copyDirectionOptions = [
             v-else-if="!hasBlocks"
             class="flex flex-col items-center justify-center gap-3 py-12 text-center"
           >
-            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
               <UIcon
                 name="lucide:calendar-x"
-                class="h-6 w-6 text-stone-400"
+                class="h-6 w-6 text-[color:var(--color-brand-muted)]"
               />
             </div>
-            <p class="text-sm text-stone-500">
+            <p class="text-sm text-[color:var(--color-text-muted)]">
               Aucun blocage ponctuel pour le moment.
             </p>
           </div>
@@ -888,18 +884,18 @@ const copyDirectionOptions = [
             <div
               v-for="block in sortedBlocks"
               :key="block.id"
-              class="flex flex-col gap-3 rounded-lg border border-stone-100 bg-stone-50 p-4 sm:flex-row sm:items-start sm:justify-between"
+              class="flex flex-col gap-3 rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4 sm:flex-row sm:items-start sm:justify-between"
             >
               <div>
-                <p class="font-medium text-stone-900">
+                <p class="font-medium text-[color:var(--color-text-primary)]">
                   {{ formatDateTime(block.startAt) }} → {{ formatDateTime(block.endAt) }}
                 </p>
-                <p class="mt-1 text-sm text-stone-500">
+                <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
                   Type : {{ blockTypeLabel(block) }}
                 </p>
                 <p
                   v-if="formatBlockReason(block.reason)"
-                  class="mt-1 text-xs text-stone-400"
+                  class="mt-1 text-xs text-[color:var(--color-brand-muted)]"
                 >
                   Raison : {{ formatBlockReason(block.reason) }}
                 </p>
@@ -933,9 +929,9 @@ const copyDirectionOptions = [
       <!-- Sidebar -->
       <aside class="space-y-6">
         <!-- Upcoming blocks card -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
-            <h3 class="font-semibold text-stone-900">
+            <h3 class="font-semibold text-[color:var(--color-text-primary)]">
               À venir
             </h3>
           </template>
@@ -950,7 +946,7 @@ const copyDirectionOptions = [
 
           <div
             v-else-if="upcomingBlocks.length === 0"
-            class="py-4 text-center text-sm text-stone-500"
+            class="py-4 text-center text-sm text-[color:var(--color-text-muted)]"
           >
             Aucun blocage à venir.
           </div>
@@ -962,12 +958,12 @@ const copyDirectionOptions = [
             <div
               v-for="block in upcomingBlocks"
               :key="block.id"
-              class="rounded-lg border border-stone-100 bg-stone-50 p-3"
+              class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-3"
             >
-              <p class="text-sm font-medium text-stone-900">
+              <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
                 {{ formatDateTime(block.startAt) }}
               </p>
-              <p class="mt-0.5 text-xs text-stone-500">
+              <p class="mt-0.5 text-xs text-[color:var(--color-text-muted)]">
                 {{ blockTypeLabel(block) }}
               </p>
             </div>

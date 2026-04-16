@@ -75,7 +75,7 @@ async function handleResume() {
       class="pointer-events-none absolute inset-0 overflow-hidden"
       aria-hidden="true"
     >
-      <div class="absolute left-1/2 top-0 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-[color:var(--color-keova-100)] to-transparent opacity-30 blur-[100px]" />
+      <div class="absolute left-1/2 top-0 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-br from-[color:var(--color-crepuscule-100)] to-transparent opacity-30 blur-[100px]" />
     </div>
 
     <!-- Loading State -->
@@ -207,7 +207,7 @@ async function handleResume() {
         <div class="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <button
             type="button"
-            class="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
+            class="inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-5 py-2.5 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
             @click="payment.loadContext()"
           >
             <Icon
@@ -272,7 +272,7 @@ async function handleResume() {
         <div class="grid gap-5">
           <!-- Label & Type -->
           <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-keova-100)]/50 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-accent)]">
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-crepuscule-100)]/50 px-3 py-1 text-xs font-semibold text-[color:var(--color-brand-accent)]">
               <Icon
                 name="lucide:video"
                 size="14"
@@ -287,7 +287,7 @@ async function handleResume() {
 
           <!-- Date & Time -->
           <div class="flex items-center gap-4 rounded-xl border border-[color:var(--color-brand-subtle)]/60 bg-[color:var(--color-surface-highlight)]/50 p-4">
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-card)] shadow-sm">
               <Icon
                 name="lucide:calendar"
                 size="24"
@@ -376,7 +376,7 @@ async function handleResume() {
           <button
             v-if="payment.pageState.value.hasPendingPayment && !payment.actionPending.value"
             type="button"
-            class="flex w-full items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-subtle)] bg-white px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
+            class="flex w-full items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] px-6 py-3 text-sm font-semibold text-[color:var(--color-brand-primary)] shadow-soft transition-base hover:shadow-floating"
             @click="handleResume"
           >
             <Icon
@@ -427,15 +427,15 @@ async function handleResume() {
           aria-label="Redirection vers le paiement sécurisé"
         >
           <!-- Gradient backdrop -->
-          <div class="absolute inset-0 bg-gradient-to-br from-[color:var(--color-surface-page)] via-[color:var(--color-keova-50)] to-[color:var(--color-surface-page)]" />
+          <div class="absolute inset-0 bg-gradient-to-br from-[color:var(--color-surface-page)] via-[color:var(--color-crepuscule-50)] to-[color:var(--color-surface-page)]" />
           <div class="absolute inset-0 backdrop-blur-md" />
 
           <!-- Content -->
           <div class="relative z-10 px-6 text-center">
             <!-- Animated shield icon with pulse ring -->
             <div class="checkout-icon-wrapper relative mx-auto mb-6">
-              <div class="absolute inset-0 animate-pulse-ring rounded-3xl bg-[color:var(--color-keova-200)]/50" />
-              <div class="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-floating">
+              <div class="absolute inset-0 animate-pulse-ring rounded-3xl bg-[color:var(--color-crepuscule-200)]/50" />
+              <div class="relative flex h-20 w-20 items-center justify-center rounded-3xl bg-[color:var(--color-surface-card)] shadow-floating">
                 <Icon
                   name="lucide:shield-check"
                   size="36"
@@ -556,9 +556,9 @@ async function handleResume() {
   border-radius: 9999px;
   background: linear-gradient(
     135deg,
-    var(--color-keova-300) 0%,
-    var(--color-keova-200) 50%,
-    var(--color-keova-300) 100%
+    var(--color-crepuscule-300) 0%,
+    var(--color-crepuscule-200) 50%,
+    var(--color-crepuscule-300) 100%
   );
   opacity: 0;
   z-index: -1;

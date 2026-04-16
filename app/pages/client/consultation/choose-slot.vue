@@ -3,6 +3,7 @@ import SlotPicker from '../../../components/organisms/SlotPicker.vue'
 import PlanSelector from '../../../components/organisms/PlanSelector.vue'
 import SystemAlert from '../../../components/atoms/SystemAlert.vue'
 import { useClientConsultationBooking } from '../../../features/consultation/useClientConsultationBooking'
+import { useCoachLink } from '../../../composables/useCoachLink'
 
 definePageMeta({
   layout: 'client',
@@ -25,8 +26,13 @@ const mustChoosePricePlan = computed(() => activePlans.value.length > 1 && !sele
 const hasNoActivePlans = computed(() => Boolean(state.pricing && activePlans.value.length === 0))
 
 const discoveryCtaPath = computed(() => {
+  // White-label custom domain: the cliente is already on the tenant's host,
+  // so we keep a relative path to /onboarding/discovery (not the absolute URL).
   if (state.tenant?.brand.mode === 'custom_domain') return '/onboarding/discovery'
-  if (state.tenant?.slug) return `/coach/${state.tenant.slug}/onboarding/discovery`
+  // Platform: resolve via useCoachLink — P-Y6 convention.
+  if (state.tenant?.slug) {
+    return useCoachLink({ slug: state.tenant.slug }).booking
+  }
   return '/'
 })
 
@@ -426,7 +432,7 @@ function retry() {
           >
             Un paiement est déjà en cours pour ce créneau. Reprenez-le depuis votre espace Paiements.
             <ULink
-              to="/client/payments"
+              to="/client/account?tab=paiements"
               class="mt-3 inline-flex w-fit items-center gap-2 text-sm font-semibold text-[color:var(--color-brand-accent)] underline-offset-4 hover:underline"
             >
               Voir mes paiements

@@ -20,7 +20,7 @@ withDefaults(
     :class="
       selected
         ? 'border-[color:var(--color-brand-primary)] bg-[color:var(--color-brand-primary)] text-white shadow-floating'
-        : 'border-[color:var(--color-brand-subtle)] bg-white/75 text-[color:var(--color-brand-primary)] shadow-soft hover:-translate-y-0.5 hover:border-[color:var(--color-brand-solid)] hover:shadow-floating'
+        : 'border-[color:var(--color-brand-subtle)] bg-white/75 text-[color:var(--color-brand-primary)] shadow-soft hover:-translate-y-0.5 hover:border-[color:var(--color-brand-primary)] hover:shadow-floating'
     "
     :aria-pressed="selected ? 'true' : 'false'"
   >

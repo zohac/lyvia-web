@@ -13,6 +13,7 @@
 
 <script setup lang="ts">
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
+import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
@@ -53,6 +54,21 @@ if (!tenant.value) {
 
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_booking', providerId)
+
+await useAsyncData<PublicProviderProfile | null>(
+  `public-provider-profile:${slug.value}`,
+  async () => {
+    try {
+      return await apiFetch<PublicProviderProfile>(`/public/provider/${slug.value}/profile`, {
+        method: 'GET',
+        withAuth: false
+      })
+    } catch {
+      return null
+    }
+  },
+  { default: () => null }
+)
 
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 

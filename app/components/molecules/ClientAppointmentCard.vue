@@ -16,10 +16,10 @@
         />
       </div>
       <div class="min-w-0">
-        <p class="font-medium text-stone-900">
+        <p class="font-medium text-[color:var(--color-text-primary)]">
           {{ typeLabel }}
         </p>
-        <p class="text-sm text-stone-500">
+        <p class="text-sm text-[color:var(--color-text-muted)]">
           {{ formattedDate }}
         </p>
       </div>
@@ -167,14 +167,14 @@ const iconBgClass = computed(() => {
   switch (props.appointment.status) {
     case 'scheduled':
       return props.appointment.paymentStatus === 'unpaid'
-        ? 'bg-amber-100'
+        ? 'bg-[color:var(--color-sunset-100)]'
         : 'bg-crepuscule-100'
     case 'completed':
-      return 'bg-emerald-100'
+      return 'bg-[color:var(--color-success-100)]'
     case 'cancelled':
-      return 'bg-red-100'
+      return 'bg-[color:var(--color-error-100)]'
     default:
-      return 'bg-stone-100'
+      return 'bg-[color:var(--color-surface-muted)]'
   }
 })
 
@@ -182,14 +182,14 @@ const iconClass = computed(() => {
   switch (props.appointment.status) {
     case 'scheduled':
       return props.appointment.paymentStatus === 'unpaid'
-        ? 'text-amber-600'
+        ? 'text-[color:var(--color-sunset-600)]'
         : 'text-crepuscule-600'
     case 'completed':
-      return 'text-emerald-600'
+      return 'text-[color:var(--color-success-600)]'
     case 'cancelled':
-      return 'text-red-600'
+      return 'text-[color:var(--color-error-600)]'
     default:
-      return 'text-stone-600'
+      return 'text-[color:var(--color-text-secondary)]'
   }
 })
 
@@ -198,14 +198,14 @@ const cardClasses = computed(() => {
   switch (props.appointment.status) {
     case 'scheduled':
       return props.appointment.paymentStatus === 'unpaid'
-        ? 'border-amber-200 bg-amber-50/50'
-        : 'border-crepuscule-100 bg-white'
+        ? 'border-[color:var(--color-sunset-200)] bg-[color:var(--color-sunset-50)]/50'
+        : 'border-crepuscule-100 bg-[color:var(--color-surface-card)]'
     case 'completed':
-      return 'border-stone-200 bg-white'
+      return 'border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]'
     case 'cancelled':
-      return 'border-stone-200 bg-stone-50'
+      return 'border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)]'
     default:
-      return 'border-stone-200 bg-white'
+      return 'border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]'
   }
 })
 

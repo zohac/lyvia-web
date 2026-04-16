@@ -229,71 +229,33 @@ async function retryLoad() {
 
 <template>
   <div class="mx-auto max-w-3xl space-y-8">
-    <!-- Page Header -->
-    <section class="relative pl-6">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-      <div class="grid gap-2">
-        <h1 class="font-serif text-3xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] sm:text-4xl">
-          Référencement
-        </h1>
-        <p class="text-base font-medium text-[color:var(--color-brand-secondary)]">
-          Optimisez le SEO de vos pages publiques
-        </p>
-      </div>
-    </section>
+    <AtomsDsPageHeader
+      title="Référencement"
+      subtitle="Optimisez le SEO de vos pages publiques"
+    />
 
     <!-- Global error + retry -->
-    <div
+    <AtomsDsErrorState
       v-if="loadError"
-      class="rounded-2xl border border-red-200 bg-red-50 p-8 text-center"
-    >
-      <UIcon
-        name="lucide:alert-circle"
-        size="48"
-        class="mx-auto mb-4 text-red-500"
-      />
-      <p class="text-lg font-medium text-red-800">
-        Impossible de charger la configuration
-      </p>
-      <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-        {{ loadError }}
-      </p>
-      <UButton
-        color="neutral"
-        variant="outline"
-        class="mt-6 rounded-full"
-        :loading="isLoading"
-        @click="retryLoad"
-      >
-        <UIcon
-          name="lucide:refresh-cw"
-          size="16"
-        />
-        Réessayer
-      </UButton>
-    </div>
+      :message="String(loadError) || 'Impossible de charger la configuration'"
+      @retry="retryLoad"
+    />
 
     <!-- Loading skeleton -->
     <div
       v-else-if="isLoading"
       class="space-y-6"
     >
-      <div
+      <USkeleton
         v-for="i in 3"
         :key="i"
-        class="h-48 animate-pulse rounded-2xl border border-[color:var(--color-border-subtle)] bg-white/75 p-8"
-      >
-        <div class="h-6 w-48 rounded bg-[color:var(--color-brand-subtle)]" />
-        <div class="mt-6 space-y-4">
-          <div class="h-10 rounded bg-[color:var(--color-brand-subtle)]" />
-          <div class="h-20 rounded bg-[color:var(--color-brand-subtle)]" />
-        </div>
-      </div>
+        class="h-48 rounded-2xl"
+      />
     </div>
 
     <template v-else>
       <!-- Section 1 — Coach-slug -->
-      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+      <section class="relative overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-6 shadow-soft backdrop-blur sm:p-8">
         <div class="mb-6 flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
             <UIcon
@@ -348,7 +310,7 @@ async function retryLoad() {
       </section>
 
       <!-- Section 2 — Page profil SEO -->
-      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+      <section class="relative overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-6 shadow-soft backdrop-blur sm:p-8">
         <div class="mb-6 flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
             <UIcon
@@ -450,7 +412,7 @@ async function retryLoad() {
       </section>
 
       <!-- Section 3 — Page booking SEO -->
-      <section class="relative overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-6 shadow-soft backdrop-blur sm:p-8">
+      <section class="relative overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-6 shadow-soft backdrop-blur sm:p-8">
         <div class="mb-6 flex items-start gap-4">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
             <UIcon

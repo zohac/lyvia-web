@@ -32,19 +32,23 @@ export default defineEventHandler(async (event) => {
   }
 
   // B2C (keova.fr): full sitemap with coach pages
-  let providers: Array<{ slug: string, updatedAt: string }> = []
+  let providers: Array<{ slug: string, updatedAt: string, hasVerifiedDomain?: boolean }> = []
   try {
-    providers = await $fetch<Array<{ slug: string, updatedAt: string }>>(
+    providers = await $fetch<Array<{ slug: string, updatedAt: string, hasVerifiedDomain?: boolean }>>(
       `${apiBase}/public/sitemap/providers`
     )
   } catch {
     // API unreachable — return static-only sitemap to avoid 500 on /sitemap.xml
   }
 
-  const coachUrls = providers.flatMap(p => [
-    { loc: `${origin}/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.8 },
-    { loc: `${origin}/coach/${p.slug}/onboarding/discovery`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.6 }
-  ])
+  // YC2.4: hub pages (coach with WL domain) get lower priority (0.5) than full pages (0.8)
+  const coachUrls = providers.flatMap((p) => {
+    const profilePriority = p.hasVerifiedDomain ? 0.5 : 0.8
+    return [
+      { loc: `${origin}/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: profilePriority },
+      { loc: `${origin}/coach/${p.slug}/onboarding/discovery`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.6 }
+    ]
+  })
 
   return [
     { loc: `${origin}/`, changefreq: 'weekly' as const, priority: 1.0 },

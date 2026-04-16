@@ -45,7 +45,7 @@
         <!-- Cards grid -->
         <div class="grid gap-6 md:grid-cols-2">
           <!-- Ressources card -->
-          <UCard class="bg-white">
+          <UCard class="bg-[color:var(--color-surface-card)]">
             <div class="flex items-center gap-4">
               <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
                 <UIcon
@@ -54,22 +54,22 @@
                 />
               </div>
               <div>
-                <h3 class="font-semibold text-stone-900">
+                <h3 class="font-semibold text-[color:var(--color-text-primary)]">
                   Ressources
                 </h3>
-                <p class="text-sm text-stone-500">
+                <p class="text-sm text-[color:var(--color-text-muted)]">
                   Bientôt disponible
                 </p>
               </div>
             </div>
 
-            <p class="mt-4 text-sm text-stone-600">
+            <p class="mt-4 text-sm text-[color:var(--color-text-secondary)]">
               Vos contenus arrivent bientôt : guides, exercices et recommandations.
             </p>
           </UCard>
 
           <!-- Paiements card -->
-          <UCard class="bg-white">
+          <UCard class="bg-[color:var(--color-surface-card)]">
             <template #header>
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -79,13 +79,13 @@
                       class="h-5 w-5 text-sunset-600"
                     />
                   </div>
-                  <h3 class="font-semibold text-stone-900">
+                  <h3 class="font-semibold text-[color:var(--color-text-primary)]">
                     Paiements
                   </h3>
                 </div>
                 <UButton
                   v-if="payments.length > 0"
-                  to="/client/payments"
+                  to="/client/account?tab=paiements"
                   variant="ghost"
                   color="neutral"
                   size="xs"
@@ -130,7 +130,7 @@
               v-else-if="!payments.length"
               class="py-4 text-center"
             >
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Aucun paiement pour le moment
               </p>
             </div>
@@ -138,7 +138,7 @@
             <!-- Payments list -->
             <div
               v-else
-              class="divide-y divide-stone-100"
+              class="divide-y divide-[color:var(--color-border-subtle)]"
             >
               <div
                 v-for="payment in payments.slice(0, 3)"
@@ -149,23 +149,23 @@
                   <span
                     class="h-2 w-2 rounded-full"
                     :class="{
-                      'bg-green-500': payment.status === 'succeeded',
-                      'bg-yellow-500': payment.status === 'pending',
-                      'bg-red-500': payment.status === 'failed'
+                      'bg-[color:var(--color-success-500)]': payment.status === 'succeeded',
+                      'bg-[color:var(--color-warning)]': payment.status === 'pending',
+                      'bg-[color:var(--color-error-500)]': payment.status === 'failed'
                     }"
                   />
-                  <span class="text-sm text-stone-600">
+                  <span class="text-sm text-[color:var(--color-text-secondary)]">
                     {{ formatPaymentDate(payment.createdAt) }}
                   </span>
                 </div>
-                <span class="text-sm font-medium text-stone-900">
+                <span class="text-sm font-medium text-[color:var(--color-text-primary)]">
                   {{ formatPrice(payment.amountCents) }}
                 </span>
               </div>
 
               <p
                 v-if="payments.length > 3"
-                class="pt-2 text-center text-xs text-stone-400"
+                class="pt-2 text-center text-xs text-[color:var(--color-brand-muted)]"
               >
                 + {{ payments.length - 3 }} autre{{ payments.length - 3 > 1 ? 's' : '' }}
               </p>
@@ -177,9 +177,9 @@
       <!-- Sidebar -->
       <div class="space-y-6">
         <!-- Aperçu card -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Aperçu
             </h2>
           </template>
@@ -194,10 +194,10 @@
                 />
               </div>
               <div>
-                <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
+                <p class="text-xs font-medium uppercase tracking-wide text-[color:var(--color-brand-muted)]">
                   Prochain RDV
                 </p>
-                <p class="mt-0.5 text-sm font-medium text-stone-900">
+                <p class="mt-0.5 text-sm font-medium text-[color:var(--color-text-primary)]">
                   {{ nextAppointmentLabel }}
                 </p>
               </div>
@@ -212,10 +212,10 @@
                 />
               </div>
               <div>
-                <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
+                <p class="text-xs font-medium uppercase tracking-wide text-[color:var(--color-brand-muted)]">
                   Paiements
                 </p>
-                <p class="mt-0.5 text-sm font-medium text-stone-900">
+                <p class="mt-0.5 text-sm font-medium text-[color:var(--color-text-primary)]">
                   {{ paymentsSummaryLabel }}
                 </p>
               </div>
@@ -226,20 +226,20 @@
         <!-- Support card -->
         <UCard class="bg-gradient-to-br from-crepuscule-50 to-white">
           <div class="flex items-center gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--color-surface-card)] shadow-sm">
               <UIcon
                 name="lucide:message-circle"
                 class="h-6 w-6 text-crepuscule-600"
               />
             </div>
             <div>
-              <h3 class="font-semibold text-stone-900">
+              <h3 class="font-semibold text-[color:var(--color-text-primary)]">
                 Besoin d'aide ?
               </h3>
             </div>
           </div>
 
-          <p class="mt-4 text-sm text-stone-600">
+          <p class="mt-4 text-sm text-[color:var(--color-text-secondary)]">
             Contactez votre coach directement pour toute question concernant vos rendez-vous ou votre accompagnement.
           </p>
         </UCard>

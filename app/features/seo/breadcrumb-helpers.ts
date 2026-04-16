@@ -3,6 +3,7 @@
  * Convention 5: testable, no side effects.
  * Synchronized with Schema.org BreadcrumbList (T2.3).
  */
+import { useCoachLink } from '../../composables/useCoachLink'
 
 export type BreadcrumbItem = {
   label: string
@@ -36,9 +37,11 @@ export function buildBookingBreadcrumbs(
   isPlatform: boolean
 ): BreadcrumbItem[] {
   if (isPlatform) {
+    // P-Y6: centralised route building via useCoachLink.
+    const { site } = useCoachLink({ slug })
     return [
       { label: 'Accueil', to: '/' },
-      { label: displayName, to: `/coach/${slug}` },
+      { label: displayName, to: site },
       { label: 'Appel découverte' }
     ]
   }

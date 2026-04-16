@@ -1,25 +1,20 @@
 <template>
   <div class="space-y-8">
-    <!-- Page Header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
-          Mes rendez-vous
-        </h1>
-        <p class="mt-1 text-stone-500">
-          Consultez vos consultations programmées avec votre coach.
-        </p>
-      </div>
-
-      <UButton
-        to="/client/dashboard"
-        variant="ghost"
-        color="neutral"
-        leading-icon="i-lucide-arrow-left"
-      >
-        Retour
-      </UButton>
-    </header>
+    <AtomsDsPageHeader
+      title="Mes rendez-vous"
+      subtitle="Consultez vos consultations programmées avec votre coach."
+    >
+      <template #actions>
+        <UButton
+          to="/client/dashboard"
+          variant="ghost"
+          color="neutral"
+          leading-icon="i-lucide-arrow-left"
+        >
+          Retour
+        </UButton>
+      </template>
+    </AtomsDsPageHeader>
 
     <div class="grid gap-6 lg:grid-cols-3">
       <!-- Main Content -->
@@ -52,10 +47,10 @@
         <!-- Appointments History section -->
         <section class="space-y-4">
           <div class="flex items-center justify-between">
-            <h2 class="flex items-center gap-2 font-semibold text-stone-900">
+            <h2 class="flex items-center gap-2 font-semibold text-[color:var(--color-text-primary)]">
               <UIcon
                 name="lucide:calendar"
-                class="h-5 w-5 text-stone-500"
+                class="h-5 w-5 text-[color:var(--color-text-muted)]"
               />
               Tous mes rendez-vous
             </h2>
@@ -86,28 +81,22 @@
           </div>
 
           <!-- Error state -->
-          <UAlert
+          <AtomsDsErrorState
             v-else-if="historyError"
-            color="error"
-            variant="soft"
-            :description="historyError"
-            icon="i-lucide-alert-circle"
+            :message="historyError"
+            @retry="refreshHistory()"
           />
 
           <!-- Empty state -->
           <UCard
             v-else-if="allAppointments.length === 0"
-            class="bg-white"
+            class="bg-[color:var(--color-surface-card)]"
           >
-            <div class="py-6 text-center">
-              <UIcon
-                name="lucide:calendar-check"
-                class="mx-auto h-10 w-10 text-stone-300"
-              />
-              <p class="mt-3 text-sm text-stone-500">
-                Aucun rendez-vous pour le moment.
-              </p>
-            </div>
+            <AtomsDsEmptyState
+              icon="i-lucide-calendar-check"
+              title="Aucun rendez-vous"
+              description="Aucun rendez-vous pour le moment."
+            />
           </UCard>
 
           <!-- Appointments list -->
@@ -117,7 +106,7 @@
               v-if="upcomingAppointments.length > 0"
               class="space-y-3"
             >
-              <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
+              <p class="text-xs font-medium uppercase tracking-wide text-[color:var(--color-brand-muted)]">
                 À venir ({{ upcomingAppointments.length }})
               </p>
               <ClientAppointmentCard
@@ -134,7 +123,7 @@
               v-if="pastAppointments.length > 0"
               class="space-y-3"
             >
-              <p class="text-xs font-medium uppercase tracking-wide text-stone-400">
+              <p class="text-xs font-medium uppercase tracking-wide text-[color:var(--color-brand-muted)]">
                 Passés ({{ pastAppointments.length }})
               </p>
               <ClientAppointmentCard
@@ -152,14 +141,14 @@
       <!-- Sidebar -->
       <div class="space-y-6">
         <!-- Info card -->
-        <UCard class="bg-white">
+        <UCard class="bg-[color:var(--color-surface-card)]">
           <template #header>
-            <h2 class="font-semibold text-stone-900">
+            <h2 class="font-semibold text-[color:var(--color-text-primary)]">
               Comment ça marche
             </h2>
           </template>
 
-          <div class="space-y-3 text-sm text-stone-600">
+          <div class="space-y-3 text-sm text-[color:var(--color-text-secondary)]">
             <p>
               Votre coach planifie vos consultations selon vos disponibilités et vos besoins.
             </p>
@@ -175,20 +164,20 @@
         <!-- Support card -->
         <UCard class="bg-gradient-to-br from-crepuscule-50 to-white">
           <div class="flex items-center gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-sm">
+            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--color-surface-card)] shadow-sm">
               <UIcon
                 name="lucide:message-circle"
                 class="h-6 w-6 text-crepuscule-600"
               />
             </div>
             <div>
-              <h3 class="font-semibold text-stone-900">
+              <h3 class="font-semibold text-[color:var(--color-text-primary)]">
                 Besoin d'aide ?
               </h3>
             </div>
           </div>
 
-          <p class="mt-4 text-sm text-stone-600">
+          <p class="mt-4 text-sm text-[color:var(--color-text-secondary)]">
             Contactez votre coach directement pour toute question concernant vos rendez-vous.
           </p>
         </UCard>

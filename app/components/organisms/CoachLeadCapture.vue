@@ -77,7 +77,7 @@ async function handleSubmit() {
 <template>
   <section
     id="lead-capture"
-    class="relative overflow-hidden bg-gradient-to-br from-[#2d2438] to-[#3d3250] px-6 py-20 sm:px-12 lg:px-20"
+    class="relative overflow-hidden bg-gradient-to-br from-[var(--color-crepuscule-950)] to-[var(--color-crepuscule-800)] px-6 py-20 sm:px-12 lg:px-20"
   >
     <!-- Subtle decorative glow -->
     <div
@@ -92,22 +92,22 @@ async function handleSubmit() {
         v-if="isSubmitted"
         class="flex flex-col items-center gap-4"
       >
-        <div class="grid size-16 place-items-center rounded-full bg-emerald-500/20 ring-2 ring-emerald-400/30">
+        <div class="grid size-16 place-items-center rounded-full bg-[color:var(--color-success-50)]/20 ring-2 ring-[color:var(--color-success-300)]/30">
           <UIcon
             name="i-lucide-check-circle"
-            class="size-8 text-emerald-400"
+            class="size-8 text-[color:var(--color-success-400)]"
           />
         </div>
         <p class="text-xl font-semibold text-white">
           Votre guide est en cours de téléchargement
         </p>
-        <p class="text-sm text-[#b9aac7]">
+        <p class="text-sm text-[var(--color-crepuscule-300)]">
           Si le téléchargement ne démarre pas,
           <a
             :href="leadMagnetUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="underline hover:text-[#f0b48f]"
+            class="underline hover:text-[var(--color-sunset-300)]"
           >cliquez ici</a>.
         </p>
       </div>
@@ -116,12 +116,12 @@ async function handleSubmit() {
       <template v-else>
         <UIcon
           name="i-lucide-book-open"
-          class="mx-auto mb-4 size-10 text-[#d4956a]"
+          class="mx-auto mb-4 size-10 text-[var(--color-brand-accent)]"
         />
         <h2 class="font-serif text-3xl leading-tight text-white lg:text-4xl">
           {{ leadMagnetTitle }}
         </h2>
-        <p class="mx-auto mt-4 max-w-lg text-lg text-[#d7cfdf]">
+        <p class="mx-auto mt-4 max-w-lg text-lg text-[var(--color-crepuscule-200)]">
           Téléchargez votre guide gratuit
         </p>
 
@@ -132,7 +132,7 @@ async function handleSubmit() {
           <div>
             <label
               for="lead-capture-firstname"
-              class="mb-1 block text-xs font-medium text-[#b9aac7]"
+              class="mb-1 block text-xs font-medium text-[var(--color-crepuscule-300)]"
             >Prénom (optionnel)</label>
             <input
               id="lead-capture-firstname"
@@ -140,13 +140,13 @@ async function handleSubmit() {
               type="text"
               placeholder="Votre prénom"
               :disabled="isSubmitting"
-              class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[#d4956a]/50 focus:ring-2 focus:ring-[#d4956a]/20 disabled:opacity-50"
+              class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[var(--color-brand-accent)]/50 focus:ring-2 focus:ring-[var(--color-brand-accent)]/20 disabled:opacity-50"
             >
           </div>
           <div>
             <label
               for="lead-capture-email"
-              class="mb-1 block text-xs font-medium text-[#b9aac7]"
+              class="mb-1 block text-xs font-medium text-[var(--color-crepuscule-300)]"
             >Adresse email</label>
             <input
               id="lead-capture-email"
@@ -155,7 +155,7 @@ async function handleSubmit() {
               placeholder="votre@email.com"
               required
               :disabled="isSubmitting"
-              class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[#d4956a]/50 focus:ring-2 focus:ring-[#d4956a]/20 disabled:opacity-50"
+              class="h-12 w-full rounded-xl border border-white/15 bg-white/8 px-4 text-sm text-white outline-none placeholder:text-white/40 transition-all duration-200 focus:border-[var(--color-brand-accent)]/50 focus:ring-2 focus:ring-[var(--color-brand-accent)]/20 disabled:opacity-50"
             >
           </div>
 
@@ -164,14 +164,14 @@ async function handleSubmit() {
             <input
               v-model="consent"
               type="checkbox"
-              class="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-white/30 bg-white/10 accent-[#d4956a]"
+              class="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-white/30 bg-white/10 accent-[var(--color-brand-accent)]"
               :disabled="isSubmitting"
             >
-            <span class="text-xs leading-relaxed text-[#b9aac7]">
+            <span class="text-xs leading-relaxed text-[var(--color-crepuscule-300)]">
               J'accepte de recevoir le guide et des conseils par email. Désabonnement possible à tout moment.
               <NuxtLink
                 to="/legal/confidentialite"
-                class="underline hover:text-[#f0b48f]"
+                class="underline hover:text-[var(--color-sunset-300)]"
               >Politique de confidentialité</NuxtLink>
             </span>
           </label>
@@ -180,7 +180,7 @@ async function handleSubmit() {
           <button
             type="submit"
             :disabled="!canSubmit || isSubmitting"
-            class="cta-glow group relative h-14 w-full cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[#d4956a] to-[#e0a87d] text-base font-semibold text-white shadow-lg shadow-[#d4956a]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[#d4956a]/35 hover:brightness-110 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+            class="cta-glow group relative h-14 w-full cursor-pointer overflow-hidden rounded-full bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-400)] text-base font-semibold text-white shadow-lg shadow-[var(--color-brand-accent)]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[var(--color-brand-accent)]/35 hover:brightness-110 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
           >
             <!-- Shine overlay on hover -->
             <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
@@ -201,7 +201,7 @@ async function handleSubmit() {
           </button>
         </form>
 
-        <p class="mt-5 text-xs text-[#9685ab]">
+        <p class="mt-5 text-xs text-[var(--color-crepuscule-400)]">
           Gratuit · Aucun spam · Désinscription en 1 clic
         </p>
       </template>

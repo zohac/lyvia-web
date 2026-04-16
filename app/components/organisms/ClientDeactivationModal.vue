@@ -40,11 +40,11 @@ function updateOpen(value: boolean) {
   >
     <template #header>
       <div class="flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-error-100)]">
           <UIcon
             name="lucide:alert-triangle"
             size="20"
-            class="text-red-600"
+            class="text-[color:var(--color-error-600)]"
           />
         </div>
         <div>
@@ -118,7 +118,7 @@ function updateOpen(value: boolean) {
         <!-- Double confirmation for active transactions (FR-Q9) -->
         <div
           v-if="impact.hasActiveTransactions"
-          class="rounded-xl border border-amber-200 bg-amber-50 p-4"
+          class="rounded-xl border border-[color:var(--color-sunset-200)] bg-[color:var(--color-sunset-50)] p-4"
         >
           <UAlert
             color="warning"

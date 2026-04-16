@@ -106,7 +106,16 @@ describe('mapProfileToSchemaRefs', () => {
     leadMagnetUrl: null,
     leadMagnetTitle: null,
     googleAdsId: null,
-    googleAdsConversionLabel: null
+    googleAdsConversionLabel: null,
+    microsoftClarityId: null,
+    templateCode: 'essentiel',
+    sectionsConfig: {},
+    pillarsJson: null,
+    faqJson: null,
+    benefitsJson: null,
+    howItWorksJson: null,
+    educationalContentJson: null,
+    problemStatementJson: null
   }
 
   test('maps all profile fields to refs', () => {
@@ -282,5 +291,100 @@ describe('buildCredentialSchemaItems', () => {
     assert.equal(result!.length, 2)
     assert.equal(result![0].credentialCategory, 'DU A')
     assert.equal(result![1].credentialCategory, 'DU B')
+  })
+})
+
+// --- YC2.4: mapProfileToSchemaRefs with whiteLabeldomain ---
+
+describe('mapProfileToSchemaRefs — YC2.4 hub sameAs', () => {
+  function createRef<T>(initial: T): Ref<T> {
+    return { value: initial } as Ref<T>
+  }
+
+  function createRefs() {
+    return {
+      name: createRef('Coach'),
+      bio: createRef<string | undefined>(undefined),
+      imageUrl: createRef<string | undefined>(undefined),
+      specialties: createRef<string[]>([]),
+      credentials: createRef<Array<{ title: string, institution?: string, year?: number }>>([]),
+      sameAs: createRef<string[]>([]),
+      city: createRef<string | undefined>(undefined)
+    }
+  }
+
+  const baseProfile: PublicProviderProfile = {
+    slug: 'sophie-jouan',
+    firstName: 'Sophie',
+    lastName: 'Jouan',
+    displayName: 'Sophie Jouan',
+    bio: 'Coach certifiée',
+    specialties: ['Nutrition'],
+    timezone: 'Europe/Paris',
+    imageUrl: null,
+    heroImageUrl: null,
+    discoveryDurationMinutes: 15,
+    discoveryBufferAfterMinutes: 15,
+    isActive: true,
+    longBio: null,
+    credentials: [],
+    city: null,
+    region: null,
+    socialLinks: { linkedin: 'https://linkedin.com/in/sophie' },
+    publicPhone: null,
+    urgencyText: null,
+    heroHeadline: null,
+    testimonialsJson: [],
+    secondaryPhotoUrl: null,
+    leadMagnetUrl: null,
+    leadMagnetTitle: null,
+    googleAdsId: null,
+    googleAdsConversionLabel: null,
+    microsoftClarityId: null,
+    templateCode: 'essentiel',
+    sectionsConfig: {},
+    pillarsJson: null,
+    faqJson: null,
+    benefitsJson: null,
+    howItWorksJson: null,
+    educationalContentJson: null,
+    problemStatementJson: null
+  }
+
+  test('whiteLabeldomain adds WL URL as first sameAs entry', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs(baseProfile, refs, { whiteLabeldomain: 'sophie-jouan.fr' })
+
+    assert.equal(refs.sameAs.value[0], 'https://sophie-jouan.fr')
+    assert.equal(refs.sameAs.value[1], 'https://linkedin.com/in/sophie')
+    assert.equal(refs.sameAs.value.length, 2)
+  })
+
+  test('whiteLabeldomain null: no WL URL in sameAs', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs(baseProfile, refs, { whiteLabeldomain: null })
+
+    assert.deepStrictEqual(refs.sameAs.value, ['https://linkedin.com/in/sophie'])
+  })
+
+  test('whiteLabeldomain empty string: no WL URL in sameAs', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs(baseProfile, refs, { whiteLabeldomain: '  ' })
+
+    assert.deepStrictEqual(refs.sameAs.value, ['https://linkedin.com/in/sophie'])
+  })
+
+  test('whiteLabeldomain without social links: only WL URL', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs({ ...baseProfile, socialLinks: {} }, refs, { whiteLabeldomain: 'sophie-jouan.fr' })
+
+    assert.deepStrictEqual(refs.sameAs.value, ['https://sophie-jouan.fr'])
+  })
+
+  test('no options: backward compatible, no WL URL', () => {
+    const refs = createRefs()
+    mapProfileToSchemaRefs(baseProfile, refs)
+
+    assert.deepStrictEqual(refs.sameAs.value, ['https://linkedin.com/in/sophie'])
   })
 })

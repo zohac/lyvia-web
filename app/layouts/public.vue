@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import '~/assets/css/main.css'
+
 import PublicFooter from '../components/organisms/PublicFooter.vue'
 import PublicHeader from '../components/organisms/PublicHeader.vue'
 
 useCommonLayoutHead()
+await usePublicHeaderInit()
 
 const route = useRoute()
 
@@ -18,7 +21,8 @@ const publicLayout = computed<PublicLayoutMeta>(() => {
   return value as PublicLayoutMeta
 })
 
-const showHeader = computed(() => publicLayout.value.hideHeader !== true)
+const hideHeaderState = useState('hide-layout-header', () => false)
+const showHeader = computed(() => publicLayout.value.hideHeader !== true && !hideHeaderState.value)
 const hideFooterState = useState('hide-layout-footer', () => false)
 const showFooter = computed(() => publicLayout.value.hideFooter !== true && !hideFooterState.value)
 const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
@@ -49,5 +53,8 @@ const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
     </main>
 
     <PublicFooter v-if="showFooter" />
+    <ClientOnly>
+      <LazyCookieConsentBanner />
+    </ClientOnly>
   </div>
 </template>

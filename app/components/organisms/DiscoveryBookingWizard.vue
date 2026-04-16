@@ -74,7 +74,7 @@ function updateConsents(value: typeof consents.value) {
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
 const isWhiteLabelTenant = computed(() => tenant.value?.brand.mode === 'custom_domain')
 const headerLogoSrc = computed(() =>
-  isWhiteLabelTenant.value ? '/images/keova-logo-white-label.png' : '/images/keova-logo.png'
+  isWhiteLabelTenant.value ? '/images/keova-logo-white-label.webp' : '/images/keova-logo.webp'
 )
 const headerLogoAlt = computed(() =>
   isWhiteLabelTenant.value ? (tenant.value?.brand.displayName ?? 'Logo de la marque') : 'Keova'
@@ -612,7 +612,7 @@ async function submitBooking() {
             </div>
 
             <!-- Mobile fixed CTA -->
-            <div class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white p-4 sm:hidden">
+            <div class="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-[color:var(--color-surface-card)] p-4 sm:hidden">
               <UButton
                 size="lg"
                 color="primary"

@@ -197,3 +197,48 @@ test('sitemap white-label (tri-modal): includes /onboarding/discovery with absol
   assert.ok(locs.includes('https://sophie-jouan.fr/legal/cgu'))
   assert.equal(urls.length, 5)
 })
+
+// --- YC2.4: Hub vs full page sitemap priorities ---
+
+const MOCK_PROVIDERS_WITH_DOMAIN = [
+  { slug: 'sophie-jouan', updatedAt: '2026-03-01T00:00:00.000Z', hasVerifiedDomain: true },
+  { slug: 'marie-dupont', updatedAt: '2026-03-02T00:00:00.000Z', hasVerifiedDomain: false }
+]
+
+function buildSitemapUrlsWithDomain(
+  host: string,
+  providers: Array<{ slug: string, updatedAt: string, hasVerifiedDomain?: boolean }>
+): SitemapEntry[] {
+  const ctx = getDomainContext(host, PLATFORM, PLATFORM_B2B)
+  const origin = `https://${ctx.hostname}`
+
+  if (ctx.isWhiteLabel || ctx.isB2B) return []
+
+  return providers.flatMap((p) => {
+    const profilePriority = p.hasVerifiedDomain ? 0.5 : 0.8
+    return [
+      { loc: `${origin}/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: profilePriority },
+      { loc: `${origin}/coach/${p.slug}/onboarding/discovery`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.6 }
+    ]
+  })
+}
+
+test('YC2.4 sitemap: coach with WL domain gets priority 0.5 (hub)', () => {
+  const urls = buildSitemapUrlsWithDomain('keova.fr', MOCK_PROVIDERS_WITH_DOMAIN)
+  const sophie = urls.find(u => u.loc === 'https://keova.fr/coach/sophie-jouan')
+  assert.equal(sophie?.priority, 0.5)
+})
+
+test('YC2.4 sitemap: coach without WL domain gets priority 0.8 (full page)', () => {
+  const urls = buildSitemapUrlsWithDomain('keova.fr', MOCK_PROVIDERS_WITH_DOMAIN)
+  const marie = urls.find(u => u.loc === 'https://keova.fr/coach/marie-dupont')
+  assert.equal(marie?.priority, 0.8)
+})
+
+test('YC2.4 sitemap: booking pages always get priority 0.6 regardless of WL domain', () => {
+  const urls = buildSitemapUrlsWithDomain('keova.fr', MOCK_PROVIDERS_WITH_DOMAIN)
+  const sophieBooking = urls.find(u => u.loc === 'https://keova.fr/coach/sophie-jouan/onboarding/discovery')
+  const marieBooking = urls.find(u => u.loc === 'https://keova.fr/coach/marie-dupont/onboarding/discovery')
+  assert.equal(sophieBooking?.priority, 0.6)
+  assert.equal(marieBooking?.priority, 0.6)
+})

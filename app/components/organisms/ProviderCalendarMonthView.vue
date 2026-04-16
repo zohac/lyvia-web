@@ -104,19 +104,19 @@ function onSelectDay(dayKey: string) {
 </script>
 
 <template>
-  <section class="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+  <section class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-sm">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-1">
-        <p class="text-xs font-bold uppercase tracking-wider text-stone-500">
+        <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
           Vue mois
         </p>
-        <p class="text-sm text-stone-500">
+        <p class="text-sm text-[color:var(--color-text-muted)]">
           Fuseau : {{ timeZone }}
         </p>
       </div>
-      <div class="hidden items-center gap-2 text-xs text-stone-500 md:flex">
+      <div class="hidden items-center gap-2 text-xs text-[color:var(--color-text-muted)] md:flex">
         <span
-          class="inline-flex size-2 rounded-full bg-amber-500"
+          class="inline-flex size-2 rounded-full bg-[color:var(--color-sunset-50)]0"
           aria-hidden="true"
         />
         <span>Discovery</span>
@@ -128,12 +128,12 @@ function onSelectDay(dayKey: string) {
       </div>
     </div>
 
-    <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white">
-      <div class="grid grid-cols-7 border-b border-stone-200 bg-stone-50">
+    <div class="mt-6 overflow-hidden rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]">
+      <div class="grid grid-cols-7 border-b border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)]">
         <div
           v-for="label in weekdayLabels"
           :key="label"
-          class="px-3 py-3 text-xs font-bold uppercase tracking-wider text-stone-800"
+          class="px-3 py-3 text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-primary)]"
         >
           {{ label }}
         </div>
@@ -143,12 +143,12 @@ function onSelectDay(dayKey: string) {
         <div
           v-for="cell in monthCells"
           :key="cell.key"
-          class="relative min-h-[112px] border-b border-r border-stone-100 p-3 last:border-r-0"
-          :class="cell.inMonth ? 'bg-white' : 'bg-stone-50 text-stone-500 opacity-70'"
+          class="relative min-h-[112px] border-b border-r border-[color:var(--color-neutral-100)] p-3 last:border-r-0"
+          :class="cell.inMonth ? 'bg-[color:var(--color-surface-card)]' : 'bg-[color:var(--color-surface-page)] text-[color:var(--color-text-muted)] opacity-70'"
         >
           <div
             v-if="highlight?.dayKey === cell.key"
-            class="pointer-events-none absolute inset-2 rounded-lg bg-amber-500/10 ring-2 ring-amber-400 shadow-sm animate-pulse"
+            class="pointer-events-none absolute inset-2 rounded-lg bg-[color:var(--color-sunset-50)] ring-2 ring-[color:var(--color-sunset-400)] shadow-sm animate-pulse"
             aria-hidden="true"
           />
 
@@ -162,7 +162,7 @@ function onSelectDay(dayKey: string) {
           </button>
 
           <div class="relative z-10 flex items-start justify-between gap-2">
-            <span class="text-xs font-bold text-stone-800">
+            <span class="text-xs font-bold text-[color:var(--color-text-primary)]">
               {{ cell.dayNumber }}
             </span>
 
@@ -170,14 +170,14 @@ function onSelectDay(dayKey: string) {
               v-if="(appointmentsByDayKey.get(cell.key)?.length ?? 0) > 2"
               :open="openPopoverDayKey === cell.key"
               :ui="{
-                content: 'w-[280px] rounded-lg border border-stone-200 bg-white p-3 shadow-lg',
+                content: 'w-[280px] rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-3 shadow-lg',
                 arrow: 'hidden'
               }"
               @update:open="(value: boolean) => (openPopoverDayKey = value ? cell.key : null)"
             >
               <button
                 type="button"
-                class="inline-flex items-center rounded-full bg-white px-3 py-1 text-[11px] font-bold text-stone-800 ring-1 ring-stone-200 transition-all hover:bg-stone-50"
+                class="inline-flex items-center rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-[11px] font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)]"
                 @click.stop="togglePopover(cell.key)"
               >
                 +{{ (appointmentsByDayKey.get(cell.key)?.length ?? 0) - 2 }}
@@ -185,7 +185,7 @@ function onSelectDay(dayKey: string) {
 
               <template #content>
                 <div class="grid gap-2">
-                  <p class="text-xs font-bold uppercase tracking-wider text-stone-500">
+                  <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
                     Rendez-vous
                   </p>
                   <div class="grid gap-2">
@@ -197,7 +197,7 @@ function onSelectDay(dayKey: string) {
                       :class="[
                         eventAccentClass(appointment),
                         eventMetaClass(appointment),
-                        highlight?.appointmentId === appointment.id ? 'ring-2 ring-amber-400 animate-pulse' : ''
+                        highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
                       ]"
                       @click="onSelectAppointment(appointment)"
                     >
@@ -232,7 +232,7 @@ function onSelectDay(dayKey: string) {
               :class="[
                 eventAccentClass(appointment),
                 eventMetaClass(appointment),
-                highlight?.appointmentId === appointment.id ? 'ring-2 ring-amber-400 animate-pulse' : ''
+                highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
               ]"
               @click.stop="onSelectAppointment(appointment)"
             >

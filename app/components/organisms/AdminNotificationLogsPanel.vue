@@ -1,30 +1,5 @@
 <template>
   <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-brand-solid)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Notification Logs
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Historique des notifications envoyées (emails, SMS)
-        </p>
-      </div>
-
-      <NuxtLink
-        to="/admin/dashboard"
-        class="flex items-center gap-2 text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:text-[color:var(--color-brand-primary)]"
-      >
-        <UIcon
-          name="lucide:arrow-left"
-          size="16"
-        />
-        Retour au dashboard
-      </NuxtLink>
-    </section>
-
     <!-- Filters -->
     <section class="mb-8 space-y-4">
       <!-- Row 1: Type + Status -->
@@ -40,7 +15,7 @@
               'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
               selectedType === typeOption.value
                 ? `${typeOption.activeClass} shadow-sm`
-                : 'border border-[color:var(--color-brand-subtle)] bg-white text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
+                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
             @click="selectType(typeOption.value)"
           >
@@ -67,7 +42,7 @@
               'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
               selectedStatus === statusOption.value
                 ? `${statusOption.activeClass} shadow-sm`
-                : 'border border-[color:var(--color-brand-subtle)] bg-white text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-solid)] hover:text-[color:var(--color-brand-primary)]'
+                : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
             @click="selectStatus(statusOption.value)"
           >
@@ -96,7 +71,7 @@
             v-model="dateFrom"
             type="datetime-local"
             autocomplete="off"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-white px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @change="applyFilters"
           >
         </div>
@@ -111,7 +86,7 @@
             v-model="dateTo"
             type="datetime-local"
             autocomplete="off"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-white px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-solid)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
+            class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] px-3 py-2 text-sm text-[color:var(--color-brand-primary)] focus:border-[color:var(--color-brand-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-field-ring)]"
             @change="applyFilters"
           >
         </div>
@@ -128,79 +103,80 @@
     </section>
 
     <!-- Notification Logs Table -->
-    <section class="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
+    <section class="relative overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-elevated)] to-[color:var(--ui-color-primary-50)]/55 shadow-soft">
       <div class="pointer-events-none absolute right-[-10%] top-[-35%] h-[24rem] w-[24rem] rounded-full bg-[color:var(--ui-color-primary-100)] opacity-30 blur-[100px]" />
 
       <!-- Loading State -->
       <div
         v-if="pending"
-        class="relative z-10 flex items-center justify-center py-20"
+        class="relative z-10 space-y-3 p-8"
       >
-        <UIcon
-          name="lucide:loader-2"
-          size="32"
-          class="animate-spin text-[color:var(--color-brand-muted)]"
+        <USkeleton class="h-10 rounded-xl" />
+        <USkeleton
+          v-for="i in 5"
+          :key="i"
+          class="h-12 rounded-xl"
         />
       </div>
 
       <!-- Error State -->
-      <div
+      <AtomsDsErrorState
         v-else-if="error"
-        class="relative z-10 p-8 text-center"
-      >
-        <UIcon
-          name="lucide:alert-circle"
-          size="48"
-          class="mx-auto mb-4 text-red-500"
-        />
-        <p class="text-lg font-medium text-red-800">
-          Erreur lors du chargement des notifications
-        </p>
-        <p class="mt-2 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ error?.message || 'Une erreur inattendue est survenue.' }}
-        </p>
-        <UButton
-          variant="outline"
-          color="neutral"
-          class="mt-4 rounded-full"
-          @click="() => refresh()"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            size="16"
-          />
-          Réessayer
-        </UButton>
-      </div>
+        :message="error?.message || 'Erreur lors du chargement des notifications'"
+        class="relative z-10"
+        @retry="refresh()"
+      />
 
       <!-- Empty State -->
-      <div
+      <AtomsDsEmptyState
         v-else-if="!notificationLogs?.items?.length"
-        class="relative z-10 p-12 text-center"
-      >
-        <UIcon
-          name="lucide:bell-off"
-          size="48"
-          class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
-        />
-        <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
-          Aucune notification trouvée
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ hasActiveFilters ? 'Essayez avec d\'autres filtres.' : 'Aucune notification n\'a encore été envoyée.' }}
-        </p>
-      </div>
+        icon="i-lucide-bell-off"
+        title="Aucune notification trouvée"
+        :description="hasActiveFilters ? 'Essayez avec d\'autres filtres.' : 'Aucune notification n\'a encore été envoyée.'"
+        class="relative z-10"
+      />
 
-      <!-- Table -->
+      <!-- Table (desktop) -->
       <div
         v-else
         class="relative z-10"
       >
-        <UTable
-          :data="notificationLogs.items"
-          :columns="columns"
-          :class="ADMIN_TABLE_CLASSES"
-        />
+        <div class="hidden md:block">
+          <UTable
+            :data="notificationLogs.items"
+            :columns="columns"
+            :class="ADMIN_TABLE_CLASSES"
+          />
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="block space-y-3 p-4 md:hidden">
+          <button
+            v-for="notif in notificationLogs.items"
+            :key="notif.id"
+            type="button"
+            class="w-full rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 text-left transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
+            @click="openDetail(notif)"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <span :class="`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getNotificationTypeBadgeClasses(notif.type)}`">
+                {{ notif.type }}
+              </span>
+              <span :class="`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getNotificationStatusBadgeClasses(notif.status)}`">
+                {{ getNotificationStatusLabel(notif.status) }}
+              </span>
+            </div>
+            <div class="mt-2 space-y-1">
+              <p class="text-sm text-[color:var(--color-brand-primary)]">
+                {{ notif.channel }}
+              </p>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--color-brand-muted)]">
+                <span class="font-mono">{{ formatRecipient(notif.recipient) }}</span>
+                <span>{{ formatDate(notif.createdAt) }}</span>
+              </div>
+            </div>
+          </button>
+        </div>
 
         <!-- Pagination -->
         <div
@@ -233,27 +209,19 @@
       <template #body>
         <div
           v-if="detailPending"
-          class="flex items-center justify-center py-12"
+          class="space-y-4 py-8"
         >
-          <UIcon
-            name="lucide:loader-2"
-            size="32"
-            class="animate-spin text-[color:var(--color-brand-muted)]"
-          />
+          <USkeleton class="h-6 w-48" />
+          <USkeleton class="h-4 w-full" />
+          <USkeleton class="h-4 w-3/4" />
+          <USkeleton class="h-32 rounded-xl" />
         </div>
 
         <div
           v-else-if="detailError"
-          class="p-4 text-center"
+          class="p-4"
         >
-          <UIcon
-            name="lucide:alert-circle"
-            size="48"
-            class="mx-auto mb-4 text-red-500"
-          />
-          <p class="text-red-800">
-            Erreur lors du chargement du détail
-          </p>
+          <AtomsDsErrorState message="Erreur lors du chargement du détail" />
         </div>
 
         <div
@@ -320,18 +288,18 @@
             <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
               Payload Preview
             </span>
-            <pre class="mt-2 max-h-48 overflow-auto rounded-lg bg-gray-50 p-4 text-xs text-[color:var(--color-brand-primary)]">{{ notificationDetail.payloadPreview }}</pre>
+            <pre class="mt-2 max-h-48 overflow-auto rounded-lg bg-[color:var(--color-surface-muted)] p-4 text-xs text-[color:var(--color-brand-primary)]">{{ notificationDetail.payloadPreview }}</pre>
           </div>
 
           <!-- Error Message -->
           <div
             v-if="notificationDetail.errorMessage"
-            class="rounded-lg bg-red-50 p-4"
+            class="rounded-lg bg-[color:var(--color-error-50)] p-4"
           >
-            <span class="text-xs font-bold uppercase tracking-[0.15em] text-red-600">
+            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-error-600)]">
               Erreur
             </span>
-            <p class="mt-2 text-sm text-red-800">
+            <p class="mt-2 text-sm text-[color:var(--color-error-700)]">
               {{ notificationDetail.errorMessage }}
             </p>
           </div>
@@ -405,12 +373,6 @@ import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
 
 const toast = useToast()
 
-definePageMeta({
-  layout: 'admin',
-  middleware: 'auth-admin',
-  pageTitle: 'Notification Logs'
-})
-
 // Types
 type NotificationLogListItem = {
   id: string
@@ -461,14 +423,14 @@ const detailError = ref<Error | null>(null)
 
 // Filter options
 const typeOptions = [
-  { value: 'email', label: 'Email', activeClass: 'bg-blue-100 text-blue-700' },
-  { value: 'sms', label: 'SMS', activeClass: 'bg-purple-100 text-purple-700' }
+  { value: 'email', label: 'Email', activeClass: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]' },
+  { value: 'sms', label: 'SMS', activeClass: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]' }
 ]
 
 const statusOptions = [
   { value: 'sent', label: 'Envoyé', activeClass: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' },
-  { value: 'failed', label: 'Échoué', activeClass: 'bg-red-100 text-red-700' },
-  { value: 'skipped', label: 'Ignoré', activeClass: 'bg-gray-100 text-gray-600' }
+  { value: 'failed', label: 'Échoué', activeClass: 'bg-[color:var(--color-error-100)] text-[color:var(--color-error-700)]' },
+  { value: 'skipped', label: 'Ignoré', activeClass: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]' }
 ]
 
 const hasActiveFilters = computed(() => {

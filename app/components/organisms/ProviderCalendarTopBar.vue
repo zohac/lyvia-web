@@ -28,15 +28,15 @@ function isViewActive(value: CalendarViewMode) {
     <!-- Left side: View selector -->
     <div class="flex flex-wrap items-center gap-3">
       <!-- View selector -->
-      <div class="inline-flex rounded-lg border border-stone-200 bg-white p-1">
+      <div class="inline-flex rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-1">
         <button
           v-for="option in viewOptions"
           :key="option.value"
           type="button"
           class="rounded-md px-4 py-2 text-sm font-medium transition-colors"
           :class="isViewActive(option.value as CalendarViewMode)
-            ? 'bg-stone-100 text-stone-900 shadow-sm'
-            : 'text-stone-600 hover:text-stone-900'"
+            ? 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-primary)] shadow-sm'
+            : 'text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)]'"
           @click="$emit('update:view', option.value as CalendarViewMode)"
         >
           {{ option.label }}
@@ -57,7 +57,7 @@ function isViewActive(value: CalendarViewMode) {
 
         <span
           v-if="rangeLabel"
-          class="min-w-32 px-3 py-1.5 text-center text-sm font-semibold text-stone-700"
+          class="min-w-32 px-3 py-1.5 text-center text-sm font-semibold text-[color:var(--color-text-secondary)]"
         >
           {{ rangeLabel }}
         </span>

@@ -61,26 +61,26 @@ const isDark = computed(() => props.mode === 'inline')
 
 // --- Nuxt UI :ui overrides for dark variant (inline on dark bg) ---
 const darkInputUi = {
-  base: 'w-full rounded-xl min-h-[44px] bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+  base: 'w-full rounded-xl min-h-[44px] bg-white/10 border-white/18 text-[var(--color-crepuscule-50)] placeholder:text-[var(--color-crepuscule-300)]/60 backdrop-blur-sm focus:border-[var(--color-brand-accent)] focus:ring-[var(--color-brand-accent)]/20 focus:bg-white/14'
 }
 const lightUi = { base: 'w-full rounded-xl min-h-[44px]' }
 const inputUi = computed(() => isDark.value ? darkInputUi : lightUi)
 
 const darkSelectUi = {
-  base: 'w-full rounded-xl min-h-[44px] bg-white/10 border-white/18 text-[#f5f3f7] backdrop-blur-sm focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+  base: 'w-full rounded-xl min-h-[44px] bg-white/10 border-white/18 text-[var(--color-crepuscule-50)] backdrop-blur-sm focus:border-[var(--color-brand-accent)] focus:ring-[var(--color-brand-accent)]/20 focus:bg-white/14'
 }
 const selectUi = computed(() => isDark.value ? darkSelectUi : lightUi)
 
 const darkTextareaUi = {
-  base: 'w-full rounded-xl bg-white/10 border-white/18 text-[#f5f3f7] placeholder:text-[#b9aac7]/60 backdrop-blur-sm resize-none focus:border-[#d4956a] focus:ring-[#d4956a]/20 focus:bg-white/14'
+  base: 'w-full rounded-xl bg-white/10 border-white/18 text-[var(--color-crepuscule-50)] placeholder:text-[var(--color-crepuscule-300)]/60 backdrop-blur-sm resize-none focus:border-[var(--color-brand-accent)] focus:ring-[var(--color-brand-accent)]/20 focus:bg-white/14'
 }
 const textareaUi = computed(() => isDark.value ? darkTextareaUi : lightUi)
 
 const darkFormFieldUi = {
   root: 'w-full',
-  label: 'text-[#f0edf3] font-semibold',
-  error: 'text-[#fca5a5]',
-  hint: 'text-[#b9aac7]'
+  label: 'text-[var(--color-crepuscule-100)] font-semibold',
+  error: 'text-[var(--color-error-300)]',
+  hint: 'text-[var(--color-crepuscule-300)]'
 }
 const lightFormFieldUi = { root: 'w-full' }
 const formFieldUi = computed(() => isDark.value ? darkFormFieldUi : lightFormFieldUi)
@@ -140,26 +140,26 @@ async function handleSubmit() {
     v-if="isSubmitted && mode === 'inline'"
     class="animate-fade-in-up text-center"
   >
-    <div class="mx-auto mb-6 grid size-20 place-items-center rounded-full bg-gradient-to-br from-[#4ade80]/20 to-[#4a8b6e]/20 ring-2 ring-[#4ade80]/30">
+    <div class="mx-auto mb-6 grid size-20 place-items-center rounded-full bg-gradient-to-br from-[var(--color-success-400)]/20 to-[var(--color-success)]/20 ring-2 ring-[var(--color-success-400)]/30">
       <UIcon
         name="i-lucide-check-circle"
-        class="size-10 text-[#4ade80]"
+        class="size-10 text-[var(--color-success-400)]"
       />
     </div>
     <h3 class="font-serif text-3xl text-white">
       Vous êtes sur la liste
     </h3>
-    <p class="mx-auto mt-3 max-w-md text-base leading-relaxed text-[#d7cfdf]">
+    <p class="mx-auto mt-3 max-w-md text-base leading-relaxed text-[var(--color-crepuscule-200)]">
       Nous vous contacterons en priorité dès qu'une place se libère.
       Vérifiez vos spams si besoin.
     </p>
-    <p class="mt-6 text-sm text-[#b9aac7]">
+    <p class="mt-6 text-sm text-[var(--color-crepuscule-300)]">
       En attendant, découvrez comment Sophie Jouan utilise Keova
       <a
         href="https://sophiejouan.fr"
         target="_blank"
         rel="noopener noreferrer"
-        class="font-medium text-[#f0b48f] underline-offset-2 hover:underline"
+        class="font-medium text-[var(--color-sunset-300)] underline-offset-2 hover:underline"
       >sophiejouan.fr &rarr;</a>
     </p>
   </div>
@@ -265,14 +265,14 @@ async function handleSubmit() {
         :ui="isDark ? { base: 'mt-0.5 border-white/30' } : { base: 'mt-0.5' }"
       />
       <label
-        :class="['text-sm leading-relaxed', isDark ? 'text-[#c8bfd4]' : 'text-[#6b6278]']"
+        :class="['text-sm leading-relaxed', isDark ? 'text-[var(--color-crepuscule-300)]' : 'text-[var(--color-crepuscule-500)]']"
       >
         J'accepte que mes données soient utilisées pour me recontacter dans le cadre de la beta Keova.
         <a
           href="/legal/confidentialite"
           target="_blank"
           rel="noopener noreferrer"
-          :class="['font-medium underline-offset-2 hover:underline', isDark ? 'text-[#f0b48f]' : 'text-[#5b4b6e]']"
+          :class="['font-medium underline-offset-2 hover:underline', isDark ? 'text-[var(--color-sunset-300)]' : 'text-[var(--color-brand-primary)]']"
         >Politique de confidentialité</a>
       </label>
     </div>
@@ -300,7 +300,7 @@ async function handleSubmit() {
     </button>
 
     <!-- Trust copy -->
-    <p :class="['text-center text-xs', isDark ? 'text-[#b9aac7]' : 'text-[#6b6278]']">
+    <p :class="['text-center text-xs', isDark ? 'text-[var(--color-crepuscule-300)]' : 'text-[var(--color-crepuscule-500)]']">
       Jamais de spam. Données hébergées en France. Conforme RGPD.
     </p>
   </form>
@@ -309,7 +309,7 @@ async function handleSubmit() {
 <style scoped>
 /* CTA submit — sunset gradient with hover animation */
 .cta-submit-bg {
-  background: linear-gradient(135deg, #d4956a 0%, #e89560 50%, #d4956a 100%);
+  background: linear-gradient(135deg, var(--color-brand-accent) 0%, var(--color-sunset-400) 50%, var(--color-brand-accent) 100%);
   background-size: 200% 100%;
   transition: background-position 0.5s;
 }

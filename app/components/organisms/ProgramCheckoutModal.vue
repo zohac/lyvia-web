@@ -146,22 +146,22 @@ async function handleCheckout() {
         class="space-y-6"
       >
         <!-- Program summary -->
-        <div class="rounded-xl bg-stone-50 p-4">
-          <h3 class="font-serif text-lg font-semibold text-stone-900">
+        <div class="rounded-xl bg-[color:var(--color-surface-page)] p-4">
+          <h3 class="font-serif text-lg font-semibold text-[color:var(--color-text-primary)]">
             {{ program.name }}
           </h3>
-          <div class="mt-2 flex flex-wrap gap-3 text-sm text-stone-600">
+          <div class="mt-2 flex flex-wrap gap-3 text-sm text-[color:var(--color-text-secondary)]">
             <span>{{ program.totalSessions }} séances</span>
-            <span class="text-stone-300">·</span>
+            <span class="text-[color:var(--color-neutral-300)]">·</span>
             <span>{{ program.sessionDurationMinutes }} min</span>
-            <span class="text-stone-300">·</span>
+            <span class="text-[color:var(--color-neutral-300)]">·</span>
             <span>{{ program.validityMonths }} mois</span>
           </div>
         </div>
 
         <!-- Payment mode selection -->
         <div class="space-y-3">
-          <p class="text-sm font-medium text-stone-700">
+          <p class="text-sm font-medium text-[color:var(--color-text-secondary)]">
             Mode de paiement
           </p>
 
@@ -170,7 +170,7 @@ async function handleCheckout() {
             class="flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors"
             :class="selectedMode === 'one_time'
               ? 'border-primary-500 bg-primary-50'
-              : 'border-stone-200 hover:border-stone-300'"
+              : 'border-[color:var(--color-brand-subtle)] hover:border-[color:var(--color-neutral-300)]'"
           >
             <input
               v-model="selectedMode"
@@ -179,10 +179,10 @@ async function handleCheckout() {
               class="accent-primary-600"
             >
             <div class="flex-1">
-              <p class="font-medium text-stone-900">
+              <p class="font-medium text-[color:var(--color-text-primary)]">
                 Paiement unique
               </p>
-              <p class="text-2xl font-bold text-stone-900">
+              <p class="text-2xl font-bold text-[color:var(--color-text-primary)]">
                 {{ formatCurrency(program.priceCents) }}
               </p>
             </div>
@@ -194,7 +194,7 @@ async function handleCheckout() {
             class="flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-colors"
             :class="selectedMode === 'installments'
               ? 'border-primary-500 bg-primary-50'
-              : 'border-stone-200 hover:border-stone-300'"
+              : 'border-[color:var(--color-brand-subtle)] hover:border-[color:var(--color-neutral-300)]'"
           >
             <input
               v-model="selectedMode"
@@ -203,13 +203,13 @@ async function handleCheckout() {
               class="accent-primary-600"
             >
             <div class="flex-1">
-              <p class="font-medium text-stone-900">
+              <p class="font-medium text-[color:var(--color-text-primary)]">
                 En mensualités
               </p>
-              <p class="text-lg font-bold text-stone-900">
+              <p class="text-lg font-bold text-[color:var(--color-text-primary)]">
                 {{ installmentsLabel }}
               </p>
-              <p class="text-sm text-stone-500">
+              <p class="text-sm text-[color:var(--color-text-muted)]">
                 Total : {{ formatCurrency(program.priceCents) }}
               </p>
             </div>
