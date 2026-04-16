@@ -6,7 +6,7 @@
       justifyContent: 'space-between',
       width: '1200px',
       height: '630px',
-      background: 'linear-gradient(135deg, #f5f0eb 0%, #e8ddd4 60%, #5b4b6e 100%)',
+      background: 'linear-gradient(135deg, var(--color-neutral-50) 0%, var(--color-neutral-200) 60%, var(--color-brand-primary) 100%)',
       padding: '60px',
       fontFamily: 'sans-serif'
     }"
@@ -16,7 +16,7 @@
         :style="{
           fontSize: '64px',
           fontWeight: '700',
-          color: '#2d2d2d',
+          color: 'var(--color-text-primary)',
           lineHeight: '1.1'
         }"
       >
@@ -25,7 +25,7 @@
       <div
         :style="{
           fontSize: '32px',
-          color: '#5b4b6e',
+          color: 'var(--color-brand-primary)',
           marginTop: '20px',
           fontWeight: '500'
         }"
@@ -44,7 +44,7 @@
         :style="{
           fontSize: '28px',
           fontWeight: '600',
-          color: '#5b4b6e'
+          color: 'var(--color-brand-primary)'
         }"
       >
         {{ isPlatform ? 'Keova' : '' }}
@@ -52,7 +52,7 @@
       <div
         :style="{
           fontSize: '22px',
-          color: '#888'
+          color: 'var(--color-text-muted)'
         }"
       >
         {{ domain }}

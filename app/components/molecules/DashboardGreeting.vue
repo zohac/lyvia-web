@@ -57,12 +57,12 @@ const subtitleText = computed(() => {
 <template>
   <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
+      <h1 class="text-2xl font-semibold text-[color:var(--color-text-primary)] sm:text-3xl">
         {{ fullGreeting }}
       </h1>
       <p
         v-if="subtitleText || $slots.subtitle"
-        class="mt-1 text-stone-500"
+        class="mt-1 text-[color:var(--color-text-muted)]"
       >
         <slot name="subtitle">
           {{ subtitleText }}

@@ -41,11 +41,11 @@ onMounted(() => {
   <Transition name="sticky-cta">
     <div
       v-if="isVisible"
-      class="fixed inset-x-0 bottom-0 z-40 border-t border-[#ebe7ef] bg-white/95 px-4 py-3 backdrop-blur-sm md:hidden"
+      class="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--color-crepuscule-100)] bg-white/95 px-4 py-3 backdrop-blur-sm md:hidden"
     >
       <ULink
         :to="ctaTo"
-        class="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 py-3.5 text-sm font-semibold text-white shadow-lg"
+        class="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-400)] px-6 py-3.5 text-sm font-semibold text-white shadow-lg"
       >
         {{ ctaLabel }}
         <span class="transition-transform duration-300">→</span>

@@ -602,7 +602,7 @@ export const keovaSelect = {
        * - Shadow elevation
        */
       outline: [
-        'bg-[color:var(--field-bg)]',
+        'bg-[color:var(--color-surface-card)]',
         'border border-stone-900/10',
         'shadow-card'
       ].join(' '),
@@ -614,8 +614,8 @@ export const keovaSelect = {
        * - No shadow
        */
       soft: [
-        'bg-[color:var(--field-bg)]',
-        'border border-[color:var(--field-border)]',
+        'bg-[color:var(--color-surface-card)]',
+        'border border-[color:var(--color-border-subtle)]',
         'shadow-none'
       ].join(' '),
 
@@ -626,7 +626,7 @@ export const keovaSelect = {
        */
       subtle: [
         'bg-[color:var(--color-surface-highlight)]',
-        'border border-[color:var(--color-border-soft)]',
+        'border border-[color:var(--color-border-subtle)]',
         'shadow-none'
       ].join(' '),
 
@@ -748,11 +748,11 @@ export const keovaSelect = {
     {
       variant: 'outline',
       class: [
-        'hover:bg-[color:var(--field-bg-hover)]',
-        'hover:border-[color:var(--field-border-hover)]',
+        'hover:bg-[color:var(--color-surface-highlight)]',
+        'hover:border-[color:var(--color-border-emphasis)]',
         'hover:shadow-floating',
-        'focus:border-[color:var(--field-border-focus)]',
-        'focus:shadow-[0_0_0_4px_var(--field-ring),var(--shadow-floating)]'
+        'focus:border-[color:var(--color-brand-accent)]',
+        'focus:shadow-[0_0_0_4px_var(--color-field-ring),var(--shadow-floating)]'
       ].join(' ')
     },
 
@@ -762,11 +762,11 @@ export const keovaSelect = {
     {
       variant: 'soft',
       class: [
-        'hover:bg-[color:var(--field-bg-hover)]',
-        'hover:border-[color:var(--field-border-hover)]',
+        'hover:bg-[color:var(--color-surface-highlight)]',
+        'hover:border-[color:var(--color-border-emphasis)]',
         'hover:shadow-card',
-        'focus:border-[color:var(--field-border-focus)]',
-        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+        'focus:border-[color:var(--color-brand-accent)]',
+        'focus:shadow-[0_0_0_4px_var(--color-field-ring)]'
       ].join(' ')
     },
 
@@ -778,8 +778,8 @@ export const keovaSelect = {
       class: [
         'hover:bg-[color:var(--color-surface-card)]',
         'hover:border-[color:var(--color-border-subtle)]',
-        'focus:border-[color:var(--field-border-focus)]',
-        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+        'focus:border-[color:var(--color-brand-accent)]',
+        'focus:shadow-[0_0_0_4px_var(--color-field-ring)]'
       ].join(' ')
     },
 
@@ -791,10 +791,10 @@ export const keovaSelect = {
       variant: 'ghost',
       class: [
         'hover:bg-[color:var(--color-surface-highlight)]',
-        'hover:border-[color:var(--color-border-soft)]',
+        'hover:border-[color:var(--color-border-subtle)]',
         'focus:bg-[color:var(--color-surface-highlight)]',
-        'focus:border-[color:var(--field-border-focus)]',
-        'focus:shadow-[0_0_0_4px_var(--field-ring)]'
+        'focus:border-[color:var(--color-brand-accent)]',
+        'focus:shadow-[0_0_0_4px_var(--color-field-ring)]'
       ].join(' ')
     },
 

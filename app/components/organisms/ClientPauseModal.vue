@@ -51,7 +51,7 @@ function handleConfirm() {
             :disabled="loading"
           />
         </UFormField>
-        <p class="text-xs text-stone-500">
+        <p class="text-xs text-[color:var(--color-text-muted)]">
           {{ reason.length }}/500 caractères
         </p>
       </div>

@@ -7,7 +7,11 @@
     "outDir": ".tmp/test-dist",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["app/*"]
+    }
   },
   "include": [
     "app/features/availability/domain/**/*.ts",
@@ -23,6 +27,11 @@
     "app/features/seo/api/public-provider-profile.contract.ts",
     "shared/utils/**/*.ts",
     "app/utils/**/*.ts",
+    "app/composables/useCoachLink.ts",
+    "app/composables/coach-template-registry.ts",
+    "app/composables/useCoachSectionVisibility.ts",
+    "app/features/clarity/microsoft-clarity-helpers.ts",
+    "app/features/clarity/microsoft-clarity-runtime.ts",
     "app/services/api/api-error.ts",
     "app/services/api/contracts/error-response.ts",
     "tests/types/**/*.d.ts",

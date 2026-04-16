@@ -1,5 +1,5 @@
 <template>
-  <UCard class="bg-white">
+  <UCard class="bg-[color:var(--color-surface-card)]">
     <!-- Collapsible header -->
     <template #header>
       <button
@@ -9,19 +9,19 @@
         :aria-controls="sectionId"
         @click="toggleExpanded"
       >
-        <h2 class="font-semibold text-stone-900">
+        <h2 class="font-semibold text-[color:var(--color-text-primary)]">
           Rendez-vous
         </h2>
         <div class="flex items-center gap-3">
           <span
             v-if="!loading"
-            class="text-sm text-stone-500"
+            class="text-sm text-[color:var(--color-text-muted)]"
           >
             {{ totalLabel }}
           </span>
           <UIcon
             name="lucide:chevron-down"
-            class="h-5 w-5 text-stone-400 transition-transform duration-200"
+            class="h-5 w-5 text-[color:var(--color-brand-muted)] transition-transform duration-200"
             :class="{ 'rotate-180': isExpanded }"
           />
         </div>
@@ -50,7 +50,7 @@
         <div
           v-for="index in 3"
           :key="`appointment-skeleton-${index}`"
-          class="flex items-center justify-between gap-4 rounded-lg border border-stone-100 bg-stone-50 p-4"
+          class="flex items-center justify-between gap-4 rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4"
         >
           <div class="space-y-2">
             <USkeleton class="h-4 w-36" />
@@ -74,13 +74,13 @@
         v-else-if="appointments.length === 0"
         class="flex flex-col items-center justify-center gap-3 py-8 text-center"
       >
-        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100">
+        <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
           <UIcon
             name="lucide:calendar-x"
-            class="h-6 w-6 text-stone-400"
+            class="h-6 w-6 text-[color:var(--color-brand-muted)]"
           />
         </div>
-        <p class="text-sm text-stone-500">
+        <p class="text-sm text-[color:var(--color-text-muted)]">
           {{ emptyStateLabel }}
         </p>
       </div>
@@ -92,7 +92,7 @@
       >
         <!-- Upcoming appointments section -->
         <template v-if="upcoming.length > 0">
-          <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+          <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
             À venir
           </p>
           <div class="space-y-2">
@@ -111,7 +111,7 @@
         <!-- Past appointments section -->
         <template v-if="past.length > 0">
           <p
-            class="text-xs font-medium uppercase tracking-wider text-stone-500"
+            class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]"
             :class="{ 'mt-4': upcoming.length > 0 }"
           >
             Passés

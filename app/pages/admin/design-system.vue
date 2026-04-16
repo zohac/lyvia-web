@@ -3,8 +3,8 @@
     <!-- Hero Header -->
     <header class="relative overflow-hidden border-b border-[rgba(212,184,160,0.2)]">
       <!-- Decorative gradient blob -->
-      <div class="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gradient-to-br from-[color:var(--color-keova-100)] via-[color:var(--color-keova-50)] to-transparent opacity-60 blur-[100px]" />
-      <div class="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-gradient-to-tr from-[color:var(--color-stone-100)] to-transparent opacity-40 blur-[80px]" />
+      <div class="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-gradient-to-br from-[color:var(--color-crepuscule-100)] via-[color:var(--color-crepuscule-50)] to-transparent opacity-60 blur-[100px]" />
+      <div class="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-gradient-to-tr from-[color:var(--color-neutral-100)] to-transparent opacity-40 blur-[80px]" />
 
       <div class="relative mx-auto max-w-7xl px-6 py-12 lg:px-8">
         <div class="flex items-end justify-between gap-8">
@@ -24,7 +24,7 @@
             </h1>
             <p class="max-w-md text-base text-[color:var(--color-brand-secondary)]">
               Documentation interactive des composants Keova.
-              Organic Luxury Theme pour Nuxt UI v4.
+              Crepuscule Theme pour Nuxt UI v4.
             </p>
           </div>
 
@@ -41,7 +41,7 @@
             <div class="h-12 w-px bg-[rgba(212,184,160,0.3)]" />
             <div class="text-right">
               <p class="font-serif text-3xl font-bold text-[color:var(--color-brand-primary)]">
-                6
+                9
               </p>
               <p class="text-xs uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
                 Variantes
@@ -72,19 +72,134 @@
           <div class="space-y-10">
             <SectionHeader
               title="Button"
-              description="Composant principal d'interaction. 6 variantes × 7 couleurs = 42 combinaisons."
+              description="9 compound variants : 5 boutons d'action + 4 couleurs semantiques soft."
             />
 
-            <!-- Color Matrix -->
-            <div class="space-y-8">
-              <ColorVariantSection
-                v-for="color in buttonColors"
-                :key="color.value"
-                :color="color.value"
-                :title="color.title"
-                :description="color.description"
-              />
-            </div>
+            <!-- 5 Action Buttons -->
+            <ComponentCard
+              title="Boutons d'action (5)"
+              description="Les seules combinaisons color+variant supportees pour les actions utilisateur."
+            >
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    1. Primary Solid
+                  </p>
+                  <UButton
+                    color="primary"
+                    variant="solid"
+                    block
+                  >
+                    CTA Principal
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    2. Neutral Outline
+                  </p>
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    block
+                  >
+                    Action Secondaire
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    3. Secondary Solid
+                  </p>
+                  <UButton
+                    color="secondary"
+                    variant="solid"
+                    block
+                  >
+                    CTA Accent
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    4. Error Solid
+                  </p>
+                  <UButton
+                    color="error"
+                    variant="solid"
+                    block
+                  >
+                    Action Destructive
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    5. Neutral Ghost
+                  </p>
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    block
+                  >
+                    Action Tertiaire
+                  </UButton>
+                </div>
+              </div>
+            </ComponentCard>
+
+            <!-- 4 Semantic Soft -->
+            <ComponentCard
+              title="Couleurs semantiques soft (4)"
+              description="Pour les etats et feedbacks — fond leger, texte colore."
+            >
+              <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    6. Success Soft
+                  </p>
+                  <UButton
+                    color="success"
+                    variant="soft"
+                    block
+                  >
+                    Succes
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    7. Warning Soft
+                  </p>
+                  <UButton
+                    color="warning"
+                    variant="soft"
+                    block
+                  >
+                    Attention
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    8. Error Soft
+                  </p>
+                  <UButton
+                    color="error"
+                    variant="soft"
+                    block
+                  >
+                    Erreur
+                  </UButton>
+                </div>
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wide text-[color:var(--color-brand-secondary)]">
+                    9. Info Soft
+                  </p>
+                  <UButton
+                    color="info"
+                    variant="soft"
+                    block
+                  >
+                    Information
+                  </UButton>
+                </div>
+              </div>
+            </ComponentCard>
 
             <!-- Sizes -->
             <ComponentCard
@@ -570,24 +685,20 @@
           <div class="space-y-10">
             <SectionHeader
               title="Card"
-              description="3 familles de cards : Organic (80%), Glass (premium), Ops (dense). + modifier Ink pour CTA."
+              description="2 variants : Base (standard, 90% usage) et Featured (accent bar top)."
             />
 
-            <!-- ORGANIC CARDS -->
+            <!-- BASE + FEATURED CARDS -->
             <div class="space-y-6">
               <h3 class="font-serif text-xl font-bold italic text-[color:var(--color-brand-primary)]">
-                Organic Cards
+                Base Card
               </h3>
               <p class="text-sm text-[color:var(--color-brand-muted)]">
-                Cards standard — contenu principal (80% du produit)
+                Card standard — fond blanc, ombre subtile. Usage par defaut (90%).
               </p>
 
               <div class="grid gap-6 lg:grid-cols-2">
-                <!-- Organic Cozy -->
-                <UCard
-                  variant="soft"
-                  class="rounded-blob-b"
-                >
+                <UCard class="rounded-blob-b">
                   <template #header>
                     <div>
                       <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
@@ -604,7 +715,7 @@
                       color="neutral"
                       size="sm"
                     >
-                      Période
+                      Periode
                     </UBadge>
                     <UBadge
                       variant="soft"
@@ -623,18 +734,14 @@
                   </div>
                 </UCard>
 
-                <!-- Organic KPI -->
-                <UCard
-                  variant="soft"
-                  class="rounded-blob-a"
-                >
+                <UCard class="rounded-blob-a">
                   <template #header>
                     <div>
                       <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
                         KPI — Aujourd'hui
                       </h4>
                       <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
-                        Mini tuile dashboard (sans glass).
+                        Tuile dashboard compacte.
                       </p>
                     </div>
                   </template>
@@ -647,10 +754,10 @@
                         0
                       </p>
                       <p class="text-sm text-[color:var(--color-brand-muted)]">
-                        appel(s) planifié(s)
+                        appel(s) planifie(s)
                       </p>
                     </div>
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-brand-solid)]">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface-highlight)]">
                       <Icon
                         name="lucide:sun"
                         size="24"
@@ -660,616 +767,78 @@
                   </div>
                 </UCard>
               </div>
+            </div>
 
-              <!-- Organic Interactive + Ink CTA -->
+            <div class="space-y-6">
+              <h3 class="font-serif text-xl font-bold italic text-[color:var(--color-brand-primary)]">
+                Featured Card
+              </h3>
+              <p class="text-sm text-[color:var(--color-brand-muted)]">
+                Accent bar top — pour les contenus mis en avant.
+              </p>
+
               <div class="grid gap-6 lg:grid-cols-2">
-                <!-- Organic Interactive with corner-blob feel -->
                 <UCard
-                  variant="soft"
-                  :interactive="true"
+                  variant="featured"
                   class="rounded-blob-b"
                 >
                   <template #header>
-                    <div class="flex items-start justify-between gap-4">
-                      <div>
-                        <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
-                          Session Details
-                        </h4>
-                        <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
-                          Card interactive avec hover shadow + micro-lift.
-                        </p>
-                      </div>
-                      <UButton
-                        variant="ghost"
-                        size="sm"
-                      >
-                        Modifier
-                      </UButton>
+                    <div>
+                      <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
+                        Programme Accompagnement
+                      </h4>
+                      <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
+                        Card avec accent bar top (sunset) via variant="featured".
+                      </p>
                     </div>
                   </template>
-                  <div class="space-y-3">
-                    <div class="flex flex-wrap gap-2">
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        Demain
-                      </UBadge>
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        10:00–11:00
-                      </UBadge>
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        Visio
-                      </UBadge>
-                    </div>
-                    <p class="text-sm text-[color:var(--color-brand-muted)]">
-                      Hover = shadow-floating + translateY(-1px).
-                    </p>
-                  </div>
-                </UCard>
-
-                <!-- Ink CTA Card -->
-                <UCard
-                  variant="solid"
-                  :interactive="true"
-                  class="rounded-blob-b"
-                >
-                  <template #header>
-                    <div class="flex items-start justify-between gap-4">
-                      <div>
-                        <p class="text-xs font-bold uppercase tracking-[0.15em] text-white/70">
-                          Your Next Action
-                        </p>
-                        <h4 class="mt-1 font-semibold text-white">
-                          Réserver la prochaine session
-                        </h4>
-                        <p class="mt-1 text-sm text-white/70">
-                          CTA card "ink" : rare, assumée, 1 max par écran.
-                        </p>
-                      </div>
-                      <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
-                        <Icon
-                          name="lucide:sparkles"
-                          size="20"
-                          class="text-white"
-                        />
-                      </div>
-                    </div>
-                  </template>
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    Utiliser pour mettre en avant un element important : programme actif, prochaine action, offre speciale.
+                  </p>
                   <template #footer>
                     <UButton
                       color="secondary"
                       size="sm"
                     >
-                      Réserver
+                      Voir le programme
                     </UButton>
                   </template>
                 </UCard>
-              </div>
-            </div>
 
-            <!-- GLASS CARDS -->
-            <div class="space-y-6">
-              <h3 class="font-serif text-xl font-bold italic text-[color:var(--color-brand-primary)]">
-                Glass Cards
-              </h3>
-              <p class="text-sm text-[color:var(--color-brand-muted)]">
-                Sidebars / panels premium — à utiliser avec parcimonie
-              </p>
-
-              <!-- Panel wrap for glass demo -->
-              <div class="rounded-blob-b bg-gradient-to-br from-[color:var(--color-keova-100)] via-[color:var(--color-stone-100)] to-[color:var(--color-keova-50)] p-8">
-                <div class="grid gap-6 lg:grid-cols-2">
-                  <!-- Glass Sidebar -->
-                  <UCard
-                    variant="outline"
-                    class="rounded-blob-b"
-                  >
-                    <template #header>
-                      <div>
-                        <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
-                          Calendrier
-                        </h4>
-                        <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
-                          Panneau latéral (blur + fond translucide).
-                        </p>
-                      </div>
-                    </template>
-                    <div class="space-y-4">
-                      <!-- Nested organic card -->
-                      <UCard
-                        variant="soft"
-                        density="compact"
-                        class="rounded-blob-c"
-                      >
-                        <template #header>
-                          <div>
-                            <h5 class="font-semibold text-[color:var(--color-brand-primary)]">
-                              janvier 2026
-                            </h5>
-                            <p class="text-xs text-[color:var(--color-brand-muted)]">
-                              Mock calendrier
-                            </p>
-                          </div>
-                        </template>
-                      </UCard>
-
-                      <!-- Interactive nested card -->
-                      <UCard
-                        variant="soft"
-                        density="compact"
-                        :interactive="true"
-                        class="rounded-blob-a"
-                      >
-                        <template #header>
-                          <div class="flex items-center justify-between">
-                            <div>
-                              <h5 class="font-semibold text-[color:var(--color-brand-primary)]">
-                                Prochains appels
-                              </h5>
-                              <p class="text-xs text-[color:var(--color-brand-muted)]">
-                                Aucun appel planifié
-                              </p>
-                            </div>
-                            <Icon
-                              name="lucide:arrow-right"
-                              size="18"
-                              class="text-[color:var(--color-brand-muted)]"
-                            />
-                          </div>
-                        </template>
-                      </UCard>
-                    </div>
-                  </UCard>
-
-                  <!-- Glass Interactive -->
-                  <UCard
-                    variant="outline"
-                    :interactive="true"
-                    class="rounded-blob-d"
-                  >
-                    <template #header>
-                      <div>
-                        <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
-                          Panel "Glass" interactif
-                        </h4>
-                        <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
-                          Hover = floating shadow + micro lift.
-                        </p>
-                      </div>
-                    </template>
-                    <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                      Utilise ce style pour des modules "riches" (dashboard, navigation secondaire).
-                      Le glass doit rester une intention — pas partout.
-                    </p>
-                  </UCard>
-                </div>
-              </div>
-            </div>
-
-            <!-- OPS CARDS -->
-            <div class="space-y-6">
-              <h3 class="font-serif text-xl font-bold italic text-[color:var(--color-brand-primary)]">
-                Ops Cards
-              </h3>
-              <p class="text-sm text-[color:var(--color-brand-muted)]">
-                Items denses (RDV / logs / listes). Rail gauche = statut.
-              </p>
-
-              <div class="space-y-3">
-                <!-- Ops Brand Rail - Planifié -->
                 <UCard
-                  variant="subtle"
-                  density="tight"
-                  :interactive="true"
-                  :rail="true"
-                  rail-color="brand"
-                  class="rounded-blob-d"
+                  variant="featured"
+                  class="rounded-blob-a"
                 >
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                        simon test
-                      </p>
-                      <p class="text-sm text-[color:var(--color-brand-muted)]">
-                        31 déc. 2025, 09:30
-                      </p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
+                  <template #header>
+                    <div class="flex items-start justify-between gap-4">
+                      <div>
+                        <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
+                          Prochaine session
+                        </h4>
+                        <p class="mt-1 text-sm text-[color:var(--color-brand-muted)]">
+                          Demain, 10:00 — Visio
+                        </p>
+                      </div>
                       <UBadge
                         variant="soft"
                         color="primary"
                         size="sm"
                       >
-                        Planifié
-                      </UBadge>
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        Lead
-                      </UBadge>
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        09:30
-                      </UBadge>
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        15 min
+                        Planifie
                       </UBadge>
                     </div>
-                  </div>
-                </UCard>
-
-                <!-- Ops Success Rail - Terminé -->
-                <UCard
-                  variant="subtle"
-                  density="tight"
-                  :rail="true"
-                  rail-color="success"
-                  class="rounded-blob-d"
-                >
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                        simon test
-                      </p>
-                      <p class="text-sm text-[color:var(--color-brand-muted)]">
-                        9 janv. 2026, 09:30
-                      </p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                      <UBadge
-                        variant="soft"
-                        color="success"
-                        size="sm"
-                      >
-                        Terminé
-                      </UBadge>
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        Active
-                      </UBadge>
-                    </div>
-                  </div>
-                </UCard>
-
-                <!-- Ops Warning Rail -->
-                <UCard
-                  variant="subtle"
-                  density="tight"
-                  :rail="true"
-                  rail-color="warning"
-                  class="rounded-blob-d"
-                >
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                        marie dupont
-                      </p>
-                      <p class="text-sm text-[color:var(--color-brand-muted)]">
-                        10 janv. 2026, 14:00
-                      </p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                      <UBadge
-                        variant="soft"
-                        color="warning"
-                        size="sm"
-                      >
-                        En attente
-                      </UBadge>
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        Lead
-                      </UBadge>
-                    </div>
-                  </div>
-                </UCard>
-
-                <!-- Ops Error Rail - Annulé (disabled) -->
-                <UCard
-                  variant="subtle"
-                  density="tight"
-                  :disabled="true"
-                  :rail="true"
-                  rail-color="error"
-                  class="rounded-blob-d"
-                >
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                        smoke test
-                      </p>
-                      <p class="text-sm text-[color:var(--color-brand-muted)]">
-                        29 déc. 2025, 10:00
-                      </p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                      <UBadge
-                        variant="soft"
-                        color="error"
-                        size="sm"
-                      >
-                        Annulé
-                      </UBadge>
-                      <UBadge
-                        variant="soft"
-                        color="neutral"
-                        size="sm"
-                      >
-                        —
-                      </UBadge>
-                    </div>
-                  </div>
-                </UCard>
-              </div>
-            </div>
-
-            <!-- DENSITIES -->
-            <div class="space-y-6">
-              <h3 class="font-serif text-xl font-bold italic text-[color:var(--color-brand-primary)]">
-                Densités
-              </h3>
-              <p class="text-sm text-[color:var(--color-brand-muted)]">
-                3 niveaux de padding : cozy (défaut), compact, tight
-              </p>
-
-              <div class="grid gap-6 lg:grid-cols-3">
-                <UCard
-                  variant="soft"
-                  density="cozy"
-                  class="rounded-blob-b"
-                >
-                  <template #header>
-                    <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Cozy (défaut)
-                    </h4>
                   </template>
-                  <p class="text-sm text-[color:var(--color-brand-muted)]">
-                    Padding px-6 py-5 — panels principaux, sections.
-                  </p>
-                </UCard>
-
-                <UCard
-                  variant="soft"
-                  density="compact"
-                  class="rounded-blob-b"
-                >
-                  <template #header>
-                    <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Compact
-                    </h4>
-                  </template>
-                  <p class="text-sm text-[color:var(--color-brand-muted)]">
-                    Padding px-5 py-4 — cards imbriquées.
-                  </p>
-                </UCard>
-
-                <UCard
-                  variant="soft"
-                  density="tight"
-                  class="rounded-blob-b"
-                >
-                  <template #header>
-                    <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Tight
-                    </h4>
-                  </template>
-                  <p class="text-sm text-[color:var(--color-brand-muted)]">
-                    Padding px-4 py-3 — items ops, listes.
-                  </p>
-                </UCard>
-              </div>
-            </div>
-
-            <!-- SHAPES (Rounded Blobs) -->
-            <div class="space-y-6">
-              <h3 class="font-serif text-xl font-bold italic text-[color:var(--color-brand-primary)]">
-                Shapes (Organic Radii)
-              </h3>
-              <p class="text-sm text-[color:var(--color-brand-muted)]">
-                4 variantes de radius non-uniformes pour un feel organique
-              </p>
-
-              <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <UCard
-                  variant="soft"
-                  density="compact"
-                  class="rounded-blob-a"
-                >
-                  <div class="text-center">
-                    <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Blob A
-                    </p>
-                    <p class="text-xs text-[color:var(--color-brand-muted)]">
-                      Héros / premium
-                    </p>
-                  </div>
-                </UCard>
-
-                <UCard
-                  variant="soft"
-                  density="compact"
-                  class="rounded-blob-b"
-                >
-                  <div class="text-center">
-                    <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Blob B
-                    </p>
-                    <p class="text-xs text-[color:var(--color-brand-muted)]">
-                      Sidebars / panneaux
-                    </p>
-                  </div>
-                </UCard>
-
-                <UCard
-                  variant="soft"
-                  density="compact"
-                  class="rounded-blob-c"
-                >
-                  <div class="text-center">
-                    <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Blob C
-                    </p>
-                    <p class="text-xs text-[color:var(--color-brand-muted)]">
-                      Petites cards / tuiles
-                    </p>
-                  </div>
-                </UCard>
-
-                <UCard
-                  variant="soft"
-                  density="compact"
-                  class="rounded-blob-d"
-                >
-                  <div class="text-center">
-                    <p class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Blob D
-                    </p>
-                    <p class="text-xs text-[color:var(--color-brand-muted)]">
-                      Items de liste (ops)
-                    </p>
-                  </div>
-                </UCard>
-              </div>
-            </div>
-
-            <!-- STATES -->
-            <div class="space-y-6">
-              <h3 class="font-serif text-xl font-bold italic text-[color:var(--color-brand-primary)]">
-                États
-              </h3>
-              <p class="text-sm text-[color:var(--color-brand-muted)]">
-                Interactive (hover/active/focus) et Disabled
-              </p>
-
-              <div class="grid gap-6 lg:grid-cols-2">
-                <UCard
-                  variant="soft"
-                  :interactive="true"
-                  class="rounded-blob-b"
-                >
-                  <template #header>
-                    <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Interactive
-                    </h4>
-                  </template>
-                  <p class="text-sm text-[color:var(--color-brand-muted)]">
-                    Hover → shadow-floating + micro-lift (-1px).
-                    Active → scale(0.99).
-                    Focus-visible → outline brand.
-                  </p>
-                </UCard>
-
-                <UCard
-                  variant="soft"
-                  :disabled="true"
-                  class="rounded-blob-b"
-                >
-                  <template #header>
-                    <h4 class="font-semibold text-[color:var(--color-brand-primary)]">
-                      Disabled
-                    </h4>
-                  </template>
-                  <p class="text-sm text-[color:var(--color-brand-muted)]">
-                    Opacity 55% + cursor not-allowed + pointer-events none.
-                  </p>
-                </UCard>
-              </div>
-            </div>
-
-            <!-- ALL RAIL COLORS -->
-            <div class="space-y-6">
-              <h3 class="font-serif text-xl font-bold italic text-[color:var(--color-brand-primary)]">
-                Rail Colors (Ops)
-              </h3>
-              <p class="text-sm text-[color:var(--color-brand-muted)]">
-                border-l-4 coloré par statut — lecture rapide
-              </p>
-
-              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <UCard
-                  variant="subtle"
-                  density="tight"
-                  :rail="true"
-                  rail-color="neutral"
-                  class="rounded-blob-d"
-                >
-                  <p class="text-center text-sm font-semibold text-[color:var(--color-brand-primary)]">
-                    Neutral
-                  </p>
-                </UCard>
-                <UCard
-                  variant="subtle"
-                  density="tight"
-                  :rail="true"
-                  rail-color="brand"
-                  class="rounded-blob-d"
-                >
-                  <p class="text-center text-sm font-semibold text-[color:var(--color-brand-primary)]">
-                    Brand
-                  </p>
-                </UCard>
-                <UCard
-                  variant="subtle"
-                  density="tight"
-                  :rail="true"
-                  rail-color="success"
-                  class="rounded-blob-d"
-                >
-                  <p class="text-center text-sm font-semibold text-[color:var(--color-brand-primary)]">
-                    Success
-                  </p>
-                </UCard>
-                <UCard
-                  variant="subtle"
-                  density="tight"
-                  :rail="true"
-                  rail-color="warning"
-                  class="rounded-blob-d"
-                >
-                  <p class="text-center text-sm font-semibold text-[color:var(--color-brand-primary)]">
-                    Warning
-                  </p>
-                </UCard>
-                <UCard
-                  variant="subtle"
-                  density="tight"
-                  :rail="true"
-                  rail-color="error"
-                  class="rounded-blob-d"
-                >
-                  <p class="text-center text-sm font-semibold text-[color:var(--color-brand-primary)]">
-                    Error
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    La bar top attire le regard — 1 a 2 featured cards max par ecran.
                   </p>
                 </UCard>
               </div>
             </div>
           </div>
         </template>
+
+        <!-- REMOVED: Glass, Ops, Densities, Rails sections — replaced by base + featured above -->
+        <!-- END Card Tab -->
 
         <!-- Tabs Tab -->
         <template #tabs>
@@ -1694,22 +1263,18 @@
                   <ColorSwatch
                     name="--color-brand-primary"
                     label="Primary"
-                    hex="#1c1917"
                   />
                   <ColorSwatch
                     name="--color-brand-secondary"
                     label="Secondary"
-                    hex="#57534e"
                   />
                   <ColorSwatch
                     name="--color-brand-accent"
                     label="Accent"
-                    hex="#7a6251"
                   />
                   <ColorSwatch
                     name="--color-brand-muted"
                     label="Muted"
-                    hex="#a8a29e"
                   />
                 </div>
               </ComponentCard>
@@ -1723,22 +1288,18 @@
                   <ColorSwatch
                     name="--color-success"
                     label="Success"
-                    hex="#b5c0a3"
                   />
                   <ColorSwatch
                     name="--color-warning"
                     label="Warning"
-                    hex="#d97706"
                   />
                   <ColorSwatch
                     name="--color-error"
                     label="Error"
-                    hex="#b60010"
                   />
                   <ColorSwatch
                     name="--color-info"
                     label="Info"
-                    hex="#0284c7"
                   />
                 </div>
               </ComponentCard>
@@ -1750,7 +1311,7 @@
               description="Couleurs de fond et surfaces"
             >
               <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-surface-page)] p-4 text-center">
+                <div class="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4 text-center">
                   <p class="text-xs font-semibold text-[color:var(--color-brand-primary)]">
                     Page
                   </p>
@@ -1758,7 +1319,7 @@
                     --color-surface-page
                   </p>
                 </div>
-                <div class="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-surface-card)] p-4 text-center">
+                <div class="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-4 text-center">
                   <p class="text-xs font-semibold text-[color:var(--color-brand-primary)]">
                     Card
                   </p>
@@ -1766,7 +1327,7 @@
                     --color-surface-card
                   </p>
                 </div>
-                <div class="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-surface-highlight)] p-4 text-center">
+                <div class="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-highlight)] p-4 text-center">
                   <p class="text-xs font-semibold text-[color:var(--color-brand-primary)]">
                     Highlight
                   </p>
@@ -1774,12 +1335,12 @@
                     --color-surface-highlight
                   </p>
                 </div>
-                <div class="rounded-lg border border-[color:var(--color-border-soft)] bg-[color:var(--color-brand-solid)] p-4 text-center">
-                  <p class="text-xs font-semibold text-[color:var(--color-brand-primary)]">
-                    Solid
+                <div class="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-contrast)] p-4 text-center">
+                  <p class="text-xs font-semibold text-[color:var(--color-text-inverse)]">
+                    Contrast
                   </p>
-                  <p class="text-[10px] text-[color:var(--color-brand-muted)]">
-                    --color-brand-solid
+                  <p class="text-[10px] text-[color:var(--color-text-inverse)]">
+                    --color-surface-contrast
                   </p>
                 </div>
               </div>
@@ -1792,20 +1353,20 @@
             >
               <div class="grid gap-4 font-mono text-xs sm:grid-cols-2">
                 <CssVarDisplay
-                  var-name="--ui-primary"
-                  label="UI Primary"
+                  var-name="--color-brand-primary"
+                  label="Brand Primary"
                 />
                 <CssVarDisplay
-                  var-name="--ui-color-secondary-700"
-                  label="Secondary-700"
+                  var-name="--color-brand-accent"
+                  label="Brand Accent"
                 />
                 <CssVarDisplay
-                  var-name="--color-accent-main"
-                  label="Accent Main"
+                  var-name="--color-surface-highlight"
+                  label="Surface Highlight"
                 />
                 <CssVarDisplay
-                  var-name="--color-accent-contrast"
-                  label="Accent Contrast"
+                  var-name="--color-border-subtle"
+                  label="Border Subtle"
                 />
               </div>
             </ComponentCard>
@@ -1819,7 +1380,7 @@
       <div class="mx-auto max-w-7xl px-6 py-8 lg:px-8">
         <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p class="text-sm text-[color:var(--color-brand-muted)]">
-            Keova Design System — Organic Luxury Theme
+            Keova Design System — Crepuscule Theme
           </p>
           <p class="text-xs text-[color:var(--color-brand-muted)]">
             docs/03_uiux/kaora/COLOR_SYSTEM.md
@@ -1832,6 +1393,7 @@
 
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
+import CssVarDisplay from '../../components/atoms/CssVarDisplay.vue'
 
 /**
  * Keova Design System — Complete Component Showcase
@@ -1898,15 +1460,5 @@ const tabsWithBadgeItems = [
   { label: 'Articles', value: 'articles', badge: '12' },
   { label: 'Recettes', value: 'recipes', badge: '7' },
   { label: 'Actus', value: 'news' }
-]
-
-const buttonColors = [
-  { value: 'primary', title: 'Primary (Stone-900)', description: 'CTA principaux — stone-900 (#1c1917)' },
-  { value: 'secondary', title: 'Secondary (Keova-700)', description: 'Accents de marque — keova-700 (#7a6251)' },
-  { value: 'neutral', title: 'Neutral (Stone)', description: 'Actions neutres — stone palette' },
-  { value: 'success', title: 'Success (Sage Green)', description: 'États positifs — sage green (#b5c0a3)' },
-  { value: 'warning', title: 'Warning (Amber)', description: 'Alertes — amber tone' },
-  { value: 'error', title: 'Error (Red)', description: 'Erreurs/danger — dark red (#b60010)' },
-  { value: 'info', title: 'Info (Blue)', description: 'Informations — blue tone' }
 ]
 </script>

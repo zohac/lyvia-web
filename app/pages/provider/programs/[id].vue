@@ -85,35 +85,31 @@ async function handleDeactivate() {
 
 <template>
   <div class="mx-auto max-w-2xl space-y-6">
-    <!-- Header -->
-    <div class="flex items-center gap-4">
-      <UButton
-        to="/provider/programs"
-        color="neutral"
-        variant="ghost"
-        icon="i-lucide-arrow-left"
-        size="sm"
-      />
-      <div class="min-w-0 flex-1">
-        <h1 class="truncate text-2xl font-bold text-stone-900">
-          {{ program?.name ?? 'Chargement…' }}
-        </h1>
-      </div>
-    </div>
+    <AtomsDsPageHeader
+      :title="program?.name ?? 'Chargement…'"
+      :accent-bar="false"
+    >
+      <template #back>
+        <UButton
+          to="/provider/programs"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-arrow-left"
+          size="sm"
+        />
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Error -->
-    <UAlert
+    <AtomsDsErrorState
       v-if="errorMessage"
-      color="error"
-      variant="soft"
-      title="Erreur"
-      :description="errorMessage"
-      icon="i-lucide-alert-circle"
+      :message="errorMessage"
+      @retry="loadProgram()"
     />
 
     <!-- Loading -->
     <div
-      v-if="pending"
+      v-else-if="pending"
       class="space-y-4"
     >
       <USkeleton class="h-40 w-full" />
@@ -122,7 +118,7 @@ async function handleDeactivate() {
     <!-- Content -->
     <template v-else-if="program">
       <!-- Status + Actions -->
-      <div class="flex items-center justify-between rounded-xl border border-stone-200 bg-white p-5">
+      <div class="flex items-center justify-between rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5">
         <div class="flex items-center gap-3">
           <UBadge
             :color="PROGRAM_STATUS_META[program.status].color"
@@ -130,7 +126,7 @@ async function handleDeactivate() {
           >
             {{ PROGRAM_STATUS_META[program.status].label }}
           </UBadge>
-          <span class="text-sm text-stone-500">
+          <span class="text-sm text-[color:var(--color-text-muted)]">
             Créé le {{ formattedCreatedAt }}
           </span>
         </div>
@@ -157,54 +153,54 @@ async function handleDeactivate() {
       </div>
 
       <!-- Details -->
-      <div class="rounded-xl border border-stone-200 bg-white p-6">
+      <div class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6">
         <div class="grid gap-6">
           <!-- Description -->
           <section>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Description
             </h3>
-            <p class="mt-2 whitespace-pre-line text-sm text-stone-700">
+            <p class="mt-2 whitespace-pre-line text-sm text-[color:var(--color-text-secondary)]">
               {{ program.description }}
             </p>
           </section>
 
           <!-- Key details grid -->
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div class="rounded-lg border border-stone-100 bg-stone-50 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-stone-400">
+            <div class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4">
+              <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
                 Séances
               </p>
-              <p class="mt-1 text-lg font-bold text-stone-900">
+              <p class="mt-1 text-lg font-bold text-[color:var(--color-text-primary)]">
                 {{ program.totalSessions }}
               </p>
-              <p class="text-xs text-stone-400">
+              <p class="text-xs text-[color:var(--color-brand-muted)]">
                 {{ program.sessionDurationMinutes }} min chacune
               </p>
             </div>
 
-            <div class="rounded-lg border border-stone-100 bg-stone-50 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-stone-400">
+            <div class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4">
+              <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
                 Validité
               </p>
-              <p class="mt-1 text-lg font-bold text-stone-900">
+              <p class="mt-1 text-lg font-bold text-[color:var(--color-text-primary)]">
                 {{ program.validityMonths }} mois
               </p>
-              <p class="text-xs text-stone-400">
+              <p class="text-xs text-[color:var(--color-brand-muted)]">
                 + {{ program.gracePeriodDays }} jours de grâce
               </p>
             </div>
 
-            <div class="rounded-lg border border-stone-100 bg-stone-50 p-4">
-              <p class="text-xs font-bold uppercase tracking-wider text-stone-400">
+            <div class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-4">
+              <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
                 Prix
               </p>
-              <p class="mt-1 text-lg font-bold text-stone-900">
+              <p class="mt-1 text-lg font-bold text-[color:var(--color-text-primary)]">
                 {{ formatCurrency(program.priceCents) }}
               </p>
               <p
                 v-if="installmentsLabel"
-                class="text-xs text-stone-400"
+                class="text-xs text-[color:var(--color-brand-muted)]"
               >
                 {{ installmentsLabel }}
               </p>
@@ -215,7 +211,7 @@ async function handleDeactivate() {
           <div class="flex flex-wrap gap-3">
             <span
               v-if="program.discoveryGate"
-              class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200"
+              class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-sunset-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-sunset-700)] ring-1 ring-[color:var(--color-sunset-200)]"
             >
               <UIcon
                 name="i-lucide-phone-call"
@@ -225,7 +221,7 @@ async function handleDeactivate() {
             </span>
             <span
               v-if="program.allowInstallments"
-              class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-200"
+              class="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-crepuscule-50)] px-3 py-1 text-xs font-medium text-[color:var(--color-crepuscule-700)] ring-1 ring-[color:var(--color-crepuscule-200)]"
             >
               <UIcon
                 name="i-lucide-credit-card"

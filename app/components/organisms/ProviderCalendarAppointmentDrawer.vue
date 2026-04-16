@@ -46,9 +46,9 @@ const statusLabel = computed(() => {
 
 const statusDotClass = computed(() => {
   const appointment = props.appointment
-  if (!appointment) return 'bg-stone-400'
-  if (appointment.status === 'cancelled') return 'bg-red-500'
-  if (appointment.status === 'completed') return 'bg-green-500'
+  if (!appointment) return 'bg-[color:var(--color-neutral-400)]'
+  if (appointment.status === 'cancelled') return 'bg-[color:var(--color-error-50)]0'
+  if (appointment.status === 'completed') return 'bg-[color:var(--color-success-50)]0'
   return 'bg-crepuscule-500'
 })
 
@@ -252,10 +252,10 @@ async function copyMeetingLink() {
     :handle="showHandle"
     :ui="{
       overlay: 'fixed inset-0 bg-black/25 backdrop-blur-sm',
-      content: 'bg-white shadow-lg',
-      handle: '!bg-stone-300',
+      content: 'bg-[color:var(--color-surface-card)] shadow-lg',
+      handle: '!bg-[color:var(--color-neutral-300)]',
       container: 'w-full flex flex-col gap-6 px-6 pb-8 pt-4 overflow-y-auto',
-      header: 'pb-4 border-b border-stone-200',
+      header: 'pb-4 border-b border-[color:var(--color-brand-subtle)]',
       body: 'flex-1',
       footer: ''
     }"
@@ -276,7 +276,7 @@ async function copyMeetingLink() {
             </span>
 
             <span
-              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-stone-800 ring-1 ring-stone-200"
+              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-xs font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)]"
             >
               <span
                 class="inline-flex size-2 rounded-full"
@@ -288,17 +288,17 @@ async function copyMeetingLink() {
 
             <span
               v-if="paymentLabel"
-              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-stone-800 ring-1 ring-stone-200"
+              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-xs font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)]"
             >
               <span
-                class="inline-flex size-2 rounded-full bg-amber-500"
+                class="inline-flex size-2 rounded-full bg-[color:var(--color-sunset-50)]0"
                 aria-hidden="true"
               />
               {{ paymentLabel }}
             </span>
           </div>
 
-          <h2 class="text-2xl font-semibold text-stone-900">
+          <h2 class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
             {{ appointment.firstname }} {{ appointment.lastname }}
           </h2>
           <div
@@ -309,34 +309,34 @@ async function copyMeetingLink() {
               v-if="appointment.clientEmail"
               :href="`mailto:${appointment.clientEmail}`"
               :aria-label="`Envoyer un email à ${appointment.firstname}`"
-              class="text-stone-600 hover:text-crepuscule-600 hover:underline"
+              class="text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
             >
               {{ appointment.clientEmail }}
             </a>
             <span
               v-if="appointment.clientEmail && appointment.clientPhone"
-              class="text-stone-300"
+              class="text-[color:var(--color-neutral-300)]"
             >&middot;</span>
             <a
               v-if="appointment.clientPhone"
               :href="`tel:${appointment.clientPhone}`"
               :aria-label="`Appeler ${appointment.firstname}`"
-              class="text-stone-600 hover:text-crepuscule-600 hover:underline"
+              class="text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
             >
               {{ appointment.clientPhone }}
             </a>
           </div>
-          <p class="text-sm text-stone-500">
+          <p class="text-sm text-[color:var(--color-text-muted)]">
             {{ formatZonedDateTime(appointment.startAt) }}
           </p>
-          <p class="text-sm text-stone-500">
+          <p class="text-sm text-[color:var(--color-text-muted)]">
             Source : <span class="font-bold">{{ appointment.source }}</span>
           </p>
         </div>
 
         <button
           type="button"
-          class="inline-flex size-10 items-center justify-center rounded-full bg-white text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+          class="inline-flex size-10 items-center justify-center rounded-full bg-[color:var(--color-surface-card)] text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="actionPending"
           @click="updateOpen(false)"
         >
@@ -366,23 +366,23 @@ async function copyMeetingLink() {
 
         <section
           v-if="appointment.type === 'consultation' && consultationPricingSummary"
-          class="rounded-lg border border-stone-200 bg-stone-50 p-5"
+          class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5"
         >
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Tarif
             </h3>
 
             <span
               v-if="consultationPricingDetails?.isActive === false"
-              class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-stone-500 ring-1 ring-stone-200"
+              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-xs font-bold text-[color:var(--color-text-muted)] ring-1 ring-[color:var(--color-brand-subtle)]"
             >
               Inactif
             </span>
           </div>
 
-          <div class="mt-4 grid gap-2 text-sm text-stone-500">
-            <p class="text-lg font-semibold text-stone-900">
+          <div class="mt-4 grid gap-2 text-sm text-[color:var(--color-text-muted)]">
+            <p class="text-lg font-semibold text-[color:var(--color-text-primary)]">
               {{ consultationPricingSummary.title }}
             </p>
             <p v-if="consultationPricingSummary.subtitle">
@@ -390,7 +390,7 @@ async function copyMeetingLink() {
             </p>
             <p
               v-if="consultationPricingDetails?.price"
-              class="font-semibold text-stone-900"
+              class="font-semibold text-[color:var(--color-text-primary)]"
             >
               {{ consultationPricingDetails.price }}
             </p>
@@ -400,10 +400,10 @@ async function copyMeetingLink() {
         <!-- Lien visio (consultation + suivi gratuit) -->
         <section
           v-if="(appointment.type === 'consultation' || appointment.type === 'free_followup') && appointment.meetingLink"
-          class="rounded-lg border border-stone-200 bg-stone-50 p-5"
+          class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5"
         >
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Lien visio
             </h3>
           </div>
@@ -425,7 +425,7 @@ async function copyMeetingLink() {
             </a>
             <button
               type="button"
-              class="inline-flex size-8 items-center justify-center rounded-full bg-white text-stone-500 ring-1 ring-stone-200 transition-all hover:bg-stone-50 hover:text-stone-700"
+              class="inline-flex size-8 items-center justify-center rounded-full bg-[color:var(--color-surface-card)] text-[color:var(--color-text-muted)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] hover:text-[color:var(--color-text-secondary)]"
               :disabled="actionPending"
               @click="copyMeetingLink"
             >
@@ -439,9 +439,9 @@ async function copyMeetingLink() {
           </div>
         </section>
 
-        <section class="rounded-lg border border-stone-200 bg-stone-50 p-5">
+        <section class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5">
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Notes
             </h3>
 
@@ -452,7 +452,7 @@ async function copyMeetingLink() {
               <span class="inline-flex">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
                   disabled
                 >
                   Modifier
@@ -463,7 +463,7 @@ async function copyMeetingLink() {
             <button
               v-else
               type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="actionPending"
               @click="startEditAppointment"
             >
@@ -476,7 +476,7 @@ async function copyMeetingLink() {
             </button>
           </div>
 
-          <div class="mt-4 text-sm text-stone-500">
+          <div class="mt-4 text-sm text-[color:var(--color-text-muted)]">
             <p
               v-if="appointment.notes"
               class="whitespace-pre-line"
@@ -492,9 +492,9 @@ async function copyMeetingLink() {
           </div>
         </section>
 
-        <section class="rounded-lg border border-stone-200 bg-stone-50 p-5">
+        <section class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5">
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Annulation
             </h3>
 
@@ -505,7 +505,7 @@ async function copyMeetingLink() {
               <span class="inline-flex">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
                   disabled
                 >
                   Annuler
@@ -516,7 +516,7 @@ async function copyMeetingLink() {
             <button
               v-else
               type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="actionPending"
               @click="requestCancelAppointment"
             >
@@ -529,7 +529,7 @@ async function copyMeetingLink() {
             </button>
           </div>
 
-          <div class="mt-4 text-sm text-stone-500">
+          <div class="mt-4 text-sm text-[color:var(--color-text-muted)]">
             <p class="opacity-90">
               L'annulation envoie une notification et libère le créneau (si applicable).
             </p>
@@ -539,10 +539,10 @@ async function copyMeetingLink() {
         <!-- Remboursement (RDV annulé et payé uniquement) -->
         <section
           v-if="showRefundButton"
-          class="rounded-lg border border-amber-200 bg-amber-50 p-5"
+          class="rounded-lg border border-[color:var(--color-sunset-200)] bg-[color:var(--color-sunset-50)] p-5"
         >
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-700">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-sunset-700)]">
               Remboursement
             </h3>
 
@@ -564,7 +564,7 @@ async function copyMeetingLink() {
             </UButton>
           </div>
 
-          <div class="mt-4 text-sm text-amber-700">
+          <div class="mt-4 text-sm text-[color:var(--color-sunset-700)]">
             <p class="opacity-90">
               Ce rendez-vous a été annulé après paiement. Vous pouvez effectuer un remboursement total ou partiel via Stripe.
             </p>
@@ -574,10 +574,10 @@ async function copyMeetingLink() {
         <!-- Marquer terminée (consultation payée passée uniquement) -->
         <section
           v-if="appointment.type === 'consultation'"
-          class="rounded-lg border border-stone-200 bg-stone-50 p-5"
+          class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5"
         >
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Clôture
             </h3>
 
@@ -588,7 +588,7 @@ async function copyMeetingLink() {
               <span class="inline-flex">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-stone-600 ring-1 ring-stone-200 transition-all hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
                   disabled
                 >
                   Marquer terminée
@@ -599,7 +599,7 @@ async function copyMeetingLink() {
             <button
               v-else
               type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-xs font-bold text-green-700 ring-1 ring-green-200 transition-all hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-60"
+              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-success-50)] px-4 py-2 text-xs font-bold text-[color:var(--color-success-700)] ring-1 ring-[color:var(--color-success-200)] transition-all hover:bg-[color:var(--color-success-100)] disabled:cursor-not-allowed disabled:opacity-60"
               :disabled="actionPending"
               @click="requestMarkCompleted"
             >
@@ -612,7 +612,7 @@ async function copyMeetingLink() {
             </button>
           </div>
 
-          <div class="mt-4 text-sm text-stone-500">
+          <div class="mt-4 text-sm text-[color:var(--color-text-muted)]">
             <p class="opacity-90">
               Marque cette consultation comme terminée une fois la séance effectuée.
             </p>
@@ -626,10 +626,10 @@ async function copyMeetingLink() {
       #body
     >
       <div class="grid gap-4">
-        <p class="text-2xl font-semibold text-stone-900">
+        <p class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
           Aucun rendez-vous sélectionné
         </p>
-        <p class="text-sm text-stone-500">
+        <p class="text-sm text-[color:var(--color-text-muted)]">
           Sélectionnez un RDV dans le calendrier pour afficher ses détails.
         </p>
       </div>

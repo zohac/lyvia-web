@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
+import { useCoachLink } from '~/composables/useCoachLink'
 
 export type { FeaturedProvider } from '~/features/seo/api/featured-provider.contract'
 
@@ -20,17 +21,12 @@ const truncatedBio = computed(() => {
   return bio.length > 100 ? `${bio.slice(0, 97)}...` : bio
 })
 
-const profileUrl = computed(() =>
-  props.provider.customDomain
-    ? `https://${props.provider.customDomain}`
-    : `/coach/${props.provider.slug}`
+// P-Y6: route resolution centralised in useCoachLink (YC2.2).
+const link = computed(() =>
+  useCoachLink({ slug: props.provider.slug, domain: props.provider.customDomain })
 )
-
-const bookingUrl = computed(() =>
-  props.provider.customDomain
-    ? `https://${props.provider.customDomain}/onboarding/discovery`
-    : `/coach/${props.provider.slug}/onboarding/discovery`
-)
+const profileUrl = computed(() => link.value.site)
+const bookingUrl = computed(() => link.value.booking)
 </script>
 
 <template>
@@ -49,14 +45,14 @@ const bookingUrl = computed(() =>
       <!-- Fallback: gradient + initials -->
       <div
         v-else
-        class="flex size-full items-center justify-center bg-gradient-to-br from-[#5b4b6e] via-[#7a6b8e] to-[#d4956a]"
+        class="flex size-full items-center justify-center bg-gradient-to-br from-[var(--color-brand-primary)] via-[var(--color-crepuscule-500)] to-[var(--color-brand-accent)]"
       >
         <span class="text-7xl font-bold text-white/80">{{ initials }}</span>
       </div>
     </div>
 
     <!-- Gradient overlay — always visible at bottom, expands on hover -->
-    <div class="absolute inset-0 bg-gradient-to-t from-[#221d28] via-[#221d28]/60 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-95" />
+    <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-crepuscule-950)] via-[var(--color-crepuscule-950)]/60 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-95" />
 
     <!-- === CONTENT — positioned at bottom, slides up on hover === -->
     <div class="absolute inset-x-0 bottom-0 flex flex-col p-6 transition-all duration-500">
@@ -103,7 +99,7 @@ const bookingUrl = computed(() =>
           :external="!!provider.customDomain"
           :target="provider.customDomain ? '_blank' : undefined"
           :rel="provider.customDomain ? 'noopener noreferrer' : undefined"
-          class="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-semibold text-[#3d3250] shadow-lg transition-all duration-300 hover:bg-[#d4956a] hover:text-white active:scale-95"
+          class="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-[color:var(--color-surface-card)] py-3 text-sm font-semibold text-[var(--color-crepuscule-800)] shadow-lg transition-all duration-300 hover:bg-[var(--color-brand-accent)] hover:text-white active:scale-95"
         >
           Voir le profil
           <UIcon

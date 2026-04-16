@@ -21,7 +21,7 @@ const deltaClasses = computed(() => getDeltaClasses(props.delta))
         <UIcon
           :name="icon"
           size="20"
-          class="text-[color:var(--color-brand-solid)]"
+          class="text-[color:var(--color-brand-primary)]"
         />
       </div>
       <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">

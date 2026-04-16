@@ -24,29 +24,29 @@ function isFilterActive(value: DisplayTypeFilter) {
 }
 
 function getFilterButtonClasses(value: DisplayTypeFilter, active: boolean) {
-  if (!active) return 'text-stone-600 hover:text-stone-900'
-  if (value === 'discovery') return 'bg-amber-100 text-amber-800'
+  if (!active) return 'text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)]'
+  if (value === 'discovery') return 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-800)]'
   if (value === 'consultation') return 'bg-crepuscule-100 text-crepuscule-800'
-  if (value === 'free_followup') return 'bg-emerald-100 text-emerald-800'
-  return 'bg-stone-200 text-stone-800'
+  if (value === 'free_followup') return 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-800)]'
+  return 'bg-[color:var(--color-neutral-200)] text-[color:var(--color-text-primary)]'
 }
 </script>
 
 <template>
-  <div class="rounded-lg border border-stone-200 bg-white p-4">
+  <div class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-4">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p class="text-xs font-medium uppercase tracking-wider text-stone-500">
+        <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
           Affichage
         </p>
-        <p class="mt-1 text-sm text-stone-600">
+        <p class="mt-1 text-sm text-[color:var(--color-text-secondary)]">
           Filtrer la timeline sans modifier les données chargées.
         </p>
       </div>
 
       <div class="flex flex-wrap items-center gap-4">
         <!-- Filter buttons -->
-        <div class="inline-flex rounded-lg border border-stone-200 bg-stone-50 p-1">
+        <div class="inline-flex rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-1">
           <button
             v-for="option in filterOptions"
             :key="option.value"
@@ -61,21 +61,21 @@ function getFilterButtonClasses(value: DisplayTypeFilter, active: boolean) {
         </div>
 
         <!-- Legend -->
-        <div class="hidden items-center gap-4 text-xs text-stone-500 sm:flex">
+        <div class="hidden items-center gap-4 text-xs text-[color:var(--color-text-muted)] sm:flex">
           <span class="inline-flex items-center gap-1.5">
             <span class="inline-block h-2 w-2 rounded-full bg-crepuscule-500" />
             Planifié
           </span>
           <span class="inline-flex items-center gap-1.5">
-            <span class="inline-block h-2 w-2 rounded-full bg-green-500" />
+            <span class="inline-block h-2 w-2 rounded-full bg-[color:var(--color-success-50)]0" />
             Terminé
           </span>
           <span class="inline-flex items-center gap-1.5">
-            <span class="inline-block h-2 w-2 rounded-full bg-red-500" />
+            <span class="inline-block h-2 w-2 rounded-full bg-[color:var(--color-error-50)]0" />
             Annulé
           </span>
           <span class="inline-flex items-center gap-1.5">
-            <span class="inline-block h-2 w-2 rounded-full bg-amber-500" />
+            <span class="inline-block h-2 w-2 rounded-full bg-[color:var(--color-sunset-50)]0" />
             Payé
           </span>
         </div>

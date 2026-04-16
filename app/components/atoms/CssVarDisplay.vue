@@ -8,7 +8,7 @@
     </span>
     <div
       v-if="isColor"
-      class="w-6 h-6 rounded border border-[color:var(--color-border-soft)]"
+      class="w-6 h-6 rounded border border-[color:var(--color-border-subtle)]"
       :style="{ backgroundColor: computedValue }"
     />
   </div>

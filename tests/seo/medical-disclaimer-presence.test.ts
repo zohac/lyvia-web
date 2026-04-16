@@ -24,11 +24,13 @@ describe('MedicalDisclaimer presence (U1.4a)', () => {
     )
   })
 
-  test('CoachPublicPageTemplate includes MedicalDisclaimer', () => {
-    const content = readFile('components/templates/CoachPublicPageTemplate.vue')
+  test('CoachPageSignature (rendered template) includes MedicalDisclaimer', () => {
+    // YC2.1: rendering is now in CoachPageSignature.vue.
+    // CoachPublicPageTemplate.vue became a thin data loader.
+    const content = readFile('components/templates/coach-pages/CoachPageSignature.vue')
     assert.ok(
       content.includes('MedicalDisclaimer'),
-      'Coach profile template should include MedicalDisclaimer'
+      'Coach profile template (Signature) should include MedicalDisclaimer'
     )
   })
 

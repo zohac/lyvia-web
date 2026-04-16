@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import {
-  COOKIE_CONSENT_MAX_AGE,
   COOKIE_CONSENT_NAME,
   getAdsEnabledFromConsent,
+  getConsentCookieOptions,
   getConsentValueFromPreferences,
   hasGoogleAdsConfig,
   toConsentSignals,
@@ -18,11 +18,7 @@ const emit = defineEmits<{
   'saved': []
 }>()
 
-const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, {
-  maxAge: COOKIE_CONSENT_MAX_AGE,
-  sameSite: 'lax',
-  secure: true
-})
+const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, getConsentCookieOptions(import.meta.dev))
 
 const googleAdsId = useState<string | null>('googleAdsId', () => null)
 const gtag = useState<((...args: unknown[]) => void) | null>('gtag', () => null)

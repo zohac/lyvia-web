@@ -403,7 +403,7 @@ export const keovaAlert = {
       color: 'neutral',
       variant: 'soft',
       class: {
-        root: 'bg-[color:var(--color-surface-highlight)] border-[color:var(--color-border-soft)]',
+        root: 'bg-[color:var(--color-surface-highlight)] border-[color:var(--color-border-subtle)]',
         icon: 'bg-[rgba(168,162,158,0.25)] text-[color:var(--color-brand-primary)]'
       }
     },

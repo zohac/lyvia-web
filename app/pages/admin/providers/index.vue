@@ -135,7 +135,7 @@ const columns: TableColumn<AdminProviderListItem>[] = [
         h('span', { class: 'font-medium text-[color:var(--color-brand-primary)]' }, provider.displayName)
       ]
       if (provider.isTest) {
-        nameChildren.push(h('span', { class: 'ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700' }, 'Test'))
+        nameChildren.push(h('span', { class: 'ml-2 inline-flex items-center rounded-full bg-[color:var(--color-sunset-100)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--color-sunset-700)]' }, 'Test'))
       }
       return h('div', { class: 'flex flex-col gap-0.5' }, [
         h('div', { class: 'flex items-center' }, nameChildren),
@@ -200,6 +200,26 @@ const columns: TableColumn<AdminProviderListItem>[] = [
   }
 ]
 
+// Mobile Stripe status helper
+function getMobileStripeStatus(stripe: AdminProviderListItem['stripe']) {
+  let variant: 'neutral' | 'success' | 'warning' | 'error' = 'neutral'
+  let label = 'Non lié'
+  if (stripe.stripeAccountId) {
+    if (stripe.chargesEnabled && stripe.payoutsEnabled) {
+      variant = 'success'
+      label = 'Actif'
+    } else if (stripe.requirementsDueCount > 0) {
+      variant = 'warning'
+      label = `${stripe.requirementsDueCount} action${stripe.requirementsDueCount > 1 ? 's' : ''}`
+    } else {
+      variant = 'error'
+      label = 'Bloqué'
+    }
+  }
+  const s = getStatusBadgeClasses(variant)
+  return { classes: s.badge, dotClass: s.dot, label }
+}
+
 // Row click
 function onRowSelect(_e: Event, row: TableRow<AdminProviderListItem>) {
   router.push(`/admin/providers/${row.original.id}`)
@@ -215,31 +235,24 @@ function goToProvider() {
 
 <template>
   <div>
-    <!-- Page Header -->
-    <section class="relative mb-10 flex flex-col items-start justify-between gap-6 pl-6 md:flex-row md:items-end">
-      <div class="absolute left-0 top-2 h-[90%] w-1.5 rounded-full bg-gradient-to-b from-[color:var(--color-crepuscule-600)] via-[rgba(212,184,160,0.35)] to-transparent opacity-70" />
-
-      <div class="grid gap-2">
-        <h1 class="font-serif text-4xl italic leading-[var(--leading-tight)] text-[color:var(--color-brand-primary)] md:text-5xl">
-          Providers
-        </h1>
-        <p class="text-lg font-medium text-[color:var(--color-brand-secondary)]">
-          Gestion des comptes coachs
-        </p>
-      </div>
-
-      <UButton
-        color="primary"
-        class="rounded-full"
-        @click="showCreateDrawer = true"
-      >
-        <UIcon
-          name="lucide:plus"
-          size="18"
-        />
-        Nouveau provider
-      </UButton>
-    </section>
+    <AtomsDsPageHeader
+      title="Providers"
+      subtitle="Gestion des comptes coachs"
+      class="mb-10"
+    >
+      <template #actions>
+        <UButton
+          color="primary"
+          @click="showCreateDrawer = true"
+        >
+          <UIcon
+            name="lucide:plus"
+            size="18"
+          />
+          Nouveau provider
+        </UButton>
+      </template>
+    </AtomsDsPageHeader>
 
     <!-- Filters -->
     <section class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -285,73 +298,87 @@ function goToProvider() {
     </section>
 
     <!-- Providers Table -->
-    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-white shadow-soft">
+    <section class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] shadow-soft">
       <!-- Loading State -->
       <div
         v-if="pending"
-        class="flex items-center justify-center py-20"
+        class="space-y-3 p-8"
       >
-        <UIcon
-          name="lucide:loader-2"
-          size="32"
-          class="animate-spin text-[color:var(--color-brand-muted)]"
+        <USkeleton class="h-10 rounded-xl" />
+        <USkeleton
+          v-for="i in 5"
+          :key="i"
+          class="h-14 rounded-xl"
         />
       </div>
 
       <!-- Error State -->
-      <div
+      <AtomsDsErrorState
         v-else-if="error"
-        class="p-8 text-center"
-      >
-        <UIcon
-          name="lucide:alert-circle"
-          size="48"
-          class="mx-auto mb-4 text-red-500"
-        />
-        <p class="text-lg font-medium text-red-800">
-          Erreur lors du chargement des providers
-        </p>
-        <UButton
-          variant="outline"
-          color="neutral"
-          class="mt-4 rounded-full"
-          @click="() => refresh()"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            size="16"
-          />
-          Réessayer
-        </UButton>
-      </div>
+        message="Erreur lors du chargement des providers"
+        @retry="refresh()"
+      />
 
       <!-- Empty State -->
-      <div
+      <AtomsDsEmptyState
         v-else-if="!providers?.items?.length"
-        class="p-12 text-center"
-      >
-        <UIcon
-          name="lucide:users"
-          size="48"
-          class="mx-auto mb-4 text-[color:var(--color-brand-muted)]"
-        />
-        <p class="text-lg font-medium text-[color:var(--color-brand-primary)]">
-          Aucun provider trouvé
-        </p>
-        <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun provider n\'est encore inscrit.' }}
-        </p>
-      </div>
+        icon="i-lucide-users"
+        title="Aucun provider trouvé"
+        :description="searchQuery ? 'Essayez avec d\'autres termes de recherche.' : 'Aucun provider n\'est encore inscrit.'"
+      />
 
-      <!-- Table -->
+      <!-- Table (desktop) -->
       <div v-else>
-        <UTable
-          :data="providers.items"
-          :columns="columns"
-          :row-attrs="(row: AdminProviderListItem) => row.isTest ? { class: 'bg-amber-50/40' } : {}"
-          :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
-          @select="onRowSelect"
-        />
+        <div class="hidden md:block">
+          <UTable
+            :data="providers.items"
+            :columns="columns"
+            :row-attrs="(row: AdminProviderListItem) => row.isTest ? { class: 'bg-[color:var(--color-sunset-50)]/40' } : {}"
+            :class="[ADMIN_TABLE_CLASSES, '[&_tr:hover_td]:bg-[color:var(--color-crepuscule-50)]/30 [&_tr]:cursor-pointer [&_tr]:transition-colors']"
+            @select="onRowSelect"
+          />
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="block space-y-3 p-4 md:hidden">
+          <ULink
+            v-for="provider in providers.items"
+            :key="provider.id"
+            raw
+            :to="`/admin/providers/${provider.id}`"
+            class="block rounded-xl border border-[color:var(--color-border-subtle)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
+            :class="provider.isTest ? 'bg-[color:var(--color-sunset-50)]/40' : 'bg-[color:var(--color-surface-elevated)]'"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="truncate font-medium text-[color:var(--color-brand-primary)]">{{ provider.displayName }}</span>
+                  <span
+                    v-if="provider.isTest"
+                    class="shrink-0 rounded-full bg-[color:var(--color-sunset-100)] px-2 py-0.5 text-[10px] font-semibold text-[color:var(--color-sunset-700)]"
+                  >Test</span>
+                </div>
+                <p class="mt-0.5 truncate text-xs text-[color:var(--color-brand-muted)]">
+                  {{ provider.email }}
+                </p>
+              </div>
+              <span
+                :class="getStatusBadgeClasses(provider.isActive ? 'success' : 'error').badge"
+                class="shrink-0"
+              >
+                <span :class="getStatusBadgeClasses(provider.isActive ? 'success' : 'error').dot" />
+                {{ provider.isActive ? 'Actif' : 'Désactivé' }}
+              </span>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-secondary)]">
+              <span :class="getMobileStripeStatus(provider.stripe).classes">
+                <span :class="getMobileStripeStatus(provider.stripe).dotClass" />
+                {{ getMobileStripeStatus(provider.stripe).label }}
+              </span>
+              <span>{{ formatDateShort(provider.createdAt) }}</span>
+            </div>
+          </ULink>
+        </div>
 
         <!-- Pagination -->
         <div
@@ -376,7 +403,7 @@ function goToProvider() {
     </section>
 
     <!-- Quick Access Card -->
-    <section class="mt-8 overflow-hidden rounded-2xl border border-[rgba(28,25,23,0.10)] bg-white/75 p-8 shadow-soft backdrop-blur">
+    <section class="mt-8 overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)]/75 p-8 shadow-soft backdrop-blur">
       <div class="flex items-start gap-4">
         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-crepuscule-100)]">
           <UIcon

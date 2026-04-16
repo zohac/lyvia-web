@@ -126,7 +126,7 @@ const userMenuItems = computed(() => [
       label: userLabel.value,
       icon: 'i-lucide-mail',
       disabled: true,
-      class: 'text-stone-500'
+      class: 'text-[color:var(--color-text-muted)]'
     }
   ],
   [
@@ -169,7 +169,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex h-[100svh] w-full bg-[color:var(--color-surface-page)] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[color:var(--color-keova-50)]/55 via-[color:var(--color-surface-page)] to-[color:var(--color-surface-page)] selection:bg-[rgba(212,184,160,0.35)]">
+  <div class="flex h-[100svh] w-full bg-[color:var(--color-surface-page)] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-[color:var(--color-crepuscule-50)]/55 via-[color:var(--color-surface-page)] to-[color:var(--color-surface-page)] selection:bg-[rgba(212,184,160,0.35)]">
     <aside
       class="fixed left-0 top-0 z-30 hidden h-full w-72 flex-col border-r border-[rgba(231,229,228,0.5)] bg-white/60 backdrop-blur-xl md:flex"
       aria-label="Navigation principale"
@@ -182,7 +182,7 @@ watch(
         >
           <template v-if="useKeovaLogoImage">
             <img
-              src="/images/keova-logo.png"
+              src="/images/keova-logo.webp"
               alt=""
               class="h-7 w-auto opacity-95"
               aria-hidden="true"
@@ -208,8 +208,8 @@ watch(
           class="group relative mb-6 flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200"
           :class="
             isItemActive(navigation.home)
-              ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md hover:text-white focus-visible:text-white'
-              : 'text-stone-600 hover:bg-stone-100 hover:text-[color:var(--color-crepuscule-800)]'
+              ? 'bg-[color:var(--color-brand-primary-dark)] text-white shadow-md hover:text-white focus-visible:text-white'
+              : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface-muted)] hover:text-[color:var(--color-brand-primary-dark)]'
           "
           :aria-current="isItemActive(navigation.home) ? 'page' : undefined"
         >
@@ -220,7 +220,7 @@ watch(
             <UIcon
               :name="navigation.home.icon"
               size="20"
-              :class="isItemActive(navigation.home) ? 'text-white' : 'text-stone-500 group-hover:text-stone-700'"
+              :class="isItemActive(navigation.home) ? 'text-white' : 'text-[color:var(--color-text-muted)] group-hover:text-[color:var(--color-text-secondary)]'"
             />
           </span>
           <span class="min-w-0 truncate text-sm">
@@ -234,8 +234,9 @@ watch(
           :key="group.key"
           class="mb-4"
         >
-          <!-- Group header (collapsible trigger) -->
+          <!-- Group header (collapsible trigger) — hidden if no label -->
           <button
+            v-if="group.label"
             type="button"
             class="group mb-2 flex w-full items-center gap-2 px-3 py-1.5 text-left"
             :aria-expanded="isGroupOpen(group.key)"
@@ -245,16 +246,16 @@ watch(
             <UIcon
               name="lucide:chevron-right"
               size="12"
-              class="text-stone-400 transition-transform duration-200"
+              class="text-[color:var(--color-brand-muted)] transition-transform duration-200"
               :class="{ 'rotate-90': isGroupOpen(group.key) }"
               aria-hidden="true"
             />
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 transition-colors group-hover:text-stone-600">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-brand-muted)] transition-colors group-hover:text-[color:var(--color-text-secondary)]">
               {{ group.label }}
             </span>
           </button>
 
-          <!-- Group items (collapsible content) -->
+          <!-- Group items (collapsible content, or always visible if no label) -->
           <Transition
             enter-active-class="transition-all duration-200 ease-out"
             enter-from-class="opacity-0 -translate-y-1 max-h-0"
@@ -264,7 +265,7 @@ watch(
             leave-to-class="opacity-0 -translate-y-1 max-h-0"
           >
             <ul
-              v-show="isGroupOpen(group.key)"
+              v-show="!group.label || isGroupOpen(group.key)"
               :id="`nav-group-${group.key}`"
               class="grid gap-0.5 overflow-hidden"
             >
@@ -277,15 +278,15 @@ watch(
                   class="group relative flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200"
                   :class="
                     isItemActive(item)
-                      ? 'bg-stone-100 text-[color:var(--color-crepuscule-800)]'
-                      : 'text-stone-500 hover:bg-stone-50 hover:text-stone-700'
+                      ? 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-brand-primary-dark)]'
+                      : 'text-[color:var(--color-text-muted)] hover:bg-[color:var(--color-surface-page)] hover:text-[color:var(--color-text-secondary)]'
                   "
                   :aria-current="isItemActive(item) ? 'page' : undefined"
                 >
                   <!-- Active indicator bar -->
                   <span
                     v-if="isItemActive(item)"
-                    class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-crepuscule-800)]"
+                    class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-brand-primary-dark)]"
                     aria-hidden="true"
                   />
                   <span
@@ -295,7 +296,7 @@ watch(
                     <UIcon
                       :name="item.icon"
                       size="18"
-                      :class="isItemActive(item) ? 'text-[color:var(--color-crepuscule-800)]' : 'text-stone-400 group-hover:text-stone-600'"
+                      :class="isItemActive(item) ? 'text-[color:var(--color-brand-primary-dark)]' : 'text-[color:var(--color-brand-muted)] group-hover:text-[color:var(--color-text-secondary)]'"
                     />
                   </span>
                   <span class="min-w-0 truncate">
@@ -318,7 +319,7 @@ watch(
       </nav>
 
       <!-- User Section -->
-      <div class="mt-auto border-t border-stone-200/60 p-4">
+      <div class="mt-auto border-t border-[color:var(--color-brand-subtle)]/60 p-4">
         <UDropdownMenu
           :items="userMenuItems"
           :content="{ align: 'start', side: 'top', sideOffset: 8 }"
@@ -326,7 +327,7 @@ watch(
         >
           <button
             type="button"
-            class="group flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all hover:bg-stone-100"
+            class="group flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all hover:bg-[color:var(--color-surface-muted)]"
           >
             <!-- Avatar -->
             <div class="relative">
@@ -337,17 +338,17 @@ watch(
                 :ui="{ root: 'bg-crepuscule-100', fallback: 'text-crepuscule-700 font-semibold' }"
               />
               <!-- Online indicator -->
-              <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+              <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-[color:var(--color-success-500)]" />
             </div>
 
             <!-- User info -->
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <p class="truncate text-sm font-semibold text-stone-900">
+                <p class="truncate text-sm font-semibold text-[color:var(--color-text-primary)]">
                   {{ userDisplayName }}
                 </p>
               </div>
-              <p class="truncate text-xs text-stone-500">
+              <p class="truncate text-xs text-[color:var(--color-text-muted)]">
                 {{ userLabel }}
               </p>
             </div>
@@ -355,7 +356,7 @@ watch(
             <!-- Chevron -->
             <UIcon
               name="lucide:chevrons-up-down"
-              class="h-4 w-4 shrink-0 text-stone-400 transition-colors group-hover:text-stone-600"
+              class="h-4 w-4 shrink-0 text-[color:var(--color-brand-muted)] transition-colors group-hover:text-[color:var(--color-text-secondary)]"
             />
           </button>
         </UDropdownMenu>
@@ -388,7 +389,7 @@ watch(
               class="mx-3 opacity-40"
               aria-hidden="true"
             />
-            <span class="border-b-2 border-[color:var(--color-brand-solid)] pb-1 text-[color:var(--color-brand-primary)]">
+            <span class="border-b-2 border-[color:var(--color-brand-primary)] pb-1 text-[color:var(--color-brand-primary)]">
               {{ pageTitle }}
             </span>
           </div>
@@ -454,7 +455,7 @@ watch(
 
               <template v-if="useKeovaLogoImage">
                 <img
-                  src="/images/keova-logo.png"
+                  src="/images/keova-logo.webp"
                   alt=""
                   class="h-7 w-auto opacity-95"
                   aria-hidden="true"
@@ -493,8 +494,8 @@ watch(
               class="group relative mb-6 flex items-center gap-3 rounded-xl px-4 py-3 font-medium transition-all duration-200"
               :class="
                 isItemActive(navigation.home)
-                  ? 'bg-[color:var(--color-crepuscule-800)] text-white shadow-md hover:text-white focus-visible:text-white'
-                  : 'text-stone-600 hover:bg-stone-100 hover:text-[color:var(--color-crepuscule-800)]'
+                  ? 'bg-[color:var(--color-brand-primary-dark)] text-white shadow-md hover:text-white focus-visible:text-white'
+                  : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-surface-muted)] hover:text-[color:var(--color-brand-primary-dark)]'
               "
               :aria-current="isItemActive(navigation.home) ? 'page' : undefined"
             >
@@ -505,7 +506,7 @@ watch(
                 <UIcon
                   :name="navigation.home.icon"
                   size="20"
-                  :class="isItemActive(navigation.home) ? 'text-white' : 'text-stone-500 group-hover:text-stone-700'"
+                  :class="isItemActive(navigation.home) ? 'text-white' : 'text-[color:var(--color-text-muted)] group-hover:text-[color:var(--color-text-secondary)]'"
                 />
               </span>
               <span class="min-w-0 truncate text-sm">
@@ -519,8 +520,9 @@ watch(
               :key="group.key"
               class="mb-4"
             >
-              <!-- Group header -->
+              <!-- Group header — hidden if no label -->
               <button
+                v-if="group.label"
                 type="button"
                 class="group mb-2 flex w-full items-center gap-2 px-3 py-1.5 text-left"
                 :aria-expanded="isGroupOpen(group.key)"
@@ -529,18 +531,18 @@ watch(
                 <UIcon
                   name="lucide:chevron-right"
                   size="12"
-                  class="text-stone-400 transition-transform duration-200"
+                  class="text-[color:var(--color-brand-muted)] transition-transform duration-200"
                   :class="{ 'rotate-90': isGroupOpen(group.key) }"
                   aria-hidden="true"
                 />
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 transition-colors group-hover:text-stone-600">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-brand-muted)] transition-colors group-hover:text-[color:var(--color-text-secondary)]">
                   {{ group.label }}
                 </span>
               </button>
 
               <!-- Group items -->
               <ul
-                v-show="isGroupOpen(group.key)"
+                v-show="!group.label || isGroupOpen(group.key)"
                 class="grid gap-0.5"
               >
                 <li
@@ -552,15 +554,15 @@ watch(
                     class="group relative flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200"
                     :class="
                       isItemActive(item)
-                        ? 'bg-stone-100 text-[color:var(--color-crepuscule-800)]'
-                        : 'text-stone-500 hover:bg-stone-50 hover:text-stone-700'
+                        ? 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-brand-primary-dark)]'
+                        : 'text-[color:var(--color-text-muted)] hover:bg-[color:var(--color-surface-page)] hover:text-[color:var(--color-text-secondary)]'
                     "
                     :aria-current="isItemActive(item) ? 'page' : undefined"
                   >
                     <!-- Active indicator bar -->
                     <span
                       v-if="isItemActive(item)"
-                      class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-crepuscule-800)]"
+                      class="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[color:var(--color-brand-primary-dark)]"
                       aria-hidden="true"
                     />
                     <span
@@ -570,7 +572,7 @@ watch(
                       <UIcon
                         :name="item.icon"
                         size="18"
-                        :class="isItemActive(item) ? 'text-[color:var(--color-crepuscule-800)]' : 'text-stone-400 group-hover:text-stone-600'"
+                        :class="isItemActive(item) ? 'text-[color:var(--color-brand-primary-dark)]' : 'text-[color:var(--color-brand-muted)] group-hover:text-[color:var(--color-text-secondary)]'"
                       />
                     </span>
                     <span class="min-w-0 truncate">
@@ -592,9 +594,9 @@ watch(
           </nav>
 
           <!-- User Section (Mobile) -->
-          <div class="mt-auto border-t border-stone-200/60 p-4">
+          <div class="mt-auto border-t border-[color:var(--color-brand-subtle)]/60 p-4">
             <!-- User info card -->
-            <div class="mb-3 flex items-center gap-3 rounded-xl bg-stone-50 p-3">
+            <div class="mb-3 flex items-center gap-3 rounded-xl bg-[color:var(--color-surface-page)] p-3">
               <UAvatar
                 :text="userInitials"
                 size="lg"
@@ -603,7 +605,7 @@ watch(
               />
               <div class="min-w-0 flex-1">
                 <div class="flex items-center gap-2">
-                  <p class="truncate text-sm font-semibold text-stone-900">
+                  <p class="truncate text-sm font-semibold text-[color:var(--color-text-primary)]">
                     {{ userDisplayName }}
                   </p>
                   <UBadge
@@ -614,7 +616,7 @@ watch(
                     {{ sidebarLabel }}
                   </UBadge>
                 </div>
-                <p class="truncate text-xs text-stone-500">
+                <p class="truncate text-xs text-[color:var(--color-text-muted)]">
                   {{ userLabel }}
                 </p>
               </div>

@@ -3,6 +3,7 @@ import { setPublicHeader } from '~/features/public/state/public-header.state'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
+import { useGlobalSchemaOrg } from '~/features/seo/useGlobalSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
@@ -20,6 +21,8 @@ definePageMeta({
 const requestUrl = useRequestURL()
 const origin = requestUrl.origin
 const hostname = computed(() => requestUrl.hostname.toLowerCase())
+
+await useGlobalSchemaOrg()
 
 const runtimeConfig = useRuntimeConfig()
 const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
@@ -92,14 +95,10 @@ useSeoMeta({
 
 usePublicCanonicalHead(canonicalHref)
 
-// Preload LCP image for B2B landing (AC-19) — target IPX-processed WebP asset
-if (isPlatformDomain.value) {
-  useHead({
-    link: [
-      { rel: 'preload', as: 'image', href: '/_ipx/f_webp/images/screenshot-dashboard.png', type: 'image/webp' }
-    ]
-  })
-}
+// Preload LCP image for B2B landing (AC-19) : géré par l'attribut `preload`
+// sur le `<NuxtImg>` du hero (MarketingLandingB2B.vue). Le preload manuel via
+// `useHead` ciblait une URL IPX qui ne correspondait pas à celle réellement
+// générée par NuxtImg (warning "preload unused"), donc retiré.
 
 // Set header state synchronously during setup (runs on both SSR and client)
 // to avoid hydration mismatch — watchEffect only ran on client, leaving SSR with defaults.
@@ -110,7 +109,7 @@ function updatePublicHeader() {
       variant: 'white-label',
       layoutStyle: 'dock',
       brandLabel: coachName,
-      brandLogoSrc: '/images/keova-logo-white-label.png',
+      brandLogoSrc: '/images/keova-logo-white-label.webp',
       brandTo: '/',
       showBrandIcon: false,
       navLinks: [

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-6">
     <!-- Modals -->
     <CallConclusionModal
       v-model:open="conclusionModalOpen"
@@ -37,251 +37,163 @@
       icon="i-lucide-alert-circle"
     />
 
-    <!-- Page header -->
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <!-- Header — titre + KPIs inline + CTA unique -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 class="text-2xl font-semibold text-stone-900 sm:text-3xl">
-          Appels Discovery
+        <h1 class="font-heading text-2xl font-bold text-[color:var(--color-text-primary)]">
+          Appels découverte
         </h1>
-        <p class="mt-1 text-stone-500">
-          Gérez vos appels découverte et convertissez vos leads en clientes.
-        </p>
+        <div class="mt-1 flex items-center gap-3 text-sm text-[color:var(--color-text-muted)]">
+          <span class="flex items-center gap-1.5">
+            <UIcon
+              name="i-lucide-phone"
+              class="h-3.5 w-3.5 text-crepuscule-500"
+            />
+            <span class="font-medium text-[color:var(--color-text-primary)]">{{ pending ? '–' : countScheduledToday }}</span> aujourd'hui
+          </span>
+          <span class="text-[color:var(--color-border-default)]">·</span>
+          <span class="flex items-center gap-1.5">
+            <UIcon
+              name="i-lucide-check-circle"
+              class="h-3.5 w-3.5 text-[color:var(--color-success-500)]"
+            />
+            <span class="font-medium text-[color:var(--color-text-primary)]">{{ pending ? '–' : countCompletedLast7Days }}</span> terminés (7j)
+          </span>
+          <span class="text-[color:var(--color-border-default)]">·</span>
+          <span class="flex items-center gap-1.5">
+            <UIcon
+              name="i-lucide-calendar-days"
+              class="h-3.5 w-3.5 text-sunset-500"
+            />
+            <span class="font-medium text-[color:var(--color-text-primary)]">{{ pending ? '–' : countUpcomingNext14Days }}</span> à venir
+          </span>
+        </div>
       </div>
-      <div class="flex items-center gap-3">
-        <UButton
-          to="/provider/calendar?action=create&type=discovery"
-          color="primary"
-        >
-          <UIcon
-            name="lucide:plus"
-            class="mr-2 h-4 w-4"
-          />
-          Créer un appel
-        </UButton>
-        <UButton
-          to="/provider/availability"
-          variant="soft"
-          color="neutral"
-        >
-          <UIcon
-            name="lucide:calendar-clock"
-            class="mr-2 h-4 w-4"
-          />
-          Disponibilités
-        </UButton>
-        <UButton
-          :loading="pending"
-          variant="outline"
-          color="neutral"
-          @click="() => refresh()"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            class="mr-2 h-4 w-4"
-          />
-          Actualiser
-        </UButton>
-      </div>
-    </header>
-
-    <!-- Stats row -->
-    <div class="grid gap-4 sm:grid-cols-3">
-      <UCard class="bg-white">
-        <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
-            <UIcon
-              name="lucide:phone"
-              class="h-6 w-6 text-crepuscule-600"
-            />
-          </div>
-          <div>
-            <p class="text-sm text-stone-500">
-              Aujourd'hui
-            </p>
-            <p class="text-2xl font-semibold text-stone-900">
-              {{ pending ? '...' : countScheduledToday }}
-            </p>
-            <p class="text-xs text-stone-400">
-              appel(s) planifié(s)
-            </p>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard class="bg-white">
-        <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
-            <UIcon
-              name="lucide:check-circle"
-              class="h-6 w-6 text-green-600"
-            />
-          </div>
-          <div>
-            <p class="text-sm text-stone-500">
-              Terminés (7j)
-            </p>
-            <p class="text-2xl font-semibold text-stone-900">
-              {{ pending ? '...' : countCompletedLast7Days }}
-            </p>
-            <p class="text-xs text-stone-400">
-              sessions clôturées
-            </p>
-          </div>
-        </div>
-      </UCard>
-
-      <UCard class="bg-white">
-        <div class="flex items-center gap-4">
-          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-sunset-100">
-            <UIcon
-              name="lucide:calendar-days"
-              class="h-6 w-6 text-sunset-600"
-            />
-          </div>
-          <div>
-            <p class="text-sm text-stone-500">
-              À venir (14j)
-            </p>
-            <p class="text-2xl font-semibold text-stone-900">
-              {{ pending ? '...' : countUpcomingNext14Days }}
-            </p>
-            <p class="text-xs text-stone-400">
-              appels programmés
-            </p>
-          </div>
-        </div>
-      </UCard>
+      <UButton
+        to="/provider/calendar?action=create&type=discovery"
+        color="primary"
+        icon="i-lucide-plus"
+      >
+        Créer un appel
+      </UButton>
     </div>
 
     <!-- Main content -->
     <div class="grid gap-6 lg:grid-cols-3">
       <!-- Liste des appels -->
-      <div class="space-y-6 lg:col-span-2">
-        <!-- Filters -->
-        <UCard class="bg-white">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
-            <div class="flex-1">
-              <label class="mb-2 block text-xs font-medium uppercase tracking-wider text-stone-500">
-                Recherche
-              </label>
-              <UInput
-                v-model="searchQuery"
-                placeholder="Nom, email, téléphone..."
-                icon="i-lucide-search"
-              />
-            </div>
-            <div class="sm:w-48">
-              <label class="mb-2 block text-xs font-medium uppercase tracking-wider text-stone-500">
-                Période
-              </label>
-              <USelect
-                v-model="rangeFilter"
-                :items="rangeOptions"
-              />
-            </div>
+      <div class="space-y-4 lg:col-span-2">
+        <!-- Toolbar: Tabs + Recherche + Filtre période -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <UTabs
+              v-model="activeTab"
+              :items="tabItems"
+              variant="link"
+              class="w-auto"
+              :ui="{ list: 'gap-0' }"
+            />
           </div>
-
-          <div
-            v-if="isDayFilterActive && selectedDay"
-            class="mt-4 flex items-center gap-2"
-          >
-            <UBadge
-              color="primary"
-              variant="soft"
-              size="lg"
-            >
-              <UIcon
-                name="lucide:calendar"
-                class="mr-1.5 h-3.5 w-3.5"
-              />
-              {{ formatSelectedDayLabel(selectedDay) }}
-            </UBadge>
-            <UButton
-              variant="ghost"
-              color="neutral"
-              size="xs"
-              @click="resetDayFilter"
-            >
-              <UIcon
-                name="lucide:x"
-                class="h-4 w-4"
-              />
-            </UButton>
+          <div class="flex items-center gap-2">
+            <UInput
+              v-model="searchQuery"
+              placeholder="Rechercher..."
+              icon="i-lucide-search"
+              size="sm"
+              class="flex-1"
+            />
+            <USelect
+              v-model="rangeFilter"
+              :items="rangeOptions"
+              size="sm"
+              class="w-44 shrink-0"
+            />
           </div>
-        </UCard>
+        </div>
 
-        <!-- Tabs par statut -->
-        <UTabs
-          v-model="activeTab"
-          :items="tabItems"
-          class="w-full"
+        <!-- Active day filter badge -->
+        <div
+          v-if="isDayFilterActive && selectedDay"
+          class="flex items-center gap-2"
         >
-          <template #content="{ item }">
-            <div class="mt-4 space-y-4">
-              <!-- Loading -->
-              <template v-if="pending">
-                <UCard
-                  v-for="i in 3"
-                  :key="i"
-                  class="bg-white"
-                >
-                  <div class="flex items-center gap-4">
-                    <USkeleton class="h-12 w-12 rounded-full" />
-                    <div class="flex-1 space-y-2">
-                      <USkeleton class="h-4 w-1/3" />
-                      <USkeleton class="h-3 w-1/2" />
-                    </div>
-                    <USkeleton class="h-8 w-24 rounded-full" />
-                  </div>
-                </UCard>
-              </template>
+          <UBadge
+            color="primary"
+            variant="soft"
+            size="md"
+          >
+            <UIcon
+              name="i-lucide-calendar"
+              class="mr-1 h-3 w-3"
+            />
+            {{ formatSelectedDayLabel(selectedDay) }}
+          </UBadge>
+          <UButton
+            variant="ghost"
+            color="neutral"
+            size="xs"
+            icon="i-lucide-x"
+            aria-label="Retirer le filtre jour"
+            @click="resetDayFilter"
+          />
+        </div>
 
-              <!-- Empty state -->
-              <UCard
-                v-else-if="getAppointmentsForTab(item.value).length === 0"
-                class="bg-white"
-              >
-                <div class="py-8 text-center">
-                  <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-stone-100">
-                    <UIcon
-                      :name="getEmptyStateIcon(item.value)"
-                      class="h-7 w-7 text-stone-400"
-                    />
-                  </div>
-                  <p class="font-medium text-stone-900">
-                    {{ getEmptyStateTitle(item.value) }}
-                  </p>
-                  <p class="mt-1 text-sm text-stone-500">
-                    {{ getEmptyStateDescription(item.value) }}
-                  </p>
-                </div>
-              </UCard>
-
-              <!-- Appointments list -->
-              <template v-else>
-                <AppointmentCard
-                  v-for="appointment in getAppointmentsForTab(item.value)"
-                  :key="appointment.id"
-                  :appointment="appointment"
-                  :updating-id="updatingId"
-                  :timezone="timezone"
-                  @conclude="openConclusionModal"
-                  @cancel="openCancelModal"
-                  @convert="openConclusionModal"
-                />
-              </template>
+        <!-- Loading -->
+        <template v-if="pending">
+          <UCard
+            v-for="i in 3"
+            :key="i"
+            class="bg-[color:var(--color-surface-card)]"
+          >
+            <div class="flex items-center gap-4">
+              <USkeleton class="h-10 w-10 rounded-full" />
+              <div class="flex-1 space-y-2">
+                <USkeleton class="h-4 w-1/3" />
+                <USkeleton class="h-3 w-1/2" />
+              </div>
+              <USkeleton class="h-8 w-20 rounded-full" />
             </div>
-          </template>
-        </UTabs>
+          </UCard>
+        </template>
+
+        <!-- Empty state -->
+        <div
+          v-else-if="getAppointmentsForTab(activeTab).length === 0"
+          class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] py-12 text-center"
+        >
+          <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
+            <UIcon
+              :name="getEmptyStateIcon(activeTab)"
+              class="h-6 w-6 text-[color:var(--color-brand-muted)]"
+            />
+          </div>
+          <p class="font-medium text-[color:var(--color-text-primary)]">
+            {{ getEmptyStateTitle(activeTab) }}
+          </p>
+          <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+            {{ getEmptyStateDescription(activeTab) }}
+          </p>
+        </div>
+
+        <!-- Appointments list -->
+        <template v-else>
+          <AppointmentCard
+            v-for="appointment in getAppointmentsForTab(activeTab)"
+            :key="appointment.id"
+            :appointment="appointment"
+            :updating-id="updatingId"
+            :timezone="timezone"
+            @conclude="openConclusionModal"
+            @cancel="openCancelModal"
+            @convert="openConclusionModal"
+          />
+        </template>
       </div>
 
-      <!-- Sidebar -->
-      <aside class="space-y-6">
-        <!-- Calendrier -->
-        <UCard class="bg-white">
+      <!-- Sidebar — calendrier uniquement, hidden on mobile -->
+      <aside class="hidden lg:block">
+        <UCard class="sticky top-6 overflow-hidden bg-[color:var(--color-surface-card)]">
           <template #header>
             <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-stone-900">
+              <h2 class="text-sm font-semibold text-[color:var(--color-text-primary)]">
                 Calendrier
               </h2>
               <UButton
@@ -308,69 +220,6 @@
             @update:model-value="activateDayFilter"
           />
         </UCard>
-
-        <!-- Prochains appels -->
-        <UCard class="bg-white">
-          <template #header>
-            <h2 class="font-semibold text-stone-900">
-              Prochains appels
-            </h2>
-          </template>
-
-          <div
-            v-if="pending"
-            class="space-y-3"
-          >
-            <div
-              v-for="i in 3"
-              :key="i"
-              class="flex items-center gap-3"
-            >
-              <USkeleton class="h-10 w-10 rounded-full" />
-              <div class="flex-1 space-y-1.5">
-                <USkeleton class="h-3 w-2/3" />
-                <USkeleton class="h-2.5 w-1/2" />
-              </div>
-            </div>
-          </div>
-
-          <div
-            v-else-if="upcomingAppointments.length === 0"
-            class="py-4 text-center text-sm text-stone-500"
-          >
-            Aucun appel planifié
-          </div>
-
-          <div
-            v-else
-            class="divide-y divide-stone-100"
-          >
-            <button
-              v-for="item in upcomingAppointments.slice(0, 5)"
-              :key="item.id"
-              type="button"
-              class="flex w-full items-center gap-3 py-3 text-left transition-colors first:pt-0 last:pb-0 hover:bg-stone-50"
-              @click="activateDayFilter(ymdFromIso(item.scheduledAt))"
-            >
-              <UAvatar
-                :text="clientInitials(item)"
-                size="sm"
-                class="bg-crepuscule-100 text-crepuscule-700"
-              />
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium text-stone-900">
-                  {{ formatClientName(item) }}
-                </p>
-                <p class="text-xs text-stone-500">
-                  {{ formatSelectedDayLabel(ymdFromIso(item.scheduledAt)) }}
-                </p>
-              </div>
-              <span class="text-sm font-medium text-crepuscule-600">
-                {{ formatShortTime(item.scheduledAt) }}
-              </span>
-            </button>
-          </div>
-        </UCard>
       </aside>
     </div>
   </div>
@@ -393,7 +242,7 @@ import AppointmentCard from '../../components/molecules/AppointmentCard.vue'
 definePageMeta({
   layout: 'provider',
   middleware: 'auth-provider',
-  pageTitle: 'Appels discovery'
+  pageTitle: 'Appels découverte'
 })
 
 type RangeFilter = 'all' | 'today' | 'next14' | 'past7'
@@ -579,13 +428,6 @@ const baseFilteredAppointments = computed(() => {
   return items
 })
 
-const upcomingAppointments = computed(() => {
-  const now = Date.now()
-  return appointments.value
-    .filter(item => item.status === 'scheduled' && new Date(item.scheduledAt).getTime() >= now)
-    .toSorted((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
-})
-
 // Stats
 const countScheduledToday = computed(() => {
   return appointments.value.filter(item => item.status === 'scheduled' && ymdFromIso(item.scheduledAt) === todayYmd.value).length
@@ -693,7 +535,7 @@ function getEmptyStateTitle(tab: TabValue): string {
 function getEmptyStateDescription(tab: TabValue): string {
   switch (tab) {
     case 'scheduled':
-      return 'Les nouveaux appels discovery apparaîtront ici.'
+      return 'Les nouveaux appels découverte apparaîtront ici.'
     case 'completed':
       return 'Les appels terminés apparaîtront ici.'
     case 'cancelled':
@@ -704,15 +546,6 @@ function getEmptyStateDescription(tab: TabValue): string {
 }
 
 // Formatting
-function formatShortTime(iso: string): string {
-  const date = new Date(iso)
-  return new Intl.DateTimeFormat('fr-FR', {
-    timeZone: timezone.value,
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date)
-}
-
 function formatSelectedDayLabel(ymd: string): string {
   const [yearStr, monthStr, dayStr] = ymd.split('-')
   if (!yearStr || !monthStr || !dayStr) return ymd
@@ -732,13 +565,6 @@ function formatSelectedDayLabel(ymd: string): string {
 
 function formatClientName(item: DiscoveryAppointmentListItem): string {
   return `${item.client.firstname} ${item.client.lastname}`.trim()
-}
-
-function clientInitials(item: DiscoveryAppointmentListItem): string {
-  const firstname = item.client.firstname?.trim() ?? ''
-  const lastname = item.client.lastname?.trim() ?? ''
-  const initials = `${firstname.slice(0, 1)}${lastname.slice(0, 1)}`.toUpperCase()
-  return initials || 'C'
 }
 
 // Modal handlers

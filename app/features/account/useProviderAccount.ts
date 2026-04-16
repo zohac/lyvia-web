@@ -1,6 +1,11 @@
 import { readonly, ref } from 'vue'
+import { ApiFetchError } from '../../services/api/api-error'
 import { apiFetch } from '../../services/api/apiFetch'
 import type { ProviderAccountResponse, UpdateProviderAccountRequest } from './api/provider-account.contract'
+
+export type UpdateProviderAccountResult
+  = | { ok: true, data: ProviderAccountResponse }
+    | { ok: false, errorCode?: string }
 
 export function useProviderAccount() {
   const account = ref<ProviderAccountResponse | null>(null)
@@ -22,23 +27,32 @@ export function useProviderAccount() {
     }
   }
 
-  async function updateAccount(patch: UpdateProviderAccountRequest): Promise<boolean> {
+  async function updateAccountDetailed(patch: UpdateProviderAccountRequest): Promise<UpdateProviderAccountResult> {
     saving.value = true
     error.value = null
 
     try {
-      account.value = await apiFetch<ProviderAccountResponse>('/provider/account', {
+      const result = await apiFetch<ProviderAccountResponse>('/provider/account', {
         method: 'PATCH',
         body: patch
       })
-      return true
+      account.value = result
+      return { ok: true, data: result }
     } catch (e: unknown) {
       error.value = 'Impossible de sauvegarder vos informations'
       console.error('[useProviderAccount] updateAccount error:', e)
-      return false
+      return {
+        ok: false,
+        errorCode: e instanceof ApiFetchError ? e.apiError.code : undefined
+      }
     } finally {
       saving.value = false
     }
+  }
+
+  async function updateAccount(patch: UpdateProviderAccountRequest): Promise<boolean> {
+    const result = await updateAccountDetailed(patch)
+    return result.ok
   }
 
   return {
@@ -47,6 +61,7 @@ export function useProviderAccount() {
     saving: readonly(saving),
     error: readonly(error),
     fetchAccount,
+    updateAccountDetailed,
     updateAccount
   }
 }

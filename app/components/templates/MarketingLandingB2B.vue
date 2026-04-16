@@ -10,11 +10,11 @@ const { reveal, isReady: scrollReady } = useScrollReveal()
 
 // --- Comparatif outils fragmentés ---
 const fragmentedTools = [
-  { name: 'Calendly', icon: 'i-lucide-calendar', color: '#006BFF' },
-  { name: 'Stripe', icon: 'i-lucide-credit-card', color: '#635BFF' },
-  { name: 'Excel', icon: 'i-lucide-table', color: '#217346' },
-  { name: 'WordPress', icon: 'i-lucide-globe', color: '#21759B' },
-  { name: 'Doctolib', icon: 'i-lucide-stethoscope', color: '#0596DE' }
+  { name: 'Calendly', icon: 'i-lucide-calendar', color: 'var(--color-info)' },
+  { name: 'Stripe', icon: 'i-lucide-credit-card', color: 'var(--color-crepuscule-600)' },
+  { name: 'Excel', icon: 'i-lucide-table', color: 'var(--color-success-700)' },
+  { name: 'WordPress', icon: 'i-lucide-globe', color: 'var(--color-info)' },
+  { name: 'Doctolib', icon: 'i-lucide-stethoscope', color: 'var(--color-info)' }
 ]
 
 // --- Stats pour le social proof ---
@@ -106,7 +106,7 @@ function scrollTo(id: string) {
 
 <template>
   <div
-    :class="['relative min-h-screen overflow-hidden bg-[#f8f6fa]', { 'js-scroll-ready': scrollReady }]"
+    :class="['relative min-h-screen overflow-hidden bg-[var(--color-crepuscule-50)]', { 'js-scroll-ready': scrollReady }]"
   >
     <!-- Ambient gradient mesh background — elevated depth -->
     <div
@@ -139,20 +139,20 @@ function scrollTo(id: string) {
           <div class="relative z-10 flex flex-col gap-8">
             <!-- Eyebrow beta -->
             <div class="flex items-center gap-4">
-              <span class="relative h-[2px] w-12 overflow-hidden rounded-full bg-[#d7cfdf]">
-                <span class="eyebrow-shimmer absolute inset-0 bg-gradient-to-r from-[#5b4b6e] via-[#d4956a] to-[#5b4b6e]" />
+              <span class="relative h-[2px] w-12 overflow-hidden rounded-full bg-[var(--color-crepuscule-200)]">
+                <span class="eyebrow-shimmer absolute inset-0 bg-gradient-to-r from-[var(--color-brand-primary)] via-[var(--color-brand-accent)] to-[var(--color-brand-primary)]" />
               </span>
-              <span class="text-xs font-bold uppercase tracking-[0.25em] text-[#5b4b6e]">
+              <span class="text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
                 Beta privée — Places limitées
               </span>
             </div>
 
             <!-- Main headline -->
-            <h1 class="font-serif text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] text-[#221d28]">
+            <h1 class="font-serif text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] text-[var(--color-crepuscule-950)]">
               Le logiciel
               <span class="relative inline-block">
                 tout-en-un
-                <span class="absolute -bottom-2 left-0 h-3 w-full -skew-x-6 bg-gradient-to-r from-[#e89560] to-[#d4956a] opacity-30" />
+                <span class="absolute -bottom-2 left-0 h-3 w-full -skew-x-6 bg-gradient-to-r from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-30" />
               </span>
               <br>
               <span class="hero-gradient-text">
@@ -162,16 +162,16 @@ function scrollTo(id: string) {
 
             <!-- Description V5 -->
             <div class="space-y-3">
-              <p class="max-w-xl text-lg leading-relaxed text-[#4a4255]">
+              <p class="max-w-xl text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
                 Agenda en ligne, paiements automatiques, suivi client — réunis dans un seul outil.
                 Vous ouvrez Keova, vous voyez vos rendez-vous, vos règlements, vos clientes.
                 Tout ce qu'il faut. Rien de superflu.
               </p>
-              <p class="text-sm text-[#6b6278]">
+              <p class="text-sm text-[var(--color-crepuscule-500)]">
                 Conçu pour les coachs ménopause. Adapté à tous les métiers de l'accompagnement.
               </p>
             </div>
-            <p class="text-sm text-[#6b6278]">
+            <p class="text-sm text-[var(--color-crepuscule-500)]">
               Les premières praticiennes construisent Keova avec nous avant le lancement.
               Il reste des places — inscrivez-vous pour en faire partie.
             </p>
@@ -196,7 +196,7 @@ function scrollTo(id: string) {
                 <!-- Login link discret -->
                 <NuxtLink
                   to="/login"
-                  class="text-sm text-[#6b6278] underline-offset-2 transition-colors duration-200 hover:text-[#5b4b6e] hover:underline"
+                  class="text-sm text-[var(--color-crepuscule-500)] underline-offset-2 transition-colors duration-200 hover:text-[var(--color-brand-primary)] hover:underline"
                 >
                   Déjà inscrite ?
                 </NuxtLink>
@@ -204,24 +204,24 @@ function scrollTo(id: string) {
 
               <!-- Réassurance pills -->
               <div class="flex flex-wrap gap-2">
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-[#ebe7ef] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[#4a4255] backdrop-blur-sm">
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-crepuscule-100)] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[var(--color-crepuscule-700)] backdrop-blur-sm">
                   <UIcon
                     name="i-lucide-credit-card"
-                    class="size-3.5 text-[#d4956a]"
+                    class="size-3.5 text-[var(--color-brand-accent)]"
                   />
                   Sans carte bancaire
                 </span>
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-[#ebe7ef] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[#4a4255] backdrop-blur-sm">
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-crepuscule-100)] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[var(--color-crepuscule-700)] backdrop-blur-sm">
                   <UIcon
                     name="i-lucide-zap"
-                    class="size-3.5 text-[#d4956a]"
+                    class="size-3.5 text-[var(--color-brand-accent)]"
                   />
                   Inscription en 30 secondes
                 </span>
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-[#ebe7ef] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[#4a4255] backdrop-blur-sm">
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-crepuscule-100)] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[var(--color-crepuscule-700)] backdrop-blur-sm">
                   <UIcon
                     name="i-lucide-shield-check"
-                    class="size-3.5 text-[#d4956a]"
+                    class="size-3.5 text-[var(--color-brand-accent)]"
                   />
                   Données hébergées en France
                 </span>
@@ -235,17 +235,17 @@ function scrollTo(id: string) {
             <div class="animate-float absolute -left-8 top-1/4 z-20 hidden lg:block">
               <div class="glass-card rounded-2xl p-4 shadow-xl">
                 <div class="flex items-center gap-3">
-                  <div class="grid size-10 place-items-center rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a]">
+                  <div class="grid size-10 place-items-center rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)]">
                     <UIcon
                       name="i-lucide-calendar-check"
                       class="size-5 text-white"
                     />
                   </div>
                   <div>
-                    <p class="text-xs font-medium text-[#6b6278]">
+                    <p class="text-xs font-medium text-[var(--color-crepuscule-500)]">
                       Nouveau RDV
                     </p>
-                    <p class="font-semibold text-[#4d3f5c]">
+                    <p class="font-semibold text-[var(--color-crepuscule-700)]">
                       Marie D.
                     </p>
                   </div>
@@ -256,17 +256,17 @@ function scrollTo(id: string) {
             <div class="animate-float-delayed absolute -right-4 bottom-1/4 z-20 hidden lg:block">
               <div class="glass-card rounded-2xl p-4 shadow-xl">
                 <div class="flex items-center gap-3">
-                  <div class="grid size-10 place-items-center rounded-full bg-gradient-to-br from-[#4ade80] to-[#4a8b6e]">
+                  <div class="grid size-10 place-items-center rounded-full bg-gradient-to-br from-[var(--color-success-400)] to-[var(--color-success)]">
                     <UIcon
                       name="i-lucide-check"
                       class="size-5 text-white"
                     />
                   </div>
                   <div>
-                    <p class="text-xs font-medium text-[#6b6278]">
+                    <p class="text-xs font-medium text-[var(--color-crepuscule-500)]">
                       Paiement reçu
                     </p>
-                    <p class="font-semibold text-[#4d3f5c]">
+                    <p class="font-semibold text-[var(--color-crepuscule-700)]">
                       120 €
                     </p>
                   </div>
@@ -285,6 +285,7 @@ function scrollTo(id: string) {
                   alt="Interface Keova — agenda, paiements et suivi client"
                   loading="eager"
                   fetchpriority="high"
+                  preload
                   width="1200"
                   height="800"
                 />
@@ -297,7 +298,7 @@ function scrollTo(id: string) {
       <!-- Scroll indicator — positioned relative to the section, centered on full width -->
       <div class="absolute inset-x-0 bottom-8 flex justify-center">
         <button
-          class="flex flex-col items-center gap-2 text-[#6b6278] transition-colors duration-300 hover:text-[#5b4b6e]"
+          class="flex flex-col items-center gap-2 text-[var(--color-crepuscule-500)] transition-colors duration-300 hover:text-[var(--color-brand-primary)]"
           aria-label="Explorer — défiler vers la section suivante"
           @click="scrollTo('pourquoi')"
         >
@@ -310,16 +311,16 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== BLOC DOULEUR (V5) ====================== -->
-    <section class="relative bg-white px-6 py-24 sm:px-12 lg:px-20">
+    <section class="relative bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto max-w-3xl"
       >
-        <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
-        <h2 class="font-serif text-3xl leading-tight text-[#221d28] lg:text-4xl">
+        <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[var(--color-crepuscule-500)] to-[var(--color-brand-accent)]" />
+        <h2 class="font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
           Combien d'outils ouvrez-vous avant votre première séance&#8239;?
         </h2>
-        <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#4a4255]">
+        <div class="mt-8 space-y-4 text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
           <p>
             Calendly ou Google Agenda pour les créneaux.
             Stripe ou des virements à la main pour les paiements.
@@ -334,11 +335,11 @@ function scrollTo(id: string) {
             Vous relancez un paiement. Vous recopiez un créneau.
             Vous cherchez où vous aviez noté le bilan d'une cliente.
           </p>
-          <p class="font-medium text-[#221d28]">
+          <p class="font-medium text-[var(--color-crepuscule-950)]">
             À 10 clientes, ça tient. À 25, ça déborde.
             Pas parce que vous n'êtes pas organisée — parce que vos outils ne suivent pas.
           </p>
-          <p class="text-[#6b6278]">
+          <p class="text-[var(--color-crepuscule-500)]">
             Et si vous débutez sans aucun de ces outils&#8239;?
             C'est le moment de poser les bonnes bases.
           </p>
@@ -349,7 +350,7 @@ function scrollTo(id: string) {
     <!-- ====================== SECTION COMPARATIVE — Split Chaos vs Calm ====================== -->
     <section
       id="pourquoi"
-      class="relative bg-[#f0edf3] px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-[var(--color-crepuscule-100)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-5xl">
         <!-- H2 -->
@@ -357,12 +358,12 @@ function scrollTo(id: string) {
           v-bind="reveal()"
           class="scroll-reveal mb-16 text-center"
         >
-          <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
-          <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
+          <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[var(--color-crepuscule-500)] to-[var(--color-brand-accent)]" />
+          <h2 class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
             Un seul logiciel
-            <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">au lieu de cinq.</span>
+            <span class="bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-transparent">au lieu de cinq.</span>
           </h2>
-          <p class="mx-auto mt-4 max-w-2xl text-[#6b6278]">
+          <p class="mx-auto mt-4 max-w-2xl text-[var(--color-crepuscule-500)]">
             Calendly pour l'agenda. Stripe pour les paiements. Excel pour le suivi.
             WordPress pour le site. Doctolib pour la visibilité.
             Cinq abonnements, cinq mots de passe, zéro lien entre eux.
@@ -377,8 +378,8 @@ function scrollTo(id: string) {
         >
           <div class="grid lg:grid-cols-2">
             <!-- LEFT — Avant (dark, chaos) -->
-            <div class="relative bg-[#2d2438] px-8 py-10 lg:px-10 lg:py-12">
-              <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#a99bb8]">
+            <div class="relative bg-[var(--color-crepuscule-950)] px-8 py-10 lg:px-10 lg:py-12">
+              <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-crepuscule-300)]">
                 Avant
               </p>
               <div class="space-y-3">
@@ -390,22 +391,22 @@ function scrollTo(id: string) {
                   <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10 transition-colors duration-300">
                     <UIcon
                       :name="tool.icon"
-                      class="size-5 text-[#a99bb8] transition-colors duration-300"
+                      class="size-5 text-[var(--color-crepuscule-300)] transition-colors duration-300"
                     />
                   </div>
-                  <span class="text-sm text-[#c8bfd4]">{{ tool.name }}</span>
+                  <span class="text-sm text-[var(--color-crepuscule-300)]">{{ tool.name }}</span>
                   <div class="ml-auto h-px flex-1 border-b border-dashed border-white/10" />
-                  <span class="text-xs text-[#8a7d9a]">login #{{ i + 1 }}</span>
+                  <span class="text-xs text-[var(--color-crepuscule-400)]">login #{{ i + 1 }}</span>
                 </div>
               </div>
-              <p class="mt-8 text-center text-sm text-[#8a7d9a]">
+              <p class="mt-8 text-center text-sm text-[var(--color-crepuscule-400)]">
                 5 outils · 5 logins · 5 factures
               </p>
             </div>
 
             <!-- RIGHT — Avec Keova (light, calm) — 5 items mapping 1:1 -->
-            <div class="relative flex flex-col bg-white px-8 py-10 lg:px-10 lg:py-12">
-              <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#d4956a]">
+            <div class="relative flex flex-col bg-[color:var(--color-surface-card)] px-8 py-10 lg:px-10 lg:py-12">
+              <p class="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-brand-accent)]">
                 Avec Keova
               </p>
               <div class="space-y-3">
@@ -418,18 +419,18 @@ function scrollTo(id: string) {
                     { icon: 'i-lucide-mouse-pointer-click', label: 'Réservation en ligne' }
                   ]"
                   :key="item.label"
-                  class="flex items-center gap-4 rounded-xl border border-[#ebe7ef] px-4 py-3 transition-all duration-300 hover:border-[#d4956a]/30 hover:bg-[#fdf6f1]"
+                  class="flex items-center gap-4 rounded-xl border border-[var(--color-crepuscule-100)] px-4 py-3 transition-all duration-300 hover:border-[var(--color-brand-accent)]/30 hover:bg-[var(--color-sunset-50)]"
                 >
-                  <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-[#f5f3f7]">
+                  <div class="grid size-9 shrink-0 place-items-center rounded-lg bg-[var(--color-crepuscule-50)]">
                     <UIcon
                       :name="item.icon"
-                      class="size-5 text-[#d4956a]"
+                      class="size-5 text-[var(--color-brand-accent)]"
                     />
                   </div>
-                  <span class="text-sm font-medium text-[#3d3250]">{{ item.label }}</span>
+                  <span class="text-sm font-medium text-[var(--color-crepuscule-800)]">{{ item.label }}</span>
                 </div>
               </div>
-              <p class="mt-6 text-center text-sm text-[#6b6278]">
+              <p class="mt-6 text-center text-sm text-[var(--color-crepuscule-500)]">
                 1 espace · 1 connexion · 0 friction
               </p>
             </div>
@@ -444,13 +445,13 @@ function scrollTo(id: string) {
             v-bind="reveal({ delay: 400 + i * 120 })"
             class="stat-card scroll-reveal group overflow-hidden rounded-2xl shadow-sm"
           >
-            <div class="bg-[#2d2438] px-4 py-3 text-center">
+            <div class="bg-[var(--color-crepuscule-950)] px-4 py-3 text-center">
               <span class="font-serif text-3xl text-white transition-transform duration-300 group-hover:scale-110 inline-block">
                 {{ stat.value }}
               </span>
             </div>
-            <div class="bg-white px-4 py-4 text-center">
-              <span class="text-xs font-semibold uppercase tracking-wider text-[#6b6278]">
+            <div class="bg-[color:var(--color-surface-card)] px-4 py-4 text-center">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-crepuscule-500)]">
                 {{ stat.label }}
               </span>
             </div>
@@ -462,21 +463,21 @@ function scrollTo(id: string) {
     <!-- ====================== FEATURES V5 ====================== -->
     <section
       id="atelier"
-      class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-[color:var(--color-surface-card)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-5xl">
         <div
           v-bind="reveal()"
           class="scroll-reveal mb-16 text-center"
         >
-          <span class="mb-4 inline-block bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
+          <span class="mb-4 inline-block bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
             La solution
           </span>
-          <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
+          <h2 class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
             Ce que Keova fait pour vous
-            <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">chaque jour</span>
+            <span class="bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-transparent">chaque jour</span>
           </h2>
-          <p class="mx-auto mt-4 max-w-2xl text-[#6b6278]">
+          <p class="mx-auto mt-4 max-w-2xl text-[var(--color-crepuscule-500)]">
             Rendez-vous, paiements, ressources — les trois piliers de votre pratique,
             réunis dans un seul logiciel.
             Vous gardez la relation avec vos clientes. Keova s'occupe du reste.
@@ -488,24 +489,24 @@ function scrollTo(id: string) {
             v-for="(feature, i) in features"
             :key="feature.title"
             v-bind="reveal({ delay: i * 150 })"
-            class="scroll-reveal feature-card group relative overflow-hidden rounded-2xl border border-[#ebe7ef] bg-white p-8"
+            class="scroll-reveal feature-card group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8"
           >
-            <div class="feature-card-glow absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-[#e89560] to-[#d4956a] opacity-0" />
+            <div class="feature-card-glow absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-0" />
             <div class="flex items-start gap-5">
-              <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+              <div class="grid size-14 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
                 <UIcon
                   :name="feature.icon"
-                  class="size-7 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                  class="size-7 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
                 />
               </div>
               <div>
-                <h3 class="font-serif text-xl font-semibold text-[#3d3250]">
+                <h3 class="font-serif text-xl font-semibold text-[var(--color-crepuscule-800)]">
                   {{ feature.title }}
                 </h3>
                 <p
                   v-for="(paragraph, j) in feature.paragraphs"
                   :key="j"
-                  class="mt-3 text-[#6b6278]"
+                  class="mt-3 text-[var(--color-crepuscule-500)]"
                 >
                   {{ paragraph }}
                 </p>
@@ -536,25 +537,25 @@ function scrollTo(id: string) {
     <!-- ====================== PARCOURS SECTION ====================== -->
     <section
       id="parcours"
-      class="relative bg-[#f5f3f7] px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-[var(--color-crepuscule-50)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-6xl">
         <div
           v-bind="reveal()"
           class="scroll-reveal mb-20 text-center"
         >
-          <span class="mb-4 inline-block bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
+          <span class="mb-4 inline-block bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
             Le parcours
           </span>
-          <h2 class="font-serif text-4xl leading-tight text-[#221d28] lg:text-5xl">
+          <h2 class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
             Prête en
-            <span class="bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-transparent">3 étapes</span>
+            <span class="bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-transparent">3 étapes</span>
           </h2>
         </div>
 
         <div class="relative">
           <!-- Vertical line -->
-          <div class="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-[#d7cfdf] via-[#f0b48f] to-[#d7cfdf] lg:block" />
+          <div class="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-[var(--color-crepuscule-200)] via-[var(--color-sunset-300)] to-[var(--color-crepuscule-200)] lg:block" />
 
           <div class="grid gap-12 lg:gap-24">
             <!-- Step 1 -->
@@ -563,14 +564,14 @@ function scrollTo(id: string) {
                 v-bind="reveal()"
                 class="scroll-reveal order-2 lg:order-1 lg:text-right"
               >
-                <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#ebe7ef] px-4 py-2 text-sm font-semibold text-[#4d3f5c]">
-                  <span class="grid size-6 place-items-center rounded-full bg-[#5b4b6e] text-xs font-bold text-white">1</span>
+                <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-crepuscule-100)] px-4 py-2 text-sm font-semibold text-[var(--color-crepuscule-700)]">
+                  <span class="grid size-6 place-items-center rounded-full bg-[var(--color-brand-primary)] text-xs font-bold text-white">1</span>
                   Créez votre page pro
                 </span>
-                <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
+                <h3 class="mt-4 font-serif text-2xl text-[var(--color-crepuscule-800)] lg:text-3xl">
                   10 minutes, c'est prêt.
                 </h3>
-                <p class="mt-4 text-[#6b6278]">
+                <p class="mt-4 text-[var(--color-crepuscule-500)]">
                   Ajoutez votre photo, vos horaires et vos tarifs.
                   Votre page est en ligne — vos clientes peuvent réserver.
                   Pas besoin de webmaster ni de site WordPress.
@@ -600,14 +601,14 @@ function scrollTo(id: string) {
                 v-bind="reveal({ delay: 200 })"
                 class="scroll-reveal order-2"
               >
-                <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#fbeade] px-4 py-2 text-sm font-semibold text-[#a3603e]">
-                  <span class="grid size-6 place-items-center rounded-full bg-[#d4956a] text-xs font-bold text-white">2</span>
+                <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-sunset-100)] px-4 py-2 text-sm font-semibold text-[var(--color-sunset-700)]">
+                  <span class="grid size-6 place-items-center rounded-full bg-[var(--color-brand-accent)] text-xs font-bold text-white">2</span>
                   Laissez Keova gérer l'admin
                 </span>
-                <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
+                <h3 class="mt-4 font-serif text-2xl text-[var(--color-crepuscule-800)] lg:text-3xl">
                   Paiements, confirmations, rappels — automatiques.
                 </h3>
-                <p class="mt-4 text-[#6b6278]">
+                <p class="mt-4 text-[var(--color-crepuscule-500)]">
                   Une cliente réserve&#8239;? Elle reçoit la confirmation.
                   La veille du RDV&#8239;? Elle reçoit le rappel.
                   Après la séance&#8239;? La facture part toute seule.
@@ -637,14 +638,14 @@ function scrollTo(id: string) {
                 v-bind="reveal()"
                 class="scroll-reveal order-2 lg:order-1 lg:text-right"
               >
-                <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#ebe7ef] px-4 py-2 text-sm font-semibold text-[#4d3f5c]">
-                  <span class="grid size-6 place-items-center rounded-full bg-[#5b4b6e] text-xs font-bold text-white">3</span>
+                <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-crepuscule-100)] px-4 py-2 text-sm font-semibold text-[var(--color-crepuscule-700)]">
+                  <span class="grid size-6 place-items-center rounded-full bg-[var(--color-brand-primary)] text-xs font-bold text-white">3</span>
                   Gardez le lien entre les séances
                 </span>
-                <h3 class="mt-4 font-serif text-2xl text-[#3d3250] lg:text-3xl">
+                <h3 class="mt-4 font-serif text-2xl text-[var(--color-crepuscule-800)] lg:text-3xl">
                   Vos clientes restent engagées.
                 </h3>
-                <p class="mt-4 text-[#6b6278]">
+                <p class="mt-4 text-[var(--color-crepuscule-500)]">
                   Partagez un exercice, un article, un bilan.
                   Vos clientes reçoivent le bon contenu au bon moment de leur parcours.
                 </p>
@@ -674,7 +675,7 @@ function scrollTo(id: string) {
     <!-- ====================== CASE STUDY SOPHIE ====================== -->
     <section
       id="temoignage"
-      class="relative bg-white px-6 py-32 sm:px-12 lg:px-20"
+      class="relative bg-[color:var(--color-surface-card)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-4xl">
         <!-- Badge -->
@@ -682,7 +683,7 @@ function scrollTo(id: string) {
           v-bind="reveal()"
           class="scroll-reveal mb-8 text-center"
         >
-          <span class="inline-flex items-center gap-2 rounded-full bg-[#fbeade] px-4 py-2 text-sm font-semibold text-[#a3603e]">
+          <span class="inline-flex items-center gap-2 rounded-full bg-[var(--color-sunset-100)] px-4 py-2 text-sm font-semibold text-[var(--color-sunset-700)]">
             <UIcon
               name="i-lucide-badge-check"
               class="size-4"
@@ -693,13 +694,13 @@ function scrollTo(id: string) {
 
         <div
           v-bind="reveal({ delay: 200 })"
-          class="scroll-reveal case-study-card group overflow-hidden rounded-3xl bg-white p-8 shadow-xl lg:p-12"
+          class="scroll-reveal case-study-card group overflow-hidden rounded-3xl bg-[color:var(--color-surface-card)] p-8 shadow-xl lg:p-12"
         >
           <div class="flex flex-col items-center gap-8 lg:flex-row lg:gap-12">
             <!-- Avatar initiales — elevated -->
             <div class="relative shrink-0">
               <div class="avatar-ring absolute -inset-1 rounded-full" />
-              <div class="relative grid size-24 place-items-center rounded-full bg-gradient-to-br from-[#d7cfdf] to-[#ebe7ef] font-serif text-3xl font-bold text-[#4d3f5c]">
+              <div class="relative grid size-24 place-items-center rounded-full bg-gradient-to-br from-[var(--color-crepuscule-200)] to-[var(--color-crepuscule-100)] font-serif text-3xl font-bold text-[var(--color-crepuscule-700)]">
                 SJ
               </div>
             </div>
@@ -708,17 +709,17 @@ function scrollTo(id: string) {
               <!-- Citation -->
               <UIcon
                 name="i-lucide-quote"
-                class="mb-3 size-8 text-[#d4956a]"
+                class="mb-3 size-8 text-[var(--color-brand-accent)]"
               />
-              <blockquote class="font-serif text-xl italic leading-relaxed text-[#4a4255] lg:text-2xl">
+              <blockquote class="font-serif text-xl italic leading-relaxed text-[var(--color-crepuscule-700)] lg:text-2xl">
                 &laquo;&nbsp;Keova a remplacé mes 5 outils par un seul espace calme.&nbsp;&raquo;
               </blockquote>
 
               <div class="mt-4">
-                <p class="font-semibold text-[#3d3250]">
+                <p class="font-semibold text-[var(--color-crepuscule-800)]">
                   Sophie Jouan
                 </p>
-                <p class="text-sm text-[#6b6278]">
+                <p class="text-sm text-[var(--color-crepuscule-500)]">
                   Spécialiste ménopause, Valognes (Normandie)
                 </p>
               </div>
@@ -728,13 +729,13 @@ function scrollTo(id: string) {
                 <span
                   v-for="tool in ['Calendly', 'Stripe', 'Excel', 'WordPress', 'Doctolib']"
                   :key="tool"
-                  class="rounded-full bg-[#ebe7ef] px-3 py-1 text-xs text-[#6b6278] transition-all duration-300 group-hover:bg-[#f5f3f7]"
+                  class="rounded-full bg-[var(--color-crepuscule-100)] px-3 py-1 text-xs text-[var(--color-crepuscule-500)] transition-all duration-300 group-hover:bg-[var(--color-crepuscule-50)]"
                 >{{ tool }}</span>
                 <UIcon
                   name="i-lucide-arrow-right"
-                  class="mx-1 size-5 text-[#d4956a]"
+                  class="mx-1 size-5 text-[var(--color-brand-accent)]"
                 />
-                <span class="rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c] px-4 py-1 text-xs font-semibold text-white shadow-md">
+                <span class="rounded-full bg-gradient-to-r from-[var(--color-brand-primary)] to-[var(--color-crepuscule-700)] px-4 py-1 text-xs font-semibold text-white shadow-md">
                   Keova
                 </span>
               </div>
@@ -744,7 +745,7 @@ function scrollTo(id: string) {
                 href="https://sophiejouan.fr"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:text-[#c47a4a]"
+                class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[var(--color-brand-primary)] transition-colors duration-200 hover:text-[var(--color-sunset-600)]"
               >
                 Voir le profil de Sophie Jouan, spécialiste ménopause
                 <UIcon
@@ -759,17 +760,17 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== CO-CONSTRUCTION (V5) ====================== -->
-    <section class="relative bg-[#f5f3f7] px-6 py-24 sm:px-12 lg:px-20">
+    <section class="relative bg-[var(--color-crepuscule-50)] px-6 py-24 sm:px-12 lg:px-20">
       <div class="mx-auto max-w-4xl">
         <div
           v-bind="reveal()"
           class="scroll-reveal"
         >
-          <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[#7a6b8e] to-[#d4956a]" />
-          <h2 class="font-serif text-3xl leading-tight text-[#221d28] lg:text-4xl">
+          <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[var(--color-crepuscule-500)] to-[var(--color-brand-accent)]" />
+          <h2 class="font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
             Un outil jeune. Co-construit avec vous.
           </h2>
-          <div class="mt-8 space-y-4 text-lg leading-relaxed text-[#4a4255]">
+          <div class="mt-8 space-y-4 text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
             <p>
               Keova n'est pas parfait. Il est jeune, il évolue vite,
               et c'est exactement pour ça qu'il sera meilleur que les autres.
@@ -784,7 +785,7 @@ function scrollTo(id: string) {
               Elles co-construiront l'outil.
               Ce que vous demandez aujourd'hui, on le construit demain.
             </p>
-            <p class="font-medium text-[#221d28]">
+            <p class="font-medium text-[var(--color-crepuscule-950)]">
               La gestion des programmes par séances&#8239;? Demandée par une praticienne.
               Livrée en deux semaines.
             </p>
@@ -807,28 +808,28 @@ function scrollTo(id: string) {
               >
                 <UIcon
                   name="i-lucide-chevron-right"
-                  class="size-5 text-[#d4956a]"
+                  class="size-5 text-[var(--color-brand-accent)]"
                 />
               </div>
 
               <!-- Step card -->
               <div
                 v-bind="reveal({ delay: i * 150 })"
-                class="scroll-reveal group relative flex flex-col items-center gap-3 rounded-2xl border border-[#ebe7ef] bg-white px-6 py-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#d7cfdf] hover:shadow-lg"
+                class="scroll-reveal group relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] px-6 py-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-crepuscule-200)] hover:shadow-lg"
               >
-                <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e] px-3 py-0.5 text-[10px] font-bold text-white">
+                <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[var(--color-brand-primary)] to-[var(--color-crepuscule-500)] px-3 py-0.5 text-[10px] font-bold text-white">
                   {{ pillar.num }}
                 </span>
-                <div class="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-[#ebe7ef] to-[#f5f3f7] transition-all duration-300 group-hover:from-[#fbeade] group-hover:to-[#fdf6f1]">
+                <div class="grid size-12 place-items-center rounded-xl bg-gradient-to-br from-[var(--color-crepuscule-100)] to-[var(--color-crepuscule-50)] transition-all duration-300 group-hover:from-[var(--color-sunset-100)] group-hover:to-[var(--color-sunset-50)]">
                   <UIcon
                     :name="pillar.icon"
-                    class="size-6 text-[#5b4b6e] transition-colors duration-300 group-hover:text-[#d4956a]"
+                    class="size-6 text-[var(--color-brand-primary)] transition-colors duration-300 group-hover:text-[var(--color-brand-accent)]"
                   />
                 </div>
-                <p class="font-serif text-lg font-semibold text-[#3d3250]">
+                <p class="font-serif text-lg font-semibold text-[var(--color-crepuscule-800)]">
                   {{ pillar.title }}
                 </p>
-                <p class="text-sm text-[#6b6278]">
+                <p class="text-sm text-[var(--color-crepuscule-500)]">
                   {{ pillar.subtitle }}
                 </p>
               </div>
@@ -836,7 +837,7 @@ function scrollTo(id: string) {
           </div>
 
           <!-- Citation -->
-          <blockquote class="mt-12 border-l-4 border-[#d4956a] pl-6 font-serif text-xl italic text-[#4a4255]">
+          <blockquote class="mt-12 border-l-4 border-[var(--color-brand-accent)] pl-6 font-serif text-xl italic text-[var(--color-crepuscule-700)]">
             &laquo;&nbsp;Aucun logiciel du marché n'a été conçu en écoutant des praticiennes ménopause.
             Keova est le premier.&nbsp;&raquo;
           </blockquote>
@@ -845,15 +846,15 @@ function scrollTo(id: string) {
     </section>
 
     <!-- ====================== BLOC AUTORITÉ (V5) ====================== -->
-    <section class="relative bg-white px-6 py-24 sm:px-12 lg:px-20">
+    <section class="relative bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20">
       <div
         v-bind="reveal()"
         class="scroll-reveal mx-auto max-w-3xl"
       >
-        <h3 class="font-serif text-2xl text-[#221d28] lg:text-3xl">
+        <h3 class="font-serif text-2xl text-[var(--color-crepuscule-950)] lg:text-3xl">
           Qui est derrière Keova&#8239;?
         </h3>
-        <div class="mt-6 space-y-4 text-lg leading-relaxed text-[#4a4255]">
+        <div class="mt-6 space-y-4 text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
           <p>
             Keova est né d'un constat simple : les logiciels du marché sont faits
             pour les marketeurs, pas pour les praticiennes du soin.
@@ -862,7 +863,7 @@ function scrollTo(id: string) {
             L'outil est jeune, l'équipe est petite, et c'est un choix :
             rester proche de chaque praticienne plutôt que de grossir trop vite.
           </p>
-          <p class="text-[#6b6278]">
+          <p class="text-[var(--color-crepuscule-500)]">
             Keova est développé et hébergé en France par Simon Jouan, conçu en Normandie et hébergé par Scalingo (Paris).
             Chaque membre de la beta a un accès direct à l'équipe — par message, appel ou visio.
           </p>
@@ -873,17 +874,17 @@ function scrollTo(id: string) {
     <!-- ====================== FAQ (V5) ====================== -->
     <section
       id="faq"
-      class="relative bg-[#f5f3f7] px-6 py-24 sm:px-12 lg:px-20"
+      class="relative bg-[var(--color-crepuscule-50)] px-6 py-24 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-3xl">
         <div
           v-bind="reveal()"
           class="scroll-reveal mb-12 text-center"
         >
-          <span class="mb-4 inline-block bg-gradient-to-r from-[#d4956a] to-[#c47a4a] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
+          <span class="mb-4 inline-block bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
             FAQ
           </span>
-          <h2 class="font-serif text-3xl leading-tight text-[#221d28] lg:text-4xl">
+          <h2 class="font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
             Questions fréquentes
           </h2>
         </div>
@@ -895,7 +896,7 @@ function scrollTo(id: string) {
           aria-label="Questions fréquentes"
         >
           <template #content="{ item }">
-            <div class="space-y-3 pb-3.5 text-sm text-[#4a4255]">
+            <div class="space-y-3 pb-3.5 text-sm text-[var(--color-crepuscule-700)]">
               <p
                 v-for="(paragraph, i) in (item.content ?? '').split('\n\n')"
                 :key="i"
@@ -911,15 +912,15 @@ function scrollTo(id: string) {
     <!-- ====================== WAITLIST SECTION ====================== -->
     <section
       id="waitlist"
-      class="relative overflow-hidden bg-gradient-to-br from-[#3d3250] via-[#352c44] to-[#221d28] px-6 pb-40 pt-32 sm:px-12 lg:px-20"
+      class="relative overflow-hidden bg-gradient-to-br from-[var(--color-crepuscule-800)] via-[var(--color-crepuscule-900)] to-[var(--color-crepuscule-950)] px-6 pb-40 pt-32 sm:px-12 lg:px-20"
     >
       <!-- Ambient particles -->
       <div
         aria-hidden="true"
         class="pointer-events-none absolute inset-0"
       >
-        <div class="absolute -left-[10%] top-1/2 h-[50vh] w-[50vh] -translate-y-1/2 rounded-full bg-[#7a6b8e] opacity-30 blur-[60px]" />
-        <div class="absolute -right-[10%] top-1/2 h-[40vh] w-[40vh] -translate-y-1/2 rounded-full bg-[#d4956a] opacity-20 blur-[60px]" />
+        <div class="absolute -left-[10%] top-1/2 h-[50vh] w-[50vh] -translate-y-1/2 rounded-full bg-[var(--color-crepuscule-500)] opacity-30 blur-[60px]" />
+        <div class="absolute -right-[10%] top-1/2 h-[40vh] w-[40vh] -translate-y-1/2 rounded-full bg-[var(--color-brand-accent)] opacity-20 blur-[60px]" />
         <!-- Floating dots -->
         <div class="particle particle-1" />
         <div class="particle particle-2" />
@@ -934,9 +935,9 @@ function scrollTo(id: string) {
       >
         <h2 class="font-serif text-4xl leading-tight text-white lg:text-5xl">
           Réservez votre
-          <span class="bg-gradient-to-r from-[#e89560] to-[#f0b48f] bg-clip-text text-transparent">place</span>
+          <span class="bg-gradient-to-r from-[var(--color-sunset-400)] to-[var(--color-sunset-300)] bg-clip-text text-transparent">place</span>
         </h2>
-        <p class="mx-auto mt-4 max-w-lg text-lg text-[#c8bfd4]">
+        <p class="mx-auto mt-4 max-w-lg text-lg text-[var(--color-crepuscule-300)]">
           Quelques places pour construire Keova avec nous. Inscrivez-vous en 30 secondes.
           Aucune carte bancaire. On vous prévient dès qu'un accès se libère.
         </p>
@@ -945,13 +946,13 @@ function scrollTo(id: string) {
           <WaitlistForm mode="inline" />
         </div>
 
-        <p class="mx-auto mt-4 max-w-lg text-sm text-[#a99bb8]">
+        <p class="mx-auto mt-4 max-w-lg text-sm text-[var(--color-crepuscule-300)]">
           Jamais de spam. Données hébergées en France. Conforme RGPD.
         </p>
 
         <!-- P.S. V5 -->
-        <p class="mx-auto mt-10 max-w-lg text-left text-sm leading-relaxed text-[#c8bfd4]">
-          <strong class="text-[#f0b48f]">P.S.</strong> — Keova est gratuit pendant toute la beta.
+        <p class="mx-auto mt-10 max-w-lg text-left text-sm leading-relaxed text-[var(--color-crepuscule-300)]">
+          <strong class="text-[var(--color-sunset-300)]">P.S.</strong> — Keova est gratuit pendant toute la beta.
           Les premières inscrites bénéficieront d'une réduction sur leur première année —
           bien en-dessous de ce que coûtent vos 5 outils actuels —
           et un accès direct à l'équipe pour orienter les prochaines fonctionnalités.
@@ -968,25 +969,25 @@ function scrollTo(id: string) {
         title="Rejoindre la beta Keova"
         description="Votre demande reste confidentielle. Aucun engagement."
         :ui="{
-          content: 'rounded-3xl border border-[#ebe7ef] bg-white shadow-2xl max-w-lg overflow-hidden',
-          header: 'relative overflow-hidden bg-gradient-to-r from-[#5b4b6e] via-[#7a6b8e] to-[#5b4b6e] px-8 pt-8 pb-6',
+          content: 'rounded-3xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] shadow-2xl max-w-lg overflow-hidden',
+          header: 'relative overflow-hidden bg-gradient-to-r from-[var(--color-brand-primary)] via-[var(--color-crepuscule-500)] to-[var(--color-brand-primary)] px-8 pt-8 pb-6',
           body: 'px-8 pb-8 pt-6',
           title: 'font-serif text-2xl text-white',
-          description: 'text-sm text-[#d7cfdf]',
+          description: 'text-sm text-[var(--color-crepuscule-200)]',
           close: 'text-white/70 hover:text-white hover:bg-white/10 rounded-full'
         }"
       >
         <template #header>
           <!-- Ambient glow in header -->
           <div
-            class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[#d4956a] opacity-20 blur-[40px]"
+            class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[var(--color-brand-accent)] opacity-20 blur-[40px]"
             aria-hidden="true"
           />
           <h3 class="relative font-serif text-2xl text-white">
             Rejoindre la beta
-            <span class="bg-gradient-to-r from-[#f0b48f] to-[#e89560] bg-clip-text text-transparent">Keova</span>
+            <span class="bg-gradient-to-r from-[var(--color-sunset-300)] to-[var(--color-sunset-400)] bg-clip-text text-transparent">Keova</span>
           </h3>
-          <p class="relative mt-1 text-sm text-[#d7cfdf]">
+          <p class="relative mt-1 text-sm text-[var(--color-crepuscule-200)]">
             Votre demande reste confidentielle. Aucun engagement.
           </p>
         </template>
@@ -1049,11 +1050,11 @@ function scrollTo(id: string) {
 .hero-gradient-text {
   background: linear-gradient(
     135deg,
-    #5b4b6e 0%,
-    #d4956a 25%,
-    #5b4b6e 50%,
-    #d4956a 75%,
-    #5b4b6e 100%
+    var(--color-brand-primary) 0%,
+    var(--color-brand-accent) 25%,
+    var(--color-brand-primary) 50%,
+    var(--color-brand-accent) 75%,
+    var(--color-brand-primary) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -1101,7 +1102,7 @@ function scrollTo(id: string) {
 
 /* --- Hero mockup glow --- */
 .hero-glow {
-  background: linear-gradient(135deg, #b9aac7, #f0b48f);
+  background: linear-gradient(135deg, var(--color-crepuscule-300), var(--color-sunset-300));
   opacity: 0.5;
   filter: blur(40px);
   animation: glowPulse 4s ease-in-out infinite;
@@ -1115,7 +1116,7 @@ function scrollTo(id: string) {
 /* --- CTA primary with animated gradient border --- */
 .cta-primary {
   position: relative;
-  background: linear-gradient(135deg, #5b4b6e, #4d3f5c);
+  background: linear-gradient(135deg, var(--color-brand-primary), var(--color-crepuscule-700));
   transition: transform 0.3s, box-shadow 0.3s;
 }
 
@@ -1127,7 +1128,7 @@ function scrollTo(id: string) {
 .cta-primary-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #5b4b6e, #7a6b8e, #5b4b6e);
+  background: linear-gradient(135deg, var(--color-brand-primary), var(--color-crepuscule-500), var(--color-brand-primary));
   background-size: 200% 100%;
   opacity: 0;
   transition: opacity 0.3s;
@@ -1155,7 +1156,7 @@ function scrollTo(id: string) {
 }
 
 .stat-card:hover {
-  border-color: #d4956a;
+  border-color: var(--color-brand-accent);
   box-shadow: 0 8px 24px rgba(212, 149, 106, 0.12);
   transform: translateY(-4px);
 }
@@ -1168,7 +1169,7 @@ function scrollTo(id: string) {
 }
 
 .avant-tool:hover .size-5 {
-  color: #d4956a;
+  color: var(--color-brand-accent);
 }
 
 .avant-tool:hover .rounded-lg {
@@ -1196,7 +1197,7 @@ function scrollTo(id: string) {
 }
 
 .feature-card:hover {
-  border-color: #d7cfdf;
+  border-color: var(--color-crepuscule-200);
   box-shadow: 0 8px 24px rgba(91, 75, 110, 0.1);
 }
 
@@ -1217,7 +1218,7 @@ function scrollTo(id: string) {
 
 /* --- Avatar ring --- */
 .avatar-ring {
-  background: linear-gradient(135deg, #d4956a, #5b4b6e, #d4956a);
+  background: linear-gradient(135deg, var(--color-brand-accent), var(--color-brand-primary), var(--color-brand-accent));
   background-size: 200% 200%;
   animation: ringRotate 4s linear infinite;
   opacity: 0.6;

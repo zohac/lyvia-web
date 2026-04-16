@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import '~/assets/css/main.css'
+
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
 
 useCommonLayoutHead()
@@ -14,7 +16,7 @@ useCommonLayoutHead()
           aria-label="Retour à l'accueil Keova"
         >
           <NuxtImg
-            src="/images/keova-logo.png"
+            src="/images/keova-logo.webp"
             alt=""
             class="h-6 w-auto"
             width="90"
@@ -48,5 +50,8 @@ useCommonLayoutHead()
         </p>
       </div>
     </footer>
+    <ClientOnly>
+      <LazyCookieConsentBanner />
+    </ClientOnly>
   </div>
 </template>

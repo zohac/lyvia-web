@@ -173,7 +173,7 @@ function retryPolling() {
           aria-live="polite"
         >
           <img
-            src="/images/keova-logo.png"
+            src="/images/keova-logo.webp"
             alt="Keova"
             class="h-12 w-auto animate-pulse opacity-90"
           >

@@ -98,7 +98,7 @@ const isPending = computed(() => props.request.status === 'pending')
 </script>
 
 <template>
-  <UCard class="bg-white">
+  <UCard class="bg-[color:var(--color-surface-card)]">
     <div class="space-y-4">
       <!-- Header: Type + Status badges -->
       <div class="flex items-center justify-between">
@@ -122,31 +122,31 @@ const isPending = computed(() => props.request.status === 'pending')
             {{ statusConfig.label }}
           </UBadge>
         </div>
-        <span class="text-xs text-stone-400">
+        <span class="text-xs text-[color:var(--color-brand-muted)]">
           {{ submittedAt }}
         </span>
       </div>
 
       <!-- Client name -->
       <div>
-        <h3 class="text-lg font-semibold text-stone-900">
+        <h3 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
           {{ clientName }}
         </h3>
       </div>
 
       <!-- Appointment details -->
-      <div class="flex items-center gap-3 rounded-lg border border-stone-100 bg-stone-50 p-3">
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm">
+      <div class="flex items-center gap-3 rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-3">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-surface-card)] shadow-sm">
           <UIcon
             name="lucide:calendar"
             class="h-5 w-5 text-crepuscule-600"
           />
         </div>
         <div>
-          <p class="font-medium capitalize text-stone-900">
+          <p class="font-medium capitalize text-[color:var(--color-text-primary)]">
             {{ formattedDate }}
           </p>
-          <p class="text-sm text-stone-500">
+          <p class="text-sm text-[color:var(--color-text-muted)]">
             {{ request.appointment.durationMinutes }} minutes
           </p>
         </div>
@@ -154,10 +154,10 @@ const isPending = computed(() => props.request.status === 'pending')
 
       <!-- Reason -->
       <div class="space-y-1">
-        <p class="text-sm text-stone-500">
+        <p class="text-sm text-[color:var(--color-text-muted)]">
           Motif
         </p>
-        <p class="font-medium text-stone-900">
+        <p class="font-medium text-[color:var(--color-text-primary)]">
           {{ getReasonLabel(request.reason) }}
         </p>
       </div>
@@ -167,10 +167,10 @@ const isPending = computed(() => props.request.status === 'pending')
         v-if="request.details"
         class="space-y-1"
       >
-        <p class="text-sm text-stone-500">
+        <p class="text-sm text-[color:var(--color-text-muted)]">
           Message du client
         </p>
-        <p class="rounded-lg border border-stone-100 bg-stone-50 p-3 text-sm italic text-stone-700">
+        <p class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-3 text-sm italic text-[color:var(--color-text-secondary)]">
           "{{ request.details }}"
         </p>
       </div>
@@ -178,7 +178,7 @@ const isPending = computed(() => props.request.status === 'pending')
       <!-- Actions (only for pending) -->
       <div
         v-if="isPending"
-        class="flex items-center gap-3 border-t border-stone-100 pt-4"
+        class="flex items-center gap-3 border-t border-[color:var(--color-neutral-100)] pt-4"
       >
         <UButton
           color="success"

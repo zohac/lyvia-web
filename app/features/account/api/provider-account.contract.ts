@@ -1,5 +1,14 @@
 // verified against OpenAPI spec (UpdateProviderAccountDto + ProviderAccountResponseDto)
 
+import type {
+  PillarsJson,
+  FaqItem,
+  BenefitsJson,
+  HowItWorksStep,
+  EducationalContentJson,
+  ProblemStatementJson
+} from '~/features/seo/api/public-provider-profile.contract'
+
 export interface CredentialItem {
   title: string
   institution?: string
@@ -43,8 +52,19 @@ export type ProviderAccountResponse = {
   testimonialsJson: TestimonialItem[]
   leadMagnetUrl: string | null
   leadMagnetTitle: string | null
-  googleAdsId: string | null // verified against OpenAPI spec
-  googleAdsConversionLabel: string | null // verified against OpenAPI spec
+  googleAdsId: string | null
+  googleAdsConversionLabel: string | null
+  microsoftClarityId: string | null
+  // Coach Page Configuration (YC1.2 / YC3.1)
+  coachPageTemplateId: string | null
+  sectionsConfig: Record<string, boolean>
+  brandColor: string | null
+  pillarsJson: PillarsJson | null
+  faqJson: FaqItem[] | null
+  benefitsJson: BenefitsJson | null
+  howItWorksJson: HowItWorksStep[] | null
+  educationalContentJson: EducationalContentJson | null
+  problemStatementJson: ProblemStatementJson | null
   updatedAt?: string
 }
 
@@ -67,6 +87,20 @@ export type UpdateProviderAccountRequest = {
   testimonialsJson?: TestimonialItem[]
   leadMagnetUrl?: string | null
   leadMagnetTitle?: string | null
-  googleAdsId?: string | null // verified against OpenAPI spec
-  googleAdsConversionLabel?: string | null // verified against OpenAPI spec
+  googleAdsId?: string | null
+  googleAdsConversionLabel?: string | null
+  microsoftClarityId?: string | null
+  // Coach Page Configuration (YC3.1)
+  coachPageTemplateId?: string | null
+  sectionsConfig?: Record<string, boolean>
+  brandColor?: string | null
+  pillarsJson?: PillarsJson | null
+  faqJson?: FaqItem[] | null
+  benefitsJson?: BenefitsJson | null
+  howItWorksJson?: HowItWorksStep[] | null
+  educationalContentJson?: EducationalContentJson | null
+  problemStatementJson?: ProblemStatementJson | null
 }
+
+// Re-export JSONB types for convenience
+export type { PillarsJson, FaqItem, BenefitsJson, HowItWorksStep, EducationalContentJson, ProblemStatementJson }

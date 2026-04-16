@@ -7,7 +7,7 @@
         class="mb-12 inline-flex w-fit items-center justify-center"
       >
         <NuxtImg
-          src="/images/keova-logo.png"
+          src="/images/keova-logo.webp"
           alt="Keova"
           class="h-10 w-auto"
           loading="eager"
@@ -85,6 +85,7 @@
               :aria-label="showNewPassword ? 'Masquer' : 'Afficher'"
               :aria-pressed="showNewPassword"
               aria-controls="new-password"
+              class="pointer-events-auto"
               @click="showNewPassword = !showNewPassword"
             />
           </template>
@@ -122,6 +123,7 @@
               :aria-label="showConfirmPassword ? 'Masquer' : 'Afficher'"
               :aria-pressed="showConfirmPassword"
               aria-controls="confirm-password"
+              class="pointer-events-auto"
               @click="showConfirmPassword = !showConfirmPassword"
             />
           </template>
@@ -153,6 +155,9 @@ import type { ResetPasswordResponse } from '../features/auth/api/auth.contract'
 import { isPasswordStrong } from '../features/auth/password/password-policy'
 import { apiFetch } from '../services/api/apiFetch'
 import { ApiFetchError, mapAuthErrorCodeToUserMessage } from '../services/api/api-error'
+import FormControl from '../components/molecules/FormControl.vue'
+import PasswordCriteriaList from '../components/molecules/PasswordCriteriaList.vue'
+import SystemAlert from '../components/atoms/SystemAlert.vue'
 
 definePageMeta({
   layout: 'auth'

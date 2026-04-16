@@ -14,9 +14,9 @@ withDefaults(
       class="inline-flex h-8 w-8 items-center justify-center rounded-full border text-sm font-bold"
       :class="
         state === 'completed'
-          ? 'border-[color:var(--color-accent-main)] bg-[color:var(--color-accent-main)] text-[color:var(--color-accent-contrast)]'
+          ? 'border-[color:var(--color-brand-primary-dark)] bg-[color:var(--color-brand-primary-dark)] text-[color:var(--color-text-on-brand)]'
           : state === 'active'
-            ? 'border-[color:var(--color-accent-main)] bg-[color:var(--color-surface-card)] text-[color:var(--color-accent-main)]'
+            ? 'border-[color:var(--color-brand-primary-dark)] bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-primary-dark)]'
             : 'border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-secondary)]'
       "
       aria-hidden="true"

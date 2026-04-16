@@ -73,6 +73,11 @@ type AdminProviderDetail = {
   clientsCount: number
   createdAt: string
   updatedAt: string
+  // Coach page (YC3.2)
+  coachPageTemplateName: string | null
+  sectionsConfig: Record<string, boolean>
+  sectionsAvailable: string[]
+  coachPageFillRate: number
 }
 
 type DeactivationImpact = {
@@ -165,6 +170,7 @@ const tabItems = [
   { label: 'Profil', icon: 'i-lucide-user', slot: 'profil' as const },
   { label: 'Stripe Connect', icon: 'i-lucide-credit-card', slot: 'stripe' as const },
   { label: 'Offres', icon: 'i-lucide-package', slot: 'programs' as const },
+  { label: 'Page coach', icon: 'i-lucide-layout-template', slot: 'coach-page' as const },
   { label: 'Référencement', icon: 'i-lucide-globe', slot: 'seo' as const }
 ] satisfies TabsItem[]
 
@@ -522,13 +528,49 @@ const SEO_TARGET_ICONS: Record<string, string> = {
     <!-- Loading -->
     <div
       v-if="pending"
-      class="flex items-center justify-center py-20"
+      class="space-y-8"
     >
-      <UIcon
-        name="lucide:loader-2"
-        size="32"
-        class="animate-spin text-[color:var(--color-brand-muted)]"
-      />
+      <section class="rounded-2xl border border-white/60 bg-gradient-to-br from-white to-[color:var(--color-crepuscule-50)]/55 p-6 shadow-soft sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex min-w-0 flex-1 items-start gap-4">
+            <USkeleton class="h-14 w-14 shrink-0 rounded-2xl" />
+
+            <div class="min-w-0 flex-1 space-y-3">
+              <USkeleton class="h-8 w-56 max-w-full" />
+
+              <div class="flex flex-wrap gap-2">
+                <USkeleton class="h-6 w-24 rounded-full" />
+                <USkeleton class="h-6 w-28 rounded-full" />
+                <USkeleton class="h-6 w-20 rounded-full" />
+              </div>
+
+              <USkeleton class="h-3 w-72 max-w-full" />
+            </div>
+          </div>
+
+          <USkeleton class="h-9 w-9 rounded-full" />
+        </div>
+      </section>
+
+      <div class="space-y-6">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <USkeleton
+            v-for="i in 4"
+            :key="i"
+            class="h-10 rounded-full"
+          />
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+          <USkeleton
+            v-for="i in 3"
+            :key="`stats-${i}`"
+            class="h-24 rounded-xl"
+          />
+        </div>
+
+        <USkeleton class="h-80 rounded-2xl" />
+      </div>
     </div>
 
     <!-- Error -->
@@ -642,10 +684,10 @@ const SEO_TARGET_ICONS: Record<string, string> = {
             v-if="detailPending"
             class="space-y-4"
           >
-            <div
+            <USkeleton
               v-for="i in 3"
               :key="i"
-              class="h-16 animate-pulse rounded-xl border border-[color:var(--color-border-subtle)] bg-white/75"
+              class="h-16 rounded-xl"
             />
           </div>
 
@@ -1075,10 +1117,10 @@ const SEO_TARGET_ICONS: Record<string, string> = {
               v-if="programsLoading"
               class="space-y-4"
             >
-              <div
+              <USkeleton
                 v-for="i in 3"
                 :key="i"
-                class="h-16 animate-pulse rounded-xl border border-[color:var(--color-border-subtle)] bg-white/75"
+                class="h-16 rounded-xl"
               />
             </div>
 
@@ -1202,16 +1244,111 @@ const SEO_TARGET_ICONS: Record<string, string> = {
           </div>
         </template>
 
+        <template #coach-page>
+          <div
+            v-if="detail"
+            class="space-y-6"
+          >
+            <!-- Template info + public link (F1) -->
+            <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="mb-2 text-sm font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                    Template sélectionné
+                  </h3>
+                  <p class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                    {{ detail.coachPageTemplateName ?? 'Aucun template' }}
+                  </p>
+                </div>
+                <UButton
+                  v-if="detail.slug"
+                  :to="`/coach/${detail.slug}`"
+                  target="_blank"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  trailing-icon="i-lucide-external-link"
+                >
+                  Voir la page publique
+                </UButton>
+                <span
+                  v-else
+                  class="text-xs text-[color:var(--color-text-muted)]"
+                >
+                  Aucun slug configuré
+                </span>
+              </div>
+            </div>
+
+            <!-- Fill rate -->
+            <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6">
+              <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                Taux de remplissage
+              </h3>
+              <div class="flex items-center gap-4">
+                <div class="h-3 flex-1 overflow-hidden rounded-full bg-[color:var(--color-neutral-100)]">
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    :class="[
+                      detail.coachPageFillRate >= 75
+                        ? 'bg-[color:var(--color-success-500)]'
+                        : detail.coachPageFillRate >= 40
+                          ? 'bg-[color:var(--color-sunset-500)]'
+                          : 'bg-[color:var(--color-error-500)]'
+                    ]"
+                    :style="{ width: `${detail.coachPageFillRate}%` }"
+                  />
+                </div>
+                <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                  {{ detail.coachPageFillRate }}%
+                </span>
+              </div>
+            </div>
+
+            <!-- Sections -->
+            <div
+              v-if="detail.sectionsAvailable.length > 0"
+              class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-6"
+            >
+              <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                Sections activées
+              </h3>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="section in detail.sectionsAvailable"
+                  :key="section"
+                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
+                  :class="[
+                    detail.sectionsConfig[section] !== false
+                      ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]'
+                      : 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
+                  ]"
+                >
+                  <span
+                    class="h-1.5 w-1.5 rounded-full"
+                    :class="[
+                      detail.sectionsConfig[section] !== false
+                        ? 'bg-[color:var(--color-success-500)]'
+                        : 'bg-[color:var(--color-neutral-400)]'
+                    ]"
+                  />
+                  {{ section }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <template #seo>
           <!-- Loading SEO -->
           <div
             v-if="seoStatus === 'pending'"
             class="space-y-3"
           >
-            <div
+            <USkeleton
               v-for="i in 2"
               :key="i"
-              class="h-20 animate-pulse rounded-2xl border border-[color:var(--color-border-subtle)] bg-white/75"
+              class="h-20 rounded-2xl"
             />
           </div>
 

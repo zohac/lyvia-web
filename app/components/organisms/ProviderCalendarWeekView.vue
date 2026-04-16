@@ -175,19 +175,19 @@ watch(
 </script>
 
 <template>
-  <section class="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+  <section class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-sm">
     <div class="flex items-center justify-between gap-3">
       <div class="grid gap-1">
-        <p class="text-xs font-bold uppercase tracking-wider text-stone-500">
+        <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
           {{ modeLabel }}
         </p>
-        <p class="text-sm text-stone-500">
+        <p class="text-sm text-[color:var(--color-text-muted)]">
           Fuseau : {{ timeZone }}
         </p>
       </div>
-      <div class="hidden items-center gap-2 text-xs text-stone-500 md:flex">
+      <div class="hidden items-center gap-2 text-xs text-[color:var(--color-text-muted)] md:flex">
         <span
-          class="inline-flex size-2 rounded-full bg-amber-500"
+          class="inline-flex size-2 rounded-full bg-[color:var(--color-sunset-50)]0"
           aria-hidden="true"
         />
         <span>Discovery</span>
@@ -199,18 +199,18 @@ watch(
       </div>
     </div>
 
-    <div class="mt-6 overflow-hidden rounded-lg border border-stone-200 bg-white">
+    <div class="mt-6 overflow-hidden rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]">
       <div
-        class="grid border-b border-stone-200 bg-stone-50"
+        class="grid border-b border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)]"
         :style="gridStyle"
       >
-        <div class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-stone-500">
+        <div class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
           Heure
         </div>
         <div
           v-for="day in days"
           :key="day.key"
-          class="px-3 py-3 text-xs font-bold uppercase tracking-wider text-stone-800"
+          class="px-3 py-3 text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-primary)]"
         >
           {{ day.label }}
         </div>
@@ -224,11 +224,11 @@ watch(
           class="grid"
           :style="gridStyle"
         >
-          <div class="relative border-r border-stone-200 bg-stone-50/50">
+          <div class="relative border-r border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)]/50">
             <div
               v-for="hour in rows"
               :key="hour"
-              class="relative h-[calc(var(--ppm)_*_60px)] border-b border-stone-200 px-4 py-2 text-xs font-medium text-stone-500"
+              class="relative h-[calc(var(--ppm)_*_60px)] border-b border-[color:var(--color-brand-subtle)] px-4 py-2 text-xs font-medium text-[color:var(--color-text-muted)]"
               :style="{ '--ppm': String(pxPerMinute) }"
             >
               {{ String(hour).padStart(2, '0') }}:00
@@ -238,7 +238,7 @@ watch(
           <div
             v-for="day in days"
             :key="day.key"
-            class="relative border-r border-stone-200 last:border-r-0"
+            class="relative border-r border-[color:var(--color-brand-subtle)] last:border-r-0"
           >
             <button
               type="button"
@@ -251,13 +251,13 @@ watch(
             <div
               v-for="hour in rows"
               :key="`${day.key}:${hour}`"
-              class="h-[calc(var(--ppm)_*_60px)] border-b border-stone-100"
+              class="h-[calc(var(--ppm)_*_60px)] border-b border-[color:var(--color-neutral-100)]"
               :style="{ '--ppm': String(pxPerMinute) }"
             />
 
             <div
               v-if="highlight && highlight.dayKey === day.key"
-              class="pointer-events-none absolute left-2 right-2 z-[5] rounded-lg bg-amber-500/10 ring-2 ring-amber-400 shadow-sm animate-pulse"
+              class="pointer-events-none absolute left-2 right-2 z-[5] rounded-lg bg-[color:var(--color-sunset-50)] ring-2 ring-[color:var(--color-sunset-400)] shadow-sm animate-pulse"
               :style="{
                 top: `${highlight.startMinutes * pxPerMinute}px`,
                 height: `${Math.max(24, (highlight.endMinutes - highlight.startMinutes) * pxPerMinute)}px`
@@ -283,7 +283,7 @@ watch(
                 :class="[
                   eventAccentClass(appointment),
                   eventMetaClass(appointment),
-                  highlight?.appointmentId === appointment.id ? 'ring-2 ring-amber-400 animate-pulse' : ''
+                  highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
                 ]"
                 @click.stop="emit('select:appointment', appointment)"
               >

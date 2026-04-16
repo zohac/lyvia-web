@@ -1,0 +1,377 @@
+@theme static {
+  /* =================================================================================================
+   * KEOVA — CRÉPUSCULE DESIGN SYSTEM
+   * =================================================================================================
+   * Palette violette crépusculaire + orange sunset pour CTA
+   * Philosophie : Clarté et Chaleur — simplicité, accessibilité 40-60+ ans
+   * ================================================================================================= */
+
+  /* Typography — Fraunces + Manrope */
+  --font-family-heading: 'Fraunces', Georgia, ui-serif, serif;
+  --font-family-body: 'Manrope', -apple-system, ui-sans-serif, system-ui, sans-serif;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  /* Spacing scale (Crépuscule) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* Radii — pill buttons, rounded cards */
+  --radius-xs: 0.5rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-pill: 9999px;
+
+  /* Shadows — tinted with brand-primary RGB */
+  --shadow-sm: 0 1px 3px rgba(91, 75, 110, 0.08);
+  --shadow-md: 0 4px 12px rgba(91, 75, 110, 0.1);
+  --shadow-lg: 0 8px 30px rgba(91, 75, 110, 0.15);
+  --shadow-card: 0 4px 12px rgba(91, 75, 110, 0.1);
+  --shadow-floating: 0 8px 30px rgba(91, 75, 110, 0.15);
+
+  /* Transitions — professional, no bouncy effects */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+
+  --font-sans: var(--font-family-body);
+  --font-serif: var(--font-family-heading);
+
+  /* =================================================================================================
+   * CRÉPUSCULE PALETTE
+   * ================================================================================================= */
+
+  /* Brand Primary — Violet crépusculaire */
+  --color-crepuscule-50: #f5f3f7;
+  --color-crepuscule-100: #ebe7ef;
+  --color-crepuscule-200: #d7cfdf;
+  --color-crepuscule-300: #b9aac7;
+  --color-crepuscule-400: #9685ab;
+  --color-crepuscule-500: #7a6b8e;
+  --color-crepuscule-600: #5b4b6e;
+  --color-crepuscule-700: #4d3f5c;
+  --color-crepuscule-800: #3d3250;
+  --color-crepuscule-900: #352c44;
+  --color-crepuscule-950: #221d28;
+
+  /* Brand Accent — Orange sunset (CTA) */
+  --color-sunset-50: #fdf6f1;
+  --color-sunset-100: #fbeade;
+  --color-sunset-200: #f6d2bc;
+  --color-sunset-300: #f0b48f;
+  --color-sunset-400: #e89560;
+  --color-sunset-500: #d4956a;
+  --color-sunset-600: #c47a4a;
+  --color-sunset-700: #a3603e;
+  --color-sunset-800: #854e38;
+  --color-sunset-900: #6d4231;
+  --color-sunset-950: #3a2118;
+
+  /* Neutral — for text and surfaces */
+  --color-neutral-50: #f9f8fa;
+  --color-neutral-100: #f0edf3;
+  --color-neutral-200: #e2dde8;
+  --color-neutral-300: #cbc3d4;
+  --color-neutral-400: #a99fb5;
+  --color-neutral-500: #857d8c;
+  --color-neutral-600: #6b6373;
+  --color-neutral-700: #4a4255;
+  --color-neutral-800: #3a3444;
+  --color-neutral-900: #221d28;
+  --color-neutral-950: #14111a;
+
+  /* Semantic colors */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #4a8b6e;
+  --color-success-600: #3d7a5c;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+  --color-success-950: #052e16;
+
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #c45b5b;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  --color-error-950: #450a0a;
+
+  /* =================================================================================================
+   * TAILWIND UTILITY COLOR ALIASES
+   * Ensures text-primary, ring-primary, bg-primary etc. resolve to Crepuscule palette.
+   * Without these, Nuxt UI's default classes (ring-primary/50, hover:text-primary/75)
+   * resolve to Tailwind's default green/teal instead of our brand violet.
+   * ================================================================================================= */
+
+  /* Primary = Crepuscule (violet) — literal values required in @theme static */
+  --color-primary-50: #f5f3f7;
+  --color-primary-100: #ebe7ef;
+  --color-primary-200: #d7cfdf;
+  --color-primary-300: #b9aac7;
+  --color-primary-400: #9685ab;
+  --color-primary-500: #7a6b8e;
+  --color-primary-600: #5b4b6e;
+  --color-primary-700: #4d3f5c;
+  --color-primary-800: #3d3250;
+  --color-primary-900: #352c44;
+  --color-primary-950: #221d28;
+
+  /* Secondary = Sunset (orange accent) — literal values required in @theme static */
+  --color-secondary-50: #fdf6f1;
+  --color-secondary-100: #fbeade;
+  --color-secondary-200: #f6d2bc;
+  --color-secondary-300: #f0b48f;
+  --color-secondary-400: #e89560;
+  --color-secondary-500: #d4956a;
+  --color-secondary-600: #c47a4a;
+  --color-secondary-700: #a3603e;
+  --color-secondary-800: #854e38;
+  --color-secondary-900: #6d4231;
+  --color-secondary-950: #3a2118;
+
+  /* =================================================================================================
+   * SEMANTIC TOKENS (mapped to Crépuscule)
+   * ================================================================================================= */
+
+  /* Brand tokens */
+  --color-brand-primary: var(--color-crepuscule-600);
+  --color-brand-primary-light: var(--color-crepuscule-500);
+  --color-brand-primary-dark: var(--color-crepuscule-800);
+  --color-brand-secondary: var(--color-crepuscule-400);
+  --color-brand-accent: var(--color-sunset-500);
+  --color-brand-accent-hover: var(--color-sunset-600);
+  --color-brand-muted: var(--color-neutral-500);
+  --color-brand-subtle: var(--color-neutral-200);
+
+  /* Surface tokens */
+  --color-surface-page: var(--color-neutral-50);
+  --color-surface-elevated: #ffffff;
+  --color-surface-muted: var(--color-neutral-100);
+  --color-surface-highlight: rgba(91, 75, 110, 0.04);
+  --color-surface-contrast: var(--color-neutral-900);
+  --color-surface-card: #ffffff;
+
+  /* Text tokens */
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-700);
+  --color-text-muted: var(--color-neutral-500);
+  --color-text-inverse: var(--color-neutral-50);
+  --color-text-on-brand: #ffffff;
+
+  /* Border tokens */
+  --color-border-subtle: rgba(91, 75, 110, 0.1);
+  --color-border-emphasis: rgba(91, 75, 110, 0.25);
+
+  /* Ring */
+  --color-field-ring: var(--color-crepuscule-200);
+
+  /* Semantic states */
+  --color-success: var(--color-success-500);
+  --color-error: var(--color-error-500);
+  --color-warning: var(--color-sunset-500);
+  --color-info: #5b7b9e;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* =================================================================================================
+     * NUXT UI v4 — CRÉPUSCULE PALETTE MAPPING
+     * =================================================================================================
+     * Maps Crépuscule palette to Nuxt UI color system.
+     * Primary = Crepuscule (violet), Secondary = Sunset (orange accent)
+     * ================================================================================================= */
+
+    /* Primary palette = CRÉPUSCULE (Violet) */
+    --ui-color-primary-50: var(--color-crepuscule-50);
+    --ui-color-primary-100: var(--color-crepuscule-100);
+    --ui-color-primary-200: var(--color-crepuscule-200);
+    --ui-color-primary-300: var(--color-crepuscule-300);
+    --ui-color-primary-400: var(--color-crepuscule-400);
+    --ui-color-primary-500: var(--color-crepuscule-500);
+    --ui-color-primary-600: var(--color-crepuscule-600);
+    --ui-color-primary-700: var(--color-crepuscule-700);
+    --ui-color-primary-800: var(--color-crepuscule-800);
+    --ui-color-primary-900: var(--color-crepuscule-900);
+    --ui-color-primary-950: var(--color-crepuscule-950);
+
+    /* Secondary palette = SUNSET (Orange accent for CTA) */
+    --ui-color-secondary-50: var(--color-sunset-50);
+    --ui-color-secondary-100: var(--color-sunset-100);
+    --ui-color-secondary-200: var(--color-sunset-200);
+    --ui-color-secondary-300: var(--color-sunset-300);
+    --ui-color-secondary-400: var(--color-sunset-400);
+    --ui-color-secondary-500: var(--color-sunset-500);
+    --ui-color-secondary-600: var(--color-sunset-600);
+    --ui-color-secondary-700: var(--color-sunset-700);
+    --ui-color-secondary-800: var(--color-sunset-800);
+    --ui-color-secondary-900: var(--color-sunset-900);
+    --ui-color-secondary-950: var(--color-sunset-950);
+
+    /* Neutral palette */
+    --ui-color-neutral-50: var(--color-neutral-50);
+    --ui-color-neutral-100: var(--color-neutral-100);
+    --ui-color-neutral-200: var(--color-neutral-200);
+    --ui-color-neutral-300: var(--color-neutral-300);
+    --ui-color-neutral-400: var(--color-neutral-400);
+    --ui-color-neutral-500: var(--color-neutral-500);
+    --ui-color-neutral-600: var(--color-neutral-600);
+    --ui-color-neutral-700: var(--color-neutral-700);
+    --ui-color-neutral-800: var(--color-neutral-800);
+    --ui-color-neutral-900: var(--color-neutral-900);
+    --ui-color-neutral-950: var(--color-neutral-950);
+  }
+
+  html {
+    font-family: var(--font-family-body);
+    text-rendering: geometricPrecision;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: var(--color-surface-page);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-body);
+    line-height: var(--leading-relaxed);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-family-heading);
+    color: var(--color-text-primary);
+    line-height: var(--leading-tight);
+    font-weight: 400;
+  }
+
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: opacity var(--duration-normal) var(--ease-smooth);
+  }
+
+  .fade-enter-from,
+  .fade-leave-to {
+    opacity: 0;
+  }
+
+  a {
+    color: var(--color-brand-primary);
+    text-underline-offset: 0.2em;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  ::selection {
+    background: rgba(91, 75, 110, 0.25);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand-primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* =================================================================================================
+   * CRÉPUSCULE UTILITIES
+   * Simplified, professional utilities — no complex blob shapes
+   * ================================================================================================= */
+
+  .transition-base {
+    transition: all var(--duration-normal) var(--ease-smooth);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  /* Card shadows */
+  .shadow-soft {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Section backgrounds */
+  .section-muted {
+    background-color: var(--color-surface-muted);
+  }
+
+  .section-contrast {
+    background-color: var(--color-surface-contrast);
+    color: var(--color-text-inverse);
+  }
+
+  .warm-filter {
+    filter: sepia(10%) contrast(95%) brightness(105%);
+  }
+}
+
+/* =================================================================================================
+ * Feature Y — Coach page animations (P-Y3: centralized keyframes, never in <style scoped>)
+ * ================================================================================================= */
+
+@keyframes label-slide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes accent-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.1); opacity: 0.3; }
+}
+
+@keyframes scroll-fade {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50% { opacity: 0.8; transform: scaleY(1.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-label,
+  .accent-ring,
+  .scroll-indicator {
+    animation: none !important;
+  }
+  .hero-label {
+    opacity: 1;
+    transform: none;
+  }
+}

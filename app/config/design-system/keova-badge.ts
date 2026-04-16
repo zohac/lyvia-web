@@ -69,22 +69,22 @@ export const keovaBadge = {
     {
       color: 'primary',
       variant: 'solid',
-      class: 'bg-primary text-inverted'
+      class: 'bg-[color:var(--color-brand-primary-dark)] text-white'
     },
     {
       color: 'primary',
       variant: 'outline',
-      class: 'text-primary ring ring-inset ring-primary/50'
+      class: 'text-[color:var(--color-brand-primary)] ring ring-inset ring-[color:var(--color-brand-primary)]/50'
     },
     {
       color: 'primary',
       variant: 'soft',
-      class: 'bg-primary/10 text-primary'
+      class: 'bg-[color:var(--color-brand-primary)]/10 text-[color:var(--color-brand-primary)]'
     },
     {
       color: 'primary',
       variant: 'subtle',
-      class: 'bg-primary/10 text-primary ring ring-inset ring-primary/25'
+      class: 'bg-[color:var(--color-brand-primary)]/10 text-[color:var(--color-brand-primary)] ring ring-inset ring-[color:var(--color-brand-primary)]/25'
     },
     {
       color: 'neutral',

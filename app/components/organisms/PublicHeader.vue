@@ -48,7 +48,7 @@ function closeMobileMenu() {
         >
           <template v-if="useKeovaLogoImage">
             <NuxtImg
-              src="/images/keova-logo.png"
+              src="/images/keova-logo.webp"
               alt="Keova"
               class="h-10 w-auto sm:h-12"
               width="104"
@@ -68,7 +68,7 @@ function closeMobileMenu() {
           </template>
           <span
             v-else
-            class="font-serif text-xl tracking-tight text-[#3d3250]"
+            class="font-serif text-xl tracking-tight text-[var(--color-crepuscule-800)]"
           >
             {{ headerState.brandLabel }}
           </span>
@@ -83,7 +83,7 @@ function closeMobileMenu() {
             v-for="link in headerState.navLinks"
             :key="link.href"
             :to="link.href"
-            class="nav-link rounded-full px-4 py-2 text-sm font-medium text-[#4a4255] transition-all duration-200 hover:bg-[#5b4b6e]/8 hover:text-[#5b4b6e]"
+            class="nav-link rounded-full px-4 py-2 text-sm font-medium text-[var(--color-crepuscule-700)] transition-all duration-200 hover:bg-[var(--color-brand-primary)]/8 hover:text-[var(--color-brand-primary)]"
           >
             {{ link.label }}
           </ULink>
@@ -95,10 +95,10 @@ function closeMobileMenu() {
           <ULink
             :to="headerState.loginTo"
             :class="[
-              'hidden transition-colors duration-200 hover:text-[#3d3250] md:inline-flex',
+              'hidden transition-colors duration-200 hover:text-[var(--color-crepuscule-800)] md:inline-flex',
               useIconOnlyLogin
-                ? 'size-9 items-center justify-center rounded-full text-[#5b4b6e] hover:bg-[#5b4b6e]/8'
-                : 'text-sm font-medium text-[#5b4b6e]'
+                ? 'size-9 items-center justify-center rounded-full text-[var(--color-brand-primary)] hover:bg-[var(--color-brand-primary)]/8'
+                : 'text-sm font-medium text-[var(--color-brand-primary)]'
             ]"
             :aria-label="useIconOnlyLogin ? headerState.loginLabel : undefined"
           >
@@ -112,14 +112,15 @@ function closeMobileMenu() {
             </template>
           </ULink>
 
-          <!-- CTA — branded gradient for marketing, solid for coach -->
+          <!-- CTA — branded gradient for marketing, solid for coach (hidden when ctaLabel empty — F4 YC2.4) -->
           <ULink
+            v-if="headerState.ctaLabel"
             :to="headerState.ctaTo"
             :class="[
               'dock-cta group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white hover:text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg',
               isMarketingVariant
-                ? 'bg-gradient-to-r from-[#5b4b6e] to-[#7a6b8e]'
-                : 'bg-gradient-to-r from-[#5b4b6e] to-[#4d3f5c]'
+                ? 'bg-gradient-to-r from-[var(--color-brand-primary)] to-[var(--color-crepuscule-500)]'
+                : 'bg-gradient-to-r from-[var(--color-brand-primary)] to-[var(--color-crepuscule-700)]'
             ]"
           >
             {{ headerState.ctaLabel }}
@@ -132,7 +133,7 @@ function closeMobileMenu() {
 
           <!-- Mobile hamburger -->
           <button
-            class="grid size-10 place-items-center rounded-full text-[#4a4255] transition-colors duration-200 hover:bg-[#5b4b6e]/8 md:hidden"
+            class="grid size-10 place-items-center rounded-full text-[var(--color-crepuscule-700)] transition-colors duration-200 hover:bg-[var(--color-brand-primary)]/8 md:hidden"
             :aria-expanded="isMobileMenuOpen"
             aria-label="Menu"
             @click="isMobileMenuOpen = !isMobileMenuOpen"
@@ -156,16 +157,16 @@ function closeMobileMenu() {
               v-for="link in headerState.navLinks"
               :key="link.href"
               :to="link.href"
-              class="rounded-xl px-4 py-3 text-sm font-medium text-[#4a4255] transition-colors duration-200 hover:bg-[#f5f3f7] hover:text-[#5b4b6e]"
+              class="rounded-xl px-4 py-3 text-sm font-medium text-[var(--color-crepuscule-700)] transition-colors duration-200 hover:bg-[var(--color-crepuscule-50)] hover:text-[var(--color-brand-primary)]"
               @click="closeMobileMenu"
             >
               {{ link.label }}
             </ULink>
-            <div class="my-2 h-px bg-[#ebe7ef]" />
+            <div class="my-2 h-px bg-[var(--color-crepuscule-100)]" />
             <!-- Login: icon-only on WL/coach mobile, full text otherwise -->
             <ULink
               :to="headerState.loginTo"
-              class="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-[#5b4b6e] transition-colors duration-200 hover:bg-[#f5f3f7]"
+              class="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-[var(--color-brand-primary)] transition-colors duration-200 hover:bg-[var(--color-crepuscule-50)]"
               :aria-label="useIconOnlyLogin ? headerState.loginLabel : undefined"
               @click="closeMobileMenu"
             >
@@ -179,11 +180,11 @@ function closeMobileMenu() {
                 class="sr-only"
               >{{ headerState.loginLabel }}</span>
             </ULink>
-            <!-- Mobile CTA full-width (coach/white-label variant) -->
+            <!-- Mobile CTA full-width (coach/white-label variant, hidden when ctaLabel empty — F4 YC2.4) -->
             <ULink
-              v-if="useIconOnlyLogin"
+              v-if="useIconOnlyLogin && headerState.ctaLabel"
               :to="headerState.ctaTo"
-              class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 py-3 text-sm font-semibold text-white shadow-md"
+              class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-400)] px-6 py-3 text-sm font-semibold text-white shadow-md"
               @click="closeMobileMenu"
             >
               {{ headerState.ctaLabel }}
@@ -200,7 +201,7 @@ function closeMobileMenu() {
     <!-- Classic sticky header -->
     <header
       v-else
-      class="sticky top-0 z-40 border-b border-[#ebe7ef]"
+      class="sticky top-0 z-40 border-b border-[var(--color-crepuscule-100)]"
     >
       <div class="bg-white/90 backdrop-blur-lg">
         <div class="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
@@ -212,7 +213,7 @@ function closeMobileMenu() {
           >
             <template v-if="useKeovaLogoImage">
               <NuxtImg
-                src="/images/keova-logo.png"
+                src="/images/keova-logo.webp"
                 alt="Keova"
                 class="h-8 w-auto sm:h-9"
                 width="78"
@@ -232,7 +233,7 @@ function closeMobileMenu() {
             </template>
             <span
               v-else
-              class="font-serif text-2xl tracking-tight text-[#3d3250]"
+              class="font-serif text-2xl tracking-tight text-[var(--color-crepuscule-800)]"
             >
               {{ headerState.brandLabel }}
             </span>
@@ -248,7 +249,7 @@ function closeMobileMenu() {
               v-for="link in headerState.navLinks"
               :key="link.href"
               :to="link.href"
-              class="text-sm font-semibold text-[#857d8c] transition-colors duration-200 hover:text-[#5b4b6e]"
+              class="text-sm font-semibold text-[var(--color-text-muted)] transition-colors duration-200 hover:text-[var(--color-brand-primary)]"
             >
               {{ link.label }}
             </ULink>
@@ -258,15 +259,16 @@ function closeMobileMenu() {
           <div class="flex items-center gap-3">
             <ULink
               :to="headerState.loginTo"
-              class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[#5b4b6e] transition-colors duration-200 hover:text-[#3d3250] md:inline-flex"
+              class="hidden rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-brand-primary)] transition-colors duration-200 hover:text-[var(--color-crepuscule-800)] md:inline-flex"
             >
               {{ headerState.loginLabel }}
             </ULink>
 
             <UButton
+              v-if="headerState.ctaLabel"
               :to="headerState.ctaTo"
               size="lg"
-              class="rounded-full bg-gradient-to-r from-[#d4956a] to-[#e89560] px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
+              class="rounded-full bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-400)] px-6 py-3 font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl"
             >
               {{ headerState.ctaLabel }}
             </UButton>
