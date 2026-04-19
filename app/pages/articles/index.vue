@@ -38,10 +38,10 @@ const { data: articles } = await useAsyncData('articles-index', async () => {
 })
 
 useSeoMeta({
-  title: 'Articles — Ménopause et bien-être',
-  description: 'Articles, conseils et ressources sur la ménopause et la périménopause. Rédigés avec des spécialistes, sources médicales citées.',
-  ogTitle: 'Articles — Ménopause et bien-être',
-  ogDescription: 'Articles, conseils et ressources sur la ménopause et la périménopause. Rédigés avec des spécialistes, sources médicales citées.',
+  title: 'Articles ménopause — comprendre, agir, retrouver l\'équilibre',
+  description: 'Bouffées de chaleur, sommeil, humeur, poids : nos articles décryptent ce qui change à la ménopause et ce qui aide vraiment au quotidien.',
+  ogTitle: 'Articles ménopause — comprendre, agir, retrouver l\'équilibre',
+  ogDescription: 'Bouffées de chaleur, sommeil, humeur, poids : nos articles décryptent ce qui change à la ménopause et ce qui aide vraiment au quotidien.',
   ogImage: `${origin}/images/og-default-b2c.png`,
   ogUrl: canonicalHref,
   ogType: 'website',
@@ -114,9 +114,7 @@ setPublicHeader({
           <span class="italic text-[var(--color-brand-primary)]">retrouver l'équilibre.</span>
         </h1>
         <p class="mt-6 text-lg leading-relaxed text-[var(--color-text-muted)] sm:text-xl">
-          Articles rédigés avec des spécialistes formées à la ménopause.
-          Sources médicales citées, langage clair, pas de solutions miracles&nbsp;—
-          juste ce qui aide vraiment au quotidien.
+          Ici, on prend le temps de creuser un sujet à la fois. Bouffées qui réveillent à 3h du matin, humeur qui fait des allers-retours, énergie qui s'effondre après le déjeuner&nbsp;: on explique ce qui se passe vraiment, et ce qui peut aider.
         </p>
       </div>
 
@@ -212,7 +210,7 @@ setPublicHeader({
           />
         </div>
         <p class="text-[var(--color-text-muted)]">
-          Les premiers articles arrivent très bientôt.
+          Le premier article arrive bientôt.
         </p>
       </div>
     </section>
