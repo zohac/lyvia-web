@@ -1,5 +1,7 @@
 import * as assert from 'node:assert/strict'
-import test from 'node:test'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+import test, { describe } from 'node:test'
 
 import { getDomainContext } from '../../shared/utils/domain-context'
 import { LEGAL_PAGES } from '../../shared/utils/legal-pages'
@@ -241,4 +243,115 @@ test('YC2.4 sitemap: booking pages always get priority 0.6 regardless of WL doma
   const marieBooking = urls.find(u => u.loc === 'https://keova.fr/coach/marie-dupont/onboarding/discovery')
   assert.equal(sophieBooking?.priority, 0.6)
   assert.equal(marieBooking?.priority, 0.6)
+})
+
+// --- Story 0-22: blog articles /articles/* (B2C uniquement) ---
+
+interface ArticleDoc {
+  path: string
+  publishedAt: string
+  updatedAt?: string
+}
+
+const MOCK_ARTICLES: ArticleDoc[] = [
+  { path: '/articles/bouffees-de-chaleur-menopause', publishedAt: '2026-04-17', updatedAt: '2026-04-19' },
+  { path: '/articles/insomnie-menopause', publishedAt: '2026-04-10' }
+]
+
+// Reproduit la logique du handler urls.ts pour la branche B2C uniquement —
+// permet de tester l'émission des URLs /articles/* sans mocker h3/@nuxt/content.
+function buildB2CSitemapSegment(
+  host: string,
+  providers: Array<{ slug: string, updatedAt: string, hasVerifiedDomain?: boolean }>,
+  articles: ArticleDoc[]
+): SitemapEntry[] {
+  const ctx = getDomainContext(host, PLATFORM, PLATFORM_B2B)
+  const origin = `https://${ctx.hostname}`
+
+  // White-label + B2B : pas d'articles
+  if (ctx.isWhiteLabel || ctx.isB2B) return []
+
+  const coachUrls = providers.flatMap((p) => {
+    const profilePriority = p.hasVerifiedDomain ? 0.5 : 0.8
+    return [
+      { loc: `${origin}/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: profilePriority },
+      { loc: `${origin}/coach/${p.slug}/onboarding/discovery`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.6 }
+    ]
+  })
+
+  const articleUrls = articles.map(a => ({
+    loc: `${origin}${a.path}`,
+    lastmod: (a.updatedAt ?? a.publishedAt),
+    changefreq: 'weekly' as const,
+    priority: 0.6
+  }))
+
+  return [
+    { loc: `${origin}/`, changefreq: 'weekly', priority: 1.0 },
+    ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` })),
+    ...coachUrls,
+    ...articleUrls
+  ]
+}
+
+test('story 0-22 sitemap B2C: embarque toutes les URLs /articles/* fournies', () => {
+  const urls = buildB2CSitemapSegment('keova.fr', MOCK_PROVIDERS, MOCK_ARTICLES)
+  const locs = urls.map(u => u.loc)
+  assert.ok(locs.includes('https://keova.fr/articles/bouffees-de-chaleur-menopause'))
+  assert.ok(locs.includes('https://keova.fr/articles/insomnie-menopause'))
+})
+
+test('story 0-22 sitemap B2C: URLs article ont priority 0.6 et changefreq weekly', () => {
+  const urls = buildB2CSitemapSegment('keova.fr', MOCK_PROVIDERS, MOCK_ARTICLES)
+  const first = urls.find(u => u.loc === 'https://keova.fr/articles/bouffees-de-chaleur-menopause')
+  assert.equal(first?.priority, 0.6)
+  assert.equal(first?.changefreq, 'weekly')
+})
+
+test('story 0-22 sitemap B2C: URL article utilise updatedAt si présent, publishedAt sinon', () => {
+  const urls = buildB2CSitemapSegment('keova.fr', [], MOCK_ARTICLES)
+  const withUpdate = urls.find(u => u.loc === 'https://keova.fr/articles/bouffees-de-chaleur-menopause')
+  const withoutUpdate = urls.find(u => u.loc === 'https://keova.fr/articles/insomnie-menopause')
+  assert.equal(withUpdate?.lastmod, '2026-04-19')
+  assert.equal(withoutUpdate?.lastmod, '2026-04-10')
+})
+
+test('story 0-22 sitemap B2B: n\'embarque PAS les URLs /articles/*', () => {
+  const urls = buildB2CSitemapSegment('keova.app', MOCK_PROVIDERS, MOCK_ARTICLES)
+  assert.equal(urls.length, 0, 'B2B segment returns 0 article URLs')
+})
+
+test('story 0-22 sitemap white-label: n\'embarque PAS les URLs /articles/*', () => {
+  const urls = buildB2CSitemapSegment('sophie-jouan.fr', MOCK_PROVIDERS, MOCK_ARTICLES)
+  assert.equal(urls.length, 0, 'WL segment returns 0 article URLs')
+})
+
+// --- Test structural : le handler réel (urls.ts) ne doit pas dériver de la logique testée ---
+
+describe('sitemap handler structural (urls.ts)', () => {
+  const handlerPath = path.resolve(process.cwd(), 'server/api/__sitemap__/urls.ts')
+  const source = fs.readFileSync(handlerPath, 'utf-8')
+
+  test('queries the @nuxt/content collection named "articles"', () => {
+    assert.match(source, /queryCollection\(event,\s*'articles'\)/)
+  })
+
+  test('builds /articles/* loc from article.path', () => {
+    assert.match(source, /\$\{origin\}\$\{a\.path\}/)
+  })
+
+  test('articles branch is gated behind the B2C path (ctx.isWhiteLabel + ctx.isB2B returns before)', () => {
+    const whiteLabelReturnIndex = source.indexOf('if (ctx.isWhiteLabel)')
+    const b2bReturnIndex = source.indexOf('if (ctx.isB2B)')
+    const articlesQueryIndex = source.indexOf('queryCollection(event, \'articles\')')
+    assert.ok(whiteLabelReturnIndex > -1, 'white-label branch exists')
+    assert.ok(b2bReturnIndex > -1, 'B2B branch exists')
+    assert.ok(articlesQueryIndex > whiteLabelReturnIndex)
+    assert.ok(articlesQueryIndex > b2bReturnIndex)
+  })
+
+  test('article URLs use priority 0.6 (info content vs commercial coach pages at 0.8)', () => {
+    const articlesSection = source.split('queryCollection(event, \'articles\')')[1] ?? ''
+    assert.match(articlesSection, /priority:\s*0\.6/)
+  })
 })

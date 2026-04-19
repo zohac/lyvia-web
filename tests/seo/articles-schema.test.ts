@@ -14,7 +14,7 @@ const ORIGIN = 'https://keova.fr'
 const BASE_AUTHOR = {
   name: 'Sophie Jouan',
   role: 'Spécialiste accompagnement ménopause',
-  photoUrl: '/sophie_jouan.jpeg',
+  photoUrl: '/images/sophie_jouan.jpeg',
   profileUrl: '/coach/sophie-jouan'
 }
 
@@ -40,7 +40,7 @@ describe('buildAuthorPerson', () => {
     assert.equal(person.name, 'Sophie Jouan')
     assert.equal(person.jobTitle, 'Spécialiste accompagnement ménopause')
     assert.equal(person.url, 'https://keova.fr/coach/sophie-jouan')
-    assert.equal(person.image, 'https://keova.fr/sophie_jouan.jpeg')
+    assert.equal(person.image, 'https://keova.fr/images/sophie_jouan.jpeg')
     assert.equal(person['@id'], 'https://keova.fr/coach/sophie-jouan#person')
   })
 
@@ -96,7 +96,7 @@ describe('buildArticleSchema', () => {
     const article = buildArticleSchema(ORIGIN, BASE_ARTICLE)
     assert.equal(article.publisher['@type'], 'Organization')
     assert.equal(article.publisher.name, 'Keova')
-    assert.equal(article.publisher.logo.url, 'https://keova.fr/keova-logo.webp')
+    assert.equal(article.publisher.logo.url, 'https://keova.fr/images/keova-logo.webp')
   })
 
   it('keywords joined from tags', () => {

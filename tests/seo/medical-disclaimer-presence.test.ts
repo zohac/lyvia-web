@@ -49,4 +49,22 @@ describe('MedicalDisclaimer presence (U1.4a)', () => {
       'Booking white-label page should include MedicalDisclaimer'
     )
   })
+
+  // Story 0-22 — FR-Y9 : disclaimer obligatoire sur chaque article du blog
+  test('article page (/articles/[...slug]) includes MedicalDisclaimer (FR-Y9)', () => {
+    const content = readFile('pages/articles/[...slug].vue')
+    assert.ok(
+      content.includes('AtomsMedicalDisclaimer') || content.includes('MedicalDisclaimer'),
+      'Article page should include MedicalDisclaimer — YMYL santé (FR-Y9)'
+    )
+  })
+
+  test('article page MedicalDisclaimer is rendered INSIDE the article body (not only imported)', () => {
+    const content = readFile('pages/articles/[...slug].vue')
+    // Vérifie que le composant est bien utilisé dans le template (pas juste importé au script)
+    assert.match(
+      content,
+      /<AtomsMedicalDisclaimer\s*\/>|<atoms-medical-disclaimer\s*\/>/
+    )
+  })
 })

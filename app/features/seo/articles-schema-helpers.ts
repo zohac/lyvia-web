@@ -114,7 +114,7 @@ export function buildArticleSchema(origin: string, article: ArticleInput) {
       'url': o,
       'logo': {
         '@type': 'ImageObject' as const,
-        'url': `${o}/keova-logo.webp`
+        'url': `${o}/images/keova-logo.webp`
       }
     },
     // `citation` omis quand aucune source — évite un tableau vide parasite

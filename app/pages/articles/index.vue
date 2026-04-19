@@ -3,7 +3,12 @@ import { setPublicHeader } from '~/features/public/state/public-header.state'
 import { resolveB2CNavLinks } from '~/features/public/navigation/b2c-nav'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { usePublicCanonicalHead } from '~/composables/usePublicCanonicalHead'
-import { buildArticleIndexBreadcrumb } from '~/features/seo/articles-schema-helpers'
+import {
+  buildArticleIndexBreadcrumb,
+  categoryBadgeClass,
+  categoryLabelText,
+  formatDateFr
+} from '~/features/seo/articles-schema-helpers'
 
 definePageMeta({
   layout: 'public',
@@ -64,38 +69,6 @@ setPublicHeader({
   ctaLabel: 'Trouver une spécialiste',
   ctaTo: '/#specialistes'
 })
-
-const CATEGORY_BADGE_CLASS: Record<string, string> = {
-  'symptomes': 'bg-stone-100 text-stone-800',
-  'alimentation': 'bg-emerald-100 text-emerald-800',
-  'mouvement': 'bg-sky-100 text-sky-800',
-  'bien-etre': 'bg-violet-100 text-violet-800'
-}
-
-const CATEGORY_LABEL: Record<string, string> = {
-  'symptomes': 'Symptômes',
-  'alimentation': 'Alimentation',
-  'mouvement': 'Mouvement',
-  'bien-etre': 'Bien-être'
-}
-
-function categoryBadge(category: string): string {
-  return CATEGORY_BADGE_CLASS[category] ?? 'bg-stone-100 text-stone-800'
-}
-
-function categoryLabel(category: string): string {
-  return CATEGORY_LABEL[category] ?? category
-}
-
-const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric'
-})
-
-function formatDate(iso: string): string {
-  return dateFormatter.format(new Date(iso))
-}
 </script>
 
 <template>
@@ -180,16 +153,16 @@ function formatDate(iso: string): string {
             <!-- Catégorie badge sur l'image -->
             <span
               class="absolute left-4 top-4 inline-flex items-center rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wider shadow-sm backdrop-blur-md"
-              :class="categoryBadge(article.category)"
+              :class="categoryBadgeClass(article.category)"
             >
-              {{ categoryLabel(article.category) }}
+              {{ categoryLabelText(article.category) }}
             </span>
           </NuxtLink>
 
           <!-- Meta -->
           <div class="mb-3 flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
             <time :datetime="article.publishedAt">
-              {{ formatDate(article.publishedAt) }}
+              {{ formatDateFr(article.publishedAt) }}
             </time>
             <span
               aria-hidden="true"

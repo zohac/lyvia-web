@@ -18,7 +18,7 @@ export default defineContentConfig({
         image: z.string().min(1),
         author: z.string().default('Sophie Jouan'),
         authorRole: z.string().default('Spécialiste accompagnement ménopause'),
-        authorPhoto: z.string().default('/sophie_jouan.jpeg'),
+        authorPhoto: z.string().default('/images/sophie_jouan.jpeg'),
         authorUrl: z.string().default('/coach/sophie-jouan'),
         relatedCoachSlug: z.string().default('sophie-jouan'),
         sources: z.array(z.object({

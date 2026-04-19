@@ -55,7 +55,7 @@ const canonicalHref = `${origin}${articlePath}`
 // Defaults alignés avec content.config.ts (defaults Zod ignorés par l'inférence TS)
 const authorName = doc.author ?? 'Sophie Jouan'
 const authorRole = doc.authorRole ?? 'Spécialiste accompagnement ménopause'
-const authorPhoto = doc.authorPhoto ?? '/sophie_jouan.jpeg'
+const authorPhoto = doc.authorPhoto ?? '/images/sophie_jouan.jpeg'
 const authorUrl = doc.authorUrl ?? '/coach/sophie-jouan'
 const relatedCoachSlug = doc.relatedCoachSlug ?? 'sophie-jouan'
 const articleTags: readonly string[] = doc.tags ?? []
