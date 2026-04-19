@@ -1,15 +1,17 @@
 ---
 title: "Signes de périménopause : à quel âge, combien de temps, comment savoir"
-description: "Périménopause : à quel âge elle commence (souvent 42-47 ans), les 8 signes les plus fréquents, combien de temps dure la transition, et quand en parler à un médecin."
+description: "Périménopause (pré-ménopause) : âge de début (45-47 ans), les 9 signes les plus fréquents, combien de temps dure la transition, et quand en parler à un médecin."
 publishedAt: "2026-04-19"
-updatedAt: "2026-04-19"
+updatedAt: "2026-04-20"
 category: "bien-etre"
 tags:
   - "périménopause"
+  - "pré-ménopause"
   - "ménopause"
   - "signes périménopause"
   - "règles irrégulières"
   - "symptômes ménopause"
+  - "sueurs nocturnes"
 readingTime: 10
 image: "/images/articles/signes-perimenopause.webp"
 sources:
@@ -31,7 +33,7 @@ sources:
     url: "https://pubmed.ncbi.nlm.nih.gov/31545628/"
 ---
 
-Entre 40 et 50 ans, beaucoup de femmes commencent à se poser la même question sans oser la formuler : *« Est-ce que c'est ça qui commence ? »*. Un cycle qui raccourcit, deux nuits pourries d'affilée, une irritabilité qui ne ressemble pas à l'habituelle. On cherche un nom à ce qui change, et on tombe sur *périménopause* — un mot un peu opaque, dont personne ne nous a vraiment parlé.
+Entre 40 et 50 ans, beaucoup de femmes que j'accompagne arrivent avec la même question, souvent sans oser la formuler : *« Est-ce que c'est ça qui commence ? »*. Un cycle qui raccourcit, deux nuits pourries d'affilée, une irritabilité qui ne ressemble pas à l'habituelle. On cherche un nom à ce qui change, et on tombe sur *périménopause* — ou sur *pré-ménopause*, le terme qu'on entend le plus souvent dans la vraie vie. Les deux désignent la même chose. Un mot un peu opaque, dont personne ne nous a vraiment parlé.
 
 La périménopause, c'est la phase de transition **avant** la ménopause confirmée. Elle peut durer quelques mois ou plusieurs années. Comprendre à quel stade on en est change la façon dont on vit les symptômes — et ce qu'on peut faire pour s'aider.
 
@@ -43,9 +45,15 @@ La périménopause, c'est la phase de transition **avant** la ménopause confirm
 - Ce n'est ni dans votre tête, ni une maladie, ni un déclin. C'est une transition hormonale documentée, avec des effets concrets sur le quotidien.
 - Quand un signe perturbe votre sommeil, votre travail ou vos relations, c'est le moment d'en parler — à un médecin, à une spécialiste, ou aux deux.
 
+## Périménopause ou pré-ménopause, c'est pareil ?
+
+Oui, dans le langage courant. **Pré-ménopause** est le terme le plus souvent utilisé en France dans la conversation quotidienne ; **périménopause** est le terme médical officiel, repris par l'Inserm, le CNGOF et les recommandations internationales (NICE). La littérature médicale parle aussi parfois de *transition ménopausique*. Ces trois termes désignent la même période : **celle qui précède la ménopause confirmée, pendant laquelle les hormones commencent à fluctuer**.
+
+Dans cet article, on dit *périménopause* parce que c'est le mot qu'on retrouve dans les sources médicales, mais tout ce qui suit s'applique à ce que vous appelez peut-être *pré-ménopause*.
+
 ## Qu'est-ce que la périménopause, précisément
 
-La périménopause (parfois appelée *transition ménopausique* dans la littérature médicale) est la période pendant laquelle la production d'œstrogènes et de progestérone devient irrégulière avant de baisser durablement. Les ovaires ne s'arrêtent pas d'un coup : ils fonctionnent par à-coups.
+La périménopause est la période pendant laquelle la production d'œstrogènes et de progestérone devient irrégulière avant de baisser durablement. Les ovaires ne s'arrêtent pas d'un coup : ils fonctionnent par à-coups.
 
 Résultat : les cycles menstruels deviennent imprévisibles. Certains mois, vous ovulez ; d'autres non. Cette variabilité hormonale est ce qui déclenche la plupart des symptômes — bien avant que les règles s'arrêtent définitivement.
 
@@ -57,7 +65,7 @@ Médicalement, on distingue trois stades :
 - **Périménopause tardive** : aménorrhées (absences de règles) de 60 jours ou plus, entre deux cycles.
 - **Ménopause confirmée** : 12 mois consécutifs sans règles.
 
-C'est le cadre STRAW+10, référence internationale publiée en 2012 et reprise par l'Inserm comme par le NICE. L'intérêt de savoir où on en est : ça change les options de prise en charge et ça rassure sur ce qui est « normal » dans la transition.
+C'est le cadre STRAW+10, référence internationale publiée en 2012 et reprise par l'Inserm comme par le NICE. Savoir à quel stade on est aide sur deux plans : certaines décisions médicales en dépendent (contraception, traitements), et c'est rassurant de pouvoir mettre un nom sur ce qui se passe.
 
 ## À quel âge commence vraiment la périménopause
 
@@ -65,49 +73,53 @@ L'âge moyen de la ménopause en France est **51 ans** selon l'Inserm. La périm
 
 Autour de ce repère, il y a beaucoup de variation individuelle :
 
-- L'**insuffisance ovarienne prématurée** (IOP) — survenue avant 40 ans — touche environ **1 femme sur 100** selon la référence classique (ESHRE 2016, reprise par la HAS). Une réévaluation ESHRE publiée en 2024 propose une prévalence plus élevée, autour de **3,5 %**. Dans tous les cas, l'IOP est une pathologie distincte de la périménopause et mérite un bilan spécifique (voir plus bas).
+- L'**insuffisance ovarienne prématurée** (IOP) — survenue avant 40 ans — touche environ **1 femme sur 100** selon la référence classique (ESHRE 2016, reprise par la HAS). Une réévaluation ESHRE publiée en 2024 propose une prévalence plus élevée, autour de **3,5 %**. L'IOP n'est pas une périménopause précoce : c'est une autre situation médicale, qui demande un bilan à part (voir plus bas).
 - Environ **5 à 10 % des femmes** ont une ménopause tardive (après 55 ans).
 - Certains facteurs avancent la transition : tabagisme (environ −1 an chez les fumeuses moyennes, jusqu'à −2 ans chez les grandes fumeuses, dose-dépendant), antécédent de chimiothérapie, antécédents familiaux de ménopause précoce.
 
 Autrement dit, si vous avez 46 ans et que vos cycles deviennent bizarres, c'est très probablement la périménopause. Si vous avez 38 ans et des symptômes similaires, c'est possible aussi — mais un bilan médical s'impose avant de conclure.
 
-## Les 8 signes les plus fréquents de périménopause
+## Les 9 signes les plus fréquents de périménopause
 
-Tous les signes ne se présentent pas chez toutes les femmes. La plupart en vivent 3 à 5, rarement les 8 en même temps.
+Tous les signes ne se présentent pas chez toutes les femmes. La plupart en vivent 3 à 5, rarement les 9 en même temps.
 
 ### 1. Cycles irréguliers
 
 Le signe le plus précoce et le plus spécifique. Vos règles arrivent plus tôt, plus tard, plus abondantes, plus légères, parfois avec des cycles courts (21-24 jours) entrecoupés de cycles longs (40+ jours). Quand l'écart entre deux cycles consécutifs dépasse 7 jours, c'est un signal clair de périménopause précoce.
 
-### 2. Bouffées de chaleur et sueurs nocturnes
+### 2. Bouffées de chaleur (diurnes)
 
-Oui, elles commencent souvent **avant** la ménopause confirmée. Une vague qui monte du thorax, 1 à 5 minutes (3-4 min en moyenne), parfois la nuit au point de changer de tee-shirt. Si c'est votre principal symptôme, [notre article dédié aux bouffées de chaleur](/articles/bouffees-de-chaleur-menopause) détaille les mécanismes et ce qui aide.
+Oui, elles commencent souvent **avant** la ménopause confirmée. Une vague qui monte du thorax, 1 à 5 minutes (3-4 min en moyenne), parfois plusieurs fois par jour en journée. Si c'est votre principal symptôme, [notre article dédié aux bouffées de chaleur](/articles/bouffees-de-chaleur-menopause) détaille les mécanismes et ce qui aide.
 
-### 3. Troubles du sommeil
+### 3. Sueurs nocturnes
+
+C'est le même phénomène que les bouffées diurnes, mais la nuit — et c'est souvent pire, parce que ça casse le sommeil. On se réveille trempée à 3h, on change de tee-shirt, parfois de drap, et le sommeil qui revient ensuite est plus léger. Les sueurs nocturnes peuvent apparaître plusieurs années avant les bouffées de jour pour certaines femmes.
+
+### 4. Troubles du sommeil
 
 Endormissement plus long, réveil à 3h sans raison apparente, sommeil moins réparateur. Parfois directement lié aux sueurs nocturnes, parfois indépendant. 40 à 60 % des femmes en périménopause rapportent une dégradation du sommeil selon l'étude SWAN.
 
-### 4. Humeur plus labile
+### 5. Humeur plus labile
 
-Plus de sensibilité, des montées d'irritabilité qui surprennent, parfois un fond d'anxiété ou une humeur triste inhabituelle. Ce n'est pas « dans la tête » : les œstrogènes modulent directement les neurotransmetteurs (sérotonine, GABA), et leurs variations affectent l'humeur. L'étude SWAN observe environ **1 femme sur 3** vivant des symptômes dépressifs cliniquement significatifs pendant la transition, et jusqu'à 40 % si on élargit à l'irritabilité et l'anxiété auto-déclarées.
+Plus de sensibilité, des montées d'irritabilité qui surprennent, parfois un fond d'anxiété ou une humeur triste inhabituelle. Ce n'est pas « dans la tête » : les œstrogènes modulent directement les neurotransmetteurs (sérotonine, GABA), et leurs variations affectent l'humeur. Dans l'étude SWAN, **environ 1 femme sur 3** traverse un vrai épisode dépressif pendant la transition, et jusqu'à 40 % rapportent de l'irritabilité ou de l'anxiété marquées.
 
-### 5. Cerveau brumeux (*brain fog*)
+### 6. Cerveau brumeux, troubles de la mémoire (*brain fog*)
 
-Mots qui ne viennent pas, concentration qui flanche, mémoire de travail en berne. Documenté dans la littérature, réversible dans la plupart des cas. Rassurant à entendre, mais pas moins frustrant à vivre.
+Mots qui ne viennent pas, concentration qui flanche, mémoire de travail en berne. Beaucoup de femmes que j'accompagne arrivent à 43-45 ans en se demandant si elles ne commencent pas quelque chose de grave. Rassurant à entendre : l'étude SWAN (Greendale 2009) le confirme, et ça se stabilise généralement une fois les hormones apaisées. Pas moins frustrant à vivre pour autant.
 
-![Les 8 signes les plus fréquents de la périménopause : cycles irréguliers, bouffées de chaleur, troubles du sommeil, humeur labile, brain fog, libido, modifications corporelles, seins sensibles](/images/articles/signes-perimenopause-8signes.webp)
+![Les 9 signes les plus fréquents de la périménopause : cycles irréguliers, bouffées de chaleur, sueurs nocturnes, troubles du sommeil, humeur labile, brain fog, modifications corporelles, libido, seins sensibles](/images/articles/signes-perimenopause-9signes.webp)
 
-### 6. Modifications corporelles
+### 7. Modifications corporelles
 
 Redistribution de la graisse vers l'abdomen, perte progressive de masse musculaire (*sarcopénie*), peau plus sèche, cheveux plus fins. Pas un jugement moral — un effet direct de la baisse d'œstrogènes sur le métabolisme.
 
-### 7. Baisse ou variation de la libido
+### 8. Baisse ou variation de la libido
 
 La libido peut baisser, fluctuer, ou changer de nature. Contrairement à une idée reçue, les études récentes (IMS Global Consensus 2019, position NAMS) montrent que **les taux endogènes de testostérone ne sont pas corrélés à la fonction sexuelle** pendant la transition. Ce qui pèse réellement sur l'envie à cette période est multifactoriel : fatigue, sommeil haché, humeur, inconfort physique (sécheresse, douleurs), effets indésirables de certains médicaments, et contexte relationnel. C'est aussi pour ça qu'il n'y a pas de « pilule magique » hormonale sur ce symptôme.
 
-### 8. Seins sensibles ou douloureux
+### 9. Seins sensibles ou douloureux
 
-Souvent en début de périménopause, liés aux pics d'œstrogènes qu'on observe paradoxalement avant la baisse durable. Ça disparaît généralement à mesure que la transition avance.
+Souvent en début de périménopause, liés aux pics d'œstrogènes qu'on observe paradoxalement avant la baisse durable. Ça disparaît généralement avec le temps.
 
 ## Périménopause, stress, thyroïde ou autre chose ?
 
@@ -145,13 +157,17 @@ Pas besoin d'attendre que la vie soit invivable. Les bons moments pour consulter
 - **Quand les bouffées de chaleur sont sévères** : plusieurs traitements existent aujourd'hui, hormonaux ou non (voir [notre article sur les bouffées de chaleur](/articles/bouffees-de-chaleur-menopause)).
 - **Quand vous voulez anticiper** : même sans symptôme marqué, une consultation dédiée vers 45 ans permet de faire un point osseux, cardiovasculaire et gynécologique.
 
-Le bon interlocuteur dépend de ce qui prédomine : médecin traitant en première intention, gynécologue pour les symptômes gynécologiques, sage-femme formée à la ménopause (une spécialité en plein essor), endocrinologue en cas de doute hormonal complexe.
+Le bon interlocuteur dépend de ce qui prédomine : médecin traitant en première intention, gynécologue pour les symptômes gynécologiques, sage-femme formée à la ménopause (une spécialité en plein essor), endocrinologue en cas de doute hormonal complexe. Une fois le cadre médical posé, un accompagnement spécialisé peut aider à passer du diagnostic aux gestes concrets de tous les jours — [on peut en discuter en 15 minutes lors d'un appel découverte gratuit](/coach/sophie-jouan/onboarding/discovery).
 
 ## Questions fréquentes sur les signes de périménopause
 
+### Pré-ménopause ou périménopause : quelle est la différence ?
+
+Aucune différence médicale : ce sont deux noms pour la même période — celle qui précède la ménopause confirmée, pendant laquelle les cycles deviennent irréguliers et les symptômes apparaissent. **Pré-ménopause** est le mot le plus utilisé dans la conversation courante en France ; **périménopause** est le terme officiel repris par l'Inserm, le CNGOF (2021) et les recommandations internationales (NICE NG23). Les deux sont bons — utilisez celui avec lequel vous êtes à l'aise pour en parler à votre médecin.
+
 ### Peut-on faire un « test » pour savoir si je suis en périménopause ?
 
-Pas de test unique fiable. Le dosage de la FSH (hormone folliculo-stimulante) est souvent proposé, mais il fluctue tellement en périménopause qu'il peut être normal un jour et élevé le lendemain. Les recommandations NICE (2015, maintenues en 2024) déconseillent de poser le diagnostic uniquement sur la FSH chez une femme de plus de 45 ans avec symptômes évocateurs — l'ensemble « âge + signes + cycles » suffit.
+Pas de test unique fiable. Le dosage de la FSH (hormone folliculo-stimulante) est souvent proposé, mais il fluctue tellement en périménopause qu'il peut être normal un jour et élevé le lendemain. Les recommandations NICE (2015, révisées le 7 novembre 2024) déconseillent de poser le diagnostic uniquement sur la FSH chez une femme de plus de 45 ans avec symptômes évocateurs — l'ensemble « âge + signes + cycles » suffit.
 
 ### La périménopause peut-elle commencer à 38 ou 39 ans ?
 
@@ -167,7 +183,7 @@ Pas automatiquement, mais la redistribution de la graisse vers l'abdomen et la p
 
 ### Est-ce que tous ces signes vont s'arrêter après la ménopause ?
 
-Certains s'atténuent (cycles, humeur labile, brain fog souvent réversibles), d'autres peuvent durer des années au-delà (bouffées de chaleur, sécheresse vaginale). L'objectif n'est pas d'attendre que ça passe — c'est d'apprendre à vivre avec ce qui change et à agir sur ce qu'on peut modifier.
+Certains s'atténuent (cycles, humeur labile, brain fog souvent réversibles), d'autres peuvent durer des années au-delà (bouffées de chaleur, sécheresse vaginale). Attendre que ça passe n'est pas la bonne stratégie. Mieux vaut identifier ce qu'on peut vraiment changer — et accepter ce qui, pour l'instant, demande juste à être vécu.
 
 ## Un accompagnement, pour quoi faire
 
