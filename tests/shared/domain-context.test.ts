@@ -75,18 +75,22 @@ test('getDomainContext: lowercases hostname', () => {
 
 // --- legacy robotsDisallowPaths ---
 
-test('getDomainContext [legacy]: platform has auth paths + b2b extra', () => {
+test('getDomainContext [legacy]: platform has auth paths + b2b extra + /articles', () => {
   const ctx = getDomainContext('keova.fr', PLATFORM)
-  // Legacy mode: platform = b2b → includes /coaches and /coach/
-  assert.deepStrictEqual([...ctx.robotsDisallowPaths], [...AUTH_PATHS, '/coaches', '/coach/'])
+  // Legacy mode: platform = b2b → includes /coaches, /coach/, /articles
+  assert.deepStrictEqual(
+    [...ctx.robotsDisallowPaths],
+    [...AUTH_PATHS, '/coaches', '/coach/', '/articles']
+  )
 })
 
-test('getDomainContext [legacy]: white-label has auth paths + /coaches', () => {
+test('getDomainContext [legacy]: white-label has auth paths + /coaches + /articles', () => {
   const ctx = getDomainContext('sophie-jouan.fr', PLATFORM)
   for (const path of AUTH_PATHS) {
     assert.ok(ctx.robotsDisallowPaths.includes(path), `missing ${path}`)
   }
   assert.ok(ctx.robotsDisallowPaths.includes('/coaches'))
+  assert.ok(ctx.robotsDisallowPaths.includes('/articles'))
 })
 
 test('getDomainContext [legacy]: localhost same as platform', () => {
@@ -169,19 +173,27 @@ test('getDomainContext [tri-modal]: sophie-jouan.fr → role white-label', () =>
 
 // --- tri-modal robotsDisallowPaths ---
 
-test('getDomainContext [tri-modal]: b2c has auth paths only', () => {
+test('getDomainContext [tri-modal]: b2c has auth paths only (allows /articles)', () => {
   const ctx = getDomainContext('keova.fr', PLATFORM, PLATFORM_B2B)
   assert.deepStrictEqual([...ctx.robotsDisallowPaths], AUTH_PATHS)
+  // Story 0-22: /articles doit être crawlable sur B2C
+  assert.ok(!ctx.robotsDisallowPaths.includes('/articles'))
 })
 
-test('getDomainContext [tri-modal]: b2b has auth paths + /coaches + /coach/', () => {
+test('getDomainContext [tri-modal]: b2b has auth paths + /coaches + /coach/ + /articles', () => {
   const ctx = getDomainContext('keova.app', PLATFORM, PLATFORM_B2B)
-  assert.deepStrictEqual([...ctx.robotsDisallowPaths], [...AUTH_PATHS, '/coaches', '/coach/'])
+  assert.deepStrictEqual(
+    [...ctx.robotsDisallowPaths],
+    [...AUTH_PATHS, '/coaches', '/coach/', '/articles']
+  )
 })
 
-test('getDomainContext [tri-modal]: white-label has auth paths + /coaches', () => {
+test('getDomainContext [tri-modal]: white-label has auth paths + /coaches + /articles', () => {
   const ctx = getDomainContext('sophie-jouan.fr', PLATFORM, PLATFORM_B2B)
-  assert.deepStrictEqual([...ctx.robotsDisallowPaths], [...AUTH_PATHS, '/coaches'])
+  assert.deepStrictEqual(
+    [...ctx.robotsDisallowPaths],
+    [...AUTH_PATHS, '/coaches', '/articles']
+  )
 })
 
 test('getDomainContext [tri-modal]: empty B2B domain behaves like legacy mode', () => {

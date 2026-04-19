@@ -1,4 +1,5 @@
 import { defineEventHandler, getRequestHost } from 'h3'
+import { queryCollection } from '@nuxt/content/server'
 
 import { getDomainContext } from '#shared/utils/domain-context'
 import { LEGAL_PAGES } from '#shared/utils/legal-pages'
@@ -50,9 +51,26 @@ export default defineEventHandler(async (event) => {
     ]
   })
 
+  // Story 0-22: blog articles /articles/* (B2C uniquement)
+  let articleUrls: Array<{ loc: string, lastmod?: string, changefreq: 'weekly', priority: number }> = []
+  try {
+    const articles = await queryCollection(event, 'articles')
+      .select('path', 'publishedAt', 'updatedAt')
+      .all()
+    articleUrls = articles.map(a => ({
+      loc: `${origin}${a.path}`,
+      lastmod: (a.updatedAt ?? a.publishedAt) as string,
+      changefreq: 'weekly' as const,
+      priority: 0.6
+    }))
+  } catch {
+    // Si la collection n'est pas prête, on n'empêche pas le sitemap
+  }
+
   return [
     { loc: `${origin}/`, changefreq: 'weekly' as const, priority: 1.0 },
     ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` })),
-    ...coachUrls
+    ...coachUrls,
+    ...articleUrls
   ]
 })
