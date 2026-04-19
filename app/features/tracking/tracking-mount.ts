@@ -10,9 +10,7 @@
  */
 import {
   resolveAdsContext,
-  COOKIE_CONSENT_NAME,
-  type AdsConfig,
-  type ConsentValue
+  type AdsConfig
 } from '~/features/consent/consent-logic'
 import {
   resolveClarityContext,
@@ -92,8 +90,7 @@ export async function mountTracking(): Promise<void> {
   })
 
   if (clarityCtx.clarityId) {
-    const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME)
     const { mountMicrosoftClarity } = await import('~/features/clarity/microsoft-clarity-runtime')
-    mountMicrosoftClarity({ context: clarityCtx, cookieConsent: consent.value })
+    mountMicrosoftClarity({ context: clarityCtx })
   }
 }

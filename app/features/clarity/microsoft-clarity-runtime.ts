@@ -1,7 +1,4 @@
-import {
-  shouldLoadClarity,
-  type ClarityResolution
-} from './microsoft-clarity-helpers'
+import type { ClarityResolution } from './microsoft-clarity-helpers'
 
 type ClarityWindow = Record<string, unknown>
 
@@ -28,13 +25,10 @@ export function injectClarityTag<TScript extends ClarityScriptElement>(
   appendToHead(script)
 }
 
-export function mountMicrosoftClarity(input: {
-  context: ClarityResolution
-  cookieConsent: string | null
-}): void {
-  const { context, cookieConsent } = input
+export function mountMicrosoftClarity(input: { context: ClarityResolution }): void {
+  const { context } = input
 
-  if (!context.clarityId || !shouldLoadClarity(context.googleAdsId, cookieConsent)) {
+  if (!context.clarityId) {
     return
   }
 

@@ -4,11 +4,11 @@ import assert from 'node:assert/strict'
 import {
   CLARITY_ID_REGEX,
   resolveClarityContext,
-  shouldLoadClarity,
   shouldFetchClarityProfile
 } from '../../app/features/clarity/microsoft-clarity-helpers'
 import {
-  injectClarityTag
+  injectClarityTag,
+  mountMicrosoftClarity
 } from '../../app/features/clarity/microsoft-clarity-runtime'
 
 type MockScript = {
@@ -54,7 +54,6 @@ describe('Microsoft Clarity helpers (real code)', () => {
       assert.deepEqual(result, {
         slug: 'sophie',
         clarityId: 'abc123',
-        googleAdsId: 'AW-111',
         profileResolved: true
       })
     })
@@ -72,7 +71,6 @@ describe('Microsoft Clarity helpers (real code)', () => {
       assert.deepEqual(result, {
         slug: 'sophie',
         clarityId: null,
-        googleAdsId: null,
         profileResolved: false
       })
     })
@@ -90,7 +88,6 @@ describe('Microsoft Clarity helpers (real code)', () => {
       assert.deepEqual(result, {
         slug: 'sophie',
         clarityId: 'def456',
-        googleAdsId: null,
         profileResolved: true
       })
     })
@@ -108,7 +105,6 @@ describe('Microsoft Clarity helpers (real code)', () => {
       assert.deepEqual(result, {
         slug: 'sophie',
         clarityId: null,
-        googleAdsId: null,
         profileResolved: false
       })
     })
@@ -126,7 +122,6 @@ describe('Microsoft Clarity helpers (real code)', () => {
       assert.deepEqual(result, {
         slug: 'sophie',
         clarityId: 'def456',
-        googleAdsId: 'AW-111',
         profileResolved: true
       })
     })
@@ -144,34 +139,8 @@ describe('Microsoft Clarity helpers (real code)', () => {
       assert.deepEqual(result, {
         slug: null,
         clarityId: null,
-        googleAdsId: null,
         profileResolved: false
       })
-    })
-  })
-
-  describe('shouldLoadClarity', () => {
-    it('loads in simple mode (no Google Ads) regardless of consent', () => {
-      assert.ok(shouldLoadClarity(null, null))
-      assert.ok(shouldLoadClarity(null, 'essential'))
-      assert.ok(shouldLoadClarity(null, 'all'))
-      assert.ok(shouldLoadClarity(null, 'acknowledged'))
-    })
-
-    it('loads in full mode with all consent', () => {
-      assert.ok(shouldLoadClarity('AW-123456789', 'all'))
-    })
-
-    it('loads in full mode with acknowledged consent', () => {
-      assert.ok(shouldLoadClarity('AW-123456789', 'acknowledged'))
-    })
-
-    it('blocks in full mode with null consent (RF1 regression)', () => {
-      assert.ok(!shouldLoadClarity('AW-123456789', null))
-    })
-
-    it('blocks in full mode with essential consent (RF1 regression)', () => {
-      assert.ok(!shouldLoadClarity('AW-123456789', 'essential'))
     })
   })
 
@@ -225,5 +194,71 @@ describe('Microsoft Clarity runtime (real behavior)', () => {
     assert.equal(appendedScripts.length, 1)
     assert.equal(appendedScripts[0].async, true)
     assert.equal(appendedScripts[0].src, 'https://www.clarity.ms/tag/lz1abc2def')
+  })
+})
+
+describe('Microsoft Clarity mountMicrosoftClarity — consent-independent (story 0-23)', () => {
+  function runMount(input: {
+    clarityId: string | null
+    windowHasClarity?: boolean
+  }): {
+    scriptAppended: boolean
+    clarityInstalled: boolean
+  } {
+    const originalDocument = globalThis.document
+    const originalWindow = globalThis.window
+
+    const existingClarity = input.windowHasClarity ? () => undefined : undefined
+    const mockWindow: Record<string, unknown> = existingClarity
+      ? { clarity: existingClarity }
+      : {}
+    let scriptAppended = false
+    const mockDocument = {
+      createElement: (_tag: string) => ({ async: false, src: '' }),
+      head: {
+        appendChild: (_el: unknown) => {
+          scriptAppended = true
+        }
+      }
+    }
+
+    ;(globalThis as { window?: unknown }).window = mockWindow
+    ;(globalThis as { document?: unknown }).document = mockDocument
+
+    try {
+      mountMicrosoftClarity({
+        context: {
+          slug: 'sophie',
+          clarityId: input.clarityId,
+          profileResolved: true
+        }
+      })
+    } finally {
+      ;(globalThis as { window?: unknown }).window = originalWindow
+      ;(globalThis as { document?: unknown }).document = originalDocument
+    }
+
+    return {
+      scriptAppended,
+      clarityInstalled: typeof mockWindow.clarity === 'function'
+    }
+  }
+
+  it('injects Clarity when ID is present (no consent required)', () => {
+    const result = runMount({ clarityId: 'lz1abc2def' })
+    assert.equal(result.scriptAppended, true)
+    assert.equal(result.clarityInstalled, true)
+  })
+
+  it('does NOT inject when clarityId is null', () => {
+    const result = runMount({ clarityId: null })
+    assert.equal(result.scriptAppended, false)
+    assert.equal(result.clarityInstalled, false)
+  })
+
+  it('does NOT re-inject when window.clarity already exists (idempotent)', () => {
+    const result = runMount({ clarityId: 'lz1abc2def', windowHasClarity: true })
+    assert.equal(result.scriptAppended, false)
+    assert.equal(result.clarityInstalled, true)
   })
 })
