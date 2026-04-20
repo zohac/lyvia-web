@@ -26,7 +26,7 @@
     "nuxt": "^4.4.2"
   },
   "devDependencies": {
-    "@nuxt/eslint": "^1.10.0",
+    "@nuxt/eslint": "^1.15.2",
     "@tailwindcss/vite": "^4.2.2",
     "eslint": "^9.39.1",
     "tailwindcss": "^4.2.2",
