@@ -55,6 +55,7 @@ export default defineEventHandler(async (event) => {
   let articleUrls: Array<{ loc: string, lastmod?: string, changefreq: 'weekly', priority: number }> = []
   try {
     const articles = await queryCollection(event, 'articles')
+      .where('draft', '=', false)
       .select('path', 'publishedAt', 'updatedAt')
       .all()
     articleUrls = articles.map(a => ({

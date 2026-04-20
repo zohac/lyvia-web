@@ -1,6 +1,7 @@
 ---
 title: "Bouffées de chaleur et ménopause : comprendre et agir au quotidien"
 description: "Pourquoi les bouffées de chaleur surviennent à la ménopause, combien de temps elles durent (7,4 ans en médiane), et que faire concrètement pour les atténuer. Sources médicales."
+draft: true
 publishedAt: "2026-04-17"
 updatedAt: "2026-04-20"
 category: "symptomes"

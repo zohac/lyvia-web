@@ -32,6 +32,7 @@ const canonicalHref = `${origin}/articles`
 
 const { data: articles } = await useAsyncData('articles-index', async () => {
   const list = await queryCollection('articles')
+    .where('draft', '=', false)
     .order('publishedAt', 'DESC')
     .all()
   return list

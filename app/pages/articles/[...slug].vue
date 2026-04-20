@@ -42,6 +42,7 @@ const articlePath = `/articles/${slug}`
 const { data: article } = await useAsyncData(`article-${slug}`, async () => {
   return await queryCollection('articles')
     .where('path', '=', articlePath)
+    .where('draft', '=', false)
     .first()
 })
 

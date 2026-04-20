@@ -24,7 +24,8 @@ export default defineContentConfig({
         sources: z.array(z.object({
           label: z.string(),
           url: z.string().url()
-        })).default([])
+        })).default([]),
+        draft: z.boolean().default(false)
       })
     })
   }

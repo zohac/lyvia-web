@@ -1,6 +1,7 @@
 ---
 title: "Signes de périménopause : à quel âge, combien de temps, comment savoir"
 description: "Périménopause (pré-ménopause) : âge de début (45-47 ans), les 9 signes les plus fréquents, combien de temps dure la transition, et quand en parler à un médecin."
+draft: true
 publishedAt: "2026-04-19"
 updatedAt: "2026-04-20"
 category: "bien-etre"
