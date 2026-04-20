@@ -71,6 +71,19 @@ export function shouldShowConsentBanner(consent: ConsentValue): boolean {
   return consent == null
 }
 
+// Race-aware: avoid showing the banner in `simple` mode before the tracking
+// orchestrator has resolved the domain context (platform vs white-label).
+// A white-label visitor should see the `full` (accept/reject) mode, not the
+// `simple` (acknowledge) mode — which would irreversibly post cookieConsent=acknowledged
+// before Google Ads is detected. See hotfix-13 review follow-up #4.
+export function shouldShowConsentBannerNow(
+  consent: ConsentValue,
+  trackingResolved: boolean
+): boolean {
+  if (!trackingResolved) return false
+  return shouldShowConsentBanner(consent)
+}
+
 export function getAcceptConsentValue(hasAds: boolean): ConsentValue {
   return hasAds ? 'all' : 'acknowledged'
 }

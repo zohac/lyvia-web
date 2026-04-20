@@ -54,7 +54,7 @@ const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
 
     <PublicFooter v-if="showFooter" />
     <ClientOnly>
-      <LazyCookieConsentBanner />
+      <LazyOrganismsCookieConsentBanner />
     </ClientOnly>
   </div>
 </template>
