@@ -1,6 +1,15 @@
 /**
  * Pure helpers for the Microsoft Clarity plugin.
  * Extracted per convention 5 (pure helpers testables pour composables/plugins).
+ *
+ * Consent policy (story 0.23):
+ * Microsoft Clarity is classified as analytics/functional tracking — IP anonymised
+ * by default, no advertising data sharing, automatic input masking. CNIL considers
+ * this category exempt from explicit consent (similar to cookieless Matomo).
+ *
+ * Therefore Clarity loads whenever a Clarity ID is configured, regardless of the
+ * cookie banner state or the presence of Google Ads. The Google Ads plugin keeps
+ * its own consent gate on `ad_storage`/`ad_user_data`/`ad_personalization`.
  */
 
 export const CLARITY_ID_REGEX = /^[a-z0-9]{6,20}$/
@@ -13,7 +22,6 @@ export type ClarityProfile = {
 export type ClarityResolution = {
   slug: string | null
   clarityId: string | null
-  googleAdsId: string | null
   profileResolved: boolean
 }
 
@@ -29,8 +37,6 @@ export type ClarityNuxtDataSources = {
 
 /**
  * Resolve Clarity config from NuxtData sources.
- * Returns both clarityId AND googleAdsId from the same profile
- * to avoid the race condition where Google Ads state hasn't been set yet.
  */
 export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityResolution {
   if (input.routeSlug) {
@@ -38,7 +44,6 @@ export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityRes
       return {
         slug: input.routeSlug,
         clarityId: input.routeProfile.microsoftClarityId ?? null,
-        googleAdsId: input.routeProfile.googleAdsId ?? null,
         profileResolved: true
       }
     }
@@ -46,7 +51,6 @@ export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityRes
     return {
       slug: input.routeSlug,
       clarityId: null,
-      googleAdsId: null,
       profileResolved: false
     }
   }
@@ -56,7 +60,6 @@ export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityRes
       return {
         slug: input.tenantHomeSlug,
         clarityId: input.tenantHomeProfile.microsoftClarityId ?? null,
-        googleAdsId: input.tenantHomeProfile.googleAdsId ?? null,
         profileResolved: true
       }
     }
@@ -64,7 +67,6 @@ export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityRes
     return {
       slug: input.tenantHomeSlug,
       clarityId: null,
-      googleAdsId: null,
       profileResolved: false
     }
   }
@@ -74,7 +76,6 @@ export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityRes
       return {
         slug: input.tenantDiscoverySlug,
         clarityId: input.tenantDiscoveryProfile.microsoftClarityId ?? null,
-        googleAdsId: input.tenantDiscoveryProfile.googleAdsId ?? null,
         profileResolved: true
       }
     }
@@ -82,7 +83,6 @@ export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityRes
     return {
       slug: input.tenantDiscoverySlug,
       clarityId: null,
-      googleAdsId: null,
       profileResolved: false
     }
   }
@@ -91,33 +91,11 @@ export function resolveClarityContext(input: ClarityNuxtDataSources): ClarityRes
     return {
       slug: input.tenantRouteSlug,
       clarityId: null,
-      googleAdsId: null,
       profileResolved: false
     }
   }
 
-  return { slug: null, clarityId: null, googleAdsId: null, profileResolved: false }
-}
-
-/**
- * Decide whether Clarity should load based on the consent context.
- *
- * - Simple mode (no Google Ads): Clarity loads directly (analytics/functional).
- * - Full mode (Google Ads present): Clarity loads only with 'all' or 'acknowledged' consent.
- *
- * CRITICAL: googleAdsId MUST come from the same profile resolution as clarityId,
- * NOT from useState('googleAdsId') which may not be populated yet on booking pages.
- */
-export function shouldLoadClarity(
-  googleAdsId: string | null,
-  cookieConsent: string | null
-): boolean {
-  if (!googleAdsId) {
-    // Simple mode: no Google Ads → load Clarity directly
-    return true
-  }
-  // Full mode: Google Ads present → respect cookie consent
-  return cookieConsent === 'all' || cookieConsent === 'acknowledged'
+  return { slug: null, clarityId: null, profileResolved: false }
 }
 
 /**

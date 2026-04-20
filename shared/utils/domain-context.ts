@@ -23,9 +23,9 @@ const DISALLOW_AUTH = [
   '/forgot-password'
 ] as const
 
-const DISALLOW_B2B_EXTRA = ['/coaches', '/coach/'] as const
+const DISALLOW_B2B_EXTRA = ['/coaches', '/coach/', '/articles'] as const
 
-const DISALLOW_WHITE_LABEL_EXTRA = ['/coaches'] as const
+const DISALLOW_WHITE_LABEL_EXTRA = ['/coaches', '/articles'] as const
 
 function matchesDomain(hostname: string, domain: string): boolean {
   if (!domain) return false

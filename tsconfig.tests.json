@@ -22,6 +22,8 @@
     "app/features/analytics/api/**/*.ts",
     "app/features/seo/schema-helpers.ts",
     "app/features/seo/b2c-landing-schema-helpers.ts",
+    "app/features/seo/articles-schema-helpers.ts",
+    "app/features/public/navigation/b2c-nav.ts",
     "app/features/seo/api/featured-provider.contract.ts",
     "app/features/waitlist/**/*.ts",
     "app/features/seo/api/public-provider-profile.contract.ts",

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { setPublicHeader } from '~/features/public/state/public-header.state'
+import { resolveB2CNavLinks } from '~/features/public/navigation/b2c-nav'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
@@ -133,12 +134,7 @@ function updatePublicHeader() {
       brandLabel: 'Keova',
       brandTo: '/',
       showBrandIcon: true,
-      navLinks: [
-        { label: 'Comprendre', href: '#education' },
-        { label: 'Symptômes', href: '#symptomes' },
-        { label: 'Spécialistes', href: '#specialistes' },
-        { label: 'FAQ', href: '#faq' }
-      ],
+      navLinks: resolveB2CNavLinks({ homeAnchorsAbsolute: false }),
       loginLabel: 'Se connecter',
       loginTo: '/login',
       ctaLabel: 'Trouver une spécialiste',

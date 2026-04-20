@@ -13,6 +13,7 @@ export default defineNuxtConfig({
         { name: 'Fraunces', preload: true }
       ]
     }],
+    '@nuxt/content',
     '@nuxtjs/seo',
     '@nuxtjs/critters'
   ],
@@ -128,6 +129,10 @@ export default defineNuxtConfig({
     // On platform, robots.txt already blocks it. No noindex routeRule needed.
     '/coach/**': {
       headers: { 'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=3600' }
+    },
+    // Blog articles (B2C only) — cache long, SSR (gated côté page)
+    '/articles/**': {
+      headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' }
     },
     // OG image generation route (Satori) — cache 1h, revalidate 24h (Story U1.3)
     '/__og_image__/**': {
