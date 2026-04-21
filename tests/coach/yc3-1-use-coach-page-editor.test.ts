@@ -60,6 +60,7 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     slug: 'sophie-jouan',
     defaultDiscoveryDurationMinutes: 30,
     discoveryBufferAfterMinutes: 15,
+    minBookingNoticeHours: 6,
     longBio: null,
     credentials: [],
     city: 'Paris',

@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { useProviderAccount } from '../../features/account/useProviderAccount'
 import { useProviderConsultationPricing } from '../../features/pricing/useProviderConsultationPricing'
+import { BOOKING_NOTICE_OPTIONS } from '../../features/scheduling/domain/booking-notice-options'
+import {
+  buildDiscoveryConfigPatch,
+  isDiscoveryConfigDirty,
+  pickDiscoveryConfig
+} from '../../features/scheduling/domain/discovery-config'
 import ProviderCreateConsultationPricePlanModal from '../../components/organisms/ProviderCreateConsultationPricePlanModal.vue'
 import ProviderEditConsultationPricePlanModal from '../../components/organisms/ProviderEditConsultationPricePlanModal.vue'
 
@@ -34,31 +40,36 @@ const discoveryBufferOptions = Array.from({ length: 13 }, (_, i) => ({
   value: i * 5
 }))
 
-const discoveryDuration = ref(providerAccount.account.value?.defaultDiscoveryDurationMinutes ?? 15)
-const discoveryBuffer = ref(providerAccount.account.value?.discoveryBufferAfterMinutes ?? 15)
+const bookingNoticeOptions = BOOKING_NOTICE_OPTIONS
 
-const savedDiscoveryValues = ref({
-  duration: discoveryDuration.value,
-  buffer: discoveryBuffer.value
-})
+const initialDiscoveryConfig = pickDiscoveryConfig(providerAccount.account.value)
+const discoveryDuration = ref(initialDiscoveryConfig.duration)
+const discoveryBuffer = ref(initialDiscoveryConfig.buffer)
+const discoveryBookingNotice = ref(initialDiscoveryConfig.minBookingNoticeHours)
+
+const savedDiscoveryValues = ref({ ...initialDiscoveryConfig })
 
 // Sync refs when account data changes (e.g. after retry) (RFU-2)
 watch(
   () => providerAccount.account.value,
   (account) => {
     if (!account) return
-    discoveryDuration.value = account.defaultDiscoveryDurationMinutes
-    discoveryBuffer.value = account.discoveryBufferAfterMinutes
-    savedDiscoveryValues.value = {
-      duration: account.defaultDiscoveryDurationMinutes,
-      buffer: account.discoveryBufferAfterMinutes
-    }
+    const next = pickDiscoveryConfig(account)
+    discoveryDuration.value = next.duration
+    discoveryBuffer.value = next.buffer
+    discoveryBookingNotice.value = next.minBookingNoticeHours
+    savedDiscoveryValues.value = { ...next }
   }
 )
 
+const currentDiscoveryValues = computed(() => ({
+  duration: discoveryDuration.value,
+  buffer: discoveryBuffer.value,
+  minBookingNoticeHours: discoveryBookingNotice.value
+}))
+
 const isDiscoveryDirty = computed(() =>
-  discoveryDuration.value !== savedDiscoveryValues.value.duration
-  || discoveryBuffer.value !== savedDiscoveryValues.value.buffer
+  isDiscoveryConfigDirty(currentDiscoveryValues.value, savedDiscoveryValues.value)
 )
 
 const discoverySummary = computed(() => {
@@ -75,17 +86,12 @@ async function saveDiscovery() {
   if (discoverySaving.value) return
 
   discoverySaving.value = true
-  const ok = await providerAccount.updateAccount({
-    defaultDiscoveryDurationMinutes: discoveryDuration.value,
-    discoveryBufferAfterMinutes: discoveryBuffer.value
-  })
+  const patch = buildDiscoveryConfigPatch(currentDiscoveryValues.value)
+  const ok = await providerAccount.updateAccount(patch)
   discoverySaving.value = false
 
   if (ok) {
-    savedDiscoveryValues.value = {
-      duration: discoveryDuration.value,
-      buffer: discoveryBuffer.value
-    }
+    savedDiscoveryValues.value = { ...currentDiscoveryValues.value }
     toast.add({
       title: 'Configuration découverte enregistrée',
       color: 'success'
@@ -288,6 +294,18 @@ async function retryLoad() {
             <USelect
               v-model="discoveryBuffer"
               :items="discoveryBufferOptions"
+              value-key="value"
+              class="w-full sm:w-64"
+            />
+          </UFormField>
+
+          <UFormField
+            label="Délai minimum avant réservation"
+            help="Les créneaux plus proches que ce délai ne seront pas proposés à vos client·e·s. Plus le délai est long, plus vous avez le temps de préparer chaque rendez-vous."
+          >
+            <USelect
+              v-model="discoveryBookingNotice"
+              :items="bookingNoticeOptions"
               value-key="value"
               class="w-full sm:w-64"
             />
