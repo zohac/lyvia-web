@@ -4,7 +4,8 @@ import test from 'node:test'
 import {
   buildDiscoveryConfigPatch,
   isDiscoveryConfigDirty,
-  pickDiscoveryConfig
+  pickDiscoveryConfig,
+  resolveDiscoverySaveOutcome
 } from '../../app/features/scheduling/domain/discovery-config'
 
 const fullAccount = {
@@ -73,4 +74,59 @@ test('buildDiscoveryConfigPatch: carries the chosen notice (24) through to the P
     minBookingNoticeHours: 24
   })
   assert.equal(patch.minBookingNoticeHours, 24)
+})
+
+// ────────────────────────────────────────────────────────────────────
+// resolveDiscoverySaveOutcome — Review AI 2026-04-22, Finding 1.
+// Before this helper, `saveDiscovery()` kept the user-entered value on
+// screen when the PATCH failed, silently lying about what was persisted.
+// These tests pin the rollback contract so a future refactor that drops
+// the helper (or only updates one ref) fails the suite.
+// ────────────────────────────────────────────────────────────────────
+
+test('resolveDiscoverySaveOutcome: on success promotes current values as the new saved snapshot', () => {
+  const saved = { duration: 15, buffer: 15, minBookingNoticeHours: 6 }
+  const current = { duration: 20, buffer: 10, minBookingNoticeHours: 12 }
+  const outcome = resolveDiscoverySaveOutcome(true, current, saved)
+
+  assert.equal(outcome.status, 'success')
+  assert.deepStrictEqual(outcome.displayValues, current)
+  assert.deepStrictEqual(outcome.savedValues, current)
+})
+
+test('resolveDiscoverySaveOutcome: on failure rolls the UI back to the last persisted values', () => {
+  const saved = { duration: 15, buffer: 15, minBookingNoticeHours: 6 }
+  const current = { duration: 20, buffer: 10, minBookingNoticeHours: 12 }
+  const outcome = resolveDiscoverySaveOutcome(false, current, saved)
+
+  // The provider must see `saved`, NEVER the rejected draft. If this
+  // inverts to `current`, the UI lies about what the backend accepted.
+  assert.equal(outcome.status, 'error')
+  assert.deepStrictEqual(outcome.displayValues, saved)
+  assert.deepStrictEqual(outcome.savedValues, saved)
+})
+
+test('resolveDiscoverySaveOutcome: rollback applies to ALL 3 fields together, not just minBookingNoticeHours', () => {
+  // A partial rollback (e.g. only minBookingNoticeHours reset, duration kept)
+  // would leave the page in an inconsistent state vs the backend. The page
+  // sends the 3 fields grouped in the PATCH, so all 3 must roll back together.
+  const saved = { duration: 15, buffer: 15, minBookingNoticeHours: 6 }
+  const current = { duration: 60, buffer: 60, minBookingNoticeHours: 48 }
+  const outcome = resolveDiscoverySaveOutcome(false, current, saved)
+
+  assert.equal(outcome.displayValues.duration, 15)
+  assert.equal(outcome.displayValues.buffer, 15)
+  assert.equal(outcome.displayValues.minBookingNoticeHours, 6)
+})
+
+test('resolveDiscoverySaveOutcome: returns fresh objects — caller cannot mutate the saved snapshot by aliasing', () => {
+  const saved = { duration: 15, buffer: 15, minBookingNoticeHours: 6 }
+  const current = { duration: 48, buffer: 0, minBookingNoticeHours: 48 }
+  const outcome = resolveDiscoverySaveOutcome(false, current, saved)
+
+  outcome.displayValues.minBookingNoticeHours = 99
+  outcome.savedValues.duration = 99
+
+  assert.equal(saved.minBookingNoticeHours, 6, 'saved must not alias displayValues')
+  assert.equal(saved.duration, 15, 'saved must not alias savedValues')
 })

@@ -5,7 +5,8 @@ import { BOOKING_NOTICE_OPTIONS } from '../../features/scheduling/domain/booking
 import {
   buildDiscoveryConfigPatch,
   isDiscoveryConfigDirty,
-  pickDiscoveryConfig
+  pickDiscoveryConfig,
+  resolveDiscoverySaveOutcome
 } from '../../features/scheduling/domain/discovery-config'
 import ProviderCreateConsultationPricePlanModal from '../../components/organisms/ProviderCreateConsultationPricePlanModal.vue'
 import ProviderEditConsultationPricePlanModal from '../../components/organisms/ProviderEditConsultationPricePlanModal.vue'
@@ -90,8 +91,21 @@ async function saveDiscovery() {
   const ok = await providerAccount.updateAccount(patch)
   discoverySaving.value = false
 
-  if (ok) {
-    savedDiscoveryValues.value = { ...currentDiscoveryValues.value }
+  const outcome = resolveDiscoverySaveOutcome(
+    ok,
+    currentDiscoveryValues.value,
+    savedDiscoveryValues.value
+  )
+
+  // Rollback on failure: refs reset to the last persisted snapshot so the
+  // USelects never keep a value the backend rejected. See Review AI
+  // 2026-04-22 Finding 1 on story 0-25.
+  discoveryDuration.value = outcome.displayValues.duration
+  discoveryBuffer.value = outcome.displayValues.buffer
+  discoveryBookingNotice.value = outcome.displayValues.minBookingNoticeHours
+  savedDiscoveryValues.value = outcome.savedValues
+
+  if (outcome.status === 'success') {
     toast.add({
       title: 'Configuration découverte enregistrée',
       color: 'success'

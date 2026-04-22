@@ -67,3 +67,46 @@ export function buildDiscoveryConfigPatch(
     minBookingNoticeHours: values.minBookingNoticeHours
   }
 }
+
+export type DiscoverySaveOutcome = {
+  status: 'success' | 'error'
+  displayValues: DiscoveryConfigValues
+  savedValues: DiscoveryConfigValues
+}
+
+/**
+ * Reconcile the scheduling page state after a PATCH attempt.
+ *
+ * On success, the current draft becomes the new persisted snapshot — both
+ * `displayValues` (the `USelect` v-model targets) and `savedValues` (the
+ * dirty-flag reference) are aligned on `current`.
+ *
+ * On failure, the UI rolls back to `saved` so the provider never sees a
+ * value the backend rejected (network error, 422 on the isIn enum, …).
+ * This is the direct fix for Finding 1 of the 2026-04-22 AI review on
+ * story 0-25: before this helper, `saveDiscovery()` kept the unpersisted
+ * draft on screen and pretended success visually while only the toast
+ * signalled the error.
+ *
+ * Why return a fresh object both times: the page assigns `savedValues`
+ * by reference, and tests assert that mutating the outcome never leaks
+ * back into the saved snapshot the caller passed in.
+ */
+export function resolveDiscoverySaveOutcome(
+  ok: boolean,
+  current: DiscoveryConfigValues,
+  saved: DiscoveryConfigValues
+): DiscoverySaveOutcome {
+  if (ok) {
+    return {
+      status: 'success',
+      displayValues: { ...current },
+      savedValues: { ...current }
+    }
+  }
+  return {
+    status: 'error',
+    displayValues: { ...saved },
+    savedValues: { ...saved }
+  }
+}
