@@ -34,7 +34,7 @@ const copyrightName = computed(() => {
       </footer>
     </div>
     <ClientOnly>
-      <LazyCookieConsentBanner />
+      <LazyOrganismsCookieConsentBanner />
     </ClientOnly>
   </div>
 </template>

@@ -21,7 +21,7 @@ useCommonLayoutHead()
       </div>
     </footer>
     <ClientOnly>
-      <LazyCookieConsentBanner />
+      <LazyOrganismsCookieConsentBanner />
     </ClientOnly>
   </div>
 </template>

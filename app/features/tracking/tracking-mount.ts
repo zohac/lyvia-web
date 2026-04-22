@@ -60,6 +60,8 @@ function toAdsConfig(p: TrackingProfile | null | undefined): AdsConfig | null {
 }
 
 export async function mountTracking(): Promise<void> {
+  const trackingResolvedState = useState<boolean>('tracking-resolved', () => false)
+
   const data = gatherNuxtData()
 
   // ── Google Ads ──
@@ -93,4 +95,9 @@ export async function mountTracking(): Promise<void> {
     const { mountMicrosoftClarity } = await import('~/features/clarity/microsoft-clarity-runtime')
     mountMicrosoftClarity({ context: clarityCtx })
   }
+
+  // Signal that the tracking context is fully resolved — CookieConsentBanner
+  // uses this to avoid a race where a white-label visitor would see the
+  // `simple` mode (acknowledge) before `googleAdsId` is set.
+  trackingResolvedState.value = true
 }

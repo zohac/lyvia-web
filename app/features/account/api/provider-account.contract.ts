@@ -41,6 +41,7 @@ export type ProviderAccountResponse = {
   slug: string
   defaultDiscoveryDurationMinutes: number
   discoveryBufferAfterMinutes: number
+  minBookingNoticeHours: number
   longBio: string | null
   credentials: CredentialItem[]
   city: string | null
@@ -76,6 +77,7 @@ export type UpdateProviderAccountRequest = {
   slug?: string
   defaultDiscoveryDurationMinutes?: number
   discoveryBufferAfterMinutes?: number
+  minBookingNoticeHours?: number
   longBio?: string | null
   credentials?: CredentialItem[]
   city?: string | null

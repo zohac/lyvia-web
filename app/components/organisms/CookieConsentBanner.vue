@@ -5,7 +5,7 @@ import {
   getBannerMode,
   getConsentCookieOptions,
   hasGoogleAdsConfig,
-  shouldShowConsentBanner,
+  shouldShowConsentBannerNow,
   toConsentSignals,
   type ConsentValue
 } from '~/features/consent/consent-logic'
@@ -13,7 +13,7 @@ import CookieSettingsModal from '~/components/molecules/CookieSettingsModal.vue'
 
 const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME, getConsentCookieOptions(import.meta.dev))
 
-const showBanner = ref(false)
+const dismissed = ref(false)
 const showSettings = ref(false)
 
 // Detect if Google Ads is active (set by google-ads.client.ts plugin)
@@ -22,12 +22,18 @@ const gtag = useState<((...args: unknown[]) => void) | null>('gtag', () => null)
 const hasAds = computed(() => hasGoogleAdsConfig(googleAdsId.value))
 const bannerMode = computed(() => getBannerMode(hasAds.value))
 
-// Only show banner client-side after hydration if no consent is stored
-onMounted(() => {
-  if (shouldShowConsentBanner(consent.value)) {
-    showBanner.value = true
-  }
-})
+// Race-aware: wait until the tracking orchestrator has resolved the domain
+// context (set to `true` at the end of `mountTracking()`). Otherwise a
+// white-label visitor could momentarily see the `simple` mode and click
+// "Compris", which posts cookieConsent=acknowledged irreversibly.
+// See hotfix-13 review follow-up #4.
+const trackingResolved = useState<boolean>('tracking-resolved', () => false)
+
+// Derived visibility: banner shows only when tracking is resolved AND no
+// consent is stored AND the user hasn't just dismissed it.
+const showBanner = computed(() =>
+  !dismissed.value && shouldShowConsentBannerNow(consent.value, trackingResolved.value)
+)
 
 function updateConsent(granted: boolean) {
   if (gtag.value) {
@@ -38,18 +44,18 @@ function updateConsent(granted: boolean) {
 function acceptAll() {
   consent.value = getAcceptConsentValue(hasAds.value)
   updateConsent(true)
-  showBanner.value = false
+  dismissed.value = true
 }
 
 function rejectAds() {
   consent.value = 'essential'
   updateConsent(false)
-  showBanner.value = false
+  dismissed.value = true
 }
 
 function acknowledge() {
   consent.value = 'acknowledged'
-  showBanner.value = false
+  dismissed.value = true
 }
 
 function openSettings() {
@@ -57,7 +63,7 @@ function openSettings() {
 }
 
 function onSettingsSaved() {
-  showBanner.value = false
+  dismissed.value = true
 }
 </script>
 

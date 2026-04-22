@@ -126,7 +126,7 @@ useCommonLayoutHead()
       </aside>
     </div>
     <ClientOnly>
-      <LazyCookieConsentBanner />
+      <LazyOrganismsCookieConsentBanner />
     </ClientOnly>
   </div>
 </template>
