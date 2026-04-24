@@ -54,6 +54,7 @@ function deriveDisplayState(response: GetNextClientConsultationResponse): Consul
       scheduledAt,
       durationMinutes: response.durationMinutes!,
       meetingLink: response.meetingLink,
+      providerDisplayName: response.providerDisplayName,
       // hasPendingRequest will be provided by backend in future, default to false
       hasPendingRequest: false,
       // Computed locally: can request if > 24h before appointment
@@ -68,7 +69,8 @@ function deriveDisplayState(response: GetNextClientConsultationResponse): Consul
     scheduledAt: new Date(response.scheduledAt!),
     durationMinutes: response.durationMinutes!,
     amountCents: response.amountCents!,
-    currency: response.currency ?? 'EUR'
+    currency: response.currency ?? 'EUR',
+    providerDisplayName: response.providerDisplayName
   }
 }
 

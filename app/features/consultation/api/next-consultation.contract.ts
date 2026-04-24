@@ -73,6 +73,12 @@ export type GetNextClientConsultationResponse = {
    * Present when the provider has added a link for the consultation.
    */
   meetingLink: string | null
+
+  /**
+   * Provider full display name (firstname + lastname), trimmed.
+   * Null when no consultation assigned or when provider has no name set.
+   */
+  providerDisplayName: string | null
 }
 
 /**
@@ -90,6 +96,7 @@ export type ConsultationDashboardState
       durationMinutes: number
       amountCents: number
       currency: 'EUR'
+      providerDisplayName: string | null
     }
     | {
       kind: 'payment_confirmed'
@@ -97,6 +104,7 @@ export type ConsultationDashboardState
       scheduledAt: Date
       durationMinutes: number
       meetingLink: string | null
+      providerDisplayName: string | null
       /** Whether a request is pending (to be added by backend) */
       hasPendingRequest: boolean
       /** Whether appointment is eligible for request (> 24h) - computed locally */
