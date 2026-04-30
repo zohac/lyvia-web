@@ -91,6 +91,13 @@ const leadMagnetError = ref<string | null>(null)
 // ── Testimonials form state ─────────────────────────
 const testimonialsForm = ref<TestimonialItem[]>([])
 
+// ── Email branding form state (white-label, story 0-20c) ─
+const brandingForm = reactive({
+  brandName: '',
+  logoUrl: ''
+})
+const brandingError = ref<string | null>(null)
+
 // ── Marketing form state (Google Ads + Clarity) ─────
 const marketingForm = reactive({
   googleAdsId: '' as string | undefined,
@@ -131,6 +138,21 @@ const longBioCharCount = computed(() => profileForm.longBio?.length ?? 0)
 const heroHeadlineCharCount = computed(() => heroHeadlineForm.heroHeadline?.length ?? 0)
 const urgencyCharCount = computed(() => urgencyForm.urgencyText?.length ?? 0)
 const leadMagnetTitleCharCount = computed(() => leadMagnetForm.title?.length ?? 0)
+const brandNameCharCount = computed(() => brandingForm.brandName?.length ?? 0)
+// Story 0-20c — accept empty (use platform fallback) or a syntactically valid https:// URL.
+const logoUrlValid = computed(() => {
+  const v = (brandingForm.logoUrl ?? '').trim()
+  if (v === '') return true
+  if (!v.startsWith('https://')) return false
+  try {
+    const parsed = new URL(v)
+    return parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+})
+const logoUrlPreviewSrc = computed(() => (logoUrlValid.value ? brandingForm.logoUrl.trim() : ''))
+const logoLoadFailed = ref(false)
 const criteria = computed(() => getPasswordCriteria(passwordForm.newPassword))
 const isStrong = computed(() => isPasswordStrong(passwordForm.newPassword))
 
@@ -190,6 +212,11 @@ function syncFormsFromAccount() {
   marketingForm.googleAdsId = acc.googleAdsId ?? undefined
   marketingForm.googleAdsConversionLabel = acc.googleAdsConversionLabel ?? undefined
   marketingForm.microsoftClarityId = acc.microsoftClarityId ?? undefined
+
+  // Email branding (white-label, story 0-20c)
+  brandingForm.brandName = acc.brandName ?? ''
+  brandingForm.logoUrl = acc.logoUrl ?? ''
+  logoLoadFailed.value = false
 }
 
 // ── Specialty tag handlers ──────────────────────────
@@ -519,6 +546,32 @@ function removeLeadMagnet() {
   leadMagnetForm.url = null
   leadMagnetForm.title = undefined
   leadMagnetFile.value = null
+}
+
+async function handleBrandingSubmit() {
+  brandingError.value = null
+  if (!logoUrlValid.value) {
+    brandingError.value = 'L\'URL du logo doit commencer par https:// et être une URL valide.'
+    return
+  }
+  const success = await updateAccount({
+    brandName: brandingForm.brandName.trim() || null,
+    logoUrl: brandingForm.logoUrl.trim() || null
+  })
+  if (success) {
+    logoLoadFailed.value = false
+    toast.add({ title: 'Informations enregistrées', color: 'primary' })
+  } else {
+    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
+  }
+}
+
+function onLogoPreviewError() {
+  logoLoadFailed.value = true
+}
+
+function onLogoUrlInput() {
+  logoLoadFailed.value = false
 }
 
 async function handleMarketingSubmit() {
@@ -1637,6 +1690,118 @@ async function handlePasswordChange() {
               type="submit"
               :loading="saving"
               :disabled="saving || !adsIdValid || !adsLabelValid || !clarityIdValid"
+              label="Enregistrer"
+            />
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 8d: Identité affichée dans vos emails (white-label, story 0-20c) -->
+      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+            <UIcon
+              name="i-lucide-mail-check"
+              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
+            />
+          </div>
+          <div>
+            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
+              Identité affichée dans vos emails
+            </h2>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Personnalisez le nom et le logo affichés dans les emails envoyés à vos clientes. Ces informations remplacent la marque Keova par défaut.
+            </p>
+          </div>
+        </div>
+
+        <SystemAlert
+          v-if="brandingError"
+          class="mt-4"
+          variant="error"
+          :description="brandingError"
+        />
+
+        <form
+          class="mt-6 grid gap-4"
+          @submit.prevent="handleBrandingSubmit"
+        >
+          <FormControl
+            id="brandName"
+            label="Nom de marque"
+            hint="Affiché dans le sujet, le titre et le pied de page des emails envoyés à vos clientes. Si vide, votre prénom + nom sera utilisé."
+            class="max-w-lg"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="brandingForm.brandName"
+                v-bind="inputAttrs"
+                placeholder="Ex: Sophie Jouan — Coach"
+                :maxlength="100"
+              />
+            </template>
+            <template #label-aside>
+              <span
+                class="text-xs"
+                :class="brandNameCharCount > 90 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
+              >
+                {{ brandNameCharCount }}/100
+              </span>
+            </template>
+          </FormControl>
+
+          <FormControl
+            id="logoUrl"
+            label="URL du logo"
+            hint="Logo affiché en en-tête de vos emails. Format recommandé : PNG 240×80 sur fond transparent. Si vide, le logo Keova est utilisé."
+            :error="!logoUrlValid ? 'L\'URL doit commencer par https:// et être valide.' : undefined"
+            class="max-w-lg"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="brandingForm.logoUrl"
+                v-bind="inputAttrs"
+                placeholder="https://assets.mon-site.fr/logo.png"
+                :maxlength="500"
+                type="url"
+                @input="onLogoUrlInput"
+              />
+            </template>
+          </FormControl>
+
+          <!-- Logo preview / fallback hint -->
+          <div class="max-w-lg">
+            <div
+              v-if="logoUrlPreviewSrc && !logoLoadFailed"
+              class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)] p-4"
+            >
+              <p class="mb-2 text-xs font-medium text-[color:var(--color-brand-muted)]">
+                Aperçu (en-tête email) :
+              </p>
+              <img
+                :src="logoUrlPreviewSrc"
+                alt="Aperçu du logo"
+                class="max-h-10 w-auto"
+                @error="onLogoPreviewError"
+              >
+            </div>
+            <SystemAlert
+              v-else-if="logoUrlPreviewSrc && logoLoadFailed"
+              variant="error"
+              description="Impossible de charger l'image. Vérifiez l'URL."
+            />
+            <SystemAlert
+              v-else
+              variant="info"
+              description="Le logo Keova sera utilisé par défaut."
+            />
+          </div>
+
+          <div>
+            <UButton
+              type="submit"
+              :loading="saving"
+              :disabled="saving || !logoUrlValid"
               label="Enregistrer"
             />
           </div>

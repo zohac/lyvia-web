@@ -66,6 +66,9 @@ export type ProviderAccountResponse = {
   howItWorksJson: HowItWorksStep[] | null
   educationalContentJson: EducationalContentJson | null
   problemStatementJson: ProblemStatementJson | null
+  // White-label email branding (story 0-20a/0-20c) — replaces "Keova" in transactional emails
+  brandName: string | null
+  logoUrl: string | null
   updatedAt?: string
 }
 
@@ -102,6 +105,9 @@ export type UpdateProviderAccountRequest = {
   howItWorksJson?: HowItWorksStep[] | null
   educationalContentJson?: EducationalContentJson | null
   problemStatementJson?: ProblemStatementJson | null
+  // White-label email branding (story 0-20a/0-20c)
+  brandName?: string | null
+  logoUrl?: string | null
 }
 
 // Re-export JSONB types for convenience

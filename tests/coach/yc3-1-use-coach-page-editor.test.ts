@@ -84,6 +84,8 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     howItWorksJson: null,
     educationalContentJson: null,
     problemStatementJson: null,
+    brandName: null,
+    logoUrl: null,
     updatedAt: '2026-04-12T10:00:00.000Z',
     ...overrides
   }
