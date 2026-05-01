@@ -64,8 +64,27 @@ export interface CoachSectionVisibility {
 
 type ProfileSource = MaybeRefOrGetter<PublicProviderProfile | null | undefined>
 
-export function useCoachSectionVisibility(source: ProfileSource): CoachSectionVisibility {
+export interface CoachSectionVisibilityOptions {
+  /**
+   * Story 0-28 — when true, the `show.*` flags reflect the toggle state ALONE
+   * (`isToggleOn(section)`). The `hasContent` check is bypassed so Sophie
+   * sees the section appear in the live preview as soon as she flips the
+   * switch, even before she has filled the JSON content. The page publique
+   * keeps the strict `toggle && hasContent` rule (default `previewMode=false`).
+   *
+   * Pricing (live data from consultationPlans/publicPrograms) is intentionally
+   * not gated through this composable — its `hasPricing` check stays in the
+   * template where it belongs.
+   */
+  previewMode?: MaybeRefOrGetter<boolean | undefined>
+}
+
+export function useCoachSectionVisibility(
+  source: ProfileSource,
+  options?: CoachSectionVisibilityOptions
+): CoachSectionVisibility {
   const profile = computed<PublicProviderProfile | null>(() => toValue(source) ?? null)
+  const previewMode = computed<boolean>(() => Boolean(toValue(options?.previewMode)))
 
   function isToggleOn(section: CoachConfigurableSection): boolean {
     const config = profile.value?.sectionsConfig
@@ -118,16 +137,20 @@ export function useCoachSectionVisibility(source: ProfileSource): CoachSectionVi
   })
 
   // --- Visibility = toggle AND content non-empty (P-Y3) ---
+  // Story 0-28 — `previewMode` short-circuits the hasContent check so Sophie
+  // sees the toggle effect immediately in the live preview, even before she
+  // has filled in the section content. The organisms (CoachPillars, CoachFaq,
+  // etc.) all guard against empty arrays/null content so this is safe.
 
-  const showBio = computed(() => isToggleOn('bio') && hasBio.value)
-  const showBenefits = computed(() => isToggleOn('benefits') && hasBenefits.value)
-  const showPillars = computed(() => isToggleOn('pillars') && hasPillars.value)
-  const showHowItWorks = computed(() => isToggleOn('howItWorks') && hasHowItWorks.value)
-  const showEducationalContent = computed(() => isToggleOn('educationalContent') && hasEducationalContent.value)
-  const showProblemStatement = computed(() => isToggleOn('problemStatement') && hasProblemStatement.value)
-  const showFaq = computed(() => isToggleOn('faq') && hasFaq.value)
-  const showMiniTestimonial = computed(() => isToggleOn('miniTestimonial') && hasTestimonials.value)
-  const showTestimonials = computed(() => isToggleOn('testimonials') && hasTestimonials.value)
+  const showBio = computed(() => isToggleOn('bio') && (previewMode.value || hasBio.value))
+  const showBenefits = computed(() => isToggleOn('benefits') && (previewMode.value || hasBenefits.value))
+  const showPillars = computed(() => isToggleOn('pillars') && (previewMode.value || hasPillars.value))
+  const showHowItWorks = computed(() => isToggleOn('howItWorks') && (previewMode.value || hasHowItWorks.value))
+  const showEducationalContent = computed(() => isToggleOn('educationalContent') && (previewMode.value || hasEducationalContent.value))
+  const showProblemStatement = computed(() => isToggleOn('problemStatement') && (previewMode.value || hasProblemStatement.value))
+  const showFaq = computed(() => isToggleOn('faq') && (previewMode.value || hasFaq.value))
+  const showMiniTestimonial = computed(() => isToggleOn('miniTestimonial') && (previewMode.value || hasTestimonials.value))
+  const showTestimonials = computed(() => isToggleOn('testimonials') && (previewMode.value || hasTestimonials.value))
 
   return {
     show: {

@@ -58,7 +58,12 @@ const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votr
 
 // --- Section visibility (P-Y3 : toggle actif ET contenu non vide) ---
 // Logique factorisée dans useCoachSectionVisibility (DRY, YC2.3).
-const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile)
+// Story 0-28 — passe `previewMode` pour que les sections togglées ON soient
+// rendues immédiatement dans l'aperçu, même sans contenu (les organisms
+// gèrent gracieusement les arrays vides).
+const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile, {
+  previewMode: () => props.previewMode
+})
 
 const showBio = show.bio
 const showProblemStatement = show.problemStatement

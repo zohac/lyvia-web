@@ -73,7 +73,12 @@ if (!props.previewMode) {
 }
 
 // --- Section visibility (P-Y3 via composable partagé YC2.3) ---
-const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile)
+// Story 0-28 — propage `previewMode` pour bypasser le hasContent check
+// dans la preview live (Sophie voit l'effet du toggle instant, même
+// sans contenu rempli).
+const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile, {
+  previewMode: () => props.previewMode
+})
 
 // --- Scroll reveal (SSR-safe — visible by default, hidden only after JS) ---
 // Story 0-28 — opt-out in preview mode (panel has its own scroll container).

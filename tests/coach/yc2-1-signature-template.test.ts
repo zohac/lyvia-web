@@ -92,8 +92,9 @@ describe('YC2.1 — P-Y3 visibility rule (F2)', () => {
       'Signature must import useCoachSectionVisibility composable'
     )
     assert.ok(
-      /useCoachSectionVisibility\(\s*\(\)\s*=>\s*props\.coachProfile\s*\)/.test(content),
-      'Signature must call useCoachSectionVisibility with a getter on props.coachProfile'
+      // Story 0-28 — second positional argument `{ previewMode }` accepted.
+      /useCoachSectionVisibility\(\s*\(\)\s*=>\s*props\.coachProfile\s*[,)]/.test(content),
+      'Signature must call useCoachSectionVisibility with a getter on props.coachProfile (and optional preview options)'
     )
   })
 
