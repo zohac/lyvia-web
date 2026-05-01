@@ -50,8 +50,9 @@ const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votr
 
 // --- Section visibility (P-Y3 : toggle actif ET contenu non vide) ---
 // Logique factorisée dans useCoachSectionVisibility (DRY, YC2.3).
-const { show } = useCoachSectionVisibility(() => props.coachProfile)
+const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile)
 
+const showBio = show.bio
 const showProblemStatement = show.problemStatement
 const showBenefits = show.benefits
 const showPillars = show.pillars
@@ -59,14 +60,16 @@ const showHowItWorks = show.howItWorks
 const showEducationalContent = show.educationalContent
 const showFaq = show.faq
 const showMiniTestimonial = show.miniTestimonial
+const showTestimonials = show.testimonials
 
 // --- Derived content ---
 
 const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
 
 // Testimonials — API only, no hardcoded fallback
+// `hasTestimonials` was previously used as v-if guard before story 0-26 round terrain ;
+// remplacé par `showTestimonials` (toggle + contenu, via useCoachSectionVisibility).
 const apiTestimonials = computed(() => props.coachProfile?.testimonialsJson ?? [])
-const hasTestimonials = computed(() => apiTestimonials.value.length > 0)
 const firstTestimonial = computed(() => apiTestimonials.value[0] ?? null)
 
 // FAQ items
@@ -94,8 +97,9 @@ onMounted(() => {
   faqDefaultValue.value = []
 })
 
-// Pricing & programs
+// Pricing & programs (Story 0-26 round terrain — gate par toggle ET contenu)
 const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
+const showPricing = computed(() => isToggleOn('pricing') && hasPricing.value)
 const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMinutes ?? 15)
 
 // Lead magnet
@@ -225,6 +229,7 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 5. À PROPOS (dark) ==================== -->
     <section
+      v-if="showBio"
       id="qui-suis-je"
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-[var(--color-crepuscule-950)] px-6 py-32 text-white sm:px-12 lg:px-20"
@@ -414,10 +419,12 @@ const heroProps = computed(() => ({
     </section>
 
     <!-- ==================== 6. TÉMOIGNAGES (beige) ==================== -->
-    <!-- Anchor wrapper always present so #temoignages nav link resolves -->
-    <div id="temoignages">
+    <!-- Story 0-26 round terrain — gate par toggle (sectionsConfig.testimonials !== false) -->
+    <div
+      v-if="showTestimonials"
+      id="temoignages"
+    >
       <CoachTestimonials
-        v-if="hasTestimonials"
         :testimonials="apiTestimonials"
       >
         <template #header>
@@ -436,7 +443,7 @@ const heroProps = computed(() => ({
 
     <!-- Mini-CTA after Témoignages -->
     <CoachInlineCta
-      v-if="hasTestimonials"
+      v-if="showTestimonials"
       :cta-to="ctaTo"
       :duration-minutes="discoveryDuration"
     />
@@ -464,10 +471,12 @@ const heroProps = computed(() => ({
     </CoachHowItWorks>
 
     <!-- ==================== 9. TARIFS & PROGRAMMES (blanc) ==================== -->
-    <!-- Anchor wrapper always present so #tarifs nav link resolves -->
-    <div id="tarifs">
+    <!-- Story 0-26 round terrain — gate par toggle (sectionsConfig.pricing !== false) ET contenu -->
+    <div
+      v-if="showPricing"
+      id="tarifs"
+    >
       <CoachPricing
-        v-if="hasPricing"
         :plans="consultationPlans"
         :programs="publicPrograms"
         :discovery-duration-minutes="discoveryDuration"
@@ -489,7 +498,7 @@ const heroProps = computed(() => ({
 
     <!-- Mini-CTA after Tarifs -->
     <CoachInlineCta
-      v-if="hasPricing"
+      v-if="showPricing"
       :cta-to="ctaTo"
       :duration-minutes="discoveryDuration"
     />

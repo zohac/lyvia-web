@@ -37,7 +37,12 @@ export interface CreateCoachPageEditorDependencies {
 
 export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
   const { providerAccount, listTemplates } = deps
-  const { account, loading, saving, error, fetchAccount, updateAccount, updateAccountDetailed } = providerAccount
+  const { account, loading, saving, error, fetchAccount, updateAccountDetailed } = providerAccount
+  // Story 0-26 — `updateAccount` exposé directement aux pages éditeur pour les sections
+  // rapatriées (bio/longBio, testimonials, branding) qui n'ont pas de save helper dédié.
+  // Garantit qu'un seul store providerAccount est utilisé (sinon 2 instances refresh
+  // indépendantes => formulaire vide après fetch).
+  const { updateAccount } = providerAccount
 
   const templates = ref<CoachPageTemplate[]>([])
   const templatesLoading = ref(false)
@@ -243,6 +248,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     loading: readonly(loading),
     saving: readonly(saving),
     error: readonly(error),
+    updateAccount, // Story 0-26 — exposé pour bio/testimonials/branding inline
     templates: readonly(templates),
     templatesLoading: readonly(templatesLoading),
     selectedTemplateId: readonly(selectedTemplateId),

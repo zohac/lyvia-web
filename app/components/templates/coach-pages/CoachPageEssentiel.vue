@@ -62,7 +62,7 @@ onBeforeUnmount(() => {
 })
 
 // --- Section visibility (P-Y3 via composable partagé YC2.3) ---
-const { show } = useCoachSectionVisibility(() => props.coachProfile)
+const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile)
 
 // --- Scroll reveal (SSR-safe — visible by default, hidden only after JS) ---
 const { reveal, isReady } = useScrollReveal()
@@ -79,17 +79,19 @@ const showFaq = show.faq
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMinutes ?? 15)
 
+// Pricing — gate par toggle ET contenu (Story 0-26 round terrain)
+const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
+const showPricing = computed(() => isToggleOn('pricing') && hasPricing.value)
+
 // --- Header navigation links (anchor scroll) ---
 const navLinks = computed(() => {
   const links: { label: string, href: string }[] = []
   if (showBenefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
   if (showBio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
-  if (hasPricing.value) links.push({ label: 'Tarifs', href: '#tarifs' })
+  if (showPricing.value) links.push({ label: 'Tarifs', href: '#tarifs' })
   if (showTestimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
   return links
 })
-
-const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
 
 const credentialLine = computed(() => {
   const creds = props.coachProfile?.credentials ?? []
@@ -436,12 +438,12 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 7. TARIFS ==================== -->
     <div
+      v-if="showPricing"
       id="tarifs"
       v-bind="reveal()"
       class="scroll-reveal"
     >
       <CoachPricing
-        v-if="hasPricing"
         :plans="consultationPlans"
         :programs="publicPrograms"
         :discovery-duration-minutes="discoveryDuration"

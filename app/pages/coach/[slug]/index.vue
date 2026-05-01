@@ -11,6 +11,7 @@ import { getDomainContext } from '#shared/utils/domain-context'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
+import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 import CoachPageHub from '~/components/templates/coach-pages/CoachPageHub.vue'
@@ -142,6 +143,25 @@ useSeoMeta({
 
 usePublicCanonicalHead(canonicalHref)
 
+// Story 0-26 round terrain — navLinks dérivés de la visibilité réelle des sections
+// (sectionsConfig + contenu non vide). Si Sophie désactive Tarifs côté éditeur,
+// le lien #tarifs disparaît du header. Pricing nécessite aussi la présence de plans
+// (consultation plans / programs) — ici on se base uniquement sur le toggle puisque
+// les plans ne sont pas chargés à ce niveau (chargés dans le template). Le rendu de
+// la section CoachPricing dans le template gate aussi sur hasPricing donc une nav-link
+// orpheline mènerait juste à une ancre absente — comportement acceptable v0.
+const { show, isToggleOn } = useCoachSectionVisibility(coachProfile)
+
+const coachNavLinks = computed(() => {
+  if (isHubPage.value) return [] // YC2.4: hub pages have no anchor sections
+  const links: { label: string, href: string }[] = []
+  if (show.benefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
+  if (isToggleOn('pricing')) links.push({ label: 'Tarifs', href: '#tarifs' })
+  if (show.testimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
+  if (show.bio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
+  return links
+})
+
 watchEffect(() => {
   setPublicHeader({
     variant: 'coach',
@@ -149,15 +169,7 @@ watchEffect(() => {
     brandLabel: 'Keova',
     brandTo: '/',
     showBrandIcon: true,
-    // YC2.4: hub pages have no anchor sections — skip navLinks
-    navLinks: isHubPage.value
-      ? []
-      : [
-          { label: 'Accompagnement', href: '#accompagnement' },
-          { label: 'Tarifs', href: '#tarifs' },
-          { label: 'Témoignages', href: '#temoignages' },
-          { label: 'Qui suis-je', href: '#qui-suis-je' }
-        ],
+    navLinks: coachNavLinks.value,
     loginLabel: 'Se connecter',
     loginTo: '/login',
     // F4: hub has no header CTA (2 CTAs already in the hub card)

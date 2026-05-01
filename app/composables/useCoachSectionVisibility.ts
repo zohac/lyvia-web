@@ -32,6 +32,7 @@ export type CoachConfigurableSection
     | 'miniTestimonial'
     | 'testimonials'
     | 'bio'
+    | 'pricing' // Story 0-26 round terrain — toggle pricing doit gater l'affichage public
 
 export interface CoachSectionVisibility {
   /** Chaque drapeau `show*` combine toggle actif ET contenu non vide (P-Y3). */

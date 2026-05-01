@@ -49,16 +49,23 @@ test('ALWAYS_ON sections stay limited to hero and disclaimer', () => {
 })
 
 test('inline editor sections stay aligned with the provider editor forms', () => {
+  // Story 0-26: bio + testimonials + branding migrated inline (rapatriement section externe).
   assert.deepStrictEqual(COACH_PAGE_INLINE_EDITOR_SECTIONS, [
     'pillars',
     'faq',
     'benefits',
     'howItWorks',
     'educationalContent',
-    'problemStatement'
+    'problemStatement',
+    'bio',
+    'testimonials',
+    'branding'
   ])
   assert.equal(isCoachPageInlineEditorSection('pillars'), true)
-  assert.equal(isCoachPageInlineEditorSection('bio'), false)
+  assert.equal(isCoachPageInlineEditorSection('bio'), true)
+  assert.equal(isCoachPageInlineEditorSection('testimonials'), true)
+  assert.equal(isCoachPageInlineEditorSection('branding'), true)
+  assert.equal(isCoachPageInlineEditorSection('hero'), false)
 })
 
 test('emotionalSupport is treated as a nested section, not a top-level toggle/editor card', () => {
@@ -97,16 +104,10 @@ test('editable sections exclude hero, disclaimer and nested emotionalSupport', (
   ])
 })
 
-test('external editor links point to the right screens', () => {
-  assert.deepStrictEqual(getCoachPageExternalEditorSection('bio'), {
-    label: 'Modifiable dans Mon compte',
-    to: '/provider/account'
-  })
-
-  assert.deepStrictEqual(getCoachPageExternalEditorSection('testimonials'), {
-    label: 'Modifiable dans Mon compte',
-    to: '/provider/account'
-  })
+test('external editor links point to the right screens (story 0-26: only pricing remains)', () => {
+  // Story 0-26: bio + testimonials are now inline editors → no external link.
+  assert.equal(getCoachPageExternalEditorSection('bio'), null)
+  assert.equal(getCoachPageExternalEditorSection('testimonials'), null)
 
   assert.deepStrictEqual(getCoachPageExternalEditorSection('pricing'), {
     label: 'Modifiable dans Mes tarifs',
