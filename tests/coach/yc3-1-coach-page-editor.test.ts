@@ -49,7 +49,8 @@ test('ALWAYS_ON sections stay limited to hero and disclaimer', () => {
 })
 
 test('inline editor sections stay aligned with the provider editor forms', () => {
-  // Story 0-26: bio + testimonials + branding migrated inline (rapatriement section externe).
+  // Story 0-26: bio + testimonials migrated inline. Branding is a global config card,
+  // not a template-driven section with a visibility toggle.
   assert.deepStrictEqual(COACH_PAGE_INLINE_EDITOR_SECTIONS, [
     'pillars',
     'faq',
@@ -58,13 +59,12 @@ test('inline editor sections stay aligned with the provider editor forms', () =>
     'educationalContent',
     'problemStatement',
     'bio',
-    'testimonials',
-    'branding'
+    'testimonials'
   ])
   assert.equal(isCoachPageInlineEditorSection('pillars'), true)
   assert.equal(isCoachPageInlineEditorSection('bio'), true)
   assert.equal(isCoachPageInlineEditorSection('testimonials'), true)
-  assert.equal(isCoachPageInlineEditorSection('branding'), true)
+  assert.equal(isCoachPageInlineEditorSection('branding'), false)
   assert.equal(isCoachPageInlineEditorSection('hero'), false)
 })
 

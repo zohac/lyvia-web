@@ -210,11 +210,15 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
   // (couvert aussi par yc3-1-coach-page-editor.test.ts mais vérifié ici aussi pour traçabilité)
   // ─────────────────────────────────────────────────────────────────────
 
-  test('AC-7: COACH_PAGE_INLINE_EDITOR_SECTIONS inclut bio + testimonials + branding (vérification page consume ces sections)', () => {
+  test('AC-7: la page consomme bio/testimonials inline, branding reste une config globale hors boucle sections', () => {
     const source = readCoachPage()
-    // La page utilise isCoachPageInlineEditorSection qui doit retourner true pour ces sections.
+    // La page utilise isCoachPageInlineEditorSection qui doit retourner true pour bio/testimonials.
     // Le rendu inline pour bio/testimonials est conditionné par hasEditor(section).
     assert.match(source, /section === 'bio'/)
     assert.match(source, /section === 'testimonials'/)
+    // Branding ne doit pas être réintroduit dans la boucle générique des sections templates :
+    // il a une card globale dédiée, sans switch "Visible sur ma page".
+    assert.match(source, /id="section-branding"/)
+    assert.equal(source.includes("section === 'branding'"), false)
   })
 })
