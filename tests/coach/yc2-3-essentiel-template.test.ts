@@ -596,8 +596,13 @@ describe('YC2.3 follow-up — micro-animations & scrolltelling', () => {
       'Essentiel must import useScrollReveal'
     )
     assert.ok(
-      /const\s*\{\s*reveal,\s*isReady\s*\}\s*=\s*useScrollReveal\(\)/.test(content),
-      'Essentiel must call useScrollReveal() and destructure { reveal, isReady }'
+      // Story 0-28 — useScrollReveal now accepts an options object; Essentiel
+      // forwards `{ disabled: props.previewMode }` to opt out under the live
+      // preview panel. The pre-0-28 form (`useScrollReveal()` with no args)
+      // is also accepted for backward compatibility on consumers that don't
+      // need the preview mode.
+      /const\s*\{\s*reveal,\s*isReady\s*\}\s*=\s*useScrollReveal\(/.test(content),
+      'Essentiel must call useScrollReveal(...) and destructure { reveal, isReady }'
     )
     assert.ok(
       /js-scroll-ready/.test(content),

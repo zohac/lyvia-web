@@ -42,9 +42,17 @@ const props = defineProps<{
   consultationPlans: ConsultationPricePlan[]
   isAuthenticated: boolean
   currentPath: string
+  /**
+   * Story 0-28 — when true, the template is mounted inside the live preview
+   * panel on `/provider/coach-page`. Disables side-effects (exit-intent,
+   * sticky CTA, scroll-reveal observer) and renders external CTAs inert so
+   * Sophie's editing actions never trigger booking/checkout/lead-magnet
+   * downloads.
+   */
+  previewMode?: boolean
 }>()
 
-const { reveal, isReady } = useScrollReveal()
+const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 
@@ -107,16 +115,20 @@ const leadMagnetUrl = computed(() => props.coachProfile?.leadMagnetUrl ?? null)
 const leadMagnetTitle = computed(() => props.coachProfile?.leadMagnetTitle ?? 'Guide gratuit')
 const hasLeadMagnet = computed(() => !!leadMagnetUrl.value)
 
-// Exit intent popup — desktop only
+// Exit intent popup — desktop only.
+// Story 0-28 — disabled in preview mode (Sophie editing must not trigger
+// the lead-magnet popup against her own page).
 const showExitPopup = ref(false)
-useExitIntent({
-  onTrigger: () => {
-    if (!hasLeadMagnet.value) return
-    if (import.meta.client && sessionStorage.getItem(`lead_magnet_downloaded_${props.tenant.slug}`)) return
-    showExitPopup.value = true
-  },
-  storageKey: `lead_magnet_popup_shown_${props.tenant.slug}`
-})
+if (!props.previewMode) {
+  useExitIntent({
+    onTrigger: () => {
+      if (!hasLeadMagnet.value) return
+      if (import.meta.client && sessionStorage.getItem(`lead_magnet_downloaded_${props.tenant.slug}`)) return
+      showExitPopup.value = true
+    },
+    storageKey: `lead_magnet_popup_shown_${props.tenant.slug}`
+  })
+}
 
 function closePopupAndScroll() {
   showExitPopup.value = false
@@ -609,10 +621,14 @@ const heroProps = computed(() => ({
     <AtomsMedicalDisclaimer />
 
     <!-- Spacer for mobile sticky CTA -->
-    <div class="h-16 md:hidden" />
+    <div
+      v-if="!previewMode"
+      class="h-16 md:hidden"
+    />
 
-    <!-- Sticky CTA mobile -->
+    <!-- Sticky CTA mobile — hidden in preview (Story 0-28). -->
     <StickyCtaMobile
+      v-if="!previewMode"
       cta-label="Réserver mon appel gratuit →"
       :cta-to="ctaTo"
     />

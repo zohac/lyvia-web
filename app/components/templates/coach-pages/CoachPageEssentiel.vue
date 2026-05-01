@@ -51,21 +51,33 @@ const props = defineProps<{
   consultationPlans: ConsultationPricePlan[]
   isAuthenticated: boolean
   currentPath: string
+  /**
+   * Story 0-28 — when true, the template is mounted inside the live preview
+   * panel on `/provider/coach-page`. Disables side-effects (sticky CTA,
+   * scroll-reveal observer, layout-header hide) so the hosting page keeps
+   * its own header intact and the editor never triggers booking flows.
+   */
+  previewMode?: boolean
 }>()
 
 // --- Hide the global PublicHeader — Essentiel owns its own header ---
 // Uses the parallel pattern of `hide-layout-footer` already present in public.vue.
+// Story 0-28 — skipped in preview mode so the hosting `/provider/coach-page`
+// keeps its provider header visible.
 const hideLayoutHeader = useState('hide-layout-header', () => false)
-hideLayoutHeader.value = true
-onBeforeUnmount(() => {
-  hideLayoutHeader.value = false
-})
+if (!props.previewMode) {
+  hideLayoutHeader.value = true
+  onBeforeUnmount(() => {
+    hideLayoutHeader.value = false
+  })
+}
 
 // --- Section visibility (P-Y3 via composable partagé YC2.3) ---
 const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile)
 
 // --- Scroll reveal (SSR-safe — visible by default, hidden only after JS) ---
-const { reveal, isReady } = useScrollReveal()
+// Story 0-28 — opt-out in preview mode (panel has its own scroll container).
+const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const showBio = show.bio
 const showBenefits = show.benefits
@@ -565,9 +577,14 @@ const heroProps = computed(() => ({
     <AtomsMedicalDisclaimer />
 
     <!-- Spacer for mobile sticky CTA -->
-    <div class="h-16 md:hidden" />
+    <div
+      v-if="!previewMode"
+      class="h-16 md:hidden"
+    />
 
+    <!-- Sticky CTA mobile — hidden in preview mode (Story 0-28). -->
     <StickyCtaMobile
+      v-if="!previewMode"
       cta-label="Réserver mon appel gratuit →"
       :cta-to="ctaTo"
     />
