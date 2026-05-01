@@ -68,6 +68,24 @@ const frameClasses = computed(() =>
     : 'overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]'
 )
 
+// Story 0-28 round terrain Simon — desktop preview = vue réduite zoom-out.
+// Le panel desktop fait ~50% du viewport (grid 50/50), trop étroit pour
+// rendre le template à sa taille naturelle. On applique un `zoom: 0.6`
+// pour montrer la page entière en miniature : Sophie voit la silhouette
+// globale (sections, hiérarchie, espacements) — la lisibilité fine n'est
+// pas l'objectif d'une preview, l'objectif est la sensation visuelle.
+//
+// `zoom` (CSS) réduit à la fois le rendu visuel ET le layout (contrairement
+// à `transform: scale()` qui ne change pas la hauteur layout). Supporté
+// nativement Chrome/Safari/Edge ; Firefox depuis 126 (2024). Fallback
+// sur Firefox <126 = no-zoom (graceful degradation, layout étroit
+// acceptable temporairement).
+//
+// Mobile : pas de zoom (la frame max-w-[375px] est déjà la cible).
+const contentZoomStyle = computed(() =>
+  props.device === 'desktop' ? { zoom: 0.6 } : undefined
+)
+
 function selectDevice(next: PreviewDevice): void {
   if (next !== props.device) emit('update:device', next)
 }
@@ -174,24 +192,29 @@ function selectDevice(next: PreviewDevice): void {
         :data-preview-device="device"
         inert
       >
-        <template v-if="coachProfile && tenant">
-          <component
-            :is="resolvedTemplate"
-            :tenant="tenant"
-            cta-to="#"
-            :coach-profile="coachProfile"
-            :public-programs="programs"
-            :consultation-plans="plans"
-            :is-authenticated="false"
-            :current-path="`/coach/${tenant.slug}`"
-            :preview-mode="true"
+        <div
+          :style="contentZoomStyle"
+          data-testid="coach-preview-content-zoom"
+        >
+          <template v-if="coachProfile && tenant">
+            <component
+              :is="resolvedTemplate"
+              :tenant="tenant"
+              cta-to="#"
+              :coach-profile="coachProfile"
+              :public-programs="programs"
+              :consultation-plans="plans"
+              :is-authenticated="false"
+              :current-path="`/coach/${tenant.slug}`"
+              :preview-mode="true"
+            />
+          </template>
+          <USkeleton
+            v-else
+            class="h-full min-h-[400px] w-full rounded-2xl"
+            aria-label="Chargement de l'aperçu"
           />
-        </template>
-        <USkeleton
-          v-else
-          class="h-full min-h-[400px] w-full rounded-2xl"
-          aria-label="Chargement de l'aperçu"
-        />
+        </div>
       </div>
     </div>
   </aside>

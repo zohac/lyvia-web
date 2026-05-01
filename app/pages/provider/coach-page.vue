@@ -660,7 +660,7 @@ function externalSection(section: string) {
     -->
     <div
       v-else
-      :class="previewOpen ? 'xl:grid xl:grid-cols-[3fr_2fr] xl:gap-8' : ''"
+      :class="previewOpen ? 'xl:grid xl:grid-cols-2 xl:gap-8' : ''"
       data-testid="coach-page-editor-grid"
     >
       <div

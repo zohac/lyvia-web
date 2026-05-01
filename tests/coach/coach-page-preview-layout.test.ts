@@ -40,13 +40,15 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
     )
   })
 
-  test('coach-page activates an xl:grid 60/40 split when preview is open', () => {
+  test('coach-page activates an xl:grid 50/50 split when preview is open', () => {
     const source = read(COACH_PAGE_PATH)
-    // The grid is conditional on `previewOpen` (state persisted via composable).
+    // Story 0-28 round terrain Simon — passé à 50/50 (xl:grid-cols-2) avec
+    // zoom-out desktop pour donner une vue réduite réaliste plutôt qu'un
+    // rendu compressé.
     assert.match(
       source,
-      /previewOpen\s*\?\s*'xl:grid xl:grid-cols-\[3fr_2fr\]\s+xl:gap-8'/,
-      'coach-page must activate xl:grid xl:grid-cols-[3fr_2fr] xl:gap-8 when previewOpen'
+      /previewOpen\s*\?\s*'xl:grid xl:grid-cols-2\s+xl:gap-8'/,
+      'coach-page must activate xl:grid xl:grid-cols-2 xl:gap-8 when previewOpen (50/50 split)'
     )
     // Editor column must declare min-w-0 to allow shrink under xl:grid.
     assert.match(
@@ -152,6 +154,29 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
       source,
       /cta-to="#"/,
       'panel must hardcode cta-to="#" so inert bypass does not navigate'
+    )
+  })
+
+  test('CoachPagePreviewPanel applies a desktop zoom-out (zoom: 0.6) for the reduced preview view', () => {
+    const source = read(PREVIEW_PANEL_PATH)
+    // Story 0-28 round terrain Simon — desktop preview rendue en miniature
+    // via CSS `zoom: 0.6`. Mobile : pas de zoom (frame déjà 375px).
+    assert.match(
+      source,
+      /props\.device\s*===\s*'desktop'\s*\?\s*\{\s*zoom:\s*0\.6\s*\}\s*:\s*undefined/,
+      'panel must apply zoom: 0.6 only when device==="desktop"'
+    )
+    assert.match(
+      source,
+      /data-testid="coach-preview-content-zoom"/,
+      'zoom wrapper must expose data-testid for browser verification'
+    )
+    // The zoom wrapper must be applied to the inert content, not the frame
+    // (otherwise the frame border would also be scaled down).
+    assert.match(
+      source,
+      /:style="contentZoomStyle"/,
+      'zoom must be applied via :style binding, not via class (zoom is a CSS property, not a Tailwind utility)'
     )
   })
 
