@@ -7,6 +7,7 @@ import {
   buildBookingBreadcrumbItems,
   buildPersonAddress,
   buildCredentialSchemaItems,
+  buildPersonLogo,
   mapProfileToSchemaRefs
 } from '../../app/features/seo/schema-helpers'
 import type { PublicProviderProfile } from '../../app/features/seo/api/public-provider-profile.contract'
@@ -76,7 +77,8 @@ describe('mapProfileToSchemaRefs', () => {
       specialties: createRef<string[]>([]),
       credentials: createRef<Array<{ title: string, institution?: string, year?: number }>>([]),
       sameAs: createRef<string[]>([]),
-      city: createRef<string | undefined>(undefined)
+      city: createRef<string | undefined>(undefined),
+      logoUrl: createRef<string | undefined>(undefined)
     }
   }
 
@@ -103,6 +105,7 @@ describe('mapProfileToSchemaRefs', () => {
     heroHeadline: null,
     testimonialsJson: [],
     secondaryPhotoUrl: null,
+    logoUrl: null,
     leadMagnetUrl: null,
     leadMagnetTitle: null,
     googleAdsId: null,
@@ -309,7 +312,8 @@ describe('mapProfileToSchemaRefs — YC2.4 hub sameAs', () => {
       specialties: createRef<string[]>([]),
       credentials: createRef<Array<{ title: string, institution?: string, year?: number }>>([]),
       sameAs: createRef<string[]>([]),
-      city: createRef<string | undefined>(undefined)
+      city: createRef<string | undefined>(undefined),
+      logoUrl: createRef<string | undefined>(undefined)
     }
   }
 
@@ -336,6 +340,7 @@ describe('mapProfileToSchemaRefs — YC2.4 hub sameAs', () => {
     heroHeadline: null,
     testimonialsJson: [],
     secondaryPhotoUrl: null,
+    logoUrl: null,
     leadMagnetUrl: null,
     leadMagnetTitle: null,
     googleAdsId: null,
@@ -386,5 +391,126 @@ describe('mapProfileToSchemaRefs — YC2.4 hub sameAs', () => {
     mapProfileToSchemaRefs(baseProfile, refs)
 
     assert.deepStrictEqual(refs.sameAs.value, ['https://linkedin.com/in/sophie'])
+  })
+})
+
+// --- buildPersonLogo (Story 0-27) ---
+
+describe('buildPersonLogo', () => {
+  test('returns ImageObject when logoUrl is set', () => {
+    const result = buildPersonLogo('https://cdn.example.com/logos/abc123.png')
+    assert.deepStrictEqual(result, {
+      '@type': 'ImageObject',
+      'url': 'https://cdn.example.com/logos/abc123.png'
+    })
+  })
+
+  test('returns undefined when logoUrl is undefined (Person.logo absent from JSON-LD)', () => {
+    const result = buildPersonLogo(undefined)
+    assert.equal(result, undefined)
+  })
+
+  test('returns undefined when logoUrl is empty string (no enrichment)', () => {
+    const result = buildPersonLogo('')
+    assert.equal(result, undefined)
+  })
+})
+
+// --- mapProfileToSchemaRefs.logoUrl (Story 0-27) ---
+
+describe('mapProfileToSchemaRefs — Story 0-27 logoUrl propagation', () => {
+  function createRef<T>(initial: T): Ref<T> {
+    return { value: initial } as Ref<T>
+  }
+
+  function createFullRefs() {
+    return {
+      name: createRef('Coach'),
+      bio: createRef<string | undefined>(undefined),
+      imageUrl: createRef<string | undefined>(undefined),
+      specialties: createRef<string[]>([]),
+      credentials: createRef<Array<{ title: string, institution?: string, year?: number }>>([]),
+      sameAs: createRef<string[]>([]),
+      city: createRef<string | undefined>(undefined),
+      logoUrl: createRef<string | undefined>(undefined)
+    }
+  }
+
+  function makeProfile(overrides?: Partial<PublicProviderProfile>): PublicProviderProfile {
+    return {
+      slug: 'sophie-jouan',
+      firstName: 'Sophie',
+      lastName: 'Jouan',
+      displayName: 'Sophie Jouan',
+      bio: null,
+      specialties: [],
+      timezone: 'Europe/Paris',
+      imageUrl: null,
+      heroImageUrl: null,
+      discoveryDurationMinutes: 15,
+      discoveryBufferAfterMinutes: 15,
+      isActive: true,
+      longBio: null,
+      credentials: [],
+      city: null,
+      region: null,
+      socialLinks: {},
+      publicPhone: null,
+      urgencyText: null,
+      heroHeadline: null,
+      testimonialsJson: [],
+      secondaryPhotoUrl: null,
+      logoUrl: null,
+      leadMagnetUrl: null,
+      leadMagnetTitle: null,
+      googleAdsId: null,
+      googleAdsConversionLabel: null,
+      microsoftClarityId: null,
+      templateCode: 'essentiel',
+      sectionsConfig: {},
+      pillarsJson: null,
+      faqJson: null,
+      benefitsJson: null,
+      howItWorksJson: null,
+      educationalContentJson: null,
+      problemStatementJson: null,
+      ...overrides
+    }
+  }
+
+  test('exposes profile.logoUrl into refs.logoUrl when set', () => {
+    const refs = createFullRefs()
+    const profile = makeProfile({ logoUrl: 'https://cdn.example.com/logos/sophie.png' })
+
+    mapProfileToSchemaRefs(profile, refs)
+
+    assert.equal(refs.logoUrl.value, 'https://cdn.example.com/logos/sophie.png')
+  })
+
+  test('leaves refs.logoUrl undefined when profile.logoUrl is null', () => {
+    const refs = createFullRefs()
+    const profile = makeProfile({ logoUrl: null })
+
+    mapProfileToSchemaRefs(profile, refs)
+
+    assert.equal(refs.logoUrl.value, undefined)
+  })
+
+  test('logoUrl ref is optional — backward-compatible refs without logoUrl', () => {
+    // Caller may omit `logoUrl` from refs (e.g. legacy callers).
+    const legacyRefs = {
+      name: createRef('Coach'),
+      bio: createRef<string | undefined>(undefined),
+      imageUrl: createRef<string | undefined>(undefined),
+      specialties: createRef<string[]>([]),
+      credentials: createRef<Array<{ title: string, institution?: string, year?: number }>>([]),
+      sameAs: createRef<string[]>([]),
+      city: createRef<string | undefined>(undefined)
+    }
+
+    const profile = makeProfile({ logoUrl: 'https://cdn.example.com/logos/sophie.png' })
+
+    // Must not throw when refs.logoUrl is undefined
+    assert.doesNotThrow(() => mapProfileToSchemaRefs(profile, legacyRefs))
   })
 })

@@ -16,6 +16,7 @@
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { useCoachLink } from '~/composables/useCoachLink'
+import CoachBrandLogo from '~/components/atoms/CoachBrandLogo.vue'
 
 const props = defineProps<{
   profile: PublicProviderProfile
@@ -44,6 +45,14 @@ const credentialChips = computed(() => props.profile.credentials?.slice(0, 3) ??
   <div class="min-h-screen bg-[color:var(--color-surface-page)]">
     <section class="px-6 py-24 sm:px-12 lg:px-20">
       <div class="mx-auto max-w-2xl text-center">
+        <!-- Brand logo (Story 0-27 Codex CR1-F1) — shared atom centered above
+          the photo when the provider has uploaded a brand_logo. -->
+        <CoachBrandLogo
+          :logo-url="profile.logoUrl"
+          :display-name="profile.displayName"
+          class="mx-auto mb-6"
+        />
+
         <!-- Photo -->
         <div class="mx-auto mb-8 size-32 overflow-hidden rounded-full border-2 border-[color:var(--color-border-subtle)] shadow-sm">
           <NuxtImg

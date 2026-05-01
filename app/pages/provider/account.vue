@@ -7,8 +7,12 @@ import {
   GOOGLE_ADS_ID_REGEX
 } from '../../features/consent/consent-logic'
 import { CLARITY_ID_REGEX } from '../../features/clarity/microsoft-clarity-helpers'
-import { apiFetch } from '../../services/api/apiFetch'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
+import {
+  uploadAsset,
+  formatUploadError,
+  validateFileUpload
+} from '../../features/assets/use-asset-upload'
 import type { CredentialItem, SocialLinks } from '../../features/account/api/provider-account.contract'
 import FormControl from '../../components/molecules/FormControl.vue'
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
@@ -208,34 +212,9 @@ function removeCredential(index: number) {
   credentialsForm.value.splice(index, 1)
 }
 
-// ── Shared upload helper (uses apiFetch for auth retry + error normalization) ──
-async function uploadAsset(type: string, file: File): Promise<{ url: string, thumbnailUrl?: string }> {
-  const formData = new FormData()
-  formData.append('type', type)
-  formData.append('file', file)
-  return apiFetch<{ url: string, thumbnailUrl?: string }>('/provider/assets/upload', {
-    method: 'POST',
-    body: formData
-  })
-}
-
-function formatUploadError(e: unknown): string {
-  const msg = e instanceof Error ? e.message : ''
-  if (msg.includes('INVALID_MIME')) return 'Format d\'image non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
-  return 'Erreur lors de l\'upload de la photo.'
-}
-
-function validateFileUpload(file: File, maxBytes: number, allowedTypes: string[]): string | null {
-  if (file.size > maxBytes) {
-    return `La taille maximale est de ${Math.round(maxBytes / 1024 / 1024)} Mo.`
-  }
-  if (!allowedTypes.includes(file.type)) {
-    return `Formats acceptés : ${allowedTypes.map(t => t.split('/')[1]?.toUpperCase()).join(', ')}.`
-  }
-  return null
-}
-
 // ── Photo upload handlers ───────────────────────────
+// uploadAsset / formatUploadError / validateFileUpload extracted to
+// ~/features/assets/use-asset-upload (Story 0-27 — DRY A25)
 function triggerFileInput() {
   fileInputRef.value?.click()
 }

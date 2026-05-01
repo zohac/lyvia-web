@@ -219,6 +219,6 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     // Branding ne doit pas être réintroduit dans la boucle générique des sections templates :
     // il a une card globale dédiée, sans switch "Visible sur ma page".
     assert.match(source, /id="section-branding"/)
-    assert.equal(source.includes("section === 'branding'"), false)
+    assert.equal(source.includes('section === \'branding\''), false)
   })
 })

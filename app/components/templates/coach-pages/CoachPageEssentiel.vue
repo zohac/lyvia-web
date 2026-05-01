@@ -147,6 +147,8 @@ const heroProps = computed(() => ({
   profilePhotoUrl: props.coachProfile?.imageUrl ?? null,
   heroPhotoUrl: props.coachProfile?.heroImageUrl ?? null,
   profilePhotoAlt: props.coachProfile?.imageUrl ? `${coachName.value}, spécialiste accompagnement ménopause` : null,
+  // Story 0-27 — propagation cross-template (rendu actuel : signature uniquement).
+  logoUrl: props.coachProfile?.logoUrl ?? null,
   discoveryDurationMinutes: props.coachProfile?.discoveryDurationMinutes ?? 15,
   urgencyText: props.coachProfile?.urgencyText ?? null,
   ctaTo: props.ctaTo,

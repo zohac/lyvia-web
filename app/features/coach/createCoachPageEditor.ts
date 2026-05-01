@@ -249,6 +249,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     saving: readonly(saving),
     error: readonly(error),
     updateAccount, // Story 0-26 — exposé pour bio/testimonials/branding inline
+    fetchAccount, // Story 0-27 — exposé pour refresh post-upload (brand_logo)
     templates: readonly(templates),
     templatesLoading: readonly(templatesLoading),
     selectedTemplateId: readonly(selectedTemplateId),

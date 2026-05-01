@@ -35,7 +35,12 @@ import {
   applySectionsConfigSnapshot
 } from '~/features/coach/section-config-rollback'
 import type { TestimonialItem } from '~/features/account/api/provider-account.contract'
-import { apiFetch } from '~/services/api/apiFetch'
+import {
+  uploadAsset,
+  formatUploadError,
+  validateFileUpload,
+  validateBrandLogoFile
+} from '~/features/assets/use-asset-upload'
 import FormControl from '~/components/molecules/FormControl.vue'
 import SystemAlert from '~/components/atoms/SystemAlert.vue'
 
@@ -59,6 +64,7 @@ const {
   saving,
   error: accountError,
   updateAccount,
+  fetchAccount,
   templates,
   templatesLoading,
   selectedTemplateId,
@@ -105,7 +111,8 @@ const TESTIMONIALS_MAX = 10
 // / CoachPageEssentiel priorise `longBio` pour cette section.
 const LONG_BIO_MAX_LENGTH = 5000
 const BRAND_NAME_MAX_LENGTH = 100
-const LOGO_URL_MAX_LENGTH = 500
+// Story 0-27 — `logoUrl` n'est plus saisi en URL libre, il est uploadé via le widget
+// (POST /provider/assets/upload type=brand_logo). La constante d'URL est supprimée.
 const TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500
 
 // ── Section labels ──
@@ -186,31 +193,8 @@ const secondaryPhotoUploading = ref(false)
 const secondaryPhotoError = ref<string | null>(null)
 const secondaryFileInputRef = ref<HTMLInputElement | null>(null)
 
-async function uploadAsset(type: string, file: File): Promise<{ url: string, thumbnailUrl?: string }> {
-  const formData = new FormData()
-  formData.append('type', type)
-  formData.append('file', file)
-  return apiFetch<{ url: string, thumbnailUrl?: string }>('/provider/assets/upload', {
-    method: 'POST',
-    body: formData
-  })
-}
-
-function formatUploadError(e: unknown): string {
-  const msg = e instanceof Error ? e.message : ''
-  if (msg.includes('INVALID_MIME')) return 'Format d\'image non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
-  return 'Erreur lors de l\'upload de la photo.'
-}
-
-function validateFileUpload(file: File, maxBytes: number, allowedTypes: string[]): string | null {
-  if (file.size > maxBytes) {
-    return `La taille maximale est de ${Math.round(maxBytes / 1024 / 1024)} Mo.`
-  }
-  if (!allowedTypes.includes(file.type)) {
-    return `Formats acceptés : ${allowedTypes.map(t => t.split('/')[1]?.toUpperCase()).join(', ')}.`
-  }
-  return null
-}
+// uploadAsset / formatUploadError / validateFileUpload extracted to
+// ~/features/assets/use-asset-upload (Story 0-27 — DRY A25)
 
 function triggerSecondaryFileInput() {
   secondaryFileInputRef.value?.click()
@@ -253,26 +237,34 @@ async function handleSecondaryPhotoUpload() {
 // ── Testimonials form state (rapatrié, AC-5) ──
 const testimonialsForm = ref<TestimonialItem[]>([])
 
-// ── Email branding form state (migré depuis 0-20c, AC-6) ──
+// ── Email branding form state (migré depuis 0-20c, refondu par 0-27) ──
+// `brandName` reste un champ texte libre. `logoUrl` n'est plus saisi en URL —
+// il est uploadé via le widget (POST /provider/assets/upload type=brand_logo)
+// et persisté côté backend dans `provider_profiles.logo_url`.
 const brandingForm = reactive({
-  brandName: '',
-  logoUrl: ''
+  brandName: ''
 })
 const brandingError = ref<string | null>(null)
-const logoLoadFailed = ref(false)
 const brandNameCharCount = computed(() => brandingForm.brandName?.length ?? 0)
-const logoUrlValid = computed(() => {
-  const v = (brandingForm.logoUrl ?? '').trim()
-  if (v === '') return true
-  if (!v.startsWith('https://')) return false
-  try {
-    const parsed = new URL(v)
-    return parsed.protocol === 'https:'
-  } catch {
-    return false
-  }
-})
-const logoUrlPreviewSrc = computed(() => (logoUrlValid.value ? brandingForm.logoUrl.trim() : ''))
+
+// Logo upload widget state (Story 0-27 — Convention 6 magic bytes côté backend,
+// validation client = taille + MIME type seulement, le backend rejette les SVG
+// et les magic bytes spoofed via UploadAssetUseCase.validateMimeType).
+const logoFile = ref<File | null>(null)
+const logoLocalPreview = ref<string | null>(null)
+const logoFileInputRef = ref<HTMLInputElement | null>(null)
+const logoUploading = ref(false)
+const logoUploadError = ref<string | null>(null)
+const logoDeleting = ref(false)
+
+// Source serveur (URL CDN persistée). Source unique de vérité = `account.value.logoUrl`.
+const logoServerUrl = computed(() => account.value?.logoUrl ?? null)
+// Preview composite : fichier local sélectionné en priorité, sinon URL serveur.
+const logoPreviewSrc = computed(
+  () => logoLocalPreview.value ?? logoServerUrl.value ?? ''
+)
+// Pour la status pill et l'info box "Keova par défaut".
+const hasBrandLogo = computed(() => Boolean(logoServerUrl.value))
 
 // Hydrate forms whenever the account store refreshes (initial load + post-save refetch)
 // Le store `account` ici est le MÊME que celui consommé par useCoachPageEditor (singleton
@@ -289,8 +281,8 @@ watch(
       ? acc.testimonialsJson.map(t => ({ ...t }))
       : []
     brandingForm.brandName = acc.brandName ?? ''
-    brandingForm.logoUrl = acc.logoUrl ?? ''
-    logoLoadFailed.value = false
+    // logoUrl n'est plus une form value : il est piloté par le widget upload
+    // et lu directement depuis `account.value.logoUrl` via `logoServerUrl`.
   },
   { immediate: true, deep: false }
 )
@@ -380,31 +372,103 @@ async function onSaveTestimonials() {
   })
 }
 
-// ── Branding inline editor — migré depuis /provider/account, AC-6 ──
+// ── Branding inline editor — migré depuis /provider/account, refondu par Story 0-27 ──
+// Le formulaire ne sauvegarde plus que `brandName` (le `logoUrl` est upload-driven).
 async function handleBrandingSubmit() {
   brandingError.value = null
-  if (!logoUrlValid.value) {
-    brandingError.value = 'L\'URL du logo doit commencer par https:// et être une URL valide.'
-    return
-  }
   const ok = await updateAccount({
-    brandName: brandingForm.brandName.trim() || null,
-    logoUrl: brandingForm.logoUrl.trim() || null
+    brandName: brandingForm.brandName.trim() || null
   })
   if (ok) {
-    logoLoadFailed.value = false
     toast.add({ title: 'Informations enregistrées', color: 'primary' })
   } else {
-    toast.add({ title: 'Erreur', description: accountError.value ?? 'Une erreur est survenue', color: 'error' })
+    toast.add({
+      title: 'Erreur',
+      description: accountError.value ?? 'Une erreur est survenue',
+      color: 'error'
+    })
   }
 }
 
-function onLogoPreviewError() {
-  logoLoadFailed.value = true
+// ── Brand logo upload (Story 0-27 AC-5) ──
+function triggerLogoFileInput() {
+  logoFileInputRef.value?.click()
 }
 
-function onLogoUrlInput() {
-  logoLoadFailed.value = false
+function onLogoFileSelected(event: Event) {
+  logoUploadError.value = null
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  const err = validateBrandLogoFile(file)
+  if (err) {
+    logoUploadError.value = err
+    target.value = ''
+    return
+  }
+
+  logoFile.value = file
+  // Revoke previous local preview URL to avoid memory leak
+  if (logoLocalPreview.value && logoLocalPreview.value.startsWith('blob:')) {
+    URL.revokeObjectURL(logoLocalPreview.value)
+  }
+  logoLocalPreview.value = URL.createObjectURL(file)
+}
+
+async function handleLogoUpload() {
+  if (!logoFile.value) return
+  logoUploading.value = true
+  logoUploadError.value = null
+  try {
+    await uploadAsset('brand_logo', logoFile.value)
+    // Backend a persisté provider_profiles.logo_url — on rafraîchit le store account
+    // pour exposer la nouvelle URL CDN à `logoServerUrl` + au reste de la page.
+    await fetchAccount()
+    // Cleanup local preview (URL CDN officielle prend le relais via account.value.logoUrl)
+    if (logoLocalPreview.value && logoLocalPreview.value.startsWith('blob:')) {
+      URL.revokeObjectURL(logoLocalPreview.value)
+    }
+    logoLocalPreview.value = null
+    logoFile.value = null
+    if (logoFileInputRef.value) logoFileInputRef.value.value = ''
+    toast.add({ title: 'Logo téléversé', color: 'primary' })
+  } catch (e: unknown) {
+    logoUploadError.value = formatUploadError(e, 'brand_logo')
+    toast.add({
+      title: 'Erreur',
+      description: logoUploadError.value,
+      color: 'error'
+    })
+  } finally {
+    logoUploading.value = false
+  }
+}
+
+async function handleLogoDelete() {
+  logoDeleting.value = true
+  logoUploadError.value = null
+  const ok = await updateAccount({ logoUrl: null })
+  logoDeleting.value = false
+  if (ok) {
+    toast.add({ title: 'Logo supprimé', color: 'primary' })
+  } else {
+    toast.add({
+      title: 'Erreur',
+      description: accountError.value ?? 'Une erreur est survenue',
+      color: 'error'
+    })
+  }
+}
+
+function cancelLogoSelection() {
+  if (logoLocalPreview.value && logoLocalPreview.value.startsWith('blob:')) {
+    URL.revokeObjectURL(logoLocalPreview.value)
+  }
+  logoLocalPreview.value = null
+  logoFile.value = null
+  logoUploadError.value = null
+  if (logoFileInputRef.value) logoFileInputRef.value.value = ''
 }
 
 // ── Pillars ──
@@ -602,11 +666,11 @@ function externalSection(section: string) {
             </div>
             <span
               class="shrink-0 rounded-full px-3 py-1 text-xs font-medium"
-              :class="(brandingForm.brandName?.trim() || brandingForm.logoUrl?.trim())
+              :class="(brandingForm.brandName?.trim() || hasBrandLogo)
                 ? 'bg-[color:var(--color-brand-primary)]/10 text-[color:var(--color-brand-primary)]'
                 : 'bg-[color:var(--color-surface-page)] text-[color:var(--color-brand-muted)]'"
             >
-              {{ (brandingForm.brandName?.trim() || brandingForm.logoUrl?.trim()) ? 'Personnalisée' : 'Keova par défaut' }}
+              {{ (brandingForm.brandName?.trim() || hasBrandLogo) ? 'Personnalisée' : 'Keova par défaut' }}
             </span>
           </div>
         </div>
@@ -623,11 +687,10 @@ function externalSection(section: string) {
             </p>
             <div class="flex h-10 items-center gap-3 rounded-md bg-[color:var(--color-surface-page)] px-3">
               <img
-                v-if="logoUrlPreviewSrc && !logoLoadFailed"
-                :src="logoUrlPreviewSrc"
+                v-if="logoPreviewSrc"
+                :src="logoPreviewSrc"
                 alt="Logo header"
                 class="h-6 w-auto max-w-[100px] object-contain"
-                @error="onLogoPreviewError"
               >
               <UIcon
                 v-else
@@ -650,8 +713,8 @@ function externalSection(section: string) {
             </p>
             <div class="flex h-10 items-center justify-center rounded-md bg-[color:var(--color-surface-highlight)] px-3">
               <img
-                v-if="logoUrlPreviewSrc && !logoLoadFailed"
-                :src="logoUrlPreviewSrc"
+                v-if="logoPreviewSrc"
+                :src="logoPreviewSrc"
                 alt="Logo email"
                 class="max-h-7 w-auto max-w-[180px] object-contain"
               >
@@ -674,16 +737,10 @@ function externalSection(section: string) {
             :description="brandingError"
           />
           <SystemAlert
-            v-else-if="logoUrlPreviewSrc && logoLoadFailed"
-            class="mb-4"
-            variant="error"
-            description="Impossible de charger l'image. Vérifiez l'URL."
-          />
-          <SystemAlert
-            v-else-if="!brandingForm.brandName?.trim() && !brandingForm.logoUrl?.trim()"
+            v-else-if="!brandingForm.brandName?.trim() && !hasBrandLogo"
             class="mb-4"
             variant="info"
-            description="Renseignez votre nom de marque et l'URL de votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut."
+            description="Renseignez votre nom de marque et téléversez votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut."
           />
 
           <div class="grid gap-4 sm:grid-cols-2">
@@ -711,35 +768,135 @@ function externalSection(section: string) {
               </template>
             </FormControl>
 
-            <FormControl
-              id="logoUrl"
-              label="URL du logo"
-              hint="PNG transparent recommandé, format 240×80px pour les emails."
-              :error="!logoUrlValid ? 'L\'URL doit commencer par https:// et être valide.' : undefined"
-            >
-              <template #default="{ inputAttrs }">
-                <UInput
-                  v-model="brandingForm.logoUrl"
-                  v-bind="inputAttrs"
-                  class="w-full"
-                  placeholder="https://assets.mon-site.fr/logo.png"
-                  :maxlength="LOGO_URL_MAX_LENGTH"
-                  type="url"
-                  @input="onLogoUrlInput"
-                />
-              </template>
-            </FormControl>
+            <!-- ── Logo upload widget (Story 0-27) ──
+              Pattern aligné sur secondary_photo (account.vue) — input file
+              caché + bouton + preview + actions Remplacer/Supprimer.
+            -->
+            <div class="space-y-2">
+              <label
+                for="brand-logo-upload"
+                class="block text-sm font-medium text-[color:var(--color-text-primary)]"
+              >Logo</label>
+              <p class="text-xs text-[color:var(--color-brand-secondary)]">
+                PNG transparent recommandé, max 1 Mo. Redimensionné automatiquement à 480×160 (ratio préservé).
+              </p>
+
+              <input
+                id="brand-logo-upload"
+                ref="logoFileInputRef"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                class="hidden"
+                data-testid="brand-logo-file-input"
+                @change="onLogoFileSelected"
+              >
+
+              <!-- État : preview locale (fichier sélectionné, pas encore uploadé) -->
+              <div
+                v-if="logoFile && logoLocalPreview"
+                class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-3"
+              >
+                <div class="flex items-center gap-3">
+                  <img
+                    :src="logoLocalPreview"
+                    alt="Aperçu logo"
+                    class="h-10 w-auto max-w-[120px] object-contain"
+                    data-testid="brand-logo-local-preview"
+                  >
+                  <span class="text-xs text-[color:var(--color-brand-muted)]">
+                    {{ logoFile.name }}
+                  </span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <UButton
+                    :loading="logoUploading"
+                    :disabled="logoUploading"
+                    color="primary"
+                    variant="solid"
+                    size="sm"
+                    icon="i-lucide-cloud-upload"
+                    @click="handleLogoUpload"
+                  >
+                    {{ logoUploading ? 'Téléversement…' : 'Téléverser' }}
+                  </UButton>
+                  <UButton
+                    variant="ghost"
+                    size="sm"
+                    :disabled="logoUploading"
+                    @click="cancelLogoSelection"
+                  >
+                    Annuler
+                  </UButton>
+                </div>
+              </div>
+
+              <!-- État : logo persisté en DB (pas de fichier en attente) -->
+              <div
+                v-else-if="hasBrandLogo"
+                class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-3"
+              >
+                <img
+                  :src="logoServerUrl ?? ''"
+                  alt="Logo actuel"
+                  class="h-10 w-auto max-w-[120px] object-contain"
+                  data-testid="brand-logo-current-preview"
+                >
+                <div class="flex flex-wrap gap-2">
+                  <UButton
+                    variant="outline"
+                    size="sm"
+                    icon="i-lucide-upload"
+                    type="button"
+                    @click="triggerLogoFileInput"
+                  >
+                    Remplacer
+                  </UButton>
+                  <UButton
+                    variant="ghost"
+                    size="sm"
+                    color="error"
+                    icon="i-lucide-trash-2"
+                    :loading="logoDeleting"
+                    :disabled="logoDeleting"
+                    @click="handleLogoDelete"
+                  >
+                    Supprimer
+                  </UButton>
+                </div>
+              </div>
+
+              <!-- État : aucun logo (call-to-upload) -->
+              <UButton
+                v-else
+                variant="outline"
+                size="sm"
+                icon="i-lucide-upload"
+                type="button"
+                data-testid="brand-logo-upload-cta"
+                @click="triggerLogoFileInput"
+              >
+                Téléverser un logo
+              </UButton>
+
+              <p
+                v-if="logoUploadError"
+                class="text-sm text-[color:var(--color-error)]"
+                data-testid="brand-logo-error"
+              >
+                {{ logoUploadError }}
+              </p>
+            </div>
           </div>
         </div>
 
-        <!-- Footer Save -->
+        <!-- Footer Save (Nom de marque uniquement — le logo est upload-driven) -->
         <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
           <UButton
             color="primary"
             variant="solid"
             size="sm"
             :loading="saving"
-            :disabled="saving || !logoUrlValid"
+            :disabled="saving"
             @click="handleBrandingSubmit"
           >
             Enregistrer

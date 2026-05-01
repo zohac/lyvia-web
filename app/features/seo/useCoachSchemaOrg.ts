@@ -1,7 +1,7 @@
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { apiFetch } from '~/services/api/apiFetch'
-import { buildCoachUrls, buildCredentialSchemaItems, buildPersonAddress, mapProfileToSchemaRefs } from '~/features/seo/schema-helpers'
+import { buildCoachUrls, buildCredentialSchemaItems, buildPersonAddress, buildPersonLogo, mapProfileToSchemaRefs } from '~/features/seo/schema-helpers'
 
 /**
  * Injects Person + ProfessionalService + BreadcrumbList schemas for coach pages.
@@ -31,6 +31,8 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
   const credentials = ref<Array<{ title: string, institution?: string, year?: number }>>([])
   const sameAs = ref<string[]>([])
   const city = ref<string | undefined>(undefined)
+  // Story 0-27 — brand logo URL for Person.logo enrichment.
+  const logoUrl = ref<string | undefined>(undefined)
 
   // Person schema (AC-1, AC-2) — single source of Person data on white-label
   // (useGlobalSchemaOrg no longer injects Person to avoid duplicates)
@@ -47,14 +49,16 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
     })
   ])
 
-  // hasCredential + address as raw JSON-LD merged into the same Person via #identity @id
+  // hasCredential + address + logo as raw JSON-LD merged into the same Person via #identity @id
   // Person.address.addressLocality for E-E-A-T locality (Story U1.1 — CR2)
+  // Person.logo for brand logo enrichment (Story 0-27)
   // Logic extracted into pure helpers (Convention 5) for testability
   useSchemaOrg([{
     '@type': 'Person',
     '@id': '#identity',
     'hasCredential': () => buildCredentialSchemaItems(credentials.value),
-    'address': () => buildPersonAddress(city.value)
+    'address': () => buildPersonAddress(city.value),
+    'logo': () => buildPersonLogo(logoUrl.value)
   }])
 
   // ProfessionalService as raw JSON-LD (AC-1, AC-2)
@@ -106,7 +110,7 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
   watchEffect(() => {
     mapProfileToSchemaRefs(
       profile.value,
-      { name, bio, imageUrl, specialties, credentials, sameAs, city },
+      { name, bio, imageUrl, specialties, credentials, sameAs, city, logoUrl },
       { whiteLabeldomain: options?.whiteLabeldomain }
     )
   })
