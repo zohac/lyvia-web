@@ -274,6 +274,7 @@ function selectDevice(next: PreviewDevice): void {
               composant que sur la vraie page publique → look identique. -->
             <PublicHeader
               :overrides="previewHeaderOverrides"
+              :floating="false"
               data-testid="coach-preview-header"
             />
 

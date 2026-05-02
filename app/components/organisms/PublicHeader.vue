@@ -3,16 +3,27 @@ import type { PublicHeaderState } from '../../features/public/state/public-heade
 import { usePublicHeaderState } from '../../features/public/state/public-header.state'
 
 /**
- * Story 0-28 round terrain Simon (2026-05-02) — `overrides` permet d'embed
- * `PublicHeader` dans un sous-arbre isolé (preview panel sur
- * `/provider/coach-page`) sans muter le state global Nuxt
- * (`usePublicHeaderState`). Quand fourni, chaque clé overlay le state
- * partagé pour CETTE instance uniquement. Comportement legacy inchangé
- * quand `overrides` est absent.
+ * Story 0-28 round terrain Simon (2026-05-02) :
+ *
+ * - `overrides` permet d'embed `PublicHeader` dans un sous-arbre isolé
+ *   (preview panel sur `/provider/coach-page`) sans muter le state global
+ *   Nuxt (`usePublicHeaderState`). Quand fourni, chaque clé overlay le
+ *   state partagé pour CETTE instance uniquement. Comportement legacy
+ *   strictement inchangé quand `overrides` est absent.
+ *
+ * - `floating` contrôle si le dock-style utilise `position: fixed` (default
+ *   `true`, comportement de la page publique) ou `position: relative`
+ *   (preview embed). Avec `fixed`, le header se positionne par rapport au
+ *   viewport principal — incompatible avec la preview panel qui veut un
+ *   header inline dans son scroll-area.
  */
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   overrides?: Partial<PublicHeaderState>
-}>()
+  floating?: boolean
+}>(), {
+  overrides: undefined,
+  floating: true
+})
 
 const sharedState = usePublicHeaderState()
 const headerState = computed(() => ({
@@ -46,7 +57,10 @@ function closeMobileMenu() {
     <!-- Dock-style floating header -->
     <nav
       v-if="isDockHeader"
-      class="fixed left-0 right-0 top-6 z-50 flex justify-center px-4"
+      :class="[
+        'left-0 right-0 z-50 flex justify-center px-4',
+        floating ? 'fixed top-6' : 'relative top-0 pt-6'
+      ]"
       aria-label="Navigation principale"
     >
       <div
@@ -218,7 +232,10 @@ function closeMobileMenu() {
     <!-- Classic sticky header -->
     <header
       v-else
-      class="sticky top-0 z-40 border-b border-[var(--color-crepuscule-100)]"
+      :class="[
+        'z-40 border-b border-[var(--color-crepuscule-100)]',
+        floating ? 'sticky top-0' : 'relative top-0'
+      ]"
     >
       <div class="bg-white/90 backdrop-blur-lg">
         <div class="mx-auto flex h-20 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
