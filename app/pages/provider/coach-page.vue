@@ -43,6 +43,10 @@ import {
 } from '~/features/assets/use-asset-upload'
 import { useCoachPagePreviewProfile } from '~/features/coach/useCoachPagePreviewProfile'
 import { useCoachPagePreviewState } from '~/features/coach/useCoachPagePreviewState'
+import { listMyConsultationPricePlans } from '~/features/pricing/services/provider-consultation-pricing.service'
+import { listMyPrograms } from '~/features/programs/services/provider-programs.service'
+import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
+import type { ProgramResponse, PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import CoachPagePreviewPanel from '~/components/organisms/CoachPagePreviewPanel.vue'
 import FormControl from '~/components/molecules/FormControl.vue'
 import SystemAlert from '~/components/atoms/SystemAlert.vue'
@@ -341,6 +345,45 @@ const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
     import('~/features/seo/api/public-provider-profile.contract').ProblemStatementJson | null
   >,
   templateCode: previewTemplateCode
+})
+
+// Story 0-28 round terrain — la preview affiche les vrais tarifs (price plans
+// + programmes actifs) du provider. On utilise les endpoints `/me/...` côté
+// provider, sans dépendre du `providerId` (UUID) qui n'est pas exposé par
+// `ProviderAccountResponse`. Les erreurs sont swallowed → le bloc Tarifs
+// retombe sur la card « Appel découverte gratuit » (déjà gérée).
+const previewConsultationPlans = ref<ConsultationPricePlan[]>([])
+const previewPublicPrograms = ref<PublicProgramListItem[]>([])
+
+function toPublicProgram(p: ProgramResponse): PublicProgramListItem {
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    totalSessions: p.totalSessions,
+    validityMonths: p.validityMonths,
+    priceCents: p.priceCents,
+    allowInstallments: p.allowInstallments,
+    installmentCount: p.installmentCount,
+    monthlyPriceCents: p.monthlyPriceCents,
+    discoveryGate: p.discoveryGate,
+    sessionDurationMinutes: p.sessionDurationMinutes
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([
+    listMyConsultationPricePlans()
+      .then((r) => { previewConsultationPlans.value = r.plans })
+      .catch(() => { previewConsultationPlans.value = [] }),
+    listMyPrograms()
+      .then((r) => {
+        previewPublicPrograms.value = r.programs
+          .filter(p => p.status === 'active')
+          .map(toPublicProgram)
+      })
+      .catch(() => { previewPublicPrograms.value = [] })
+  ])
 })
 
 // `useCoachPagePreviewState` persists open + device choice in localStorage.
@@ -1827,6 +1870,8 @@ function externalSection(section: string) {
         <CoachPagePreviewPanel
           :coach-profile="draftCoachProfile"
           :tenant="draftTenant"
+          :consultation-plans="previewConsultationPlans"
+          :public-programs="previewPublicPrograms"
           :device="previewDevice"
           :show-close="true"
           @update:device="setPreviewDevice"
@@ -1872,6 +1917,8 @@ function externalSection(section: string) {
         <CoachPagePreviewPanel
           :coach-profile="draftCoachProfile"
           :tenant="draftTenant"
+          :consultation-plans="previewConsultationPlans"
+          :public-programs="previewPublicPrograms"
           :device="previewDevice"
           :show-close="true"
           @update:device="setPreviewDevice"
