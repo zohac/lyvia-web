@@ -192,7 +192,28 @@ const heroProps = computed(() => ({
     <!-- ==================== 1. HERO ==================== -->
     <CoachEssentielHero v-bind="heroProps" />
 
-    <!-- ==================== 2. À PROPOS (crepuscule-50 bg — rupture visuelle "preuve") ==================== -->
+    <!-- ==================== 2. BÉNÉFICES — Ce que cela apporte (optionnel) ==================== -->
+    <div
+      v-if="showBenefits"
+      id="accompagnement"
+      v-bind="reveal()"
+      class="scroll-reveal"
+    >
+      <CoachTransformationBenefits :benefits="coachProfile?.benefitsJson ?? null">
+        <template #header>
+          <div class="text-center">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
+              Ce que l'accompagnement apporte
+            </span>
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
+              Un parcours adapté
+            </h2>
+          </div>
+        </template>
+      </CoachTransformationBenefits>
+    </div>
+
+    <!-- ==================== 3. À PROPOS — Qui suis-je (crepuscule-50 bg — rupture visuelle "preuve") ==================== -->
     <section
       v-if="showBio"
       id="qui-suis-je"
@@ -371,68 +392,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 3. BÉNÉFICES (optionnel) ==================== -->
-    <div
-      v-if="showBenefits"
-      id="accompagnement"
-      v-bind="reveal()"
-      class="scroll-reveal"
-    >
-      <CoachTransformationBenefits :benefits="coachProfile?.benefitsJson ?? null">
-        <template #header>
-          <div class="text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Ce que l'accompagnement apporte
-            </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Un parcours adapté
-            </h2>
-          </div>
-        </template>
-      </CoachTransformationBenefits>
-    </div>
-
-    <!-- ==================== 4. PILIERS (optionnel) ==================== -->
-    <div
-      v-if="showPillars"
-      v-bind="reveal()"
-      class="scroll-reveal"
-    >
-      <CoachPillars :pillars="coachProfile?.pillarsJson ?? null">
-        <template #header>
-          <div class="text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              L'approche
-            </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Les piliers de l'accompagnement
-            </h2>
-          </div>
-        </template>
-      </CoachPillars>
-    </div>
-
-    <!-- ==================== 5. COMMENT ÇA MARCHE (optionnel) ==================== -->
-    <div
-      v-if="showHowItWorks"
-      v-bind="reveal()"
-      class="scroll-reveal"
-    >
-      <CoachHowItWorks :steps="coachProfile?.howItWorksJson ?? null">
-        <template #header>
-          <div class="mb-12 text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Le parcours
-            </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Comment se déroule l'accompagnement
-            </h2>
-          </div>
-        </template>
-      </CoachHowItWorks>
-    </div>
-
-    <!-- ==================== 6. TÉMOIGNAGES (optionnel) ==================== -->
+    <!-- ==================== 4. TÉMOIGNAGES (optionnel) ==================== -->
     <div
       id="temoignages"
       v-bind="reveal()"
@@ -453,6 +413,46 @@ const heroProps = computed(() => ({
           </div>
         </template>
       </CoachTestimonials>
+    </div>
+
+    <!-- ==================== 5. PILIERS — L'accompagnement (optionnel) ==================== -->
+    <div
+      v-if="showPillars"
+      v-bind="reveal()"
+      class="scroll-reveal"
+    >
+      <CoachPillars :pillars="coachProfile?.pillarsJson ?? null">
+        <template #header>
+          <div class="text-center">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
+              L'approche
+            </span>
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
+              Les piliers de l'accompagnement
+            </h2>
+          </div>
+        </template>
+      </CoachPillars>
+    </div>
+
+    <!-- ==================== 6. COMMENT ÇA MARCHE — Le parcours (optionnel) ==================== -->
+    <div
+      v-if="showHowItWorks"
+      v-bind="reveal()"
+      class="scroll-reveal"
+    >
+      <CoachHowItWorks :steps="coachProfile?.howItWorksJson ?? null">
+        <template #header>
+          <div class="mb-12 text-center">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
+              Le parcours
+            </span>
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
+              Comment se déroule l'accompagnement
+            </h2>
+          </div>
+        </template>
+      </CoachHowItWorks>
     </div>
 
     <!-- ==================== 7. TARIFS ==================== -->

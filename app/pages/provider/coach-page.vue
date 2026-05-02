@@ -138,19 +138,21 @@ function sectionLabel(section: string): string {
   return SECTION_LABELS[section] ?? section
 }
 
-// ── Display order — aligné sur l'ordre de rendu de la page publique coach (PO 2026-05-01) ──
-// hero (always-on, top) → bio → problemStatement → benefits → pillars → howItWorks
-// → pricing → educationalContent → testimonials → faq → disclaimer (always-on, bottom)
+// ── Display order — aligné sur l'ordre de rendu de la page publique coach (PO 2026-05-02) ──
+// hero (always-on, top) → problemStatement → benefits (Ce que cela apporte) → bio
+// (Qui suis-je) → testimonials → pillars (L'accompagnement) → howItWorks (Le
+// parcours) → pricing → educationalContent (Comprendre) → faq → disclaimer
+// (always-on, bottom).
 const DISPLAY_SECTION_ORDER = [
   'hero',
-  'bio',
   'problemStatement',
   'benefits',
+  'bio',
+  'testimonials',
   'pillars',
   'howItWorks',
   'pricing',
   'educationalContent',
-  'testimonials',
   'faq',
   'disclaimer'
 ] as const

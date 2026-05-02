@@ -72,7 +72,9 @@ const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
 const showEducationalContent = show.educationalContent
 const showFaq = show.faq
-const showMiniTestimonial = show.miniTestimonial
+// Round terrain Simon (2026-05-02) — `showMiniTestimonial` retiré avec
+// la section MINI-TÉMOIGNAGE. Le premier témoignage est désormais visible
+// uniquement dans la section Témoignages globale.
 const showTestimonials = show.testimonials
 
 // --- Derived content ---
@@ -83,7 +85,6 @@ const problemStatement = computed(() => props.coachProfile?.problemStatementJson
 // `hasTestimonials` was previously used as v-if guard before story 0-26 round terrain ;
 // remplacé par `showTestimonials` (toggle + contenu, via useCoachSectionVisibility).
 const apiTestimonials = computed(() => props.coachProfile?.testimonialsJson ?? [])
-const firstTestimonial = computed(() => apiTestimonials.value[0] ?? null)
 
 // FAQ items
 const faqItems = computed<AccordionItem[]>(() => {
@@ -200,28 +201,12 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 3. MINI-TÉMOIGNAGE (beige) ==================== -->
-    <section
-      v-if="showMiniTestimonial && firstTestimonial"
-      v-bind="reveal()"
-      class="scroll-reveal bg-[var(--color-neutral-50)] px-6 py-20 sm:px-12 lg:px-20"
-    >
-      <div class="mx-auto max-w-3xl text-center">
-        <blockquote class="font-serif text-xl italic leading-relaxed text-[var(--color-crepuscule-700)] lg:text-2xl">
-          « {{ firstTestimonial.quote }} »
-        </blockquote>
-        <footer class="mt-6 text-sm text-[var(--color-text-muted)]">
-          <span class="font-medium text-[var(--color-crepuscule-950)]">
-            {{ firstTestimonial.firstName }}
-          </span>
-          <template v-if="firstTestimonial.age">
-            , {{ firstTestimonial.age }} ans
-          </template>
-        </footer>
-      </div>
-    </section>
-
-    <!-- ==================== 4. CE QUE L'ACCOMPAGNEMENT APPORTE (blanc) ==================== -->
+    <!-- ==================== 3. CE QUE CELA APPORTE — BÉNÉFICES (blanc) ==================== -->
+    <!-- Round terrain Simon (2026-05-02) — section mini-témoignage retirée
+      pour aligner l'ordre éditeur ↔ rendu : hero → problème → bénéfices →
+      bio → témoignages → piliers → parcours → tarifs → comprendre → faq.
+      Le premier témoignage apparaît désormais uniquement dans la section
+      Témoignages (#5), pas en accroche dupliquée. -->
     <div
       v-if="showBenefits"
       id="accompagnement"
@@ -246,7 +231,7 @@ const heroProps = computed(() => ({
       :duration-minutes="discoveryDuration"
     />
 
-    <!-- ==================== 5. À PROPOS (dark) ==================== -->
+    <!-- ==================== 4. À PROPOS — Qui suis-je (dark) ==================== -->
     <section
       v-if="showBio"
       id="qui-suis-je"
@@ -437,7 +422,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 6. TÉMOIGNAGES (beige) ==================== -->
+    <!-- ==================== 5. TÉMOIGNAGES (beige) ==================== -->
     <!-- Story 0-26 round terrain — gate par toggle (sectionsConfig.testimonials !== false) -->
     <div
       v-if="showTestimonials"
@@ -467,13 +452,13 @@ const heroProps = computed(() => ({
       :duration-minutes="discoveryDuration"
     />
 
-    <!-- ==================== 7. PILIERS (blanc) ==================== -->
+    <!-- ==================== 6. PILIERS — L'accompagnement (blanc) ==================== -->
     <CoachPillars
       v-if="showPillars"
       :pillars="coachProfile?.pillarsJson ?? null"
     />
 
-    <!-- ==================== 8. COMMENT ÇA MARCHE (beige) ==================== -->
+    <!-- ==================== 7. COMMENT ÇA MARCHE — Le parcours (beige) ==================== -->
     <CoachHowItWorks
       v-if="showHowItWorks"
       :steps="coachProfile?.howItWorksJson ?? null"
@@ -489,7 +474,7 @@ const heroProps = computed(() => ({
       </template>
     </CoachHowItWorks>
 
-    <!-- ==================== 9. TARIFS & PROGRAMMES (blanc) ==================== -->
+    <!-- ==================== 8. TARIFS & PROGRAMMES (blanc) ==================== -->
     <!-- Story 0-26 round terrain — gate par toggle (sectionsConfig.pricing !== false) ET contenu -->
     <div
       v-if="showPricing"
@@ -522,7 +507,7 @@ const heroProps = computed(() => ({
       :duration-minutes="discoveryDuration"
     />
 
-    <!-- ==================== 10. CONTENU ÉDUCATIF (beige) ==================== -->
+    <!-- ==================== 9. CONTENU ÉDUCATIF — Comprendre (beige) ==================== -->
     <CoachEducationalContent
       v-if="showEducationalContent"
       :content="coachProfile?.educationalContentJson ?? null"
@@ -538,7 +523,7 @@ const heroProps = computed(() => ({
       </template>
     </CoachEducationalContent>
 
-    <!-- ==================== 10b. LEAD CAPTURE (beige gradient) ==================== -->
+    <!-- ==================== 9b. LEAD CAPTURE (beige gradient) ==================== -->
     <CoachLeadCapture
       v-if="hasLeadMagnet"
       :slug="tenant.slug"
@@ -546,7 +531,7 @@ const heroProps = computed(() => ({
       :lead-magnet-title="leadMagnetTitle"
     />
 
-    <!-- ==================== 11. FAQ (blanc) ==================== -->
+    <!-- ==================== 10. FAQ (blanc) ==================== -->
     <section
       v-if="showFaq"
       v-bind="reveal()"
@@ -580,7 +565,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 12. CTA FINAL (gradient) ==================== -->
+    <!-- ==================== 11. CTA FINAL (gradient) ==================== -->
     <section
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-gradient-to-br from-[var(--color-brand-primary)] to-[var(--color-crepuscule-800)] px-6 py-32 sm:px-12 lg:px-20"
@@ -622,7 +607,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 13. DISCLAIMER MÉDICAL ==================== -->
+    <!-- ==================== 12. DISCLAIMER MÉDICAL ==================== -->
     <AtomsMedicalDisclaimer />
 
     <!-- Spacer for mobile sticky CTA -->
