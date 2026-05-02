@@ -13,7 +13,6 @@
  * Signature (via CoachHeroProfile) reste inchangé.
  */
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
-import CoachBrandLogo from '~/components/atoms/CoachBrandLogo.vue'
 
 const props = defineProps<CoachHeroProps>()
 
@@ -67,14 +66,6 @@ const initials = computed(() => {
           class="hero-anim lg:col-span-7"
           style="--hero-anim-delay: 0ms"
         >
-          <!-- Brand logo (Story 0-27 Codex CR1-F1) — shared atom rendered above
-            the eyebrow when the provider has uploaded a brand_logo. -->
-          <CoachBrandLogo
-            :logo-url="logoUrl"
-            :display-name="displayName"
-            class="mb-6"
-          />
-
           <!-- Eyebrow pill — dynamic from specialties[0] (hidden if none) -->
           <div
             v-if="eyebrowLabel"

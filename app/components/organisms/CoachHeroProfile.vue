@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
 import { usePublicHeaderState } from '~/features/public/state/public-header.state'
-import CoachBrandLogo from '~/components/atoms/CoachBrandLogo.vue'
 
 const props = defineProps<CoachHeroProps>()
 
@@ -66,14 +65,6 @@ const initials = computed(() => {
         <div class="grid gap-12 lg:grid-cols-12 lg:gap-8">
           <!-- Left — Typography -->
           <div class="flex flex-col justify-center lg:col-span-7">
-            <!-- Brand logo (Story 0-27) — atom shared with Essentiel + Hub
-              templates (Codex CR1-F1: avoid markup duplication). -->
-            <CoachBrandLogo
-              :logo-url="logoUrl"
-              :display-name="displayName"
-              class="mb-4"
-            />
-
             <!-- Coach name eyebrow -->
             <p class="hero-label mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[var(--color-brand-accent)]">
               {{ displayName }} - EI

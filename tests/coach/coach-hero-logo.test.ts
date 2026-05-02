@@ -67,50 +67,43 @@ describe('0-27 — Brand logo on public coach page (CoachHeroProfile + Schema.or
     assert.match(source, /fetchpriority="high"/)
   })
 
-  test('CoachHeroProfile (Signature) uses the shared CoachBrandLogo atom', () => {
+  test('CoachHeroProfile (Signature) does NOT render a local brand logo — header owns the logo (round 2026-05-02)', () => {
     const source = read(HERO_PATH)
-    assert.match(
-      source,
-      /import\s+CoachBrandLogo\s+from\s+'~\/components\/atoms\/CoachBrandLogo\.vue'/,
-      'Signature hero must import the shared atom'
-    )
-    assert.match(
-      source,
-      /<CoachBrandLogo[\s\S]*?:logo-url="logoUrl"[\s\S]*?:display-name="displayName"/,
-      'Signature hero must render <CoachBrandLogo :logo-url="logoUrl" :display-name="displayName">'
-    )
-    // No more local NuxtImg implementation duplicated (Codex CR1-F1)
+    // Story 0-28 round terrain Simon — le logo a été retiré du hero pour
+    // éviter la redondance avec le PublicHeader (qui rend déjà le logo
+    // white-label). Les hero ne doivent plus importer ni mounter
+    // `CoachBrandLogo`.
     assert.ok(
-      !/data-testid="coach-hero-brand-logo"/.test(source),
-      'Legacy local data-testid must be removed (replaced by shared atom)'
+      !/import\s+CoachBrandLogo/.test(source),
+      'Signature hero must NOT import CoachBrandLogo (logo lives in PublicHeader / preview header)'
+    )
+    assert.ok(
+      !/<CoachBrandLogo\b/.test(source),
+      'Signature hero must NOT render <CoachBrandLogo> (redundant with PublicHeader)'
     )
   })
 
-  test('CoachEssentielHero (Codex CR1-F1) renders the shared atom — was missing before fix', () => {
+  test('CoachEssentielHero does NOT render a local brand logo (round 2026-05-02)', () => {
     const source = read(ESSENTIEL_HERO_PATH)
-    assert.match(
-      source,
-      /import\s+CoachBrandLogo\s+from\s+'~\/components\/atoms\/CoachBrandLogo\.vue'/,
-      'Essentiel hero must import the shared atom'
+    assert.ok(
+      !/import\s+CoachBrandLogo/.test(source),
+      'Essentiel hero must NOT import CoachBrandLogo (logo lives in PublicHeader / preview header)'
     )
-    assert.match(
-      source,
-      /<CoachBrandLogo[\s\S]*?:logo-url="logoUrl"[\s\S]*?:display-name="displayName"/,
-      'Essentiel hero must render the shared atom — Codex CR1-F1 explicit demand'
+    assert.ok(
+      !/<CoachBrandLogo\b/.test(source),
+      'Essentiel hero must NOT render <CoachBrandLogo>'
     )
   })
 
-  test('CoachPageHub (Codex CR1-F1) renders the shared atom — was missing before fix', () => {
+  test('CoachPageHub does NOT render a local brand logo (round 2026-05-02)', () => {
     const source = read(HUB_TEMPLATE_PATH)
-    assert.match(
-      source,
-      /import\s+CoachBrandLogo\s+from\s+'~\/components\/atoms\/CoachBrandLogo\.vue'/,
-      'Hub template must import the shared atom'
+    assert.ok(
+      !/import\s+CoachBrandLogo/.test(source),
+      'Hub template must NOT import CoachBrandLogo (logo lives in PublicHeader / preview header)'
     )
-    assert.match(
-      source,
-      /<CoachBrandLogo[\s\S]*?:logo-url="profile\.logoUrl"[\s\S]*?:display-name="profile\.displayName"/,
-      'Hub template must render the shared atom with profile.logoUrl + profile.displayName — Codex CR1-F1 explicit demand'
+    assert.ok(
+      !/<CoachBrandLogo\b/.test(source),
+      'Hub template must NOT render <CoachBrandLogo>'
     )
   })
 

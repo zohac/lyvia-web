@@ -231,6 +231,58 @@ function selectDevice(next: PreviewDevice): void {
           data-testid="coach-preview-content-zoom"
         >
           <template v-if="coachProfile && tenant">
+            <!-- Mini-header simulant le PublicHeader (round terrain Simon) —
+              le logo du provider, son brandName et les liens essentiels
+              dans une barre flottante en haut du rendu. Non couplé à
+              `usePublicHeaderState` pour ne pas interférer avec la page
+              d'édition parent. -->
+            <div
+              data-testid="coach-preview-header"
+              class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]/95 px-6 py-4 backdrop-blur"
+            >
+              <span class="inline-flex items-center gap-3">
+                <NuxtImg
+                  v-if="coachProfile.logoUrl"
+                  :src="coachProfile.logoUrl"
+                  :alt="`Logo ${tenant.brand.displayName}`"
+                  class="h-10 w-auto max-w-[180px] object-contain"
+                  :width="240"
+                  :height="80"
+                  loading="eager"
+                />
+                <span
+                  v-else
+                  class="font-serif text-xl tracking-tight text-[color:var(--color-crepuscule-800)]"
+                >
+                  {{ tenant.brand.displayName }}
+                </span>
+              </span>
+              <nav
+                class="hidden items-center gap-6 md:flex"
+                aria-hidden="true"
+              >
+                <span class="text-sm font-medium text-[color:var(--color-crepuscule-700)]">
+                  Qui suis-je
+                </span>
+                <span class="text-sm font-medium text-[color:var(--color-crepuscule-700)]">
+                  Tarifs
+                </span>
+                <span class="text-sm font-medium text-[color:var(--color-crepuscule-700)]">
+                  FAQ
+                </span>
+              </nav>
+              <span class="inline-flex items-center gap-3">
+                <span class="hidden text-sm font-medium text-[color:var(--color-brand-primary)] md:inline">
+                  Se connecter
+                </span>
+                <span
+                  class="inline-flex items-center rounded-full bg-gradient-to-r from-[color:var(--color-brand-accent)] to-[color:var(--color-sunset-400)] px-5 py-2 text-sm font-semibold text-white shadow-md"
+                >
+                  Réserver
+                </span>
+              </span>
+            </div>
+
             <component
               :is="resolvedTemplate"
               :tenant="tenant"
