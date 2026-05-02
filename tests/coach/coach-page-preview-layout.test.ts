@@ -157,14 +157,17 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
     )
   })
 
-  test('CoachPagePreviewPanel applies a desktop zoom-out (zoom: 0.6) for the reduced preview view', () => {
+  test('CoachPagePreviewPanel applies a desktop zoom-out (zoom: 0.45) for the reduced preview view', () => {
     const source = read(PREVIEW_PANEL_PATH)
-    // Story 0-28 round terrain Simon — desktop preview rendue en miniature
-    // via CSS `zoom: 0.6`. Mobile : pas de zoom (frame déjà 375px).
+    // Story 0-28 round terrain Simon (2026-05-02) — desktop preview rendue
+    // en miniature via CSS `zoom: 0.45`. Mobile : pas de zoom (frame déjà
+    // 375px). Le ratio peut évoluer ; le test garde le marqueur device
+    // gate explicite + la valeur courante pour catch toute régression
+    // accidentelle vers la pleine taille.
     assert.match(
       source,
-      /props\.device\s*===\s*'desktop'\s*\?\s*\{\s*zoom:\s*0\.6\s*\}\s*:\s*undefined/,
-      'panel must apply zoom: 0.6 only when device==="desktop"'
+      /props\.device\s*===\s*'desktop'\s*\?\s*\{\s*zoom:\s*0\.45\s*\}\s*:\s*undefined/,
+      'panel must apply zoom: 0.45 only when device==="desktop"'
     )
     assert.match(
       source,

@@ -99,10 +99,15 @@ const frameClasses = computed(() =>
 
 // Story 0-28 round terrain Simon — desktop preview = vue réduite zoom-out.
 // Le panel desktop fait ~50% du viewport (grid 50/50), trop étroit pour
-// rendre le template à sa taille naturelle. On applique un `zoom: 0.6`
+// rendre le template à sa taille naturelle. On applique un `zoom: 0.45`
 // pour montrer la page entière en miniature : Sophie voit la silhouette
 // globale (sections, hiérarchie, espacements) — la lisibilité fine n'est
 // pas l'objectif d'une preview, l'objectif est la sensation visuelle.
+//
+// Round terrain 2 (2026-05-02) — passé de 0.6 à 0.45 (Simon : "augmente
+// encore le zoom out"). À 0.45, le rendu desktop tient confortablement
+// dans une largeur de panel ~500px tout en gardant le layout xl: actif
+// (les media queries restent calculées sur le viewport principal).
 //
 // `zoom` (CSS) réduit à la fois le rendu visuel ET le layout (contrairement
 // à `transform: scale()` qui ne change pas la hauteur layout). Supporté
@@ -112,7 +117,7 @@ const frameClasses = computed(() =>
 //
 // Mobile : pas de zoom (la frame max-w-[375px] est déjà la cible).
 const contentZoomStyle = computed(() =>
-  props.device === 'desktop' ? { zoom: 0.6 } : undefined
+  props.device === 'desktop' ? { zoom: 0.45 } : undefined
 )
 
 function selectDevice(next: PreviewDevice): void {
