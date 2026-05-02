@@ -1,7 +1,24 @@
 <script setup lang="ts">
+import type { PublicHeaderState } from '../../features/public/state/public-header.state'
 import { usePublicHeaderState } from '../../features/public/state/public-header.state'
 
-const headerState = usePublicHeaderState()
+/**
+ * Story 0-28 round terrain Simon (2026-05-02) — `overrides` permet d'embed
+ * `PublicHeader` dans un sous-arbre isolé (preview panel sur
+ * `/provider/coach-page`) sans muter le state global Nuxt
+ * (`usePublicHeaderState`). Quand fourni, chaque clé overlay le state
+ * partagé pour CETTE instance uniquement. Comportement legacy inchangé
+ * quand `overrides` est absent.
+ */
+const props = defineProps<{
+  overrides?: Partial<PublicHeaderState>
+}>()
+
+const sharedState = usePublicHeaderState()
+const headerState = computed(() => ({
+  ...sharedState.value,
+  ...(props.overrides ?? {})
+}))
 
 const showNavLinks = computed(() => headerState.value.navLinks.length > 0)
 const isDockHeader = computed(() => headerState.value.layoutStyle === 'dock')

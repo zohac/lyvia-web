@@ -29,6 +29,9 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { useCoachPageTemplate } from '~/composables/useCoachPageTemplate'
+import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
+import PublicHeader from '~/components/organisms/PublicHeader.vue'
+import type { PublicHeaderState } from '~/features/public/state/public-header.state'
 
 import type { PreviewDevice } from '~/features/coach/useCoachPagePreviewState'
 
@@ -96,6 +99,40 @@ const frameClasses = computed(() =>
     ? 'mx-auto max-w-[375px] overflow-hidden rounded-2xl border border-[color:var(--color-border-emphasis)] shadow-card bg-[color:var(--color-surface-card)]'
     : 'overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]'
 )
+
+// Story 0-28 round terrain Simon (2026-05-02) — la preview rend le VRAI
+// `PublicHeader` (dock-style flottant) avec les `overrides` calculés depuis
+// le draft profile. C'est le même composant que sur la page publique
+// réelle, donc tout changement visuel du header se propage à la preview
+// sans effort. La preview override `variant: 'white-label'` pour faire
+// remonter le logo provider (sur la plateforme `coach`, le logo affiché
+// est Keova par design — la preview montre "ce que verront ses clientes").
+const previewHeaderOverrides = computed<Partial<PublicHeaderState>>(() => {
+  if (!props.coachProfile || !props.tenant) return {}
+  // Build nav links from visible sections (mirrors /coach/[slug]/index.vue)
+  const { show } = useCoachSectionVisibility(() => props.coachProfile, { previewMode: () => true })
+  const navLinks: Array<{ label: string, href: string }> = []
+  if (show.benefits.value || show.pillars.value || show.howItWorks.value) {
+    navLinks.push({ label: 'Accompagnement', href: '#accompagnement' })
+  }
+  navLinks.push({ label: 'Tarifs', href: '#tarifs' })
+  if (show.testimonials.value) navLinks.push({ label: 'Témoignages', href: '#temoignages' })
+  if (show.bio.value) navLinks.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
+
+  return {
+    variant: 'white-label',
+    layoutStyle: 'dock',
+    brandLabel: props.tenant.brand.displayName,
+    brandLogoSrc: props.coachProfile.logoUrl ?? undefined,
+    brandTo: '#',
+    showBrandIcon: true,
+    navLinks,
+    loginLabel: 'Se connecter',
+    loginTo: '#',
+    ctaLabel: 'Réserver',
+    ctaTo: '#'
+  }
+})
 
 // Story 0-28 round terrain Simon — desktop preview = vue réduite zoom-out.
 // Le panel desktop fait ~50% du viewport (grid 50/50), trop étroit pour
@@ -231,57 +268,14 @@ function selectDevice(next: PreviewDevice): void {
           data-testid="coach-preview-content-zoom"
         >
           <template v-if="coachProfile && tenant">
-            <!-- Mini-header simulant le PublicHeader (round terrain Simon) —
-              le logo du provider, son brandName et les liens essentiels
-              dans une barre flottante en haut du rendu. Non couplé à
-              `usePublicHeaderState` pour ne pas interférer avec la page
-              d'édition parent. -->
-            <div
+            <!-- Story 0-28 round terrain Simon — on monte le VRAI
+              `PublicHeader` (dock-style flottant) avec ses overrides
+              locales pour ne pas muter le state global Nuxt. Même
+              composant que sur la vraie page publique → look identique. -->
+            <PublicHeader
+              :overrides="previewHeaderOverrides"
               data-testid="coach-preview-header"
-              class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]/95 px-6 py-4 backdrop-blur"
-            >
-              <span class="inline-flex items-center gap-3">
-                <NuxtImg
-                  v-if="coachProfile.logoUrl"
-                  :src="coachProfile.logoUrl"
-                  :alt="`Logo ${tenant.brand.displayName}`"
-                  class="h-10 w-auto max-w-[180px] object-contain"
-                  :width="240"
-                  :height="80"
-                  loading="eager"
-                />
-                <span
-                  v-else
-                  class="font-serif text-xl tracking-tight text-[color:var(--color-crepuscule-800)]"
-                >
-                  {{ tenant.brand.displayName }}
-                </span>
-              </span>
-              <nav
-                class="hidden items-center gap-6 md:flex"
-                aria-hidden="true"
-              >
-                <span class="text-sm font-medium text-[color:var(--color-crepuscule-700)]">
-                  Qui suis-je
-                </span>
-                <span class="text-sm font-medium text-[color:var(--color-crepuscule-700)]">
-                  Tarifs
-                </span>
-                <span class="text-sm font-medium text-[color:var(--color-crepuscule-700)]">
-                  FAQ
-                </span>
-              </nav>
-              <span class="inline-flex items-center gap-3">
-                <span class="hidden text-sm font-medium text-[color:var(--color-brand-primary)] md:inline">
-                  Se connecter
-                </span>
-                <span
-                  class="inline-flex items-center rounded-full bg-gradient-to-r from-[color:var(--color-brand-accent)] to-[color:var(--color-sunset-400)] px-5 py-2 text-sm font-semibold text-white shadow-md"
-                >
-                  Réserver
-                </span>
-              </span>
-            </div>
+            />
 
             <component
               :is="resolvedTemplate"
