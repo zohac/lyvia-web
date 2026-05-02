@@ -96,9 +96,13 @@ const showFaq = show.faq
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMinutes ?? 15)
 
-// Pricing — gate par toggle ET contenu (Story 0-26 round terrain)
+// Pricing — gate par toggle ET contenu (Story 0-26 round terrain).
+// Story 0-28 round terrain — en preview, on affiche le bloc dès que le toggle
+// est ON même sans plans/programs chargés : le composant `CoachPricing` rend
+// toujours la card "Appel découverte gratuit", suffisante pour matérialiser
+// la section dans l'éditeur. Sinon Sophie ne voit jamais l'effet du toggle.
 const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
-const showPricing = computed(() => isToggleOn('pricing') && hasPricing.value)
+const showPricing = computed(() => isToggleOn('pricing') && (props.previewMode || hasPricing.value))
 
 // --- Header navigation links (anchor scroll) ---
 const navLinks = computed(() => {
