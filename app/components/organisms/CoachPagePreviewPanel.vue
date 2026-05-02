@@ -100,6 +100,21 @@ const frameClasses = computed(() =>
     : 'overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]'
 )
 
+// Story 0-28 CR-1 (Codex review 2026-05-02) — sur la page publique, chaque
+// template décide qui rend le header :
+//   - Signature : utilise le `PublicHeader` global (Keova-style dock).
+//   - Essentiel : pose un `hideLayoutHeader = true` et rend son propre
+//     `<CoachEssentielHeader>` interne.
+// La preview doit refléter cette règle exactement. Sinon Essentiel affiche
+// deux headers superposés (le `PublicHeader` du panel + le header interne du
+// template), une page qui n'existe pas en réalité. On ne rend donc le
+// `PublicHeader` que pour les templates qui l'utilisent réellement (par
+// défaut tout sauf Essentiel — futurs templates rejoignent le même pattern
+// que Signature et héritent automatiquement du PublicHeader).
+const showPreviewPublicHeader = computed(() =>
+  (props.coachProfile?.templateCode || 'essentiel') !== 'essentiel'
+)
+
 // Story 0-28 round terrain Simon (2026-05-02) — la preview rend le VRAI
 // `PublicHeader` (dock-style flottant) avec les `overrides` calculés depuis
 // le draft profile. C'est le même composant que sur la page publique
@@ -271,8 +286,11 @@ function selectDevice(next: PreviewDevice): void {
             <!-- Story 0-28 round terrain Simon — on monte le VRAI
               `PublicHeader` (dock-style flottant) avec ses overrides
               locales pour ne pas muter le state global Nuxt. Même
-              composant que sur la vraie page publique → look identique. -->
+              composant que sur la vraie page publique → look identique.
+              CR-1 : conditionné sur le template (Essentiel pose son
+              propre header interne, on évite le double affichage). -->
             <PublicHeader
+              v-if="showPreviewPublicHeader"
               :overrides="previewHeaderOverrides"
               :floating="false"
               data-testid="coach-preview-header"

@@ -183,6 +183,56 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
     )
   })
 
+  test('CR-1 — CoachPagePreviewPanel renders PublicHeader conditionally (excluded for Essentiel which owns its own header)', () => {
+    const source = read(PREVIEW_PANEL_PATH)
+    // Conditional flag must exist + the <PublicHeader> must use v-if to skip
+    // for templates that own their internal header (Essentiel).
+    assert.match(
+      source,
+      /const\s+showPreviewPublicHeader\s*=\s*computed/,
+      'panel must declare a `showPreviewPublicHeader` computed gate'
+    )
+    assert.match(
+      source,
+      /\(props\.coachProfile\?\.templateCode[\s\S]*?\)\s*!==\s*'essentiel'/,
+      'gate must exclude templateCode === "essentiel" (which renders its own internal header)'
+    )
+    assert.match(
+      source,
+      /<PublicHeader[\s\S]*?v-if="showPreviewPublicHeader"/,
+      'PublicHeader render must be guarded by v-if="showPreviewPublicHeader"'
+    )
+  })
+
+  test('CR-4 — mobile slideover is fullscreen under xl (no sm:max-w-2xl cap)', () => {
+    const source = read(COACH_PAGE_PATH)
+    // The legacy `sm:max-w-2xl` cap must be gone (it clipped the preview on
+    // tablet to a partial column instead of fullscreen as AC-2 requires).
+    assert.ok(
+      !/sm:max-w-2xl/.test(source),
+      'coach-page must NOT cap the preview slideover at sm:max-w-2xl (CR-4)'
+    )
+    // The slideover must use a fullscreen content class.
+    assert.match(
+      source,
+      /<USlideover[\s\S]*?w-screen[\s\S]*?max-w-none/,
+      'coach-page slideover must use w-screen + max-w-none for fullscreen preview under xl'
+    )
+  })
+
+  test('CR-5 — layout test stays aligned with the AC: 50/50 grid (xl:grid-cols-2)', () => {
+    // Aligned with `coach-page activates an xl:grid 50/50 split when preview is open`
+    // above. This sentinel makes the contradiction explicit if a future patch
+    // re-introduces a 3fr_2fr (or any other ratio) without updating both the
+    // ticket and the assertion.
+    const source = read(COACH_PAGE_PATH)
+    assert.match(source, /xl:grid-cols-2/, 'CR-5: ticket + tests + code must agree on xl:grid-cols-2')
+    assert.ok(
+      !/xl:grid-cols-\[3fr_2fr\]/.test(source),
+      'CR-5: legacy 3fr_2fr ratio must be retired in favour of the documented 50/50'
+    )
+  })
+
   test('CoachPagePreviewPanel mobile frame uses Q2 brief style (max-w-375 + rounded-2xl + border-emphasis, no skeuomorphism)', () => {
     const source = read(PREVIEW_PANEL_PATH)
     // Mobile frame: max-w-[375px] + rounded-2xl + border-emphasis token

@@ -86,6 +86,9 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     problemStatementJson: null,
     brandName: null,
     logoUrl: null,
+    imageUrl: null,
+    heroImageUrl: null,
+    secondaryPhotoUrl: null,
     updatedAt: '2026-04-12T10:00:00.000Z',
     ...overrides
   }

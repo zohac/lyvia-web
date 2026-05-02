@@ -62,9 +62,26 @@ export interface CoachPagePreviewDeps {
    * template dans l'éditeur se reflète instantanément dans la preview.
    */
   templateCode: Ref<string | null | undefined>
+  /**
+   * Story 0-28 CR-3 — preview URL de la photo secondaire pendant l'upload
+   * (object URL local d'abord, puis URL S3 après succès). Quand non null,
+   * elle prend le dessus sur `account.secondaryPhotoUrl` pour donner un
+   * feedback visuel instant à Sophie. Default null/undefined si non passé.
+   */
+  secondaryPhotoPreview?: Ref<string | null>
 }
 
+/**
+ * Story 0-28 CR-2 — état "hydraté" d'un champ texte. Avant le premier
+ * commit du snapshot debounce, on a besoin de retomber sur la valeur
+ * serveur (sinon flash de string vide pendant 250ms). Après le premier
+ * commit, on respecte strictement la valeur saisie — y compris une
+ * string vide volontaire (Sophie a effacé "Paris", la preview doit
+ * vider la ville). Une distinction binaire `hydrated` couvre les deux
+ * cas sans heuristique sur le contenu.
+ */
 type DebouncedSnapshot = {
+  hydrated: boolean
   longBio: string
   city: string
   region: string
@@ -79,6 +96,7 @@ type DebouncedSnapshot = {
 
 function emptySnapshot(): DebouncedSnapshot {
   return {
+    hydrated: false,
     longBio: '',
     city: '',
     region: '',
@@ -115,6 +133,7 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
 
   function commitSnapshot(): void {
     debouncedSnapshot.value = {
+      hydrated: true,
       longBio: deps.bioForm.longBio,
       city: deps.bioForm.city,
       region: deps.bioForm.region,
@@ -163,6 +182,12 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
 
     const snap = debouncedSnapshot.value
 
+    // Story 0-28 CR-3 — la photo secondaire prend la valeur locale (object
+    // URL d'upload-en-cours, puis URL S3 après succès) si fournie, sinon
+    // celle du serveur. Permet à Sophie de voir le résultat de son upload
+    // en preview avant même le retour de l'API.
+    const localSecondaryPhoto = deps.secondaryPhotoPreview?.value ?? null
+
     return {
       slug: acc.slug,
       firstName: acc.firstname,
@@ -173,22 +198,29 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       bio: acc.bio,
       specialties: acc.specialties ?? [],
       timezone: 'Europe/Paris',
-      imageUrl: null,
-      heroImageUrl: null,
+      // Story 0-28 CR-3 — photos serveur copiées dans le draft preview
+      // pour que la preview reflète la vraie page publique (le hero
+      // photo, la mini-photo, la photo "Qui suis-je").
+      imageUrl: acc.imageUrl,
+      heroImageUrl: acc.heroImageUrl,
       discoveryDurationMinutes: acc.defaultDiscoveryDurationMinutes,
       discoveryBufferAfterMinutes: acc.discoveryBufferAfterMinutes,
       isActive: true,
-      // Free-text overlay (debounced)
-      longBio: snap.longBio || acc.longBio,
+      // Story 0-28 CR-2 — free-text overlay : avant hydratation on retombe
+      // sur la valeur serveur (évite le flash empty pendant 250ms au
+      // premier paint), après hydratation on respecte STRICTEMENT le
+      // snapshot — Sophie peut donc vider un champ et la preview reflète
+      // l'effacement (au lieu de réafficher l'ancienne valeur serveur).
+      longBio: snap.hydrated ? snap.longBio : acc.longBio,
       credentials: acc.credentials ?? [],
-      city: snap.city || acc.city,
-      region: snap.region || acc.region,
+      city: snap.hydrated ? snap.city : acc.city,
+      region: snap.hydrated ? snap.region : acc.region,
       socialLinks: acc.socialLinks ?? {},
       publicPhone: acc.publicPhone,
       urgencyText: acc.urgencyText,
       heroHeadline: acc.heroHeadline,
       testimonialsJson: snap.testimonials,
-      secondaryPhotoUrl: null,
+      secondaryPhotoUrl: localSecondaryPhoto ?? acc.secondaryPhotoUrl,
       logoUrl: acc.logoUrl,
       leadMagnetUrl: acc.leadMagnetUrl,
       leadMagnetTitle: acc.leadMagnetTitle,

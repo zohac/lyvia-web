@@ -344,7 +344,12 @@ const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
   problemStatementForm: problemStatementForm as unknown as import('vue').Ref<
     import('~/features/seo/api/public-provider-profile.contract').ProblemStatementJson | null
   >,
-  templateCode: previewTemplateCode
+  templateCode: previewTemplateCode,
+  // Story 0-28 CR-3 — propage la photo secondaire en cours d'upload (object
+  // URL local) ou tout juste persistée (URL S3 retournée par l'upload). Sans
+  // ça la preview gardait `null` même après que Sophie ait sélectionné un
+  // fichier ou terminé son upload.
+  secondaryPhotoPreview
 })
 
 // Story 0-28 round terrain — la preview affiche les vrais tarifs (price plans
@@ -1907,11 +1912,14 @@ function externalSection(section: string) {
       Aperçu
     </UButton>
 
-    <!-- Slideover mobile / tablet (Story 0-28) — plein écran -->
+    <!-- Slideover mobile / tablet (Story 0-28) — plein écran sous xl.
+         CR-4 (Codex 2026-05-02) : on retire le plafond max-width tablette qui
+         clippait la preview en colonne partielle. AC-2 demande explicitement
+         plein écran sur tout viewport < 1280px. -->
     <USlideover
       v-model:open="previewMobileOpen"
       side="right"
-      :ui="{ content: 'w-full sm:max-w-2xl' }"
+      :ui="{ content: 'w-screen max-w-none' }"
     >
       <template #content>
         <CoachPagePreviewPanel

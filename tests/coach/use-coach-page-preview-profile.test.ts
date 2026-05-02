@@ -67,16 +67,30 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     problemStatementJson: null,
     brandName: null,
     logoUrl: null,
+    imageUrl: null,
+    heroImageUrl: null,
+    secondaryPhotoUrl: null,
     ...overrides
   }
 }
 
 type Harness = CoachPagePreviewDeps
 
+/**
+ * Story 0-28 — mirrors `useCoachPageEditor.init()` behaviour in real usage:
+ * the bioForm is seeded from the server account values. The composable does
+ * NOT do the seeding itself (separation of concerns) — the test must mimic
+ * that contract or it tests an unreachable scenario (account loaded but form
+ * never initialised).
+ */
 function createHarness(account: ProviderAccountResponse | null): Harness {
   return {
     account: ref(account) as Ref<ProviderAccountResponse | null>,
-    bioForm: reactive({ longBio: '', city: '', region: '' }),
+    bioForm: reactive({
+      longBio: account?.longBio ?? '',
+      city: account?.city ?? '',
+      region: account?.region ?? ''
+    }),
     testimonialsForm: ref<TestimonialItem[]>([]) as Ref<TestimonialItem[]>,
     brandingForm: reactive({ brandName: '' }),
     sectionsConfig: reactive<Record<string, boolean>>({}),
@@ -86,7 +100,8 @@ function createHarness(account: ProviderAccountResponse | null): Harness {
     howItWorksForm: ref<HowItWorksStep[]>([]) as Ref<HowItWorksStep[]>,
     educationalContentForm: ref<EducationalContentJson | null>(null) as Ref<EducationalContentJson | null>,
     problemStatementForm: ref<ProblemStatementJson | null>(null) as Ref<ProblemStatementJson | null>,
-    templateCode: ref<string | null>('essentiel') as Ref<string | null | undefined>
+    templateCode: ref<string | null>('essentiel') as Ref<string | null | undefined>,
+    secondaryPhotoPreview: ref<string | null>(null)
   }
 }
 
@@ -266,6 +281,142 @@ describe('useCoachPagePreviewProfile', () => {
         // Null fallback to 'essentiel' (registry default).
         ;(h.templateCode as { value: string | null | undefined }).value = null
         assert.equal(draftCoachProfile.value?.templateCode, 'essentiel')
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  test('CR-2 — clearing longBio in the form propagates the empty value to the draft after debounce (no fallback to server)', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount({ longBio: 'Bio serveur originale' }))
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(draftCoachProfile.value?.longBio, 'Bio serveur originale')
+
+        // Sophie efface volontairement le champ.
+        h.bioForm.longBio = ''
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(
+          draftCoachProfile.value?.longBio,
+          '',
+          'longBio cleared by the user must clear in the preview, not fall back to the server value'
+        )
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  test('CR-2 — clearing city in the form propagates the empty value (Paris does not reappear)', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount({ city: 'Paris' }))
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(draftCoachProfile.value?.city, 'Paris')
+
+        h.bioForm.city = ''
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(
+          draftCoachProfile.value?.city,
+          '',
+          'city cleared in editor must clear in preview (no || fallback to server)'
+        )
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  test('CR-2 — clearing region in the form propagates the empty value', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount({ region: 'Île-de-France' }))
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(draftCoachProfile.value?.region, 'Île-de-France')
+
+        h.bioForm.region = ''
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(
+          draftCoachProfile.value?.region,
+          '',
+          'region cleared in editor must clear in preview'
+        )
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  test('CR-3 — server photos (imageUrl, heroImageUrl, secondaryPhotoUrl) are copied into the draft preview', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount({
+          imageUrl: 'https://cdn.example.com/photo.jpg',
+          heroImageUrl: 'https://cdn.example.com/hero.jpg',
+          secondaryPhotoUrl: 'https://cdn.example.com/secondary.jpg'
+        }))
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+
+        assert.equal(
+          draftCoachProfile.value?.imageUrl,
+          'https://cdn.example.com/photo.jpg',
+          'imageUrl from account must surface in draft (preview parity with public page)'
+        )
+        assert.equal(
+          draftCoachProfile.value?.heroImageUrl,
+          'https://cdn.example.com/hero.jpg',
+          'heroImageUrl from account must surface in draft'
+        )
+        assert.equal(
+          draftCoachProfile.value?.secondaryPhotoUrl,
+          'https://cdn.example.com/secondary.jpg',
+          'secondaryPhotoUrl from account must surface in draft'
+        )
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  test('CR-3 — secondaryPhotoPreview (local upload-in-progress) overrides the server secondaryPhotoUrl', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount({
+          secondaryPhotoUrl: 'https://cdn.example.com/old-secondary.jpg'
+        }))
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        // Initially: no local preview → server value visible.
+        assert.equal(
+          draftCoachProfile.value?.secondaryPhotoUrl,
+          'https://cdn.example.com/old-secondary.jpg'
+        )
+
+        // Sophie sélectionne un fichier → object URL local.
+        const localObjectUrl = 'blob:http://localhost/abc-123'
+        ;(h.secondaryPhotoPreview as { value: string | null }).value = localObjectUrl
+        assert.equal(
+          draftCoachProfile.value?.secondaryPhotoUrl,
+          localObjectUrl,
+          'local preview URL must take precedence over the server value (instant feedback)'
+        )
+
+        // Reset local → fallback to server.
+        ;(h.secondaryPhotoPreview as { value: string | null }).value = null
+        assert.equal(
+          draftCoachProfile.value?.secondaryPhotoUrl,
+          'https://cdn.example.com/old-secondary.jpg'
+        )
       })
     } finally {
       scope.stop()
