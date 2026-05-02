@@ -85,7 +85,8 @@ function createHarness(account: ProviderAccountResponse | null): Harness {
     benefitsForm: ref<BenefitsJson | null>(null) as Ref<BenefitsJson | null>,
     howItWorksForm: ref<HowItWorksStep[]>([]) as Ref<HowItWorksStep[]>,
     educationalContentForm: ref<EducationalContentJson | null>(null) as Ref<EducationalContentJson | null>,
-    problemStatementForm: ref<ProblemStatementJson | null>(null) as Ref<ProblemStatementJson | null>
+    problemStatementForm: ref<ProblemStatementJson | null>(null) as Ref<ProblemStatementJson | null>,
+    templateCode: ref<string | null>('essentiel') as Ref<string | null | undefined>
   }
 }
 
@@ -237,6 +238,34 @@ describe('useCoachPagePreviewProfile', () => {
           'https://cdn.example.com/logos/sophie.png',
           'logoUrl must reflect the server account ref instantly'
         )
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  test('propagates the live deps.templateCode into draftCoachProfile.templateCode', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount())
+        // Default harness ships templateCode='essentiel'.
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(draftCoachProfile.value?.templateCode, 'essentiel')
+
+        // Switch to signature — instant reflection (Sophie clicks the
+        // template card, the preview swaps to the matching template).
+        ;(h.templateCode as { value: string | null | undefined }).value = 'signature'
+        assert.equal(
+          draftCoachProfile.value?.templateCode,
+          'signature',
+          'templateCode must reflect the live deps without waiting for a debounce'
+        )
+
+        // Null fallback to 'essentiel' (registry default).
+        ;(h.templateCode as { value: string | null | undefined }).value = null
+        assert.equal(draftCoachProfile.value?.templateCode, 'essentiel')
       })
     } finally {
       scope.stop()

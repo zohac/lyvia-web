@@ -54,6 +54,14 @@ export interface CoachPagePreviewDeps {
   howItWorksForm: Ref<HowItWorksStep[]>
   educationalContentForm: Ref<EducationalContentJson | null>
   problemStatementForm: Ref<ProblemStatementJson | null>
+  /**
+   * Story 0-28 — code du template actuellement sélectionné par le provider
+   * (signature / essentiel / futurs templates). Le draft route vers le bon
+   * `<component :is>` via `useCoachPageTemplate(templateCode)`. Si null →
+   * fallback `essentiel` (default registry). Reactive : un changement de
+   * template dans l'éditeur se reflète instantanément dans la preview.
+   */
+  templateCode: Ref<string | null | undefined>
 }
 
 type DebouncedSnapshot = {
@@ -187,7 +195,8 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       googleAdsId: acc.googleAdsId,
       googleAdsConversionLabel: acc.googleAdsConversionLabel,
       microsoftClarityId: acc.microsoftClarityId,
-      templateCode: 'essentiel',
+      // Live template choice — reflects the provider's selectedTemplateId.
+      templateCode: deps.templateCode.value || 'essentiel',
       // Instant overlays (no debounce — AC-3)
       sectionsConfig: { ...deps.sectionsConfig },
       pillarsJson: snap.pillars,

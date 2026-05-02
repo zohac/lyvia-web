@@ -296,6 +296,17 @@ watch(
 // CoachPage* templates. Free-text fields are debounced 250ms; toggles +
 // brandName + logoUrl flow through instantly.
 //
+// `previewTemplateCode` resolves the currently selected template's code
+// (`signature`, `essentiel`, future variants) by mapping `selectedTemplateId`
+// (UUID) against the loaded `templates` list. Reactive — a click on a
+// template card switches the preview to the matching `<component :is>`.
+const previewTemplateCode = computed<string | null>(() => {
+  const id = selectedTemplateId.value
+  if (!id) return null
+  const match = templates.value.find(t => t.id === id)
+  return match?.code ?? null
+})
+//
 // `account` is exposed as `readonly(account)` by createCoachPageEditor for
 // safety (no external mutation), but the preview composable only reads
 // `.value` — we cast through `unknown` to feed it the non-readonly Ref
@@ -326,7 +337,8 @@ const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
   >,
   problemStatementForm: problemStatementForm as unknown as import('vue').Ref<
     import('~/features/seo/api/public-provider-profile.contract').ProblemStatementJson | null
-  >
+  >,
+  templateCode: previewTemplateCode
 })
 
 // `useCoachPagePreviewState` persists open + device choice in localStorage.

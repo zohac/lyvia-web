@@ -21,7 +21,8 @@
  *     inside an `inert` container so external CTAs / form submits are
  *     globally neutralised (HTML-native, no per-button wrapping).
  */
-import { computed } from 'vue'
+import { computed, markRaw, shallowRef, watch } from 'vue'
+import type { Component } from 'vue'
 
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
@@ -48,8 +49,36 @@ const emit = defineEmits<{
   'close': []
 }>()
 
-const resolvedTemplate = computed(() =>
-  useCoachPageTemplate(props.coachProfile?.templateCode)
+// Story 0-28 round terrain Simon — la preview doit refléter le template
+// sélectionné par le provider (signature / essentiel / futurs templates).
+// On NE PEUT PAS appeler `useCoachPageTemplate()` dans un computed à chaque
+// changement de templateCode : ça recréerait un nouveau `defineAsyncComponent`
+// à chaque tick, et Vue se perd dans le lifecycle (le `<component :is>`
+// reste bloqué sur `<!---->` après un switch).
+//
+// Fix : mémoriser les async components par code dans une `Map` interne au
+// composant, et utiliser un `watch` pour swap le `shallowRef` quand le
+// templateCode change. `markRaw` pour empêcher Vue de proxy-iser le
+// composant (les async components doivent rester non-réactifs).
+const templateCache = new Map<string, Component>()
+
+function resolveTemplate(code: string | null | undefined): Component {
+  const safeCode = code || 'essentiel'
+  let cached = templateCache.get(safeCode)
+  if (!cached) {
+    cached = markRaw(useCoachPageTemplate(safeCode))
+    templateCache.set(safeCode, cached)
+  }
+  return cached
+}
+
+const resolvedTemplate = shallowRef<Component>(resolveTemplate(props.coachProfile?.templateCode))
+
+watch(
+  () => props.coachProfile?.templateCode,
+  (next) => {
+    resolvedTemplate.value = resolveTemplate(next)
+  }
 )
 
 const programs = computed<PublicProgramListItem[]>(() => props.publicPrograms ?? [])
