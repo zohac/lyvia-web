@@ -322,10 +322,13 @@ async function confirmHardDelete() {
   }
 }
 
-function goToDeactivate() {
+async function goToDeactivate() {
+  // Close the hard-delete modal first, then chain into the existing
+  // deactivate flow (single source of truth: openDeactivationModal). The
+  // GET deactivation-impact request is the same one the standalone
+  // "Désactiver" button issues — DRY.
   hardDeleteModalOpen.value = false
-  // The Désactiver button is in the same page (above), close the modal so the
-  // user can read the deactivation context.
+  await openDeactivationModal()
 }
 </script>
 

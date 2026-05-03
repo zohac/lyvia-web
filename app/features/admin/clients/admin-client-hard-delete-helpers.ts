@@ -35,8 +35,13 @@ const HEADER_CONFIRM = 'Suppression définitive'
  *
  * The mapping to the rendered template is:
  * - `mode='loading'`  → spinner (impact not loaded yet)
- * - `mode='blocked'`  → red alert + "Désactiver à la place" CTA
+ * - `mode='blocked'`  → red alert + "Désactiver à la place" CTA + destructive button stays visible but disabled
  * - `mode='confirm'`  → warning alert + irreversibility checkbox + destructive button
+ *
+ * Important: the destructive "Supprimer définitivement" button is rendered
+ * in BOTH `blocked` and `confirm` modes (no v-if). In `blocked` mode it is
+ * disabled forever via `isDestructiveButtonDisabled` so the admin sees a
+ * locked door rather than a button that vanishes.
  */
 export function resolveHardDeleteModalState(
   impact: ClientDeletionImpact | null,
@@ -66,6 +71,18 @@ export function resolveHardDeleteModalState(
     canConfirm: irreversibleAcknowledged,
     blockMessage: null
   }
+}
+
+/**
+ * Whether the destructive "Supprimer définitivement" button must be disabled.
+ *
+ * In `blocked` mode the button stays visible (rendered) but disabled forever
+ * — the admin reads the lock instead of seeing the button disappear. In
+ * `confirm` mode it is disabled until the irreversibility checkbox is
+ * acknowledged. In `loading` mode the impact has not arrived yet.
+ */
+export function isDestructiveButtonDisabled(state: HardDeleteModalUiState): boolean {
+  return state.mode === 'blocked' || !state.canConfirm
 }
 
 export type HardDeleteErrorOutcome

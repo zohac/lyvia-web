@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  isDestructiveButtonDisabled,
   resolveHardDeleteModalState,
   type ClientDeletionImpact
 } from '~/features/admin/clients/admin-client-hard-delete-helpers'
@@ -23,6 +24,10 @@ const irreversibleAcknowledged = ref(false)
 
 const uiState = computed(() =>
   resolveHardDeleteModalState(props.impact, irreversibleAcknowledged.value)
+)
+
+const destructiveDisabled = computed(() =>
+  isDestructiveButtonDisabled(uiState.value)
 )
 
 watch(
@@ -148,7 +153,7 @@ function updateOpen(value: boolean) {
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
+      <div class="flex flex-wrap justify-end gap-3">
         <UButton
           variant="outline"
           color="neutral"
@@ -158,8 +163,10 @@ function updateOpen(value: boolean) {
           Annuler
         </UButton>
 
+        <!-- Blocked mode: route the admin to the real deactivate flow. -->
         <UButton
           v-if="uiState.mode === 'blocked'"
+          data-test="hard-delete-go-deactivate"
           variant="solid"
           color="primary"
           @click="emit('go-deactivate')"
@@ -167,13 +174,16 @@ function updateOpen(value: boolean) {
           Désactiver à la place
         </UButton>
 
+        <!-- Destructive button is ALWAYS rendered (even in blocked mode it
+             stays visible but disabled, so the admin understands the locked
+             door rather than seeing the button vanish). -->
         <UButton
-          v-else
+          data-test="hard-delete-confirm"
           color="error"
           variant="solid"
-          :loading="loading"
-          :disabled="!uiState.canConfirm"
-          @click="emit('confirm')"
+          :loading="uiState.mode !== 'blocked' && loading"
+          :disabled="destructiveDisabled"
+          @click="destructiveDisabled ? undefined : emit('confirm')"
         >
           Supprimer définitivement
         </UButton>

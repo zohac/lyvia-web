@@ -11,13 +11,21 @@
  * 409 race-condition handling regresses.
  */
 import * as assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 import test from 'node:test'
 
 import {
   classifyHardDeleteError,
+  isDestructiveButtonDisabled,
   resolveHardDeleteModalState,
   type ClientDeletionImpact
 } from '../../app/features/admin/clients/admin-client-hard-delete-helpers'
+
+// Tests are compiled to `.tmp/test-dist/` so __dirname points there, not at
+// the source. Resolve from the repo root via process.cwd() — same pattern as
+// scheduling-page-wiring.test.ts.
+const appRoot = resolve(process.cwd(), 'app')
 
 const allowedImpact: ClientDeletionImpact = {
   appointmentsCount: 3,
@@ -154,4 +162,108 @@ test('regression: blocked impact never enables canConfirm, regardless of checkbo
     )
     assert.equal(blockedState.canConfirm, false)
   }
+})
+
+// =============================================================================
+// CR1 — Destructive button stays visible but disabled in blocked mode
+// =============================================================================
+
+test('isDestructiveButtonDisabled: blocked mode → disabled forever (regardless of checkbox)', () => {
+  for (const ack of [false, true]) {
+    const state = resolveHardDeleteModalState(blockedByPaymentsImpact, ack)
+    assert.equal(state.mode, 'blocked')
+    assert.equal(isDestructiveButtonDisabled(state), true)
+  }
+})
+
+test('isDestructiveButtonDisabled: confirm mode + checkbox unchecked → disabled', () => {
+  const state = resolveHardDeleteModalState(allowedImpact, false)
+  assert.equal(state.mode, 'confirm')
+  assert.equal(isDestructiveButtonDisabled(state), true)
+})
+
+test('isDestructiveButtonDisabled: confirm mode + checkbox checked → enabled', () => {
+  const state = resolveHardDeleteModalState(allowedImpact, true)
+  assert.equal(state.mode, 'confirm')
+  assert.equal(isDestructiveButtonDisabled(state), false)
+})
+
+test('isDestructiveButtonDisabled: loading mode (impact null) → disabled', () => {
+  const state = resolveHardDeleteModalState(null, true)
+  assert.equal(state.mode, 'loading')
+  assert.equal(isDestructiveButtonDisabled(state), true)
+})
+
+// =============================================================================
+// CR1 — Structural guard: the modal template renders the destructive button
+// without v-if, so it stays in the DOM in blocked mode (visible but disabled).
+// Catches a regression that would re-introduce `v-if="canDelete"` and make the
+// button vanish — the exact bug the review flagged.
+// =============================================================================
+
+const MODAL_SOURCE = readFileSync(
+  join(appRoot, 'components/organisms/AdminClientHardDeleteModal.vue'),
+  'utf-8'
+)
+
+test('AdminClientHardDeleteModal: destructive button is always rendered (no v-if/v-else gating it on mode)', () => {
+  // The destructive UButton must NOT be wrapped in a v-if/v-else that ties
+  // its rendering to the mode. Find the data-test marker and look at its
+  // attributes: there must be no `v-if` / `v-else` directly on it.
+  const match = MODAL_SOURCE.match(
+    /<UButton[^>]*data-test="hard-delete-confirm"[^>]*>/m
+  )
+  assert.ok(match, 'destructive button (data-test="hard-delete-confirm") not found')
+  assert.equal(match![0].includes('v-if'), false, 'destructive button must not have v-if')
+  assert.equal(match![0].includes('v-else'), false, 'destructive button must not have v-else')
+})
+
+test('AdminClientHardDeleteModal: destructive button uses the shared isDestructiveButtonDisabled helper (DRY + state machine)', () => {
+  // Either via `:disabled="destructiveDisabled"` (computed) or directly via
+  // `:disabled="isDestructiveButtonDisabled(uiState)"`. Both prove the
+  // disabled state is owned by the helper, not duplicated inline.
+  assert.match(
+    MODAL_SOURCE,
+    /:disabled="(destructiveDisabled|isDestructiveButtonDisabled\(uiState\))"/
+  )
+})
+
+test('AdminClientHardDeleteModal: "Désactiver à la place" button stays visible in blocked mode', () => {
+  // The CTA must be rendered (with v-if mode==='blocked') so the admin can
+  // jump to the deactivate flow.
+  assert.match(MODAL_SOURCE, /data-test="hard-delete-go-deactivate"/)
+  assert.match(MODAL_SOURCE, /Désactiver à la place/)
+})
+
+// =============================================================================
+// CR1 — Structural guard: page wires goToDeactivate to openDeactivationModal.
+// Catches a regression that would make the CTA close the modal silently
+// without opening the deactivation flow.
+// =============================================================================
+
+const PAGE_SOURCE = readFileSync(
+  join(appRoot, 'pages/admin/clients/[id].vue'),
+  'utf-8'
+)
+
+test('admin/clients/[id].vue: goToDeactivate calls openDeactivationModal (chains into the real deactivate flow)', () => {
+  // Match the function body of goToDeactivate up to the next top-level
+  // function declaration (or end of file).
+  const fnMatch = PAGE_SOURCE.match(
+    /(?:async\s+)?function\s+goToDeactivate\s*\([^)]*\)\s*\{([\s\S]*?)(?:\n\}\s*\n|\n}\s*<\/script)/
+  )
+  assert.ok(fnMatch, 'goToDeactivate function not found in page')
+  const body = fnMatch![1]
+  // Must invoke the existing deactivation flow rather than a no-op close.
+  assert.match(
+    body,
+    /openDeactivationModal\s*\(/,
+    'goToDeactivate must call openDeactivationModal() to chain into the deactivate flow'
+  )
+})
+
+test('admin/clients/[id].vue: AdminClientHardDeleteModal listens to @go-deactivate (wires the CTA into the page)', () => {
+  // Catches a regression that would drop the @go-deactivate handler and
+  // leave "Désactiver à la place" silently broken.
+  assert.match(PAGE_SOURCE, /@go-deactivate="goToDeactivate"/)
 })
