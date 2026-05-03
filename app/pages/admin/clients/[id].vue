@@ -4,6 +4,11 @@ import { validateClientFields } from '~/utils/validate-client-fields'
 import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
 import { type ClientStage, STAGE_LABELS, STAGE_VARIANT } from '~/utils/client-stage'
 import ClientDeactivationModal from '~/components/organisms/ClientDeactivationModal.vue'
+import AdminClientHardDeleteModal from '~/components/organisms/AdminClientHardDeleteModal.vue'
+import {
+  classifyHardDeleteError,
+  type ClientDeletionImpact
+} from '~/features/admin/clients/admin-client-hard-delete-helpers'
 
 definePageMeta({
   layout: 'admin',
@@ -12,6 +17,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const clientId = computed(() => route.params.id as string)
 
@@ -252,6 +258,75 @@ async function reactivateClient() {
     reactivating.value = false
   }
 }
+
+// ──────────────────────────────────────────────
+// Hard delete flow (story 0-30)
+// ──────────────────────────────────────────────
+
+const hardDeleteModalOpen = ref(false)
+const hardDeleteImpact = ref<ClientDeletionImpact | null>(null)
+const hardDeleting = ref(false)
+
+async function openHardDeleteModal() {
+  hardDeleteImpact.value = null
+  hardDeleteModalOpen.value = true
+
+  try {
+    hardDeleteImpact.value = await apiFetch<ClientDeletionImpact>(
+      `/admin/clients/${clientId.value}/deletion-impact`
+    )
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors du chargement de l\'impact',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+    hardDeleteModalOpen.value = false
+  }
+}
+
+async function confirmHardDelete() {
+  hardDeleting.value = true
+  try {
+    await apiFetch(`/admin/clients/${clientId.value}`, { method: 'DELETE' })
+    toast.add({ title: 'Cliente supprimée définitivement', color: 'success' })
+    hardDeleteModalOpen.value = false
+    await router.push('/admin/clients')
+  } catch (err) {
+    const outcome = classifyHardDeleteError(err)
+    if (outcome.kind === 'race-condition') {
+      // A financial record was inserted between deletion-impact GET and DELETE.
+      // Modal stays open with a refreshed impact so the admin reads the new
+      // block reason and can either retry deactivate or close.
+      toast.add({
+        title: 'Suppression bloquée',
+        description: 'La cliente a maintenant des paiements ou abonnements actifs.',
+        color: 'error'
+      })
+      try {
+        hardDeleteImpact.value = await apiFetch<ClientDeletionImpact>(
+          `/admin/clients/${clientId.value}/deletion-impact`
+        )
+      } catch {
+        // keep modal open with stale impact; admin can close manually
+      }
+    } else {
+      toast.add({
+        title: 'Erreur lors de la suppression',
+        description: outcome.message,
+        color: 'error'
+      })
+    }
+  } finally {
+    hardDeleting.value = false
+  }
+}
+
+function goToDeactivate() {
+  hardDeleteModalOpen.value = false
+  // The Désactiver button is in the same page (above), close the modal so the
+  // user can read the deactivation context.
+}
 </script>
 
 <template>
@@ -465,13 +540,22 @@ async function reactivateClient() {
               La désactivation empêchera le client de se connecter et de prendre de nouveaux rendez-vous.
             </p>
           </div>
-          <UButton
-            color="error"
-            variant="outline"
-            @click="openDeactivationModal"
-          >
-            Désactiver
-          </UButton>
+          <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+            <UButton
+              color="error"
+              variant="outline"
+              @click="openDeactivationModal"
+            >
+              Désactiver
+            </UButton>
+            <UButton
+              color="error"
+              variant="solid"
+              @click="openHardDeleteModal"
+            >
+              Supprimer définitivement
+            </UButton>
+          </div>
         </div>
 
         <div
@@ -486,13 +570,22 @@ async function reactivateClient() {
               La réactivation rendra l'accès au compte.
             </p>
           </div>
-          <UButton
-            color="success"
-            :loading="reactivating"
-            @click="reactivateClient"
-          >
-            Réactiver
-          </UButton>
+          <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+            <UButton
+              color="success"
+              :loading="reactivating"
+              @click="reactivateClient"
+            >
+              Réactiver
+            </UButton>
+            <UButton
+              color="error"
+              variant="solid"
+              @click="openHardDeleteModal"
+            >
+              Supprimer définitivement
+            </UButton>
+          </div>
         </div>
       </section>
     </template>
@@ -504,6 +597,16 @@ async function reactivateClient() {
       :loading="deactivating"
       :impact="deactivationImpact"
       @confirm="confirmDeactivation"
+    />
+
+    <!-- Hard Delete Modal (story 0-30) -->
+    <AdminClientHardDeleteModal
+      v-model:open="hardDeleteModalOpen"
+      :client-name="displayName"
+      :loading="hardDeleting"
+      :impact="hardDeleteImpact"
+      @confirm="confirmHardDelete"
+      @go-deactivate="goToDeactivate"
     />
   </div>
 </template>
