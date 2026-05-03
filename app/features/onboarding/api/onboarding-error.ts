@@ -6,10 +6,58 @@ export type OnboardingErrorCode
     | 'USER_INACTIVE'
     | 'DISCOVERY_ALREADY_EXISTS'
     | 'SLOT_ALREADY_BOOKED'
+    | 'SLOT_NOT_AVAILABLE'
     | 'INVALID_PROVIDER'
     | 'IDEMPOTENCY_KEY_CONFLICT'
     | 'IDEMPOTENCY_IN_PROGRESS'
     | 'VALIDATION_ERROR'
+
+const SLOT_UNAVAILABLE_ERROR_CODES: ReadonlySet<OnboardingErrorCode> = new Set([
+  'SLOT_ALREADY_BOOKED',
+  'SLOT_NOT_AVAILABLE'
+])
+
+export function isSlotUnavailableErrorCode(code: string): boolean {
+  return SLOT_UNAVAILABLE_ERROR_CODES.has(code as OnboardingErrorCode)
+}
+
+export type OnboardingErrorRecoveryAction = {
+  targetStep: 1 | 2 | null
+  reloadAvailability: boolean
+  clearSelectedSlot: boolean
+  applyBackendValidationErrors: boolean
+  preserveUserMessage: boolean
+}
+
+export function resolveOnboardingErrorRecovery(code: string): OnboardingErrorRecoveryAction {
+  if (code === 'VALIDATION_ERROR') {
+    return {
+      targetStep: 2,
+      reloadAvailability: false,
+      clearSelectedSlot: false,
+      applyBackendValidationErrors: true,
+      preserveUserMessage: true
+    }
+  }
+
+  if (isSlotUnavailableErrorCode(code)) {
+    return {
+      targetStep: 1,
+      reloadAvailability: true,
+      clearSelectedSlot: true,
+      applyBackendValidationErrors: false,
+      preserveUserMessage: true
+    }
+  }
+
+  return {
+    targetStep: null,
+    reloadAvailability: false,
+    clearSelectedSlot: false,
+    applyBackendValidationErrors: false,
+    preserveUserMessage: true
+  }
+}
 
 export type OnboardingUserMessage = {
   title: string
@@ -55,6 +103,11 @@ export function mapOnboardingErrorCodeToUserMessage(code: string): OnboardingUse
       return {
         title: 'Créneau indisponible',
         description: 'Oups, ce créneau vient d’être réservé. Veuillez en choisir un autre.'
+      }
+    case 'SLOT_NOT_AVAILABLE':
+      return {
+        title: 'Créneau indisponible',
+        description: 'Ce créneau n’est plus disponible. Veuillez en choisir un autre dans la liste.'
       }
     case 'INVALID_PROVIDER':
       return {
