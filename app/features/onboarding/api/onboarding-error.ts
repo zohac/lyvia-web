@@ -21,6 +21,44 @@ export function isSlotUnavailableErrorCode(code: string): boolean {
   return SLOT_UNAVAILABLE_ERROR_CODES.has(code as OnboardingErrorCode)
 }
 
+export type OnboardingErrorRecoveryAction = {
+  targetStep: 1 | 2 | null
+  reloadAvailability: boolean
+  clearSelectedSlot: boolean
+  applyBackendValidationErrors: boolean
+  preserveUserMessage: boolean
+}
+
+export function resolveOnboardingErrorRecovery(code: string): OnboardingErrorRecoveryAction {
+  if (code === 'VALIDATION_ERROR') {
+    return {
+      targetStep: 2,
+      reloadAvailability: false,
+      clearSelectedSlot: false,
+      applyBackendValidationErrors: true,
+      preserveUserMessage: true
+    }
+  }
+
+  if (isSlotUnavailableErrorCode(code)) {
+    return {
+      targetStep: 1,
+      reloadAvailability: true,
+      clearSelectedSlot: true,
+      applyBackendValidationErrors: false,
+      preserveUserMessage: true
+    }
+  }
+
+  return {
+    targetStep: null,
+    reloadAvailability: false,
+    clearSelectedSlot: false,
+    applyBackendValidationErrors: false,
+    preserveUserMessage: true
+  }
+}
+
 export type OnboardingUserMessage = {
   title: string
   description: string

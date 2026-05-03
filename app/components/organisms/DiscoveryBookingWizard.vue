@@ -8,8 +8,8 @@ import type {
   ProviderAvailabilityResponse
 } from '../../features/onboarding/api/onboarding.contract'
 import {
-  isSlotUnavailableErrorCode,
-  mapOnboardingErrorCodeToUserMessage
+  mapOnboardingErrorCodeToUserMessage,
+  resolveOnboardingErrorRecovery
 } from '../../features/onboarding/api/onboarding-error'
 import { normalizePhone } from '../../features/onboarding/phone/phone'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
@@ -426,17 +426,18 @@ async function submitBooking() {
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
       const mapped = mapOnboardingErrorCodeToUserMessage(err.apiError.code)
-      systemError.value = mapped.description
+      const recovery = resolveOnboardingErrorRecovery(err.apiError.code)
 
-      if (err.apiError.code === 'VALIDATION_ERROR') {
+      if (recovery.clearSelectedSlot) selectedSlotStartAt.value = null
+      if (recovery.targetStep) goToStep(recovery.targetStep)
+      if (recovery.applyBackendValidationErrors) {
         applyBackendValidationErrors(err.apiError.details)
-        goToStep(2)
-        return
       }
-
-      if (isSlotUnavailableErrorCode(err.apiError.code)) {
-        goToStep(1)
+      if (recovery.reloadAvailability) {
         await loadAvailability()
+      }
+      if (recovery.preserveUserMessage && !systemError.value) {
+        systemError.value = mapped.description
       }
 
       return
