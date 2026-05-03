@@ -7,7 +7,10 @@ import type {
   PublicTenantResponse,
   ProviderAvailabilityResponse
 } from '../../features/onboarding/api/onboarding.contract'
-import { mapOnboardingErrorCodeToUserMessage } from '../../features/onboarding/api/onboarding-error'
+import {
+  isSlotUnavailableErrorCode,
+  mapOnboardingErrorCodeToUserMessage
+} from '../../features/onboarding/api/onboarding-error'
 import { normalizePhone } from '../../features/onboarding/phone/phone'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { createUuidV4, isUuid } from '../../utils/uuid'
@@ -431,7 +434,7 @@ async function submitBooking() {
         return
       }
 
-      if (err.apiError.code === 'SLOT_ALREADY_BOOKED') {
+      if (isSlotUnavailableErrorCode(err.apiError.code)) {
         goToStep(1)
         await loadAvailability()
       }
