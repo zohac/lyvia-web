@@ -51,21 +51,38 @@ const props = defineProps<{
   consultationPlans: ConsultationPricePlan[]
   isAuthenticated: boolean
   currentPath: string
+  /**
+   * Story 0-28 — when true, the template is mounted inside the live preview
+   * panel on `/provider/coach-page`. Disables side-effects (sticky CTA,
+   * scroll-reveal observer, layout-header hide) so the hosting page keeps
+   * its own header intact and the editor never triggers booking flows.
+   */
+  previewMode?: boolean
 }>()
 
 // --- Hide the global PublicHeader — Essentiel owns its own header ---
 // Uses the parallel pattern of `hide-layout-footer` already present in public.vue.
+// Story 0-28 — skipped in preview mode so the hosting `/provider/coach-page`
+// keeps its provider header visible.
 const hideLayoutHeader = useState('hide-layout-header', () => false)
-hideLayoutHeader.value = true
-onBeforeUnmount(() => {
-  hideLayoutHeader.value = false
-})
+if (!props.previewMode) {
+  hideLayoutHeader.value = true
+  onBeforeUnmount(() => {
+    hideLayoutHeader.value = false
+  })
+}
 
 // --- Section visibility (P-Y3 via composable partagé YC2.3) ---
-const { show } = useCoachSectionVisibility(() => props.coachProfile)
+// Story 0-28 — propage `previewMode` pour bypasser le hasContent check
+// dans la preview live (Sophie voit l'effet du toggle instant, même
+// sans contenu rempli).
+const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile, {
+  previewMode: () => props.previewMode
+})
 
 // --- Scroll reveal (SSR-safe — visible by default, hidden only after JS) ---
-const { reveal, isReady } = useScrollReveal()
+// Story 0-28 — opt-out in preview mode (panel has its own scroll container).
+const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const showBio = show.bio
 const showBenefits = show.benefits
@@ -79,17 +96,23 @@ const showFaq = show.faq
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMinutes ?? 15)
 
+// Pricing — gate par toggle ET contenu (Story 0-26 round terrain).
+// Story 0-28 round terrain — en preview, on affiche le bloc dès que le toggle
+// est ON même sans plans/programs chargés : le composant `CoachPricing` rend
+// toujours la card "Appel découverte gratuit", suffisante pour matérialiser
+// la section dans l'éditeur. Sinon Sophie ne voit jamais l'effet du toggle.
+const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
+const showPricing = computed(() => isToggleOn('pricing') && (props.previewMode || hasPricing.value))
+
 // --- Header navigation links (anchor scroll) ---
 const navLinks = computed(() => {
   const links: { label: string, href: string }[] = []
   if (showBenefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
   if (showBio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
-  if (hasPricing.value) links.push({ label: 'Tarifs', href: '#tarifs' })
+  if (showPricing.value) links.push({ label: 'Tarifs', href: '#tarifs' })
   if (showTestimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
   return links
 })
-
-const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
 
 const credentialLine = computed(() => {
   const creds = props.coachProfile?.credentials ?? []
@@ -145,6 +168,8 @@ const heroProps = computed(() => ({
   profilePhotoUrl: props.coachProfile?.imageUrl ?? null,
   heroPhotoUrl: props.coachProfile?.heroImageUrl ?? null,
   profilePhotoAlt: props.coachProfile?.imageUrl ? `${coachName.value}, spécialiste accompagnement ménopause` : null,
+  // Story 0-27 — propagation cross-template (rendu actuel : signature uniquement).
+  logoUrl: props.coachProfile?.logoUrl ?? null,
   discoveryDurationMinutes: props.coachProfile?.discoveryDurationMinutes ?? 15,
   urgencyText: props.coachProfile?.urgencyText ?? null,
   ctaTo: props.ctaTo,
@@ -171,7 +196,28 @@ const heroProps = computed(() => ({
     <!-- ==================== 1. HERO ==================== -->
     <CoachEssentielHero v-bind="heroProps" />
 
-    <!-- ==================== 2. À PROPOS (crepuscule-50 bg — rupture visuelle "preuve") ==================== -->
+    <!-- ==================== 2. BÉNÉFICES — Ce que cela apporte (optionnel) ==================== -->
+    <div
+      v-if="showBenefits"
+      id="accompagnement"
+      v-bind="reveal()"
+      class="scroll-reveal"
+    >
+      <CoachTransformationBenefits :benefits="coachProfile?.benefitsJson ?? null">
+        <template #header>
+          <div class="text-center">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
+              Ce que l'accompagnement apporte
+            </span>
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
+              Un parcours adapté
+            </h2>
+          </div>
+        </template>
+      </CoachTransformationBenefits>
+    </div>
+
+    <!-- ==================== 3. À PROPOS — Qui suis-je (crepuscule-50 bg — rupture visuelle "preuve") ==================== -->
     <section
       v-if="showBio"
       id="qui-suis-je"
@@ -350,68 +396,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 3. BÉNÉFICES (optionnel) ==================== -->
-    <div
-      v-if="showBenefits"
-      id="accompagnement"
-      v-bind="reveal()"
-      class="scroll-reveal"
-    >
-      <CoachTransformationBenefits :benefits="coachProfile?.benefitsJson ?? null">
-        <template #header>
-          <div class="text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Ce que l'accompagnement apporte
-            </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Un parcours adapté
-            </h2>
-          </div>
-        </template>
-      </CoachTransformationBenefits>
-    </div>
-
-    <!-- ==================== 4. PILIERS (optionnel) ==================== -->
-    <div
-      v-if="showPillars"
-      v-bind="reveal()"
-      class="scroll-reveal"
-    >
-      <CoachPillars :pillars="coachProfile?.pillarsJson ?? null">
-        <template #header>
-          <div class="text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              L'approche
-            </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Les piliers de l'accompagnement
-            </h2>
-          </div>
-        </template>
-      </CoachPillars>
-    </div>
-
-    <!-- ==================== 5. COMMENT ÇA MARCHE (optionnel) ==================== -->
-    <div
-      v-if="showHowItWorks"
-      v-bind="reveal()"
-      class="scroll-reveal"
-    >
-      <CoachHowItWorks :steps="coachProfile?.howItWorksJson ?? null">
-        <template #header>
-          <div class="mb-12 text-center">
-            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Le parcours
-            </span>
-            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Comment se déroule l'accompagnement
-            </h2>
-          </div>
-        </template>
-      </CoachHowItWorks>
-    </div>
-
-    <!-- ==================== 6. TÉMOIGNAGES (optionnel) ==================== -->
+    <!-- ==================== 4. TÉMOIGNAGES (optionnel) ==================== -->
     <div
       id="temoignages"
       v-bind="reveal()"
@@ -434,14 +419,54 @@ const heroProps = computed(() => ({
       </CoachTestimonials>
     </div>
 
+    <!-- ==================== 5. PILIERS — L'accompagnement (optionnel) ==================== -->
+    <div
+      v-if="showPillars"
+      v-bind="reveal()"
+      class="scroll-reveal"
+    >
+      <CoachPillars :pillars="coachProfile?.pillarsJson ?? null">
+        <template #header>
+          <div class="text-center">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
+              L'approche
+            </span>
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
+              Les piliers de l'accompagnement
+            </h2>
+          </div>
+        </template>
+      </CoachPillars>
+    </div>
+
+    <!-- ==================== 6. COMMENT ÇA MARCHE — Le parcours (optionnel) ==================== -->
+    <div
+      v-if="showHowItWorks"
+      v-bind="reveal()"
+      class="scroll-reveal"
+    >
+      <CoachHowItWorks :steps="coachProfile?.howItWorksJson ?? null">
+        <template #header>
+          <div class="mb-12 text-center">
+            <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
+              Le parcours
+            </span>
+            <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
+              Comment se déroule l'accompagnement
+            </h2>
+          </div>
+        </template>
+      </CoachHowItWorks>
+    </div>
+
     <!-- ==================== 7. TARIFS ==================== -->
     <div
+      v-if="showPricing"
       id="tarifs"
       v-bind="reveal()"
       class="scroll-reveal"
     >
       <CoachPricing
-        v-if="hasPricing"
         :plans="consultationPlans"
         :programs="publicPrograms"
         :discovery-duration-minutes="discoveryDuration"
@@ -561,9 +586,14 @@ const heroProps = computed(() => ({
     <AtomsMedicalDisclaimer />
 
     <!-- Spacer for mobile sticky CTA -->
-    <div class="h-16 md:hidden" />
+    <div
+      v-if="!previewMode"
+      class="h-16 md:hidden"
+    />
 
+    <!-- Sticky CTA mobile — hidden in preview mode (Story 0-28). -->
     <StickyCtaMobile
+      v-if="!previewMode"
       cta-label="Réserver mon appel gratuit →"
       :cta-to="ctaTo"
     />

@@ -7,9 +7,13 @@ import {
   GOOGLE_ADS_ID_REGEX
 } from '../../features/consent/consent-logic'
 import { CLARITY_ID_REGEX } from '../../features/clarity/microsoft-clarity-helpers'
-import { apiFetch } from '../../services/api/apiFetch'
 import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/password/password-policy'
-import type { CredentialItem, SocialLinks, TestimonialItem } from '../../features/account/api/provider-account.contract'
+import {
+  uploadAsset,
+  formatUploadError,
+  validateFileUpload
+} from '../../features/assets/use-asset-upload'
+import type { CredentialItem, SocialLinks } from '../../features/account/api/provider-account.contract'
 import FormControl from '../../components/molecules/FormControl.vue'
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
 
@@ -33,12 +37,9 @@ const personalForm = reactive({
 const specialtyInput = ref('')
 const specialtyError = ref<string | null>(null)
 
-// ── Professional profile form state ─────────────────
-const profileForm = reactive({
-  longBio: '',
-  city: '',
-  region: ''
-})
+// Story 0-26 round terrain — `longBio` + `city` + `region` édités inline sur
+// /provider/coach-page (section "Qui suis-je"), retirés de cette page pour
+// éviter la double source de vérité.
 
 // ── Credentials form state ──────────────────────────
 const credentialsForm = ref<CredentialItem[]>([])
@@ -66,12 +67,8 @@ const photoUploading = ref(false)
 const photoError = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
-// ── Secondary photo upload state ─────────────────────
-const secondaryPhotoFile = ref<File | null>(null)
-const secondaryPhotoPreview = ref<string | null>(null)
-const secondaryPhotoUploading = ref(false)
-const secondaryPhotoError = ref<string | null>(null)
-const secondaryFileInputRef = ref<HTMLInputElement | null>(null)
+// Story 0-26 round terrain — secondary photo state migré vers /provider/coach-page
+// (section "Qui suis-je"), supprimé d'ici pour éviter la double source de vérité.
 
 // ── Hero headline form state ────────────────────────
 const heroHeadlineForm = reactive({ heroHeadline: '' })
@@ -87,9 +84,6 @@ const leadMagnetForm = reactive({
 const leadMagnetFile = ref<File | null>(null)
 const leadMagnetUploading = ref(false)
 const leadMagnetError = ref<string | null>(null)
-
-// ── Testimonials form state ─────────────────────────
-const testimonialsForm = ref<TestimonialItem[]>([])
 
 // ── Marketing form state (Google Ads + Clarity) ─────
 const marketingForm = reactive({
@@ -127,7 +121,6 @@ const passwordError = ref<string | null>(null)
 
 // ── Computed ────────────────────────────────────────
 const bioCharCount = computed(() => personalForm.bio?.length ?? 0)
-const longBioCharCount = computed(() => profileForm.longBio?.length ?? 0)
 const heroHeadlineCharCount = computed(() => heroHeadlineForm.heroHeadline?.length ?? 0)
 const urgencyCharCount = computed(() => urgencyForm.urgencyText?.length ?? 0)
 const leadMagnetTitleCharCount = computed(() => leadMagnetForm.title?.length ?? 0)
@@ -151,11 +144,6 @@ function syncFormsFromAccount() {
   personalForm.lastname = acc.lastname
   personalForm.bio = acc.bio ?? ''
   personalForm.specialties = [...(acc.specialties ?? [])]
-
-  // Professional profile
-  profileForm.longBio = acc.longBio ?? ''
-  profileForm.city = acc.city ?? ''
-  profileForm.region = acc.region ?? ''
 
   // Credentials — preserve verified flag on round-trip (CR1 HIGH fix)
   credentialsForm.value = acc.credentials?.length
@@ -181,15 +169,12 @@ function syncFormsFromAccount() {
   leadMagnetForm.url = acc.leadMagnetUrl
   leadMagnetForm.title = acc.leadMagnetTitle ?? undefined
 
-  // Testimonials
-  testimonialsForm.value = acc.testimonialsJson?.length
-    ? acc.testimonialsJson.map(t => ({ ...t }))
-    : []
-
   // Marketing (Google Ads + Clarity)
   marketingForm.googleAdsId = acc.googleAdsId ?? undefined
   marketingForm.googleAdsConversionLabel = acc.googleAdsConversionLabel ?? undefined
   marketingForm.microsoftClarityId = acc.microsoftClarityId ?? undefined
+
+  // Story 0-26 — testimonials + email branding moved to /provider/coach-page (rapatriement inline)
 }
 
 // ── Specialty tag handlers ──────────────────────────
@@ -227,44 +212,9 @@ function removeCredential(index: number) {
   credentialsForm.value.splice(index, 1)
 }
 
-// ── Testimonials handlers ───────────────────────────
-function addTestimonial() {
-  if (testimonialsForm.value.length >= 10) return
-  testimonialsForm.value.push({ quote: '', firstName: '' })
-}
-
-function removeTestimonial(index: number) {
-  testimonialsForm.value.splice(index, 1)
-}
-
-// ── Shared upload helper (uses apiFetch for auth retry + error normalization) ──
-async function uploadAsset(type: string, file: File): Promise<{ url: string, thumbnailUrl?: string }> {
-  const formData = new FormData()
-  formData.append('type', type)
-  formData.append('file', file)
-  return apiFetch<{ url: string, thumbnailUrl?: string }>('/provider/assets/upload', {
-    method: 'POST',
-    body: formData
-  })
-}
-
-function formatUploadError(e: unknown): string {
-  const msg = e instanceof Error ? e.message : ''
-  if (msg.includes('INVALID_MIME')) return 'Format d\'image non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
-  return 'Erreur lors de l\'upload de la photo.'
-}
-
-function validateFileUpload(file: File, maxBytes: number, allowedTypes: string[]): string | null {
-  if (file.size > maxBytes) {
-    return `La taille maximale est de ${Math.round(maxBytes / 1024 / 1024)} Mo.`
-  }
-  if (!allowedTypes.includes(file.type)) {
-    return `Formats acceptés : ${allowedTypes.map(t => t.split('/')[1]?.toUpperCase()).join(', ')}.`
-  }
-  return null
-}
-
 // ── Photo upload handlers ───────────────────────────
+// uploadAsset / formatUploadError / validateFileUpload extracted to
+// ~/features/assets/use-asset-upload (Story 0-27 — DRY A25)
 function triggerFileInput() {
   fileInputRef.value?.click()
 }
@@ -303,44 +253,7 @@ async function handlePhotoUpload() {
   }
 }
 
-// ── Secondary photo upload handlers ──────────────────
-function triggerSecondaryFileInput() {
-  secondaryFileInputRef.value?.click()
-}
-
-function onSecondaryFileSelected(event: Event) {
-  secondaryPhotoError.value = null
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const err = validateFileUpload(file, 2 * 1024 * 1024, ['image/jpeg', 'image/png', 'image/webp'])
-  if (err) {
-    secondaryPhotoError.value = err
-    return
-  }
-
-  secondaryPhotoFile.value = file
-  secondaryPhotoPreview.value = URL.createObjectURL(file)
-}
-
-async function handleSecondaryPhotoUpload() {
-  if (!secondaryPhotoFile.value) return
-  secondaryPhotoUploading.value = true
-  secondaryPhotoError.value = null
-
-  try {
-    const result = await uploadAsset('secondary_photo', secondaryPhotoFile.value)
-    secondaryPhotoPreview.value = result.url
-    secondaryPhotoFile.value = null
-    toast.add({ title: 'Photo secondaire mise à jour', color: 'primary' })
-  } catch (e: unknown) {
-    secondaryPhotoError.value = formatUploadError(e)
-    toast.add({ title: 'Erreur', description: secondaryPhotoError.value, color: 'error' })
-  } finally {
-    secondaryPhotoUploading.value = false
-  }
-}
+// Story 0-26 round terrain — handlers photo secondaire migrés vers /provider/coach-page
 
 // ── Social links validation ─────────────────────────
 function validateSocialUrl(url: string): boolean {
@@ -363,18 +276,8 @@ async function handlePersonalSubmit() {
   }
 }
 
-async function handleProfileSubmit() {
-  const success = await updateAccount({
-    longBio: profileForm.longBio || null,
-    city: profileForm.city || null,
-    region: profileForm.region || null
-  })
-  if (success) {
-    toast.add({ title: 'Informations mises à jour', color: 'primary' })
-  } else {
-    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
-  }
-}
+// Story 0-26 round terrain — handleProfileSubmit supprimé : longBio + city + region
+// désormais édités via la section "Qui suis-je" de /provider/coach-page.
 
 async function handleCredentialsSubmit() {
   const filtered = credentialsForm.value.filter(c => c.title.trim())
@@ -442,16 +345,6 @@ async function handleUrgencySubmit() {
     heroHeadline: heroHeadlineForm.heroHeadline?.trim() || null,
     urgencyText: urgencyForm.urgencyText?.trim() || null
   })
-  if (success) {
-    toast.add({ title: 'Informations mises à jour', color: 'primary' })
-  } else {
-    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
-  }
-}
-
-async function handleTestimonialsSubmit() {
-  const filtered = testimonialsForm.value.filter(t => t.quote.trim() && t.firstName.trim())
-  const success = await updateAccount({ testimonialsJson: filtered })
   if (success) {
     toast.add({ title: 'Informations mises à jour', color: 'primary' })
   } else {
@@ -731,93 +624,6 @@ async function handlePasswordChange() {
         </form>
       </div>
 
-      <!-- Section 2: Profil professionnel -->
-      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-        <div class="flex items-start gap-4">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-            <UIcon
-              name="i-lucide-file-text"
-              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
-            />
-          </div>
-          <div>
-            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
-              Profil professionnel
-            </h2>
-            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-              Détaillez votre parcours pour renforcer votre page publique.
-            </p>
-          </div>
-        </div>
-
-        <form
-          class="mt-6 grid gap-4 sm:grid-cols-2"
-          @submit.prevent="handleProfileSubmit"
-        >
-          <FormControl
-            id="longBio"
-            label="Bio détaillée (visible sur votre page publique)"
-            class="sm:col-span-2"
-          >
-            <template #default="{ inputAttrs }">
-              <UTextarea
-                v-model="profileForm.longBio"
-                v-bind="inputAttrs"
-                placeholder="Détaillez votre parcours, vos méthodes, votre philosophie..."
-                :maxlength="5000"
-                autoresize
-                :rows="5"
-              />
-            </template>
-            <template #label-aside>
-              <span
-                class="text-xs"
-                :class="longBioCharCount > 4500 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-              >
-                {{ longBioCharCount }}/5000
-              </span>
-            </template>
-          </FormControl>
-
-          <FormControl
-            id="city"
-            label="Ville"
-          >
-            <template #default="{ inputAttrs }">
-              <UInput
-                v-model="profileForm.city"
-                v-bind="inputAttrs"
-                placeholder="Paris"
-                :maxlength="100"
-              />
-            </template>
-          </FormControl>
-
-          <FormControl
-            id="region"
-            label="Région"
-          >
-            <template #default="{ inputAttrs }">
-              <UInput
-                v-model="profileForm.region"
-                v-bind="inputAttrs"
-                placeholder="Île-de-France"
-                :maxlength="100"
-              />
-            </template>
-          </FormControl>
-
-          <div class="sm:col-span-2">
-            <UButton
-              type="submit"
-              :loading="saving"
-              :disabled="saving"
-              label="Enregistrer"
-            />
-          </div>
-        </form>
-      </div>
-
       <!-- Section 3: Diplômes & certifications -->
       <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
         <div class="flex items-start gap-4">
@@ -966,74 +772,6 @@ async function handlePasswordChange() {
               class="text-sm text-[color:var(--color-error)]"
             >
               {{ photoError }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 4b: Photo secondaire (section "Qui suis-je") -->
-      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-        <div class="flex items-start gap-4">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-            <UIcon
-              name="i-lucide-image"
-              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
-            />
-          </div>
-          <div>
-            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
-              Photo secondaire
-            </h2>
-            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-              Photo affichée dans la section "Qui suis-je" de votre page publique. JPEG, PNG ou WebP, max 2 Mo.
-            </p>
-          </div>
-        </div>
-
-        <div class="mt-6 flex items-center gap-6">
-          <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-            <img
-              v-if="secondaryPhotoPreview"
-              :src="secondaryPhotoPreview"
-              alt="Photo secondaire"
-              class="h-full w-full object-cover"
-            >
-            <UIcon
-              v-else
-              name="i-lucide-image"
-              class="h-10 w-10 text-[color:var(--color-brand-muted)]"
-            />
-          </div>
-
-          <div class="space-y-2">
-            <input
-              ref="secondaryFileInputRef"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              class="hidden"
-              @change="onSecondaryFileSelected"
-            >
-            <UButton
-              variant="outline"
-              icon="i-lucide-upload"
-              label="Modifier la photo"
-              size="sm"
-              type="button"
-              @click="triggerSecondaryFileInput"
-            />
-            <UButton
-              v-if="secondaryPhotoFile"
-              :loading="secondaryPhotoUploading"
-              :disabled="secondaryPhotoUploading"
-              label="Enregistrer"
-              size="sm"
-              @click="handleSecondaryPhotoUpload"
-            />
-            <p
-              v-if="secondaryPhotoError"
-              class="text-sm text-[color:var(--color-error)]"
-            >
-              {{ secondaryPhotoError }}
             </p>
           </div>
         </div>
@@ -1258,116 +996,6 @@ async function handlePasswordChange() {
           </FormControl>
 
           <div>
-            <UButton
-              type="submit"
-              :loading="saving"
-              :disabled="saving"
-              label="Enregistrer"
-            />
-          </div>
-        </form>
-      </div>
-
-      <!-- Section 8: Témoignages -->
-      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-        <div class="flex items-start gap-4">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-            <UIcon
-              name="i-lucide-quote"
-              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
-            />
-          </div>
-          <div>
-            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
-              Témoignages
-            </h2>
-            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-              Les retours de vos clientes (max 10).
-            </p>
-          </div>
-        </div>
-
-        <form
-          class="mt-6 space-y-6"
-          @submit.prevent="handleTestimonialsSubmit"
-        >
-          <div
-            v-for="(t, index) in testimonialsForm"
-            :key="index"
-            class="rounded-[var(--radius-md)] border border-[color:var(--color-brand-subtle)] p-4"
-          >
-            <div class="mb-3 flex items-center justify-between">
-              <span class="text-sm font-medium text-[color:var(--color-brand-primary)]">Témoignage {{ index + 1 }}</span>
-              <UButton
-                variant="ghost"
-                color="neutral"
-                icon="i-lucide-trash-2"
-                size="xs"
-                aria-label="Supprimer ce témoignage"
-                @click="removeTestimonial(index)"
-              />
-            </div>
-            <div class="grid gap-3 sm:grid-cols-2">
-              <div class="sm:col-span-2">
-                <UTextarea
-                  v-model="t.quote"
-                  placeholder="Citation du témoignage *"
-                  :minlength="10"
-                  :maxlength="500"
-                  autoresize
-                  required
-                />
-              </div>
-              <UInput
-                v-model="t.firstName"
-                placeholder="Prénom *"
-                :minlength="2"
-                :maxlength="50"
-                required
-              />
-              <UInput
-                v-model.number="t.age"
-                type="number"
-                placeholder="Âge"
-                :min="18"
-                :max="120"
-              />
-              <UInput
-                v-model="t.location"
-                placeholder="Localisation"
-                :maxlength="100"
-              />
-              <USelectMenu
-                v-model="t.rating"
-                :items="[1, 2, 3, 4, 5]"
-                placeholder="Note (1-5)"
-              />
-              <UInput
-                v-model="t.result"
-                placeholder="Résultat après X mois..."
-                :maxlength="200"
-                class="sm:col-span-2"
-              />
-            </div>
-          </div>
-
-          <div
-            v-if="testimonialsForm.length === 0"
-            class="py-4 text-center text-sm text-[color:var(--color-brand-muted)]"
-          >
-            Aucun témoignage ajouté.
-          </div>
-
-          <div class="flex items-center gap-3">
-            <UButton
-              v-if="testimonialsForm.length < 10"
-              variant="outline"
-              icon="i-lucide-plus"
-              label="Ajouter un témoignage"
-              size="sm"
-              type="button"
-              @click="addTestimonial"
-            />
             <UButton
               type="submit"
               :loading="saving"

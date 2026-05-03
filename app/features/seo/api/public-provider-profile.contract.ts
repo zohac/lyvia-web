@@ -94,6 +94,8 @@ export interface PublicProviderProfile {
   heroHeadline: string | null
   testimonialsJson: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
   secondaryPhotoUrl: string | null
+  /** Provider brand logo URL (480x160 PNG). Null when provider uses default Keova branding. Story 0-27. */
+  logoUrl: string | null
   leadMagnetUrl: string | null
   leadMagnetTitle: string | null
   googleAdsId: string | null

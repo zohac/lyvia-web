@@ -16,12 +16,24 @@
  *   .js-scroll-ready .scroll-reveal:not(.is-visible) — hidden (JS-enhanced)
  *   .scroll-reveal.is-visible — revealed state
  */
-export function useScrollReveal(options?: { threshold?: number, rootMargin?: string }) {
+export function useScrollReveal(options?: { threshold?: number, rootMargin?: string, disabled?: boolean }) {
   const threshold = options?.threshold ?? 0.15
   const rootMargin = options?.rootMargin ?? '0px 0px -40px 0px'
 
   let observer: IntersectionObserver | null = null
   const isReady = ref(false)
+
+  // Story 0-28 — preview mode opts out: no IntersectionObserver, no
+  // hide-before-reveal CSS gate, sections are visible immediately. Avoids
+  // pinning sections in the hidden state when the template is mounted in a
+  // panel with its own internal scroll container (the observer roots on
+  // the main viewport and would never trigger inside the panel).
+  if (options?.disabled) {
+    return {
+      reveal: (_opts?: { delay?: number }) => ({}),
+      isReady
+    }
+  }
 
   function createObserver(): IntersectionObserver {
     return new IntersectionObserver(

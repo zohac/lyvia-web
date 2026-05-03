@@ -66,6 +66,14 @@ export type ProviderAccountResponse = {
   howItWorksJson: HowItWorksStep[] | null
   educationalContentJson: EducationalContentJson | null
   problemStatementJson: ProblemStatementJson | null
+  // White-label email branding (story 0-20a/0-20c) — replaces "Keova" in transactional emails
+  brandName: string | null
+  logoUrl: string | null
+  // Photos publiques (Story 0-28 CR-3) — exposées pour permettre à la live preview
+  // de refléter les photos réellement affichées sur la page publique du coach.
+  imageUrl: string | null
+  heroImageUrl: string | null
+  secondaryPhotoUrl: string | null
   updatedAt?: string
 }
 
@@ -102,6 +110,9 @@ export type UpdateProviderAccountRequest = {
   howItWorksJson?: HowItWorksStep[] | null
   educationalContentJson?: EducationalContentJson | null
   problemStatementJson?: ProblemStatementJson | null
+  // White-label email branding (story 0-20a/0-20c)
+  brandName?: string | null
+  logoUrl?: string | null
 }
 
 // Re-export JSONB types for convenience

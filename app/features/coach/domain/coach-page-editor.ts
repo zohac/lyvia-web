@@ -6,14 +6,16 @@ export const COACH_PAGE_INLINE_EDITOR_SECTIONS = [
   'benefits',
   'howItWorks',
   'educationalContent',
-  'problemStatement'
+  'problemStatement',
+  'bio',
+  'testimonials'
 ] as const
 
 export const COACH_PAGE_NESTED_EDITOR_SECTIONS = ['emotionalSupport'] as const
 
+// Story 0-26: bio + testimonials migrated inline. Branding is a global config card,
+// not a template-driven page section. Only pricing remains external (separate page for plans tarifaires).
 export const COACH_PAGE_EXTERNAL_EDITOR_SECTIONS = {
-  bio: { label: 'Modifiable dans Mon compte', to: '/provider/account' },
-  testimonials: { label: 'Modifiable dans Mon compte', to: '/provider/account' },
   pricing: { label: 'Modifiable dans Mes tarifs', to: '/provider/scheduling' }
 } as const
 

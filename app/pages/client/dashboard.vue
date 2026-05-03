@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8">
     <!-- Page header -->
-    <MoleculesDashboardGreeting subtitle="Votre espace accompagnement">
+    <MoleculesDashboardGreeting :subtitle="greetingSubtitle">
       <template #actions>
         <UButton
           to="/client/consultation"
@@ -12,6 +12,27 @@
         </UButton>
       </template>
     </MoleculesDashboardGreeting>
+
+    <!-- Payment action banner (story 0.21 AC-3) -->
+    <UAlert
+      v-if="paymentBanner"
+      color="warning"
+      variant="subtle"
+      icon="lucide:credit-card"
+      :title="paymentBanner.title"
+      class="mb-6"
+    >
+      <template #actions>
+        <UButton
+          :to="paymentBanner.url"
+          color="primary"
+          size="sm"
+          trailing-icon="i-lucide-arrow-right"
+        >
+          Payer et confirmer
+        </UButton>
+      </template>
+    </UAlert>
 
     <!-- Main content grid -->
     <div class="grid gap-6 lg:grid-cols-3">
@@ -253,6 +274,7 @@ import type { RequestType, RequestReason } from '../../components/organisms/Clie
 import type { ClientPaymentListItem } from '../../features/payments/api/client-payments.contract'
 import type { CancellationReason, RescheduleReason } from '../../features/consultation/api/appointment-request.contract'
 import { useClientNextConsultation, formatDateLong, formatPrice } from '../../features/consultation/useClientNextConsultation'
+import { resolvePaymentBanner, resolveGreetingSubtitle } from '../../features/consultation/domain/dashboard-banner'
 import { listClientPayments } from '../../features/payments/services/client-payments.service'
 import { requestCancellation, requestReschedule } from '../../features/consultation/services/appointment-request.service'
 
@@ -296,6 +318,24 @@ async function refreshPayments() {
 
 // Initial fetch
 refreshPayments()
+
+/**
+ * Story 0.21 AC-3: Banner paiement urgent affiché en haut du dashboard quand
+ * le state est `awaiting_payment`. Renvoie null sinon (banner caché).
+ */
+const paymentBanner = computed(() => resolvePaymentBanner(consultationState.value))
+
+/**
+ * Story 0.21 AC-4: Greeting personnalisé "Bienvenue dans votre espace —
+ * {providerDisplayName} vous accompagne" en première visite (aucun paiement
+ * historique) quand une consultation attend un paiement. Fallback sur le
+ * subtitle neutre sinon.
+ */
+const greetingSubtitle = computed(() => resolveGreetingSubtitle({
+  state: consultationState.value,
+  paymentsCount: payments.value.length,
+  paymentsPending: paymentsPending.value
+}))
 
 /**
  * Format payment date for display

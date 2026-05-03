@@ -41,22 +41,26 @@ describe('YC2.3 — useCoachSectionVisibility composable (DRY factorisation)', (
 
   test('composable implements the P-Y3 rule (toggle AND content non-empty)', () => {
     const content = readFile(VISIBILITY_COMPOSABLE)
-    // Each show* computed must combine isToggleOn + has*
+    // Each show* computed must combine isToggleOn + has*. Story 0-28 added an
+    // optional previewMode short-circuit on the content side: the canonical
+    // form is now `isToggleOn(X) && (previewMode.value || hasX.value)`. The
+    // P-Y3 rule (toggle AND content) holds when previewMode === false (page
+    // publique default).
     assert.ok(
-      /showBenefits\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('benefits'\)\s*&&\s*hasBenefits\.value\)/.test(content),
-      'showBenefits must combine isToggleOn("benefits") && hasBenefits.value'
+      /showBenefits\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('benefits'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasBenefits\.value\)?\)/.test(content),
+      'showBenefits must combine isToggleOn("benefits") && hasBenefits.value (with optional previewMode short-circuit)'
     )
     assert.ok(
-      /showPillars\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('pillars'\)\s*&&\s*hasPillars\.value\)/.test(content),
-      'showPillars must combine isToggleOn("pillars") && hasPillars.value'
+      /showPillars\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('pillars'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasPillars\.value\)?\)/.test(content),
+      'showPillars must combine isToggleOn("pillars") && hasPillars.value (with optional previewMode short-circuit)'
     )
     assert.ok(
-      /showHowItWorks\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('howItWorks'\)\s*&&\s*hasHowItWorks\.value\)/.test(content),
-      'showHowItWorks must combine isToggleOn("howItWorks") && hasHowItWorks.value'
+      /showHowItWorks\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('howItWorks'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasHowItWorks\.value\)?\)/.test(content),
+      'showHowItWorks must combine isToggleOn("howItWorks") && hasHowItWorks.value (with optional previewMode short-circuit)'
     )
     assert.ok(
-      /showFaq\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('faq'\)\s*&&\s*hasFaq\.value\)/.test(content),
-      'showFaq must combine isToggleOn("faq") && hasFaq.value'
+      /showFaq\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('faq'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasFaq\.value\)?\)/.test(content),
+      'showFaq must combine isToggleOn("faq") && hasFaq.value (with optional previewMode short-circuit)'
     )
   })
 
@@ -130,7 +134,10 @@ describe('YC2.3 — CoachPageEssentiel uses the shared visibility composable', (
   test('Essentiel calls composable with getter on props.coachProfile', () => {
     const content = readFile(ESSENTIEL_PATH)
     assert.ok(
-      /useCoachSectionVisibility\(\s*\(\)\s*=>\s*props\.coachProfile\s*\)/.test(content),
+      // Story 0-28 — second positional argument `{ previewMode }` is now
+      // required to propagate the live preview short-circuit. Match either
+      // signature (single getter or getter + options).
+      /useCoachSectionVisibility\(\s*\(\)\s*=>\s*props\.coachProfile\s*[,)]/.test(content),
       'Essentiel must call composable with reactive getter (() => props.coachProfile)'
     )
   })
@@ -596,8 +603,13 @@ describe('YC2.3 follow-up — micro-animations & scrolltelling', () => {
       'Essentiel must import useScrollReveal'
     )
     assert.ok(
-      /const\s*\{\s*reveal,\s*isReady\s*\}\s*=\s*useScrollReveal\(\)/.test(content),
-      'Essentiel must call useScrollReveal() and destructure { reveal, isReady }'
+      // Story 0-28 — useScrollReveal now accepts an options object; Essentiel
+      // forwards `{ disabled: props.previewMode }` to opt out under the live
+      // preview panel. The pre-0-28 form (`useScrollReveal()` with no args)
+      // is also accepted for backward compatibility on consumers that don't
+      // need the preview mode.
+      /const\s*\{\s*reveal,\s*isReady\s*\}\s*=\s*useScrollReveal\(/.test(content),
+      'Essentiel must call useScrollReveal(...) and destructure { reveal, isReady }'
     )
     assert.ok(
       /js-scroll-ready/.test(content),
@@ -795,8 +807,9 @@ describe('YC2.3 review — bio section obeys toggle/empty gate (AC-2, AC-3)', ()
   test('showBio combines toggle AND hasBio', () => {
     const content = readFile(VISIBILITY_COMPOSABLE)
     assert.ok(
-      /showBio\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('bio'\)\s*&&\s*hasBio\.value\)/.test(content),
-      'showBio must be computed(() => isToggleOn("bio") && hasBio.value)'
+      // Story 0-28 — accepts `(previewMode.value || hasBio.value)` short-circuit.
+      /showBio\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('bio'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasBio\.value\)?\)/.test(content),
+      'showBio must be computed(() => isToggleOn("bio") && hasBio.value) — Story 0-28 accepts (previewMode.value || hasBio.value) short-circuit'
     )
   })
 

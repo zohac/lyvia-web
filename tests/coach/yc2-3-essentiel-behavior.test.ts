@@ -49,6 +49,7 @@ function createProfile(overrides: Partial<PublicProviderProfile> = {}): PublicPr
     heroHeadline: null,
     testimonialsJson: [],
     secondaryPhotoUrl: null,
+    logoUrl: null,
     leadMagnetUrl: null,
     leadMagnetTitle: null,
     googleAdsId: null,

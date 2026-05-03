@@ -65,6 +65,8 @@ export function mapProfileToSchemaRefs(
     credentials: Ref<Array<{ title: string, institution?: string, year?: number }>>
     sameAs: Ref<string[]>
     city: Ref<string | undefined>
+    /** Story 0-27 — brand logo URL for Person.logo Schema.org enrichment. */
+    logoUrl?: Ref<string | undefined>
   },
   options?: {
     /** YC2.4: white-label domain to add as sameAs (hub → WL cross-reference) */
@@ -77,6 +79,8 @@ export function mapProfileToSchemaRefs(
   if (profile.bio) refs.bio.value = profile.bio
   if (profile.imageUrl) refs.imageUrl.value = profile.imageUrl
   if (profile.specialties.length > 0) refs.specialties.value = profile.specialties
+  // Story 0-27 — Person.logo enrichment when brand logo is set.
+  if (refs.logoUrl && profile.logoUrl) refs.logoUrl.value = profile.logoUrl
 
   if (profile.credentials.length > 0) {
     refs.credentials.value = profile.credentials.map(c => ({
@@ -109,6 +113,19 @@ export function buildPersonAddress(
 ): { '@type': string, 'addressLocality': string } | undefined {
   if (!city) return undefined
   return { '@type': 'PostalAddress', 'addressLocality': city }
+}
+
+/**
+ * Builds a Schema.org ImageObject for Person.logo from the provider brand logo URL.
+ * Returns undefined when no logo — keeps JSON-LD clean.
+ *
+ * Story 0-27 — Convention 5: pure helper testable for composable SEO logic.
+ */
+export function buildPersonLogo(
+  logoUrl: string | undefined
+): { '@type': string, 'url': string } | undefined {
+  if (!logoUrl) return undefined
+  return { '@type': 'ImageObject', 'url': logoUrl }
 }
 
 /**

@@ -42,32 +42,49 @@ const props = defineProps<{
   consultationPlans: ConsultationPricePlan[]
   isAuthenticated: boolean
   currentPath: string
+  /**
+   * Story 0-28 — when true, the template is mounted inside the live preview
+   * panel on `/provider/coach-page`. Disables side-effects (exit-intent,
+   * sticky CTA, scroll-reveal observer) and renders external CTAs inert so
+   * Sophie's editing actions never trigger booking/checkout/lead-magnet
+   * downloads.
+   */
+  previewMode?: boolean
 }>()
 
-const { reveal, isReady } = useScrollReveal()
+const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 
 // --- Section visibility (P-Y3 : toggle actif ET contenu non vide) ---
 // Logique factorisée dans useCoachSectionVisibility (DRY, YC2.3).
-const { show } = useCoachSectionVisibility(() => props.coachProfile)
+// Story 0-28 — passe `previewMode` pour que les sections togglées ON soient
+// rendues immédiatement dans l'aperçu, même sans contenu (les organisms
+// gèrent gracieusement les arrays vides).
+const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile, {
+  previewMode: () => props.previewMode
+})
 
+const showBio = show.bio
 const showProblemStatement = show.problemStatement
 const showBenefits = show.benefits
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
 const showEducationalContent = show.educationalContent
 const showFaq = show.faq
-const showMiniTestimonial = show.miniTestimonial
+// Round terrain Simon (2026-05-02) — `showMiniTestimonial` retiré avec
+// la section MINI-TÉMOIGNAGE. Le premier témoignage est désormais visible
+// uniquement dans la section Témoignages globale.
+const showTestimonials = show.testimonials
 
 // --- Derived content ---
 
 const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
 
 // Testimonials — API only, no hardcoded fallback
+// `hasTestimonials` was previously used as v-if guard before story 0-26 round terrain ;
+// remplacé par `showTestimonials` (toggle + contenu, via useCoachSectionVisibility).
 const apiTestimonials = computed(() => props.coachProfile?.testimonialsJson ?? [])
-const hasTestimonials = computed(() => apiTestimonials.value.length > 0)
-const firstTestimonial = computed(() => apiTestimonials.value[0] ?? null)
 
 // FAQ items
 const faqItems = computed<AccordionItem[]>(() => {
@@ -94,8 +111,13 @@ onMounted(() => {
   faqDefaultValue.value = []
 })
 
-// Pricing & programs
+// Pricing & programs (Story 0-26 round terrain — gate par toggle ET contenu).
+// Story 0-28 round terrain — en preview, on affiche le bloc dès que le toggle
+// est ON même sans plans/programs chargés : `CoachPricing` rend toujours la
+// card "Appel découverte gratuit", suffisante pour matérialiser la section
+// dans l'éditeur. Sinon Sophie ne voit jamais l'effet du toggle.
 const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
+const showPricing = computed(() => isToggleOn('pricing') && (props.previewMode || hasPricing.value))
 const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMinutes ?? 15)
 
 // Lead magnet
@@ -103,16 +125,20 @@ const leadMagnetUrl = computed(() => props.coachProfile?.leadMagnetUrl ?? null)
 const leadMagnetTitle = computed(() => props.coachProfile?.leadMagnetTitle ?? 'Guide gratuit')
 const hasLeadMagnet = computed(() => !!leadMagnetUrl.value)
 
-// Exit intent popup — desktop only
+// Exit intent popup — desktop only.
+// Story 0-28 — disabled in preview mode (Sophie editing must not trigger
+// the lead-magnet popup against her own page).
 const showExitPopup = ref(false)
-useExitIntent({
-  onTrigger: () => {
-    if (!hasLeadMagnet.value) return
-    if (import.meta.client && sessionStorage.getItem(`lead_magnet_downloaded_${props.tenant.slug}`)) return
-    showExitPopup.value = true
-  },
-  storageKey: `lead_magnet_popup_shown_${props.tenant.slug}`
-})
+if (!props.previewMode) {
+  useExitIntent({
+    onTrigger: () => {
+      if (!hasLeadMagnet.value) return
+      if (import.meta.client && sessionStorage.getItem(`lead_magnet_downloaded_${props.tenant.slug}`)) return
+      showExitPopup.value = true
+    },
+    storageKey: `lead_magnet_popup_shown_${props.tenant.slug}`
+  })
+}
 
 function closePopupAndScroll() {
   showExitPopup.value = false
@@ -130,6 +156,8 @@ const heroProps = computed(() => ({
   profilePhotoUrl: props.coachProfile?.imageUrl ?? null,
   heroPhotoUrl: props.coachProfile?.heroImageUrl ?? null,
   profilePhotoAlt: props.coachProfile?.imageUrl ? `${coachName.value}, spécialiste accompagnement ménopause` : null,
+  // Story 0-27 — brand logo displayed above hero eyebrow on white-label + platform.
+  logoUrl: props.coachProfile?.logoUrl ?? null,
   discoveryDurationMinutes: props.coachProfile?.discoveryDurationMinutes ?? 15,
   urgencyText: props.coachProfile?.urgencyText ?? null,
   ctaTo: props.ctaTo
@@ -177,28 +205,12 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 3. MINI-TÉMOIGNAGE (beige) ==================== -->
-    <section
-      v-if="showMiniTestimonial && firstTestimonial"
-      v-bind="reveal()"
-      class="scroll-reveal bg-[var(--color-neutral-50)] px-6 py-20 sm:px-12 lg:px-20"
-    >
-      <div class="mx-auto max-w-3xl text-center">
-        <blockquote class="font-serif text-xl italic leading-relaxed text-[var(--color-crepuscule-700)] lg:text-2xl">
-          « {{ firstTestimonial.quote }} »
-        </blockquote>
-        <footer class="mt-6 text-sm text-[var(--color-text-muted)]">
-          <span class="font-medium text-[var(--color-crepuscule-950)]">
-            {{ firstTestimonial.firstName }}
-          </span>
-          <template v-if="firstTestimonial.age">
-            , {{ firstTestimonial.age }} ans
-          </template>
-        </footer>
-      </div>
-    </section>
-
-    <!-- ==================== 4. CE QUE L'ACCOMPAGNEMENT APPORTE (blanc) ==================== -->
+    <!-- ==================== 3. CE QUE CELA APPORTE — BÉNÉFICES (blanc) ==================== -->
+    <!-- Round terrain Simon (2026-05-02) — section mini-témoignage retirée
+      pour aligner l'ordre éditeur ↔ rendu : hero → problème → bénéfices →
+      bio → témoignages → piliers → parcours → tarifs → comprendre → faq.
+      Le premier témoignage apparaît désormais uniquement dans la section
+      Témoignages (#5), pas en accroche dupliquée. -->
     <div
       v-if="showBenefits"
       id="accompagnement"
@@ -223,8 +235,9 @@ const heroProps = computed(() => ({
       :duration-minutes="discoveryDuration"
     />
 
-    <!-- ==================== 5. À PROPOS (dark) ==================== -->
+    <!-- ==================== 4. À PROPOS — Qui suis-je (dark) ==================== -->
     <section
+      v-if="showBio"
       id="qui-suis-je"
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-[var(--color-crepuscule-950)] px-6 py-32 text-white sm:px-12 lg:px-20"
@@ -413,11 +426,13 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 6. TÉMOIGNAGES (beige) ==================== -->
-    <!-- Anchor wrapper always present so #temoignages nav link resolves -->
-    <div id="temoignages">
+    <!-- ==================== 5. TÉMOIGNAGES (beige) ==================== -->
+    <!-- Story 0-26 round terrain — gate par toggle (sectionsConfig.testimonials !== false) -->
+    <div
+      v-if="showTestimonials"
+      id="temoignages"
+    >
       <CoachTestimonials
-        v-if="hasTestimonials"
         :testimonials="apiTestimonials"
       >
         <template #header>
@@ -436,18 +451,18 @@ const heroProps = computed(() => ({
 
     <!-- Mini-CTA after Témoignages -->
     <CoachInlineCta
-      v-if="hasTestimonials"
+      v-if="showTestimonials"
       :cta-to="ctaTo"
       :duration-minutes="discoveryDuration"
     />
 
-    <!-- ==================== 7. PILIERS (blanc) ==================== -->
+    <!-- ==================== 6. PILIERS — L'accompagnement (blanc) ==================== -->
     <CoachPillars
       v-if="showPillars"
       :pillars="coachProfile?.pillarsJson ?? null"
     />
 
-    <!-- ==================== 8. COMMENT ÇA MARCHE (beige) ==================== -->
+    <!-- ==================== 7. COMMENT ÇA MARCHE — Le parcours (beige) ==================== -->
     <CoachHowItWorks
       v-if="showHowItWorks"
       :steps="coachProfile?.howItWorksJson ?? null"
@@ -463,11 +478,13 @@ const heroProps = computed(() => ({
       </template>
     </CoachHowItWorks>
 
-    <!-- ==================== 9. TARIFS & PROGRAMMES (blanc) ==================== -->
-    <!-- Anchor wrapper always present so #tarifs nav link resolves -->
-    <div id="tarifs">
+    <!-- ==================== 8. TARIFS & PROGRAMMES (blanc) ==================== -->
+    <!-- Story 0-26 round terrain — gate par toggle (sectionsConfig.pricing !== false) ET contenu -->
+    <div
+      v-if="showPricing"
+      id="tarifs"
+    >
       <CoachPricing
-        v-if="hasPricing"
         :plans="consultationPlans"
         :programs="publicPrograms"
         :discovery-duration-minutes="discoveryDuration"
@@ -489,12 +506,12 @@ const heroProps = computed(() => ({
 
     <!-- Mini-CTA after Tarifs -->
     <CoachInlineCta
-      v-if="hasPricing"
+      v-if="showPricing"
       :cta-to="ctaTo"
       :duration-minutes="discoveryDuration"
     />
 
-    <!-- ==================== 10. CONTENU ÉDUCATIF (beige) ==================== -->
+    <!-- ==================== 9. CONTENU ÉDUCATIF — Comprendre (beige) ==================== -->
     <CoachEducationalContent
       v-if="showEducationalContent"
       :content="coachProfile?.educationalContentJson ?? null"
@@ -510,7 +527,7 @@ const heroProps = computed(() => ({
       </template>
     </CoachEducationalContent>
 
-    <!-- ==================== 10b. LEAD CAPTURE (beige gradient) ==================== -->
+    <!-- ==================== 9b. LEAD CAPTURE (beige gradient) ==================== -->
     <CoachLeadCapture
       v-if="hasLeadMagnet"
       :slug="tenant.slug"
@@ -518,7 +535,7 @@ const heroProps = computed(() => ({
       :lead-magnet-title="leadMagnetTitle"
     />
 
-    <!-- ==================== 11. FAQ (blanc) ==================== -->
+    <!-- ==================== 10. FAQ (blanc) ==================== -->
     <section
       v-if="showFaq"
       v-bind="reveal()"
@@ -552,7 +569,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 12. CTA FINAL (gradient) ==================== -->
+    <!-- ==================== 11. CTA FINAL (gradient) ==================== -->
     <section
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-gradient-to-br from-[var(--color-brand-primary)] to-[var(--color-crepuscule-800)] px-6 py-32 sm:px-12 lg:px-20"
@@ -594,14 +611,18 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 13. DISCLAIMER MÉDICAL ==================== -->
+    <!-- ==================== 12. DISCLAIMER MÉDICAL ==================== -->
     <AtomsMedicalDisclaimer />
 
     <!-- Spacer for mobile sticky CTA -->
-    <div class="h-16 md:hidden" />
+    <div
+      v-if="!previewMode"
+      class="h-16 md:hidden"
+    />
 
-    <!-- Sticky CTA mobile -->
+    <!-- Sticky CTA mobile — hidden in preview (Story 0-28). -->
     <StickyCtaMobile
+      v-if="!previewMode"
       cta-label="Réserver mon appel gratuit →"
       :cta-to="ctaTo"
     />
