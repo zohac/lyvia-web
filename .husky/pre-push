@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Block direct pushes to protected branches.
+# Bypass: git push --no-verify
+
+protected_branches=("main")
+remote="$1"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    for branch in "${protected_branches[@]}"; do
+        if [[ "$remote_ref" == "refs/heads/$branch" ]]; then
+            echo ""
+            echo "❌ Push direct sur '$branch' interdit (remote: $remote)."
+            echo "   Workflow attendu : commit sur develop → PR develop → main sur GitHub."
+            echo ""
+            echo "   Bypass exceptionnel : git push --no-verify"
+            echo ""
+            exit 1
+        fi
+    done
+done
+
+exit 0

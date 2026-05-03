@@ -70,6 +70,22 @@ pnpm test:unit    # Tests unitaires
 pnpm contract:check  # Validation contrat OpenAPI
 ```
 
+## Git workflow & pre-push hook
+
+Husky est installé automatiquement via le script `prepare` du `package.json` (déclenché à chaque `pnpm install`). Le hook `.husky/pre-push` est versionné dans le repo et bloque les pushes directs vers `main` (défense en profondeur — la branch protection GitHub native est aussi active sur `main`).
+
+Workflow attendu : commit sur `develop` → PR `develop` → `main` sur GitHub.
+
+Bypass d'urgence : `git push --no-verify` (à utiliser avec parcimonie — c'est un signal d'alerte).
+
+**Setup post-clone** : si `pnpm install` est lancé hors du host (par ex. dans un container Docker sans `git`), Husky ne peut pas configurer `core.hooksPath`. Lancer alors une fois sur le host :
+
+```bash
+git config core.hooksPath .husky
+```
+
+Le `prepare` script utilise `husky || true` pour ne jamais casser un install dans un environnement sans git.
+
 ## Architecture
 
 ```
