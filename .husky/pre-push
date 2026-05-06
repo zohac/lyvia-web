@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Block direct pushes to protected branches.
+# Bypass: git push --no-verify
+#
+# protected_branches accepts both exact names ("main") and Bash glob patterns
+# ("release/*"). The right-hand side of `[[ == ]]` is intentionally unquoted
+# so Bash performs glob matching on the branch token. The list is repo-owned
+# (never user input), so glob expansion here is safe.
+
+protected_branches=("main")
+remote="$1"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    for branch in "${protected_branches[@]}"; do
+        # shellcheck disable=SC2053
+        if [[ "$remote_ref" == refs/heads/$branch ]]; then
+            {
+                echo ""
+                echo "❌ Push direct sur '$branch' interdit (remote: $remote)."
+                echo "   Workflow attendu : commit sur develop → PR develop → main sur GitHub."
+                echo ""
+                echo "   Bypass exceptionnel : git push --no-verify"
+                echo ""
+            } >&2
+            exit 1
+        fi
+    done
+done
+
+exit 0

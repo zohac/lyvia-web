@@ -417,10 +417,24 @@ async function submitBooking() {
     const adsId = useState<string | null>('googleAdsId')
     const convLabel = useState<string | null>('googleAdsConversionLabel')
     if (gtagFn.value && shouldFireConversion(Boolean(gtagFn.value), adsId.value, convLabel.value)) {
+      // eslint-disable-next-line no-console -- temp debug story 0-29 gtag silent failure
+      console.log('[gtag][0-29] firing conversion event', {
+        send_to: `${adsId.value}/${convLabel.value}`,
+        value: 1.0,
+        currency: 'EUR'
+      })
       gtagFn.value('event', 'conversion', {
         send_to: `${adsId.value}/${convLabel.value}`,
         value: 1.0,
         currency: 'EUR'
+      })
+    } else {
+      // eslint-disable-next-line no-console -- temp debug story 0-29 gtag silent failure
+      console.warn('[gtag][0-29] conversion event SKIPPED', {
+        gtagMounted: Boolean(gtagFn.value),
+        googleAdsId: adsId.value,
+        conversionLabel: convLabel.value,
+        cookieConsent: useCookie('cookieConsent').value ?? null
       })
     }
   } catch (err: unknown) {
