@@ -205,6 +205,24 @@ export function toGoogleAdsConversionPixelUrl(
   return `https://googleads.g.doubleclick.net/pagead/conversion/${accountId}/?${params.toString()}`
 }
 
+export type GoogleAdsConversionPayload = {
+  send_to: string
+  value: 1.0
+  currency: 'EUR'
+}
+
+export function toGoogleAdsConversionPayload(
+  googleAdsId: string | null | undefined,
+  conversionLabel: string | null | undefined
+): GoogleAdsConversionPayload | null {
+  if (!googleAdsId || !conversionLabel) return null
+  return {
+    send_to: `${googleAdsId}/${conversionLabel}`,
+    value: 1.0,
+    currency: 'EUR'
+  }
+}
+
 export function resolveAdsContext(input: AdsContext): { slug: string | null, ads: AdsConfig } {
   if (input.routeSlug) {
     return {
