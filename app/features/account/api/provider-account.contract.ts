@@ -55,6 +55,7 @@ export type ProviderAccountResponse = {
   leadMagnetTitle: string | null
   googleAdsId: string | null
   googleAdsConversionLabel: string | null
+  googleTagId?: string | null
   microsoftClarityId: string | null
   // Coach Page Configuration (YC1.2 / YC3.1)
   coachPageTemplateId: string | null
@@ -99,6 +100,7 @@ export type UpdateProviderAccountRequest = {
   leadMagnetTitle?: string | null
   googleAdsId?: string | null
   googleAdsConversionLabel?: string | null
+  googleTagId?: string | null
   microsoftClarityId?: string | null
   // Coach Page Configuration (YC3.1)
   coachPageTemplateId?: string | null

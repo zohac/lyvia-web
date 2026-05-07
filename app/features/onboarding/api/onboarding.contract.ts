@@ -24,6 +24,9 @@ export type PublicTenantResponse = {
   timezone: string
   isActive: boolean
   brand: TenantBrand
+  googleAdsId?: string | null
+  googleAdsConversionLabel?: string | null
+  googleTagId?: string | null
 }
 
 export type AvailabilitySlot = {

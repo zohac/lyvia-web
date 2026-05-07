@@ -10,6 +10,7 @@
  */
 import {
   resolveAdsContext,
+  shouldMountGoogleAdsTag,
   type AdsConfig
 } from '~/features/consent/consent-logic'
 import {
@@ -18,7 +19,9 @@ import {
 } from '~/features/clarity/microsoft-clarity-helpers'
 
 type TrackingProfile = ClarityProfile & {
+  googleAdsId?: string | null
   googleAdsConversionLabel?: string | null
+  googleTagId?: string | null
 }
 
 function gatherNuxtData() {
@@ -56,7 +59,11 @@ function gatherNuxtData() {
 
 function toAdsConfig(p: TrackingProfile | null | undefined): AdsConfig | null {
   if (!p) return null
-  return { id: p.googleAdsId ?? null, label: p.googleAdsConversionLabel ?? null }
+  return {
+    id: p.googleAdsId ?? null,
+    label: p.googleAdsConversionLabel ?? null,
+    tagId: p.googleTagId ?? null
+  }
 }
 
 export async function mountTracking(): Promise<void> {
@@ -75,9 +82,13 @@ export async function mountTracking(): Promise<void> {
     tenantRouteSlug: data.tenantRouteSlug
   })
 
-  if (ads.id) {
+  if (shouldMountGoogleAdsTag(ads)) {
     const { mountGoogleAds } = await import('~/features/consent/google-ads-runtime')
-    mountGoogleAds({ googleAdsId: ads.id, conversionLabel: ads.label })
+    mountGoogleAds({
+      googleAdsId: ads.id,
+      conversionLabel: ads.label,
+      googleTagId: ads.tagId ?? null
+    })
   }
 
   // ── Microsoft Clarity ──

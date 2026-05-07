@@ -9,6 +9,7 @@ export type ConsentSignals = {
 export type AdsConfig = {
   id: string | null
   label: string | null
+  tagId?: string | null
 }
 
 export type AdsContext = {
@@ -50,9 +51,33 @@ export function getConsentCookieOptions(isDev: boolean): {
 
 export const GOOGLE_ADS_ID_REGEX = /^AW-\d{5,12}$/
 export const GOOGLE_ADS_CONVERSION_LABEL_REGEX = /^[a-zA-Z0-9_-]{1,50}$/
+export const GOOGLE_TAG_ID_REGEX = /^GT-[A-Z0-9]{5,15}$/
+
+const GOOGLE_TAG_ID_BY_ADS_ID: Record<string, string> = {
+  // Temporary bridge for story 0-29: Sophie's conversion action is attached to
+  // the Google Tag while the public API only exposes the legacy AW destination.
+  'AW-17979105489': 'GT-NFDCLRLC'
+}
 
 export function hasGoogleAdsConfig(googleAdsId: string | null | undefined): boolean {
   return Boolean(googleAdsId)
+}
+
+export function hasGoogleTagConfig(googleTagId: string | null | undefined): boolean {
+  return Boolean(googleTagId)
+}
+
+export function resolvePrimaryGoogleTagId(input: {
+  googleAdsId: string | null | undefined
+  googleTagId?: string | null | undefined
+}): string | null {
+  if (input.googleTagId && GOOGLE_TAG_ID_REGEX.test(input.googleTagId)) return input.googleTagId
+  if (!input.googleAdsId) return null
+  return GOOGLE_TAG_ID_BY_ADS_ID[input.googleAdsId] ?? input.googleAdsId
+}
+
+export function shouldMountGoogleAdsTag(config: AdsConfig): config is AdsConfig & { id: string } {
+  return Boolean(config.id)
 }
 
 export function getBannerMode(hasAds: boolean): 'simple' | 'full' {
@@ -109,6 +134,24 @@ export function shouldFireConversion(
   conversionLabel: string | null | undefined
 ): boolean {
   return gtagLoaded && Boolean(googleAdsId) && Boolean(conversionLabel)
+}
+
+export type GoogleAdsConversionPayload = {
+  send_to: string
+  value: 1.0
+  currency: 'EUR'
+}
+
+export function toGoogleAdsConversionPayload(
+  googleAdsId: string | null | undefined,
+  conversionLabel: string | null | undefined
+): GoogleAdsConversionPayload | null {
+  if (!googleAdsId || !conversionLabel) return null
+  return {
+    send_to: `${googleAdsId}/${conversionLabel}`,
+    value: 1.0,
+    currency: 'EUR'
+  }
 }
 
 export function resolveAdsContext(input: AdsContext): { slug: string | null, ads: AdsConfig } {

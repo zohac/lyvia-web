@@ -100,6 +100,7 @@ export interface PublicProviderProfile {
   leadMagnetTitle: string | null
   googleAdsId: string | null
   googleAdsConversionLabel: string | null
+  googleTagId?: string | null
   microsoftClarityId: string | null
   // Coach Page Configuration (YC1.2)
   templateCode: string
