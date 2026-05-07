@@ -43,8 +43,8 @@ export function installGoogleAdsTag<TScript extends GoogleAdsScriptElement>(
   tagId: string
 ): GtagFn {
   targetWindow.dataLayer = targetWindow.dataLayer || []
-  const gtag: GtagFn = function () {
-    targetWindow.dataLayer?.push(arguments)
+  const gtag: GtagFn = (...args: unknown[]) => {
+    targetWindow.dataLayer?.push(args)
   }
   targetWindow.gtag = gtag
 
