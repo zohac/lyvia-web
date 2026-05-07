@@ -8,11 +8,15 @@ import {
   getConsentValueFromPreferences,
   GOOGLE_ADS_CONVERSION_LABEL_REGEX,
   GOOGLE_ADS_ID_REGEX,
+  GOOGLE_TAG_ID_REGEX,
   resolveAdsContext,
+  resolvePrimaryGoogleTagId,
   shouldFetchAdsProfile,
   shouldFireConversion,
+  shouldMountGoogleAdsTag,
   shouldRestoreConsent,
   shouldShowConsentBanner,
+  toGoogleAdsConversionPayload,
   toConsentSignals,
   type ConsentValue
 } from '../../app/features/consent/consent-logic'
@@ -126,6 +130,31 @@ test('google ads conversion label validation: rejects invalid labels', () => {
   assert.equal(GOOGLE_ADS_CONVERSION_LABEL_REGEX.test('label!@#'), false)
 })
 
+test('google tag id validation: accepts GT IDs and rejects AW IDs', () => {
+  assert.equal(GOOGLE_TAG_ID_REGEX.test('GT-NFDCLRLC'), true)
+  assert.equal(GOOGLE_TAG_ID_REGEX.test('AW-17979105489'), false)
+})
+
+test('google tag id resolution: uses known Sophie GT tag for current AW config', () => {
+  assert.equal(resolvePrimaryGoogleTagId({ googleAdsId: 'AW-17979105489' }), 'GT-NFDCLRLC')
+})
+
+test('google tag mount guard: requires a Google Ads destination', () => {
+  assert.equal(shouldMountGoogleAdsTag({ id: 'AW-17979105489', label: null, tagId: null }), true)
+  assert.equal(shouldMountGoogleAdsTag({ id: null, label: null, tagId: null }), false)
+})
+
+test('google ads conversion payload: send_to stays AW ID plus conversion label', () => {
+  assert.deepStrictEqual(
+    toGoogleAdsConversionPayload('AW-17979105489', '1E9OCP6wkZAcENHBjf1C'),
+    {
+      send_to: 'AW-17979105489/1E9OCP6wkZAcENHBjf1C',
+      value: 1.0,
+      currency: 'EUR'
+    }
+  )
+})
+
 const consentRestoreCases: Array<{ consent: ConsentValue, expected: boolean }> = [
   { consent: 'all', expected: true },
   { consent: 'essential', expected: false },
@@ -142,14 +171,14 @@ for (const { consent, expected } of consentRestoreCases) {
 test('ads context resolution: prefers route profile when route slug already has ads config', () => {
   const result = resolveAdsContext({
     routeSlug: 'sophie-jouan',
-    routeProfile: { id: 'AW-123456789', label: 'abcDEF123' },
+    routeProfile: { id: 'AW-123456789', label: 'abcDEF123', tagId: 'GT-NFDCLRLC' },
     tenantHomeSlug: 'ignored-home',
     tenantHomeProfile: { id: 'AW-99999', label: 'ignored' }
   })
 
   assert.deepStrictEqual(result, {
     slug: 'sophie-jouan',
-    ads: { id: 'AW-123456789', label: 'abcDEF123' }
+    ads: { id: 'AW-123456789', label: 'abcDEF123', tagId: 'GT-NFDCLRLC' }
   })
 })
 

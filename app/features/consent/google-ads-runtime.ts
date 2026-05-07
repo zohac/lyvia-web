@@ -1,5 +1,6 @@
 import {
   COOKIE_CONSENT_NAME,
+  resolvePrimaryGoogleTagId,
   shouldRestoreConsent,
   toConsentSignals,
   type ConsentValue
@@ -8,6 +9,7 @@ import {
 declare global {
   interface Window {
     dataLayer: unknown[]
+    gtag?: GtagFn
   }
 }
 
@@ -18,36 +20,33 @@ type GoogleAdsScriptElement = {
   src: string
 }
 
+type GoogleAdsWindow = {
+  dataLayer?: unknown[]
+  gtag?: GtagFn
+}
+
 export function injectGoogleAdsTag<TScript extends GoogleAdsScriptElement>(
   createScript: () => TScript,
   appendToHead: (element: TScript) => void,
-  googleAdsId: string
+  tagId: string
 ): void {
   const script = createScript()
   script.async = true
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${tagId}`
   appendToHead(script)
 }
 
-export function mountGoogleAds(input: {
-  googleAdsId: string
-  conversionLabel: string | null
-}): void {
-  const { googleAdsId, conversionLabel } = input
-
-  const gtagState = useState<GtagFn | null>('gtag', () => null)
-  const googleAdsIdState = useState<string | null>('googleAdsId', () => null)
-  const googleAdsConversionLabelState = useState<string | null>('googleAdsConversionLabel', () => null)
-
-  if (gtagState.value) return
-
-  googleAdsIdState.value = googleAdsId
-  googleAdsConversionLabelState.value = conversionLabel
-
-  window.dataLayer = window.dataLayer || []
-  const gtag: GtagFn = function (...args: unknown[]) {
-    window.dataLayer.push(args)
+export function installGoogleAdsTag<TScript extends GoogleAdsScriptElement>(
+  targetWindow: GoogleAdsWindow,
+  createScript: () => TScript,
+  appendToHead: (element: TScript) => void,
+  tagId: string
+): GtagFn {
+  targetWindow.dataLayer = targetWindow.dataLayer || []
+  const gtag: GtagFn = (...args: unknown[]) => {
+    targetWindow.dataLayer?.push(args)
   }
+  targetWindow.gtag = gtag
 
   gtag('consent', 'default', {
     ad_storage: 'denied',
@@ -57,16 +56,46 @@ export function mountGoogleAds(input: {
     wait_for_update: 500
   })
 
-  injectGoogleAdsTag(
+  injectGoogleAdsTag(createScript, appendToHead, tagId)
+
+  gtag('js', new Date())
+  gtag('config', tagId)
+
+  return gtag
+}
+
+export function mountGoogleAds(input: {
+  googleAdsId: string
+  conversionLabel: string | null
+  googleTagId?: string | null
+}): void {
+  const { googleAdsId, conversionLabel, googleTagId = null } = input
+  const primaryTagId = resolvePrimaryGoogleTagId({ googleAdsId, googleTagId })
+  if (!primaryTagId) return
+
+  const gtagState = useState<GtagFn | null>('gtag', () => null)
+  const googleAdsIdState = useState<string | null>('googleAdsId', () => null)
+  const googleTagIdState = useState<string | null>('googleTagId', () => null)
+  const googleAdsConversionLabelState = useState<string | null>('googleAdsConversionLabel', () => null)
+
+  googleAdsIdState.value = googleAdsId
+  googleTagIdState.value = primaryTagId.startsWith('GT-') ? primaryTagId : null
+  googleAdsConversionLabelState.value = conversionLabel
+
+  if (gtagState.value) return
+
+  const gtag = installGoogleAdsTag(
+    window,
     () => document.createElement('script'),
     (script) => {
       document.head.appendChild(script)
     },
-    googleAdsId
+    primaryTagId
   )
 
-  gtag('js', new Date())
-  gtag('config', googleAdsId)
+  if (primaryTagId !== googleAdsId) {
+    gtag('config', googleAdsId)
+  }
 
   gtagState.value = gtag
 
