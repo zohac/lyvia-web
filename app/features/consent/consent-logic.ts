@@ -59,6 +59,10 @@ const GOOGLE_TAG_ID_BY_ADS_ID: Record<string, string> = {
   'AW-17979105489': 'GT-NFDCLRLC'
 }
 
+const GOOGLE_ADS_ID_BY_TAG_ID: Record<string, string> = Object.fromEntries(
+  Object.entries(GOOGLE_TAG_ID_BY_ADS_ID).map(([adsId, tagId]) => [tagId, adsId])
+)
+
 export function hasGoogleAdsConfig(googleAdsId: string | null | undefined): boolean {
   return Boolean(googleAdsId)
 }
@@ -74,6 +78,15 @@ export function resolvePrimaryGoogleTagId(input: {
   if (input.googleTagId && GOOGLE_TAG_ID_REGEX.test(input.googleTagId)) return input.googleTagId
   if (!input.googleAdsId) return null
   return GOOGLE_TAG_ID_BY_ADS_ID[input.googleAdsId] ?? input.googleAdsId
+}
+
+export function resolveGoogleAdsConversionId(
+  googleAdsId: string | null | undefined
+): string | null {
+  if (!googleAdsId) return null
+  if (GOOGLE_ADS_ID_REGEX.test(googleAdsId)) return googleAdsId
+  if (GOOGLE_TAG_ID_REGEX.test(googleAdsId)) return GOOGLE_ADS_ID_BY_TAG_ID[googleAdsId] ?? null
+  return null
 }
 
 export function shouldMountGoogleAdsTag(config: AdsConfig): config is AdsConfig & { id: string } {
@@ -133,25 +146,63 @@ export function shouldFireConversion(
   googleAdsId: string | null | undefined,
   conversionLabel: string | null | undefined
 ): boolean {
-  return gtagLoaded && Boolean(googleAdsId) && Boolean(conversionLabel)
+  return gtagLoaded && Boolean(resolveGoogleAdsConversionId(googleAdsId)) && Boolean(conversionLabel)
 }
 
 export type GoogleAdsConversionPayload = {
   send_to: string
   value: 1.0
   currency: 'EUR'
+  transaction_id?: string
+  event_callback?: () => void
+  event_timeout?: number
 }
+
+export const GOOGLE_ADS_CONVERSION_FALLBACK_TIMEOUT_MS = 2000
 
 export function toGoogleAdsConversionPayload(
   googleAdsId: string | null | undefined,
-  conversionLabel: string | null | undefined
+  conversionLabel: string | null | undefined,
+  transactionId?: string | null | undefined
 ): GoogleAdsConversionPayload | null {
-  if (!googleAdsId || !conversionLabel) return null
-  return {
-    send_to: `${googleAdsId}/${conversionLabel}`,
+  const conversionId = resolveGoogleAdsConversionId(googleAdsId)
+  if (!conversionId || !conversionLabel) return null
+  const payload: GoogleAdsConversionPayload = {
+    send_to: `${conversionId}/${conversionLabel}`,
     value: 1.0,
     currency: 'EUR'
   }
+  if (transactionId) payload.transaction_id = transactionId
+  return payload
+}
+
+export function shouldFireConversionPixel(
+  consent: ConsentValue,
+  googleAdsId: string | null | undefined,
+  conversionLabel: string | null | undefined
+): boolean {
+  return consent === 'all' && Boolean(resolveGoogleAdsConversionId(googleAdsId)) && Boolean(conversionLabel)
+}
+
+export function toGoogleAdsConversionPixelUrl(
+  googleAdsId: string | null | undefined,
+  conversionLabel: string | null | undefined,
+  random: number
+): string | null {
+  const conversionId = resolveGoogleAdsConversionId(googleAdsId)
+  if (!conversionId || !conversionLabel) return null
+
+  const accountId = conversionId.replace(/^AW-/, '')
+  const params = new URLSearchParams({
+    label: conversionLabel,
+    value: '1.0',
+    currency_code: 'EUR',
+    guid: 'ON',
+    script: '0',
+    random: String(random)
+  })
+
+  return `https://googleads.g.doubleclick.net/pagead/conversion/${accountId}/?${params.toString()}`
 }
 
 export function resolveAdsContext(input: AdsContext): { slug: string | null, ads: AdsConfig } {

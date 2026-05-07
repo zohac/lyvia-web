@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import {
-  shouldFireConversion,
-  toGoogleAdsConversionPayload
+  COOKIE_CONSENT_NAME,
+  type ConsentValue
 } from '../../features/consent/consent-logic'
+import { fireGoogleAdsConversion } from '../../features/consent/google-ads-runtime'
 import type {
   AvailabilitySlot,
   BookDiscoveryResponse,
@@ -419,14 +420,14 @@ async function submitBooking() {
     const gtagFn = useState<((...args: unknown[]) => void) | null>('gtag')
     const adsId = useState<string | null>('googleAdsId')
     const convLabel = useState<string | null>('googleAdsConversionLabel')
-    const conversionPayload = toGoogleAdsConversionPayload(adsId.value, convLabel.value)
-    if (
-      gtagFn.value
-      && conversionPayload
-      && shouldFireConversion(Boolean(gtagFn.value), adsId.value, convLabel.value)
-    ) {
-      gtagFn.value('event', 'conversion', conversionPayload)
-    }
+    const consent = useCookie<ConsentValue>(COOKIE_CONSENT_NAME)
+    fireGoogleAdsConversion({
+      gtag: gtagFn.value ?? window.gtag ?? null,
+      googleAdsId: adsId.value,
+      conversionLabel: convLabel.value,
+      consent: consent.value,
+      transactionId: response.appointmentId
+    })
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
       const mapped = mapOnboardingErrorCodeToUserMessage(err.apiError.code)

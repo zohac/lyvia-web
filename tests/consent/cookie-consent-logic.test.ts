@@ -13,10 +13,12 @@ import {
   resolvePrimaryGoogleTagId,
   shouldFetchAdsProfile,
   shouldFireConversion,
+  shouldFireConversionPixel,
   shouldMountGoogleAdsTag,
   shouldRestoreConsent,
   shouldShowConsentBanner,
   toGoogleAdsConversionPayload,
+  toGoogleAdsConversionPixelUrl,
   toConsentSignals,
   type ConsentValue
 } from '../../app/features/consent/consent-logic'
@@ -153,6 +155,37 @@ test('google ads conversion payload: send_to stays AW ID plus conversion label',
       currency: 'EUR'
     }
   )
+})
+
+test('google ads conversion pixel guard: requires advertising consent', () => {
+  assert.equal(
+    shouldFireConversionPixel('all', 'AW-17979105489', '1E9OCP6wkZAcENHBjf1C'),
+    true
+  )
+  assert.equal(
+    shouldFireConversionPixel('essential', 'AW-17979105489', '1E9OCP6wkZAcENHBjf1C'),
+    false
+  )
+  assert.equal(shouldFireConversionPixel('all', null, '1E9OCP6wkZAcENHBjf1C'), false)
+  assert.equal(shouldFireConversionPixel('all', 'AW-17979105489', null), false)
+})
+
+test('google ads conversion pixel url: builds direct conversion hit from AW id', () => {
+  assert.equal(
+    toGoogleAdsConversionPixelUrl('AW-17979105489', '1E9OCP6wkZAcENHBjf1C', 12345),
+    'https://googleads.g.doubleclick.net/pagead/conversion/17979105489/?label=1E9OCP6wkZAcENHBjf1C&value=1.0&currency_code=EUR&guid=ON&script=0&random=12345'
+  )
+})
+
+test('google ads conversion pixel url: maps the known Sophie GT tag back to its AW destination', () => {
+  assert.equal(
+    toGoogleAdsConversionPixelUrl('GT-NFDCLRLC', '1E9OCP6wkZAcENHBjf1C', 12345),
+    'https://googleads.g.doubleclick.net/pagead/conversion/17979105489/?label=1E9OCP6wkZAcENHBjf1C&value=1.0&currency_code=EUR&guid=ON&script=0&random=12345'
+  )
+})
+
+test('google ads conversion pixel url: rejects unknown GT ids because conversion labels belong to AW destinations', () => {
+  assert.equal(toGoogleAdsConversionPixelUrl('GT-UNKNOWN1', '1E9OCP6wkZAcENHBjf1C', 12345), null)
 })
 
 const consentRestoreCases: Array<{ consent: ConsentValue, expected: boolean }> = [
