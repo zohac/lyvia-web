@@ -1,5 +1,6 @@
 import type { TrackPageViewRequest } from './api/analytics.contract'
 import { detectDeviceType, detectBrowser } from './helpers/detect-device'
+import { extractClickIds } from './helpers/extract-click-ids'
 import { extractUtmParams } from './helpers/extract-utm'
 import { extractReferrerDomain } from './helpers/extract-referrer'
 import { apiFetch } from '~/services/api/apiFetch'
@@ -21,6 +22,7 @@ export function usePageTracking(tenantId: MaybeRefOrGetter<string | undefined>) 
     const ua = navigator.userAgent
     const utm = extractUtmParams(window.location.search)
     const referrerDomain = extractReferrerDomain(document.referrer, window.location.hostname)
+    const clickIds = extractClickIds(window.location.search)
 
     const body: TrackPageViewRequest = {
       tenantId: id,
@@ -31,6 +33,10 @@ export function usePageTracking(tenantId: MaybeRefOrGetter<string | undefined>) 
       utmCampaign: utm.utmCampaign,
       deviceType: detectDeviceType(ua),
       browser: detectBrowser(ua)
+    }
+
+    if (Object.keys(clickIds).length > 0) {
+      body.paidClickIds = clickIds
     }
 
     try {
