@@ -1,8 +1,4 @@
-import type { TrackPageViewRequest } from './api/analytics.contract'
-import { detectDeviceType, detectBrowser } from './helpers/detect-device'
-import { extractClickIds } from './helpers/extract-click-ids'
-import { extractUtmParams } from './helpers/extract-utm'
-import { extractReferrerDomain } from './helpers/extract-referrer'
+import { buildPageViewPayload } from './helpers/build-page-view-payload'
 import { apiFetch } from '~/services/api/apiFetch'
 
 /**
@@ -19,25 +15,14 @@ export function usePageTracking(tenantId: MaybeRefOrGetter<string | undefined>) 
     const id = toValue(tenantId)
     if (!id) return
 
-    const ua = navigator.userAgent
-    const utm = extractUtmParams(window.location.search)
-    const referrerDomain = extractReferrerDomain(document.referrer, window.location.hostname)
-    const clickIds = extractClickIds(window.location.search)
-
-    const body: TrackPageViewRequest = {
+    const body = buildPageViewPayload({
       tenantId: id,
-      pagePath: window.location.pathname,
-      referrerDomain,
-      utmSource: utm.utmSource,
-      utmMedium: utm.utmMedium,
-      utmCampaign: utm.utmCampaign,
-      deviceType: detectDeviceType(ua),
-      browser: detectBrowser(ua)
-    }
-
-    if (Object.keys(clickIds).length > 0) {
-      body.paidClickIds = clickIds
-    }
+      pathname: window.location.pathname,
+      search: window.location.search,
+      referrer: document.referrer,
+      hostname: window.location.hostname,
+      userAgent: navigator.userAgent
+    })
 
     try {
       await apiFetch('/public/page-views', {
