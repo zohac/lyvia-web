@@ -71,11 +71,16 @@ test('DS4.2: tools page uses DsPageHeader and keeps tabs mounted', () => {
   assert.ok(source.includes(':unmount-on-hide="false"'))
 })
 
-test('DS4.2: tools page renders waitlist placeholder and does not expose SEO as a tab', () => {
+test('DS4.2 + 0-33: tools page wires AdminWaitlistPanel and does not expose SEO as a tab', () => {
   const source = readAppFile('pages/admin/tools.vue')
 
-  assert.ok(source.includes('title="Waitlist"'))
-  assert.ok(source.includes('description="Cette section sera bientôt disponible pour gérer les leads en attente."'))
+  // Story 0-33: waitlist slot now renders the real AdminWaitlistPanel
+  // (replaces the prior "Cette section sera bientôt disponible" placeholder).
+  assert.ok(source.includes('<OrganismsAdminWaitlistPanel />'))
+  assert.equal(
+    source.includes('Cette section sera bientôt disponible pour gérer les leads en attente.'),
+    false
+  )
   assert.equal(source.includes('value: \'seo\''), false)
 })
 
