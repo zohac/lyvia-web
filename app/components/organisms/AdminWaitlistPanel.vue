@@ -149,7 +149,7 @@
             <thead class="border-b border-[color:var(--color-brand-subtle)]/50">
               <tr class="text-left text-xs uppercase tracking-[0.12em] text-[color:var(--color-brand-muted)]">
                 <th class="px-6 py-3 font-semibold">
-                  Nom
+                  Nom complet
                 </th>
                 <th class="px-6 py-3 font-semibold">
                   Email

@@ -182,6 +182,11 @@ describe('0-33 — Panel source wiring (AC-6, A31 wording verbatim)', () => {
     assert.ok(errorToastBlock, 'Error toast block must exist')
     assert.match(errorToastBlock![0], /duration:\s*0/)
   })
+
+  test('desktop table keeps the AC column wording "Nom complet"', () => {
+    const source = readPanel()
+    assert.ok(source.includes('Nom complet'))
+  })
 })
 
 describe('0-33 — tools.vue slot wiring (AC-8)', () => {
