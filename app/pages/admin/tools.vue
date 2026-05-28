@@ -66,11 +66,7 @@ const activeTab = computed<TabValue>({
 
       <template #waitlist>
         <div class="mt-6">
-          <AtomsDsEmptyState
-            icon="i-lucide-list"
-            title="Waitlist"
-            description="Cette section sera bientôt disponible pour gérer les leads en attente."
-          />
+          <OrganismsAdminWaitlistPanel />
         </div>
       </template>
     </UTabs>

@@ -16,6 +16,7 @@ export type TrackPageViewRequest = {
   utmCampaign?: string
   deviceType: DeviceType
   browser?: string
+  paidClickIds?: Record<string, string>
 }
 
 // ── Shared Analytics ──

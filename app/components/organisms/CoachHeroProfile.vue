@@ -86,8 +86,9 @@ const initials = computed(() => {
             <!-- Subtitle line 2: descriptive text -->
             <p class="mt-2 max-w-lg text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
               <!-- TODO: Feature V — dynamiser -->
-              Accompagnement personnalisé en périménopause et ménopause.
-              Alimentation, stress, sommeil, mouvement. Une approche complète, à votre rythme.
+              <strong>Vous faites attention… mais le poids continue de monter ?</strong><br>
+              À partir de la périménopause, la prise de poids ne se résume plus à une simple question de calories.<br>
+              Accompagnement global et personnalisé pour vous aider à vous sentir mieux dans votre corps… et enfin sortir de la spirale des régimes inefficaces.
             </p>
 
             <!-- CTA + reassurance (AC-2) -->
