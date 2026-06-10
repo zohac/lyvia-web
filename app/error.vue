@@ -1,4 +1,8 @@
 <script setup lang="ts">
+// error.vue is rendered standalone by Nuxt (no layout), so it must import the
+// global stylesheet itself — layouts are otherwise the only CSS entry point.
+// Without this, every 404/500 renders as unstyled HTML (hotfix-17).
+import '~/assets/css/main.css'
 import type { NuxtError } from '#app'
 
 const props = defineProps<{
