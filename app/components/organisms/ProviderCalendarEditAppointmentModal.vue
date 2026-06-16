@@ -65,16 +65,17 @@ const activePlans = computed(() => {
     .sort((a, b) => a.sortOrder - b.sortOrder)
 })
 
-/** Options du select tarif : plans actifs + le plan courant s'il est inactif (pour rester sélectionnable). */
+/** Options du select tarif : plans actifs + le plan courant s'il est inactif (pour rester sélectionnable).
+ *  Le label du plan est saisi par la praticienne et contient déjà durée + prix. */
 const tarifOptions = computed(() => {
   const options = activePlans.value.map(plan => ({
-    label: `${plan.label} — ${plan.durationMinutes} min — ${formatCurrency(plan.amountCents)}`,
+    label: plan.label,
     value: plan.id
   }))
   const current = currentPlan.value
   if (current && !current.isActive) {
     options.unshift({
-      label: `${current.label} — ${current.durationMinutes} min — ${formatCurrency(current.amountCents)} (inactif)`,
+      label: `${current.label} (inactif)`,
       value: current.id
     })
   }

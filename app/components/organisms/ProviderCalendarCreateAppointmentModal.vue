@@ -139,8 +139,9 @@ const activePlans = computed(() => {
 const hasActivePlans = computed(() => activePlans.value.length > 0)
 
 const tarifOptions = computed(() => {
+  // Le label du plan est saisi par la praticienne et contient déjà durée + prix.
   return activePlans.value.map(plan => ({
-    label: `${plan.label} — ${plan.durationMinutes} min — ${formatCurrency(plan.amountCents)}`,
+    label: plan.label,
     value: plan.id
   }))
 })
