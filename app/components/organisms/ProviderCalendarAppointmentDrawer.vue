@@ -1,10 +1,20 @@
 <script setup lang="ts">
 import type { ProviderAppointmentListItem } from '../../features/calendar/api/calendar.contract'
-import { getAppointmentTypePillClass, getStatusDotStyle } from '../../features/calendar/presentation/appointment-style'
+import { getAppointmentTypeConfig, getAppointmentDisplayStatus, STATUS_CONFIG } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationDrawerSummary, formatCurrency, getConsultationPricePlan } from '../../features/calendar/presentation/appointment-pricing'
-import { getAppointmentTypeLabel } from '../../features/clients/domain/clients'
 import { useStripeLinks } from '../../features/stripe/useStripeLinks'
+
+const TYPE_ICON: Record<ProviderAppointmentListItem['type'], string> = {
+  discovery: 'lucide:phone',
+  consultation: 'lucide:video',
+  free_followup: 'lucide:heart-handshake'
+}
+const TYPE_LABEL: Record<ProviderAppointmentListItem['type'], string> = {
+  discovery: 'Découverte',
+  consultation: 'Consultation',
+  free_followup: 'Suivi'
+}
 
 const props = withDefaults(
   defineProps<{
@@ -35,26 +45,28 @@ const direction = computed(() => (isDesktop.value ? 'right' : 'bottom'))
 const inset = computed(() => !isDesktop.value)
 const showHandle = computed(() => !isDesktop.value)
 
-const statusLabel = computed(() => {
-  const appointment = props.appointment
-  if (!appointment) return null
-  if (appointment.status === 'scheduled') return 'Planifié'
-  if (appointment.status === 'completed') return 'Terminé'
-  if (appointment.status === 'cancelled') return 'Annulé'
-  return appointment.status
+const clientName = computed(() => {
+  const a = props.appointment
+  if (!a) return 'Rendez-vous'
+  return `${a.firstname} ${a.lastname}`.trim() || 'Rendez-vous'
 })
 
-const statusDotStyle = computed(() => {
-  const appointment = props.appointment
-  if (!appointment) return { background: 'var(--color-neutral-400)' }
-  return getStatusDotStyle(appointment)
+const headerBadgeStyle = computed(() => {
+  const config = getAppointmentTypeConfig(props.appointment?.type ?? 'consultation')
+  return { background: config.soft, color: config.softText, borderColor: config.fill }
 })
+const headerIcon = computed(() => TYPE_ICON[props.appointment?.type ?? 'consultation'])
+const headerLabel = computed(() => TYPE_LABEL[props.appointment?.type ?? 'consultation'])
 
-const paymentDotStyle = computed(() => {
-  const appointment = props.appointment
-  if (appointment?.paymentStatus === 'paid') return { background: 'var(--color-gold-500)' }
-  return { background: 'var(--color-neutral-400)' }
+const statusConfig = computed(() => {
+  if (!props.appointment) return STATUS_CONFIG.planned
+  return STATUS_CONFIG[getAppointmentDisplayStatus(props.appointment)]
 })
+const statusPillStyle = computed(() => ({
+  background: statusConfig.value.chipBg,
+  color: statusConfig.value.chipText,
+  borderColor: statusConfig.value.chipBorder
+}))
 
 const paymentLabel = computed(() => {
   const appointment = props.appointment
@@ -127,19 +139,24 @@ const markCompletedDisabledReason = computed(() => {
   return null
 })
 
-function formatZonedDateTime(iso: string): string {
-  const date = new Date(iso)
+function formatTime(iso: string): string {
   return new Intl.DateTimeFormat('fr-FR', {
     timeZone: props.timeZone,
-    dateStyle: 'full',
-    timeStyle: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
     hourCycle: 'h23'
-  }).format(date)
+  }).format(new Date(iso))
 }
 
-function typePillClass(appointment: ProviderAppointmentListItem): string {
-  return getAppointmentTypePillClass(appointment.type)
-}
+const dateTimeSummary = computed(() => {
+  const appointment = props.appointment
+  if (!appointment) return ''
+  const longDate = new Intl.DateTimeFormat('fr-FR', {
+    timeZone: props.timeZone,
+    dateStyle: 'full'
+  }).format(new Date(appointment.startAt))
+  return `${longDate} à ${formatTime(appointment.startAt)} · ${formatTime(appointment.endAt)} (${appointment.durationMinutes} min)`
+})
 
 function updateOpen(value: boolean) {
   if (props.actionPending) return
@@ -256,12 +273,12 @@ async function copyMeetingLink() {
     :handle="showHandle"
     :ui="{
       overlay: 'fixed inset-0 bg-black/25 backdrop-blur-sm',
-      content: 'bg-[color:var(--color-surface-card)] shadow-lg',
+      content: 'bg-[color:var(--color-surface-page)] shadow-lg',
       handle: '!bg-[color:var(--color-neutral-300)]',
-      container: 'w-full flex flex-col gap-6 px-6 pb-8 pt-4 overflow-y-auto',
+      container: 'w-full flex flex-col gap-6 px-6 pb-6 pt-4 overflow-y-auto',
       header: 'pb-4 border-b border-[color:var(--color-brand-subtle)]',
       body: 'flex-1',
-      footer: ''
+      footer: 'border-t border-[color:var(--color-brand-subtle)] pt-4'
     }"
     @update:open="updateOpen"
   >
@@ -270,78 +287,78 @@ async function copyMeetingLink() {
       #header
     >
       <div class="flex items-start justify-between gap-4">
-        <div class="grid gap-2">
+        <div class="grid min-w-0 gap-2">
           <div class="flex flex-wrap items-center gap-2">
             <span
-              class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold"
-              :class="typePillClass(appointment)"
+              class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
+              :style="headerBadgeStyle"
             >
-              {{ getAppointmentTypeLabel(appointment.type) }}
+              <Icon
+                :name="headerIcon"
+                size="14"
+                aria-hidden="true"
+              />
+              {{ headerLabel }}
             </span>
 
             <span
-              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-xs font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)]"
+              class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
+              :style="statusPillStyle"
             >
               <span
-                class="inline-flex size-2 rounded-full"
-                :style="statusDotStyle"
+                class="size-1.5 rounded-full"
+                :style="{ background: statusConfig.dot }"
                 aria-hidden="true"
               />
-              {{ statusLabel }}
-            </span>
-
-            <span
-              v-if="paymentLabel"
-              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-xs font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)]"
-            >
-              <span
-                class="inline-flex size-2 rounded-full"
-                :style="paymentDotStyle"
-                aria-hidden="true"
-              />
-              {{ paymentLabel }}
+              {{ statusConfig.label }}
             </span>
           </div>
 
-          <h2 class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
-            {{ appointment.firstname }} {{ appointment.lastname }}
+          <h2 class="font-[family-name:var(--font-serif)] text-2xl font-bold italic text-[color:var(--color-text-primary)]">
+            {{ clientName }}
           </h2>
           <div
             v-if="appointment.clientEmail || appointment.clientPhone"
-            class="flex flex-wrap items-center gap-2 text-sm"
+            class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
           >
             <a
               v-if="appointment.clientEmail"
               :href="`mailto:${appointment.clientEmail}`"
               :aria-label="`Envoyer un email à ${appointment.firstname}`"
-              class="text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
+              class="inline-flex items-center gap-1.5 text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
             >
+              <Icon
+                name="lucide:mail"
+                size="13"
+                aria-hidden="true"
+              />
               {{ appointment.clientEmail }}
             </a>
-            <span
-              v-if="appointment.clientEmail && appointment.clientPhone"
-              class="text-[color:var(--color-neutral-300)]"
-            >&middot;</span>
             <a
               v-if="appointment.clientPhone"
               :href="`tel:${appointment.clientPhone}`"
               :aria-label="`Appeler ${appointment.firstname}`"
-              class="text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
+              class="inline-flex items-center gap-1.5 text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
             >
+              <Icon
+                name="lucide:phone"
+                size="13"
+                aria-hidden="true"
+              />
               {{ appointment.clientPhone }}
             </a>
           </div>
-          <p class="text-sm text-[color:var(--color-text-muted)]">
-            {{ formatZonedDateTime(appointment.startAt) }}
+          <p class="text-sm capitalize text-[color:var(--color-text-secondary)]">
+            {{ dateTimeSummary }}
           </p>
-          <p class="text-sm text-[color:var(--color-text-muted)]">
-            Source : <span class="font-bold">{{ appointment.source }}</span>
+          <p class="text-xs text-[color:var(--color-text-muted)]">
+            Source : <span class="font-mono">{{ appointment.source }}</span>
           </p>
         </div>
 
         <button
           type="button"
-          class="inline-flex size-10 items-center justify-center rounded-full bg-[color:var(--color-surface-card)] text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
+          class="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-surface-card)] text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="actionPending"
           @click="updateOpen(false)"
         >
@@ -371,7 +388,7 @@ async function copyMeetingLink() {
 
         <section
           v-if="appointment.type === 'consultation' && consultationPricingSummary"
-          class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5"
+          class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5"
         >
           <div class="flex items-center justify-between gap-4">
             <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
@@ -399,13 +416,16 @@ async function copyMeetingLink() {
             >
               {{ consultationPricingDetails.price }}
             </p>
+            <p v-if="paymentLabel">
+              {{ appointment.paymentStatus === 'paid' ? 'Réglé · virement Stripe à venir' : 'Paiement en attente' }}
+            </p>
           </div>
         </section>
 
         <!-- Lien visio (consultation + suivi gratuit) -->
         <section
           v-if="(appointment.type === 'consultation' || appointment.type === 'free_followup') && appointment.meetingLink"
-          class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5"
+          class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5"
         >
           <div class="flex items-center justify-between gap-4">
             <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
@@ -444,42 +464,10 @@ async function copyMeetingLink() {
           </div>
         </section>
 
-        <section class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5">
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              Notes
-            </h3>
-
-            <UTooltip
-              v-if="!canEdit"
-              :text="editDisabledReason ?? ''"
-            >
-              <span class="inline-flex">
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled
-                >
-                  Modifier
-                </button>
-              </span>
-            </UTooltip>
-
-            <button
-              v-else
-              type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="actionPending"
-              @click="startEditAppointment"
-            >
-              <Icon
-                name="lucide:pencil"
-                size="16"
-                aria-hidden="true"
-              />
-              Modifier
-            </button>
-          </div>
+        <section class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+            Notes
+          </h3>
 
           <div class="mt-4 text-sm text-[color:var(--color-text-muted)]">
             <p
@@ -497,7 +485,7 @@ async function copyMeetingLink() {
           </div>
         </section>
 
-        <section class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5">
+        <section class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5">
           <div class="flex items-center justify-between gap-4">
             <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Annulation
@@ -579,7 +567,7 @@ async function copyMeetingLink() {
         <!-- Marquer terminée (consultation payée passée uniquement) -->
         <section
           v-if="appointment.type === 'consultation'"
-          class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5"
+          class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5"
         >
           <div class="flex items-center justify-between gap-4">
             <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
@@ -638,6 +626,39 @@ async function copyMeetingLink() {
           Sélectionnez un RDV dans le calendrier pour afficher ses détails.
         </p>
       </div>
+    </template>
+
+    <template
+      v-if="appointment"
+      #footer
+    >
+      <UTooltip
+        v-if="!canEdit"
+        :text="editDisabledReason ?? ''"
+      >
+        <span class="block w-full">
+          <UButton
+            block
+            color="neutral"
+            variant="outline"
+            icon="lucide:pencil"
+            disabled
+          >
+            Modifier le rendez-vous
+          </UButton>
+        </span>
+      </UTooltip>
+      <UButton
+        v-else
+        block
+        color="neutral"
+        variant="outline"
+        icon="lucide:pencil"
+        :disabled="actionPending"
+        @click="startEditAppointment"
+      >
+        Modifier le rendez-vous
+      </UButton>
     </template>
   </UDrawer>
 </template>
