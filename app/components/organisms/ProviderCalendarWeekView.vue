@@ -2,7 +2,7 @@
 import type { ProviderAppointmentListItem } from '../../features/calendar/api/calendar.contract'
 import type { CalendarWeekDay } from '../../features/calendar/domain/range'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
-import { getAppointmentAccentClass, getAppointmentMetaClass, getAppointmentNameClass, getAppointmentStatusDotClass } from '../../features/calendar/presentation/appointment-style'
+import { getTimeEventStyle, getStatusDotStyle, getAppointmentNameClass } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationChipLabel } from '../../features/calendar/presentation/appointment-pricing'
 
@@ -39,12 +39,11 @@ const props = withDefaults(
 )
 
 const scrollRef = ref<HTMLDivElement | null>(null)
+const headerRef = ref<HTMLDivElement | null>(null)
 
 const gridStyle = computed(() => ({
   gridTemplateColumns: `88px repeat(${Math.max(1, props.days.length)}, minmax(0, 1fr))`
 }))
-
-const modeLabel = computed(() => (props.mode === 'day' ? 'Vue jour' : 'Vue semaine'))
 
 function getZonedHourMinute(
   date: Date,
@@ -87,21 +86,34 @@ function formatTimeRange(appointment: ProviderAppointmentListItem): string {
   return `${pad(startHour)}:${pad(start.minute)}–${pad(endHour)}:${pad(end.minute)}`
 }
 
-function eventAccentClass(appointment: ProviderAppointmentListItem): string {
-  return getAppointmentAccentClass(appointment)
+function timeEventStyle(appointment: ProviderAppointmentListItem) {
+  return getTimeEventStyle(appointment)
 }
 
-function eventMetaClass(appointment: ProviderAppointmentListItem): string {
-  return getAppointmentMetaClass(appointment)
+function statusDotStyle(appointment: ProviderAppointmentListItem) {
+  return getStatusDotStyle(appointment)
 }
 
 function eventNameClass(appointment: ProviderAppointmentListItem): string {
   return getAppointmentNameClass(appointment)
 }
 
-function eventStatusDotClass(appointment: ProviderAppointmentListItem): string | null {
-  return getAppointmentStatusDotClass(appointment)
+const todayKey = computed(() => getYmdInTimeZone(new Date(), props.timeZone))
+
+function dayWeekdayLabel(date: Date): string {
+  return new Intl.DateTimeFormat('fr-FR', { timeZone: props.timeZone, weekday: 'short' })
+    .format(date)
+    .replace('.', '')
 }
+
+function dayNumberLabel(date: Date): string {
+  return new Intl.DateTimeFormat('fr-FR', { timeZone: props.timeZone, day: 'numeric' }).format(date)
+}
+
+const nowOffsetMinutes = computed(() => {
+  const { hour, minute } = getZonedHourMinute(new Date(), props.timeZone)
+  return hour * 60 + minute
+})
 
 function eventLabel(appointment: ProviderAppointmentListItem): string {
   return formatConsultationChipLabel(appointment, props.consultationPricePlansById)
@@ -127,7 +139,8 @@ function scrollToDefaultWindow() {
   const el = scrollRef.value
   if (!el) return
   const centerMinute = 13 * 60
-  const target = centerMinute * props.pxPerMinute - el.clientHeight / 2
+  const headerH = headerRef.value?.offsetHeight ?? 0
+  const target = headerH + centerMinute * props.pxPerMinute - el.clientHeight / 2
   el.scrollTop = Math.max(0, target)
 }
 
@@ -138,7 +151,8 @@ function scrollToHighlight() {
   if (!scrollEl) return
 
   const center = (highlight.startMinutes + highlight.endMinutes) / 2
-  const centerPx = center * props.pxPerMinute
+  const headerH = headerRef.value?.offsetHeight ?? 0
+  const centerPx = headerH + center * props.pxPerMinute
   const viewportStart = scrollEl.scrollTop
   const viewportEnd = viewportStart + scrollEl.clientHeight
 
@@ -152,7 +166,8 @@ function onEmptyClick(event: MouseEvent, dayKey: string) {
   if (!scrollEl) return
 
   const rect = scrollEl.getBoundingClientRect()
-  const y = event.clientY - rect.top + scrollEl.scrollTop
+  const headerH = headerRef.value?.offsetHeight ?? 0
+  const y = event.clientY - rect.top + scrollEl.scrollTop - headerH
   const minutes = Math.min(23 * 60 + 59, Math.max(0, Math.round(y / props.pxPerMinute)))
   // Snap to 15 min for nicer UX.
   const snapped = Math.round(minutes / 15) * 15
@@ -175,138 +190,132 @@ watch(
 </script>
 
 <template>
-  <section class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-sm">
-    <div class="flex items-center justify-between gap-3">
-      <div class="grid gap-1">
-        <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-          {{ modeLabel }}
-        </p>
-        <p class="text-sm text-[color:var(--color-text-muted)]">
-          Fuseau : {{ timeZone }}
-        </p>
-      </div>
-      <div class="hidden items-center gap-2 text-xs text-[color:var(--color-text-muted)] md:flex">
-        <span
-          class="inline-flex size-2 rounded-full bg-[color:var(--color-sunset-50)]0"
-          aria-hidden="true"
-        />
-        <span>Discovery</span>
-        <span
-          class="ml-3 inline-flex size-2 rounded-full bg-crepuscule-500"
-          aria-hidden="true"
-        />
-        <span>Consultation</span>
-      </div>
-    </div>
-
-    <div class="mt-6 overflow-hidden rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]">
+  <section class="overflow-hidden rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] shadow-sm">
+    <div
+      ref="scrollRef"
+      class="relative max-h-[640px] overflow-auto"
+    >
       <div
-        class="grid border-b border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)]"
+        ref="headerRef"
+        class="sticky top-0 z-20 grid border-b border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]"
         :style="gridStyle"
       >
-        <div class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-          Heure
-        </div>
+        <div class="px-4 py-3" />
         <div
           v-for="day in days"
           :key="day.key"
-          class="px-3 py-3 text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-primary)]"
+          class="border-l border-[color:var(--color-brand-subtle)] px-3 py-2 text-center"
         >
-          {{ day.label }}
+          <div
+            class="text-[11px] font-bold uppercase tracking-wider"
+            :class="day.key === todayKey ? 'text-[color:var(--color-brand-primary)]' : 'text-[color:var(--color-text-muted)]'"
+          >
+            {{ dayWeekdayLabel(day.date) }}
+          </div>
+          <div
+            class="mx-auto mt-1 grid size-7 place-items-center rounded-full text-sm font-semibold"
+            :class="day.key === todayKey
+              ? 'bg-[color:var(--color-brand-primary)] text-white'
+              : 'text-[color:var(--color-text-primary)]'"
+          >
+            {{ dayNumberLabel(day.date) }}
+          </div>
         </div>
       </div>
 
       <div
-        ref="scrollRef"
-        class="relative max-h-[560px] overflow-auto"
+        class="grid"
+        :style="gridStyle"
       >
+        <div class="relative border-r border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)]/50">
+          <div
+            v-for="hour in rows"
+            :key="hour"
+            class="relative h-[calc(var(--ppm)_*_60px)] border-b border-[color:var(--color-brand-subtle)] px-4 py-2 text-xs font-medium text-[color:var(--color-text-muted)]"
+            :style="{ '--ppm': String(pxPerMinute) }"
+          >
+            {{ String(hour).padStart(2, '0') }}:00
+          </div>
+        </div>
+
         <div
-          class="grid"
-          :style="gridStyle"
+          v-for="day in days"
+          :key="day.key"
+          class="relative border-r border-[color:var(--color-brand-subtle)] last:border-r-0"
+          :class="day.key === todayKey ? 'bg-[color:var(--color-surface-highlight)]' : ''"
         >
-          <div class="relative border-r border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)]/50">
-            <div
-              v-for="hour in rows"
-              :key="hour"
-              class="relative h-[calc(var(--ppm)_*_60px)] border-b border-[color:var(--color-brand-subtle)] px-4 py-2 text-xs font-medium text-[color:var(--color-text-muted)]"
-              :style="{ '--ppm': String(pxPerMinute) }"
-            >
-              {{ String(hour).padStart(2, '0') }}:00
-            </div>
+          <button
+            type="button"
+            class="absolute inset-0 z-0 w-full cursor-pointer bg-transparent text-left"
+            @click="onEmptyClick($event, day.key)"
+          >
+            <span class="sr-only">Créer un rendez-vous</span>
+          </button>
+
+          <div
+            v-for="hour in rows"
+            :key="`${day.key}:${hour}`"
+            class="h-[calc(var(--ppm)_*_60px)] border-b border-[color:var(--color-neutral-100)]"
+            :style="{ '--ppm': String(pxPerMinute) }"
+          />
+
+          <div
+            v-if="day.key === todayKey"
+            class="pointer-events-none absolute inset-x-0 z-[6]"
+            :style="{ top: `${nowOffsetMinutes * pxPerMinute}px` }"
+            aria-hidden="true"
+          >
+            <span class="absolute -left-1 -top-1 size-2 rounded-full bg-[color:var(--color-error-500)]" />
+            <span class="block border-t-2 border-[color:var(--color-error-500)]" />
           </div>
 
           <div
-            v-for="day in days"
-            :key="day.key"
-            class="relative border-r border-[color:var(--color-brand-subtle)] last:border-r-0"
+            v-if="highlight && highlight.dayKey === day.key"
+            class="pointer-events-none absolute left-2 right-2 z-[5] rounded-lg bg-[color:var(--color-sunset-50)] ring-2 ring-[color:var(--color-sunset-400)] shadow-sm animate-pulse"
+            :style="{
+              top: `${highlight.startMinutes * pxPerMinute}px`,
+              height: `${Math.max(24, (highlight.endMinutes - highlight.startMinutes) * pxPerMinute)}px`
+            }"
+            aria-hidden="true"
+          />
+
+          <div
+            v-for="appointment in appointmentsByDayKey.get(day.key) ?? []"
+            :key="appointment.id"
+            class="absolute left-2 right-2 z-10"
+            :style="{
+              top: `${minutesSinceStartOfDay(appointment.startAt) * pxPerMinute}px`,
+              height: `${Math.max(
+                24,
+                (minutesSinceStartOfDay(appointment.endAt, { allow24Hour: true }) - minutesSinceStartOfDay(appointment.startAt)) * pxPerMinute
+              )}px`
+            }"
           >
             <button
               type="button"
-              class="absolute inset-0 z-0 w-full cursor-pointer bg-transparent text-left"
-              @click="onEmptyClick($event, day.key)"
+              class="relative h-full w-full overflow-hidden rounded-[7px] px-2.5 py-1.5 text-left text-xs font-bold transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
+              :style="timeEventStyle(appointment)"
+              :class="highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''"
+              @click.stop="emit('select:appointment', appointment)"
             >
-              <span class="sr-only">Créer un rendez-vous</span>
-            </button>
-
-            <div
-              v-for="hour in rows"
-              :key="`${day.key}:${hour}`"
-              class="h-[calc(var(--ppm)_*_60px)] border-b border-[color:var(--color-neutral-100)]"
-              :style="{ '--ppm': String(pxPerMinute) }"
-            />
-
-            <div
-              v-if="highlight && highlight.dayKey === day.key"
-              class="pointer-events-none absolute left-2 right-2 z-[5] rounded-lg bg-[color:var(--color-sunset-50)] ring-2 ring-[color:var(--color-sunset-400)] shadow-sm animate-pulse"
-              :style="{
-                top: `${highlight.startMinutes * pxPerMinute}px`,
-                height: `${Math.max(24, (highlight.endMinutes - highlight.startMinutes) * pxPerMinute)}px`
-              }"
-              aria-hidden="true"
-            />
-
-            <div
-              v-for="appointment in appointmentsByDayKey.get(day.key) ?? []"
-              :key="appointment.id"
-              class="absolute left-2 right-2 z-10"
-              :style="{
-                top: `${minutesSinceStartOfDay(appointment.startAt) * pxPerMinute}px`,
-                height: `${Math.max(
-                  24,
-                  (minutesSinceStartOfDay(appointment.endAt, { allow24Hour: true }) - minutesSinceStartOfDay(appointment.startAt)) * pxPerMinute
-                )}px`
-              }"
-            >
-              <button
-                type="button"
-                class="relative h-full w-full overflow-hidden rounded-lg px-3 py-2 text-left text-xs font-bold shadow-sm transition-all hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
-                :class="[
-                  eventAccentClass(appointment),
-                  eventMetaClass(appointment),
-                  highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
-                ]"
-                @click.stop="emit('select:appointment', appointment)"
+              <span
+                class="absolute right-1.5 top-1.5 size-2 rounded-full"
+                :style="statusDotStyle(appointment)"
+                aria-hidden="true"
+              />
+              <div
+                class="truncate pr-3 text-[11px] font-bold leading-tight"
+                :class="eventNameClass(appointment)"
               >
-                <span
-                  v-if="eventStatusDotClass(appointment)"
-                  class="absolute right-1.5 top-1.5 size-2 rounded-full"
-                  :class="eventStatusDotClass(appointment)"
-                  aria-hidden="true"
-                />
-                <div class="flex items-center justify-between gap-2">
-                  <span class="truncate">
-                    {{ eventLabel(appointment) }}
-                  </span>
-                  <span class="shrink-0 opacity-90">{{ formatTimeRange(appointment) }}</span>
-                </div>
-                <div
-                  class="mt-1 text-[11px] font-medium opacity-90"
-                  :class="eventNameClass(appointment)"
-                >
-                  {{ appointment.firstname }} {{ appointment.lastname }}
-                </div>
-              </button>
-            </div>
+                {{ formatTimeRange(appointment) }}
+              </div>
+              <div
+                class="mt-0.5 truncate text-[11px] font-medium opacity-90"
+                :class="eventNameClass(appointment)"
+              >
+                {{ eventLabel(appointment) }} · {{ appointment.firstname }} {{ appointment.lastname }}
+              </div>
+            </button>
           </div>
         </div>
       </div>

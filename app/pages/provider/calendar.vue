@@ -7,6 +7,8 @@ import ProviderCalendarDisplayOptions from '../../components/organisms/ProviderC
 import ProviderCalendarTopBar from '../../components/organisms/ProviderCalendarTopBar.vue'
 import ProviderCalendarMonthView from '../../components/organisms/ProviderCalendarMonthView.vue'
 import ProviderCalendarWeekView from '../../components/organisms/ProviderCalendarWeekView.vue'
+import DsPageHeader from '../../components/atoms/DsPageHeader.vue'
+import { getAppointmentDisplayStatus, type DisplayStatus } from '../../features/calendar/presentation/appointment-style'
 import { useProviderCalendar } from '../../features/calendar/useProviderCalendar'
 import { listProviderClients } from '../../features/clients/services/provider-clients.service'
 import type { ProviderClientListItem } from '../../features/clients/api/clients.contract'
@@ -79,6 +81,17 @@ onMounted(async () => {
 type DisplayTypeFilter = 'all' | ProviderCalendarAppointmentType
 
 const displayTypeFilter = ref<DisplayTypeFilter>('all')
+const statusFilters = ref<Record<DisplayStatus, boolean>>({
+  planned: true,
+  done: true,
+  paid: true,
+  cancelled: true
+})
+
+function toggleStatusFilter(status: DisplayStatus) {
+  statusFilters.value = { ...statusFilters.value, [status]: !statusFilters.value[status] }
+}
+
 const selectedAppointmentId = ref<ProviderAppointmentListItem['id'] | null>(null)
 const lastInteractionDayKey = ref<string | null>(null)
 
@@ -100,8 +113,22 @@ const selectedAppointment = computed(() => {
 })
 
 const visibleAppointments = computed(() => {
-  if (displayTypeFilter.value === 'all') return calendar.sortedAppointments.value
-  return calendar.sortedAppointments.value.filter(appointment => appointment.type === displayTypeFilter.value)
+  return calendar.sortedAppointments.value.filter((appointment) => {
+    if (displayTypeFilter.value !== 'all' && appointment.type !== displayTypeFilter.value) return false
+    return statusFilters.value[getAppointmentDisplayStatus(appointment)]
+  })
+})
+
+const todayCount = computed(() => {
+  const today = getYmdInTimeZone(new Date(), calendar.timeZone.value)
+  return calendar.sortedAppointments.value.filter((appointment) => {
+    if (appointment.status === 'cancelled') return false
+    return getYmdInTimeZone(new Date(appointment.startAt), calendar.timeZone.value) === today
+  }).length
+})
+
+const headerSubtitle = computed(() => {
+  return `${todayCount.value} rendez-vous aujourd'hui · fuseau ${calendar.timeZone.value}`
 })
 
 const isDrawerOpen = computed(() => Boolean(selectedAppointment.value))
@@ -208,8 +235,12 @@ onBeforeUnmount(() => {
 })
 
 const isRangeEmpty = computed(() => calendar.sortedAppointments.value.length === 0 && !calendar.pending.value && !calendar.errorMessage.value)
+const hasActiveFilter = computed(() => {
+  return displayTypeFilter.value !== 'all'
+    || Object.values(statusFilters.value).some(enabled => !enabled)
+})
 const isFilterEmpty = computed(() => {
-  if (displayTypeFilter.value === 'all') return false
+  if (!hasActiveFilter.value) return false
   if (calendar.pending.value || calendar.errorMessage.value) return false
   return calendar.sortedAppointments.value.length > 0 && visibleAppointments.value.length === 0
 })
@@ -560,7 +591,27 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
 
 <template>
   <div class="space-y-6">
-    <!-- Top bar with navigation and actions -->
+    <!-- Page header -->
+    <DsPageHeader
+      title="Calendrier"
+      :subtitle="headerSubtitle"
+    >
+      <template #actions>
+        <UButton
+          color="primary"
+          :disabled="calendar.pending.value"
+          @click="onCreateAppointment"
+        >
+          <UIcon
+            name="lucide:plus"
+            class="mr-1.5 h-4 w-4"
+          />
+          Créer un RDV
+        </UButton>
+      </template>
+    </DsPageHeader>
+
+    <!-- Top bar with navigation -->
     <ProviderCalendarTopBar
       :view="calendar.view.value"
       :is-loading="calendar.pending.value"
@@ -570,14 +621,15 @@ async function onMarkCompletedAppointment(payload: { appointmentId: string }) {
       @next="calendar.goNext"
       @update:view="calendar.setView"
       @refresh="onRetry"
-      @create="onCreateAppointment"
     />
 
     <!-- Display options -->
     <ProviderCalendarDisplayOptions
       :type-filter="displayTypeFilter"
+      :status-filters="statusFilters"
       :disabled="calendar.pending.value"
       @update:type-filter="setDisplayTypeFilter"
+      @toggle:status="toggleStatusFilter"
     />
 
     <!-- Alerts -->

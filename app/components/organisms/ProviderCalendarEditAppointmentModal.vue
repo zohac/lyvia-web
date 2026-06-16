@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { ProviderAppointmentListItem, UpdateProviderAppointmentRequest } from '../../features/calendar/api/calendar.contract'
 import type { ConsultationPricePlan } from '../../features/consultation/api/consultation.contract'
-import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
+import { getAppointmentTypePillClass } from '../../features/calendar/presentation/appointment-style'
+import { getAppointmentTypeLabel } from '../../features/clients/domain/clients'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
 import { minutesToHHmm, parseHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
 import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
@@ -88,11 +89,11 @@ const disabledReason = computed(() => {
 const typeLabel = computed(() => {
   const appointment = props.appointment
   if (!appointment) return null
-  return appointment.type === 'consultation' ? 'Consultation' : 'Discovery'
+  return getAppointmentTypeLabel(appointment.type)
 })
 
-function accentClasses(appointment: ProviderAppointmentListItem): string {
-  return [getAppointmentAccentClass(appointment), getAppointmentMetaClass(appointment)].join(' ')
+function typePillClass(appointment: ProviderAppointmentListItem): string {
+  return getAppointmentTypePillClass(appointment.type)
 }
 
 watch(
@@ -198,7 +199,7 @@ function submit() {
         <span
           v-if="appointment"
           class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold"
-          :class="accentClasses(appointment)"
+          :class="typePillClass(appointment)"
         >
           {{ typeLabel }}
         </span>

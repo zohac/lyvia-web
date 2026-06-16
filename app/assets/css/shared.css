@@ -118,6 +118,12 @@
   --color-error-900: #7f1d1d;
   --color-error-950: #450a0a;
 
+  /* Gold — "Payé" status (calendar). Warm, distinct from sunset CTA. */
+  --color-gold-50: #fbf6e8;
+  --color-gold-200: #ecdcae;
+  --color-gold-500: #caa24a;
+  --color-gold-700: #8a6d22;
+
   /* =================================================================================================
    * TAILWIND UTILITY COLOR ALIASES
    * Ensures text-primary, ring-primary, bg-primary etc. resolve to Crepuscule palette.

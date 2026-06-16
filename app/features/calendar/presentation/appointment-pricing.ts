@@ -48,10 +48,11 @@ export function formatConsultationChipLabel(
   appointment: Pick<ProviderAppointmentListItem, 'type' | 'durationMinutes' | 'pricePlanId'>,
   pricePlanById: ConsultationPricePlanById
 ): string {
-  if (appointment.type !== 'consultation') return 'Discovery'
+  if (appointment.type === 'discovery') return 'Découverte'
+  if (appointment.type === 'free_followup') return 'Suivi offert'
 
   const plan = getConsultationPricePlan(appointment, pricePlanById)
-  if (plan?.label) return `Consultation — ${plan.label}`
+  if (plan?.label) return plan.label
 
   return `Consultation — ${appointment.durationMinutes} min`
 }

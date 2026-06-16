@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ProviderAppointmentListItem } from '../../features/calendar/api/calendar.contract'
-import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
+import { getAppointmentTypePillClass, getStatusDotStyle } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationDrawerSummary, formatCurrency, getConsultationPricePlan } from '../../features/calendar/presentation/appointment-pricing'
 import { getAppointmentTypeLabel } from '../../features/clients/domain/clients'
@@ -44,12 +44,16 @@ const statusLabel = computed(() => {
   return appointment.status
 })
 
-const statusDotClass = computed(() => {
+const statusDotStyle = computed(() => {
   const appointment = props.appointment
-  if (!appointment) return 'bg-[color:var(--color-neutral-400)]'
-  if (appointment.status === 'cancelled') return 'bg-[color:var(--color-error-50)]0'
-  if (appointment.status === 'completed') return 'bg-[color:var(--color-success-50)]0'
-  return 'bg-crepuscule-500'
+  if (!appointment) return { background: 'var(--color-neutral-400)' }
+  return getStatusDotStyle(appointment)
+})
+
+const paymentDotStyle = computed(() => {
+  const appointment = props.appointment
+  if (appointment?.paymentStatus === 'paid') return { background: 'var(--color-gold-500)' }
+  return { background: 'var(--color-neutral-400)' }
 })
 
 const paymentLabel = computed(() => {
@@ -133,8 +137,8 @@ function formatZonedDateTime(iso: string): string {
   }).format(date)
 }
 
-function accentClasses(appointment: ProviderAppointmentListItem): string {
-  return [getAppointmentAccentClass(appointment), getAppointmentMetaClass(appointment)].join(' ')
+function typePillClass(appointment: ProviderAppointmentListItem): string {
+  return getAppointmentTypePillClass(appointment.type)
 }
 
 function updateOpen(value: boolean) {
@@ -270,7 +274,7 @@ async function copyMeetingLink() {
           <div class="flex flex-wrap items-center gap-2">
             <span
               class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold"
-              :class="accentClasses(appointment)"
+              :class="typePillClass(appointment)"
             >
               {{ getAppointmentTypeLabel(appointment.type) }}
             </span>
@@ -280,7 +284,7 @@ async function copyMeetingLink() {
             >
               <span
                 class="inline-flex size-2 rounded-full"
-                :class="statusDotClass"
+                :style="statusDotStyle"
                 aria-hidden="true"
               />
               {{ statusLabel }}
@@ -291,7 +295,8 @@ async function copyMeetingLink() {
               class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-xs font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)]"
             >
               <span
-                class="inline-flex size-2 rounded-full bg-[color:var(--color-sunset-50)]0"
+                class="inline-flex size-2 rounded-full"
+                :style="paymentDotStyle"
                 aria-hidden="true"
               />
               {{ paymentLabel }}
