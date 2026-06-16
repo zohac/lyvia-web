@@ -39,12 +39,6 @@ const emit = defineEmits<{
   (e: 'edit' | 'request-cancel' | 'mark-completed', payload: { appointmentId: string }): void
 }>()
 
-const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
-
-const direction = computed(() => (isDesktop.value ? 'right' : 'bottom'))
-const inset = computed(() => !isDesktop.value)
-const showHandle = computed(() => !isDesktop.value)
-
 const clientName = computed(() => {
   const a = props.appointment
   if (!a) return 'Rendez-vous'
@@ -264,119 +258,90 @@ async function copyMeetingLink() {
 </script>
 
 <template>
-  <UDrawer
+  <USlideover
     :open="open"
-    :direction="direction"
     :dismissible="!actionPending"
-    :overlay="true"
-    :inset="inset"
-    :handle="showHandle"
+    :title="clientName"
     :ui="{
-      overlay: 'fixed inset-0 bg-black/25 backdrop-blur-sm',
-      content: 'bg-[color:var(--color-surface-page)] shadow-lg',
-      handle: '!bg-[color:var(--color-neutral-300)]',
-      container: 'w-full flex flex-col gap-6 px-6 pb-6 pt-4 overflow-y-auto',
-      header: 'pb-4 border-b border-[color:var(--color-brand-subtle)]',
-      body: 'flex-1',
-      footer: 'border-t border-[color:var(--color-brand-subtle)] pt-4'
+      content: 'w-full sm:max-w-[460px]',
+      body: 'bg-[color:var(--color-surface-page)]'
     }"
     @update:open="updateOpen"
   >
     <template
       v-if="appointment"
-      #header
+      #title
     >
-      <div class="flex items-start justify-between gap-4">
-        <div class="grid min-w-0 gap-2">
-          <div class="flex flex-wrap items-center gap-2">
-            <span
-              class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
-              :style="headerBadgeStyle"
-            >
-              <Icon
-                :name="headerIcon"
-                size="14"
-                aria-hidden="true"
-              />
-              {{ headerLabel }}
-            </span>
-
-            <span
-              class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
-              :style="statusPillStyle"
-            >
-              <span
-                class="size-1.5 rounded-full"
-                :style="{ background: statusConfig.dot }"
-                aria-hidden="true"
-              />
-              {{ statusConfig.label }}
-            </span>
-          </div>
-
-          <h2 class="font-[family-name:var(--font-serif)] text-2xl font-bold italic text-[color:var(--color-text-primary)]">
-            {{ clientName }}
-          </h2>
-          <div
-            v-if="appointment.clientEmail || appointment.clientPhone"
-            class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
-          >
-            <a
-              v-if="appointment.clientEmail"
-              :href="`mailto:${appointment.clientEmail}`"
-              :aria-label="`Envoyer un email à ${appointment.firstname}`"
-              class="inline-flex items-center gap-1.5 text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
-            >
-              <Icon
-                name="lucide:mail"
-                size="13"
-                aria-hidden="true"
-              />
-              {{ appointment.clientEmail }}
-            </a>
-            <a
-              v-if="appointment.clientPhone"
-              :href="`tel:${appointment.clientPhone}`"
-              :aria-label="`Appeler ${appointment.firstname}`"
-              class="inline-flex items-center gap-1.5 text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
-            >
-              <Icon
-                name="lucide:phone"
-                size="13"
-                aria-hidden="true"
-              />
-              {{ appointment.clientPhone }}
-            </a>
-          </div>
-          <p class="text-sm capitalize text-[color:var(--color-text-secondary)]">
-            {{ dateTimeSummary }}
-          </p>
-          <p class="text-xs text-[color:var(--color-text-muted)]">
-            Source : <span class="font-mono">{{ appointment.source }}</span>
-          </p>
-        </div>
-
-        <button
-          type="button"
-          class="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-surface-card)] text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
-          :disabled="actionPending"
-          @click="updateOpen(false)"
+      <span class="mb-3 flex flex-wrap items-center gap-2 not-italic">
+        <span
+          class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
+          :style="headerBadgeStyle"
         >
-          <Icon
-            name="lucide:x"
-            size="18"
+          <UIcon
+            :name="headerIcon"
+            class="size-3.5"
+          />
+          {{ headerLabel }}
+        </span>
+        <span
+          class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
+          :style="statusPillStyle"
+        >
+          <span
+            class="size-1.5 rounded-full"
+            :style="{ background: statusConfig.dot }"
             aria-hidden="true"
           />
-          <span class="sr-only">Fermer</span>
-        </button>
-      </div>
+          {{ statusConfig.label }}
+        </span>
+      </span>
+      <span class="block font-[family-name:var(--font-serif)] text-2xl font-bold italic text-[color:var(--color-text-primary)]">
+        {{ clientName }}
+      </span>
     </template>
 
     <template
       v-if="appointment"
-      #body
+      #description
     >
-      <div class="grid gap-6">
+      <span class="mt-2 flex flex-col gap-1 text-sm not-italic">
+        <span
+          v-if="appointment.clientEmail || appointment.clientPhone"
+          class="flex flex-wrap items-center gap-x-3 gap-y-1"
+        >
+          <a
+            v-if="appointment.clientEmail"
+            :href="`mailto:${appointment.clientEmail}`"
+            class="inline-flex items-center gap-1.5 text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
+          >
+            <UIcon
+              name="lucide:mail"
+              class="size-3.5"
+            />
+            {{ appointment.clientEmail }}
+          </a>
+          <a
+            v-if="appointment.clientPhone"
+            :href="`tel:${appointment.clientPhone}`"
+            class="inline-flex items-center gap-1.5 text-[color:var(--color-text-secondary)] hover:text-crepuscule-600 hover:underline"
+          >
+            <UIcon
+              name="lucide:phone"
+              class="size-3.5"
+            />
+            {{ appointment.clientPhone }}
+          </a>
+        </span>
+        <span class="capitalize text-[color:var(--color-text-secondary)]">{{ dateTimeSummary }}</span>
+        <span class="text-xs text-[color:var(--color-text-muted)]">Source : <span class="font-mono">{{ appointment.source }}</span></span>
+      </span>
+    </template>
+
+    <template #body>
+      <div
+        v-if="appointment"
+        class="flex flex-col gap-4"
+      >
         <UAlert
           v-if="actionError"
           color="error"
@@ -386,35 +351,29 @@ async function copyMeetingLink() {
           icon="i-lucide-alert-circle"
         />
 
+        <!-- Tarif -->
         <section
           v-if="appointment.type === 'consultation' && consultationPricingSummary"
           class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5"
         >
           <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Tarif
             </h3>
-
             <span
               v-if="consultationPricingDetails?.isActive === false"
-              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-xs font-bold text-[color:var(--color-text-muted)] ring-1 ring-[color:var(--color-brand-subtle)]"
+              class="inline-flex items-center rounded-full bg-[color:var(--color-sunset-100)] px-2.5 py-0.5 text-xs font-semibold text-[color:var(--color-sunset-700)]"
             >
               Inactif
             </span>
           </div>
 
-          <div class="mt-4 grid gap-2 text-sm text-[color:var(--color-text-muted)]">
+          <div class="mt-3 grid gap-1 text-sm text-[color:var(--color-text-muted)]">
             <p class="text-lg font-semibold text-[color:var(--color-text-primary)]">
               {{ consultationPricingSummary.title }}
             </p>
             <p v-if="consultationPricingSummary.subtitle">
               {{ consultationPricingSummary.subtitle }}
-            </p>
-            <p
-              v-if="consultationPricingDetails?.price"
-              class="font-semibold text-[color:var(--color-text-primary)]"
-            >
-              {{ consultationPricingDetails.price }}
             </p>
             <p v-if="paymentLabel">
               {{ appointment.paymentStatus === 'paid' ? 'Réglé · virement Stripe à venir' : 'Paiement en attente' }}
@@ -422,57 +381,52 @@ async function copyMeetingLink() {
           </div>
         </section>
 
-        <!-- Lien visio (consultation + suivi gratuit) -->
+        <!-- Lien visio -->
         <section
           v-if="(appointment.type === 'consultation' || appointment.type === 'free_followup') && appointment.meetingLink"
           class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5"
         >
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Lien visio
             </h3>
-          </div>
-
-          <div class="mt-4 flex items-center gap-3">
-            <Icon
-              name="lucide:video"
-              size="18"
-              class="shrink-0 text-keova-600"
-              aria-hidden="true"
-            />
-            <a
-              :href="appointment.meetingLink"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-sm font-medium text-keova-600 hover:underline"
-            >
-              Rejoindre la visio
-            </a>
-            <button
-              type="button"
-              class="inline-flex size-8 items-center justify-center rounded-full bg-[color:var(--color-surface-card)] text-[color:var(--color-text-muted)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] hover:text-[color:var(--color-text-secondary)]"
-              :disabled="actionPending"
-              @click="copyMeetingLink"
-            >
-              <Icon
-                :name="meetingLinkCopied ? 'lucide:check' : 'lucide:copy'"
-                size="14"
-                aria-hidden="true"
+            <div class="flex items-center gap-2">
+              <UButton
+                :to="appointment.meetingLink"
+                target="_blank"
+                external
+                color="primary"
+                variant="soft"
+                size="xs"
+                icon="lucide:video"
+              >
+                Rejoindre
+              </UButton>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                :icon="meetingLinkCopied ? 'lucide:check' : 'lucide:copy'"
+                :disabled="actionPending"
+                aria-label="Copier le lien"
+                @click="copyMeetingLink"
               />
-              <span class="sr-only">Copier le lien</span>
-            </button>
+            </div>
           </div>
+          <p class="mt-3 break-all text-sm text-[color:var(--color-text-secondary)]">
+            {{ appointment.meetingLink }}
+          </p>
         </section>
 
+        <!-- Notes -->
         <section class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+          <h3 class="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
             Notes
           </h3>
-
-          <div class="mt-4 text-sm text-[color:var(--color-text-muted)]">
+          <div class="mt-3 text-sm text-[color:var(--color-text-muted)]">
             <p
               v-if="appointment.notes"
-              class="whitespace-pre-line"
+              class="whitespace-pre-line text-[color:var(--color-text-secondary)]"
             >
               {{ appointment.notes }}
             </p>
@@ -485,141 +439,119 @@ async function copyMeetingLink() {
           </div>
         </section>
 
+        <!-- Clôture (consultation) -->
+        <section
+          v-if="appointment.type === 'consultation'"
+          class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+              Clôture
+            </h3>
+            <UTooltip
+              v-if="!canMarkCompleted"
+              :text="markCompletedDisabledReason ?? ''"
+            >
+              <span class="inline-flex">
+                <UButton
+                  color="success"
+                  variant="soft"
+                  size="xs"
+                  icon="lucide:check-circle"
+                  disabled
+                >
+                  Marquer terminée
+                </UButton>
+              </span>
+            </UTooltip>
+            <UButton
+              v-else
+              color="success"
+              variant="soft"
+              size="xs"
+              icon="lucide:check-circle"
+              :disabled="actionPending"
+              @click="requestMarkCompleted"
+            >
+              Marquer terminée
+            </UButton>
+          </div>
+          <p class="mt-3 text-sm text-[color:var(--color-text-muted)]">
+            Marque cette consultation comme terminée une fois la séance effectuée.
+          </p>
+        </section>
+
+        <!-- Annulation -->
         <section class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5">
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
               Annulation
             </h3>
-
             <UTooltip
               v-if="!canCancel"
               :text="cancelDisabledReason ?? ''"
             >
               <span class="inline-flex">
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
+                <UButton
+                  color="error"
+                  variant="soft"
+                  size="xs"
+                  icon="lucide:ban"
                   disabled
                 >
                   Annuler
-                </button>
+                </UButton>
               </span>
             </UTooltip>
-
-            <button
+            <UButton
               v-else
-              type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
+              color="error"
+              variant="soft"
+              size="xs"
+              icon="lucide:ban"
               :disabled="actionPending"
               @click="requestCancelAppointment"
             >
-              <Icon
-                name="lucide:ban"
-                size="16"
-                aria-hidden="true"
-              />
               Annuler
-            </button>
+            </UButton>
           </div>
-
-          <div class="mt-4 text-sm text-[color:var(--color-text-muted)]">
-            <p class="opacity-90">
-              L'annulation envoie une notification et libère le créneau (si applicable).
-            </p>
-          </div>
+          <p class="mt-3 text-sm text-[color:var(--color-text-muted)]">
+            L'annulation envoie une notification et libère le créneau (si applicable).
+          </p>
         </section>
 
         <!-- Remboursement (RDV annulé et payé uniquement) -->
         <section
           v-if="showRefundButton"
-          class="rounded-lg border border-[color:var(--color-sunset-200)] bg-[color:var(--color-sunset-50)] p-5"
+          class="rounded-2xl border border-[color:var(--color-sunset-200)] bg-[color:var(--color-sunset-50)] p-5"
         >
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-sunset-700)]">
+          <div class="flex items-center justify-between gap-3">
+            <h3 class="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-sunset-700)]">
               Remboursement
             </h3>
-
             <UButton
               :to="stripeRefundUrl"
               target="_blank"
               external
               variant="soft"
               color="warning"
-              size="sm"
+              size="xs"
+              icon="lucide:external-link"
             >
-              <Icon
-                name="lucide:external-link"
-                size="14"
-                class="mr-1.5"
-                aria-hidden="true"
-              />
               Rembourser via Stripe
             </UButton>
           </div>
-
-          <div class="mt-4 text-sm text-[color:var(--color-sunset-700)]">
-            <p class="opacity-90">
-              Ce rendez-vous a été annulé après paiement. Vous pouvez effectuer un remboursement total ou partiel via Stripe.
-            </p>
-          </div>
-        </section>
-
-        <!-- Marquer terminée (consultation payée passée uniquement) -->
-        <section
-          v-if="appointment.type === 'consultation'"
-          class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-5"
-        >
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              Clôture
-            </h3>
-
-            <UTooltip
-              v-if="!canMarkCompleted"
-              :text="markCompletedDisabledReason ?? ''"
-            >
-              <span class="inline-flex">
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-surface-card)] px-4 py-2 text-xs font-bold text-[color:var(--color-text-secondary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)] disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled
-                >
-                  Marquer terminée
-                </button>
-              </span>
-            </UTooltip>
-
-            <button
-              v-else
-              type="button"
-              class="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-success-50)] px-4 py-2 text-xs font-bold text-[color:var(--color-success-700)] ring-1 ring-[color:var(--color-success-200)] transition-all hover:bg-[color:var(--color-success-100)] disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="actionPending"
-              @click="requestMarkCompleted"
-            >
-              <Icon
-                name="lucide:check-circle"
-                size="16"
-                aria-hidden="true"
-              />
-              Marquer terminée
-            </button>
-          </div>
-
-          <div class="mt-4 text-sm text-[color:var(--color-text-muted)]">
-            <p class="opacity-90">
-              Marque cette consultation comme terminée une fois la séance effectuée.
-            </p>
-          </div>
+          <p class="mt-3 text-sm text-[color:var(--color-sunset-700)]">
+            Ce rendez-vous a été annulé après paiement. Vous pouvez effectuer un remboursement total ou partiel via Stripe.
+          </p>
         </section>
       </div>
-    </template>
 
-    <template
-      v-else
-      #body
-    >
-      <div class="grid gap-4">
-        <p class="text-2xl font-semibold text-[color:var(--color-text-primary)]">
+      <div
+        v-else
+        class="grid gap-2"
+      >
+        <p class="font-[family-name:var(--font-serif)] text-xl font-bold italic text-[color:var(--color-text-primary)]">
           Aucun rendez-vous sélectionné
         </p>
         <p class="text-sm text-[color:var(--color-text-muted)]">
@@ -660,5 +592,5 @@ async function copyMeetingLink() {
         Modifier le rendez-vous
       </UButton>
     </template>
-  </UDrawer>
+  </USlideover>
 </template>
