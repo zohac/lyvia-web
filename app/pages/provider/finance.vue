@@ -56,6 +56,103 @@ const pendingCardAmount = computed(() => {
   return eurFormatter.format(card.amountCents / 100)
 })
 
+// ── Design: bold tone-based hero + icon tiles + badges (DS B2B finance-view) ──
+type HeroTone = 'neutral' | 'warning' | 'success'
+
+const HERO_GRADIENTS: Record<HeroTone, string> = {
+  neutral: 'linear-gradient(135deg, var(--color-crepuscule-800), var(--color-crepuscule-600))',
+  warning: 'linear-gradient(135deg, var(--color-sunset-700), var(--color-sunset-500))',
+  success: 'linear-gradient(135deg, var(--color-success-600), #5da885)'
+}
+
+const heroConfig = computed(() => {
+  const state = uiState.value
+  if (!state || !primaryCta.value) return null
+
+  const perKind: Record<string, { tone: HeroTone, icon: string, eyebrow: string }> = {
+    shadow: { tone: 'warning', icon: 'lucide:lock', eyebrow: 'Fonds en attente de déblocage' },
+    start: { tone: 'neutral', icon: 'lucide:landmark', eyebrow: 'Compte bancaire non connecté' },
+    incomplete: { tone: 'warning', icon: 'lucide:alert-triangle', eyebrow: 'Vérification en cours' },
+    ready: { tone: 'success', icon: 'lucide:check-circle', eyebrow: 'Compte bancaire connecté' }
+  }
+  const base = perKind[state.kind] ?? perKind.start!
+
+  const heading = state.kind === 'shadow' && formattedPendingAmount.value
+    ? `${formattedPendingAmount.value} en attente`
+    : state.kind === 'ready'
+      ? 'Votre compte est prêt'
+      : 'Configurez vos virements'
+
+  return {
+    tone: base.tone,
+    icon: base.icon,
+    eyebrow: base.eyebrow,
+    heading,
+    body: primaryCta.value.description,
+    gradient: HERO_GRADIENTS[base.tone]
+  }
+})
+
+type Tile = 'neutral' | 'sunset' | 'success'
+
+const TILE_CLASSES: Record<Tile, string> = {
+  success: 'bg-[color:var(--color-success-50)] text-[color:var(--color-success-600)]',
+  sunset: 'bg-[color:var(--color-sunset-50)] text-[color:var(--color-sunset-600)]',
+  neutral: 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-secondary)]'
+}
+
+const bankTile = computed<Tile>(() => {
+  const kind = uiState.value?.kind
+  if (kind === 'ready') return 'success'
+  if (kind === 'start') return 'neutral'
+  return 'sunset'
+})
+
+const bankBadge = computed(() => {
+  const status = stripeHumanStatus.value
+  if (!status) return null
+  const palette: Record<string, { wrap: string, dot: string }> = {
+    success: {
+      wrap: 'bg-[color:var(--color-success-50)] text-[color:var(--color-success-700)] border-[color:var(--color-success-100)]',
+      dot: 'bg-[color:var(--color-success)]'
+    },
+    warning: {
+      wrap: 'bg-[color:var(--color-sunset-50)] text-[color:var(--color-sunset-700)] border-[color:var(--color-sunset-200)]',
+      dot: 'bg-[color:var(--color-sunset-500)]'
+    },
+    neutral: {
+      wrap: 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-secondary)] border-[color:var(--color-border-subtle)]',
+      dot: 'bg-[color:var(--color-neutral-400)]'
+    }
+  }
+  return { label: status.label, ...(palette[status.color] ?? palette.neutral!) }
+})
+
+const pendingTile = computed<Tile>(() => {
+  const card = pendingCard.value
+  if (card && card.mode !== 'unavailable' && card.amountCents > 0) return 'sunset'
+  return 'neutral'
+})
+
+const REQUIREMENT_BOX: Record<string, { box: string, icon: string }> = {
+  critical: {
+    box: 'bg-[color:var(--color-error-50)] text-[color:var(--color-error-600)] border-[color:var(--color-error-200)]',
+    icon: 'lucide:alert-triangle'
+  },
+  warning: {
+    box: 'bg-[color:var(--color-sunset-50)] text-[color:var(--color-sunset-700)] border-[color:var(--color-sunset-200)]',
+    icon: 'lucide:alert-triangle'
+  },
+  info: {
+    box: 'bg-[color:var(--color-crepuscule-50)] text-[color:var(--color-crepuscule-700)] border-[color:var(--color-crepuscule-100)]',
+    icon: 'lucide:info'
+  }
+}
+
+function requirementBox(severity: string) {
+  return REQUIREMENT_BOX[severity] ?? REQUIREMENT_BOX.info!
+}
+
 const stripeHumanStatus = computed(() => {
   const state = uiState.value
   if (!state) return null
@@ -257,120 +354,129 @@ async function refreshPayments() {
 
       <!-- Main content -->
       <template v-else-if="uiState && primaryCta">
-        <!-- Hero card - Funds status -->
-        <UCard
-          class="relative overflow-hidden border-crepuscule-200 bg-gradient-to-br from-crepuscule-50 via-white to-crepuscule-50"
+        <!-- Hero — bold tone-based gradient (DS B2B) -->
+        <div
+          v-if="heroConfig"
+          class="relative overflow-hidden rounded-3xl p-8 text-white shadow-[0_12px_32px_rgba(91,75,110,0.18)] sm:p-9"
+          :style="{ background: heroConfig.gradient }"
         >
-          <!-- Decorative elements -->
-          <div class="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-crepuscule-100/50 blur-3xl" />
-          <div class="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-crepuscule-200/30 blur-2xl" />
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-white/10"
+          />
+          <div
+            aria-hidden="true"
+            class="pointer-events-none absolute -bottom-20 right-28 h-40 w-40 rounded-full bg-white/[0.06]"
+          />
 
           <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex items-start gap-5">
-              <!-- Icon container -->
-              <div
-                class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-sm"
-                :class="[
-                  uiState.kind === 'ready'
-                    ? 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-600)]'
-                    : uiState.kind === 'shadow'
-                      ? 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-600)]'
-                      : 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-600)]'
-                ]"
-              >
+              <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/15">
                 <UIcon
-                  :name="uiState.kind === 'ready' ? 'lucide:check-circle' : uiState.kind === 'shadow' ? 'lucide:lock' : 'lucide:wallet'"
+                  :name="heroConfig.icon"
                   class="h-7 w-7"
                 />
               </div>
 
-              <div class="space-y-2">
-                <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                  Vos fonds
+              <div class="max-w-xl space-y-2.5">
+                <p class="text-xs font-bold uppercase tracking-[0.08em] text-white/80">
+                  {{ heroConfig.eyebrow }}
                 </p>
-                <h2 class="text-xl font-semibold text-[color:var(--color-text-primary)] sm:text-2xl">
-                  <template v-if="uiState.kind === 'shadow' && formattedPendingAmount">
-                    {{ formattedPendingAmount }} en attente
-                  </template>
-                  <template v-else-if="uiState.kind === 'ready'">
-                    Votre compte est prêt
-                  </template>
-                  <template v-else>
-                    Configurez vos virements
-                  </template>
+                <h2 class="font-[family-name:var(--font-serif)] text-3xl font-bold italic leading-tight">
+                  {{ heroConfig.heading }}
                 </h2>
-                <p class="max-w-lg text-sm text-[color:var(--color-text-secondary)]">
-                  {{ primaryCta.description }}
+                <p class="max-w-md text-sm leading-relaxed text-white/90">
+                  {{ heroConfig.body }}
                 </p>
               </div>
             </div>
 
-            <UButton
-              color="primary"
-              size="lg"
-              :disabled="!primaryCta.enabled"
-              :loading="finance.actionPending.value"
-              @click="onConnect"
-            >
-              <UIcon
-                :name="primaryCta.enabled ? 'lucide:arrow-right' : 'lucide:check'"
-                class="mr-2 h-4 w-4"
-              />
-              {{ primaryCta.label }}
-            </UButton>
+            <div class="shrink-0">
+              <span
+                v-if="!primaryCta.enabled"
+                class="inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-3 text-sm font-semibold text-white"
+              >
+                <UIcon
+                  name="lucide:check-circle"
+                  class="h-4 w-4"
+                />
+                {{ primaryCta.label }}
+              </span>
+              <button
+                v-else
+                type="button"
+                class="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-crepuscule-800)] shadow-sm transition hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:opacity-70"
+                :disabled="finance.actionPending.value"
+                @click="onConnect"
+              >
+                <UIcon
+                  :name="finance.actionPending.value
+                    ? 'lucide:loader-2'
+                    : (uiState.kind === 'shadow' ? 'lucide:unlock' : 'lucide:arrow-right')"
+                  class="h-4 w-4"
+                  :class="finance.actionPending.value ? 'animate-spin' : ''"
+                />
+                {{ primaryCta.label }}
+              </button>
+            </div>
           </div>
-        </UCard>
+        </div>
 
-        <!-- Stats cards grid -->
+        <!-- Grid: bank connection (2/3) + pending funds (1/3) -->
         <div class="grid gap-6 lg:grid-cols-3">
           <!-- Bank connection card -->
           <UCard class="bg-[color:var(--color-surface-card)] lg:col-span-2">
             <template #header>
-              <div class="flex items-center justify-between">
-                <div>
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                    :class="TILE_CLASSES[bankTile]"
+                  >
+                    <UIcon
+                      name="lucide:landmark"
+                      class="h-5 w-5"
+                    />
+                  </div>
                   <h3 class="font-semibold text-[color:var(--color-text-primary)]">
                     Connexion bancaire
                   </h3>
-                  <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-                    Statut et étapes de vérification
-                  </p>
                 </div>
-                <UBadge
-                  v-if="stripeHumanStatus"
-                  :color="stripeHumanStatus.color"
-                  variant="soft"
-                  size="lg"
+                <span
+                  v-if="bankBadge"
+                  class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
+                  :class="bankBadge.wrap"
                 >
-                  <UIcon
-                    :name="stripeHumanStatus.icon"
-                    class="mr-1.5 h-3.5 w-3.5"
+                  <span
+                    class="h-1.5 w-1.5 rounded-full"
+                    :class="bankBadge.dot"
                   />
-                  {{ stripeHumanStatus.label }}
-                </UBadge>
+                  {{ bankBadge.label }}
+                </span>
               </div>
             </template>
 
-            <!-- Requirements alerts -->
+            <!-- Requirements / next steps -->
             <div
               v-if="uiState.kind !== 'ready' || finance.requirementAlerts.value.length > 0"
-              class="space-y-4"
+              class="space-y-3"
             >
-              <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                {{ uiState.kind === 'ready' ? 'À compléter prochainement' : 'Prochaines étapes' }}
-              </p>
-
               <div
                 v-if="finance.requirementAlerts.value.length"
                 class="space-y-2"
               >
-                <UAlert
+                <div
                   v-for="alert in finance.requirementAlerts.value"
                   :key="alert.message"
-                  :color="alert.severity === 'critical' ? 'error' : alert.severity === 'warning' ? 'warning' : 'info'"
-                  variant="soft"
-                  :description="alert.message"
-                  :icon="alert.severity === 'critical' ? 'i-lucide-alert-circle' : alert.severity === 'warning' ? 'i-lucide-alert-triangle' : 'i-lucide-info'"
-                />
+                  class="flex items-start gap-2.5 rounded-xl border px-3.5 py-2.5"
+                  :class="requirementBox(alert.severity).box"
+                >
+                  <UIcon
+                    :name="requirementBox(alert.severity).icon"
+                    class="mt-0.5 h-4 w-4 shrink-0"
+                  />
+                  <span class="text-sm leading-snug">{{ alert.message }}</span>
+                </div>
               </div>
 
               <p
@@ -380,7 +486,6 @@ async function refreshPayments() {
                 Connectez votre banque pour finaliser les informations nécessaires.
               </p>
 
-              <!-- CTA to resolve requirements on Stripe -->
               <UButton
                 v-if="finance.requirementAlerts.value.length > 0"
                 color="primary"
@@ -399,20 +504,18 @@ async function refreshPayments() {
             <!-- Ready state -->
             <div
               v-else
-              class="flex items-center gap-4 rounded-lg bg-[color:var(--color-success-50)] p-4"
+              class="flex items-start gap-3 rounded-xl border border-[color:var(--color-success-100)] bg-[color:var(--color-success-50)] p-4"
             >
-              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-success-100)]">
-                <UIcon
-                  name="lucide:check"
-                  class="h-5 w-5 text-[color:var(--color-success-600)]"
-                />
-              </div>
+              <UIcon
+                name="lucide:check-circle"
+                class="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--color-success-600)]"
+              />
               <div>
                 <p class="font-medium text-[color:var(--color-success-800)]">
                   Tout est en ordre
                 </p>
                 <p class="text-sm text-[color:var(--color-success-700)]">
-                  Vos virements seront traités automatiquement.
+                  Aucune information supplémentaire n'est requise pour le moment.
                 </p>
               </div>
             </div>
@@ -424,30 +527,33 @@ async function refreshPayments() {
             class="bg-[color:var(--color-surface-card)]"
           >
             <template #header>
-              <h3 class="font-semibold text-[color:var(--color-text-primary)]">
-                Fonds en attente
-              </h3>
+              <div class="flex items-center gap-3">
+                <div
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                  :class="TILE_CLASSES[pendingTile]"
+                >
+                  <UIcon
+                    name="lucide:banknote"
+                    class="h-5 w-5"
+                  />
+                </div>
+                <h3 class="font-semibold text-[color:var(--color-text-primary)]">
+                  Fonds en attente
+                </h3>
+              </div>
             </template>
 
-            <div class="space-y-6">
-              <!-- Amount display -->
-              <div class="text-center">
-                <p class="text-4xl font-bold text-[color:var(--color-text-primary)]">
-                  {{ pendingCardAmount ?? '—' }}
-                </p>
-                <p
-                  v-if="pendingCard.mode === 'shadow'"
-                  class="mt-1 text-sm text-[color:var(--color-text-muted)]"
-                >
-                  {{ pendingCard.count }} paiement{{ pendingCard.count !== 1 ? 's' : '' }} en attente
-                </p>
-              </div>
-
-              <!-- Divider -->
-              <div class="h-px bg-[color:var(--color-surface-muted)]" />
-
-              <!-- Info text (state-driven, no hard-coded contradiction) -->
-              <p class="text-center text-sm text-[color:var(--color-text-muted)]">
+            <div class="flex h-full flex-col">
+              <p class="font-[family-name:var(--font-serif)] text-4xl font-bold text-[color:var(--color-text-primary)]">
+                {{ pendingCardAmount ?? '—' }}
+              </p>
+              <p
+                v-if="pendingCard.mode === 'shadow'"
+                class="mt-1 text-sm text-[color:var(--color-text-muted)]"
+              >
+                {{ pendingCard.count }} paiement{{ pendingCard.count !== 1 ? 's' : '' }} en attente
+              </p>
+              <p class="mt-4 border-t border-[color:var(--color-border-subtle)] pt-4 text-sm leading-relaxed text-[color:var(--color-text-secondary)]">
                 {{ pendingCard.message }}
               </p>
             </div>
