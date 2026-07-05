@@ -72,9 +72,12 @@ const formattedPayments = computed(() => props.payments.map((payment) => {
     }).format(new Date(payment.appointmentScheduledAt))
   }
 
-  // Compact "Frais" column = commission + Stripe fee (known part). The exact
-  // net stays null-safe (HF18/HF19): shown as "—" when the Stripe fee is unknown.
-  const feesTotal = formatCentsToCurrency(
+  // "Frais" column: the fees KNOWN so far. When the Stripe fee is not yet
+  // available, only the Keova commission is deducted and the total is not final
+  // — the UI must not present a partial amount as the complete fee (HF18/HF19),
+  // so a "Stripe à venir" note is shown and the net stays "—".
+  const feesKnown = payment.stripeFeeCents !== null
+  const fees = formatCentsToCurrency(
     payment.platformFeeCents + (payment.stripeFeeCents ?? 0),
     payment.currency
   )
@@ -88,7 +91,8 @@ const formattedPayments = computed(() => props.payments.map((payment) => {
     amount: amounts.amount,
     commission: amounts.platformFee,
     stripeFee: amounts.stripeFee,
-    fees: feesTotal,
+    fees,
+    feesKnown,
     net: amounts.net,
     paymentDate,
     appointmentWhen
@@ -263,9 +267,15 @@ function openReceipt(url: string) {
                   {{ payment.amount }}
                 </td>
 
-                <!-- Frais -->
+                <!-- Frais (partial until the Stripe fee is known — HF18/HF19) -->
                 <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right text-sm text-[color:var(--color-text-muted)]">
-                  − {{ payment.fees }}
+                  <div>− {{ payment.fees }}</div>
+                  <div
+                    v-if="!payment.feesKnown"
+                    class="text-[11px] text-[color:var(--color-text-muted)]"
+                  >
+                    Stripe à venir
+                  </div>
                 </td>
 
                 <!-- Vous recevez -->
@@ -294,11 +304,20 @@ function openReceipt(url: string) {
                     >
                       {{ payment.status.tone === 'success' ? 'Sous peu' : 'Indisponible' }}
                     </span>
-                    <UIcon
-                      name="lucide:chevron-down"
-                      class="h-3.5 w-3.5 text-[color:var(--color-text-muted)] transition-transform duration-200"
-                      :class="expandedId === payment.id ? 'rotate-180' : ''"
-                    />
+                    <button
+                      type="button"
+                      class="grid h-8 w-8 place-items-center rounded-full text-[color:var(--color-text-muted)] transition-colors hover:bg-[color:var(--color-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-crepuscule-200)]"
+                      :aria-expanded="expandedId === payment.id"
+                      :aria-controls="`payment-detail-${payment.id}`"
+                      :aria-label="expandedId === payment.id ? `Masquer le détail du paiement de ${payment.fullName}` : `Afficher le détail du paiement de ${payment.fullName}`"
+                      @click.stop="toggle(payment.id)"
+                    >
+                      <UIcon
+                        name="lucide:chevron-down"
+                        class="h-3.5 w-3.5 transition-transform duration-200"
+                        :class="expandedId === payment.id ? 'rotate-180' : ''"
+                      />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -309,7 +328,12 @@ function openReceipt(url: string) {
                   colspan="7"
                   class="border-b border-[color:var(--color-border-subtle)] p-0"
                 >
-                  <div class="grid grid-cols-2 gap-5 bg-[color:var(--color-surface-muted)] px-6 py-5 sm:grid-cols-4">
+                  <div
+                    :id="`payment-detail-${payment.id}`"
+                    role="region"
+                    :aria-label="`Détail du paiement de ${payment.fullName}`"
+                    class="grid grid-cols-2 gap-5 bg-[color:var(--color-surface-muted)] px-6 py-5 sm:grid-cols-4"
+                  >
                     <div>
                       <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
                         Montant brut

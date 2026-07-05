@@ -62,7 +62,7 @@ type HeroTone = 'neutral' | 'warning' | 'success'
 const HERO_GRADIENTS: Record<HeroTone, string> = {
   neutral: 'linear-gradient(135deg, var(--color-crepuscule-800), var(--color-crepuscule-600))',
   warning: 'linear-gradient(135deg, var(--color-sunset-700), var(--color-sunset-500))',
-  success: 'linear-gradient(135deg, var(--color-success-600), #5da885)'
+  success: 'linear-gradient(135deg, var(--color-success-600), var(--color-success-500))'
 }
 
 const heroConfig = computed(() => {
@@ -357,7 +357,7 @@ async function refreshPayments() {
         <!-- Hero — bold tone-based gradient (DS B2B) -->
         <div
           v-if="heroConfig"
-          class="relative overflow-hidden rounded-3xl p-8 text-white shadow-[0_12px_32px_rgba(91,75,110,0.18)] sm:p-9"
+          class="relative overflow-hidden rounded-[var(--radius-lg)] p-8 text-white shadow-[0_12px_32px_rgba(91,75,110,0.18)] sm:p-9"
           :style="{ background: heroConfig.gradient }"
         >
           <div
