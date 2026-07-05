@@ -199,6 +199,7 @@ async function refreshPayments() {
           <UButton
             :to="stripeLinks.paymentsUrl"
             target="_blank"
+            rel="noopener noreferrer"
             external
             variant="outline"
             color="neutral"

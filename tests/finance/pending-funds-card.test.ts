@@ -9,12 +9,17 @@
 import * as assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { resolvePendingFundsCard } from '../../app/features/finance/domain/finance-state'
+import {
+  resolveFinanceDashboardLabel,
+  resolvePendingFundsCard
+} from '../../app/features/finance/domain/finance-state'
 import type {
   ProviderFinanceBalance,
   ProviderFinanceSummary,
   StripeConnectStatus
 } from '../../app/features/finance/api/finance.contract'
+
+const fakeFormat = (cents: number): string => `${(cents / 100).toFixed(2)}€`
 
 function buildStripe(overrides: Partial<StripeConnectStatus> = {}): StripeConnectStatus {
   return {
@@ -95,4 +100,56 @@ test('payouts enabled but balance stuck on shadow source: degrades to unavailabl
   const card = resolvePendingFundsCard(summary)
 
   assert.equal(card.mode, 'unavailable')
+})
+
+// ── Dashboard status label (HF19 CR Finding 1) ────────────────────────────────
+
+test('dashboard label: connected account NEVER surfaces the obsolete internal cumulative (Finding 1)', () => {
+  // Connected account, real Stripe balance 0, but a large stale shadow cumul.
+  const summary = buildSummary(
+    { payoutsEnabled: true },
+    { source: 'stripe', pendingCents: 0, currency: 'EUR' },
+    { pendingPayoutCents: 394368, pendingPayoutCount: 58 }
+  )
+
+  const label = resolveFinanceDashboardLabel(summary, fakeFormat)
+
+  // Must NOT read "3943,68€ en attente de virement" from the old cumul.
+  assert.doesNotMatch(label, /en attente de virement/)
+  assert.equal(label, 'Compte Stripe actif')
+})
+
+test('dashboard label: connected account with a real positive Stripe pending shows the real amount', () => {
+  const summary = buildSummary(
+    { payoutsEnabled: true },
+    { source: 'stripe', pendingCents: 12371, currency: 'EUR' },
+    { pendingPayoutCents: 394368, pendingPayoutCount: 58 }
+  )
+
+  const label = resolveFinanceDashboardLabel(summary, fakeFormat)
+
+  assert.equal(label, '123.71€ en attente de virement')
+})
+
+test('dashboard label: unavailable balance stays neutral, never a fabricated amount (Finding 1 + AC-4)', () => {
+  const summary = buildSummary(
+    { payoutsEnabled: true },
+    { source: 'unavailable', pendingCents: null, currency: 'EUR' },
+    { pendingPayoutCents: 394368, pendingPayoutCount: 58 }
+  )
+
+  const label = resolveFinanceDashboardLabel(summary, fakeFormat)
+
+  assert.equal(label, 'Compte Stripe actif')
+})
+
+test('dashboard label: shadow account keeps the "à compléter" status', () => {
+  const summary = buildSummary(
+    { payoutsEnabled: false },
+    { source: 'shadow', pendingCents: 6800, currency: 'EUR' }
+  )
+
+  const label = resolveFinanceDashboardLabel(summary, fakeFormat)
+
+  assert.equal(label, 'Compte Stripe à compléter.')
 })

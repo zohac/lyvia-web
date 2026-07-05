@@ -55,6 +55,7 @@
             :to="payment.receiptUrl"
             external
             target="_blank"
+            rel="noopener noreferrer"
             variant="link"
             size="xs"
             class="h-auto p-0 text-xs"
