@@ -102,42 +102,38 @@ function openReceipt(url: string) {
 </script>
 
 <template>
-  <UCard
-    class="overflow-hidden bg-[color:var(--color-surface-card)]"
-    :ui="{ body: 'p-0' }"
-  >
-    <template #header>
-      <div class="flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-secondary)]">
-            <UIcon
-              name="lucide:receipt"
-              class="h-5 w-5"
-            />
-          </div>
-          <div>
-            <h3 class="font-semibold text-[color:var(--color-text-primary)]">
-              Paiements
-            </h3>
-            <p class="text-sm text-[color:var(--color-text-muted)]">
-              Montants, commission Keova et reçus
-            </p>
-          </div>
-        </div>
-        <UButton
-          variant="outline"
-          color="neutral"
-          :loading="pending"
-          @click="emit('refresh')"
-        >
+  <div class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] shadow-[0_1px_3px_rgba(91,75,110,0.08)]">
+    <!-- Header (compact, sits directly on the table — DS) -->
+    <div class="flex flex-wrap items-center justify-between gap-3 px-6 pb-4 pt-5">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-secondary)]">
           <UIcon
-            name="lucide:refresh-cw"
-            class="mr-2 h-4 w-4"
+            name="lucide:receipt"
+            class="h-5 w-5"
           />
-          Actualiser
-        </UButton>
+        </div>
+        <div>
+          <h3 class="font-semibold text-[color:var(--color-text-primary)]">
+            Paiements
+          </h3>
+          <p class="text-sm text-[color:var(--color-text-muted)]">
+            Montants, commission Keova et reçus
+          </p>
+        </div>
       </div>
-    </template>
+      <UButton
+        variant="outline"
+        color="neutral"
+        :loading="pending"
+        @click="emit('refresh')"
+      >
+        <UIcon
+          name="lucide:refresh-cw"
+          class="mr-2 h-4 w-4"
+        />
+        Actualiser
+      </UButton>
+    </div>
 
     <!-- Error state -->
     <div
@@ -414,5 +410,5 @@ function openReceipt(url: string) {
         />
       </div>
     </template>
-  </UCard>
+  </div>
 </template>
