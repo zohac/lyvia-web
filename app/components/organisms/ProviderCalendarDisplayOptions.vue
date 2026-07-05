@@ -1,42 +1,38 @@
 <script setup lang="ts">
 import type { ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
+import type { DisplayStatus } from '../../features/calendar/presentation/appointment-style'
+import { STATUS_CONFIG, STATUS_LEGEND_ORDER } from '../../features/calendar/presentation/appointment-style'
 
 type DisplayTypeFilter = 'all' | ProviderCalendarAppointmentType
 
 const props = defineProps<{
   typeFilter: DisplayTypeFilter
+  statusFilters: Record<DisplayStatus, boolean>
   disabled?: boolean
 }>()
 
 defineEmits<{
   (e: 'update:typeFilter', value: DisplayTypeFilter): void
+  (e: 'toggle:status', value: DisplayStatus): void
 }>()
 
-const filterOptions = [
-  { label: 'Tous', value: 'all' },
-  { label: 'Découverte', value: 'discovery' },
-  { label: 'Consultation', value: 'consultation' },
-  { label: 'Suivi gratuit', value: 'free_followup' }
+const typeOptions: { label: string, value: DisplayTypeFilter, dot: string | null }[] = [
+  { label: 'Tous', value: 'all', dot: null },
+  { label: 'Découverte', value: 'discovery', dot: 'var(--color-sunset-500)' },
+  { label: 'Consultation', value: 'consultation', dot: 'var(--color-crepuscule-500)' },
+  { label: 'Suivi', value: 'free_followup', dot: 'var(--color-success-500)' }
 ]
 
-function isFilterActive(value: DisplayTypeFilter) {
+function isTypeActive(value: DisplayTypeFilter) {
   return props.typeFilter === value
-}
-
-function getFilterButtonClasses(value: DisplayTypeFilter, active: boolean) {
-  if (!active) return 'text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)]'
-  if (value === 'discovery') return 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-800)]'
-  if (value === 'consultation') return 'bg-crepuscule-100 text-crepuscule-800'
-  if (value === 'free_followup') return 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-800)]'
-  return 'bg-[color:var(--color-neutral-200)] text-[color:var(--color-text-primary)]'
 }
 </script>
 
 <template>
-  <div class="rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-4">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div class="rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-4 shadow-sm">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div>
-        <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
           Affichage
         </p>
         <p class="mt-1 text-sm text-[color:var(--color-text-secondary)]">
@@ -45,39 +41,48 @@ function getFilterButtonClasses(value: DisplayTypeFilter, active: boolean) {
       </div>
 
       <div class="flex flex-wrap items-center gap-4">
-        <!-- Filter buttons -->
-        <div class="inline-flex rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-1">
+        <!-- Type filter (segmented pills) -->
+        <div class="inline-flex flex-wrap gap-1 rounded-full bg-[color:var(--color-surface-muted)] p-1">
           <button
-            v-for="option in filterOptions"
+            v-for="option in typeOptions"
             :key="option.value"
             type="button"
-            class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-            :class="getFilterButtonClasses(option.value as DisplayTypeFilter, isFilterActive(option.value as DisplayTypeFilter))"
+            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-50"
+            :class="isTypeActive(option.value)
+              ? 'bg-[color:var(--color-surface-card)] text-[color:var(--color-text-primary)] shadow-sm'
+              : 'text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-primary)]'"
             :disabled="disabled"
-            @click="$emit('update:typeFilter', option.value as DisplayTypeFilter)"
+            @click="$emit('update:typeFilter', option.value)"
           >
+            <span
+              v-if="option.dot"
+              class="inline-block size-2 rounded-full"
+              :style="{ background: option.dot }"
+            />
             {{ option.label }}
           </button>
         </div>
 
-        <!-- Legend -->
-        <div class="hidden items-center gap-4 text-xs text-[color:var(--color-text-muted)] sm:flex">
-          <span class="inline-flex items-center gap-1.5">
-            <span class="inline-block h-2 w-2 rounded-full bg-crepuscule-500" />
-            Planifié
-          </span>
-          <span class="inline-flex items-center gap-1.5">
-            <span class="inline-block h-2 w-2 rounded-full bg-[color:var(--color-success-50)]0" />
-            Terminé
-          </span>
-          <span class="inline-flex items-center gap-1.5">
-            <span class="inline-block h-2 w-2 rounded-full bg-[color:var(--color-error-50)]0" />
-            Annulé
-          </span>
-          <span class="inline-flex items-center gap-1.5">
-            <span class="inline-block h-2 w-2 rounded-full bg-[color:var(--color-sunset-50)]0" />
-            Payé
-          </span>
+        <!-- Status filter (toggle chips) -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button
+            v-for="status in STATUS_LEGEND_ORDER"
+            :key="status"
+            type="button"
+            class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-50"
+            :style="props.statusFilters[status]
+              ? { background: STATUS_CONFIG[status].chipBg, color: STATUS_CONFIG[status].chipText, borderColor: STATUS_CONFIG[status].chipBorder }
+              : { background: 'transparent', color: 'var(--color-text-muted)', borderColor: 'var(--color-border-subtle)', opacity: '0.6' }"
+            :aria-pressed="props.statusFilters[status]"
+            :disabled="disabled"
+            @click="$emit('toggle:status', status)"
+          >
+            <span
+              class="inline-block size-2 rounded-full"
+              :style="{ background: STATUS_CONFIG[status].dot }"
+            />
+            {{ STATUS_CONFIG[status].label }}
+          </button>
         </div>
       </div>
     </div>

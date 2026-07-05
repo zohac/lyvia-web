@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CancelProviderAppointmentRequest, ProviderAppointmentListItem } from '../../features/calendar/api/calendar.contract'
-import { getAppointmentAccentClass, getAppointmentMetaClass } from '../../features/calendar/presentation/appointment-style'
+import { getAppointmentTypePillClass } from '../../features/calendar/presentation/appointment-style'
+import { getAppointmentTypeLabel } from '../../features/clients/domain/clients'
 
 const props = withDefaults(
   defineProps<{
@@ -48,11 +49,11 @@ const disabledReason = computed(() => {
 const typeLabel = computed(() => {
   const appointment = props.appointment
   if (!appointment) return null
-  return appointment.type === 'consultation' ? 'Consultation' : 'Discovery'
+  return getAppointmentTypeLabel(appointment.type)
 })
 
-function accentClasses(appointment: ProviderAppointmentListItem): string {
-  return [getAppointmentAccentClass(appointment), getAppointmentMetaClass(appointment)].join(' ')
+function typePillClass(appointment: ProviderAppointmentListItem): string {
+  return getAppointmentTypePillClass(appointment.type)
 }
 
 function updateOpen(value: boolean) {
@@ -101,7 +102,7 @@ function submit() {
         <span
           v-if="appointment"
           class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold"
-          :class="accentClasses(appointment)"
+          :class="typePillClass(appointment)"
         >
           {{ typeLabel }}
         </span>

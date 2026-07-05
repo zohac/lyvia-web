@@ -3,7 +3,7 @@ import type { ProviderAppointmentListItem } from '../../features/calendar/api/ca
 import type { CalendarMonthCell } from '../../features/calendar/domain/range'
 import { buildMonthGrid } from '../../features/calendar/domain/range'
 import { getYmdInTimeZone } from '../../features/slots/domain/slots'
-import { getAppointmentAccentClass, getAppointmentMetaClass, getAppointmentNameClass, getAppointmentStatusDotClass } from '../../features/calendar/presentation/appointment-style'
+import { getMonthChipStyle, getAppointmentNameClass } from '../../features/calendar/presentation/appointment-style'
 import type { ConsultationPricePlanById } from '../../features/calendar/presentation/appointment-pricing'
 import { formatConsultationChipLabel } from '../../features/calendar/presentation/appointment-pricing'
 
@@ -21,6 +21,8 @@ const props = defineProps<{
 }>()
 
 const monthCells = computed<CalendarMonthCell[]>(() => buildMonthGrid(props.anchorDate, props.timeZone))
+
+const todayKey = computed(() => getYmdInTimeZone(new Date(), props.timeZone))
 
 const appointmentsByDayKey = computed(() => {
   const map = new Map<string, ProviderAppointmentListItem[]>()
@@ -58,10 +60,6 @@ watch(
   }
 )
 
-function togglePopover(dayKey: string) {
-  openPopoverDayKey.value = openPopoverDayKey.value === dayKey ? null : dayKey
-}
-
 function formatTime(iso: string): string {
   const date = new Date(iso)
   return new Intl.DateTimeFormat('fr-FR', {
@@ -72,20 +70,12 @@ function formatTime(iso: string): string {
   }).format(date)
 }
 
-function eventAccentClass(appointment: ProviderAppointmentListItem): string {
-  return getAppointmentAccentClass(appointment)
+function chipStyle(appointment: ProviderAppointmentListItem) {
+  return getMonthChipStyle(appointment)
 }
 
-function eventMetaClass(appointment: ProviderAppointmentListItem): string {
-  return getAppointmentMetaClass(appointment)
-}
-
-function eventNameClass(appointment: ProviderAppointmentListItem): string {
+function nameClass(appointment: ProviderAppointmentListItem): string {
   return getAppointmentNameClass(appointment)
-}
-
-function eventStatusDotClass(appointment: ProviderAppointmentListItem): string | null {
-  return getAppointmentStatusDotClass(appointment)
 }
 
 function appointmentChipLabel(appointment: ProviderAppointmentListItem): string {
@@ -104,155 +94,113 @@ function onSelectDay(dayKey: string) {
 </script>
 
 <template>
-  <section class="rounded-xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-sm">
-    <div class="flex items-center justify-between gap-3">
-      <div class="grid gap-1">
-        <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-          Vue mois
-        </p>
-        <p class="text-sm text-[color:var(--color-text-muted)]">
-          Fuseau : {{ timeZone }}
-        </p>
-      </div>
-      <div class="hidden items-center gap-2 text-xs text-[color:var(--color-text-muted)] md:flex">
-        <span
-          class="inline-flex size-2 rounded-full bg-[color:var(--color-sunset-50)]0"
-          aria-hidden="true"
-        />
-        <span>Discovery</span>
-        <span
-          class="ml-3 inline-flex size-2 rounded-full bg-crepuscule-500"
-          aria-hidden="true"
-        />
-        <span>Consultation</span>
+  <section class="overflow-hidden rounded-2xl border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] shadow-sm">
+    <div class="grid grid-cols-7 border-b border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-muted)]">
+      <div
+        v-for="label in weekdayLabels"
+        :key="label"
+        class="px-3 py-3 text-center text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]"
+      >
+        {{ label }}
       </div>
     </div>
 
-    <div class="mt-6 overflow-hidden rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)]">
-      <div class="grid grid-cols-7 border-b border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)]">
+    <div class="grid grid-cols-7">
+      <div
+        v-for="cell in monthCells"
+        :key="cell.key"
+        class="relative flex min-h-[120px] flex-col overflow-hidden border-b border-r border-[color:var(--color-neutral-100)] p-2 last:border-r-0"
+        :class="!cell.inMonth
+          ? 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-muted)]'
+          : cell.key === todayKey
+            ? 'bg-[color:var(--color-surface-highlight)]'
+            : 'bg-[color:var(--color-surface-card)]'"
+      >
         <div
-          v-for="label in weekdayLabels"
-          :key="label"
-          class="px-3 py-3 text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-primary)]"
-        >
-          {{ label }}
-        </div>
-      </div>
+          v-if="highlight?.dayKey === cell.key"
+          class="pointer-events-none absolute inset-2 rounded-lg bg-[color:var(--color-sunset-50)] ring-2 ring-[color:var(--color-sunset-400)] shadow-sm animate-pulse"
+          aria-hidden="true"
+        />
 
-      <div class="grid grid-cols-7">
-        <div
-          v-for="cell in monthCells"
-          :key="cell.key"
-          class="relative min-h-[112px] border-b border-r border-[color:var(--color-neutral-100)] p-3 last:border-r-0"
-          :class="cell.inMonth ? 'bg-[color:var(--color-surface-card)]' : 'bg-[color:var(--color-surface-page)] text-[color:var(--color-text-muted)] opacity-70'"
+        <button
+          type="button"
+          class="absolute inset-0 z-0 w-full cursor-pointer bg-transparent text-left"
+          :disabled="!cell.inMonth"
+          @click="onSelectDay(cell.key)"
         >
-          <div
-            v-if="highlight?.dayKey === cell.key"
-            class="pointer-events-none absolute inset-2 rounded-lg bg-[color:var(--color-sunset-50)] ring-2 ring-[color:var(--color-sunset-400)] shadow-sm animate-pulse"
-            aria-hidden="true"
-          />
+          <span class="sr-only">Créer un rendez-vous</span>
+        </button>
 
-          <button
-            type="button"
-            class="absolute inset-0 z-0 w-full cursor-pointer bg-transparent text-left"
-            :disabled="!cell.inMonth"
-            @click="onSelectDay(cell.key)"
+        <div class="relative z-10 flex items-center justify-end">
+          <span
+            class="grid size-6 place-items-center rounded-full text-xs"
+            :class="cell.key === todayKey
+              ? 'bg-[color:var(--color-brand-primary)] font-bold text-white'
+              : cell.inMonth ? 'font-semibold text-[color:var(--color-text-primary)]' : 'font-medium text-[color:var(--color-text-muted)]'"
           >
-            <span class="sr-only">Créer un rendez-vous</span>
+            {{ cell.dayNumber }}
+          </span>
+        </div>
+
+        <div class="relative z-10 mt-1 flex flex-col gap-1">
+          <button
+            v-for="appointment in (appointmentsByDayKey.get(cell.key) ?? []).slice(0, 3)"
+            :key="appointment.id"
+            type="button"
+            :title="`${formatTime(appointment.startAt)} · ${appointment.firstname} ${appointment.lastname} — ${appointmentChipLabel(appointment)}`"
+            class="flex w-full min-w-0 items-center gap-1.5 rounded-[5px] py-0.5 pl-1.5 pr-1 text-left text-[11px] font-semibold transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
+            :style="chipStyle(appointment)"
+            :class="highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''"
+            @click.stop="onSelectAppointment(appointment)"
+          >
+            <span class="shrink-0 tabular-nums opacity-80">{{ formatTime(appointment.startAt) }}</span>
+            <span
+              class="min-w-0 flex-1 truncate"
+              :class="nameClass(appointment)"
+            >{{ appointment.firstname }}</span>
           </button>
 
-          <div class="relative z-10 flex items-start justify-between gap-2">
-            <span class="text-xs font-bold text-[color:var(--color-text-primary)]">
-              {{ cell.dayNumber }}
-            </span>
-
-            <UPopover
-              v-if="(appointmentsByDayKey.get(cell.key)?.length ?? 0) > 2"
-              :open="openPopoverDayKey === cell.key"
-              :ui="{
-                content: 'w-[280px] rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-3 shadow-lg',
-                arrow: 'hidden'
-              }"
-              @update:open="(value: boolean) => (openPopoverDayKey = value ? cell.key : null)"
-            >
-              <button
-                type="button"
-                class="inline-flex items-center rounded-full bg-[color:var(--color-surface-card)] px-3 py-1 text-[11px] font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)] transition-all hover:bg-[color:var(--color-surface-page)]"
-                @click.stop="togglePopover(cell.key)"
-              >
-                +{{ (appointmentsByDayKey.get(cell.key)?.length ?? 0) - 2 }}
-              </button>
-
-              <template #content>
-                <div class="grid gap-2">
-                  <p class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                    Rendez-vous
-                  </p>
-                  <div class="grid gap-2">
-                    <button
-                      v-for="appointment in appointmentsByDayKey.get(cell.key) ?? []"
-                      :key="appointment.id"
-                      type="button"
-                      class="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-xs font-bold shadow-sm transition-all hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
-                      :class="[
-                        eventAccentClass(appointment),
-                        eventMetaClass(appointment),
-                        highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
-                      ]"
-                      @click="onSelectAppointment(appointment)"
-                    >
-                      <span class="flex items-center gap-1.5 truncate">
-                        <span
-                          v-if="eventStatusDotClass(appointment)"
-                          class="inline-block size-1.5 shrink-0 rounded-full"
-                          :class="eventStatusDotClass(appointment)"
-                          aria-hidden="true"
-                        />
-                        <span
-                          :class="eventNameClass(appointment)"
-                          class="truncate"
-                        >{{ appointment.firstname }} {{ appointment.lastname }}</span>
-                      </span>
-                      <span class="shrink-0 opacity-90">
-                        {{ formatTime(appointment.startAt) }}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </template>
-            </UPopover>
-          </div>
-
-          <div class="relative z-10 mt-2 grid gap-1">
+          <UPopover
+            v-if="(appointmentsByDayKey.get(cell.key)?.length ?? 0) > 3"
+            :open="openPopoverDayKey === cell.key"
+            :ui="{
+              content: 'w-[280px] rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-3 shadow-lg',
+              arrow: 'hidden'
+            }"
+            @update:open="(value: boolean) => (openPopoverDayKey = value ? cell.key : null)"
+          >
             <button
-              v-for="appointment in (appointmentsByDayKey.get(cell.key) ?? []).slice(0, 2)"
-              :key="appointment.id"
               type="button"
-              class="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1 text-left text-[11px] font-bold shadow-sm transition-all hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
-              :class="[
-                eventAccentClass(appointment),
-                eventMetaClass(appointment),
-                highlight?.appointmentId === appointment.id ? 'ring-2 ring-[color:var(--color-sunset-400)] animate-pulse' : ''
-              ]"
-              @click.stop="onSelectAppointment(appointment)"
+              class="w-full rounded-[5px] px-1.5 py-0.5 text-left text-[11px] font-semibold text-[color:var(--color-text-muted)] transition-colors hover:bg-[color:var(--color-surface-muted)] hover:text-[color:var(--color-text-primary)]"
+              @click.stop
             >
-              <span class="flex items-center gap-1 truncate">
-                <span
-                  v-if="eventStatusDotClass(appointment)"
-                  class="inline-block size-1.5 shrink-0 rounded-full"
-                  :class="eventStatusDotClass(appointment)"
-                  aria-hidden="true"
-                />
-                <span
-                  :class="eventNameClass(appointment)"
-                  class="truncate"
-                >{{ formatTime(appointment.startAt) }} · {{ appointment.firstname }}</span>
-              </span>
-              <span class="max-w-[9rem] truncate text-right text-[11px] font-semibold opacity-90">
-                {{ appointmentChipLabel(appointment) }}
-              </span>
+              +{{ (appointmentsByDayKey.get(cell.key)?.length ?? 0) - 3 }} de plus
             </button>
-          </div>
+
+            <template #content>
+              <div class="grid gap-2">
+                <p class="text-[11px] font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+                  Rendez-vous
+                </p>
+                <div class="grid gap-1.5">
+                  <button
+                    v-for="appointment in appointmentsByDayKey.get(cell.key) ?? []"
+                    :key="appointment.id"
+                    type="button"
+                    class="flex w-full min-w-0 items-center justify-between gap-3 rounded-[5px] py-1 pl-1.5 pr-2 text-left text-xs font-semibold transition-transform hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-crepuscule-500"
+                    :style="chipStyle(appointment)"
+                    @click="onSelectAppointment(appointment)"
+                  >
+                    <span
+                      class="min-w-0 flex-1 truncate"
+                      :class="nameClass(appointment)"
+                    >{{ appointment.firstname }} {{ appointment.lastname }}</span>
+                    <span class="shrink-0 tabular-nums opacity-80">{{ formatTime(appointment.startAt) }}</span>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </UPopover>
         </div>
       </div>
     </div>

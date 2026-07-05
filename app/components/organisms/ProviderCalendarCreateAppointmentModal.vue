@@ -2,7 +2,14 @@
 import type { CreateProviderManualAppointmentRequest, ProviderCalendarAppointmentType } from '../../features/calendar/api/calendar.contract'
 import type { ConsultationPricePlan } from '../../features/consultation/api/consultation.contract'
 import { minutesToHHmm, zonedLocalDateTimeToUtcIso } from '../../features/calendar/domain/zoned-datetime'
-import ConsultationPlanSelector from '../molecules/ConsultationPlanSelector.vue'
+import { getAppointmentTypeConfig } from '../../features/calendar/presentation/appointment-style'
+import { formatCurrency } from '../../features/calendar/presentation/appointment-pricing'
+
+const TYPE_CARDS: { key: ProviderCalendarAppointmentType, short: string, sub: string, icon: string }[] = [
+  { key: 'discovery', short: 'Découverte', sub: '15 min', icon: 'lucide:phone' },
+  { key: 'consultation', short: 'Consultation', sub: 'tarifé', icon: 'lucide:video' },
+  { key: 'free_followup', short: 'Suivi', sub: '30 min', icon: 'lucide:heart-handshake' }
+]
 
 type ClientOption = {
   label: string
@@ -104,6 +111,58 @@ const startAt = computed(() => {
     timeZone: props.timeZone
   })
   return iso
+})
+
+function typeCardStyle(key: ProviderCalendarAppointmentType, active: boolean) {
+  const config = getAppointmentTypeConfig(key)
+  if (active) {
+    return { background: config.soft, color: config.softText, borderColor: config.fill }
+  }
+  return { background: 'transparent', color: 'var(--color-text-muted)', borderColor: 'var(--color-border-subtle)' }
+}
+
+function typeDotColor(key: ProviderCalendarAppointmentType) {
+  return getAppointmentTypeConfig(key).fill
+}
+
+const selectedPlan = computed(() => {
+  return props.consultationPricePlans.find(plan => plan.id === pricePlanId.value) ?? null
+})
+
+const activePlans = computed(() => {
+  return props.consultationPricePlans
+    .filter(plan => plan.isActive)
+    .slice()
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+})
+
+const hasActivePlans = computed(() => activePlans.value.length > 0)
+
+const tarifOptions = computed(() => {
+  // Le label du plan est saisi par la praticienne et contient déjà durée + prix.
+  return activePlans.value.map(plan => ({
+    label: plan.label,
+    value: plan.id
+  }))
+})
+
+const headerCard = computed(() => TYPE_CARDS.find(card => card.key === type.value) ?? TYPE_CARDS[1]!)
+
+const headerBadgeStyle = computed(() => {
+  const config = getAppointmentTypeConfig(type.value)
+  return { background: config.soft, color: config.softText, borderColor: config.fill }
+})
+
+const recapPriceLabel = computed(() => {
+  if (type.value !== 'consultation') return 'Gratuit'
+  if (!selectedPlan.value) return 'Sélectionnez un tarif'
+  return formatCurrency(selectedPlan.value.amountCents)
+})
+
+const recapCaption = computed(() => {
+  return type.value === 'consultation'
+    ? 'Réglé sur le compte Stripe de la praticienne'
+    : 'Rendez-vous gratuit'
 })
 
 const MEETING_LINK_REGEX = /^https?:\/\//
@@ -237,12 +296,33 @@ function submit() {
   <USlideover
     :open="open"
     :dismissible="!loading"
-    title="Créer un rendez-vous"
-    :description="`Fuseau : ${timeZone} · Choisissez un type, une date et une cliente.`"
+    title="Nouveau rendez-vous"
+    description="Renseignez le type, la cliente, la date et l'heure du rendez-vous."
+    :ui="{
+      content: 'w-full sm:max-w-[460px]',
+      body: 'bg-[color:var(--color-surface-page)]',
+      description: 'sr-only'
+    }"
     @update:open="updateOpen"
   >
+    <template #title>
+      <span
+        class="mb-3.5 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold not-italic"
+        :style="headerBadgeStyle"
+      >
+        <UIcon
+          :name="headerCard.icon"
+          class="size-3.5"
+        />
+        {{ headerCard.short }}
+      </span>
+      <span class="block font-[family-name:var(--font-serif)] text-2xl font-bold italic text-[color:var(--color-text-primary)]">
+        Nouveau rendez-vous
+      </span>
+    </template>
+
     <template #body>
-      <div class="grid gap-6">
+      <div class="flex flex-col gap-4">
         <UAlert
           v-if="error"
           color="error"
@@ -252,208 +332,217 @@ function submit() {
           icon="i-lucide-alert-circle"
         />
 
-        <UAlert
-          v-else-if="localValidationError"
-          color="warning"
-          variant="soft"
-          title="Vérification"
-          :description="localValidationError"
-          icon="i-lucide-alert-triangle"
-        />
-
-        <div class="grid gap-4 rounded-lg border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-page)] p-5">
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              Type
-            </label>
-            <USelect
-              v-model="type"
-              :items="[
-                { label: 'Consultation', value: 'consultation' },
-                { label: 'Discovery', value: 'discovery' },
-                { label: 'Suivi gratuit', value: 'free_followup' }
-              ]"
+        <!-- Type de rendez-vous -->
+        <div class="grid gap-2">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+            Type de rendez-vous
+          </label>
+          <div class="grid grid-cols-3 gap-2">
+            <button
+              v-for="card in TYPE_CARDS"
+              :key="card.key"
+              type="button"
+              class="flex flex-col items-center gap-1 rounded-xl border px-2 py-3 text-center text-xs font-semibold leading-tight transition-all disabled:opacity-50"
+              :style="typeCardStyle(card.key, type === card.key)"
               :disabled="loading"
-            />
-            <p
-              v-if="fieldErrors?.type"
-              class="text-xs font-bold text-[color:var(--color-error-600)]"
-            >
-              {{ fieldErrors.type }}
-            </p>
-          </div>
-
-          <div class="grid gap-2 md:grid-cols-2">
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                Date
-              </label>
-              <UInput
-                v-model="dayKey"
-                type="date"
-                :disabled="loading"
-              />
-              <p
-                v-if="fieldErrors?.startAt"
-                class="text-xs font-bold text-[color:var(--color-error-600)]"
-              >
-                {{ fieldErrors.startAt }}
-              </p>
-            </div>
-            <div class="grid gap-2">
-              <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                Heure
-              </label>
-              <UInput
-                v-model="time"
-                type="time"
-                :disabled="loading"
-              />
-            </div>
-          </div>
-
-          <!-- Tarif consultation (si type = consultation) -->
-          <ConsultationPlanSelector
-            v-if="type === 'consultation'"
-            v-model="pricePlanId"
-            :plans="consultationPricePlans"
-            :disabled="loading"
-            :error="fieldErrors?.pricePlanId"
-          />
-
-          <!-- Durée — sélecteur pour free_followup, read-only sinon -->
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              Durée
-            </label>
-            <div
-              v-if="type === 'free_followup'"
-              class="flex items-center gap-3"
-            >
-              <USelect
-                v-model="freeFollowupDurationMinutes"
-                :items="durationOptions"
-                :disabled="loading"
-              />
-            </div>
-            <div
-              v-else
-              class="flex items-center gap-3"
+              @click="type = card.key"
             >
               <span
-                class="inline-flex items-center rounded-full bg-[color:var(--color-surface-muted)] px-4 py-2 text-sm font-bold text-[color:var(--color-text-primary)] ring-1 ring-[color:var(--color-brand-subtle)]"
-              >
-                {{ computedDurationMinutes }} min
-                <span
-                  v-if="type === 'discovery'"
-                  class="ml-2 text-xs text-[color:var(--color-text-muted)]"
-                >
-                  (verrouillé)
-                </span>
-                <span
-                  v-else-if="pricePlanId"
-                  class="ml-2 text-xs text-[color:var(--color-text-muted)]"
-                >
-                  (depuis tarif)
-                </span>
-              </span>
-            </div>
-          </div>
-
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              Cliente
-            </label>
-
-            <div class="grid gap-3 md:grid-cols-2">
-              <USelect
-                v-model="selectedKnownClientId"
-                :items="inferredClients"
-                placeholder="Choisir une cliente…"
-                :disabled="loading || inferredClients.length === 0"
-                @update:model-value="applyClientSelection"
+                class="size-2 rounded-full"
+                :style="{ background: typeDotColor(card.key) }"
+                aria-hidden="true"
               />
-
-              <UInput
-                v-model="clientProfileId"
-                placeholder="clientProfileId (uuid)"
-                :disabled="loading"
-              />
-            </div>
-
-            <p
-              v-if="inferredClients.length === 0 && type === 'discovery'"
-              class="text-xs text-[color:var(--color-sunset-600)]"
-            >
-              Aucun client éligible pour un discovery. Seuls les leads ou clients en découverte (discovery annulé) sans discovery actif peuvent en obtenir un nouveau.
-            </p>
-            <p
-              v-else-if="inferredClients.length === 0 && (type === 'consultation' || type === 'free_followup')"
-              class="text-xs text-[color:var(--color-sunset-600)]"
-            >
-              Aucune cliente active éligible. Convertissez d'abord un lead après son appel découverte.
-            </p>
-            <p
-              v-if="fieldErrors?.clientProfileId"
-              class="text-xs font-bold text-[color:var(--color-error-600)]"
-            >
-              {{ fieldErrors.clientProfileId }}
-            </p>
+              {{ card.short }}
+              <span class="text-[11px] font-medium opacity-70">{{ card.sub }}</span>
+            </button>
           </div>
-
-          <div class="grid gap-2">
-            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              Notes (optionnel)
-            </label>
-            <UTextarea
-              v-model="notes"
-              placeholder="Notes privées…"
-              :rows="4"
-              :disabled="loading"
-            />
-            <p
-              v-if="fieldErrors?.notes"
-              class="text-xs font-bold text-[color:var(--color-error-600)]"
-            >
-              {{ fieldErrors.notes }}
-            </p>
-          </div>
-
-          <!-- Lien visio (consultation + suivi gratuit) -->
-          <div
-            v-if="type === 'consultation' || type === 'free_followup'"
-            class="grid gap-2"
+          <p
+            v-if="fieldErrors?.type"
+            class="text-xs font-bold text-[color:var(--color-error-600)]"
           >
-            <label class="text-xs font-bold uppercase tracking-wider text-[color:var(--color-text-muted)]">
-              Lien visio
-              <span class="font-normal text-[color:var(--color-brand-muted)]">(optionnel)</span>
+            {{ fieldErrors.type }}
+          </p>
+        </div>
+
+        <!-- Cliente -->
+        <div class="grid gap-2">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+            Cliente
+          </label>
+          <USelect
+            v-model="selectedKnownClientId"
+            :items="inferredClients"
+            placeholder="Choisir une cliente…"
+            :disabled="loading || inferredClients.length === 0"
+            @update:model-value="applyClientSelection"
+          />
+          <p
+            v-if="inferredClients.length === 0 && type === 'discovery'"
+            class="text-xs text-[color:var(--color-sunset-600)]"
+          >
+            Aucun client éligible pour un discovery. Seuls les leads ou clients en découverte (discovery annulé) sans discovery actif peuvent en obtenir un nouveau.
+          </p>
+          <p
+            v-else-if="inferredClients.length === 0 && (type === 'consultation' || type === 'free_followup')"
+            class="text-xs text-[color:var(--color-sunset-600)]"
+          >
+            Aucune cliente active éligible. Convertissez d'abord un lead après son appel découverte.
+          </p>
+          <p
+            v-if="fieldErrors?.clientProfileId"
+            class="text-xs font-bold text-[color:var(--color-error-600)]"
+          >
+            {{ fieldErrors.clientProfileId }}
+          </p>
+        </div>
+
+        <!-- Tarif de la consultation -->
+        <div
+          v-if="type === 'consultation'"
+          class="grid gap-2"
+        >
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+            Tarif de la consultation
+          </label>
+          <USelect
+            :model-value="pricePlanId ?? undefined"
+            :items="tarifOptions"
+            placeholder="Choisir un tarif…"
+            :disabled="loading || !hasActivePlans"
+            @update:model-value="pricePlanId = $event"
+          />
+          <p
+            v-if="!hasActivePlans"
+            class="text-xs text-[color:var(--color-sunset-600)]"
+          >
+            Aucun tarif actif. <ULink
+              to="/provider/scheduling"
+              class="font-semibold underline"
+            >Créez d'abord un tarif</ULink>.
+          </p>
+          <p
+            v-if="fieldErrors?.pricePlanId"
+            class="text-xs font-bold text-[color:var(--color-error-600)]"
+          >
+            {{ fieldErrors.pricePlanId }}
+          </p>
+        </div>
+
+        <!-- Durée (suivi gratuit uniquement) -->
+        <div
+          v-else-if="type === 'free_followup'"
+          class="grid gap-2"
+        >
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+            Durée
+          </label>
+          <USelect
+            v-model="freeFollowupDurationMinutes"
+            :items="durationOptions"
+            :disabled="loading"
+          />
+        </div>
+
+        <!-- Date / Heure de début -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="grid gap-2">
+            <label class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+              Date
             </label>
             <UInput
-              v-model="meetingLink"
-              type="url"
-              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              v-model="dayKey"
+              type="date"
               :disabled="loading"
             />
-            <p class="text-xs text-[color:var(--color-text-muted)]">
-              Ajoutez le lien maintenant pour éviter de l'oublier.
-              Il sera inclus dans l'email de confirmation.
-            </p>
             <p
-              v-if="fieldErrors?.meetingLink"
+              v-if="fieldErrors?.startAt"
               class="text-xs font-bold text-[color:var(--color-error-600)]"
             >
-              {{ fieldErrors.meetingLink }}
+              {{ fieldErrors.startAt }}
             </p>
+          </div>
+          <div class="grid gap-2">
+            <label class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+              Heure de début
+            </label>
+            <UInput
+              v-model="time"
+              type="time"
+              :disabled="loading"
+            />
+          </div>
+        </div>
+
+        <!-- Lien visio (consultation + suivi gratuit) -->
+        <div
+          v-if="type === 'consultation' || type === 'free_followup'"
+          class="grid gap-2"
+        >
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+            Lien visio (optionnel)
+          </label>
+          <UInput
+            v-model="meetingLink"
+            type="url"
+            placeholder="https://meet.google.com/xxx-xxxx-xxx"
+            :disabled="loading"
+          />
+          <p class="text-xs leading-relaxed text-[color:var(--color-text-muted)]">
+            Ajoutez-le maintenant pour éviter de l'oublier. Il sera inclus dans l'email de confirmation.
+          </p>
+          <p
+            v-if="fieldErrors?.meetingLink"
+            class="text-xs font-bold text-[color:var(--color-error-600)]"
+          >
+            {{ fieldErrors.meetingLink }}
+          </p>
+        </div>
+
+        <!-- Notes -->
+        <div class="grid gap-2">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[color:var(--color-text-muted)]">
+            Notes (optionnel)
+          </label>
+          <UTextarea
+            v-model="notes"
+            placeholder="Note privée (non visible par la cliente)"
+            :rows="3"
+            :disabled="loading"
+          />
+          <p
+            v-if="fieldErrors?.notes"
+            class="text-xs font-bold text-[color:var(--color-error-600)]"
+          >
+            {{ fieldErrors.notes }}
+          </p>
+        </div>
+
+        <!-- Récap tarif + durée -->
+        <div class="flex items-center gap-3 rounded-xl bg-[color:var(--color-surface-muted)] px-4 py-3.5">
+          <span class="grid size-9 shrink-0 place-items-center rounded-[10px] bg-[color:var(--color-surface-card)] text-[color:var(--color-brand-primary)]">
+            <UIcon
+              name="lucide:wallet"
+              class="size-4"
+            />
+          </span>
+          <div class="leading-tight">
+            <div class="text-sm font-semibold text-[color:var(--color-text-primary)]">
+              {{ recapPriceLabel }}
+              <span class="font-normal text-[color:var(--color-text-muted)]"> · {{ computedDurationMinutes }} min</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)]">
+              {{ recapCaption }}
+            </div>
           </div>
         </div>
       </div>
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
+      <div class="flex w-full justify-end gap-3">
         <UButton
           color="neutral"
-          variant="ghost"
+          variant="outline"
           :disabled="loading"
           @click="updateOpen(false)"
         >
@@ -461,6 +550,7 @@ function submit() {
         </UButton>
         <UButton
           color="primary"
+          icon="lucide:check"
           :loading="loading"
           @click="submit"
         >

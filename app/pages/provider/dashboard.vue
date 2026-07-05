@@ -295,6 +295,7 @@ import type { ProviderAppointmentListItem } from '../../features/calendar/api/ca
 import { listProviderAppointments } from '../../features/calendar/services/provider-calendar.service'
 import { listProviderClients } from '../../features/clients/services/provider-clients.service'
 import { useProviderFinance } from '../../features/finance/useProviderFinance'
+import { resolveFinanceDashboardLabel } from '../../features/finance/domain/finance-state'
 import { formatPrice } from '../../features/consultation/domain/formatting'
 
 definePageMeta({
@@ -385,21 +386,15 @@ refreshClients()
  */
 const {
   pending: financePending,
+  summary: financeSummary,
   uiState: financeUiState
 } = await useProviderFinance()
 
 const financeStatusLabel = computed(() => {
-  if (!financeUiState.value) return 'Chargement...'
-
-  const state = financeUiState.value
-  if (state.kind === 'start') return 'Connectez Stripe pour recevoir vos paiements.'
-  if (state.kind === 'incomplete') return 'Onboarding Stripe en cours.'
-  if (state.kind === 'shadow') return 'Compte Stripe à compléter.'
-
-  if (state.pendingPayoutCents > 0) {
-    return `${formatPrice(state.pendingPayoutCents)} en attente de virement`
-  }
-  return 'Compte Stripe actif'
+  const summary = financeSummary.value
+  if (!summary) return 'Chargement...'
+  // HF19: real Stripe balance for connected accounts, never the obsolete cumul.
+  return resolveFinanceDashboardLabel(summary, formatPrice)
 })
 
 const stripeStatusLabel = computed(() => {

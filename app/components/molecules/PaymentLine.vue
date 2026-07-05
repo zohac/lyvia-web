@@ -37,6 +37,17 @@
           </span>
         </div>
 
+        <!-- Net payout ("Vous recevez") — provider view only (HF18) -->
+        <p
+          v-if="showNet"
+          class="mt-1 text-xs text-[color:var(--color-text-muted)]"
+        >
+          Vous recevez
+          <span class="font-medium text-[color:var(--color-success-600)]">
+            {{ formattedNet }}
+          </span>
+        </p>
+
         <!-- Receipt link -->
         <div class="mt-1 flex items-center gap-2 text-xs">
           <UButton
@@ -44,6 +55,7 @@
             :to="payment.receiptUrl"
             external
             target="_blank"
+            rel="noopener noreferrer"
             variant="link"
             size="xs"
             class="h-auto p-0 text-xs"
@@ -79,6 +91,7 @@
 import type { PaymentDisplayItem } from '../../features/clients/api/clients.contract'
 import {
   formatAmountCents,
+  formatNetAmountCents,
   formatPaymentDate,
   getPaymentStatusMeta
 } from '../../features/clients/domain/clients'
@@ -96,6 +109,14 @@ const props = withDefaults(
 const statusMeta = computed(() => getPaymentStatusMeta(props.payment.status))
 const formattedAmount = computed(() => formatAmountCents(props.payment.amountCents, props.payment.currency))
 const formattedDate = computed(() => formatPaymentDate(props.payment.createdAt, props.timezone))
+
+// HF18: the net payout ("Vous recevez") is provider-only data. Show it whenever
+// the field is present in the payload (fiche client) — never for client-facing
+// listings, where the field is absent so platform fees stay hidden.
+const showNet = computed(() => props.payment.netAmountCents !== undefined)
+const formattedNet = computed(() =>
+  formatNetAmountCents(props.payment.netAmountCents, props.payment.currency)
+)
 
 const lineClasses = computed(() => {
   if (props.payment.status === 'failed') {

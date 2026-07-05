@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { getPaymentStatusDisplay } from '../../features/payments/domain/payment-display'
-import { formatProviderPaymentAmounts } from '../../features/payments/domain/provider-payment-display'
+import {
+  formatCentsToCurrency,
+  formatProviderPaymentAmounts
+} from '../../features/payments/domain/provider-payment-display'
 import type { ProviderPaymentListItem } from '../../features/payments/api/provider-payments.contract'
 
 type Props = {
@@ -18,50 +21,83 @@ const emit = defineEmits<{
   (event: 'refresh' | 'loadMore'): void
 }>()
 
+const expandedId = ref<string | null>(null)
+
+function toggle(id: string) {
+  expandedId.value = expandedId.value === id ? null : id
+}
+
+function initials(firstname: string, lastname: string): string {
+  return `${firstname.charAt(0)}${lastname.charAt(0)}`.toUpperCase()
+}
+
+// DS status pill palette (dot + soft background) keyed by the display tone.
+const STATUS_PILL: Record<'success' | 'danger' | 'neutral', { wrap: string, dot: string }> = {
+  success: {
+    wrap: 'bg-[color:var(--color-success-50)] text-[color:var(--color-success-700)] border-[color:var(--color-success-100)]',
+    dot: 'bg-[color:var(--color-success)]'
+  },
+  danger: {
+    wrap: 'bg-[color:var(--color-error-50)] text-[color:var(--color-error-600)] border-[color:var(--color-error-200)]',
+    dot: 'bg-[color:var(--color-error)]'
+  },
+  neutral: {
+    wrap: 'bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-secondary)] border-[color:var(--color-border-subtle)]',
+    dot: 'bg-[color:var(--color-neutral-400)]'
+  }
+}
+
+function statusPill(tone: ReturnType<typeof getPaymentStatusDisplay>['tone']) {
+  return STATUS_PILL[tone] ?? STATUS_PILL.neutral
+}
+
 const formattedPayments = computed(() => props.payments.map((payment) => {
   const status = getPaymentStatusDisplay(payment.status)
   const amounts = formatProviderPaymentAmounts(payment)
 
   const paymentDate = new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'short',
-    day: 'numeric',
+    day: '2-digit',
     month: 'short',
-    year: 'numeric'
+    year: '2-digit'
   }).format(new Date(payment.createdAt))
 
   let appointmentWhen: string | null = null
   if (payment.appointmentScheduledAt) {
     appointmentWhen = new Intl.DateTimeFormat('fr-FR', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
+      day: '2-digit',
+      month: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
       timeZone: 'Europe/Paris'
     }).format(new Date(payment.appointmentScheduledAt))
   }
 
+  // "Frais" column: the fees KNOWN so far. When the Stripe fee is not yet
+  // available, only the Keova commission is deducted and the total is not final
+  // — the UI must not present a partial amount as the complete fee (HF18/HF19),
+  // so a "Stripe à venir" note is shown and the net stays "—".
+  const feesKnown = payment.stripeFeeCents !== null
+  const fees = formatCentsToCurrency(
+    payment.platformFeeCents + (payment.stripeFeeCents ?? 0),
+    payment.currency
+  )
+
   return {
     ...payment,
     status,
+    fullName: `${payment.client.firstname} ${payment.client.lastname}`,
+    initials: initials(payment.client.firstname, payment.client.lastname),
+    stageLabel: payment.client.stage === 'active' ? 'Active' : 'Lead',
     amount: amounts.amount,
-    fee: amounts.platformFee,
+    commission: amounts.platformFee,
     stripeFee: amounts.stripeFee,
+    fees,
+    feesKnown,
     net: amounts.net,
     paymentDate,
     appointmentWhen
   }
 }))
-
-function getStatusBadgeColor(tone: ReturnType<typeof getPaymentStatusDisplay>['tone']): 'success' | 'error' | 'neutral' {
-  if (tone === 'success') return 'success'
-  if (tone === 'danger') return 'error'
-  return 'neutral'
-}
-
-function getStageBadgeColor(stage: ProviderPaymentListItem['client']['stage']): 'primary' | 'warning' {
-  return stage === 'active' ? 'primary' : 'warning'
-}
 
 function openReceipt(url: string) {
   if (!import.meta.client) return
@@ -70,194 +106,310 @@ function openReceipt(url: string) {
 </script>
 
 <template>
-  <UCard class="bg-[color:var(--color-surface-card)]">
-    <template #header>
-      <div class="flex items-center justify-between">
+  <div class="overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] shadow-[0_1px_3px_rgba(91,75,110,0.08)]">
+    <!-- Header (compact, sits directly on the table — DS) -->
+    <div class="flex flex-wrap items-center justify-between gap-3 px-6 pb-4 pt-5">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-surface-muted)] text-[color:var(--color-text-secondary)]">
+          <UIcon
+            name="lucide:receipt"
+            class="h-5 w-5"
+          />
+        </div>
         <div>
           <h3 class="font-semibold text-[color:var(--color-text-primary)]">
             Paiements
           </h3>
-          <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
+          <p class="text-sm text-[color:var(--color-text-muted)]">
             Montants, commission Keova et reçus
           </p>
         </div>
-        <UButton
-          variant="outline"
-          color="neutral"
-          :loading="pending"
-          @click="emit('refresh')"
-        >
-          <UIcon
-            name="lucide:refresh-cw"
-            class="mr-2 h-4 w-4"
-          />
-          Actualiser
-        </UButton>
       </div>
-    </template>
+      <UButton
+        variant="outline"
+        color="neutral"
+        :loading="pending"
+        @click="emit('refresh')"
+      >
+        <UIcon
+          name="lucide:refresh-cw"
+          class="mr-2 h-4 w-4"
+        />
+        Actualiser
+      </UButton>
+    </div>
 
     <!-- Error state -->
-    <UAlert
+    <div
       v-if="errorMessage"
-      color="error"
-      variant="soft"
-      title="Impossible de charger les paiements"
-      :description="errorMessage"
-      icon="i-lucide-alert-circle"
-    />
+      class="p-4 sm:p-6"
+    >
+      <UAlert
+        color="error"
+        variant="soft"
+        title="Impossible de charger les paiements"
+        :description="errorMessage"
+        icon="i-lucide-alert-circle"
+      />
+    </div>
 
-    <!-- Loading state -->
+    <!-- Loading skeleton -->
     <div
       v-else-if="pending"
-      class="space-y-4"
+      class="space-y-4 p-4 sm:p-6"
     >
       <div
-        v-for="i in 2"
+        v-for="i in 4"
         :key="i"
-        class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-6"
+        class="flex items-center gap-4"
       >
-        <div class="flex items-center gap-4">
-          <USkeleton class="h-10 w-10 rounded-full" />
-          <div class="flex-1 space-y-2">
-            <USkeleton class="h-4 w-1/3" />
-            <USkeleton class="h-3 w-1/4" />
-          </div>
-          <USkeleton class="h-8 w-24" />
+        <USkeleton class="h-8 w-8 rounded-full" />
+        <div class="flex-1 space-y-2">
+          <USkeleton class="h-3 w-28" />
+          <USkeleton class="h-2.5 w-16" />
         </div>
+        <USkeleton class="h-3 w-16" />
+        <USkeleton class="h-3 w-16" />
+        <USkeleton class="h-3 w-16" />
       </div>
     </div>
 
     <!-- Empty state -->
     <div
       v-else-if="formattedPayments.length === 0"
-      class="flex flex-col items-center justify-center gap-3 py-12 text-center"
+      class="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center"
     >
       <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
         <UIcon
-          name="lucide:credit-card"
-          class="h-6 w-6 text-[color:var(--color-brand-muted)]"
+          name="lucide:file-text"
+          class="h-6 w-6 text-[color:var(--color-text-muted)]"
         />
       </div>
-      <p class="text-sm text-[color:var(--color-text-muted)]">
+      <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
         Aucun paiement à afficher pour le moment.
       </p>
     </div>
 
-    <!-- Payments list -->
-    <div
-      v-else
-      class="space-y-4"
-    >
-      <article
-        v-for="payment in formattedPayments"
-        :key="payment.id"
-        class="rounded-lg border border-[color:var(--color-neutral-100)] bg-[color:var(--color-surface-page)] p-5 transition-colors hover:bg-[color:var(--color-surface-muted)]/50"
-      >
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <!-- Client info and dates -->
-          <div class="space-y-3">
-            <!-- Client name and badges -->
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-semibold text-[color:var(--color-text-primary)]">
-                {{ payment.client.firstname }} {{ payment.client.lastname }}
-              </p>
-              <UBadge
-                :color="getStageBadgeColor(payment.client.stage)"
-                variant="soft"
-                size="sm"
+    <!-- Payments table -->
+    <template v-else>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
+          <thead>
+            <tr>
+              <th
+                v-for="(head, i) in ['Cliente', 'Statut', 'Dates', 'Montant', 'Frais', 'Vous recevez', '']"
+                :key="i"
+                class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]"
+                :class="i >= 3 ? 'text-right' : 'text-left'"
               >
-                {{ payment.client.stage === 'active' ? 'Active' : 'Lead' }}
-              </UBadge>
-              <UBadge
-                :color="getStatusBadgeColor(payment.status.tone)"
-                variant="soft"
-                size="sm"
+                {{ head }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <template
+              v-for="payment in formattedPayments"
+              :key="payment.id"
+            >
+              <tr
+                class="cursor-pointer transition-colors hover:bg-[color:var(--color-surface-page)]"
+                @click="toggle(payment.id)"
               >
-                {{ payment.status.label }}
-              </UBadge>
-            </div>
+                <!-- Cliente -->
+                <td class="border-b border-[color:var(--color-border-subtle)] px-6 py-4">
+                  <div class="flex items-center gap-2.5">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-crepuscule-100)] text-xs font-semibold text-[color:var(--color-crepuscule-700)]">
+                      {{ payment.initials }}
+                    </span>
+                    <div class="min-w-0">
+                      <div class="whitespace-nowrap text-sm font-medium text-[color:var(--color-text-primary)]">
+                        {{ payment.fullName }}
+                      </div>
+                      <span
+                        class="mt-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
+                        :class="payment.client.stage === 'active'
+                          ? 'bg-[color:var(--color-crepuscule-50)] text-[color:var(--color-crepuscule-700)]'
+                          : 'bg-[color:var(--color-sunset-50)] text-[color:var(--color-sunset-700)]'"
+                      >
+                        {{ payment.stageLabel }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
 
-            <!-- Dates -->
-            <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-[color:var(--color-text-muted)]">
-              <span>
-                Paiement : <span class="font-medium text-[color:var(--color-text-secondary)]">{{ payment.paymentDate }}</span>
-              </span>
-              <span v-if="payment.appointmentWhen">
-                RDV : <span class="font-medium text-[color:var(--color-text-secondary)]">{{ payment.appointmentWhen }}</span>
-              </span>
-            </div>
-
-            <!-- Amount breakdown -->
-            <div class="grid grid-cols-2 gap-3 rounded-lg bg-[color:var(--color-surface-card)] p-4 sm:grid-cols-4">
-              <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                  Montant
-                </p>
-                <p class="mt-1 font-semibold text-[color:var(--color-text-primary)]">
-                  {{ payment.amount }}
-                </p>
-              </div>
-              <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                  Commission
-                </p>
-                <p class="mt-1 font-semibold text-[color:var(--color-text-primary)]">
-                  {{ payment.fee }}
-                </p>
-              </div>
-              <div>
-                <UTooltip text="Frais prélevés par Stripe pour le traitement du paiement">
-                  <p class="flex cursor-help items-center gap-1 text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                    Frais Stripe
-                    <UIcon
-                      name="lucide:info"
-                      class="h-3 w-3"
+                <!-- Statut -->
+                <td class="border-b border-[color:var(--color-border-subtle)] px-6 py-4">
+                  <span
+                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-medium"
+                    :class="statusPill(payment.status.tone).wrap"
+                  >
+                    <span
+                      class="h-1.5 w-1.5 rounded-full"
+                      :class="statusPill(payment.status.tone).dot"
                     />
-                  </p>
-                </UTooltip>
-                <p class="mt-1 font-semibold text-[color:var(--color-text-primary)]">
-                  {{ payment.stripeFee ?? '—' }}
-                </p>
-              </div>
-              <div>
-                <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
-                  Vous recevez
-                </p>
-                <p class="mt-1 font-semibold text-[color:var(--color-success-600)]">
-                  {{ payment.net }}
-                </p>
-              </div>
-            </div>
-          </div>
+                    {{ payment.status.label }}
+                  </span>
+                </td>
 
-          <!-- Receipt button -->
-          <div class="flex flex-col items-start gap-1 sm:items-end">
-            <UButton
-              :disabled="!payment.receiptUrl"
-              variant="soft"
-              color="neutral"
-              @click="payment.receiptUrl ? openReceipt(payment.receiptUrl) : undefined"
-            >
-              <UIcon
-                name="lucide:external-link"
-                class="mr-2 h-4 w-4"
-              />
-              Voir le reçu
-            </UButton>
-            <span
-              v-if="!payment.receiptUrl"
-              class="text-xs text-[color:var(--color-brand-muted)]"
-            >
-              {{ payment.status.tone === 'success' ? 'Disponible sous peu' : 'Reçu indisponible' }}
-            </span>
-          </div>
-        </div>
-      </article>
+                <!-- Dates -->
+                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-sm text-[color:var(--color-text-muted)]">
+                  <div>{{ payment.paymentDate }}</div>
+                  <div
+                    v-if="payment.appointmentWhen"
+                    class="mt-0.5 text-xs"
+                  >
+                    RDV {{ payment.appointmentWhen }}
+                  </div>
+                </td>
+
+                <!-- Montant -->
+                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right text-sm font-medium text-[color:var(--color-text-primary)]">
+                  {{ payment.amount }}
+                </td>
+
+                <!-- Frais (partial until the Stripe fee is known — HF18/HF19) -->
+                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right text-sm text-[color:var(--color-text-muted)]">
+                  <div>− {{ payment.fees }}</div>
+                  <div
+                    v-if="!payment.feesKnown"
+                    class="text-[11px] text-[color:var(--color-text-muted)]"
+                  >
+                    Stripe à venir
+                  </div>
+                </td>
+
+                <!-- Vous recevez -->
+                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right text-sm font-semibold text-[color:var(--color-success-600)]">
+                  {{ payment.net ?? '—' }}
+                </td>
+
+                <!-- Receipt + chevron -->
+                <td class="border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right">
+                  <div class="inline-flex items-center gap-1.5">
+                    <button
+                      v-if="payment.receiptUrl"
+                      type="button"
+                      title="Voir le reçu"
+                      class="grid h-8 w-8 place-items-center rounded-full border border-[color:var(--color-border-subtle)] text-[color:var(--color-text-muted)] transition-colors hover:bg-[color:var(--color-surface-muted)]"
+                      @click.stop="openReceipt(payment.receiptUrl)"
+                    >
+                      <UIcon
+                        name="lucide:file-text"
+                        class="h-4 w-4"
+                      />
+                    </button>
+                    <span
+                      v-else
+                      class="whitespace-nowrap text-[11px] text-[color:var(--color-text-muted)]"
+                    >
+                      {{ payment.status.tone === 'success' ? 'Sous peu' : 'Indisponible' }}
+                    </span>
+                    <button
+                      type="button"
+                      class="grid h-8 w-8 place-items-center rounded-full text-[color:var(--color-text-muted)] transition-colors hover:bg-[color:var(--color-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-crepuscule-200)]"
+                      :aria-expanded="expandedId === payment.id"
+                      :aria-controls="`payment-detail-${payment.id}`"
+                      :aria-label="expandedId === payment.id ? `Masquer le détail du paiement de ${payment.fullName}` : `Afficher le détail du paiement de ${payment.fullName}`"
+                      @click.stop="toggle(payment.id)"
+                    >
+                      <UIcon
+                        name="lucide:chevron-down"
+                        class="h-3.5 w-3.5 transition-transform duration-200"
+                        :class="expandedId === payment.id ? 'rotate-180' : ''"
+                      />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Expanded detail -->
+              <tr v-if="expandedId === payment.id">
+                <td
+                  colspan="7"
+                  class="border-b border-[color:var(--color-border-subtle)] p-0"
+                >
+                  <div
+                    :id="`payment-detail-${payment.id}`"
+                    role="region"
+                    :aria-label="`Détail du paiement de ${payment.fullName}`"
+                    class="grid grid-cols-2 gap-5 bg-[color:var(--color-surface-muted)] px-6 py-5 sm:grid-cols-4"
+                  >
+                    <div>
+                      <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
+                        Montant brut
+                      </div>
+                      <div class="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                        {{ payment.amount }}
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
+                        Commission Keova
+                      </div>
+                      <div class="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                        − {{ payment.commission }}
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
+                        Frais Stripe
+                      </div>
+                      <div class="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                        {{ payment.stripeFee ? `− ${payment.stripeFee}` : 'à venir' }}
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
+                        Vous recevez
+                      </div>
+                      <div class="mt-1 text-sm font-semibold text-[color:var(--color-success-600)]">
+                        {{ payment.net ?? '—' }}
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
+                        Méthode de paiement
+                      </div>
+                      <div class="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                        Carte bancaire
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
+                        Référence
+                      </div>
+                      <div class="mt-1 font-mono text-sm font-semibold text-[color:var(--color-text-primary)]">
+                        {{ payment.id }}
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
+                        Rendez-vous
+                      </div>
+                      <div class="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                        {{ payment.appointmentWhen ?? '—' }}
+                      </div>
+                    </div>
+                    <div>
+                      <div class="text-[10px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]">
+                        Statut
+                      </div>
+                      <div class="mt-1 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                        {{ payment.status.label }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
 
       <!-- Load more -->
       <div
         v-if="nextCursor"
-        class="flex flex-col items-center gap-2 pt-4"
+        class="flex flex-col items-center gap-2 px-6 py-6"
       >
         <UButton
           variant="soft"
@@ -281,6 +433,6 @@ function openReceipt(url: string) {
           class="w-full max-w-md"
         />
       </div>
-    </div>
-  </UCard>
+    </template>
+  </div>
 </template>

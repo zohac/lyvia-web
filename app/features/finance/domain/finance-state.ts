@@ -17,6 +17,74 @@ export type ProviderFinanceUiState = {
   timezone: string
 }
 
+/**
+ * Pending-funds card content (HF19), resolved from the summary.
+ *
+ * - `connected`: payouts enabled + a real Stripe balance → show the live pending
+ *   amount with a payout-schedule message (no misleading "N paiements en attente").
+ * - `unavailable`: payouts enabled but Stripe was unreachable → degraded state,
+ *   no fabricated amount.
+ * - `shadow`: no Connect account yet → internal cumulative + "connect your bank"
+ *   message (there it is true).
+ */
+export type PendingFundsCard
+  = | { mode: 'connected', amountCents: number, message: string }
+    | { mode: 'shadow', amountCents: number, count: number, message: string }
+    | { mode: 'unavailable', message: string }
+
+const PENDING_FUNDS_CONNECTED_MESSAGE
+  = 'Virés automatiquement selon votre calendrier de virement Stripe.'
+const PENDING_FUNDS_SHADOW_MESSAGE
+  = 'Ces fonds seront virés dès que votre compte bancaire sera connecté.'
+const PENDING_FUNDS_UNAVAILABLE_MESSAGE
+  = 'Solde indisponible pour le moment — réessayez dans un instant.'
+
+export function resolvePendingFundsCard(summary: ProviderFinanceSummary): PendingFundsCard {
+  const { stripe, payouts, balance } = summary
+
+  if (stripe.payoutsEnabled) {
+    if (balance.source === 'stripe' && balance.pendingCents !== null) {
+      return {
+        mode: 'connected',
+        amountCents: balance.pendingCents,
+        message: PENDING_FUNDS_CONNECTED_MESSAGE
+      }
+    }
+    return { mode: 'unavailable', message: PENDING_FUNDS_UNAVAILABLE_MESSAGE }
+  }
+
+  return {
+    mode: 'shadow',
+    amountCents: payouts.pendingPayoutCents,
+    count: payouts.pendingPayoutCount,
+    message: PENDING_FUNDS_SHADOW_MESSAGE
+  }
+}
+
+/**
+ * Compact finance status label for the provider dashboard (HF19).
+ *
+ * Pure helper so the "no false pending amount" guarantee is testable: for a
+ * connected account it surfaces the REAL Stripe pending balance (via
+ * {@link resolvePendingFundsCard}), never the obsolete internal cumulative. An
+ * unavailable or zero real balance stays neutral ("Compte Stripe actif").
+ */
+export function resolveFinanceDashboardLabel(
+  summary: ProviderFinanceSummary,
+  formatCents: (cents: number) => string
+): string {
+  const state = buildProviderFinanceUiState(summary)
+  if (state.kind === 'start') return 'Connectez Stripe pour recevoir vos paiements.'
+  if (state.kind === 'incomplete') return 'Onboarding Stripe en cours.'
+  if (state.kind === 'shadow') return 'Compte Stripe à compléter.'
+
+  const card = resolvePendingFundsCard(summary)
+  if (card.mode === 'connected' && card.amountCents > 0) {
+    return `${formatCents(card.amountCents)} en attente de virement`
+  }
+  return 'Compte Stripe actif'
+}
+
 export function buildProviderFinanceUiState(summary: ProviderFinanceSummary): ProviderFinanceUiState {
   const pendingPayoutCents = summary.payouts.pendingPayoutCents
   const pendingPayoutCount = summary.payouts.pendingPayoutCount
