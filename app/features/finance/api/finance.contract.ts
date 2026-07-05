@@ -15,10 +15,19 @@ export type ProviderFinancePayoutsSummary = {
   pendingPayoutCount: number
 }
 
+// Live pending balance to display (HF18/HF19). verified against OpenAPI spec
+export type ProviderFinanceBalance = {
+  source: 'stripe' | 'shadow' | 'unavailable'
+  // EUR cents (real Stripe pending or shadow cumul); null when source=unavailable.
+  pendingCents: number | null
+  currency: 'EUR'
+}
+
 export type ProviderFinanceSummary = {
   timezone: string
   stripe: StripeConnectStatus
   payouts: ProviderFinancePayoutsSummary
+  balance: ProviderFinanceBalance
 }
 
 export type StripeConnectOnboardingResponse = {

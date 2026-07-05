@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ProviderPaymentsSection from '../../components/organisms/ProviderPaymentsSection.vue'
 import { useProviderFinance } from '../../features/finance/useProviderFinance'
+import { resolvePendingFundsCard } from '../../features/finance/domain/finance-state'
 import { useProviderPayments } from '../../features/payments/useProviderPayments'
 import { useStripeLinks } from '../../features/stripe/useStripeLinks'
 
@@ -34,11 +35,25 @@ if (stripeReturnCookie.value || hasStripeReturnQuery.value) {
   hasHandledStripeReturn.value = false
 }
 
+const eurFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
+
 const formattedPendingAmount = computed(() => {
   const state = uiState.value
   if (!state) return null
-  const formatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' })
-  return formatter.format(state.pendingPayoutCents / 100)
+  return eurFormatter.format(state.pendingPayoutCents / 100)
+})
+
+// HF19: pending-funds card content, resolved by state (connected / shadow / unavailable).
+const pendingCard = computed(() => {
+  const summary = finance.summary.value
+  if (!summary) return null
+  return resolvePendingFundsCard(summary)
+})
+
+const pendingCardAmount = computed(() => {
+  const card = pendingCard.value
+  if (!card || card.mode === 'unavailable') return null
+  return eurFormatter.format(card.amountCents / 100)
 })
 
 const stripeHumanStatus = computed(() => {
@@ -402,8 +417,11 @@ async function refreshPayments() {
             </div>
           </UCard>
 
-          <!-- Pending funds card -->
-          <UCard class="bg-[color:var(--color-surface-card)]">
+          <!-- Pending funds card (HF19: real Stripe balance when connected) -->
+          <UCard
+            v-if="pendingCard"
+            class="bg-[color:var(--color-surface-card)]"
+          >
             <template #header>
               <h3 class="font-semibold text-[color:var(--color-text-primary)]">
                 Fonds en attente
@@ -414,28 +432,22 @@ async function refreshPayments() {
               <!-- Amount display -->
               <div class="text-center">
                 <p class="text-4xl font-bold text-[color:var(--color-text-primary)]">
-                  {{ formattedPendingAmount ?? '0,00 €' }}
+                  {{ pendingCardAmount ?? '—' }}
                 </p>
-                <p class="mt-1 text-sm text-[color:var(--color-text-muted)]">
-                  {{ uiState.pendingPayoutCount }} paiement{{ uiState.pendingPayoutCount !== 1 ? 's' : '' }} en attente
+                <p
+                  v-if="pendingCard.mode === 'shadow'"
+                  class="mt-1 text-sm text-[color:var(--color-text-muted)]"
+                >
+                  {{ pendingCard.count }} paiement{{ pendingCard.count !== 1 ? 's' : '' }} en attente
                 </p>
               </div>
 
               <!-- Divider -->
               <div class="h-px bg-[color:var(--color-surface-muted)]" />
 
-              <!-- Info text -->
-              <p
-                v-if="uiState.pendingPayoutCents === 0"
-                class="text-center text-sm text-[color:var(--color-text-muted)]"
-              >
-                Aucun fonds en attente pour le moment.
-              </p>
-              <p
-                v-else
-                class="text-center text-sm text-[color:var(--color-text-muted)]"
-              >
-                Ces fonds seront virés dès que votre compte bancaire sera connecté.
+              <!-- Info text (state-driven, no hard-coded contradiction) -->
+              <p class="text-center text-sm text-[color:var(--color-text-muted)]">
+                {{ pendingCard.message }}
               </p>
             </div>
           </UCard>
