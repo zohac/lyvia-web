@@ -102,7 +102,10 @@ function openReceipt(url: string) {
 </script>
 
 <template>
-  <UCard class="overflow-hidden bg-[color:var(--color-surface-card)]">
+  <UCard
+    class="overflow-hidden bg-[color:var(--color-surface-card)]"
+    :ui="{ body: 'p-0' }"
+  >
     <template #header>
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-3">
@@ -137,19 +140,23 @@ function openReceipt(url: string) {
     </template>
 
     <!-- Error state -->
-    <UAlert
+    <div
       v-if="errorMessage"
-      color="error"
-      variant="soft"
-      title="Impossible de charger les paiements"
-      :description="errorMessage"
-      icon="i-lucide-alert-circle"
-    />
+      class="p-4 sm:p-6"
+    >
+      <UAlert
+        color="error"
+        variant="soft"
+        title="Impossible de charger les paiements"
+        :description="errorMessage"
+        icon="i-lucide-alert-circle"
+      />
+    </div>
 
     <!-- Loading skeleton -->
     <div
       v-else-if="pending"
-      class="space-y-4"
+      class="space-y-4 p-4 sm:p-6"
     >
       <div
         v-for="i in 4"
@@ -170,7 +177,7 @@ function openReceipt(url: string) {
     <!-- Empty state -->
     <div
       v-else-if="formattedPayments.length === 0"
-      class="flex flex-col items-center justify-center gap-3 py-12 text-center"
+      class="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center"
     >
       <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)]">
         <UIcon
@@ -192,7 +199,7 @@ function openReceipt(url: string) {
               <th
                 v-for="(head, i) in ['Cliente', 'Statut', 'Dates', 'Montant', 'Frais', 'Vous recevez', '']"
                 :key="i"
-                class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-3.5 py-3 text-[11px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]"
+                class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.05em] text-[color:var(--color-text-muted)]"
                 :class="i >= 3 ? 'text-right' : 'text-left'"
               >
                 {{ head }}
@@ -209,7 +216,7 @@ function openReceipt(url: string) {
                 @click="toggle(payment.id)"
               >
                 <!-- Cliente -->
-                <td class="border-b border-[color:var(--color-border-subtle)] px-3.5 py-3.5">
+                <td class="border-b border-[color:var(--color-border-subtle)] px-6 py-4">
                   <div class="flex items-center gap-2.5">
                     <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-crepuscule-100)] text-xs font-semibold text-[color:var(--color-crepuscule-700)]">
                       {{ payment.initials }}
@@ -231,7 +238,7 @@ function openReceipt(url: string) {
                 </td>
 
                 <!-- Statut -->
-                <td class="border-b border-[color:var(--color-border-subtle)] px-3.5 py-3.5">
+                <td class="border-b border-[color:var(--color-border-subtle)] px-6 py-4">
                   <span
                     class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-medium"
                     :class="statusPill(payment.status.tone).wrap"
@@ -245,7 +252,7 @@ function openReceipt(url: string) {
                 </td>
 
                 <!-- Dates -->
-                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-3.5 py-3.5 text-sm text-[color:var(--color-text-muted)]">
+                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-sm text-[color:var(--color-text-muted)]">
                   <div>{{ payment.paymentDate }}</div>
                   <div
                     v-if="payment.appointmentWhen"
@@ -256,22 +263,22 @@ function openReceipt(url: string) {
                 </td>
 
                 <!-- Montant -->
-                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-3.5 py-3.5 text-right text-sm font-medium text-[color:var(--color-text-primary)]">
+                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right text-sm font-medium text-[color:var(--color-text-primary)]">
                   {{ payment.amount }}
                 </td>
 
                 <!-- Frais -->
-                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-3.5 py-3.5 text-right text-sm text-[color:var(--color-text-muted)]">
+                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right text-sm text-[color:var(--color-text-muted)]">
                   − {{ payment.fees }}
                 </td>
 
                 <!-- Vous recevez -->
-                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-3.5 py-3.5 text-right text-sm font-semibold text-[color:var(--color-success-600)]">
+                <td class="whitespace-nowrap border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right text-sm font-semibold text-[color:var(--color-success-600)]">
                   {{ payment.net ?? '—' }}
                 </td>
 
                 <!-- Receipt + chevron -->
-                <td class="border-b border-[color:var(--color-border-subtle)] px-3.5 py-3.5 text-right">
+                <td class="border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-right">
                   <div class="inline-flex items-center gap-1.5">
                     <button
                       v-if="payment.receiptUrl"
@@ -382,7 +389,7 @@ function openReceipt(url: string) {
       <!-- Load more -->
       <div
         v-if="nextCursor"
-        class="flex flex-col items-center gap-2 pt-5"
+        class="flex flex-col items-center gap-2 px-6 py-6"
       >
         <UButton
           variant="soft"
