@@ -20,27 +20,36 @@ export function formatCentsToCurrency(
 }
 
 /**
- * Formats Stripe fees, returning null if not available.
+ * Formats a nullable cents amount, returning null when the value is unavailable.
  *
- * @param stripeFeeCents - Stripe fee in cents, or null if unavailable
+ * Used for both the Stripe fee and the net amount (HF18): while the actual
+ * Stripe fee is unknown, neither should be presented as an exact figure.
+ *
+ * @param cents - Amount in cents, or null if unavailable
  * @param currency - ISO 4217 currency code
  * @param locale - BCP 47 locale (default: 'fr-FR')
  * @returns Formatted string or null
  */
-export function formatStripeFee(
-  stripeFeeCents: number | null,
+export function formatNullableCents(
+  cents: number | null,
   currency: string,
   locale = 'fr-FR'
 ): string | null {
-  if (stripeFeeCents === null) return null
-  return formatCentsToCurrency(stripeFeeCents, currency, locale)
+  if (cents === null) return null
+  return formatCentsToCurrency(cents, currency, locale)
 }
+
+/**
+ * @deprecated Use {@link formatNullableCents}. Kept as an alias for clarity.
+ */
+export const formatStripeFee = formatNullableCents
 
 export type FormattedProviderPayment = {
   amount: string
   platformFee: string
   stripeFee: string | null
-  net: string
+  // Null while the actual Stripe fee is unknown (HF18): render a placeholder, never an exact net.
+  net: string | null
 }
 
 /**
@@ -57,7 +66,7 @@ export function formatProviderPaymentAmounts(
   return {
     amount: formatCentsToCurrency(payment.amountCents, payment.currency, locale),
     platformFee: formatCentsToCurrency(payment.platformFeeCents, payment.currency, locale),
-    stripeFee: formatStripeFee(payment.stripeFeeCents, payment.currency, locale),
-    net: formatCentsToCurrency(payment.netAmountCents, payment.currency, locale)
+    stripeFee: formatNullableCents(payment.stripeFeeCents, payment.currency, locale),
+    net: formatNullableCents(payment.netAmountCents, payment.currency, locale)
   }
 }

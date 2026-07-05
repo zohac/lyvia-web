@@ -340,10 +340,18 @@ export type ListProviderClientAppointmentsResponse = {
 /**
  * Common payment display fields used by PaymentLine component.
  * Defines the minimal shape needed for payment display.
+ *
+ * HF18: `platformFeeCents`, `stripeFeeCents` and `netAmountCents` are optional
+ * so the same component works for listings that do not expose fees. When
+ * present, `stripeFeeCents`/`netAmountCents` may be null while the actual
+ * Stripe fee is still unknown (never show an exact net computed with a 0 fee).
  */
 export type PaymentDisplayItem = {
   id: string
   amountCents: number
+  platformFeeCents?: number
+  stripeFeeCents?: number | null
+  netAmountCents?: number | null
   currency: 'EUR'
   status: PaymentStatus
   receiptUrl: string | null
@@ -357,6 +365,11 @@ export type ProviderClientPaymentItem = {
   id: string
   appointmentId: string | null
   amountCents: number
+  platformFeeCents: number
+  // Actual Stripe fee in cents (HF18) – null until captured from Stripe.
+  stripeFeeCents: number | null
+  // Net amount – null while the actual Stripe fee is unknown (HF18).
+  netAmountCents: number | null
   currency: 'EUR'
   status: PaymentStatus
   receiptUrl: string | null

@@ -13,6 +13,7 @@ import test from 'node:test'
 
 import {
   formatCentsToCurrency,
+  formatNullableCents,
   formatStripeFee,
   formatProviderPaymentAmounts
 } from '../../app/features/payments/domain/provider-payment-display'
@@ -94,15 +95,16 @@ test('formatProviderPaymentAmounts: formats all fields correctly', () => {
   assert.equal(normalizeSpaces(result.amount), '100,00 €')
   assert.equal(normalizeSpaces(result.platformFee), '15,00 €')
   assert.equal(normalizeSpaces(result.stripeFee!), '1,75 €')
-  assert.equal(normalizeSpaces(result.net), '83,25 €')
+  assert.equal(normalizeSpaces(result.net!), '83,25 €')
 })
 
-test('formatProviderPaymentAmounts: handles null stripeFeeCents', () => {
+test('formatProviderPaymentAmounts: null stripeFeeCents yields null stripeFee AND null net (HF18 CR-2)', () => {
   const payment = {
     amountCents: 10000,
     platformFeeCents: 1500,
     stripeFeeCents: null,
-    netAmountCents: 8500,
+    // Contract: when the actual Stripe fee is unknown, net is null too.
+    netAmountCents: null,
     currency: 'eur'
   }
 
@@ -111,7 +113,8 @@ test('formatProviderPaymentAmounts: handles null stripeFeeCents', () => {
   assert.equal(normalizeSpaces(result.amount), '100,00 €')
   assert.equal(normalizeSpaces(result.platformFee), '15,00 €')
   assert.equal(result.stripeFee, null)
-  assert.equal(normalizeSpaces(result.net), '85,00 €')
+  // Never present an exact net computed with a 0 fee.
+  assert.equal(result.net, null)
 })
 
 test('formatProviderPaymentAmounts: handles zero platform fee (free tier)', () => {
@@ -128,7 +131,7 @@ test('formatProviderPaymentAmounts: handles zero platform fee (free tier)', () =
   assert.equal(normalizeSpaces(result.amount), '100,00 €')
   assert.equal(normalizeSpaces(result.platformFee), '0,00 €')
   assert.equal(normalizeSpaces(result.stripeFee!), '1,75 €')
-  assert.equal(normalizeSpaces(result.net), '98,25 €')
+  assert.equal(normalizeSpaces(result.net!), '98,25 €')
 })
 
 test('formatProviderPaymentAmounts: handles small amounts correctly', () => {
@@ -145,26 +148,35 @@ test('formatProviderPaymentAmounts: handles small amounts correctly', () => {
   assert.equal(normalizeSpaces(result.amount), '5,00 €')
   assert.equal(normalizeSpaces(result.platformFee), '0,75 €')
   assert.equal(normalizeSpaces(result.stripeFee!), '0,33 €')
-  assert.equal(normalizeSpaces(result.net), '3,92 €')
+  assert.equal(normalizeSpaces(result.net!), '3,92 €')
 })
 
 // =============================================================================
 // SFF1 DoD compliance tests
 // =============================================================================
 
-test('SFF1 DoD: stripeFee displays dash when null (legacy payments)', () => {
+test('SFF1 DoD: stripeFee AND net display dash when the fee is unknown (legacy payments)', () => {
   const payment = {
     amountCents: 10000,
     platformFeeCents: 1500,
     stripeFeeCents: null,
-    netAmountCents: 8500,
+    netAmountCents: null,
     currency: 'eur'
   }
 
   const result = formatProviderPaymentAmounts(payment)
 
-  // The UI should display '—' when stripeFee is null
+  // The UI should display '—' for both when the actual Stripe fee is unknown.
   assert.equal(result.stripeFee, null)
+  assert.equal(result.net, null)
+})
+
+test('formatNullableCents: returns null when cents is null (HF18 CR-2)', () => {
+  assert.equal(formatNullableCents(null, 'eur'), null)
+})
+
+test('formatNullableCents: formats an amount when present', () => {
+  assert.equal(normalizeSpaces(formatNullableCents(175, 'eur')!), '1,75 €')
 })
 
 test('SFF1 DoD: net amount uses server-provided netAmountCents', () => {
@@ -181,7 +193,7 @@ test('SFF1 DoD: net amount uses server-provided netAmountCents', () => {
   const result = formatProviderPaymentAmounts(payment)
 
   // We format the server-provided value, not recalculate
-  assert.equal(normalizeSpaces(result.net), '83,25 €')
+  assert.equal(normalizeSpaces(result.net!), '83,25 €')
 })
 
 test('SFF1 DoD: all amounts are formatted in fr-FR locale by default', () => {
@@ -199,5 +211,5 @@ test('SFF1 DoD: all amounts are formatted in fr-FR locale by default', () => {
   assert.equal(normalizeSpaces(result.amount), '123,45 €')
   assert.equal(normalizeSpaces(result.platformFee), '18,52 €')
   assert.equal(normalizeSpaces(result.stripeFee!), '2,22 €')
-  assert.equal(normalizeSpaces(result.net), '102,71 €')
+  assert.equal(normalizeSpaces(result.net!), '102,71 €')
 })

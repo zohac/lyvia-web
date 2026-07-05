@@ -357,6 +357,20 @@ export function formatAmountCents(amountCents: number, currency = 'EUR'): string
 }
 
 /**
+ * Formats the provider's net payout ("Vous recevez") for display (HF18).
+ *
+ * Returns the placeholder "—" while the actual Stripe fee is unknown
+ * (`netAmountCents === null`): never present an exact net computed with a 0 fee.
+ */
+export function formatNetAmountCents(
+  netAmountCents: number | null | undefined,
+  currency = 'EUR'
+): string {
+  if (netAmountCents === null || netAmountCents === undefined) return '—'
+  return formatAmountCents(netAmountCents, currency)
+}
+
+/**
  * Formats a payment date for display.
  */
 export function formatPaymentDate(iso: string, timeZone = 'Europe/Paris'): string {

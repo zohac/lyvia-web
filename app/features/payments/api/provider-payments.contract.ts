@@ -12,7 +12,8 @@ export type ProviderPaymentListItem = {
   amountCents: number
   platformFeeCents: number
   stripeFeeCents: number | null
-  netAmountCents: number
+  // Null while the actual Stripe fee is unknown (HF18): never an exact net computed with a 0 fee.
+  netAmountCents: number | null
   currency: string
   receiptUrl: string | null
   createdAt: string

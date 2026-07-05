@@ -224,7 +224,7 @@ function openReceipt(url: string) {
                   Vous recevez
                 </p>
                 <p class="mt-1 font-semibold text-[color:var(--color-success-600)]">
-                  {{ payment.net }}
+                  {{ payment.net ?? '—' }}
                 </p>
               </div>
             </div>
