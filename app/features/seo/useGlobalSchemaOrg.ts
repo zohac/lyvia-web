@@ -1,5 +1,6 @@
 import { getDomainContext } from '#shared/utils/domain-context'
 import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
+import { KEOVA_DEMO_VIDEO_ID } from '~/features/marketing/youtube-embed'
 
 // Detection logic is covered by tests/shared/platform-host.test.ts + domain-context.test.ts.
 export async function useGlobalSchemaOrg() {
@@ -10,7 +11,9 @@ export async function useGlobalSchemaOrg() {
   const runtimeConfig = useRuntimeConfig()
   const platformDomain = runtimeConfig.public.platformDomain?.toLowerCase() || 'keova.fr'
   const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
-  const { isPlatform } = getDomainContext(hostname, platformDomain, platformDomainB2B || undefined)
+  // `isB2B` est nécessaire en plus de `isPlatform` : `isPlatform` couvre B2C ET B2B, or la
+  // vidéo de démo n'existe que sur la landing B2B (keova.app). Voir le VideoObject plus bas.
+  const { isPlatform, isB2B } = getDomainContext(hostname, platformDomain, platformDomainB2B || undefined)
 
   if (isPlatform) {
     useSchemaOrg([
@@ -39,7 +42,17 @@ export async function useGlobalSchemaOrg() {
       defineWebPage({
         inLanguage: 'fr-FR'
       }),
-      // SoftwareApplication with Review (AC-14)
+      // SoftwareApplication with Review (AC-14) + VideoObject (Story 0-35 AC-9)
+      //
+      // Offer (révisé en code review du 2026-07-22, amende la spec §3 règle 1) :
+      // `offers.price` est une propriété REQUISE par Google pour SoftwareApplication.
+      // La retirer purement et simplement sortait l'entité de l'éligibilité au rich
+      // result et générait une erreur Search Console permanente. L'objectif de la spec
+      // était de supprimer un prix FAUX (l'ancien Offer à zéro et son libellé promettant
+      // une beta sans frais, périmés depuis que la beta est payante), pas l'éligibilité.
+      // On pose donc le prix
+      // réel d'entrée, avec `PreOrder` qui décrit exactement un accès sur waitlist —
+      // `Offer` n'exige aucun checkout self-serve. Prix TTC (décision Simon 2026-07-22).
       {
         '@type': 'SoftwareApplication',
         'name': 'Keova',
@@ -49,10 +62,33 @@ export async function useGlobalSchemaOrg() {
         'description': 'Logiciel tout-en-un pour spécialistes ménopause : agenda en ligne, paiements automatiques, suivi client.',
         'offers': {
           '@type': 'Offer',
-          'price': '0',
+          'price': '29',
           'priceCurrency': 'EUR',
-          'description': 'Beta privée gratuite'
+          'availability': 'https://schema.org/PreOrder',
+          'url': `${origin}/#tarifs`
         },
+        // VideoObject gaté sur isB2B et NON sur isPlatform : la landing B2C (keova.fr)
+        // n'embarque aucune vidéo, et Google exige que le markup VideoObject soit posé sur
+        // une page où la vidéo est réellement visionnable. Un markup orphelin fait perdre
+        // le rich result vidéo, et un historique de markup invalide peut le faire perdre à
+        // l'échelle du site.
+        ...(isB2B
+          ? {
+              video: {
+                '@type': 'VideoObject',
+                'name': 'Démo Keova',
+                'description': 'Démonstration de Keova : site professionnel, prise de rendez-vous en ligne, paiements sécurisés, rappels automatiques et suivi des clientes — dans une seule application.',
+                // Poster servi depuis notre propre origine plutôt que depuis le CDN de
+                // miniatures YouTube : le fichier en est la copie octet pour octet, mais
+                // hébergé chez nous il reste sous notre contrôle et correspond au poster
+                // réellement rendu par URL, pas seulement par contenu.
+                'thumbnailUrl': `${origin}/images/video-poster-keova.jpg`,
+                'uploadDate': '2026-07-05T09:00:00+02:00',
+                'duration': 'PT5M28S',
+                'embedUrl': `https://www.youtube-nocookie.com/embed/${KEOVA_DEMO_VIDEO_ID}`
+              }
+            }
+          : {}),
         'review': {
           '@type': 'Review',
           'author': {

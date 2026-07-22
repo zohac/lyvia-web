@@ -107,6 +107,11 @@ useLegalPageSeo({
       </p>
       <ul>
         <li>Nos sous-traitants techniques (hébergement, paiement)</li>
+        <li>
+          <strong>Google Ireland Ltd (YouTube)</strong> : uniquement si vous lancez
+          volontairement la lecture de notre vidéo de démonstration. Tant que vous ne
+          cliquez pas, aucune donnée n'est transmise à YouTube.
+        </li>
         <li>Les Coachs avec lesquels vous interagissez</li>
         <li>Les autorités compétentes en cas d'obligation légale</li>
       </ul>
@@ -150,6 +155,14 @@ useLegalPageSeo({
       <ul>
         <li><strong>Cookies essentiels :</strong> nécessaires au fonctionnement du site</li>
         <li><strong>Cookies analytiques :</strong> pour comprendre l'utilisation du site (avec consentement)</li>
+        <li>
+          <strong>Cookies tiers YouTube :</strong> notre vidéo de démonstration est
+          affichée sous forme d'image fixe et n'est chargée qu'à votre clic. Aucun cookie
+          YouTube n'est déposé avant cette action. Si vous lancez la lecture, Google
+          Ireland Ltd dépose ses propres cookies, régis par sa politique de
+          confidentialité. Nous utilisons le domaine
+          <em>youtube-nocookie.com</em> pour limiter ce dépôt.
+        </li>
       </ul>
 
       <h2>11. Sécurité</h2>

@@ -48,10 +48,14 @@ export async function usePublicHeaderInit() {
         brandLabel: 'Keova',
         brandTo: '/',
         showBrandIcon: true,
+        // ⚠️ Doit rester identique à `app/pages/index.vue` et `public-header.state.ts`
+        // (voir le commentaire dans index.vue : divergence = flicker de la nav au paint).
         navLinks: [
           { label: 'Le problème', href: '#pourquoi' },
           { label: 'La solution', href: '#atelier' },
-          { label: 'Témoignage', href: '#temoignage' }
+          { label: 'Témoignages', href: '#temoignage' },
+          { label: 'Tarifs', href: '#tarifs' },
+          { label: 'FAQ', href: '#faq' }
         ],
         loginLabel: 'Se connecter',
         loginTo: '/login',

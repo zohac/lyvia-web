@@ -58,10 +58,21 @@ describe('PublicHeaderState defaults (source verification)', () => {
     )
   })
 
-  it('navLinks should contain "Témoignage"', () => {
+  // Libellé aligné sur `app/pages/index.vue` et `usePublicHeaderInit.ts` en code review
+  // du 2026-07-22 : les 3 sources divergeaient (« Témoignage » au singulier ici et dans
+  // le composable, « Témoignages » au pluriel dans index.vue), ce qui provoquait un
+  // changement de libellé entre le premier paint et l'hydratation.
+  it('navLinks should contain "Témoignages"', () => {
     assert.ok(
-      source.includes("label: 'Témoignage'"),
-      'navLinks should include \'Témoignage\''
+      source.includes("label: 'Témoignages'"),
+      'navLinks should include \'Témoignages\''
+    )
+  })
+
+  it('navLinks should contain "Tarifs" pointing at the pricing anchor', () => {
+    assert.ok(
+      source.includes("{ label: 'Tarifs', href: '#tarifs' }"),
+      'navLinks should include the Tarifs entry'
     )
   })
 
