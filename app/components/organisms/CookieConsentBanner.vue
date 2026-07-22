@@ -88,7 +88,13 @@ function onSettingsSaved() {
                 Ce site utilise des cookies essentiels et, avec votre accord, des cookies publicitaires pour mesurer l'efficacit&eacute; de nos campagnes.
               </template>
               <template v-else>
-                Ce site utilise uniquement des cookies essentiels au fonctionnement du service (connexion, rendez-vous).
+                <!--
+                  « uniquement des cookies essentiels » était devenu inexact avec l'ajout
+                  de la vidéo de démonstration (story 0-35) : le lecteur YouTube dépose ses
+                  propres cookies dès qu'il est lancé. La facade garantit qu'aucun n'est
+                  déposé AVANT le clic — c'est ce que dit désormais la phrase.
+                -->
+                Ce site utilise des cookies essentiels au fonctionnement du service (connexion, rendez-vous). Si vous lancez notre vid&eacute;o de d&eacute;monstration, YouTube d&eacute;pose &eacute;galement ses propres cookies&nbsp;; aucun n'est d&eacute;pos&eacute; tant que vous ne cliquez pas.
               </template>
             </p>
             <NuxtLink

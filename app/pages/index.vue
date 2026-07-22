@@ -54,7 +54,7 @@ usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.v
 const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
 const b2bTitle = 'Keova — Logiciel tout-en-un pour spécialistes ménopause'
-const b2bDescription = 'Keova réunit agenda en ligne, paiements et suivi client pour les coachs ménopause. Logiciel co-construit avec les praticiennes. Beta privée gratuite.'
+const b2bDescription = 'Keova réunit agenda en ligne, paiements et suivi client pour les coachs ménopause. Logiciel co-construit avec les praticiennes. Beta privée sur invitation.'
 const b2cTitle = 'Accompagnement ménopause — Spécialistes formées | Keova'
 const b2cDescription = 'Périménopause, ménopause, post-ménopause : comprenez vos symptômes et trouvez une spécialiste près de chez vous. Premier appel gratuit. Keova.'
 
@@ -147,10 +147,15 @@ function updatePublicHeader() {
       brandLabel: 'Keova',
       brandTo: '/',
       showBrandIcon: true,
+      // ⚠️ Ce tableau est dupliqué dans `usePublicHeaderInit.ts` et
+      // `public-header.state.ts` (le layout rend le header AVANT le setup de la page :
+      // sans alignement, premier paint à N liens puis swap à M → flicker de la nav).
+      // Toute modification ici doit être répercutée dans les deux autres.
       navLinks: [
         { label: 'Le problème', href: '#pourquoi' },
         { label: 'La solution', href: '#atelier' },
         { label: 'Témoignages', href: '#temoignage' },
+        { label: 'Tarifs', href: '#tarifs' },
         { label: 'FAQ', href: '#faq' }
       ],
       loginLabel: 'Se connecter',

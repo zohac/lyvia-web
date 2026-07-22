@@ -3,6 +3,8 @@ import type { AccordionItem } from '@nuxt/ui'
 
 // Import explicite obligatoire — pathPrefix Nuxt auto-import renommerait en OrganismsWaitlistForm (retro Epic 11)
 import WaitlistForm from '~/components/organisms/WaitlistForm.vue'
+import YoutubeFacade from '~/components/molecules/YoutubeFacade.vue'
+import LandingPricing from '~/components/organisms/LandingPricing.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
 const isWaitlistModalOpen = ref(false)
@@ -55,9 +57,24 @@ const features = [
 // --- FAQ V5 ---
 const faqItems: AccordionItem[] = [
   {
-    label: 'Keova est-il gratuit\u00A0?',
-    content: 'Oui, pendant toute la durée de la beta. Au lancement, les premières inscrites bénéficieront d\'une réduction sur leur première année — bien en-dessous de ce que coûtent 5 outils séparément.',
+    label: 'Combien coûte Keova\u00A0?',
+    content: 'Essentiel est à 29 € TTC/mois, sans palier. Premium est à 49 € TTC/mois la première année, puis 99 €/mois — et les inscrites d\'aujourd\'hui gardent ce tarif fondateur sur toute leur première année. Dans les deux cas : 0 % de commission, sans engagement, sans frais d\'installation.',
     value: 'faq-1'
+  },
+  {
+    label: 'Puis-je utiliser mon propre nom de domaine\u00A0?',
+    content: 'Oui, avec Premium. Votre site vit sur votre propre adresse (par exemple votrenom.fr), sans marque Keova visible. C\'est votre marque que vos clientes retiennent — pas la nôtre.',
+    value: 'faq-domaine'
+  },
+  {
+    // Objection née de l'apparition de la grille tarifaire : la peur n°1 de quelqu'un qui
+    // met agenda, paiements ET nom de domaine dans un seul outil, c'est la sortie.
+    // « Sans engagement » répond au contrat, pas aux données ni au domaine.
+    // ⚠️ Aucune promesse d'export : vérifié en code review 2026-07-22, aucun endpoint
+    // d'export n'existe côté API. À compléter le jour où il existera.
+    label: 'Que se passe-t-il si j\'arrête Keova\u00A0?',
+    content: 'Vous partez quand vous voulez, sans préavis et sans pénalité. Votre nom de domaine vous appartient : vous le repointez où vous voulez, il ne reste pas chez nous.',
+    value: 'faq-sortie'
   },
   {
     label: 'Quelles sont les fonctionnalités de Keova\u00A0?',
@@ -300,13 +317,61 @@ function scrollTo(id: string) {
         <button
           class="flex flex-col items-center gap-2 text-[var(--color-crepuscule-500)] transition-colors duration-300 hover:text-[var(--color-brand-primary)]"
           aria-label="Explorer — défiler vers la section suivante"
-          @click="scrollTo('pourquoi')"
+          @click="scrollTo('video')"
         >
           <span class="text-xs font-medium uppercase tracking-widest">Explorer</span>
           <div class="flex h-8 w-5 justify-center rounded-full border-2 border-current pt-1.5">
             <div class="scroll-dot h-2 w-1 rounded-full bg-current" />
           </div>
         </button>
+      </div>
+    </section>
+
+    <!-- ====================== SECTION VIDÉO ====================== -->
+    <section
+      id="video"
+      class="relative bg-[var(--color-crepuscule-100)] px-6 py-24 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-3xl text-center">
+        <div
+          v-bind="reveal()"
+          class="scroll-reveal"
+        >
+          <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[var(--color-crepuscule-500)] to-[var(--color-brand-accent)]" />
+          <h2 class="font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)] lg:text-4xl">
+            Keova en vidéo, sans vous inscrire
+          </h2>
+          <p class="mx-auto mt-4 max-w-2xl text-[var(--color-crepuscule-600)]">
+            Le site de Sophie, une cliente qui réserve, un paiement qui arrive — 5 minutes en conditions réelles.
+          </p>
+        </div>
+      </div>
+      <div
+        v-bind="reveal({ delay: 150 })"
+        class="scroll-reveal mx-auto mt-10 max-w-4xl"
+      >
+        <YoutubeFacade
+          poster="/images/video-poster-keova.jpg"
+          title="Démo Keova — agenda et paiements pour praticienne"
+          poster-alt="Démo Keova — agenda et paiements pour praticienne"
+          play-label="Lire la vidéo de démonstration Keova"
+        />
+        <!-- CTA sous la vidéo (optionnel) -->
+        <div class="mt-8 text-center">
+          <button
+            class="cta-primary group relative overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
+            @click="isWaitlistModalOpen = true"
+          >
+            <span class="cta-primary-bg" />
+            <span class="relative z-10 flex items-center gap-2">
+              Je réserve ma place
+              <UIcon
+                name="i-lucide-arrow-right"
+                class="size-5 transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </span>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -871,6 +936,10 @@ function scrollTo(id: string) {
       </div>
     </section>
 
+    <!-- ====================== PRICING (0-35) ====================== -->
+    <!-- Ordre validé Simon 2026-07-13 : features → pricing → FAQ → waitlist -->
+    <LandingPricing @reserve="isWaitlistModalOpen = true" />
+
     <!-- ====================== FAQ (V5) ====================== -->
     <section
       id="faq"
@@ -952,11 +1021,11 @@ function scrollTo(id: string) {
 
         <!-- P.S. V5 -->
         <p class="mx-auto mt-10 max-w-lg text-left text-sm leading-relaxed text-[var(--color-crepuscule-300)]">
-          <strong class="text-[var(--color-sunset-300)]">P.S.</strong> — Keova est gratuit pendant toute la beta.
-          Les premières inscrites bénéficieront d'une réduction sur leur première année —
-          bien en-dessous de ce que coûtent vos 5 outils actuels —
+          <strong class="text-[var(--color-sunset-300)]">P.S.</strong> — Les places en beta sont limitées : c'est ce qui nous permet d'accompagner chaque praticienne de près.
+          Les inscrites d'aujourd'hui gardent le tarif fondateur Premium — 49 € au lieu de 99 € — sur toute leur première année,
+          un seul accès pour votre site, votre agenda et vos paiements au lieu de cinq,
           et un accès direct à l'équipe pour orienter les prochaines fonctionnalités.
-          Si vous hésitez, inscrivez-vous — vous pourrez toujours dire non plus tard.
+          Si vous hésitez, inscrivez-vous : vous pourrez toujours dire non quand on vous appellera.
         </p>
       </div>
     </section>
