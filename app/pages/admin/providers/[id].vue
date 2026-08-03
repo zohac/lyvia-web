@@ -8,6 +8,7 @@ import { mapRequirementKeyToMessage } from '~/features/finance/domain/finance-st
 import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
 import { formatDateTime, formatDateShort } from '~/composables/useDateFormat'
 import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
+import { PLAN_SELECT_ITEMS, DEFAULT_PLAN_SLUG, getPlanBadgeVariant, type PlanSlug } from '~/features/admin/providers/plan-select'
 import { formatCurrency } from '~/features/analytics/helpers/format-kpi'
 // SUBSCRIPTION_STATUS_META used via SubscriptionStatusBadge component
 import AdminSeoForm from '~/components/organisms/AdminSeoForm.vue'
@@ -78,6 +79,8 @@ type AdminProviderDetail = {
   sectionsConfig: Record<string, boolean>
   sectionsAvailable: string[]
   coachPageFillRate: number
+  // Subscription plan (15-5)
+  plan: { slug: string, name: string } | null
 }
 
 type DeactivationImpact = {
@@ -161,6 +164,52 @@ const activeStatusInfo = computed(() => {
   const s = getStatusBadgeClasses(variant)
   return { label: detail.value.isActive ? 'Actif' : 'Désactivé', badge: s.badge, dot: s.dot }
 })
+
+// ──────────────────────────────────────────────
+// Subscription plan (15-5)
+// ──────────────────────────────────────────────
+
+const planBadgeInfo = computed(() => {
+  const plan = detail.value?.plan
+  if (!plan) return null
+  const s = getStatusBadgeClasses(getPlanBadgeVariant(plan.slug))
+  return { label: plan.name, badge: s.badge, dot: s.dot }
+})
+
+// Jamais `''` avant hydratation de `detail` — un USelect Reka UI avec une
+// valeur vide crash (bug historique admin/clients, commit 77ac4d7).
+const selectedPlanSlug = ref<PlanSlug>(DEFAULT_PLAN_SLUG)
+const changingPlan = ref(false)
+
+const currentPlanSlug = computed<PlanSlug>(
+  () => (detail.value?.plan?.slug as PlanSlug | undefined) ?? DEFAULT_PLAN_SLUG
+)
+
+watch(detail, () => {
+  selectedPlanSlug.value = currentPlanSlug.value
+}, { immediate: true })
+
+async function changePlan() {
+  if (changingPlan.value || selectedPlanSlug.value === currentPlanSlug.value) return
+
+  changingPlan.value = true
+  try {
+    await apiFetch(`/admin/providers/${providerId.value}/plan`, {
+      method: 'PATCH',
+      body: { planSlug: selectedPlanSlug.value }
+    })
+    toast.add({ title: 'Plan mis à jour', color: 'success' })
+    await refreshDetail()
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors du changement de plan',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    changingPlan.value = false
+  }
+}
 
 // ──────────────────────────────────────────────
 // Tabs
@@ -636,6 +685,15 @@ const SEO_TARGET_ICONS: Record<string, string> = {
                   {{ stripeStatusInfo.label }}
                 </span>
 
+                <!-- Subscription plan badge (15-5) -->
+                <span
+                  v-if="planBadgeInfo"
+                  :class="planBadgeInfo.badge"
+                >
+                  <span :class="planBadgeInfo.dot" />
+                  {{ planBadgeInfo.label }}
+                </span>
+
                 <span class="inline-flex items-center gap-1.5 rounded-full bg-[rgba(212,184,160,0.15)] px-2.5 py-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-accent)]">
                   {{ provider.timezone }}
                 </span>
@@ -825,6 +883,43 @@ const SEO_TARGET_ICONS: Record<string, string> = {
                 >
                   Annuler
                 </UButton>
+              </div>
+            </section>
+
+            <!-- Subscription plan (15-5) -->
+            <section class="rounded-2xl border border-[color:var(--color-border-subtle)] bg-white p-6">
+              <h2 class="mb-4 font-serif text-xl italic text-[color:var(--color-brand-primary)]">
+                Plan d'abonnement
+              </h2>
+
+              <div class="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    Plan actuel : <strong>{{ detail.plan?.name ?? 'Aucun' }}</strong>
+                  </p>
+                  <p class="mt-1 text-xs text-[color:var(--color-brand-muted)]">
+                    Le changement prend effet immédiatement sur les fonctionnalités accessibles.
+                  </p>
+                </div>
+
+                <div class="flex items-end gap-3">
+                  <UFormField label="Plan">
+                    <USelect
+                      v-model="selectedPlanSlug"
+                      :items="PLAN_SELECT_ITEMS"
+                      value-key="value"
+                      class="w-48"
+                    />
+                  </UFormField>
+                  <UButton
+                    color="primary"
+                    :loading="changingPlan"
+                    :disabled="selectedPlanSlug === currentPlanSlug"
+                    @click="changePlan"
+                  >
+                    Changer le plan
+                  </UButton>
+                </div>
               </div>
             </section>
 
