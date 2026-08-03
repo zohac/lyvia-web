@@ -121,10 +121,31 @@ describe('15-5 — pages/admin/providers/[id].vue (AC-7)', () => {
     assert.match(source, /Changer le plan/)
   })
 
-  test('le bouton est désactivé tant que la sélection égale le plan courant', () => {
+  test('le bouton est désactivé tant que la sélection égale le plan SOUSCRIT', () => {
     const source = readSource(PAGE_PATH)
-    assert.match(source, /:disabled="selectedPlanSlug === currentPlanSlug"/)
-    assert.match(source, /selectedPlanSlug\.value === currentPlanSlug\.value/)
+    assert.match(source, /:disabled="planUnchanged"/)
+    assert.match(source, /if \(changingPlan\.value \|\| planUnchanged\.value\) return/)
+  })
+
+  // CR 15-5 — la comparaison doit porter sur le plan RÉELLEMENT souscrit, pas sur
+  // `currentPlanSlug` qui rabat `null` sur 'essentiel' pour amorcer le select.
+  // Sinon un provider sans ligne d'abonnement ne peut jamais être réparé vers
+  // Essentiel depuis l'UI : le bouton reste grisé alors que la page affiche
+  // « Plan actuel : Aucun », et l'upsert self-healing du backend est inatteignable.
+  test('un provider sans souscription peut être basculé vers Essentiel (comparaison sur le plan souscrit)', () => {
+    const source = readSource(PAGE_PATH)
+
+    // `subscribedPlanSlug` vaut null quand `detail.plan` est absent…
+    assert.match(
+      source,
+      /const subscribedPlanSlug = computed<PlanSlug \| null>\(\s*\(\) => \(detail\.value\?\.plan\?\.slug as PlanSlug \| undefined\) \?\? null\s*\)/
+    )
+    // …et c'est bien lui, pas `currentPlanSlug`, qui pilote l'état du bouton.
+    assert.match(
+      source,
+      /const planUnchanged = computed\(\s*\(\) => selectedPlanSlug\.value === subscribedPlanSlug\.value\s*\)/
+    )
+    assert.doesNotMatch(source, /:disabled="selectedPlanSlug === currentPlanSlug"/)
   })
 
   test('selectedPlanSlug est amorcé à DEFAULT_PLAN_SLUG puis synchronisé par watch(detail)', () => {
@@ -150,10 +171,19 @@ describe('15-5 — pages/admin/providers/[id].vue (AC-7)', () => {
 
   test('le plan n\'est PAS mêlé au saveProfile() (endpoint et bouton séparés)', () => {
     const source = readSource(PAGE_PATH)
-    const saveProfile = source.slice(
-      source.indexOf('async function saveProfile'),
-      source.indexOf('// Deactivation flow')
-    )
+    const start = source.indexOf('async function saveProfile')
+    const end = source.indexOf('// Deactivation flow')
+
+    // Sans ces deux gardes, un renommage de `saveProfile` (ou une reformulation
+    // du commentaire) faisait renvoyer -1 à `indexOf`, le `slice` produisait une
+    // chaîne quasi vide et `doesNotMatch` passait sans plus rien vérifier — le
+    // test censé empêcher la dérive devenait vert et muet.
+    assert.notStrictEqual(start, -1, 'repère `async function saveProfile` introuvable')
+    assert.notStrictEqual(end, -1, 'repère `// Deactivation flow` introuvable')
+    assert.ok(end > start, 'les repères sont dans le mauvais ordre')
+
+    const saveProfile = source.slice(start, end)
+    assert.ok(saveProfile.length > 200, 'corps de saveProfile suspicieusement court')
     assert.doesNotMatch(saveProfile, /planSlug/)
   })
 })

@@ -181,8 +181,26 @@ const planBadgeInfo = computed(() => {
 const selectedPlanSlug = ref<PlanSlug>(DEFAULT_PLAN_SLUG)
 const changingPlan = ref(false)
 
+/**
+ * Plan réellement souscrit, ou `null` quand le provider n'a aucune ligne
+ * d'abonnement. Distinct de `currentPlanSlug`, qui sert à amorcer le select.
+ *
+ * CR 15-5 — rabattre `null` sur `'essentiel'` pour la comparaison rendait le
+ * bouton définitivement désactivé sur ce plan : l'upsert self-healing du
+ * backend (testé en DB) était donc inatteignable depuis l'UI, alors que la
+ * page affichait « Plan actuel : Aucun ».
+ */
+const subscribedPlanSlug = computed<PlanSlug | null>(
+  () => (detail.value?.plan?.slug as PlanSlug | undefined) ?? null
+)
+
 const currentPlanSlug = computed<PlanSlug>(
-  () => (detail.value?.plan?.slug as PlanSlug | undefined) ?? DEFAULT_PLAN_SLUG
+  () => subscribedPlanSlug.value ?? DEFAULT_PLAN_SLUG
+)
+
+/** Rien à envoyer seulement si le plan souscrit existe ET est déjà le bon. */
+const planUnchanged = computed(
+  () => selectedPlanSlug.value === subscribedPlanSlug.value
 )
 
 watch(detail, () => {
@@ -190,7 +208,7 @@ watch(detail, () => {
 }, { immediate: true })
 
 async function changePlan() {
-  if (changingPlan.value || selectedPlanSlug.value === currentPlanSlug.value) return
+  if (changingPlan.value || planUnchanged.value) return
 
   changingPlan.value = true
   try {
@@ -914,7 +932,7 @@ const SEO_TARGET_ICONS: Record<string, string> = {
                   <UButton
                     color="primary"
                     :loading="changingPlan"
-                    :disabled="selectedPlanSlug === currentPlanSlug"
+                    :disabled="planUnchanged"
                     @click="changePlan"
                   >
                     Changer le plan

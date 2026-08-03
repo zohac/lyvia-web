@@ -9,6 +9,8 @@
  * (`essentiel` | `premium` | `fondatrice`).
  */
 
+import type { StatusBadgeVariant } from '~/composables/useAdminBadges'
+
 export type PlanSlug = 'essentiel' | 'premium' | 'fondatrice'
 
 /**
@@ -27,7 +29,16 @@ export const PLAN_SELECT_ITEMS: Array<{ label: string, value: PlanSlug }> = [
 /** Plan par défaut à la création, et valeur d'amorçage avant hydratation. */
 export const DEFAULT_PLAN_SLUG: PlanSlug = 'essentiel'
 
-export type PlanBadgeVariant = 'success' | 'error' | 'warning' | 'neutral'
+/**
+ * Réexport du type réel attendu par `getStatusBadgeClasses()`.
+ *
+ * CR 15-5 — c'était auparavant une union redéclarée à l'identique. Un alias
+ * local se désynchronise silencieusement : retirer ou renommer une variante
+ * dans `STATUS_BADGE_VARIANTS` continuait de typechecker ici, et le lookup
+ * `STATUS_BADGE_VARIANTS[variant].badge` explosait au rendu. En important le
+ * type source, la même modification devient une erreur de compilation.
+ */
+export type PlanBadgeVariant = StatusBadgeVariant
 
 /**
  * Variante de badge du plan courant, à passer à `getStatusBadgeClasses()`.
