@@ -3,6 +3,7 @@ import {
   FEATURE_GATE_TOAST_TITLE,
   KEOVA_CONTACT_MAILTO
 } from './domain/feature-gate-copy'
+import { createNotificationThrottle } from './domain/notification-throttle'
 
 /**
  * Story 18.2 — Toast global déclenché par un 403 `FEATURE_NOT_AVAILABLE`.
@@ -17,19 +18,19 @@ import {
  * qui le tire de `FEATURE_MIN_PLAN_LABEL`.
  */
 
-/** Fenêtre anti-empilement : une page qui déclenche 5 appels gatés d'affilée
- * (dashboard, éditeur multi-sections) ne doit pas empiler 5 toasts identiques. */
-const TOAST_COOLDOWN_MS = 3_000
-
 /**
  * Module-scope : la déduplication doit survivre entre deux appels `apiFetch`,
  * qui n'ont aucun état partagé.
+ *
+ * Story 18.2 (CR) — la mécanique vit dans `domain/notification-throttle.ts`.
+ * Inline ici, elle n'était pas testable (ce module dépend de `useToast()`) et
+ * une mutation la désactivant laissait la suite verte.
  */
-let lastNotifiedAt = 0
+const throttle = createNotificationThrottle()
 
 /** Réinitialise le garde anti-spam (tests uniquement). */
 export function resetFeatureGateToastThrottle(): void {
-  lastNotifiedAt = 0
+  throttle.reset()
 }
 
 /**
@@ -71,26 +72,36 @@ export function notifyFeatureGate(
   // plutôt que de lever une seconde erreur par-dessus le 403.
   if (!context) return
 
-  const now = Date.now()
-  if (now - lastNotifiedAt < TOAST_COOLDOWN_MS) return
-  lastNotifiedAt = now
+  if (!throttle.shouldNotify(Date.now())) return
 
   // `runWithContext` est obligatoire : `notifyFeatureGate` est appelé APRÈS un
   // `await` dans `apiFetch`, où l'instance Nuxt courante n'est plus établie —
   // `useToast()` (basé sur `useState`) lèverait « instance unavailable » sans
   // ce wrapper.
-  context.runWithContext(() => {
-    useToast().add({
-      title: FEATURE_GATE_TOAST_TITLE,
-      color: 'error',
-      actions: [
-        {
-          label: FEATURE_GATE_CTA_LABEL,
-          onClick: () => {
-            window.location.href = KEOVA_CONTACT_MAILTO
+  //
+  // 🚨 Story 18.2 (CR) — le `try/catch` tient l'invariant de l'AC #5 :
+  // `apiFetch` appelle cette fonction depuis son `catch`, AVANT de relancer
+  // l'`ApiFetchError`. Une levée ici (instance périmée après HMR, couche toast
+  // indisponible) s'échapperait du `catch` et l'appelant recevrait une erreur
+  // étrangère — tous les `err instanceof ApiFetchError` (mappers `*-error.ts`,
+  // états de formulaire) retomberaient sur leur branche générique. Le 403
+  // prime : on renonce au toast, jamais à l'erreur typée.
+  try {
+    context.runWithContext(() => {
+      useToast().add({
+        title: FEATURE_GATE_TOAST_TITLE,
+        color: 'error',
+        actions: [
+          {
+            label: FEATURE_GATE_CTA_LABEL,
+            onClick: () => {
+              window.location.href = KEOVA_CONTACT_MAILTO
+            }
           }
-        }
-      ]
+        ]
+      })
     })
-  })
+  } catch {
+    // Volontairement silencieux — cf. l'invariant AC #5 ci-dessus.
+  }
 }

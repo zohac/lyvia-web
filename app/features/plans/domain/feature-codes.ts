@@ -2,9 +2,14 @@
  * Story 18.2 — Miroir frontend du référentiel de codes de features.
  *
  * Source de vérité : `repositories/lyvia-api/src/features/plans/domain/feature-codes.ts`
- * (Story 18.1). Les deux listes doivent rester identiques — un test dédié
- * (`tests/plans/feature-gate-domain.test.ts`) verrouille la liste exacte, de
- * sorte qu'un ajout backend non répercuté ici échoue visiblement.
+ * (Story 18.1). Les deux listes doivent rester identiques.
+ *
+ * ⚠️ Story 18.2 (CR) — cette synchronisation n'est PAS mécanisée, et ne peut
+ * pas l'être : API et Web sont deux dépôts Git indépendants, sans dépendance
+ * ni build partagé. `tests/plans/feature-gate-domain.test.ts` verrouille la
+ * liste côté web contre un littéral, ce qui empêche une dérive ACCIDENTELLE
+ * ici — mais un ajout côté backend ne fera échouer aucun test de ce repo. La
+ * mise à jour est manuelle et relève de la story qui ajoute la feature.
  *
  * ⚠️ `lead_magnet` est activé pour les 3 plans beta et n'est gaté par AUCUNE
  * surface (réservé au futur plan Découverte) : sa présence dans cette liste est

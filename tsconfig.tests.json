@@ -33,6 +33,7 @@
     "app/features/seo/api/public-provider-profile.contract.ts",
     "app/features/plans/domain/**/*.ts",
     "app/features/plans/createFeatureGate.ts",
+    "app/features/plans/in-flight-deduper.ts",
     "shared/utils/**/*.ts",
     "app/utils/**/*.ts",
     "app/composables/useCoachLink.ts",

@@ -83,17 +83,41 @@ describe('apiFetch — branche FEATURE_NOT_AVAILABLE', () => {
 })
 
 describe('feature-gate-toast — garde anti-spam et contexte', () => {
-  test('REGRESSION: cooldown de 3 s en module-scope', () => {
+  test('REGRESSION: le garde anti-spam vient du module pur testé, pas d\'un compteur inline', () => {
+    // Inline, le garde n'était couvert par aucun test exécutant : une mutation
+    // le désactivant laissait la suite verte. Le comportement est désormais
+    // vérifié par `notification-throttle.test.ts` ; ce test verrouille le
+    // câblage pour qu'il ne puisse pas revenir en local.
     const source = readToastModule()
-    assert.match(source, /const TOAST_COOLDOWN_MS = 3_000/)
-    assert.match(source, /let lastNotifiedAt = 0/)
-    assert.match(source, /if \(now - lastNotifiedAt < TOAST_COOLDOWN_MS\) return/)
+    assert.match(source, /from '\.\/domain\/notification-throttle'/)
+    assert.match(source, /const throttle = createNotificationThrottle\(\)/)
+    assert.match(source, /if \(!throttle\.shouldNotify\(Date\.now\(\)\)\) return/)
+    assert.doesNotMatch(source, /let lastNotifiedAt/)
   })
 
   test('le toast passe par runWithContext et sort si aucun contexte n\'est disponible', () => {
     const source = readToastModule()
     assert.match(source, /if \(!context\) return/)
     assert.match(source, /context\.runWithContext\(\(\) => \{/)
+  })
+
+  test('REGRESSION: un échec du toast ne remplace pas l\'ApiFetchError (AC #5)', () => {
+    // `notifyFeatureGate` est appelé depuis le `catch` d'apiFetch, AVANT le
+    // throw. Une levée non capturée s'échapperait du catch et l'appelant
+    // recevrait une erreur étrangère : tous les `err instanceof ApiFetchError`
+    // (mappers *-error.ts, états de formulaire) retomberaient sur le générique.
+    const source = readToastModule()
+    const notifyIndex = source.indexOf('export function notifyFeatureGate')
+    assert.ok(notifyIndex > 0, 'notifyFeatureGate introuvable')
+
+    const body = source.slice(notifyIndex)
+    const tryIndex = body.indexOf('try {')
+    const runWithContextIndex = body.indexOf('context.runWithContext')
+    assert.ok(
+      tryIndex > 0 && tryIndex < runWithContextIndex,
+      'runWithContext doit être enveloppé par un try/catch'
+    )
+    assert.match(body.slice(runWithContextIndex), /\}\s*catch \{/)
   })
 
   test('REGRESSION: un contexte de repli est enregistré par un plugin client', () => {

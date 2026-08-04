@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import type { PlanFeatureCode } from '~/features/plans/domain/feature-codes'
 import {
   FEATURE_GATE_CTA_LABEL,
@@ -30,7 +30,19 @@ const { status, hasFeature, ensureLoaded } = useFeatureGate()
 
 // Le composant déclenche lui-même le chargement : une section enveloppée est
 // autonome, aucune page n'a à amorcer le gate.
-void ensureLoaded()
+//
+// 🚨 Story 18.2 (CR) — le watcher, et pas un simple appel au montage, tient la
+// seconde moitié de l'AC #6 (« ou `invalidate()` est appelé → tous les
+// `<FeatureGate>` réévaluent »). `invalidate()` repasse `status` à `'unknown'`,
+// état dans lequel le template ne rend NI le slot NI le lock : sans relance,
+// un gate déjà monté resterait blanc jusqu'au prochain remount.
+watch(
+  status,
+  (value) => {
+    if (value === 'unknown') void ensureLoaded()
+  },
+  { immediate: true }
+)
 
 const unlocked = computed(() => hasFeature(props.feature))
 const lockTitle = computed(() => featureGateLockTitle(props.feature))
@@ -54,7 +66,7 @@ const lockTitle = computed(() => featureGateLockTitle(props.feature))
     -->
     <div
       v-else
-      class="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-6 py-16 text-center"
+      class="flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-6 py-16 text-center"
     >
       <div class="mb-4 flex size-14 items-center justify-center rounded-full bg-[color:var(--color-surface-highlight)]">
         <UIcon
