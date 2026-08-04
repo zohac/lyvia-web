@@ -16,11 +16,29 @@
  * intentionnelle, ce n'est pas du code mort.
  */
 
+/**
+ * Story 18.3b — Constantes nommées, une par code, miroir de
+ * `lyvia-api/src/features/plans/domain/feature-codes.ts` (mêmes noms).
+ *
+ * Les call-sites du gating (helper `template-lock`, pages) les importent au
+ * lieu de recopier le littéral — Checklist Clean Architecture 18.3b, « aucun
+ * littéral de code feature ». `PLAN_FEATURE_CODES` est construit à partir
+ * d'elles pour que le référentiel et les call-sites ne puissent pas diverger.
+ *
+ * Exception assumée : `<FeatureGate feature="white_label_branding">` garde la
+ * forme attribut statique dans les templates Vue — la prop est typée
+ * `PlanFeatureCode`, donc une faute de frappe échoue au `typecheck`.
+ */
+export const FEATURE_CUSTOM_DOMAIN = 'custom_domain'
+export const FEATURE_WHITE_LABEL_BRANDING = 'white_label_branding'
+export const FEATURE_COACH_PAGE_PREMIUM_TEMPLATES = 'coach_page_premium_templates'
+export const FEATURE_LEAD_MAGNET = 'lead_magnet'
+
 export const PLAN_FEATURE_CODES = [
-  'custom_domain',
-  'white_label_branding',
-  'coach_page_premium_templates',
-  'lead_magnet'
+  FEATURE_CUSTOM_DOMAIN,
+  FEATURE_WHITE_LABEL_BRANDING,
+  FEATURE_COACH_PAGE_PREMIUM_TEMPLATES,
+  FEATURE_LEAD_MAGNET
 ] as const
 
 export type PlanFeatureCode = (typeof PLAN_FEATURE_CODES)[number]

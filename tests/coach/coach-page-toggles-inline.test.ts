@@ -218,7 +218,21 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     assert.match(source, /section === 'testimonials'/)
     // Branding ne doit pas être réintroduit dans la boucle générique des sections templates :
     // il a une card globale dédiée, sans switch "Visible sur ma page".
+    //
+    // Story 18.3b — la card est désormais enveloppée dans un
+    // `<FeatureGate feature="white_label_branding">` et `id="section-branding"`
+    // porte sur le wrapper. Elle reste néanmoins HORS de la boucle
+    // `orderedEditableSections` : c'est ce que ce test verrouille.
     assert.match(source, /id="section-branding"/)
     assert.equal(source.includes('section === \'branding\''), false)
+
+    const gateIdx = source.indexOf('<FeatureGate feature="white_label_branding">')
+    const loopIdx = source.indexOf('v-for="section in orderedEditableSections"')
+    assert.ok(gateIdx >= 0, '18.3b: la card branding est gatée par white_label_branding')
+    assert.ok(loopIdx >= 0, 'la boucle des sections éditables doit exister')
+    assert.ok(
+      source.indexOf('</FeatureGate>') < loopIdx,
+      'la card branding gatée doit rester avant (et hors de) la boucle des sections'
+    )
   })
 })
