@@ -230,8 +230,13 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     const loopIdx = source.indexOf('v-for="section in orderedEditableSections"')
     assert.ok(gateIdx >= 0, '18.3b: la card branding est gatée par white_label_branding')
     assert.ok(loopIdx >= 0, 'la boucle des sections éditables doit exister')
+
+    // CR 18.3b — `indexOf` renvoie -1 quand la balise disparaît, et `-1 < loopIdx`
+    // est VRAI : l'assertion passait vacuement. On exige l'existence d'abord.
+    const gateCloseIdx = source.indexOf('</FeatureGate>')
+    assert.ok(gateCloseIdx >= 0, 'le FeatureGate doit être refermé')
     assert.ok(
-      source.indexOf('</FeatureGate>') < loopIdx,
+      gateCloseIdx < loopIdx,
       'la card branding gatée doit rester avant (et hors de) la boucle des sections'
     )
   })

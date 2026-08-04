@@ -73,6 +73,16 @@ describe('18.3b — resolvePremiumTemplatesAccess (politique par statut de gate)
     assert.equal(isTemplateLocked({ code: 'signature' }, resolvePremiumTemplatesAccess('error', false)), true)
   })
 
+  test('REGRESSION CR: sur `error`, le refus ne dépend PAS de l\'appelant', () => {
+    // `('error', false) === false` est vrai pour toute implémentation qui
+    // renvoie son second argument : cette assertion-là ne prouve rien de la
+    // politique. Seul `('error', true)` la teste réellement. Le refus n'était
+    // tenu que par le couplage avec `gate.hasFeature()` (forcé à `false` hors
+    // `'ready'`) — un couplage que rien n'imposait.
+    assert.equal(resolvePremiumTemplatesAccess('error', true), false)
+    assert.equal(isTemplateLocked({ code: 'signature' }, resolvePremiumTemplatesAccess('error', true)), true)
+  })
+
   test('sur `ready`, la réponse du gate fait autorité', () => {
     assert.equal(resolvePremiumTemplatesAccess('ready', true), true)
     assert.equal(resolvePremiumTemplatesAccess('ready', false), false)

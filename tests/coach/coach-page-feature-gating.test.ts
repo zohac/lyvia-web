@@ -84,27 +84,56 @@ describe('18.3b AC #1/#3 — la section « Identité de marque » est enveloppé
     // n'a été révélé que par mutation.
     const source = readCoachPageCode()
 
+    // 🚨 CR 18.3b (décision Simon) — l'imbrication a été INVERSÉE : le
+    // `<section>` et son bandeau de titre vivent désormais HORS du gate, comme
+    // l'ancre. Verrouillée, la section reste NOMMÉE (« Identité de marque ») et
+    // garde son repère `<section>` ; auparavant le titre était à l'intérieur et
+    // une provider Essentiel ne voyait qu'une carte d'upsell anonyme. Seul le
+    // CORPS de la section est remplacé.
     const anchorIdx = source.indexOf('id="section-branding"')
-    const gateOpenIdx = source.indexOf('<FeatureGate feature="white_label_branding">')
-    const sectionIdx = source.indexOf('<section', gateOpenIdx)
+    const sectionIdx = source.indexOf('<section', anchorIdx)
     const headingIdx = source.indexOf('Identité de marque', sectionIdx)
-    const sectionCloseIdx = source.indexOf('</section>', headingIdx)
-    const gateCloseIdx = source.indexOf('</FeatureGate>', sectionCloseIdx)
+    const gateOpenIdx = source.indexOf('<FeatureGate feature="white_label_branding">', headingIdx)
+    const gateCloseIdx = source.indexOf('</FeatureGate>', gateOpenIdx)
+    const sectionCloseIdx = source.indexOf('</section>', gateCloseIdx)
 
     assert.ok(anchorIdx >= 0, 'l\'ancre #section-branding doit exister')
+    assert.ok(sectionIdx >= 0, 'le <section> branding doit suivre l\'ancre')
+    assert.ok(headingIdx >= 0, 'le titre « Identité de marque » doit exister')
     assert.ok(gateOpenIdx >= 0, '<FeatureGate feature="white_label_branding"> doit exister')
-    assert.ok(sectionIdx >= 0, 'le <section> branding doit suivre l\'ouverture du gate')
-    assert.ok(headingIdx >= 0, 'le titre « Identité de marque » doit vivre DANS le gate')
-    assert.ok(gateCloseIdx >= 0, 'le gate doit se refermer après la section')
+    assert.ok(gateCloseIdx >= 0, 'le gate doit se refermer')
+    assert.ok(sectionCloseIdx >= 0, 'la <section> doit se refermer APRÈS le gate')
 
-    // Ordre strict : ancre → <FeatureGate> → <section> → titre → </section> → </FeatureGate>
+    // Ordre strict : ancre → <section> → titre → <FeatureGate> → </FeatureGate> → </section>
     assert.ok(
-      anchorIdx < gateOpenIdx
-      && gateOpenIdx < sectionIdx
+      anchorIdx < sectionIdx
       && sectionIdx < headingIdx
-      && headingIdx < sectionCloseIdx
-      && sectionCloseIdx < gateCloseIdx,
-      'la section branding doit être strictement imbriquée dans le FeatureGate'
+      && headingIdx < gateOpenIdx
+      && gateOpenIdx < gateCloseIdx
+      && gateCloseIdx < sectionCloseIdx,
+      'le gate doit être strictement imbriqué DANS la section, après son titre'
+    )
+  })
+
+  test('REGRESSION CR: le titre de la section est rendu VERROUILLÉ comme DÉVERROUILLÉ', () => {
+    // Sans cela, l'état verrouillé n'affiche que le titre générique du lock
+    // panel (« Disponible avec le plan Premium ») : la provider Essentiel voit
+    // une carte d'upsell anonyme entre « Template » et les sections publiques,
+    // et le document perd son repère <section> pour cette région.
+    const source = readCoachPageCode()
+    const headingIdx = source.indexOf('Identité de marque')
+    const gateOpenIdx = source.indexOf('<FeatureGate feature="white_label_branding">')
+    assert.ok(headingIdx >= 0, 'le titre doit exister dans le markup')
+    assert.ok(
+      headingIdx < gateOpenIdx,
+      'le <h2> « Identité de marque » doit précéder le gate (rendu dans les 2 états)'
+    )
+
+    // Et il ne doit exister qu'une seule fois : pas de titre dupliqué.
+    assert.equal(
+      source.indexOf('Identité de marque', headingIdx + 1),
+      -1,
+      'le titre ne doit pas être dupliqué de part et d\'autre du gate'
     )
   })
 
@@ -196,11 +225,31 @@ describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () 
     assert.ok(start >= 0, 'onSelectTemplate doit exister')
     const body = source.slice(start, source.indexOf('\n}', start))
 
-    const guardIdx = body.indexOf('if (target && isTemplateLocked(target, hasPremiumTemplates.value)) return')
+    const guardIdx = body.indexOf('if (!card || card.locked) return')
     const saveIdx = body.indexOf('await saveTemplate(')
     assert.ok(guardIdx >= 0, 'la garde de verrouillage doit exister dans onSelectTemplate')
     assert.ok(saveIdx >= 0, 'onSelectTemplate doit appeler saveTemplate')
     assert.ok(guardIdx < saveIdx, 'la garde doit précéder l\'appel API')
+  })
+
+  test('REGRESSION CR: la garde échoue FERMÉE sur un id inconnu et réutilise templateCards', () => {
+    // Ancienne forme : `if (target && isTemplateLocked(...)) return`. Un id
+    // absent de la liste (appel programmatique, liste rafraîchie entre le rendu
+    // et le clic) donnait `target === undefined`, sautait la garde et partait en
+    // API — le chemin DevTools que la garde prétend justement couvrir.
+    const code = readCoachPageCode()
+    const start = code.indexOf('async function onSelectTemplate')
+    const body = code.slice(start, code.indexOf('\n}', start))
+
+    // Source unique du verrou : le computed, jamais un second isTemplateLocked.
+    assert.match(body, /templateCards\.value\.find\(c => c\.id === templateId\)/)
+    assert.doesNotMatch(
+      body,
+      /isTemplateLocked\(/,
+      'le verrou est déjà porté par templateCards — pas de seconde dérivation'
+    )
+    // Fail-closed : l'absence de carte doit court-circuiter, pas passer.
+    assert.match(body, /if \(!card \|\| card\.locked\) return/)
   })
 
   test('REGRESSION: la pastille affiche « Premium » via la constante, avec icône lock', () => {
@@ -215,6 +264,30 @@ describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () 
 
     // Aucun littéral « Premium » ne doit doubler la constante.
     assert.doesNotMatch(readCoachPageCode(), />\s*Premium\s*</)
+  })
+
+  test('REGRESSION CR: la carte verrouillée est annoncée aux technologies d\'assistance', () => {
+    // `:disabled` retire la carte de l'ordre de tabulation : la pastille 🔒
+    // « Premium » n'était annoncée nulle part, alors que la user story promet
+    // « clearly locked WITH an upgrade prompt ». Le nom accessible RÉUTILISE la
+    // copy 18.2 (A31) au lieu de la recopier.
+    const source = readCoachPage()
+    assert.match(source, /:aria-label="tmpl\.locked/)
+    assert.match(source, /featureGateLockTitle\(FEATURE_COACH_PAGE_PREMIUM_TEMPLATES\)/)
+    assert.match(
+      source,
+      /import \{ featureGateLockTitle \} from '~\/features\/plans\/domain\/feature-gate-copy'/
+    )
+  })
+
+  test('REGRESSION CR: une carte verrouillée ne propose PAS d\'affordance de survol', () => {
+    // `:disabled` ne coupe pas `:hover` : la carte s'illuminait en accent sous
+    // le curseur tout en affichant `cursor-not-allowed`.
+    const source = readCoachPage()
+    assert.match(
+      source,
+      /tmpl\.id !== selectedTemplateId && !tmpl\.locked\s*\n?\s*\? 'hover:border-\[color:var\(--color-brand-accent\)\]'/
+    )
   })
 
   test('REGRESSION: la pastille et le check de sélection occupent des positions distinctes', () => {

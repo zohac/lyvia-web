@@ -86,7 +86,16 @@ describe('FeatureGate.vue — câblage', () => {
     assert.match(source, /watch\(\s*status,/)
     assert.match(source, /if \(value === 'unknown'\) void ensureLoaded\(\)/)
     assert.match(source, /\{ immediate: true \}/)
-    assert.match(source, /import \{ computed, watch \} from 'vue'/)
+    assert.match(source, /import \{ computed, onMounted, watch \} from 'vue'/)
+  })
+
+  test('REGRESSION 18.3b: un gate monté sur un state "error" retente le chargement', () => {
+    // Le watcher ne relance que sur 'unknown'. Sans ce crochet, un 'error'
+    // transitoire (blip réseau, 5xx) verrouillait la section pour TOUTE la
+    // session SPA — y compris pour une coach Premium, à qui l'on proposait
+    // d'acheter le plan qu'elle a déjà (régression white-label, AC #3 de 18.3b).
+    const code = readComponentCode()
+    assert.match(code, /onMounted\(\(\) => \{\s*if \(status\.value === 'error'\) void ensureLoaded\(\)\s*\}\)/)
   })
 
   test('REGRESSION: status "unknown" ne rend NI le slot NI le lock (pas de flash)', () => {

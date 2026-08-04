@@ -68,6 +68,13 @@ export function createFeatureGate(deps: CreateFeatureGateDependencies) {
    * 5xx, 401 terminal) était sinon définitif pour toute la session SPA, et une
    * coach Premium se voyait proposer de passer à Premium jusqu'au prochain F5.
    * Un remount ou un `invalidate()` retente désormais.
+   *
+   * ⚠️ Story 18.3b (CR) — cette sortie anticipée rend la RETENTATIVE possible,
+   * elle ne la DÉCLENCHE pas : il faut un appelant. Deux existent, et un `error`
+   * reste collant partout ailleurs — `FeatureGate.vue` (crochet `onMounted` sur
+   * `'error'` ; son watcher, lui, ne couvre que `'unknown'`) et l'amorçage au
+   * setup de `provider/coach-page.vue`. Tout nouveau consommateur du gate doit
+   * prévoir son propre chemin de reprise.
    */
   async function ensureLoaded(): Promise<void> {
     if (state.value.status === 'ready') return

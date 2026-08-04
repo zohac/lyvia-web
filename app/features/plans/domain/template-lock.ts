@@ -71,11 +71,20 @@ export function isTemplateLocked(
  *
  * `error` → refusé, comme `<FeatureGate>` : une panne de résolution ne doit pas
  * ouvrir une surface premium.
+ *
+ * 🚨 CR 18.3b — le refus sur `'error'` est ENCODÉ ICI, il ne l'était pas. La
+ * version précédente s'arrêtait à `return hasPremiumTemplatesFeature`, donc
+ * `('error', true)` renvoyait `true` : la politique documentée n'était tenue que
+ * parce que l'appelant passe `gate.hasFeature()`, lui-même forcé à `false` hors
+ * `'ready'`. Un couplage que rien n'imposait, et que le test ne couvrait pas —
+ * `('error', false) === false` est vrai pour TOUTE implémentation renvoyant son
+ * second argument.
  */
 export function resolvePremiumTemplatesAccess(
   status: FeatureGateStatus,
   hasPremiumTemplatesFeature: boolean
 ): boolean {
   if (status === 'unknown') return true
+  if (status !== 'ready') return false
   return hasPremiumTemplatesFeature
 }

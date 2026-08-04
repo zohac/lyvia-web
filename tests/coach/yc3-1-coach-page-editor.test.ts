@@ -128,6 +128,16 @@ test('template save error toast maps TEMPLATE_NOT_AVAILABLE to an explicit messa
   })
 })
 
+test('REGRESSION CR 18.3b: FEATURE_NOT_AVAILABLE n\'émet AUCUN toast local (le global 18.2 a déjà parlé)', () => {
+  // C'est le code réellement renvoyé par le gating 18.3a sur un template
+  // premium — pas TEMPLATE_NOT_AVAILABLE. `apiFetch` déclenche pour lui le
+  // toast global « Cette fonctionnalité nécessite un plan supérieur » + CTA
+  // puis relance : un second toast générique doublonnait, et la garde
+  // anti-spam 3 s de 18.2 pouvait même absorber l'informatif au 2e clic,
+  // ne laissant à l'écran que « Erreur lors du changement de template ».
+  assert.equal(getCoachPageTemplateSaveErrorToast('FEATURE_NOT_AVAILABLE'), null)
+})
+
 // ═══════════════════════════════════════════════════════════
 // R2-F1: Empty section auto-creation logic validation
 // ═══════════════════════════════════════════════════════════

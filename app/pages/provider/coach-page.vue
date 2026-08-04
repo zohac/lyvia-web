@@ -55,6 +55,10 @@ import SystemAlert from '~/components/atoms/SystemAlert.vue'
 import FeatureGate from '~/components/molecules/FeatureGate.vue'
 import { useFeatureGate } from '~/features/plans/useFeatureGate'
 import { FEATURE_COACH_PAGE_PREMIUM_TEMPLATES } from '~/features/plans/domain/feature-codes'
+// CR 18.3b — le nom accessible de la carte verrouillée réutilise la copy 18.2
+// (A31), il ne la recopie pas : `disabled` retire la carte de l'ordre de
+// tabulation, la pastille 🔒 « Premium » n'était donc jamais annoncée.
+import { featureGateLockTitle } from '~/features/plans/domain/feature-gate-copy'
 import {
   PREMIUM_TEMPLATE_BADGE_LABEL,
   isTemplateLocked,
@@ -478,14 +482,26 @@ async function onSelectTemplate(templateId: string) {
   // Story 18.3b — garde de défense : la carte est déjà `disabled`, mais un clic
   // ne doit JAMAIS partir en API pour un template verrouillé (clavier, DevTools,
   // course avec la résolution du plan).
-  const target = templates.value.find(t => t.id === templateId)
-  if (target && isTemplateLocked(target, hasPremiumTemplates.value)) return
+  //
+  // 🚨 CR 18.3b — la garde lit `templateCards` (verrou DÉJÀ calculé) et non
+  // `templates` + un second `isTemplateLocked` : une seule source de vérité pour
+  // le verrou, et surtout un échec FERMÉ. La version précédente s'écrivait
+  // `if (target && isTemplateLocked(...)) return` : un id absent de la liste
+  // (appel programmatique, liste rafraîchie entre le rendu et le clic) donnait
+  // `target === undefined`, sautait la garde et partait en API — exactement le
+  // chemin DevTools que ce commentaire prétend couvrir.
+  const card = templateCards.value.find(c => c.id === templateId)
+  if (!card || card.locked) return
   const result = await saveTemplate(templateId)
   if (result.ok) {
     toast.add({ title: 'Template mis à jour', color: 'primary' })
   } else {
     const message = getCoachPageTemplateSaveErrorToast(result.errorCode)
-    toast.add({ title: message.title, description: message.description, color: 'error' })
+    // `null` → le toast global 18.2 a déjà parlé (403 FEATURE_NOT_AVAILABLE) :
+    // en ajouter un second, générique, brouillerait le message.
+    if (message) {
+      toast.add({ title: message.title, description: message.description, color: 'error' })
+    }
   }
 }
 
@@ -805,11 +821,21 @@ function externalSection(section: string) {
               :class="[
                 tmpl.id === selectedTemplateId
                   ? 'border-[color:var(--color-brand-primary)] bg-[color:var(--color-surface-card)] shadow-md'
-                  : 'border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] hover:border-[color:var(--color-brand-accent)]',
+                  : 'border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)]',
+                // 🚨 CR 18.3b — le survol n'est proposé QUE si la carte est
+                // cliquable : `:disabled` ne coupe pas `:hover` (les pointer
+                // events restent actifs), donc une carte verrouillée s'illuminait
+                // en accent sous le curseur tout en affichant `cursor-not-allowed`.
+                tmpl.id !== selectedTemplateId && !tmpl.locked
+                  ? 'hover:border-[color:var(--color-brand-accent)]'
+                  : '',
                 tmpl.locked ? 'cursor-not-allowed opacity-60' : ''
               ]"
               :disabled="saving || tmpl.locked"
               :data-testid="tmpl.locked ? 'coach-template-card-locked' : 'coach-template-card'"
+              :aria-label="tmpl.locked
+                ? `${tmpl.name} — ${PREMIUM_TEMPLATE_BADGE_LABEL} : ${featureGateLockTitle(FEATURE_COACH_PAGE_PREMIUM_TEMPLATES)}`
+                : undefined"
               @click="onSelectTemplate(tmpl.id)"
             >
               <!--
@@ -886,45 +912,58 @@ function externalSection(section: string) {
         commentaire : plusieurs tests structurels cherchent la chaîne dans le
         source, et un second exemplaire en commentaire les rendrait vacants
         (constaté par mutation pendant la 18.3b).
+
+        ⚠️ Même règle pour la balise ouvrante du gate (`FeatureGate` + son
+        attribut `feature`) : ne l'écrire nulle part en commentaire. Les suites
+        `coach-page-branding` et `coach-page-toggles-inline` la cherchent aussi.
       -->
         <div
           id="section-branding"
           class="mb-10"
         >
-          <FeatureGate feature="white_label_branding">
-            <section
-              class="overflow-hidden rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
-            >
-              <!-- Header avec gradient + icon badge + status pill -->
-              <div class="border-b border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-highlight)] to-[color:var(--color-surface-card)] px-6 py-5">
-                <div class="flex items-start justify-between gap-4">
-                  <div class="flex items-start gap-3">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-brand-primary)]/10">
-                      <UIcon
-                        name="i-lucide-sparkles"
-                        class="size-5 text-[color:var(--color-brand-primary)]"
-                      />
-                    </div>
-                    <div>
-                      <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
-                        Identité de marque
-                      </h2>
-                      <p class="mt-0.5 text-sm text-[color:var(--color-brand-secondary)]">
-                        Logo et nom affichés dans le header de votre page publique et dans tous les emails envoyés à vos clientes.
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    class="shrink-0 rounded-full px-3 py-1 text-xs font-medium"
-                    :class="(brandingForm.brandName?.trim() || hasBrandLogo)
-                      ? 'bg-[color:var(--color-brand-primary)]/10 text-[color:var(--color-brand-primary)]'
-                      : 'bg-[color:var(--color-surface-page)] text-[color:var(--color-brand-muted)]'"
-                  >
-                    {{ (brandingForm.brandName?.trim() || hasBrandLogo) ? 'Personnalisée' : 'Keova par défaut' }}
-                  </span>
-                </div>
-              </div>
+          <section
+            class="overflow-hidden rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
+          >
+            <!--
+              Header avec gradient + icon badge + status pill.
 
+              🚨 Story 18.3b (CR, décision Simon) — le bandeau de titre vit HORS
+              du `<FeatureGate>`, comme l'ancre : verrouillée, la section reste
+              NOMMÉE (« Identité de marque ») et garde son repère `<section>`.
+              Auparavant le `<h2>` était à l'intérieur du gate, et une provider
+              Essentiel ne voyait qu'une carte d'upsell anonyme coincée entre
+              « Template » et les sections publiques. Seul le CORPS est remplacé.
+            -->
+            <div class="border-b border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-highlight)] to-[color:var(--color-surface-card)] px-6 py-5">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-brand-primary)]/10">
+                    <UIcon
+                      name="i-lucide-sparkles"
+                      class="size-5 text-[color:var(--color-brand-primary)]"
+                    />
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                      Identité de marque
+                    </h2>
+                    <p class="mt-0.5 text-sm text-[color:var(--color-brand-secondary)]">
+                      Logo et nom affichés dans le header de votre page publique et dans tous les emails envoyés à vos clientes.
+                    </p>
+                  </div>
+                </div>
+                <span
+                  class="shrink-0 rounded-full px-3 py-1 text-xs font-medium"
+                  :class="(brandingForm.brandName?.trim() || hasBrandLogo)
+                    ? 'bg-[color:var(--color-brand-primary)]/10 text-[color:var(--color-brand-primary)]'
+                    : 'bg-[color:var(--color-surface-page)] text-[color:var(--color-brand-muted)]'"
+                >
+                  {{ (brandingForm.brandName?.trim() || hasBrandLogo) ? 'Personnalisée' : 'Keova par défaut' }}
+                </span>
+              </div>
+            </div>
+
+            <FeatureGate feature="white_label_branding">
               <!-- Live preview tiles : header public + email -->
               <div class="grid grid-cols-1 gap-3 border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4 sm:grid-cols-2">
                 <div class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-card)] p-4 shadow-sm ring-1 ring-[color:var(--color-border-subtle)]">
@@ -1152,8 +1191,8 @@ function externalSection(section: string) {
                   Enregistrer
                 </UButton>
               </div>
-            </section>
-          </FeatureGate>
+            </FeatureGate>
+          </section>
         </div>
 
         <!-- ═══════ 3. SECTIONS DE LA PAGE PUBLIQUE ═══════

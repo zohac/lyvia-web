@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import type { PlanFeatureCode } from '~/features/plans/domain/feature-codes'
 import {
   FEATURE_GATE_CTA_LABEL,
@@ -43,6 +43,20 @@ watch(
   },
   { immediate: true }
 )
+
+// 🚨 Story 18.3b (CR, décision Simon) — le watcher ci-dessus ne relance QUE sur
+// `'unknown'` : un gate monté alors que le state porte déjà `'error'` (tentative
+// échouée plus tôt dans la session) restait verrouillé DÉFINITIVEMENT, y compris
+// pour une coach Premium, qui se voyait proposer d'acheter le plan qu'elle a
+// déjà. Le docblock d'`ensureLoaded` promettait « un remount retente » — c'était
+// faux tant que ce crochet n'existait pas, `'error'` n'étant jamais `'unknown'`.
+//
+// `onMounted` et pas le watcher : un `if (value !== 'ready')` dans le watcher
+// retenterait aussi sur la transition `'unknown' → 'error'` de la tentative en
+// cours, soit un second appel immédiat au même échec.
+onMounted(() => {
+  if (status.value === 'error') void ensureLoaded()
+})
 
 const unlocked = computed(() => hasFeature(props.feature))
 const lockTitle = computed(() => featureGateLockTitle(props.feature))

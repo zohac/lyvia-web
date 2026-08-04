@@ -180,7 +180,12 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
     const tail = source.slice(gateIdx)
     const closingIdx = tail.indexOf('</FeatureGate>')
     const block = closingIdx >= 0 ? tail.slice(0, closingIdx) : tail
-    assert.match(block, /<section/, 'le <section> branding doit rester dans le gate')
+    // 🚨 CR 18.3b — le `<section>` et son titre vivent désormais HORS du gate
+    // (la section reste nommée verrouillée) ; seul le CORPS est gaté. On
+    // vérifie donc que la section ENVELOPPE le gate, et que les champs
+    // premium, eux, restent bien à l'intérieur.
+    const sectionIdx = source.lastIndexOf('<section', gateIdx)
+    assert.ok(sectionIdx >= 0 && sectionIdx < gateIdx, 'le <section> branding doit envelopper le gate')
     assert.match(block, /@click="handleBrandingSubmit"/)
     assert.match(block, />\s*Enregistrer\s*</)
   })
@@ -191,13 +196,15 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
     // assertions AC-2/AC-3/AC-5 ci-dessus continuent donc de porter, et ce test
     // ajoute la garantie que le wrap existe bien.
     const source = readCoachPage()
+    // CR 18.3b — MARKUP (commentaires retirés) dès la première assertion : le
+    // garde-fou posé dans le source ne couvrait que `id="section-branding"`, pas
+    // la chaîne `<FeatureGate feature="…">`. Une mention en commentaire aurait
+    // suffi à rendre ces assertions vacantes.
+    const markup = source.replace(/<!--[\s\S]*?-->/g, '')
     assert.match(source, /import FeatureGate from '~\/components\/molecules\/FeatureGate\.vue'/)
-    assert.match(source, /<FeatureGate feature="white_label_branding">/)
+    assert.match(markup, /<FeatureGate feature="white_label_branding">/)
 
     // L'ancre survit au verrouillage : elle est sur le wrapper, hors du gate.
-    // Recherche sur le MARKUP (commentaires retirés) — une mention en docblock
-    // rendrait l'assertion vacante.
-    const markup = source.replace(/<!--[\s\S]*?-->/g, '')
     const anchorIdx = markup.indexOf('id="section-branding"')
     assert.ok(anchorIdx >= 0, 'l\'ancre #section-branding doit exister dans le markup')
     assert.ok(
