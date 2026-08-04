@@ -10,8 +10,15 @@
  */
 
 import type { StatusBadgeVariant } from '~/composables/useAdminBadges'
+import type { PlanSlug } from '~/features/plans/domain/plan-slugs'
 
-export type PlanSlug = 'essentiel' | 'premium' | 'fondatrice'
+/**
+ * Story 18.2 — `PlanSlug` a migré vers `features/plans/domain/plan-slugs.ts`
+ * (partagé avec le feature gating provider). Re-exporté ici pour ne casser
+ * aucun call-site admin : la doctrine « never redeclare » ci-dessus reste
+ * intacte — le type n'existe toujours qu'à UN endroit.
+ */
+export type { PlanSlug }
 
 /**
  * ⚠️ Aucune valeur vide : un `USelect` Reka UI avec `value: ''` crash
