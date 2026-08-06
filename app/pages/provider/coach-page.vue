@@ -50,6 +50,20 @@ import type { ProgramResponse, PublicProgramListItem } from '~/features/programs
 import CoachPagePreviewPanel from '~/components/organisms/CoachPagePreviewPanel.vue'
 import FormControl from '~/components/molecules/FormControl.vue'
 import SystemAlert from '~/components/atoms/SystemAlert.vue'
+// Story 18.3b — imports EXPLICITES : `app/features/**` n'est pas auto-importé,
+// et `FeatureGate` suit le pattern maison `FormControl`/`SystemAlert`.
+import FeatureGate from '~/components/molecules/FeatureGate.vue'
+import { useFeatureGate } from '~/features/plans/useFeatureGate'
+import { FEATURE_COACH_PAGE_PREMIUM_TEMPLATES } from '~/features/plans/domain/feature-codes'
+// CR 18.3b — le nom accessible de la carte verrouillée réutilise la copy 18.2
+// (A31), il ne la recopie pas : `disabled` retire la carte de l'ordre de
+// tabulation, la pastille 🔒 « Premium » n'était donc jamais annoncée.
+import { featureGateLockTitle } from '~/features/plans/domain/feature-gate-copy'
+import {
+  PREMIUM_TEMPLATE_BADGE_LABEL,
+  isTemplateLocked,
+  resolvePremiumTemplatesAccess
+} from '~/features/plans/domain/template-lock'
 
 definePageMeta({
   layout: 'provider',
@@ -421,15 +435,73 @@ function setPreviewDevice(next: 'desktop' | 'mobile'): void {
   previewState.setDevice(next)
 }
 
+// ── Feature gating (Story 18.3b) ──
+// `useFeatureGate` porte son PROPRE `GET /provider/account`, session-cached et
+// dédupliqué : c'est le seul fetch supplémentaire autorisé sur cette page. Le
+// store éditeur (`useCoachPageEditor`, story 0-26) est un singleton distinct
+// qu'on ne double surtout pas.
+//
+// L'amorçage explicite ici sert le sélecteur de template (qui n'est PAS
+// enveloppé dans un `<FeatureGate>`) ; le `<FeatureGate>` de la section
+// branding déclenche de son côté le même chargement, et la déduplication 18.2
+// garantit une seule requête.
+const gate = useFeatureGate()
+void gate.ensureLoaded()
+
+/**
+ * Accès aux templates premium.
+ *
+ * Pendant `status === 'unknown'`, présumé ouvert : aucune carte ne clignote en
+ * verrouillé pendant la résolution du plan (AC #2). Politique et justification
+ * dans `resolvePremiumTemplatesAccess`.
+ */
+const hasPremiumTemplates = computed(() =>
+  resolvePremiumTemplatesAccess(
+    gate.status.value,
+    gate.hasFeature(FEATURE_COACH_PAGE_PREMIUM_TEMPLATES)
+  )
+)
+
+/**
+ * Cartes du sélecteur, décorées de leur état de verrouillage.
+ *
+ * Checklist DRY intra-story : le booléen est calculé UNE seule fois par carte
+ * puis consommé par `:disabled`, la pastille et les classes — jamais recalculé
+ * dans le template.
+ */
+const templateCards = computed(() =>
+  templates.value.map(tmpl => ({
+    ...tmpl,
+    locked: isTemplateLocked(tmpl, hasPremiumTemplates.value)
+  }))
+)
+
 // ── Template selection (F4: explicit TEMPLATE_NOT_AVAILABLE handling) ──
 async function onSelectTemplate(templateId: string) {
   if (saving.value || templateId === selectedTemplateId.value) return
+  // Story 18.3b — garde de défense : la carte est déjà `disabled`, mais un clic
+  // ne doit JAMAIS partir en API pour un template verrouillé (clavier, DevTools,
+  // course avec la résolution du plan).
+  //
+  // 🚨 CR 18.3b — la garde lit `templateCards` (verrou DÉJÀ calculé) et non
+  // `templates` + un second `isTemplateLocked` : une seule source de vérité pour
+  // le verrou, et surtout un échec FERMÉ. La version précédente s'écrivait
+  // `if (target && isTemplateLocked(...)) return` : un id absent de la liste
+  // (appel programmatique, liste rafraîchie entre le rendu et le clic) donnait
+  // `target === undefined`, sautait la garde et partait en API — exactement le
+  // chemin DevTools que ce commentaire prétend couvrir.
+  const card = templateCards.value.find(c => c.id === templateId)
+  if (!card || card.locked) return
   const result = await saveTemplate(templateId)
   if (result.ok) {
     toast.add({ title: 'Template mis à jour', color: 'primary' })
   } else {
     const message = getCoachPageTemplateSaveErrorToast(result.errorCode)
-    toast.add({ title: message.title, description: message.description, color: 'error' })
+    // `null` → le toast global 18.2 a déjà parlé (403 FEATURE_NOT_AVAILABLE) :
+    // en ajouter un second, générique, brouillerait le message.
+    if (message) {
+      toast.add({ title: message.title, description: message.description, color: 'error' })
+    }
   }
 }
 
@@ -735,19 +807,55 @@ function externalSection(section: string) {
             Template
           </h2>
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <!--
+              Story 18.3b — verrouillage CARTE PAR CARTE (et non un
+              <FeatureGate> de section) : le template Standard reste toujours
+              sélectionnable, exigence PRD. `tmpl.locked` est calculé une seule
+              fois par carte dans `templateCards`.
+            -->
             <button
-              v-for="tmpl in templates"
+              v-for="tmpl in templateCards"
               :key="tmpl.id"
               type="button"
               class="relative rounded-xl border-2 p-5 text-left transition-all"
               :class="[
                 tmpl.id === selectedTemplateId
                   ? 'border-[color:var(--color-brand-primary)] bg-[color:var(--color-surface-card)] shadow-md'
-                  : 'border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] hover:border-[color:var(--color-brand-accent)]'
+                  : 'border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)]',
+                // 🚨 CR 18.3b — le survol n'est proposé QUE si la carte est
+                // cliquable : `:disabled` ne coupe pas `:hover` (les pointer
+                // events restent actifs), donc une carte verrouillée s'illuminait
+                // en accent sous le curseur tout en affichant `cursor-not-allowed`.
+                tmpl.id !== selectedTemplateId && !tmpl.locked
+                  ? 'hover:border-[color:var(--color-brand-accent)]'
+                  : '',
+                tmpl.locked ? 'cursor-not-allowed opacity-60' : ''
               ]"
-              :disabled="saving"
+              :disabled="saving || tmpl.locked"
+              :data-testid="tmpl.locked ? 'coach-template-card-locked' : 'coach-template-card'"
+              :aria-label="tmpl.locked
+                ? `${tmpl.name} — ${PREMIUM_TEMPLATE_BADGE_LABEL} : ${featureGateLockTitle(FEATURE_COACH_PAGE_PREMIUM_TEMPLATES)}`
+                : undefined"
               @click="onSelectTemplate(tmpl.id)"
             >
+              <!--
+                Pastille de verrouillage — coin haut-droit, à un décalage
+                DISTINCT du check de sélection (`right-3 top-3`) : un template
+                verrouillé n'est jamais le template sélectionné, les deux ne
+                coexistent donc jamais, mais les positions restent séparées pour
+                la lisibilité du code.
+              -->
+              <span
+                v-if="tmpl.locked"
+                class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-[color:var(--color-surface-highlight)] px-2.5 py-1 text-xs font-medium text-[color:var(--color-text-muted)]"
+                data-testid="coach-template-premium-badge"
+              >
+                <UIcon
+                  name="i-lucide-lock"
+                  class="size-3"
+                />
+                {{ PREMIUM_TEMPLATE_BADGE_LABEL }}
+              </span>
               <div
                 v-if="tmpl.id === selectedTemplateId"
                 class="absolute right-3 top-3"
@@ -788,269 +896,304 @@ function externalSection(section: string) {
         tous les emails. Pas de switch (toujours active, fallback Keova si vide).
         Placée en position 2 (après Template) car c'est de la config foundationnelle,
         pas une section de la page publique.
+
+        Story 18.3b — section 100 % premium (`white_label_branding`) : elle est
+        intégralement REMPLACÉE par le panneau de verrouillage 18.2 pour un plan
+        Essentiel. Rien n'est flouté ni masqué : les inputs `brandName` et le
+        widget d'upload ne sont tout simplement pas montés, donc aucun contenu
+        focusable ne subsiste derrière le lock.
+
+        L'ancre `#section-branding` est portée par le WRAPPER, rendu dans les
+        DEUX états — prévention « ancre vers un élément inexistant » (Convention
+        ancres conditionnelles, retro Feature Y). Le `mb-10` a suivi sur le
+        wrapper pour que l'espacement soit identique verrouillé ou non.
+
+        ⚠️ Ne PAS réécrire l'attribut ci-dessus en toutes lettres dans ce
+        commentaire : plusieurs tests structurels cherchent la chaîne dans le
+        source, et un second exemplaire en commentaire les rendrait vacants
+        (constaté par mutation pendant la 18.3b).
+
+        ⚠️ Même règle pour la balise ouvrante du gate (`FeatureGate` + son
+        attribut `feature`) : ne l'écrire nulle part en commentaire. Les suites
+        `coach-page-branding` et `coach-page-toggles-inline` la cherchent aussi.
       -->
-        <section
+        <div
           id="section-branding"
-          class="mb-10 overflow-hidden rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
+          class="mb-10"
         >
-          <!-- Header avec gradient + icon badge + status pill -->
-          <div class="border-b border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-highlight)] to-[color:var(--color-surface-card)] px-6 py-5">
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex items-start gap-3">
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-brand-primary)]/10">
-                  <UIcon
-                    name="i-lucide-sparkles"
-                    class="size-5 text-[color:var(--color-brand-primary)]"
-                  />
-                </div>
-                <div>
-                  <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
-                    Identité de marque
-                  </h2>
-                  <p class="mt-0.5 text-sm text-[color:var(--color-brand-secondary)]">
-                    Logo et nom affichés dans le header de votre page publique et dans tous les emails envoyés à vos clientes.
-                  </p>
-                </div>
-              </div>
-              <span
-                class="shrink-0 rounded-full px-3 py-1 text-xs font-medium"
-                :class="(brandingForm.brandName?.trim() || hasBrandLogo)
-                  ? 'bg-[color:var(--color-brand-primary)]/10 text-[color:var(--color-brand-primary)]'
-                  : 'bg-[color:var(--color-surface-page)] text-[color:var(--color-brand-muted)]'"
-              >
-                {{ (brandingForm.brandName?.trim() || hasBrandLogo) ? 'Personnalisée' : 'Keova par défaut' }}
-              </span>
-            </div>
-          </div>
+          <section
+            class="overflow-hidden rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
+          >
+            <!--
+              Header avec gradient + icon badge + status pill.
 
-          <!-- Live preview tiles : header public + email -->
-          <div class="grid grid-cols-1 gap-3 border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4 sm:grid-cols-2">
-            <div class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-card)] p-4 shadow-sm ring-1 ring-[color:var(--color-border-subtle)]">
-              <p class="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-[color:var(--color-brand-muted)]">
-                <UIcon
-                  name="i-lucide-globe"
-                  class="size-3"
-                />
-                Header de votre page publique
-              </p>
-              <div class="flex h-10 items-center gap-3 rounded-md bg-[color:var(--color-surface-page)] px-3">
-                <img
-                  v-if="logoPreviewSrc"
-                  :src="logoPreviewSrc"
-                  alt="Logo header"
-                  class="h-6 w-auto max-w-[100px] object-contain"
-                >
-                <UIcon
-                  v-else
-                  name="i-lucide-image"
-                  class="size-5 text-[color:var(--color-brand-muted)]"
-                />
-                <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                  {{ brandingForm.brandName?.trim() || 'Keova' }}
-                </span>
-              </div>
-            </div>
-
-            <div class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-card)] p-4 shadow-sm ring-1 ring-[color:var(--color-border-subtle)]">
-              <p class="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-[color:var(--color-brand-muted)]">
-                <UIcon
-                  name="i-lucide-mail"
-                  class="size-3"
-                />
-                En-tête email
-              </p>
-              <div class="flex h-10 items-center justify-center rounded-md bg-[color:var(--color-surface-highlight)] px-3">
-                <img
-                  v-if="logoPreviewSrc"
-                  :src="logoPreviewSrc"
-                  alt="Logo email"
-                  class="max-h-7 w-auto max-w-[180px] object-contain"
-                >
-                <span
-                  v-else
-                  class="text-sm font-semibold text-[color:var(--color-text-primary)]"
-                >
-                  {{ brandingForm.brandName?.trim() || 'Keova' }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Formulaire en grid 2 colonnes -->
-          <div class="px-6 py-5">
-            <SystemAlert
-              v-if="brandingError"
-              class="mb-4"
-              variant="error"
-              :description="brandingError"
-            />
-            <SystemAlert
-              v-else-if="!brandingForm.brandName?.trim() && !hasBrandLogo"
-              class="mb-4"
-              variant="info"
-              description="Renseignez votre nom de marque et téléversez votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut."
-            />
-
-            <div class="grid gap-4 sm:grid-cols-2">
-              <FormControl
-                id="brandName"
-                label="Nom de marque"
-                hint="Affiché dans le header de votre page publique et le pied de page de vos emails."
-              >
-                <template #default="{ inputAttrs }">
-                  <UInput
-                    v-model="brandingForm.brandName"
-                    v-bind="inputAttrs"
-                    class="w-full"
-                    placeholder="Ex: Sophie Jouan — Coach"
-                    :maxlength="BRAND_NAME_MAX_LENGTH"
-                  />
-                </template>
-                <template #label-aside>
-                  <span
-                    class="text-xs"
-                    :class="brandNameCharCount > BRAND_NAME_MAX_LENGTH - 10 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-                  >
-                    {{ brandNameCharCount }}/{{ BRAND_NAME_MAX_LENGTH }}
-                  </span>
-                </template>
-              </FormControl>
-
-              <!-- ── Logo upload widget (Story 0-27) ──
-              Pattern aligné sur secondary_photo (account.vue) — input file
-              caché + bouton + preview + actions Remplacer/Supprimer.
+              🚨 Story 18.3b (CR, décision Simon) — le bandeau de titre vit HORS
+              du `<FeatureGate>`, comme l'ancre : verrouillée, la section reste
+              NOMMÉE (« Identité de marque ») et garde son repère `<section>`.
+              Auparavant le `<h2>` était à l'intérieur du gate, et une provider
+              Essentiel ne voyait qu'une carte d'upsell anonyme coincée entre
+              « Template » et les sections publiques. Seul le CORPS est remplacé.
             -->
-              <div class="space-y-2">
-                <label
-                  for="brand-logo-upload"
-                  class="block text-sm font-medium text-[color:var(--color-text-primary)]"
-                >Logo</label>
-                <p class="text-xs text-[color:var(--color-brand-secondary)]">
-                  PNG transparent recommandé, max 1 Mo. Redimensionné automatiquement à 480×160 (ratio préservé).
-                </p>
-
-                <input
-                  id="brand-logo-upload"
-                  ref="logoFileInputRef"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  class="hidden"
-                  data-testid="brand-logo-file-input"
-                  @change="onLogoFileSelected"
+            <div class="border-b border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-highlight)] to-[color:var(--color-surface-card)] px-6 py-5">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-brand-primary)]/10">
+                    <UIcon
+                      name="i-lucide-sparkles"
+                      class="size-5 text-[color:var(--color-brand-primary)]"
+                    />
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                      Identité de marque
+                    </h2>
+                    <p class="mt-0.5 text-sm text-[color:var(--color-brand-secondary)]">
+                      Logo et nom affichés dans le header de votre page publique et dans tous les emails envoyés à vos clientes.
+                    </p>
+                  </div>
+                </div>
+                <span
+                  class="shrink-0 rounded-full px-3 py-1 text-xs font-medium"
+                  :class="(brandingForm.brandName?.trim() || hasBrandLogo)
+                    ? 'bg-[color:var(--color-brand-primary)]/10 text-[color:var(--color-brand-primary)]'
+                    : 'bg-[color:var(--color-surface-page)] text-[color:var(--color-brand-muted)]'"
                 >
+                  {{ (brandingForm.brandName?.trim() || hasBrandLogo) ? 'Personnalisée' : 'Keova par défaut' }}
+                </span>
+              </div>
+            </div>
 
-                <!-- État : preview locale (fichier sélectionné, pas encore uploadé) -->
-                <div
-                  v-if="logoFile && logoLocalPreview"
-                  class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-3"
-                >
-                  <div class="flex items-center gap-3">
+            <FeatureGate feature="white_label_branding">
+              <!-- Live preview tiles : header public + email -->
+              <div class="grid grid-cols-1 gap-3 border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4 sm:grid-cols-2">
+                <div class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-card)] p-4 shadow-sm ring-1 ring-[color:var(--color-border-subtle)]">
+                  <p class="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                    <UIcon
+                      name="i-lucide-globe"
+                      class="size-3"
+                    />
+                    Header de votre page publique
+                  </p>
+                  <div class="flex h-10 items-center gap-3 rounded-md bg-[color:var(--color-surface-page)] px-3">
                     <img
-                      :src="logoLocalPreview"
-                      alt="Aperçu logo"
-                      class="h-10 w-auto max-w-[120px] object-contain"
-                      data-testid="brand-logo-local-preview"
+                      v-if="logoPreviewSrc"
+                      :src="logoPreviewSrc"
+                      alt="Logo header"
+                      class="h-6 w-auto max-w-[100px] object-contain"
                     >
-                    <span class="text-xs text-[color:var(--color-brand-muted)]">
-                      {{ logoFile.name }}
+                    <UIcon
+                      v-else
+                      name="i-lucide-image"
+                      class="size-5 text-[color:var(--color-brand-muted)]"
+                    />
+                    <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">
+                      {{ brandingForm.brandName?.trim() || 'Keova' }}
                     </span>
                   </div>
-                  <div class="flex flex-wrap gap-2">
-                    <UButton
-                      :loading="logoUploading"
-                      :disabled="logoUploading"
-                      color="primary"
-                      variant="solid"
-                      size="sm"
-                      icon="i-lucide-cloud-upload"
-                      @click="handleLogoUpload"
-                    >
-                      {{ logoUploading ? 'Téléversement…' : 'Téléverser' }}
-                    </UButton>
-                    <UButton
-                      variant="ghost"
-                      size="sm"
-                      :disabled="logoUploading"
-                      @click="cancelLogoSelection"
-                    >
-                      Annuler
-                    </UButton>
-                  </div>
                 </div>
 
-                <!-- État : logo persisté en DB (pas de fichier en attente) -->
-                <div
-                  v-else-if="hasBrandLogo"
-                  class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-3"
-                >
-                  <img
-                    :src="logoServerUrl ?? ''"
-                    alt="Logo actuel"
-                    class="h-10 w-auto max-w-[120px] object-contain"
-                    data-testid="brand-logo-current-preview"
+                <div class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-card)] p-4 shadow-sm ring-1 ring-[color:var(--color-border-subtle)]">
+                  <p class="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-[color:var(--color-brand-muted)]">
+                    <UIcon
+                      name="i-lucide-mail"
+                      class="size-3"
+                    />
+                    En-tête email
+                  </p>
+                  <div class="flex h-10 items-center justify-center rounded-md bg-[color:var(--color-surface-highlight)] px-3">
+                    <img
+                      v-if="logoPreviewSrc"
+                      :src="logoPreviewSrc"
+                      alt="Logo email"
+                      class="max-h-7 w-auto max-w-[180px] object-contain"
+                    >
+                    <span
+                      v-else
+                      class="text-sm font-semibold text-[color:var(--color-text-primary)]"
+                    >
+                      {{ brandingForm.brandName?.trim() || 'Keova' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Formulaire en grid 2 colonnes -->
+              <div class="px-6 py-5">
+                <SystemAlert
+                  v-if="brandingError"
+                  class="mb-4"
+                  variant="error"
+                  :description="brandingError"
+                />
+                <SystemAlert
+                  v-else-if="!brandingForm.brandName?.trim() && !hasBrandLogo"
+                  class="mb-4"
+                  variant="info"
+                  description="Renseignez votre nom de marque et téléversez votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut."
+                />
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="brandName"
+                    label="Nom de marque"
+                    hint="Affiché dans le header de votre page publique et le pied de page de vos emails."
                   >
-                  <div class="flex flex-wrap gap-2">
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="brandingForm.brandName"
+                        v-bind="inputAttrs"
+                        class="w-full"
+                        placeholder="Ex: Sophie Jouan — Coach"
+                        :maxlength="BRAND_NAME_MAX_LENGTH"
+                      />
+                    </template>
+                    <template #label-aside>
+                      <span
+                        class="text-xs"
+                        :class="brandNameCharCount > BRAND_NAME_MAX_LENGTH - 10 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
+                      >
+                        {{ brandNameCharCount }}/{{ BRAND_NAME_MAX_LENGTH }}
+                      </span>
+                    </template>
+                  </FormControl>
+
+                  <!-- ── Logo upload widget (Story 0-27) ──
+                  Pattern aligné sur secondary_photo (account.vue) — input file
+                  caché + bouton + preview + actions Remplacer/Supprimer.
+                -->
+                  <div class="space-y-2">
+                    <label
+                      for="brand-logo-upload"
+                      class="block text-sm font-medium text-[color:var(--color-text-primary)]"
+                    >Logo</label>
+                    <p class="text-xs text-[color:var(--color-brand-secondary)]">
+                      PNG transparent recommandé, max 1 Mo. Redimensionné automatiquement à 480×160 (ratio préservé).
+                    </p>
+
+                    <input
+                      id="brand-logo-upload"
+                      ref="logoFileInputRef"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      class="hidden"
+                      data-testid="brand-logo-file-input"
+                      @change="onLogoFileSelected"
+                    >
+
+                    <!-- État : preview locale (fichier sélectionné, pas encore uploadé) -->
+                    <div
+                      v-if="logoFile && logoLocalPreview"
+                      class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-3"
+                    >
+                      <div class="flex items-center gap-3">
+                        <img
+                          :src="logoLocalPreview"
+                          alt="Aperçu logo"
+                          class="h-10 w-auto max-w-[120px] object-contain"
+                          data-testid="brand-logo-local-preview"
+                        >
+                        <span class="text-xs text-[color:var(--color-brand-muted)]">
+                          {{ logoFile.name }}
+                        </span>
+                      </div>
+                      <div class="flex flex-wrap gap-2">
+                        <UButton
+                          :loading="logoUploading"
+                          :disabled="logoUploading"
+                          color="primary"
+                          variant="solid"
+                          size="sm"
+                          icon="i-lucide-cloud-upload"
+                          @click="handleLogoUpload"
+                        >
+                          {{ logoUploading ? 'Téléversement…' : 'Téléverser' }}
+                        </UButton>
+                        <UButton
+                          variant="ghost"
+                          size="sm"
+                          :disabled="logoUploading"
+                          @click="cancelLogoSelection"
+                        >
+                          Annuler
+                        </UButton>
+                      </div>
+                    </div>
+
+                    <!-- État : logo persisté en DB (pas de fichier en attente) -->
+                    <div
+                      v-else-if="hasBrandLogo"
+                      class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-3"
+                    >
+                      <img
+                        :src="logoServerUrl ?? ''"
+                        alt="Logo actuel"
+                        class="h-10 w-auto max-w-[120px] object-contain"
+                        data-testid="brand-logo-current-preview"
+                      >
+                      <div class="flex flex-wrap gap-2">
+                        <UButton
+                          variant="outline"
+                          size="sm"
+                          icon="i-lucide-upload"
+                          type="button"
+                          @click="triggerLogoFileInput"
+                        >
+                          Remplacer
+                        </UButton>
+                        <UButton
+                          variant="ghost"
+                          size="sm"
+                          color="error"
+                          icon="i-lucide-trash-2"
+                          :loading="logoDeleting"
+                          :disabled="logoDeleting"
+                          @click="handleLogoDelete"
+                        >
+                          Supprimer
+                        </UButton>
+                      </div>
+                    </div>
+
+                    <!-- État : aucun logo (call-to-upload) -->
                     <UButton
+                      v-else
                       variant="outline"
                       size="sm"
                       icon="i-lucide-upload"
                       type="button"
+                      data-testid="brand-logo-upload-cta"
                       @click="triggerLogoFileInput"
                     >
-                      Remplacer
+                      Téléverser un logo
                     </UButton>
-                    <UButton
-                      variant="ghost"
-                      size="sm"
-                      color="error"
-                      icon="i-lucide-trash-2"
-                      :loading="logoDeleting"
-                      :disabled="logoDeleting"
-                      @click="handleLogoDelete"
+
+                    <p
+                      v-if="logoUploadError"
+                      class="text-sm text-[color:var(--color-error)]"
+                      data-testid="brand-logo-error"
                     >
-                      Supprimer
-                    </UButton>
+                      {{ logoUploadError }}
+                    </p>
                   </div>
                 </div>
-
-                <!-- État : aucun logo (call-to-upload) -->
-                <UButton
-                  v-else
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-upload"
-                  type="button"
-                  data-testid="brand-logo-upload-cta"
-                  @click="triggerLogoFileInput"
-                >
-                  Téléverser un logo
-                </UButton>
-
-                <p
-                  v-if="logoUploadError"
-                  class="text-sm text-[color:var(--color-error)]"
-                  data-testid="brand-logo-error"
-                >
-                  {{ logoUploadError }}
-                </p>
               </div>
-            </div>
-          </div>
 
-          <!-- Footer Save (Nom de marque uniquement — le logo est upload-driven) -->
-          <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-            <UButton
-              color="primary"
-              variant="solid"
-              size="sm"
-              :loading="saving"
-              :disabled="saving"
-              @click="handleBrandingSubmit"
-            >
-              Enregistrer
-            </UButton>
-          </div>
-        </section>
+              <!-- Footer Save (Nom de marque uniquement — le logo est upload-driven) -->
+              <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
+                <UButton
+                  color="primary"
+                  variant="solid"
+                  size="sm"
+                  :loading="saving"
+                  :disabled="saving"
+                  @click="handleBrandingSubmit"
+                >
+                  Enregistrer
+                </UButton>
+              </div>
+            </FeatureGate>
+          </section>
+        </div>
 
         <!-- ═══════ 3. SECTIONS DE LA PAGE PUBLIQUE ═══════
         Ordre aligné sur le rendu de la page publique coach (PO 2026-05-01) :
@@ -1305,7 +1448,7 @@ function externalSection(section: string) {
                     >
                       <button
                         type="button"
-                        class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
+                        class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
                         @click="removeProblemParagraph(idx)"
                       >
                         <UIcon
@@ -1375,7 +1518,7 @@ function externalSection(section: string) {
                     >
                       <button
                         type="button"
-                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
+                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
                         @click="removeBenefit(idx)"
                       >
                         <UIcon
@@ -1442,7 +1585,7 @@ function externalSection(section: string) {
                     >
                       <button
                         type="button"
-                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
+                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
                         @click="removePillar(idx)"
                       >
                         <UIcon
@@ -1546,7 +1689,7 @@ function externalSection(section: string) {
                     >
                       <button
                         type="button"
-                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
+                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
                         @click="removeStep(idx)"
                       >
                         <UIcon
@@ -1610,7 +1753,7 @@ function externalSection(section: string) {
                     >
                       <button
                         type="button"
-                        class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
+                        class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
                         @click="removeEducationalParagraph(idx)"
                       >
                         <UIcon
@@ -1689,7 +1832,7 @@ function externalSection(section: string) {
                   >
                     <button
                       type="button"
-                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
+                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
                       aria-label="Supprimer ce témoignage"
                       @click="removeTestimonial(idx)"
                     >
@@ -1789,7 +1932,7 @@ function externalSection(section: string) {
                   >
                     <button
                       type="button"
-                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-status-error)]"
+                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
                       @click="removeFaq(idx)"
                     >
                       <UIcon

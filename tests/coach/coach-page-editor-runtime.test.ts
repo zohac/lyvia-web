@@ -86,6 +86,9 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     imageUrl: null,
     heroImageUrl: null,
     secondaryPhotoUrl: null,
+    // Story 18.2 — champs read-only ajoutés au contrat ProviderAccountResponse.
+    plan: { slug: 'fondatrice', name: 'Fondatrice' },
+    enabledFeatures: ['custom_domain', 'white_label_branding', 'coach_page_premium_templates', 'lead_magnet'],
     updatedAt: '2026-05-01T10:00:00.000Z',
     ...overrides
   }

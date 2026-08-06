@@ -1,6 +1,7 @@
 import { ApiFetchError, isErrorResponse } from './api-error'
 import type { RefreshResponse } from '../../features/auth/api/auth.contract'
 import { useAuthState } from '../../features/auth/state/auth.state'
+import { notifyFeatureGate } from '../../features/plans/feature-gate-toast'
 
 type NitroFetchOptions = NonNullable<Parameters<typeof $fetch>[1]>
 
@@ -115,6 +116,22 @@ function getFetchErrorStatusCode(err: unknown): number {
   return 0
 }
 
+/**
+ * Story 18.2 — Capture l'instance Nuxt AVANT le `try` d'`apiFetch`.
+ *
+ * `useNuxtApp()` lève « instance unavailable » dès qu'il est appelé après un
+ * `await` : le `catch` qui déclenche le toast 403 ne peut donc pas la récupérer
+ * lui-même. Le `try` interne couvre les appels hors cycle Nuxt (tests, scripts).
+ */
+function captureNuxtApp(): ReturnType<typeof useNuxtApp> | null {
+  if (!import.meta.client) return null
+  try {
+    return useNuxtApp()
+  } catch {
+    return null
+  }
+}
+
 function getFetchErrorData(err: unknown): unknown {
   if (!isRecord(err)) return undefined
   if ('data' in err) return err.data
@@ -150,6 +167,7 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
 
   const contextFetch = getContextualFetch()
+  const nuxtApp = captureNuxtApp()
 
   try {
     return await contextFetch<T>(path, {
@@ -177,6 +195,20 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
         code: 'INVALID_REFRESH_TOKEN',
         message: 'Invalid refresh token'
       })
+    }
+
+    // Story 18.2 — Feature gating : un 403 `FEATURE_NOT_AVAILABLE` (guard 18.1
+    // ou use-cases 18.3a) déclenche un toast global.
+    //
+    // L'erreur est TOUJOURS relancée juste en dessous : le flux d'erreur de
+    // chaque appelant (mappers `*-error.ts`, états de formulaire) est inchangé.
+    if (
+      import.meta.client
+        && statusCode === 403
+        && isErrorResponse(data)
+        && data.code === 'FEATURE_NOT_AVAILABLE'
+    ) {
+      notifyFeatureGate(nuxtApp)
     }
 
     if (isErrorResponse(data)) {

@@ -1,6 +1,18 @@
 /* eslint-disable nuxt/nuxt-config-keys-order */
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { buildCspReportEndpoint, buildCspReportOnlyPolicy } from './shared/utils/csp-report-endpoint'
+
 declare const process: { env: Record<string, string | undefined> }
+
+// CSP Report-Only (0-14 AC-6) — emise UNIQUEMENT si un collecteur existe.
+// Sans DSN Sentry, `cspReportOnly` reste vide et aucun header n'est ajoute :
+// une politique Report-Only sans `report-uri` ne bloque rien et ne remonte
+// rien, elle ne produit qu'un warning navigateur (c'est ce qui avait motive
+// son retrait en YC2.2). Le mecanisme s'active en renseignant l'env var.
+const cspReportEndpoint = buildCspReportEndpoint(process.env.NUXT_PUBLIC_SENTRY_DSN)
+const cspReportOnly = cspReportEndpoint
+  ? { 'Content-Security-Policy-Report-Only': buildCspReportOnlyPolicy(cspReportEndpoint) }
+  : {}
 
 export default defineNuxtConfig({
   modules: [
@@ -101,18 +113,25 @@ export default defineNuxtConfig({
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-        'X-Powered-By': ''
-        // Note: CSP Report-Only retiré (YC2.2 console cleanup) — la politique
-        // Report-Only sans `report-uri`/`report-to` est purement informationnelle
-        // (ne bloque rien, ne remonte rien) et génère un warning navigateur.
-        // Quand un endpoint de reporting sera prêt (Sentry CSP reports ou
-        // équivalent), réactiver via la propriété `reportTo` d'un header
-        // `Content-Security-Policy` enforcing, pas Report-Only.
+        'X-Powered-By': '',
+        // CSP Report-Only (0-14 AC-6) — présente uniquement si un collecteur
+        // Sentry est configuré. Historique : retirée en YC2.2 car une politique
+        // Report-Only sans `report-uri` ne bloque rien et ne remonte rien.
+        // Elle revient ici avec un endpoint réel, en mode mesure : l'objectif
+        // est de collecter les violations avant d'envisager l'enforcement.
+        ...cspReportOnly
       }
     },
     // Static images: immutable cache (Y2.5 AC-3)
     '/images/**': {
       headers: { 'Cache-Control': 'public, max-age=31536000, immutable' }
+    },
+    // IPX-transformed images (0-14 AC-3). Le rendu est déterministe : une URL
+    // `/_ipx/<modifiers>/<source>` produit toujours le même octet-stream, donc
+    // cacheable agressivement. Sans cette règle IPX sert `max-age=14400,
+    // s-maxage=60` → Cloudflare refetch l'origine toutes les 60 s.
+    '/_ipx/**': {
+      headers: { 'Cache-Control': 'public, max-age=86400, s-maxage=3600, immutable' }
     },
     // Home page is host-dependent (platform marketing vs white-label tenant),
     // so it must stay dynamic at runtime.

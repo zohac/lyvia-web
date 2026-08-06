@@ -48,7 +48,24 @@ export function supportsEmotionalSupportSection(availableSections: readonly stri
   return availableSections.includes('emotionalSupport')
 }
 
-export function getCoachPageTemplateSaveErrorToast(errorCode?: string) {
+/**
+ * Toast à afficher après un échec de changement de template.
+ *
+ * `null` = NE RIEN AFFICHER : un toast global a déjà été émis en amont.
+ *
+ * 🚨 CR 18.3b — `FEATURE_NOT_AVAILABLE` est le code que renvoie RÉELLEMENT le
+ * gating 18.3a sur un template premium (et non `TEMPLATE_NOT_AVAILABLE`).
+ * `apiFetch` déclenche déjà pour lui le toast global 18.2 « Cette fonctionnalité
+ * nécessite un plan supérieur » + CTA, puis relance l'erreur : sans ce cas, on
+ * empilait un second toast générique « Erreur lors du changement de template ».
+ * Pire, la garde anti-spam 3 s de 18.2 pouvait absorber le toast INFORMATIF au
+ * 2ᵉ clic et ne laisser que le générique.
+ */
+export function getCoachPageTemplateSaveErrorToast(
+  errorCode?: string
+): { title: string, description?: string } | null {
+  if (errorCode === 'FEATURE_NOT_AVAILABLE') return null
+
   if (errorCode === 'TEMPLATE_NOT_AVAILABLE') {
     return {
       title: 'Ce template n\'est pas disponible pour votre compte',

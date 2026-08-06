@@ -9,6 +9,7 @@ import type {
 } from '../features/auth/api/auth.contract'
 import { resolveDashboardPath, sanitizeInternalRedirectPath } from '../features/auth/routing/auth-routing'
 import { useAuthState } from '../features/auth/state/auth.state'
+import { useFeatureGate } from '../features/plans/useFeatureGate'
 import { apiFetch } from '../services/api/apiFetch'
 import { ApiFetchError, mapAuthErrorCodeToUserMessage } from '../services/api/api-error'
 
@@ -29,6 +30,23 @@ function normalizeAuthError(err: unknown): string {
 
 export function useAuth() {
   const state = useAuthState()
+
+  /**
+   * Story 18.2 (CR) — Le gate de plan est un `useState` de session.
+   *
+   * `logout()` fait `setGuest()` puis `navigateTo('/')` : une navigation SPA,
+   * sans rechargement. Sans reset explicite, une 2ᵉ connexion dans le même
+   * onglet héritait du plan du précédent utilisateur — `ensureLoaded()`
+   * sortait tôt (`'ready'`) et `hasFeature()` répondait avec l'ancien plan.
+   * Le backend 403 toujours, mais l'UI ouvrait des sections premium à une
+   * coach Essentiel. Cas courant en démo et en support.
+   *
+   * Capturé ICI et pas dans `setGuest()` : le gate touche `useState` /
+   * `useNuxtApp`, indisponibles depuis le gestionnaire d'événement d'où part
+   * `logout()`. `invalidate()` ne referme aucun contexte — il est sûr à
+   * appeler plus tard.
+   */
+  const featureGate = useFeatureGate()
 
   const bootstrapped = useState<boolean>('auth.bootstrapped', () => false)
   type NuxtAppWithAuthBootstrap = ReturnType<typeof useNuxtApp> & {
@@ -52,6 +70,10 @@ export function useAuth() {
     state.value.user = null
     state.value.role = null
     state.value.status = 'guest'
+    // La session se termine : le plan mis en cache ne vaut plus rien. Purge le
+    // créneau de déduplication ET incrémente la génération, de sorte qu'un
+    // `GET /provider/account` encore en vol ne réinstalle pas le plan sortant.
+    featureGate.invalidate()
   }
 
   async function login(input: LoginInput): Promise<void> {

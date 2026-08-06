@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
+import { PLAN_SELECT_ITEMS, DEFAULT_PLAN_SLUG, type PlanSlug } from '~/features/admin/providers/plan-select'
 
 const props = defineProps<{
   open: boolean
@@ -23,7 +24,8 @@ const form = reactive({
   slug: '',
   siret: '',
   legalIdentifier: '',
-  isTest: false
+  isTest: false,
+  planSlug: DEFAULT_PLAN_SLUG as PlanSlug
 })
 
 const saving = ref(false)
@@ -51,6 +53,7 @@ function resetForm() {
   form.siret = ''
   form.legalIdentifier = ''
   form.isTest = false
+  form.planSlug = DEFAULT_PLAN_SLUG
 }
 
 // Auto-focus firstName on drawer open
@@ -71,7 +74,8 @@ async function handleSubmit() {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
       email: form.email.trim(),
-      slug: form.slug.trim()
+      slug: form.slug.trim(),
+      planSlug: form.planSlug
     }
     if (form.siret.trim()) body.siret = form.siret.trim()
     if (form.legalIdentifier.trim()) body.legalIdentifier = form.legalIdentifier.trim()
@@ -211,6 +215,18 @@ async function handleSubmit() {
             />
           </UFormField>
         </div>
+
+        <UFormField
+          label="Plan"
+          hint="Modifiable ensuite depuis la fiche"
+        >
+          <USelect
+            v-model="form.planSlug"
+            :items="PLAN_SELECT_ITEMS"
+            value-key="value"
+            class="w-full"
+          />
+        </UFormField>
 
         <UCheckbox
           v-model="form.isTest"

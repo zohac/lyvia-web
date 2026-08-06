@@ -1,0 +1,106 @@
+/**
+ * Construction de l'endpoint de reporting CSP a partir d'un DSN Sentry.
+ *
+ * Story 0-14 AC-6. La CSP Report-Only avait ete retiree en YC2.2 parce qu'une
+ * politique sans `report-uri` ne bloque rien et ne remonte rien : elle produit
+ * un warning navigateur pour zero benefice. On la reintroduit uniquement quand
+ * un endpoint de collecte existe reellement.
+ *
+ * Sentry expose un collecteur CSP dedie, derive du DSN :
+ *   DSN      https://<publicKey>@<host>/<projectId>
+ *   endpoint https://<host>/api/<projectId>/security/?sentry_key=<publicKey>
+ */
+
+/**
+ * Derive l'URL du collecteur CSP Sentry depuis un DSN.
+ *
+ * @returns l'URL du collecteur, ou `null` si le DSN est absent ou malforme.
+ *   Un `null` doit se traduire par l'absence totale de header CSP — jamais par
+ *   une politique sans `report-uri`.
+ */
+export function buildCspReportEndpoint(dsn: string | undefined | null): string | null {
+  if (!dsn) return null
+
+  let parsed: URL
+  try {
+    parsed = new URL(dsn)
+  } catch {
+    return null
+  }
+
+  // Le DSN porte la cle publique en username. Sans elle, Sentry rejette les rapports.
+  const publicKey = parsed.username
+  if (!publicKey) return null
+
+  // Le chemin du DSN est `/<projectId>` (eventuellement prefixe par un path).
+  const projectId = parsed.pathname.split('/').filter(Boolean).pop()
+  if (!projectId) return null
+
+  return `${parsed.origin}/api/${projectId}/security/?sentry_key=${publicKey}`
+}
+
+/**
+ * Origines de scripts tiers que le site charge REELLEMENT.
+ *
+ * Whitelistees des le depart, et non decouvertes via les rapports : sans elles,
+ * chaque page vue avec cookies acceptes produirait les memes 4 violations, en
+ * boucle et indefiniment. On paierait du quota Sentry (partage avec le projet
+ * API, ou vivent les alertes 5xx) pour redecouvrir du connu, et le bruit
+ * noierait les violations inattendues — la seule information recherchee.
+ *
+ * Deux niveaux de certitude, volontairement distingues :
+ *
+ * - **Injection verifiee dans le code** : `www.googletagmanager.com`
+ *   (`app/features/consent/google-ads-runtime.ts`, chargement de `gtag/js`) et
+ *   `www.clarity.ms` (`app/features/clarity/microsoft-clarity-runtime.ts`,
+ *   chargement de `/tag/<id>`).
+ * - **Chargements en cascade de gtag**, comportement documente de Google Ads :
+ *   `www.googleadservices.com` et `googleads.g.doubleclick.net` — cette derniere
+ *   apparait deja comme URL de conversion dans `consent-logic.ts`.
+ *
+ * Tout le reste reste volontairement hors whitelist et remontera en rapport :
+ * c'est desormais un signal exploitable, pas du bruit.
+ */
+const THIRD_PARTY_SCRIPT_ORIGINS = [
+  'https://www.googletagmanager.com',
+  'https://www.googleadservices.com',
+  'https://googleads.g.doubleclick.net',
+  'https://www.clarity.ms'
+] as const
+
+/**
+ * Politique CSP de la landing, en mode Report-Only.
+ *
+ * `unsafe-inline` sur `style-src` est requis par Nuxt UI (styles dynamiques) et
+ * par les styles inlines de Nuxt. `data:` sur `img-src` couvre les placeholders
+ * encodes ; `https:` couvre les images servies depuis S3 et les avatars coachs.
+ *
+ * Le role de cette politique est de MESURER les violations, pas de bloquer.
+ * Mais mesurer ce qu'on sait deja n'apprend rien : les tiers effectivement
+ * charges sont donc autorises d'emblee (cf. `THIRD_PARTY_SCRIPT_ORIGINS`).
+ *
+ * Pas d'entree Stripe : verifie, le front ne charge NI `js.stripe.com` NI
+ * `@stripe/stripe-js`. Le paiement passe par Stripe Checkout hebergé, atteint
+ * via `window.location.assign()` — une navigation de premier niveau, que la CSP
+ * ne gouverne pas (`form-action` ne couvre que les soumissions de formulaire).
+ * Aucune iframe Stripe n'existe cote client.
+ *
+ * `connect-src 'self' https:` reste large a dessein : il couvre les beacons de
+ * conversion et d'analytics sans les enumerer. C'est la directive a resserrer en
+ * premier le jour ou l'on visera l'enforcement.
+ */
+export function buildCspReportOnlyPolicy(reportEndpoint: string): string {
+  return [
+    'default-src \'self\'',
+    `script-src 'self' 'unsafe-inline' ${THIRD_PARTY_SCRIPT_ORIGINS.join(' ')}`,
+    'style-src \'self\' \'unsafe-inline\'',
+    'img-src \'self\' data: https:',
+    'font-src \'self\' data:',
+    'connect-src \'self\' https:',
+    'frame-src \'self\' https://www.youtube-nocookie.com https://www.youtube.com',
+    'base-uri \'self\'',
+    'form-action \'self\'',
+    'frame-ancestors \'none\'',
+    `report-uri ${reportEndpoint}`
+  ].join('; ')
+}

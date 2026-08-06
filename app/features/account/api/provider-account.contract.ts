@@ -75,6 +75,13 @@ export type ProviderAccountResponse = {
   imageUrl: string | null
   heroImageUrl: string | null
   secondaryPhotoUrl: string | null
+  // Plan & feature gating (Story 18.2) — LECTURE SEULE.
+  // Le plan se change côté admin (15-5) : ces champs n'ont volontairement PAS
+  // d'équivalent dans `UpdateProviderAccountRequest`.
+  // `plan: null` + `enabledFeatures: []` = cas défensif où l'API n'a résolu
+  // aucun accès (aucune feature accordée dans le doute).
+  plan: { slug: string, name: string } | null
+  enabledFeatures: string[]
   updatedAt?: string
 }
 
