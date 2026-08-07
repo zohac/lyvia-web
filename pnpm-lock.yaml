@@ -39,6 +39,9 @@ importers:
       '@nuxtjs/seo':
         specifier: ^3.4.0
         version: 3.4.0(@unhead/vue@2.1.12(vue@3.5.31(typescript@5.9.3)))(db0@0.3.4(better-sqlite3@12.9.0))(ioredis@5.10.1)(magicast@0.5.2)(rollup@4.60.0)(unhead@2.1.12)(unstorage@1.17.5(db0@0.3.4(better-sqlite3@12.9.0))(ioredis@5.10.1))(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)(yaml@2.8.3))(vue@3.5.31(typescript@5.9.3))(zod@3.25.76)
+      beasties:
+        specifier: 0.3.5
+        version: 0.3.5
       better-sqlite3:
         specifier: ^12.9.0
         version: 12.9.0

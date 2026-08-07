@@ -127,6 +127,17 @@ test('Clarity est autorise sur tous ses sous-domaines, pas seulement www', () =>
   assert.ok(!scriptSrc.includes('https://www.clarity.ms'))
 })
 
+// CR 0-14 : par la grammaire host-source CSP, `https://*.clarity.ms` matche les
+// sous-domaines mais PAS le domaine nu. Sans l'apex, un script servi depuis
+// `clarity.ms` relancerait la boucle de violations que le joker visait a eteindre.
+test('l\'apex clarity.ms est couvert en plus du joker de sous-domaines', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+
+  assert.ok(scriptSrc.includes('https://clarity.ms'), 'l\'apex doit etre liste a part du joker')
+})
+
 test('les hotes Google restent explicites (pas de joker sur googleapis/doubleclick)', () => {
   const policy = buildCspReportOnlyPolicy('https://e')
   const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
@@ -140,10 +151,45 @@ test('les hotes Google restent explicites (pas de joker sur googleapis/doublecli
 
 test('script-src conserve self et unsafe-inline en plus des tiers', () => {
   const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+  const sources = scriptSrc.replace('script-src ', '').split(' ')
 
   // Elargir la whitelist ne doit jamais faire perdre la base : gtag pose des
   // snippets inline, et l'app sert ses propres scripts.
-  assert.match(policy, /script-src 'self' 'unsafe-inline' https:/)
+  assert.ok(sources.includes('\'self\''))
+  assert.ok(sources.includes('\'unsafe-inline\''))
+  // CR 0-14 : l'ancienne assertion (`/script-src 'self' 'unsafe-inline' https:/`)
+  // matchait aussi le PREFIXE des origines enumerees — elle aurait valide un
+  // scheme-source `https:` nu, qui autorise n'importe quel script https : la
+  // pire regression possible de la directive. On tokenise donc.
+  assert.ok(!sources.includes('https:'), 'un scheme-source https: nu est interdit')
+})
+
+// CR 0-14 — couplage AC-2 ↔ AC-6. beasties pose `onload="this.rel='stylesheet'"`
+// sur chaque feuille asynchronisee : un event handler d'attribut, gouverne par
+// script-src et JAMAIS couvert par un nonce (CSP3). Le CSS critique inline
+// depend lui de style-src. Ce test tombe si un durcissement retire
+// `unsafe-inline` sans poser l'equivalent — ce qui eteindrait silencieusement
+// le chargement du CSS non critique sur toutes les pages publiques.
+test('durcir unsafe-inline exige un equivalent pour la bascule onload de beasties', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const directive = (name: string) => policy.split('; ').find(d => d.startsWith(`${name} `)) ?? ''
+
+  const scriptSrc = directive('script-src')
+  const scriptCoversOnload = scriptSrc.includes('\'unsafe-inline\'')
+    || (scriptSrc.includes('\'unsafe-hashes\'')
+      && scriptSrc.includes('\'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM=\''))
+  assert.ok(
+    scriptCoversOnload,
+    'script-src doit couvrir les handlers onload de beasties : unsafe-inline, ou unsafe-hashes + le hash de this.rel=\'stylesheet\''
+  )
+
+  const styleSrc = directive('style-src')
+  const styleCoversInline = styleSrc.includes('\'unsafe-inline\'')
+    || styleSrc.includes('\'sha256-')
+    || styleSrc.includes('\'nonce-')
+  assert.ok(styleCoversInline, 'style-src doit couvrir le CSS critique inline par beasties')
 })
 
 test('aucune origine Stripe n\'est whitelistee (le front ne charge pas Stripe.js)', () => {

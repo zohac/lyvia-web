@@ -45,13 +45,32 @@ test('AC-3: la routeRule IPX ne casse pas le cache des images statiques', () => 
 })
 
 // --- AC-2: critical CSS ------------------------------------------------------
-// Livré par la story 0-19 ; ce test verrouille la non-régression.
+// AC-2 est livrée par le plugin Nitro `server/plugins/critical-css.ts` (beasties)
+// — PAS par ce module, inopérant en Nuxt 4 (il ne réécrit que les routes
+// prérendues, cf. doc du plugin). Le module reste déclaré par décision de
+// périmètre 0-14 ; `beasties` est une dépendance directe depuis la CR 0-14,
+// ce module n'est donc plus son porteur dans le lockfile.
 
-test('AC-2: le module critters est enregistré (critical CSS inline)', () => {
+test('AC-2: le module critters reste déclaré (décision périmètre 0-14)', () => {
   assert.ok(
     config.includes('\'@nuxtjs/critters\''),
-    'nuxt.config.ts doit enregistrer `@nuxtjs/critters` dans `modules`'
+    'nuxt.config.ts doit conserver `@nuxtjs/critters` dans `modules` (décision périmètre 0-14)'
   )
+})
+
+// CR 0-14 : beasties est importé au runtime par le plugin critical-css. En
+// transitif seul (via critters + hoisting), un retrait de critters l'aurait
+// fait disparaître du lockfile — extinction SILENCIEUSE d'AC-2 (dégradation
+// rattrapée, aucun crash). Il doit rester une dépendance directe, et inlinée
+// dans le bundle serveur (même mécanique anti-pruning Scalingo que unhead).
+
+test('AC-2: beasties est une dépendance directe, inlinée dans le bundle serveur', () => {
+  const pkg = readFileSync(join(process.cwd(), 'package.json'), 'utf-8')
+  const dependencies = (JSON.parse(pkg) as { dependencies?: Record<string, string> }).dependencies ?? {}
+
+  assert.ok('beasties' in dependencies, 'package.json doit déclarer beasties en dependencies')
+  const externalsInline = config.slice(config.indexOf('externals'))
+  assert.match(externalsInline, /inline:\s*\[[^\]]*'beasties'/, 'nitro.externals.inline doit contenir beasties')
 })
 
 // --- AC-6: CSP Report-Only conditionnée à un collecteur ----------------------
