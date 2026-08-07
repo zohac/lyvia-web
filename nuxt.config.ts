@@ -173,11 +173,14 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    // Force-inline unhead into the server bundle.
-    // Without this, Nitro externalizes it to .output/server/node_modules/
+    // Force-inline unhead + beasties into the server bundle.
+    // Without this, Nitro externalizes them to .output/server/node_modules/
     // which gets stripped by Scalingo's "Pruning devDependencies" step.
+    // beasties (CR 0-14): same failure mode as unhead but SILENT — the
+    // critical-css plugin degrades to a no-op instead of crashing, so the
+    // regression would be invisible in production.
     externals: {
-      inline: ['unhead']
+      inline: ['unhead', 'beasties']
     }
   },
 

@@ -52,27 +52,64 @@ export function buildCspReportEndpoint(dsn: string | undefined | null): string |
  *
  * - **Injection verifiee dans le code** : `www.googletagmanager.com`
  *   (`app/features/consent/google-ads-runtime.ts`, chargement de `gtag/js`) et
- *   `www.clarity.ms` (`app/features/clarity/microsoft-clarity-runtime.ts`,
+ *   `*.clarity.ms` (`app/features/clarity/microsoft-clarity-runtime.ts`,
  *   chargement de `/tag/<id>`).
  * - **Chargements en cascade de gtag**, comportement documente de Google Ads :
  *   `www.googleadservices.com` et `googleads.g.doubleclick.net` — cette derniere
  *   apparait deja comme URL de conversion dans `consent-logic.ts`.
  *
+ * ⚠️ **Clarity est en joker de sous-domaine, et c'est deliberé.** La whitelist
+ * initiale ne portait que `www.clarity.ms`, l'hote que le code appelle
+ * explicitement. Le premier rapport CSP recu en production (KEOVA-WEB-2,
+ * 2026-08-07) a montre que ce tag charge lui-meme un SECOND script depuis un
+ * autre sous-domaine — `https://scripts.clarity.ms/0.8.69/clarity.js`, avec
+ * `www.clarity.ms/tag/<id>` comme `source-file`. Le numero de version dans le
+ * chemin indique un CDN versionne : lister les hotes un par un garantirait de
+ * re-casser au prochain changement d'infrastructure de Microsoft. Le joker reste
+ * borne a un seul fournisseur, deja autorise.
+ *
+ * L'apex est liste a part : par la grammaire host-source CSP, `https://*.clarity.ms`
+ * matche les sous-domaines mais PAS le domaine nu `clarity.ms`. Sans cette
+ * entree, un script servi depuis l'apex relancerait exactement la boucle de
+ * violations que le joker visait a eteindre (CR 0-14).
+ *
+ * Les hotes Google restent explicites : ils sont stables et documentes, et un
+ * joker y ouvrirait un domaine bien plus large.
+ *
  * Tout le reste reste volontairement hors whitelist et remontera en rapport :
- * c'est desormais un signal exploitable, pas du bruit.
+ * c'est desormais un signal exploitable, pas du bruit. La preuve : ce rapport-la
+ * est arrive seul, sans etre noye.
  */
 const THIRD_PARTY_SCRIPT_ORIGINS = [
   'https://www.googletagmanager.com',
   'https://www.googleadservices.com',
   'https://googleads.g.doubleclick.net',
-  'https://www.clarity.ms'
+  'https://*.clarity.ms',
+  // Le joker ne couvre pas l'apex (grammaire host-source CSP) — cf. doc ci-dessus.
+  'https://clarity.ms'
 ] as const
 
 /**
  * Politique CSP de la landing, en mode Report-Only.
  *
- * `unsafe-inline` sur `style-src` est requis par Nuxt UI (styles dynamiques) et
- * par les styles inlines de Nuxt. `data:` sur `img-src` couvre les placeholders
+ * ## ⚠️ Couplage avec le CSS critique (AC-2) — a lire avant tout durcissement
+ *
+ * `unsafe-inline` sur `style-src` est requis par Nuxt UI (styles dynamiques),
+ * par les styles inlines de Nuxt ET par le CSS critique que beasties inline
+ * dans chaque page publique (`server/plugins/critical-css.ts`). Le retirer au
+ * profit d'un nonce/hash sans couvrir ce bloc casserait le first paint.
+ *
+ * Plus piegeux : la bascule `onload="this.rel='stylesheet'"` que beasties pose
+ * sur chaque feuille asynchronisee est un event handler d'attribut — gouverne
+ * par `script-src`, et JAMAIS couvert par un nonce (CSP3). Retirer
+ * `unsafe-inline` de `script-src` — l'etape classique de tout enforcement —
+ * eteindrait silencieusement le chargement du CSS non critique sur toutes les
+ * pages (le `<noscript>` ne s'active pas, JS etant actif). La sortie est
+ * `'unsafe-hashes' 'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM='`
+ * (hash de `this.rel='stylesheet'`), pas un simple retrait. Un test dedie
+ * verrouille ce contrat.
+ *
+ * `data:` sur `img-src` couvre les placeholders
  * encodes ; `https:` couvre les images servies depuis S3 et les avatars coachs.
  *
  * Le role de cette politique est de MESURER les violations, pas de bloquer.
