@@ -105,10 +105,37 @@ test('script-src autorise les tiers reellement charges par le site', () => {
 
   // Injections verifiees dans le code.
   assert.ok(scriptSrc.includes('https://www.googletagmanager.com'), 'gtag (google-ads-runtime.ts)')
-  assert.ok(scriptSrc.includes('https://www.clarity.ms'), 'Clarity (microsoft-clarity-runtime.ts)')
+  assert.ok(scriptSrc.includes('https://*.clarity.ms'), 'Clarity (microsoft-clarity-runtime.ts)')
   // Chargements en cascade de gtag (Google Ads).
   assert.ok(scriptSrc.includes('https://www.googleadservices.com'))
   assert.ok(scriptSrc.includes('https://googleads.g.doubleclick.net'))
+})
+
+// Regression du premier rapport CSP recu en production (KEOVA-WEB-2, 2026-08-07).
+// `www.clarity.ms/tag/<id>` charge lui-meme `scripts.clarity.ms/<version>/clarity.js` :
+// une whitelist limitee a `www.clarity.ms` laissait donc passer une violation a
+// chaque page vue avec cookies acceptes. Ce test tombe si quelqu'un ressert le
+// joker en un hote unique.
+test('Clarity est autorise sur tous ses sous-domaines, pas seulement www', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+
+  assert.ok(scriptSrc.includes('https://*.clarity.ms'))
+  // Le joker rend l'entree exacte `https://www.clarity.ms` superflue : sa presence
+  // signalerait un retour en arriere partiel.
+  assert.ok(!scriptSrc.includes('https://www.clarity.ms'))
+})
+
+test('les hotes Google restent explicites (pas de joker sur googleapis/doubleclick)', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+
+  // Un joker sur les domaines Google ouvrirait bien plus large que le besoin :
+  // ils sont stables et documentes, donc enumerables.
+  assert.ok(!scriptSrc.includes('https://*.google'))
+  assert.ok(!scriptSrc.includes('https://*.doubleclick.net'))
 })
 
 test('script-src conserve self et unsafe-inline en plus des tiers', () => {

@@ -52,20 +52,34 @@ export function buildCspReportEndpoint(dsn: string | undefined | null): string |
  *
  * - **Injection verifiee dans le code** : `www.googletagmanager.com`
  *   (`app/features/consent/google-ads-runtime.ts`, chargement de `gtag/js`) et
- *   `www.clarity.ms` (`app/features/clarity/microsoft-clarity-runtime.ts`,
+ *   `*.clarity.ms` (`app/features/clarity/microsoft-clarity-runtime.ts`,
  *   chargement de `/tag/<id>`).
  * - **Chargements en cascade de gtag**, comportement documente de Google Ads :
  *   `www.googleadservices.com` et `googleads.g.doubleclick.net` — cette derniere
  *   apparait deja comme URL de conversion dans `consent-logic.ts`.
  *
+ * ⚠️ **Clarity est en joker de sous-domaine, et c'est deliberé.** La whitelist
+ * initiale ne portait que `www.clarity.ms`, l'hote que le code appelle
+ * explicitement. Le premier rapport CSP recu en production (KEOVA-WEB-2,
+ * 2026-08-07) a montre que ce tag charge lui-meme un SECOND script depuis un
+ * autre sous-domaine — `https://scripts.clarity.ms/0.8.69/clarity.js`, avec
+ * `www.clarity.ms/tag/<id>` comme `source-file`. Le numero de version dans le
+ * chemin indique un CDN versionne : lister les hotes un par un garantirait de
+ * re-casser au prochain changement d'infrastructure de Microsoft. Le joker reste
+ * borne a un seul fournisseur, deja autorise.
+ *
+ * Les hotes Google restent explicites : ils sont stables et documentes, et un
+ * joker y ouvrirait un domaine bien plus large.
+ *
  * Tout le reste reste volontairement hors whitelist et remontera en rapport :
- * c'est desormais un signal exploitable, pas du bruit.
+ * c'est desormais un signal exploitable, pas du bruit. La preuve : ce rapport-la
+ * est arrive seul, sans etre noye.
  */
 const THIRD_PARTY_SCRIPT_ORIGINS = [
   'https://www.googletagmanager.com',
   'https://www.googleadservices.com',
   'https://googleads.g.doubleclick.net',
-  'https://www.clarity.ms'
+  'https://*.clarity.ms'
 ] as const
 
 /**
