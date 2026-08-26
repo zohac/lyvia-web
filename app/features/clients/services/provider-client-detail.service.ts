@@ -1,6 +1,7 @@
 import type {
   ProviderClientDetailResponse,
   ResendActivationResponse,
+  ResendConsultationPaymentLinkResponse,
   UpdateProviderClientProgramRequest,
   UpdateProviderClientProgramResponse
 } from '../api/clients.contract'
@@ -49,6 +50,21 @@ export async function resendActivation(
 ): Promise<ResendActivationResponse> {
   return await apiFetch<ResendActivationResponse>(
     `/provider/clients/${clientProfileId}/resend-activation`,
+    { method: 'POST' }
+  )
+}
+
+/**
+ * Resends the payment link email of an unpaid consultation (hotfix-20).
+ * The link is evergreen (client-space URL): the email is re-delivered as-is.
+ * @param appointmentId - The consultation appointment ID.
+ * @returns Whether the payment link email was sent.
+ */
+export async function resendConsultationPaymentLink(
+  appointmentId: string
+): Promise<ResendConsultationPaymentLinkResponse> {
+  return await apiFetch<ResendConsultationPaymentLinkResponse>(
+    `/provider/appointments/${appointmentId}/payment-link/resend`,
     { method: 'POST' }
   )
 }

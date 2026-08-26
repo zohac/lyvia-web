@@ -300,6 +300,19 @@ export function isAppointmentInPast(scheduledAt: string): boolean {
 }
 
 /**
+ * Hotfix-20: the "Renvoyer le lien de paiement" button is only shown for an
+ * unpaid scheduled consultation. Hidden for paid, cancelled, completed
+ * appointments and for discovery calls (free, no payment link).
+ */
+export function canResendPaymentLink(
+  appointment: Pick<AppointmentDisplayItem, 'type' | 'status' | 'paymentStatus'>
+): boolean {
+  return appointment.type === 'consultation'
+    && appointment.status === 'scheduled'
+    && appointment.paymentStatus === 'unpaid'
+}
+
+/**
  * Partitions appointments into past and upcoming.
  * Past appointments are sorted by scheduledAt DESC (most recent first).
  * Upcoming appointments are sorted by scheduledAt ASC (next one first).
@@ -403,7 +416,8 @@ const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, string> = {
   discovery_reminder_j1: 'Rappel J-1 envoyé',
   consultation_confirmation: 'Confirmation envoyée',
   consultation_reminder_j1: 'Rappel J-1 envoyé',
-  consultation_reminder_h2: 'Rappel H-2 envoyé'
+  consultation_reminder_h2: 'Rappel H-2 envoyé',
+  consultation_payment_resend: 'Lien de paiement renvoyé'
 }
 
 /**
