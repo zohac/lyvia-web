@@ -42,6 +42,37 @@ export function mapProviderClientDetailErrorToMessage(
 }
 
 /**
+ * Maps errors from resendConsultationPaymentLink to user-friendly messages (hotfix-20).
+ */
+export function mapResendPaymentLinkErrorToMessage(
+  err: unknown,
+  fallback = 'Impossible de renvoyer le lien de paiement.'
+): string {
+  if (err instanceof ApiFetchError) {
+    if (err.apiError.code === 'NOT_A_CONSULTATION') {
+      return 'Ce rendez-vous n\'est pas une consultation à régler.'
+    }
+    if (err.apiError.code === 'APPOINTMENT_NOT_SCHEDULED') {
+      return 'Ce rendez-vous n\'est plus planifié.'
+    }
+    if (err.apiError.code === 'ALREADY_PAID') {
+      return 'Cette consultation est déjà réglée.'
+    }
+    if (err.apiError.statusCode === 401) {
+      return 'Votre session a expiré. Veuillez vous reconnecter.'
+    }
+    if (err.apiError.statusCode === 403) {
+      return 'Accès refusé.'
+    }
+    if (err.apiError.statusCode === 404) {
+      return 'Rendez-vous introuvable.'
+    }
+  }
+
+  return fallback
+}
+
+/**
  * Maps errors from updateProviderClientProgram to user-friendly messages.
  */
 export function mapUpdateProgramErrorToMessage(

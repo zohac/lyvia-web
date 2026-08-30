@@ -119,6 +119,7 @@ export type NotificationChannel
     | 'consultation_confirmation'
     | 'consultation_reminder_j1'
     | 'consultation_reminder_h2'
+    | 'consultation_payment_resend'
 
 /**
  * Notification log status.
@@ -201,6 +202,13 @@ export type ProviderClientDetailResponse = {
 export type ResendActivationResponse = {
   sent: boolean
   alreadyActivated?: boolean
+}
+
+/**
+ * Response from resending the payment link email of an unpaid consultation (hotfix-20).
+ */
+export type ResendConsultationPaymentLinkResponse = {
+  sent: boolean
 }
 
 // ============================================================================

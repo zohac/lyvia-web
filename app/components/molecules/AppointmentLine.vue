@@ -178,6 +178,23 @@
         Terminée
       </UButton>
 
+      <!-- Hotfix-20: resend payment link button (unpaid scheduled consultation only) -->
+      <UButton
+        v-if="canResendLink"
+        size="xs"
+        color="secondary"
+        variant="soft"
+        :loading="resendPending"
+        :disabled="resendPending || resendDisabled"
+        @click.stop="handleResendPaymentLink"
+      >
+        <UIcon
+          name="lucide:send"
+          class="mr-1 h-3.5 w-3.5"
+        />
+        Renvoyer le lien de paiement
+      </UButton>
+
       <!-- Status badge -->
       <UBadge
         :color="statusMeta.color"
@@ -192,6 +209,7 @@
 <script setup lang="ts">
 import type { AppointmentDisplayItem } from '../../features/clients/api/clients.contract'
 import {
+  canResendPaymentLink,
   formatAppointmentDateTime,
   getAppointmentNotificationSummary,
   getAppointmentPaymentStatusLabel,
@@ -223,16 +241,27 @@ const props = withDefaults(
      * Disable actions (e.g. during API call)
      */
     actionPending?: boolean
+    /**
+     * Hotfix-20: payment-link resend in flight for THIS appointment.
+     */
+    resendPending?: boolean
+    /**
+     * Disable resend while another appointment resend is in flight.
+     */
+    resendDisabled?: boolean
   }>(),
   {
     timezone: 'Europe/Paris',
     showActions: true,
-    actionPending: false
+    actionPending: false,
+    resendPending: false,
+    resendDisabled: false
   }
 )
 
 const emit = defineEmits<{
-  (e: 'mark-completed', payload: { appointmentId: string }): void
+  'mark-completed': [payload: { appointmentId: string }]
+  'resend-payment-link': [payload: { appointmentId: string }]
 }>()
 
 const typeLabel = computed(() => getAppointmentTypeLabel(props.appointment.type))
@@ -310,5 +339,19 @@ const canMarkCompleted = computed(() => {
 function handleMarkCompleted() {
   if (!canMarkCompleted.value || props.actionPending) return
   emit('mark-completed', { appointmentId: props.appointment.id })
+}
+
+/**
+ * Hotfix-20: the button only shows for an unpaid scheduled consultation
+ * (pure helper `canResendPaymentLink`, tested in tests/clients).
+ */
+const canResendLink = computed(() => {
+  if (!props.showActions) return false
+  return canResendPaymentLink(props.appointment)
+})
+
+function handleResendPaymentLink() {
+  if (!canResendLink.value || props.resendPending || props.resendDisabled) return
+  emit('resend-payment-link', { appointmentId: props.appointment.id })
 }
 </script>

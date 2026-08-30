@@ -15,6 +15,7 @@ import AdminSeoForm from '~/components/organisms/AdminSeoForm.vue'
 import ProviderDeactivationModal from '~/components/organisms/ProviderDeactivationModal.vue'
 import SubscriptionStatusBadge from '~/components/molecules/SubscriptionStatusBadge.vue'
 import SessionsProgress from '~/components/molecules/SessionsProgress.vue'
+import { useSupportSession } from '~/features/support-session/state/useSupportSession'
 
 definePageMeta({
   layout: 'admin',
@@ -448,6 +449,43 @@ async function reactivateProvider() {
 // Actions dropdown
 // ──────────────────────────────────────────────
 
+const supportSessionManager = useSupportSession()
+const supportConfirmOpen = ref(false)
+const supportStartPending = ref(false)
+
+const canStartSupportSession = computed(() => {
+  return detail.value?.isActive === true && !pending.value && !supportStartPending.value
+})
+
+const supportDisabledReason = computed(() => {
+  if (pending.value) return 'Chargement des données en cours'
+  if (supportStartPending.value) return 'Démarrage de session en cours'
+  if (detail.value && !detail.value.isActive) return 'Impossible de configurer l\'espace d\'une provider inactive'
+  return null
+})
+
+function openSupportConfirmModal() {
+  if (!canStartSupportSession.value) return
+  supportConfirmOpen.value = true
+}
+
+async function confirmStartSupportSession() {
+  if (supportStartPending.value) return
+  supportStartPending.value = true
+  try {
+    await supportSessionManager.start(providerId.value)
+    supportConfirmOpen.value = false
+  } catch (err: unknown) {
+    toast.add({
+      title: 'Impossible de démarrer la session d\'assistance',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    supportStartPending.value = false
+  }
+}
+
 const syncPending = ref(false)
 
 const actionItems = computed(() => [
@@ -730,16 +768,45 @@ const SEO_TARGET_ICONS: Record<string, string> = {
           </div>
 
           <!-- Actions -->
-          <UDropdownMenu :items="actionItems">
+          <div class="flex items-center gap-2">
+            <UTooltip
+              v-if="supportDisabledReason"
+              :text="supportDisabledReason"
+            >
+              <UButton
+                color="primary"
+                variant="solid"
+                size="sm"
+                icon="i-lucide-wrench"
+                disabled
+              >
+                Configurer son espace
+              </UButton>
+            </UTooltip>
+
             <UButton
-              variant="outline"
-              color="neutral"
+              v-else
+              color="primary"
+              variant="solid"
               size="sm"
-              class="rounded-full"
-              icon="i-lucide-more-vertical"
-              :loading="syncPending"
-            />
-          </UDropdownMenu>
+              icon="i-lucide-wrench"
+              :loading="supportStartPending"
+              @click="openSupportConfirmModal"
+            >
+              Configurer son espace
+            </UButton>
+
+            <UDropdownMenu :items="actionItems">
+              <UButton
+                variant="outline"
+                color="neutral"
+                size="sm"
+                class="rounded-full"
+                icon="i-lucide-more-vertical"
+                :loading="syncPending"
+              />
+            </UDropdownMenu>
+          </div>
         </div>
       </section>
 
@@ -1641,5 +1708,62 @@ const SEO_TARGET_ICONS: Record<string, string> = {
       :impact="deactivationImpact"
       @confirm="confirmDeactivation"
     />
+
+    <!-- Support Session Confirmation Modal -->
+    <UModal
+      :open="supportConfirmOpen"
+      @update:open="(v: boolean) => { supportConfirmOpen = v }"
+    >
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-brand-primary)]">
+            <UIcon
+              name="lucide:wrench"
+              size="20"
+            />
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[color:var(--color-brand-primary)]">
+              Configurer l'espace de {{ displayName }}
+            </h3>
+            <p class="text-xs text-[color:var(--color-brand-muted)]">
+              Session d'assistance technique déléguée
+            </p>
+          </div>
+        </div>
+      </template>
+      <template #body>
+        <div class="space-y-4 text-sm text-[color:var(--color-text-secondary)]">
+          <p>
+            Vous vous apprêtez à ouvrir l'espace de cette provider avec une délégation de configuration temporaire :
+          </p>
+          <ul class="list-disc pl-5 space-y-1.5 text-xs">
+            <li><strong>Durée limitée :</strong> La session expirera automatiquement après <strong>30 minutes</strong>.</li>
+            <li><strong>Surfaces autorisées :</strong> Page Coach, Mon Compte métier, Créneaux &amp; Tarifs, Disponibilités, Programmes et SEO.</li>
+            <li><strong>Sécurité &amp; Confidentialité :</strong> Aucun accès aux clientes, rendez-vous, demandes, données bancaires ou Stripe.</li>
+            <li><strong>Journalisation :</strong> Cette session d'assistance est tracée dans les logs de sécurité.</li>
+          </ul>
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton
+            variant="outline"
+            color="neutral"
+            :disabled="supportStartPending"
+            @click="supportConfirmOpen = false"
+          >
+            Annuler
+          </UButton>
+          <UButton
+            color="primary"
+            :loading="supportStartPending"
+            @click="confirmStartSupportSession"
+          >
+            Démarrer la session
+          </UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

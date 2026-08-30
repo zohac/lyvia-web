@@ -103,7 +103,10 @@
               :timezone="timezone"
               temporal-context="upcoming"
               :action-pending="actionPending"
+              :resend-pending="resendPendingId === apt.id"
+              :resend-disabled="resendPendingId !== null"
               @mark-completed="handleMarkCompleted"
+              @resend-payment-link="handleResendPaymentLink"
             />
           </div>
         </template>
@@ -124,7 +127,10 @@
               :timezone="timezone"
               temporal-context="past"
               :action-pending="actionPending"
+              :resend-pending="resendPendingId === apt.id"
+              :resend-disabled="resendPendingId !== null"
               @mark-completed="handleMarkCompleted"
+              @resend-payment-link="handleResendPaymentLink"
             />
           </div>
         </template>
@@ -160,8 +166,9 @@ import type {
 } from '../../features/clients/api/clients.contract'
 import { partitionAppointmentsByTime } from '../../features/clients/domain/clients'
 import { getProviderClientAppointments } from '../../features/clients/services/provider-client-appointments.service'
+import { resendConsultationPaymentLink } from '../../features/clients/services/provider-client-detail.service'
 import { markProviderAppointmentCompleted } from '../../features/calendar/services/provider-calendar.service'
-import { mapProviderClientsErrorToMessage } from '../../features/clients/api/clients-error'
+import { mapProviderClientsErrorToMessage, mapResendPaymentLinkErrorToMessage } from '../../features/clients/api/clients-error'
 import { ApiFetchError } from '../../services/api/api-error'
 import AppointmentFilters from '../molecules/AppointmentFilters.vue'
 import AppointmentLine from '../molecules/AppointmentLine.vue'
@@ -171,10 +178,15 @@ const props = withDefaults(
     clientProfileId: string
     timezone?: string
     defaultExpanded?: boolean
+    /**
+     * Hotfix-20: client first name used in the resend success toast.
+     */
+    clientFirstname?: string
   }>(),
   {
     timezone: 'Europe/Paris',
-    defaultExpanded: true
+    defaultExpanded: true,
+    clientFirstname: undefined
   }
 )
 
@@ -195,6 +207,9 @@ const errorMessage = ref<string | null>(null)
 
 // Action state (mark completed)
 const actionPending = ref(false)
+
+// Hotfix-20: appointment id whose payment-link resend is in flight (null = none)
+const resendPendingId = ref<string | null>(null)
 
 // Pagination
 const PAGE_SIZE = 20
@@ -299,6 +314,34 @@ async function handleMarkCompleted(payload: { appointmentId: string }): Promise<
     }
   } finally {
     actionPending.value = false
+  }
+}
+
+/**
+ * Hotfix-20: re-delivers the payment link email of an unpaid consultation.
+ * The button is loading/disabled per line while the send is in flight.
+ */
+async function handleResendPaymentLink(payload: { appointmentId: string }): Promise<void> {
+  if (resendPendingId.value) return
+  resendPendingId.value = payload.appointmentId
+
+  try {
+    const result = await resendConsultationPaymentLink(payload.appointmentId)
+    if (!result.sent) throw new Error('Payment link resend returned sent=false')
+
+    const clientFirstname = props.clientFirstname?.trim() || 'la cliente'
+    toast.add({
+      title: `Lien de paiement renvoyé à ${clientFirstname}`,
+      color: 'primary'
+    })
+  } catch (err) {
+    toast.add({
+      title: 'Erreur',
+      description: mapResendPaymentLinkErrorToMessage(err),
+      color: 'error'
+    })
+  } finally {
+    resendPendingId.value = null
   }
 }
 

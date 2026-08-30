@@ -56,6 +56,7 @@
           v-if="clientProfileId"
           :client-profile-id="clientProfileId"
           :timezone="timezoneLabel"
+          :client-firstname="client?.firstname"
         />
 
         <!-- Subscriptions section (X3.3) -->
