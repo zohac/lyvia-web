@@ -58,11 +58,10 @@ export function useAvailabilitySlotsPreview(options: {
 
     previewPending.value = true
     try {
-      const identity = await ensureProviderIdentity()
+      await ensureProviderIdentity()
       const window = buildWindow(previewPeriodDays.value)
 
       previewResponse.value = await listProviderAvailabilitySlots({
-        providerId: identity.providerId,
         type: previewType.value,
         from: window.from,
         to: window.to,

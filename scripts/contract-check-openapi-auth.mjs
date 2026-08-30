@@ -51,7 +51,10 @@ const requiredPaths = [
   '/auth/logout:',
   '/auth/me:',
   '/auth/forgot-password:',
-  '/auth/reset-password:'
+  '/auth/reset-password:',
+  '/admin/providers/{id}/support-session:',
+  '/auth/support-session/end:',
+  '/provider/availability/preview:'
 ]
 
 for (const endpoint of requiredPaths) {

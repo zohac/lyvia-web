@@ -59,19 +59,19 @@ export async function getMyProviderProfileIdentity(): Promise<ProviderProfileIde
 }
 
 export async function listProviderAvailabilitySlots(input: {
-  providerId: string
   type: AvailabilityAppointmentType
   from: string
   to: string
   limit?: number
 }): Promise<ProviderAvailabilityResponse> {
   const query = new URLSearchParams({
+    type: input.type,
     from: input.from,
     to: input.to
   })
   if (typeof input.limit === 'number') query.set('limit', String(input.limit))
 
-  return await apiFetch<ProviderAvailabilityResponse>(`/providers/${input.providerId}/availability/${input.type}?${query.toString()}`, {
+  return await apiFetch<ProviderAvailabilityResponse>(`/provider/availability/preview?${query.toString()}`, {
     method: 'GET',
     withAuth: true
   })

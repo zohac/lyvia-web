@@ -15,6 +15,8 @@ declare module 'node:assert/strict' {
     ok(value: unknown, message?: string): void
     match(actual: string, expected: RegExp, message?: string): void
     doesNotMatch(actual: string, expected: RegExp, message?: string): void
+    throws(fn: () => unknown, expected?: RegExp | ((...args: never[]) => unknown) | (new (...args: never[]) => unknown) | object, message?: string): void
+    rejects(asyncFn: () => Promise<unknown>, expected?: RegExp | ((...args: never[]) => unknown) | (new (...args: never[]) => unknown) | object, message?: string): Promise<void>
     fail(message?: string): never
   }
   export function equal(actual: unknown, expected: unknown, message?: string): void
@@ -25,6 +27,8 @@ declare module 'node:assert/strict' {
   export function ok(value: unknown, message?: string): void
   export function match(actual: string, expected: RegExp, message?: string): void
   export function doesNotMatch(actual: string, expected: RegExp, message?: string): void
+  export function throws(fn: () => unknown, expected?: RegExp | ((...args: never[]) => unknown) | (new (...args: never[]) => unknown) | object, message?: string): void
+  export function rejects(asyncFn: () => Promise<unknown>, expected?: RegExp | ((...args: never[]) => unknown) | (new (...args: never[]) => unknown) | object, message?: string): Promise<void>
   export function fail(message?: string): never
   export default assert
 }

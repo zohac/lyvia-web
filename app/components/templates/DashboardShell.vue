@@ -22,12 +22,18 @@ type GroupedNavigation = {
   groups: NavGroup[]
 }
 
-const props = defineProps<{
-  brandLabel: string
-  brandTo: string
-  navigation: GroupedNavigation
-  sidebarLabel: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    brandLabel: string
+    brandTo: string
+    navigation: GroupedNavigation
+    sidebarLabel: string
+    supportMode?: boolean
+  }>(),
+  {
+    supportMode: false
+  }
+)
 
 const _slots = defineSlots<{
   'default': () => unknown
@@ -47,7 +53,7 @@ const useKeovaLogoImage = computed(() => props.brandLabel === 'Keova')
 const STORAGE_KEY = 'keova-nav-collapsed'
 
 function getInitialCollapsedState(): Record<string, boolean> {
-  if (import.meta.server) return {}
+  if (import.meta.server || props.supportMode) return {}
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) return JSON.parse(stored)
@@ -64,7 +70,7 @@ const collapsedGroups = ref<Record<string, boolean>>(getInitialCollapsedState())
 
 function toggleGroup(key: string) {
   collapsedGroups.value[key] = !collapsedGroups.value[key]
-  if (import.meta.client) {
+  if (import.meta.client && !props.supportMode) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedGroups.value))
     } catch {
@@ -114,8 +120,8 @@ const roleBadgeColor = computed(() => {
   return 'neutral' as const
 })
 
-const userMenuItems = computed(() => [
-  [
+const userMenuItems = computed(() => {
+  const infoSection = [
     {
       label: userDisplayName.value,
       icon: 'i-lucide-user',
@@ -128,17 +134,25 @@ const userMenuItems = computed(() => [
       disabled: true,
       class: 'text-[color:var(--color-text-muted)]'
     }
-  ],
-  [
-    {
-      label: 'Se déconnecter',
-      icon: 'i-lucide-log-out',
-      color: 'error' as const,
-      disabled: isLoggingOut.value,
-      onSelect: onLogout
-    }
   ]
-])
+
+  if (props.supportMode) {
+    return [infoSection]
+  }
+
+  return [
+    infoSection,
+    [
+      {
+        label: 'Se déconnecter',
+        icon: 'i-lucide-log-out',
+        color: 'error' as const,
+        disabled: isLoggingOut.value,
+        onSelect: onLogout
+      }
+    ]
+  ]
+})
 
 function isItemActive(item: NavItem): boolean {
   if (item.match === 'prefix') return route.path.startsWith(item.to)
@@ -624,6 +638,7 @@ watch(
 
             <!-- Logout button -->
             <UButton
+              v-if="!supportMode"
               color="error"
               variant="soft"
               block

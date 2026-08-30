@@ -14,6 +14,7 @@ import {
   validateFileUpload
 } from '../../features/assets/use-asset-upload'
 import type { CredentialItem, SocialLinks } from '../../features/account/api/provider-account.contract'
+import { useSupportSession } from '../../features/support-session/state/useSupportSession'
 import FormControl from '../../components/molecules/FormControl.vue'
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
 
@@ -24,6 +25,8 @@ definePageMeta({
 })
 
 const toast = useToast()
+const supportSession = useSupportSession()
+const isSupportMode = computed(() => supportSession.isSupportActive.value)
 const { account, loading, saving, error, fetchAccount, updateAccount } = useProviderAccount()
 const { changingPassword, requestingEmailChange, changePassword, requestEmailChange } = useAuthActions()
 
@@ -429,6 +432,10 @@ async function handleMarketingSubmit() {
 }
 
 async function handleEmailChange() {
+  if (isSupportMode.value) {
+    toast.add({ title: 'Action interdite', description: 'La modification de l\'email n\'est pas autorisée en mode assistance.', color: 'warning' })
+    return
+  }
   emailChangeSuccess.value = false
   const result = await requestEmailChange({
     newEmail: emailForm.newEmail,
@@ -444,6 +451,10 @@ async function handleEmailChange() {
 }
 
 async function handlePasswordChange() {
+  if (isSupportMode.value) {
+    toast.add({ title: 'Action interdite', description: 'La modification du mot de passe n\'est pas autorisée en mode assistance.', color: 'warning' })
+    return
+  }
   passwordError.value = null
   if (passwordForm.newPassword !== passwordForm.confirmPassword) {
     passwordError.value = 'Les mots de passe ne correspondent pas.'
@@ -473,7 +484,7 @@ async function handlePasswordChange() {
     <!-- Page header -->
     <AtomsDsPageHeader
       title="Mon compte"
-      subtitle="Gérez vos informations professionnelles, votre email et votre mot de passe."
+      :subtitle="isSupportMode ? 'Gérez les informations professionnelles de la provider.' : 'Gérez vos informations professionnelles, votre email et votre mot de passe.'"
     />
 
     <!-- Loading -->
@@ -1272,7 +1283,10 @@ async function handlePasswordChange() {
       </div>
 
       <!-- Section 9: Adresse email -->
-      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+      <div
+        v-if="!isSupportMode"
+        class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]"
+      >
         <div class="flex items-start gap-4">
           <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
             <UIcon
@@ -1344,7 +1358,10 @@ async function handlePasswordChange() {
       </div>
 
       <!-- Section 10: Mot de passe -->
-      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+      <div
+        v-if="!isSupportMode"
+        class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]"
+      >
         <div class="flex items-start gap-4">
           <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
             <UIcon

@@ -2,6 +2,7 @@ import { ApiFetchError, isErrorResponse } from './api-error'
 import type { RefreshResponse } from '../../features/auth/api/auth.contract'
 import { useAuthState } from '../../features/auth/state/auth.state'
 import { notifyFeatureGate } from '../../features/plans/feature-gate-toast'
+import { invokeSupport401Handler } from './support-auth-recovery'
 
 type NitroFetchOptions = NonNullable<Parameters<typeof $fetch>[1]>
 
@@ -160,7 +161,30 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     ...fetchOptions
   } = options
 
-  const retryOn401 = retryOn401Override ?? withAuth
+  // Capture early if this request originates from a support session context
+  let isSupportRequest = false
+  if (import.meta.client && withAuth) {
+    try {
+      const authState = useAuthState()
+      if (authState.value.supportSession != null) {
+        isSupportRequest = true
+        const method = (fetchOptions.method || 'GET').toUpperCase()
+        const phase = authState.value.supportSession.phase
+        if ((phase === 'ending' || phase === 'restoring') && method !== 'GET' && method !== 'HEAD') {
+          throw new ApiFetchError({
+            statusCode: 409,
+            code: 'SUPPORT_SESSION_MUTATION_BLOCKED',
+            message: 'Les modifications sont bloquées pendant la fermeture de session'
+          })
+        }
+      }
+    } catch (e: unknown) {
+      if (e instanceof ApiFetchError) throw e
+    }
+  }
+
+  // Force retryOn401 to false for support session requests (terminal 401, no retry, no replay)
+  const retryOn401 = isSupportRequest ? false : (retryOn401Override ?? withAuth)
   const accessToken = withAuth ? resolveAccessToken(accessTokenOverride) : null
 
   const headers = new Headers(headersInit)
@@ -179,6 +203,18 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   } catch (err: unknown) {
     const statusCode = getFetchErrorStatusCode(err)
     const data = getFetchErrorData(err)
+
+    if (statusCode === 401 && withAuth) {
+      if (isSupportRequest) {
+        // Terminal 401 for support session: trigger recovery hook without retry or replay
+        await invokeSupport401Handler()
+        throw new ApiFetchError({
+          statusCode: 401,
+          code: 'SUPPORT_SESSION_EXPIRED',
+          message: 'La session d\'assistance a expiré ou a été révoquée'
+        })
+      }
+    }
 
     if (statusCode === 401 && withAuth && retryOn401) {
       const refreshed = await refreshAccessTokenOnce(baseURL)
