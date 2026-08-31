@@ -147,10 +147,14 @@ function closePopupAndScroll() {
   })
 }
 
+// Derived titles
+const sectionTitles = computed(() => props.coachProfile?.sectionTitlesJson ?? {})
+
 // Hero props
 const heroProps = computed(() => ({
   displayName: coachName.value,
   heroHeadline: props.coachProfile?.heroHeadline ?? null,
+  heroDescription: props.coachProfile?.heroDescription ?? null,
   credentials: props.coachProfile?.credentials ?? [],
   city: props.coachProfile?.city ?? null,
   profilePhotoUrl: props.coachProfile?.imageUrl ?? null,
@@ -180,6 +184,24 @@ const heroProps = computed(() => ({
     >
       <div class="absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[var(--color-brand-accent)]/30 to-transparent" />
       <div class="mx-auto max-w-5xl">
+        <div
+          v-if="sectionTitles.problemStatementEyebrow || sectionTitles.problemStatementTitle"
+          class="mb-12 text-center"
+        >
+          <span
+            v-if="sectionTitles.problemStatementEyebrow"
+            class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-accent)]"
+          >
+            {{ sectionTitles.problemStatementEyebrow }}
+          </span>
+          <h2
+            v-if="sectionTitles.problemStatementTitle"
+            class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)]"
+          >
+            {{ sectionTitles.problemStatementTitle }}
+          </h2>
+        </div>
+
         <blockquote class="relative">
           <span
             class="absolute -left-4 -top-8 font-serif text-[12rem] leading-none text-[var(--color-brand-accent)]/10 lg:-left-16"
@@ -218,11 +240,10 @@ const heroProps = computed(() => ({
       <CoachTransformationBenefits :benefits="coachProfile?.benefitsJson ?? null">
         <template #header>
           <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
-            Ce que cela apporte
+            {{ sectionTitles.benefitsEyebrow || 'Ce que cela apporte' }}
           </span>
           <h2 class="mt-6 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
-            Accompagnement ménopause
-            <span class="block text-[var(--color-brand-primary)]">personnalisé</span>
+            {{ sectionTitles.benefitsTitle || 'Accompagnement personnalisé' }}
           </h2>
         </template>
       </CoachTransformationBenefits>
@@ -275,12 +296,12 @@ const heroProps = computed(() => ({
           <!-- Bio -->
           <div class="lg:col-span-7">
             <span class="mb-6 inline-block rounded-full border border-[var(--color-brand-accent)]/30 px-6 py-2 text-xs font-medium uppercase tracking-[0.2em] text-[var(--color-brand-accent)]">
-              Qui suis-je
+              {{ sectionTitles.bioEyebrow || 'Qui suis-je' }}
             </span>
 
             <!-- H2 with SEO keyword (P-Y5) -->
             <h2 class="font-serif text-4xl leading-tight text-white">
-              Votre spécialiste ménopause — {{ coachName }}
+              {{ sectionTitles.bioTitle || `Votre spécialiste ménopause — ${coachName}` }}
             </h2>
 
             <!-- Credentials subtitle (dynamic from profile) -->
@@ -438,11 +459,10 @@ const heroProps = computed(() => ({
         <template #header>
           <div class="mb-12 text-center">
             <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-accent)]">
-              Témoignages
+              {{ sectionTitles.testimonialsEyebrow || 'Témoignages' }}
             </span>
             <h2 class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)]">
-              Leurs mots,
-              <span class="text-[var(--color-brand-primary)]">leur vérité</span>
+              {{ sectionTitles.testimonialsTitle || 'Leurs mots, leur vérité' }}
             </h2>
           </div>
         </template>
@@ -460,7 +480,18 @@ const heroProps = computed(() => ({
     <CoachPillars
       v-if="showPillars"
       :pillars="coachProfile?.pillarsJson ?? null"
-    />
+    >
+      <template #header>
+        <div class="mb-12 text-center">
+          <span class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-accent)]">
+            {{ sectionTitles.pillarsEyebrow || "L'approche" }}
+          </span>
+          <h2 class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)]">
+            {{ sectionTitles.pillarsTitle || "Les piliers de l'accompagnement" }}
+          </h2>
+        </div>
+      </template>
+    </CoachPillars>
 
     <!-- ==================== 7. COMMENT ÇA MARCHE — Le parcours (beige) ==================== -->
     <CoachHowItWorks
@@ -469,11 +500,10 @@ const heroProps = computed(() => ({
     >
       <template #header>
         <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
-          Le parcours
+          {{ sectionTitles.howItWorksEyebrow || 'Le parcours' }}
         </span>
         <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
-          Comment se déroule la séance
-          <span class="block text-[var(--color-brand-primary)]">découverte ménopause</span>
+          {{ sectionTitles.howItWorksTitle || "Comment se déroule la séance" }}
         </h2>
       </template>
     </CoachHowItWorks>
@@ -494,11 +524,10 @@ const heroProps = computed(() => ({
       >
         <template #header>
           <span class="inline-block border-b-2 border-[var(--color-brand-accent)] pb-2 text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
-            Tarifs
+            {{ sectionTitles.pricingEyebrow || 'Tarifs' }}
           </span>
           <h2 class="mt-6 mb-12 font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
-            Tarifs des séances
-            <span class="block text-[var(--color-brand-primary)]">accompagnement ménopause</span>
+            {{ sectionTitles.pricingTitle || 'Tarifs des séances' }}
           </h2>
         </template>
       </CoachPricing>
@@ -543,8 +572,14 @@ const heroProps = computed(() => ({
     >
       <div class="mx-auto max-w-3xl">
         <div class="mb-16 text-center">
+          <span
+            v-if="sectionTitles.faqEyebrow"
+            class="mb-4 inline-block text-xs font-bold uppercase tracking-[0.25em] text-[var(--color-brand-accent)]"
+          >
+            {{ sectionTitles.faqEyebrow }}
+          </span>
           <h2 class="font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)]">
-            Questions fréquentes sur l'accompagnement ménopause
+            {{ sectionTitles.faqTitle || "Questions fréquentes sur l'accompagnement" }}
           </h2>
         </div>
 

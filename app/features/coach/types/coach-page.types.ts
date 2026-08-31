@@ -30,6 +30,7 @@ export interface Testimonial {
 export interface CoachHeroProps {
   displayName: string
   heroHeadline?: string | null
+  heroDescription?: string | null
   credentials: Credential[]
   city?: string | null
   profilePhotoUrl?: string | null

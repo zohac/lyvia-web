@@ -11,11 +11,18 @@ const { reveal } = useScrollReveal()
 // (visibility rule = toggle AND content non-empty).
 const STEP_ICONS = ['i-lucide-calendar', 'i-lucide-phone', 'i-lucide-compass', 'i-lucide-heart-handshake']
 
+function normalizeIcon(iconName?: string | null, fallback = 'i-lucide-circle'): string {
+  if (!iconName || !iconName.trim()) return fallback
+  const trimmed = iconName.trim()
+  if (trimmed.startsWith('i-')) return trimmed
+  return `i-lucide-${trimmed}`
+}
+
 const steps = computed(() => {
   const apiSteps = props.steps ?? []
   return apiSteps.map((s, i) => ({
     ...s,
-    icon: STEP_ICONS[i] ?? 'i-lucide-circle'
+    icon: s.icon ? normalizeIcon(s.icon) : (STEP_ICONS[i] ?? 'i-lucide-circle')
   }))
 })
 </script>

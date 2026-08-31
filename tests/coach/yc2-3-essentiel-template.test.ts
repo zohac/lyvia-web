@@ -160,12 +160,12 @@ describe('YC2.3 — CoachPageEssentiel uses the shared visibility composable', (
   })
 })
 
-describe('YC2.3 — Essentiel excludes Signature-only sections (AC-1.4)', () => {
-  test('Essentiel does not render problemStatement (Signature exclusive)', () => {
+describe('YC2.3 / Story 0-37 — Essentiel sections coverage', () => {
+  test('Essentiel renders problemStatement when enabled (Story 0-37 AC-3)', () => {
     const template = readTemplateBlock(ESSENTIEL_PATH)
     assert.ok(
-      !/problemStatement/.test(template),
-      'Essentiel must not render problemStatement — Signature exclusive section'
+      /problemStatement/.test(template),
+      'Essentiel must render problemStatement when enabled (Story 0-37 AC-3)'
     )
   })
 

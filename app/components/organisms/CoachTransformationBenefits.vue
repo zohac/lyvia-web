@@ -6,15 +6,22 @@ const props = defineProps<CoachTransformationBenefitsProps>()
 
 const { reveal } = useScrollReveal()
 
+const DEFAULT_BENEFIT_ICON = 'i-lucide-sparkles'
+
 // P-Y3: no fallback content at organism level.
 // The parent template is responsible for mounting this component only when
 // benefits.items is non-empty (visibility rule = toggle AND content non-empty).
-const DEFAULT_BENEFIT_ICON = 'i-lucide-sparkles'
+function normalizeIcon(iconName?: string | null, fallback = DEFAULT_BENEFIT_ICON): string {
+  if (!iconName || !iconName.trim()) return fallback
+  const trimmed = iconName.trim()
+  if (trimmed.startsWith('i-')) return trimmed
+  return `i-lucide-${trimmed}`
+}
 
 const displayBenefits = computed(() =>
   (props.benefits?.items ?? []).map(item => ({
     ...item,
-    icon: item.icon || DEFAULT_BENEFIT_ICON
+    icon: normalizeIcon(item.icon)
   }))
 )
 const visionIntro = computed(() => props.benefits?.visionIntro ?? null)

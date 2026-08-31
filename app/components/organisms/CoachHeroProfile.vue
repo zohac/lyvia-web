@@ -84,8 +84,16 @@ const initials = computed(() => {
             </p>
 
             <!-- Subtitle line 2: descriptive text -->
-            <p class="mt-2 max-w-lg text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
-              <!-- TODO: Feature V — dynamiser -->
+            <p
+              v-if="heroDescription"
+              class="mt-2 max-w-lg text-lg leading-relaxed text-[var(--color-crepuscule-700)] whitespace-pre-line"
+            >
+              {{ heroDescription }}
+            </p>
+            <p
+              v-else
+              class="mt-2 max-w-lg text-lg leading-relaxed text-[var(--color-crepuscule-700)]"
+            >
               <strong>Vous faites attention… mais le poids continue de monter ?</strong><br>
               À partir de la périménopause, la prise de poids ne se résume plus à une simple question de calories.<br>
               Accompagnement global et personnalisé pour vous aider à vous sentir mieux dans votre corps… et enfin sortir de la spirale des régimes inefficaces.

@@ -73,11 +73,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 // Story 0-26 round terrain — secondary photo state migré vers /provider/coach-page
 // (section "Qui suis-je"), supprimé d'ici pour éviter la double source de vérité.
 
-// ── Hero headline form state ────────────────────────
-const heroHeadlineForm = reactive({ heroHeadline: '' })
-
-// ── Urgency text form state ─────────────────────────
-const urgencyForm = reactive({ urgencyText: '' })
+// Story 0-37 — heroHeadline et urgencyText migrés vers /provider/coach-page (section Hero)
 
 // ── Lead magnet form state ──────────────────────────
 const leadMagnetForm = reactive({
@@ -124,8 +120,6 @@ const passwordError = ref<string | null>(null)
 
 // ── Computed ────────────────────────────────────────
 const bioCharCount = computed(() => personalForm.bio?.length ?? 0)
-const heroHeadlineCharCount = computed(() => heroHeadlineForm.heroHeadline?.length ?? 0)
-const urgencyCharCount = computed(() => urgencyForm.urgencyText?.length ?? 0)
 const leadMagnetTitleCharCount = computed(() => leadMagnetForm.title?.length ?? 0)
 const criteria = computed(() => getPasswordCriteria(passwordForm.newPassword))
 const isStrong = computed(() => isPasswordStrong(passwordForm.newPassword))
@@ -162,12 +156,6 @@ function syncFormsFromAccount() {
   // Phone
   phoneForm.publicPhone = acc.publicPhone ?? ''
 
-  // Hero headline
-  heroHeadlineForm.heroHeadline = acc.heroHeadline ?? ''
-
-  // Urgency
-  urgencyForm.urgencyText = acc.urgencyText ?? ''
-
   // Lead magnet
   leadMagnetForm.url = acc.leadMagnetUrl
   leadMagnetForm.title = acc.leadMagnetTitle ?? undefined
@@ -177,7 +165,7 @@ function syncFormsFromAccount() {
   marketingForm.googleAdsConversionLabel = acc.googleAdsConversionLabel ?? undefined
   marketingForm.microsoftClarityId = acc.microsoftClarityId ?? undefined
 
-  // Story 0-26 — testimonials + email branding moved to /provider/coach-page (rapatriement inline)
+  // Story 0-26/0-37 — testimonials, branding, hero moved to /provider/coach-page
 }
 
 // ── Specialty tag handlers ──────────────────────────
@@ -335,18 +323,6 @@ async function handlePhoneSubmit() {
   if (!phoneValid.value) return
   const success = await updateAccount({
     publicPhone: phoneForm.publicPhone?.trim() || null
-  })
-  if (success) {
-    toast.add({ title: 'Informations mises à jour', color: 'primary' })
-  } else {
-    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
-  }
-}
-
-async function handleUrgencySubmit() {
-  const success = await updateAccount({
-    heroHeadline: heroHeadlineForm.heroHeadline?.trim() || null,
-    urgencyText: urgencyForm.urgencyText?.trim() || null
   })
   if (success) {
     toast.add({ title: 'Informations mises à jour', color: 'primary' })
@@ -929,88 +905,6 @@ async function handlePasswordChange() {
               type="submit"
               :loading="saving"
               :disabled="saving || !phoneValid"
-              label="Enregistrer"
-            />
-          </div>
-        </form>
-      </div>
-
-      <!-- Section 7: Message sous le bouton de réservation -->
-      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-        <div class="flex items-start gap-4">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-            <UIcon
-              name="i-lucide-message-circle"
-              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
-            />
-          </div>
-          <div>
-            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
-              Page publique
-            </h2>
-            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-              Personnalisez l'affichage de votre page de réservation.
-            </p>
-          </div>
-        </div>
-
-        <form
-          class="mt-6 grid gap-4"
-          @submit.prevent="handleUrgencySubmit"
-        >
-          <FormControl
-            id="heroHeadline"
-            label="Titre principal de votre page (optionnel)"
-            hint="Ce titre apparaît en grand sur votre page. Laissez vide pour un titre par défaut."
-            class="max-w-lg"
-          >
-            <template #default="{ inputAttrs }">
-              <UInput
-                v-model="heroHeadlineForm.heroHeadline"
-                v-bind="inputAttrs"
-                placeholder="Ex: Retrouvez votre équilibre pendant la ménopause"
-                :maxlength="200"
-              />
-            </template>
-            <template #label-aside>
-              <span
-                class="text-xs"
-                :class="heroHeadlineCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-              >
-                {{ heroHeadlineCharCount }}/200
-              </span>
-            </template>
-          </FormControl>
-
-          <FormControl
-            id="urgencyText"
-            label="Message sous le bouton de réservation (optionnel)"
-            hint="Ce texte apparaît sous le bouton 'Réserver' sur votre page publique"
-            class="max-w-lg"
-          >
-            <template #default="{ inputAttrs }">
-              <UInput
-                v-model="urgencyForm.urgencyText"
-                v-bind="inputAttrs"
-                placeholder="Ex: Prochaines disponibilités : semaine du 21 avril"
-                :maxlength="200"
-              />
-            </template>
-            <template #label-aside>
-              <span
-                class="text-xs"
-                :class="urgencyCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-              >
-                {{ urgencyCharCount }}/200
-              </span>
-            </template>
-          </FormControl>
-
-          <div>
-            <UButton
-              type="submit"
-              :loading="saving"
-              :disabled="saving"
               label="Enregistrer"
             />
           </div>

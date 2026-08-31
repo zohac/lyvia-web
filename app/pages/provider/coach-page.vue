@@ -50,6 +50,12 @@ import type { ProgramResponse, PublicProgramListItem } from '~/features/programs
 import CoachPagePreviewPanel from '~/components/organisms/CoachPagePreviewPanel.vue'
 import FormControl from '~/components/molecules/FormControl.vue'
 import SystemAlert from '~/components/atoms/SystemAlert.vue'
+import IconPicker from '~/components/molecules/IconPicker.vue'
+import {
+  parseHex,
+  getRelativeLuminance,
+  getContrastRatio
+} from '#shared/utils/brand-color-helpers'
 // Story 18.3b — imports EXPLICITES : `app/features/**` n'est pas auto-importé,
 // et `FeatureGate` suit le pattern maison `FormControl`/`SystemAlert`.
 import FeatureGate from '~/components/molecules/FeatureGate.vue'
@@ -104,12 +110,6 @@ const {
   isSectionOn,
   saveTemplate,
   saveSectionsConfig,
-  savePillars,
-  saveFaq,
-  saveBenefits,
-  saveHowItWorks,
-  saveEducationalContent,
-  saveProblemStatement,
   setBenefitsVisionIntro,
   setBenefitsVisionText,
   addBenefit,
@@ -260,6 +260,69 @@ async function handleSecondaryPhotoUpload() {
 // ── Testimonials form state (rapatrié, AC-5) ──
 const testimonialsForm = ref<TestimonialItem[]>([])
 
+// ── Hero section form state (Story 0-37 AC-1, AC-2) ──
+const heroForm = reactive({
+  heroHeadline: '',
+  heroDescription: '',
+  urgencyText: ''
+})
+const heroHeadlineCharCount = computed(() => heroForm.heroHeadline?.length ?? 0)
+const heroDescriptionCharCount = computed(() => heroForm.heroDescription?.length ?? 0)
+const urgencyCharCount = computed(() => heroForm.urgencyText?.length ?? 0)
+
+// ── Palette form state (Story 0-37 AC-5, AC-6) ──
+const paletteForm = reactive({
+  brandColor: '#5B4B6E',
+  brandAccentColor: '#D4956A'
+})
+const primaryContrastWarning = computed(() => {
+  const hex = paletteForm.brandColor?.trim()
+  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return null
+  const rgb = parseHex(hex)
+  if (!rgb) return null
+  const bgL = getRelativeLuminance(255, 255, 255)
+  const fgL = getRelativeLuminance(rgb.r, rgb.g, rgb.b)
+  const ratio = getContrastRatio(fgL, bgL)
+  if (ratio < 3.0) {
+    return 'Attention : cette couleur est très claire sur fond blanc (contraste faible).'
+  }
+  return null
+})
+const accentContrastWarning = computed(() => {
+  const hex = paletteForm.brandAccentColor?.trim()
+  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return null
+  const rgb = parseHex(hex)
+  if (!rgb) return null
+  const bgL = getRelativeLuminance(255, 255, 255)
+  const fgL = getRelativeLuminance(rgb.r, rgb.g, rgb.b)
+  const ratio = getContrastRatio(fgL, bgL)
+  if (ratio < 2.5) {
+    return 'Attention : cette couleur d\'accent est très claire (lisibilité réduite).'
+  }
+  return null
+})
+
+// ── Section Titles form state (Story 0-37 AC-4) ──
+const sectionTitlesForm = reactive({
+  bioEyebrow: '',
+  bioTitle: '',
+  benefitsEyebrow: '',
+  benefitsTitle: '',
+  problemStatement: '',
+  problemStatementEyebrow: '',
+  problemStatementTitle: '',
+  pillarsEyebrow: '',
+  pillarsTitle: '',
+  howItWorksEyebrow: '',
+  howItWorksTitle: '',
+  testimonialsEyebrow: '',
+  testimonialsTitle: '',
+  pricingEyebrow: '',
+  pricingTitle: '',
+  faqEyebrow: '',
+  faqTitle: ''
+})
+
 // ── Email branding form state (migré depuis 0-20c, refondu par 0-27) ──
 // `brandName` reste un champ texte libre. `logoUrl` n'est plus saisi en URL —
 // il est uploadé via le widget (POST /provider/assets/upload type=brand_logo)
@@ -300,6 +363,14 @@ watch(
     bioForm.longBio = acc.longBio ?? ''
     bioForm.city = acc.city ?? ''
     bioForm.region = acc.region ?? ''
+    heroForm.heroHeadline = acc.heroHeadline ?? ''
+    heroForm.heroDescription = acc.heroDescription ?? ''
+    heroForm.urgencyText = acc.urgencyText ?? ''
+    paletteForm.brandColor = acc.brandColor ?? '#5B4B6E'
+    paletteForm.brandAccentColor = acc.brandAccentColor ?? '#D4956A'
+    if (acc.sectionTitlesJson) {
+      Object.assign(sectionTitlesForm, acc.sectionTitlesJson)
+    }
     testimonialsForm.value = acc.testimonialsJson?.length
       ? acc.testimonialsJson.map(t => ({ ...t }))
       : []
@@ -337,6 +408,9 @@ type ProviderAccountRef = import('vue').Ref<
 const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
   account: account as unknown as ProviderAccountRef,
   bioForm,
+  heroForm,
+  paletteForm,
+  sectionTitlesForm,
   testimonialsForm,
   brandingForm,
   sectionsConfig,
@@ -546,12 +620,38 @@ async function flushSectionsConfigSave() {
   }
 }
 
-// ── "Qui suis-je" inline editor (AC-4) — longBio + city + region ──
+// ── Hero inline editor (Story 0-37 AC-1, AC-2) ──
+async function onSaveHero() {
+  const ok = await updateAccount({
+    heroHeadline: heroForm.heroHeadline.trim() || null,
+    heroDescription: heroForm.heroDescription.trim() || null,
+    urgencyText: heroForm.urgencyText.trim() || null
+  })
+  toast.add({
+    title: ok ? 'Hero enregistré' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+// ── Palette inline editor (Story 0-37 AC-5, AC-6) ──
+async function onSavePalette() {
+  const ok = await updateAccount({
+    brandColor: paletteForm.brandColor.trim() || null,
+    brandAccentColor: paletteForm.brandAccentColor.trim() || null
+  })
+  toast.add({
+    title: ok ? 'Palette enregistrée' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+// ── "Qui suis-je" inline editor (AC-4) — longBio + city + region + titles ──
 async function onSaveBio() {
   const ok = await updateAccount({
     longBio: bioForm.longBio.trim() || null,
     city: bioForm.city.trim() || null,
-    region: bioForm.region.trim() || null
+    region: bioForm.region.trim() || null,
+    sectionTitlesJson: { ...sectionTitlesForm }
   })
   toast.add({
     title: ok ? 'Qui suis-je enregistré' : 'Erreur d\'enregistrement',
@@ -571,9 +671,88 @@ function removeTestimonial(index: number) {
 
 async function onSaveTestimonials() {
   const filtered = testimonialsForm.value.filter(t => t.quote.trim() && t.firstName.trim())
-  const ok = await updateAccount({ testimonialsJson: filtered })
+  const ok = await updateAccount({
+    testimonialsJson: filtered,
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
   toast.add({
     title: ok ? 'Témoignages enregistrés' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+async function onSaveProblemStatementSection() {
+  const ok = await updateAccount({
+    problemStatementJson: problemStatementForm.value,
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
+  toast.add({
+    title: ok ? 'Énoncé du problème enregistré' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+async function onSaveBenefitsSection() {
+  const ok = await updateAccount({
+    benefitsJson: benefitsForm.value,
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
+  toast.add({
+    title: ok ? 'Bénéfices enregistrés' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+async function onSavePillarsSection() {
+  const ok = await updateAccount({
+    pillarsJson: pillarsForm.value,
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
+  toast.add({
+    title: ok ? 'Piliers enregistrés' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+async function onSaveHowItWorksSection() {
+  const ok = await updateAccount({
+    howItWorksJson: howItWorksForm.value.length > 0 ? howItWorksForm.value : null,
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
+  toast.add({
+    title: ok ? 'Comment ça marche enregistré' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+async function onSaveEducationalContentSection() {
+  const ok = await updateAccount({
+    educationalContentJson: educationalContentForm.value,
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
+  toast.add({
+    title: ok ? 'Contenu éducatif enregistré' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+async function onSaveFaqSection() {
+  const ok = await updateAccount({
+    faqJson: faqForm.value.length > 0 ? faqForm.value : null,
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
+  toast.add({
+    title: ok ? 'Questions fréquentes enregistrées' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+async function onSavePricingSectionTitles() {
+  const ok = await updateAccount({
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
+  toast.add({
+    title: ok ? 'Titres de la section tarifs enregistrés' : 'Erreur d\'enregistrement',
     color: ok ? 'primary' : 'error'
   })
 }
@@ -689,11 +868,6 @@ function removePillar(index: number) {
   pillarsForm.value?.items.splice(index, 1)
 }
 
-async function onSavePillars() {
-  const ok = await savePillars()
-  toast.add({ title: ok ? 'Piliers enregistrés' : 'Erreur d\'enregistrement', color: ok ? 'primary' : 'error' })
-}
-
 // ── FAQ ──
 function addFaq() {
   faqForm.value.push({ label: '', content: '' })
@@ -701,16 +875,6 @@ function addFaq() {
 
 function removeFaq(index: number) {
   faqForm.value.splice(index, 1)
-}
-
-async function onSaveFaq() {
-  const ok = await saveFaq()
-  toast.add({ title: ok ? 'FAQ enregistrée' : 'Erreur d\'enregistrement', color: ok ? 'primary' : 'error' })
-}
-
-async function onSaveBenefits() {
-  const ok = await saveBenefits()
-  toast.add({ title: ok ? 'Bénéfices enregistrés' : 'Erreur d\'enregistrement', color: ok ? 'primary' : 'error' })
 }
 
 // ── How it works ──
@@ -724,21 +888,6 @@ function removeStep(index: number) {
   howItWorksForm.value.forEach((s, i) => {
     s.number = String(i + 1)
   })
-}
-
-async function onSaveHowItWorks() {
-  const ok = await saveHowItWorks()
-  toast.add({ title: ok ? 'Étapes enregistrées' : 'Erreur d\'enregistrement', color: ok ? 'primary' : 'error' })
-}
-
-async function onSaveEducationalContent() {
-  const ok = await saveEducationalContent()
-  toast.add({ title: ok ? 'Contenu éducatif enregistré' : 'Erreur d\'enregistrement', color: ok ? 'primary' : 'error' })
-}
-
-async function onSaveProblemStatement() {
-  const ok = await saveProblemStatement()
-  toast.add({ title: ok ? 'Énoncé enregistré' : 'Erreur d\'enregistrement', color: ok ? 'primary' : 'error' })
 }
 
 // ── Section has editable form? ──
@@ -1195,35 +1344,218 @@ function externalSection(section: string) {
           </section>
         </div>
 
+        <!-- ═══════ 2.5 PALETTE DE COULEURS (Story 0-37 AC-5, AC-6) ═══════ -->
+        <section
+          id="section-palette"
+          class="mb-10 overflow-hidden rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
+        >
+          <div class="border-b border-[color:var(--color-border-subtle)] bg-gradient-to-br from-[color:var(--color-surface-highlight)] to-[color:var(--color-surface-card)] px-6 py-5">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-brand-primary)]/10">
+                  <UIcon
+                    name="i-lucide-palette"
+                    class="size-5 text-[color:var(--color-brand-primary)]"
+                  />
+                </div>
+                <div>
+                  <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                    Couleurs de marque
+                  </h2>
+                  <p class="mt-0.5 text-sm text-[color:var(--color-brand-secondary)]">
+                    Personnalisez les deux couleurs de votre page publique et de votre calendrier.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4 px-6 py-5">
+            <div class="grid gap-6 sm:grid-cols-2">
+              <div>
+                <FormControl
+                  id="brandColor"
+                  label="Couleur principale (Titres, navigation, accents)"
+                  :hint="primaryContrastWarning || 'Format hexadécimal (ex: #5B4B6E)'"
+                  :error="primaryContrastWarning ? undefined : undefined"
+                >
+                  <template #default="{ inputAttrs }">
+                    <div class="flex items-center gap-3">
+                      <input
+                        v-model="paletteForm.brandColor"
+                        type="color"
+                        class="size-10 cursor-pointer rounded-lg border border-[color:var(--color-border-subtle)] p-0.5"
+                      >
+                      <UInput
+                        v-model="paletteForm.brandColor"
+                        v-bind="inputAttrs"
+                        class="flex-1"
+                        placeholder="#5B4B6E"
+                        :maxlength="7"
+                      />
+                    </div>
+                  </template>
+                </FormControl>
+              </div>
+
+              <div>
+                <FormControl
+                  id="brandAccentColor"
+                  label="Couleur d'accent (Boutons d'action, puces, badges)"
+                  :hint="accentContrastWarning || 'Format hexadécimal (ex: #D4956A)'"
+                >
+                  <template #default="{ inputAttrs }">
+                    <div class="flex items-center gap-3">
+                      <input
+                        v-model="paletteForm.brandAccentColor"
+                        type="color"
+                        class="size-10 cursor-pointer rounded-lg border border-[color:var(--color-border-subtle)] p-0.5"
+                      >
+                      <UInput
+                        v-model="paletteForm.brandAccentColor"
+                        v-bind="inputAttrs"
+                        class="flex-1"
+                        placeholder="#D4956A"
+                        :maxlength="7"
+                      />
+                    </div>
+                  </template>
+                </FormControl>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
+            <UButton
+              color="primary"
+              variant="solid"
+              size="sm"
+              :loading="saving"
+              @click="onSavePalette"
+            >
+              Enregistrer
+            </UButton>
+          </div>
+        </section>
+
         <!-- ═══════ 3. SECTIONS DE LA PAGE PUBLIQUE ═══════
         Ordre aligné sur le rendu de la page publique coach (PO 2026-05-01) :
         hero → bio → problemStatement → benefits → pillars → howItWorks
         → pricing → educationalContent → testimonials → faq → disclaimer
       -->
 
-        <!-- Always-on header (hero) — pas de switch, juste un indicateur "Toujours visible" -->
-        <template
-          v-for="section in orderedAlwaysOnSections"
-          :key="`always-on-${section}`"
+        <!-- Hero section editor (Story 0-37 AC-1, AC-2) -->
+        <section
+          id="section-hero"
+          class="mb-10 overflow-hidden rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
         >
-          <div
-            v-if="(DISPLAY_SECTION_ORDER as readonly string[]).indexOf(section) <= DISPLAY_SECTION_ORDER.indexOf('hero')"
-            class="mb-6 flex items-center justify-between rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] px-6 py-4"
-          >
+          <div class="flex items-center justify-between border-b border-[color:var(--color-border-subtle)] px-6 py-4">
             <div class="flex items-center gap-3">
               <UIcon
-                name="i-lucide-lock"
-                class="size-4 text-[color:var(--color-text-muted)]"
+                name="i-lucide-sparkles"
+                class="size-5 text-[color:var(--color-brand-primary)]"
               />
-              <h2 class="text-base font-semibold text-[color:var(--color-text-primary)]">
-                {{ sectionLabel(section) }}
-              </h2>
+              <div>
+                <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+                  Hero (en-tête principal)
+                </h2>
+                <p class="text-xs text-[color:var(--color-brand-secondary)]">
+                  Le premier message visible par vos visiteuses en haut de votre page.
+                </p>
+              </div>
             </div>
             <span class="text-xs text-[color:var(--color-text-muted)]">
               Toujours visible
             </span>
           </div>
-        </template>
+
+          <div class="space-y-4 px-6 py-5">
+            <FormControl
+              id="heroHeadline"
+              label="Accroche / Sous-titre principal"
+              hint="Laissez vide pour afficher la spécialité par défaut"
+            >
+              <template #default="{ inputAttrs }">
+                <UInput
+                  v-model="heroForm.heroHeadline"
+                  v-bind="inputAttrs"
+                  class="w-full"
+                  placeholder="Ex: Spécialiste accompagnement ménopause à Paris"
+                  :maxlength="200"
+                />
+              </template>
+              <template #label-aside>
+                <span
+                  class="text-xs"
+                  :class="heroHeadlineCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
+                >
+                  {{ heroHeadlineCharCount }}/200
+                </span>
+              </template>
+            </FormControl>
+
+            <FormControl
+              id="heroDescription"
+              label="Description détaillée du Hero"
+              hint="Paragraphe de présentation sous le titre (supporte les sauts de ligne). Laissez vide pour le texte par défaut."
+            >
+              <template #default="{ inputAttrs }">
+                <UTextarea
+                  v-model="heroForm.heroDescription"
+                  v-bind="inputAttrs"
+                  class="w-full"
+                  placeholder="Accompagnement personnalisé en périménopause et ménopause..."
+                  :maxlength="1000"
+                  :rows="4"
+                />
+              </template>
+              <template #label-aside>
+                <span
+                  class="text-xs"
+                  :class="heroDescriptionCharCount > 900 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
+                >
+                  {{ heroDescriptionCharCount }}/1000
+                </span>
+              </template>
+            </FormControl>
+
+            <FormControl
+              id="urgencyText"
+              label="Message de réassurance sous le bouton CTA"
+              hint="Ex: Prochaines disponibilités la semaine prochaine"
+            >
+              <template #default="{ inputAttrs }">
+                <UInput
+                  v-model="heroForm.urgencyText"
+                  v-bind="inputAttrs"
+                  class="w-full"
+                  placeholder="Ex: Prochaines disponibilités : semaine du 21 avril"
+                  :maxlength="200"
+                />
+              </template>
+              <template #label-aside>
+                <span
+                  class="text-xs"
+                  :class="urgencyCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
+                >
+                  {{ urgencyCharCount }}/200
+                </span>
+              </template>
+            </FormControl>
+          </div>
+
+          <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
+            <UButton
+              color="primary"
+              variant="solid"
+              size="sm"
+              :loading="saving"
+              @click="onSaveHero"
+            >
+              Enregistrer
+            </UButton>
+          </div>
+        </section>
 
         <!-- ═══════ 3. SECTION EDITORS — ordre aligné sur la page publique ═══════ -->
         <template
@@ -1256,20 +1588,60 @@ function externalSection(section: string) {
                 />
               </label>
             </div>
-            <div
-              v-if="isSectionOn(section)"
-              class="flex justify-end px-6 py-4"
-            >
-              <UButton
-                :to="externalSection(section)?.to"
-                color="neutral"
-                variant="outline"
-                size="sm"
-                trailing-icon="i-lucide-arrow-right"
-              >
-                Modifier
-              </UButton>
-            </div>
+            <template v-if="isSectionOn(section)">
+              <div class="space-y-4 px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="pricingEyebrow"
+                    label="Surtitre de la section"
+                    hint="Défaut : Tarifs"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.pricingEyebrow"
+                        v-bind="inputAttrs"
+                        placeholder="Tarifs"
+                        :maxlength="100"
+                      />
+                    </template>
+                  </FormControl>
+                  <FormControl
+                    id="pricingTitle"
+                    label="Titre principal de la section"
+                    hint="Défaut : Les formules d'accompagnement"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.pricingTitle"
+                        v-bind="inputAttrs"
+                        placeholder="Les formules d'accompagnement"
+                        :maxlength="200"
+                      />
+                    </template>
+                  </FormControl>
+                </div>
+              </div>
+              <div class="flex items-center justify-between border-t border-[color:var(--color-border-subtle)] px-6 py-4">
+                <UButton
+                  :to="externalSection(section)?.to"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  trailing-icon="i-lucide-arrow-right"
+                >
+                  Gérer mes formules
+                </UButton>
+                <UButton
+                  color="primary"
+                  variant="solid"
+                  size="sm"
+                  :loading="saving"
+                  @click="onSavePricingSectionTitles"
+                >
+                  Enregistrer
+                </UButton>
+              </div>
+            </template>
           </div>
 
           <section
@@ -1301,6 +1673,37 @@ function externalSection(section: string) {
               <!-- ── BIO (Qui suis-je) — inline editor (Story 0-26 AC-4) ── -->
               <template v-if="section === 'bio'">
                 <div class="space-y-4 px-6 py-5">
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <FormControl
+                      id="bioEyebrow"
+                      label="Surtitre de la section"
+                      hint="Défaut : Qui suis-je"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.bioEyebrow"
+                          v-bind="inputAttrs"
+                          placeholder="Qui suis-je"
+                          :maxlength="100"
+                        />
+                      </template>
+                    </FormControl>
+                    <FormControl
+                      id="bioTitle"
+                      label="Titre principal de la section"
+                      hint="Défaut : Votre spécialiste ménopause — {Nom}"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.bioTitle"
+                          v-bind="inputAttrs"
+                          placeholder="Votre spécialiste ménopause — ..."
+                          :maxlength="200"
+                        />
+                      </template>
+                    </FormControl>
+                  </div>
+
                   <!-- Photo secondaire — rapatriée depuis Mon compte (round terrain 2026-05-01).
                   Photo affichée à côté du texte dans la section "Qui suis-je" de la page publique. -->
                   <div>
@@ -1424,7 +1827,38 @@ function externalSection(section: string) {
 
               <!-- ── PROBLEM STATEMENT ── -->
               <template v-if="section === 'problemStatement'">
-                <div class="px-6 py-5">
+                <div class="space-y-4 px-6 py-5">
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <FormControl
+                      id="problemStatementEyebrow"
+                      label="Surtitre de la section"
+                      hint="Défaut : Comprendre"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.problemStatementEyebrow"
+                          v-bind="inputAttrs"
+                          placeholder="Comprendre"
+                          :maxlength="100"
+                        />
+                      </template>
+                    </FormControl>
+                    <FormControl
+                      id="problemStatementTitle"
+                      label="Titre principal de la section"
+                      hint="Défaut : Ce que vous traversez n'est pas une fatalité"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.problemStatementTitle"
+                          v-bind="inputAttrs"
+                          placeholder="Ce que vous traversez n'est pas une fatalité"
+                          :maxlength="200"
+                        />
+                      </template>
+                    </FormControl>
+                  </div>
+
                   <div class="space-y-3">
                     <UTextarea
                       :model-value="problemStatementForm?.blockquote ?? ''"
@@ -1484,7 +1918,7 @@ function externalSection(section: string) {
                     variant="solid"
                     size="sm"
                     :loading="saving"
-                    @click="onSaveProblemStatement"
+                    @click="onSaveProblemStatementSection"
                   >
                     Enregistrer
                   </UButton>
@@ -1493,7 +1927,38 @@ function externalSection(section: string) {
 
               <!-- ── BENEFITS ── -->
               <template v-if="section === 'benefits'">
-                <div class="px-6 py-5">
+                <div class="space-y-4 px-6 py-5">
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <FormControl
+                      id="benefitsEyebrow"
+                      label="Surtitre de la section"
+                      hint="Défaut : Ce que l'accompagnement apporte"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.benefitsEyebrow"
+                          v-bind="inputAttrs"
+                          placeholder="Ce que l'accompagnement apporte"
+                          :maxlength="100"
+                        />
+                      </template>
+                    </FormControl>
+                    <FormControl
+                      id="benefitsTitle"
+                      label="Titre principal de la section"
+                      hint="Défaut : Un parcours adapté"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.benefitsTitle"
+                          v-bind="inputAttrs"
+                          placeholder="Un parcours adapté"
+                          :maxlength="200"
+                        />
+                      </template>
+                    </FormControl>
+                  </div>
+
                   <div class="mb-4 space-y-3">
                     <UInput
                       :model-value="benefitsForm?.visionIntro ?? ''"
@@ -1540,12 +2005,16 @@ function externalSection(section: string) {
                           :rows="3"
                           size="sm"
                         />
-                        <UInput
-                          :model-value="item.icon ?? ''"
-                          placeholder="Icône (ex: i-lucide-heart) — par défaut : sparkles"
-                          size="sm"
-                          @update:model-value="(v: string) => { item.icon = v || undefined }"
-                        />
+                        <div>
+                          <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
+                            Icône (par défaut : Éclat)
+                          </label>
+                          <IconPicker
+                            :model-value="item.icon"
+                            label="Icône du bénéfice"
+                            @update:model-value="(v: string) => { item.icon = v || undefined }"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1567,7 +2036,7 @@ function externalSection(section: string) {
                     variant="solid"
                     size="sm"
                     :loading="saving"
-                    @click="onSaveBenefits"
+                    @click="onSaveBenefitsSection"
                   >
                     Enregistrer
                   </UButton>
@@ -1576,7 +2045,38 @@ function externalSection(section: string) {
 
               <!-- ── PILLARS ── -->
               <template v-if="section === 'pillars'">
-                <div class="px-6 py-5">
+                <div class="space-y-4 px-6 py-5">
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <FormControl
+                      id="pillarsEyebrow"
+                      label="Surtitre de la section"
+                      hint="Défaut : L'approche"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.pillarsEyebrow"
+                          v-bind="inputAttrs"
+                          placeholder="L'approche"
+                          :maxlength="100"
+                        />
+                      </template>
+                    </FormControl>
+                    <FormControl
+                      id="pillarsTitle"
+                      label="Titre principal de la section"
+                      hint="Défaut : Les piliers de l'accompagnement"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.pillarsTitle"
+                          v-bind="inputAttrs"
+                          placeholder="Les piliers de l'accompagnement"
+                          :maxlength="200"
+                        />
+                      </template>
+                    </FormControl>
+                  </div>
+
                   <div class="space-y-4">
                     <div
                       v-for="(pillar, idx) in (pillarsForm?.items ?? [])"
@@ -1607,6 +2107,16 @@ function externalSection(section: string) {
                           :rows="3"
                           size="sm"
                         />
+                        <div>
+                          <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
+                            Icône (optionnel)
+                          </label>
+                          <IconPicker
+                            :model-value="pillar.icon"
+                            label="Icône du pilier"
+                            @update:model-value="(v: string) => { pillar.icon = v || undefined }"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1671,7 +2181,7 @@ function externalSection(section: string) {
                     variant="solid"
                     size="sm"
                     :loading="saving"
-                    @click="onSavePillars"
+                    @click="onSavePillarsSection"
                   >
                     Enregistrer
                   </UButton>
@@ -1680,7 +2190,38 @@ function externalSection(section: string) {
 
               <!-- ── HOW IT WORKS ── -->
               <template v-if="section === 'howItWorks'">
-                <div class="px-6 py-5">
+                <div class="space-y-4 px-6 py-5">
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <FormControl
+                      id="howItWorksEyebrow"
+                      label="Surtitre de la section"
+                      hint="Défaut : Le parcours"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.howItWorksEyebrow"
+                          v-bind="inputAttrs"
+                          placeholder="Le parcours"
+                          :maxlength="100"
+                        />
+                      </template>
+                    </FormControl>
+                    <FormControl
+                      id="howItWorksTitle"
+                      label="Titre principal de la section"
+                      hint="Défaut : Comment se déroule l'accompagnement"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.howItWorksTitle"
+                          v-bind="inputAttrs"
+                          placeholder="Comment se déroule l'accompagnement"
+                          :maxlength="200"
+                        />
+                      </template>
+                    </FormControl>
+                  </div>
+
                   <div class="space-y-4">
                     <div
                       v-for="(step, idx) in howItWorksForm"
@@ -1714,6 +2255,16 @@ function externalSection(section: string) {
                           :rows="3"
                           size="sm"
                         />
+                        <div>
+                          <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
+                            Icône de l'étape
+                          </label>
+                          <IconPicker
+                            :model-value="step.icon"
+                            label="Icône de l'étape"
+                            @update:model-value="(v: string) => { step.icon = v || undefined }"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1735,7 +2286,7 @@ function externalSection(section: string) {
                     variant="solid"
                     size="sm"
                     :loading="saving"
-                    @click="onSaveHowItWorks"
+                    @click="onSaveHowItWorksSection"
                   >
                     Enregistrer
                   </UButton>
@@ -1812,7 +2363,7 @@ function externalSection(section: string) {
                     variant="solid"
                     size="sm"
                     :loading="saving"
-                    @click="onSaveEducationalContent"
+                    @click="onSaveEducationalContentSection"
                   >
                     Enregistrer
                   </UButton>
@@ -1821,7 +2372,38 @@ function externalSection(section: string) {
 
               <!-- ── TESTIMONIALS — inline editor (Story 0-26 AC-5) ── -->
               <template v-if="section === 'testimonials'">
-                <div class="px-6 py-5 space-y-4">
+                <div class="space-y-4 px-6 py-5">
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <FormControl
+                      id="testimonialsEyebrow"
+                      label="Surtitre de la section"
+                      hint="Défaut : Témoignages"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.testimonialsEyebrow"
+                          v-bind="inputAttrs"
+                          placeholder="Témoignages"
+                          :maxlength="100"
+                        />
+                      </template>
+                    </FormControl>
+                    <FormControl
+                      id="testimonialsTitle"
+                      label="Titre principal de la section"
+                      hint="Défaut : Ce qu'elles en disent"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.testimonialsTitle"
+                          v-bind="inputAttrs"
+                          placeholder="Ce qu'elles en disent"
+                          :maxlength="200"
+                        />
+                      </template>
+                    </FormControl>
+                  </div>
+
                   <p class="text-sm text-[color:var(--color-brand-secondary)]">
                     Les retours de vos clientes (max {{ TESTIMONIALS_MAX }}).
                   </p>
@@ -1924,7 +2506,38 @@ function externalSection(section: string) {
 
               <!-- ── FAQ ── -->
               <template v-if="section === 'faq'">
-                <div class="px-6 py-5 space-y-4">
+                <div class="space-y-4 px-6 py-5">
+                  <div class="grid gap-4 sm:grid-cols-2">
+                    <FormControl
+                      id="faqEyebrow"
+                      label="Surtitre de la section"
+                      hint="Défaut : Questions fréquentes"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.faqEyebrow"
+                          v-bind="inputAttrs"
+                          placeholder="Questions fréquentes"
+                          :maxlength="100"
+                        />
+                      </template>
+                    </FormControl>
+                    <FormControl
+                      id="faqTitle"
+                      label="Titre principal de la section"
+                      hint="Défaut : Questions fréquentes sur l'accompagnement"
+                    >
+                      <template #default="{ inputAttrs }">
+                        <UInput
+                          v-model="sectionTitlesForm.faqTitle"
+                          v-bind="inputAttrs"
+                          placeholder="Questions fréquentes sur l'accompagnement"
+                          :maxlength="200"
+                        />
+                      </template>
+                    </FormControl>
+                  </div>
+
                   <div
                     v-for="(item, idx) in faqForm"
                     :key="idx"
@@ -1973,7 +2586,7 @@ function externalSection(section: string) {
                     variant="solid"
                     size="sm"
                     :loading="saving"
-                    @click="onSaveFaq"
+                    @click="onSaveFaqSection"
                   >
                     Enregistrer
                   </UButton>

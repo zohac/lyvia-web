@@ -21,11 +21,18 @@ const DEFAULT_PILLAR_ICONS = [
   'i-lucide-heart-pulse'
 ]
 
+function normalizeIcon(iconName?: string | null, fallback = 'i-lucide-circle'): string {
+  if (!iconName || !iconName.trim()) return fallback
+  const trimmed = iconName.trim()
+  if (trimmed.startsWith('i-')) return trimmed
+  return `i-lucide-${trimmed}`
+}
+
 const pillarItems = computed(() => {
   const items = props.pillars?.items ?? []
   return items.map((p, i) => ({
     ...p,
-    icon: p.icon || DEFAULT_PILLAR_ICONS[i] || 'i-lucide-circle'
+    icon: p.icon ? normalizeIcon(p.icon) : (DEFAULT_PILLAR_ICONS[i] || 'i-lucide-circle')
   }))
 })
 

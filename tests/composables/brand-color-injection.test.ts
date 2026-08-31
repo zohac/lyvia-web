@@ -11,6 +11,7 @@ import {
   rgbToHsl,
   hslToHex,
   deriveBrandVariants,
+  deriveAccentVariants,
   applyBrandColors,
   removeBrandColors,
   BRAND_CSS_VARS
@@ -239,6 +240,30 @@ test('bindBrandColorScope: scope cleanup removes injected variables', async () =
 })
 
 // =============================================================================
+// deriveAccentVariants & WCAG contrast calculation
+// =============================================================================
+
+test('deriveAccentVariants: returns accent and darker accentHover', () => {
+  const variants = deriveAccentVariants('#d4956a')
+  assert.equal(variants.accent, '#d4956a')
+
+  const accentL = rgbToHsl(...Object.values(parseHex(variants.accent)!) as [number, number, number]).l
+  const hoverL = rgbToHsl(...Object.values(parseHex(variants.accentHover)!) as [number, number, number]).l
+  assert.ok(hoverL < accentL, `hover (${hoverL}) should be darker than accent (${accentL})`)
+})
+
+test('deriveAccentVariants: textOnAccent chooses #ffffff on dark and #221d28 on bright yellow', () => {
+  const darkOrange = deriveAccentVariants('#d4956a')
+  assert.equal(darkOrange.textOnAccent, '#221d28')
+
+  const darkViolet = deriveAccentVariants('#5b4b6e')
+  assert.equal(darkViolet.textOnAccent, '#ffffff')
+
+  const brightYellow = deriveAccentVariants('#facc15')
+  assert.equal(brightYellow.textOnAccent, '#221d28')
+})
+
+// =============================================================================
 // CSS variable names contract
 // =============================================================================
 
@@ -246,4 +271,35 @@ test('BRAND_CSS_VARS match main.css token names', () => {
   assert.equal(BRAND_CSS_VARS.primary, '--color-brand-primary')
   assert.equal(BRAND_CSS_VARS.primaryLight, '--color-brand-primary-light')
   assert.equal(BRAND_CSS_VARS.primaryDark, '--color-brand-primary-dark')
+  assert.equal(BRAND_CSS_VARS.primaryLightest, '--color-brand-primary-lightest')
+  assert.equal(BRAND_CSS_VARS.surfacePage, '--color-surface-page')
+  assert.equal(BRAND_CSS_VARS.crepuscule50, '--color-crepuscule-50')
+  assert.equal(BRAND_CSS_VARS.surfaceHighlight, '--color-surface-highlight')
+  assert.equal(BRAND_CSS_VARS.accent, '--color-brand-accent')
+  assert.equal(BRAND_CSS_VARS.accentHover, '--color-brand-accent-hover')
+  assert.equal(BRAND_CSS_VARS.textOnAccent, '--color-text-on-accent')
+})
+
+test('applyBrandColors with both primary and accent sets all variables', () => {
+  const style = createMockStyle()
+  applyBrandColors(style, '#5b4b6e', '#d4956a')
+
+  assert.equal(style._store[BRAND_CSS_VARS.primary], '#5b4b6e')
+  assert.ok(style._store[BRAND_CSS_VARS.primaryLight])
+  assert.ok(style._store[BRAND_CSS_VARS.primaryDark])
+  assert.ok(style._store[BRAND_CSS_VARS.primaryLightest])
+  assert.ok(style._store[BRAND_CSS_VARS.surfacePage])
+  assert.ok(style._store[BRAND_CSS_VARS.crepuscule50])
+  assert.ok(style._store[BRAND_CSS_VARS.surfaceHighlight])
+  assert.equal(style._store[BRAND_CSS_VARS.accent], '#d4956a')
+  assert.ok(style._store[BRAND_CSS_VARS.accentHover])
+  assert.ok(style._store[BRAND_CSS_VARS.textOnAccent])
+})
+
+test('removeBrandColors clears all variables including accent', () => {
+  const style = createMockStyle()
+  applyBrandColors(style, '#5b4b6e', '#d4956a')
+  removeBrandColors(style)
+
+  assert.deepEqual(style._store, {})
 })

@@ -54,6 +54,34 @@ export interface HowItWorksStep {
   number: string
   title: string
   description: string
+  icon?: string
+}
+
+export interface SectionTitlesJson {
+  bio?: string
+  bioEyebrow?: string
+  bioTitle?: string
+  benefits?: string
+  benefitsEyebrow?: string
+  benefitsTitle?: string
+  problemStatement?: string
+  problemStatementEyebrow?: string
+  problemStatementTitle?: string
+  pillars?: string
+  pillarsEyebrow?: string
+  pillarsTitle?: string
+  howItWorks?: string
+  howItWorksEyebrow?: string
+  howItWorksTitle?: string
+  testimonials?: string
+  testimonialsEyebrow?: string
+  testimonialsTitle?: string
+  pricing?: string
+  pricingEyebrow?: string
+  pricingTitle?: string
+  faq?: string
+  faqEyebrow?: string
+  faqTitle?: string
 }
 
 export interface InsightBox {
@@ -92,6 +120,7 @@ export interface PublicProviderProfile {
   publicPhone: string | null
   urgencyText: string | null
   heroHeadline: string | null
+  heroDescription?: string | null
   testimonialsJson: Array<{ quote: string, firstName: string, age?: number, location?: string, rating?: number, result?: string }>
   secondaryPhotoUrl: string | null
   /** Provider brand logo URL (480x160 PNG). Null when provider uses default Keova branding. Story 0-27. */
@@ -105,6 +134,7 @@ export interface PublicProviderProfile {
   // Coach Page Configuration (YC1.2)
   templateCode: string
   sectionsConfig: Record<string, boolean>
+  sectionTitlesJson?: SectionTitlesJson | null
   pillarsJson: PillarsJson | null
   faqJson: FaqItem[] | null
   benefitsJson: BenefitsJson | null

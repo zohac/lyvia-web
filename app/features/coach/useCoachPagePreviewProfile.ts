@@ -33,6 +33,28 @@ type BioForm = {
   region: string
 }
 
+type HeroForm = {
+  heroHeadline: string
+  heroDescription: string
+  urgencyText: string
+}
+
+type PaletteForm = {
+  brandColor: string
+  brandAccentColor: string
+}
+
+type SectionTitlesForm = {
+  bio?: string
+  benefits?: string
+  problemStatement?: string
+  pillars?: string
+  howItWorks?: string
+  testimonials?: string
+  pricing?: string
+  faq?: string
+}
+
 type BrandingForm = {
   brandName: string
 }
@@ -42,6 +64,12 @@ export interface CoachPagePreviewDeps {
   account: Ref<ProviderAccountResponse | null>
   /** Live form state for the bio section (longBio + city + region). */
   bioForm: BioForm
+  /** Live form state for the hero section (heroHeadline, heroDescription, urgencyText). */
+  heroForm?: HeroForm
+  /** Live form state for palette (brandColor, brandAccentColor). */
+  paletteForm?: PaletteForm
+  /** Live form state for section titles. */
+  sectionTitlesForm?: SectionTitlesForm
   /** Live form state for testimonials inline editor. */
   testimonialsForm: Ref<TestimonialItem[]>
   /** Live form state for branding (brandName instant; logoUrl is read directly from `account`). */
@@ -85,6 +113,10 @@ type DebouncedSnapshot = {
   longBio: string
   city: string
   region: string
+  heroHeadline: string
+  heroDescription: string
+  urgencyText: string
+  sectionTitles: SectionTitlesForm
   testimonials: TestimonialItem[]
   pillars: PillarsJson | null
   faq: FaqItem[]
@@ -100,6 +132,10 @@ function emptySnapshot(): DebouncedSnapshot {
     longBio: '',
     city: '',
     region: '',
+    heroHeadline: '',
+    heroDescription: '',
+    urgencyText: '',
+    sectionTitles: {},
     testimonials: [],
     pillars: null,
     faq: [],
@@ -119,7 +155,7 @@ function cloneRaw<T>(value: T): T {
  * Story 0-28 — projects server account state + live form state into the
  * shape consumed by `CoachPage*` templates (`PublicProviderProfile` + a
  * minimal `PublicTenantResponse`). Free-text fields are debounced 250ms;
- * toggles and branding (brandName/logoUrl) flow through instantly.
+ * toggles and branding (brandName/logoUrl/palette) flow through instantly.
  *
  * Pure mapping logic. No fetch, no global state, no DOM. Lifecycle-safe
  * (single trailing timeout, cleared on `onScopeDispose`).
@@ -137,6 +173,10 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       longBio: deps.bioForm.longBio,
       city: deps.bioForm.city,
       region: deps.bioForm.region,
+      heroHeadline: deps.heroForm?.heroHeadline ?? '',
+      heroDescription: deps.heroForm?.heroDescription ?? '',
+      urgencyText: deps.heroForm?.urgencyText ?? '',
+      sectionTitles: cloneRaw(deps.sectionTitlesForm ?? {}),
       testimonials: cloneRaw(deps.testimonialsForm.value),
       pillars: cloneRaw(deps.pillarsForm.value),
       faq: cloneRaw(deps.faqForm.value),
@@ -152,6 +192,10 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       () => deps.bioForm.longBio,
       () => deps.bioForm.city,
       () => deps.bioForm.region,
+      () => deps.heroForm?.heroHeadline,
+      () => deps.heroForm?.heroDescription,
+      () => deps.heroForm?.urgencyText,
+      () => deps.sectionTitlesForm,
       () => deps.testimonialsForm.value,
       () => deps.pillarsForm.value,
       () => deps.faqForm.value,
@@ -217,8 +261,10 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       region: snap.hydrated ? snap.region : acc.region,
       socialLinks: acc.socialLinks ?? {},
       publicPhone: acc.publicPhone,
-      urgencyText: acc.urgencyText,
-      heroHeadline: acc.heroHeadline,
+      urgencyText: snap.hydrated ? (deps.heroForm ? snap.urgencyText : acc.urgencyText) : acc.urgencyText,
+      heroHeadline: snap.hydrated ? (deps.heroForm ? snap.heroHeadline : acc.heroHeadline) : acc.heroHeadline,
+      heroDescription: snap.hydrated ? (deps.heroForm ? snap.heroDescription : acc.heroDescription) : acc.heroDescription,
+      sectionTitlesJson: snap.hydrated ? (deps.sectionTitlesForm ? snap.sectionTitles : acc.sectionTitlesJson) : acc.sectionTitlesJson,
       testimonialsJson: snap.testimonials,
       secondaryPhotoUrl: localSecondaryPhoto ?? acc.secondaryPhotoUrl,
       logoUrl: acc.logoUrl,
@@ -251,6 +297,9 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
         || acc.brandName?.trim()
         || `${acc.firstname} ${acc.lastname}`.trim()
 
+    const liveBrandColor = deps.paletteForm?.brandColor?.trim() || acc.brandColor
+    const liveBrandAccentColor = deps.paletteForm?.brandAccentColor?.trim() || acc.brandAccentColor
+
     return {
       providerId: acc.slug,
       slug: acc.slug,
@@ -260,7 +309,8 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
         mode: 'platform',
         displayName: liveBrandName,
         domain: null,
-        brandColor: acc.brandColor
+        brandColor: liveBrandColor,
+        brandAccentColor: liveBrandAccentColor
       }
     }
   })
