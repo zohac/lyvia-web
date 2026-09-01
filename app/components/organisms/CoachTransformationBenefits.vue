@@ -18,12 +18,20 @@ function normalizeIcon(iconName?: string | null, fallback = DEFAULT_BENEFIT_ICON
   return `i-lucide-${trimmed}`
 }
 
-const displayBenefits = computed(() =>
-  (props.benefits?.items ?? []).map(item => ({
+const FALLBACK_BENEFITS = [
+  { title: 'Compréhension profonde', description: 'Identifier les causes réelles de vos symptômes et agir avec clarté.', icon: 'i-lucide-sparkles' },
+  { title: 'Équilibre retrouvé', description: 'Stabiliser votre énergie, votre humeur et votre poids durablement.', icon: 'i-lucide-activity' },
+  { title: 'Sérénité au quotidien', description: 'Retrouver un sommeil réparateur et une confiance renouvelée en votre corps.', icon: 'i-lucide-heart' },
+  { title: 'Accompagnement bienveillant', description: 'Un espace d\'écoute sécurisant sans jugement à chaque étape.', icon: 'i-lucide-shield-check' }
+]
+
+const displayBenefits = computed(() => {
+  const items = props.benefits?.items?.length ? props.benefits.items : FALLBACK_BENEFITS
+  return items.map(item => ({
     ...item,
     icon: normalizeIcon(item.icon)
   }))
-)
+})
 const visionIntro = computed(() => props.benefits?.visionIntro ?? null)
 const visionText = computed(() => props.benefits?.visionText ?? null)
 </script>

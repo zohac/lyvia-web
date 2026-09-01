@@ -17,10 +17,11 @@ function readFile(relativePath: string): string {
 
 describe('YC2.2 — coach-template-registry (pure resolver)', () => {
   describe('SUPPORTED_COACH_TEMPLATE_CODES', () => {
-    test('contains signature and essentiel', () => {
+    test('contains signature, essentiel and visuel', () => {
       assert.ok(SUPPORTED_COACH_TEMPLATE_CODES.includes('signature'))
       assert.ok(SUPPORTED_COACH_TEMPLATE_CODES.includes('essentiel'))
-      assert.equal(SUPPORTED_COACH_TEMPLATE_CODES.length, 2)
+      assert.ok(SUPPORTED_COACH_TEMPLATE_CODES.includes('visuel'))
+      assert.equal(SUPPORTED_COACH_TEMPLATE_CODES.length, 3)
     })
   })
 
@@ -38,6 +39,7 @@ describe('YC2.2 — coach-template-registry (pure resolver)', () => {
     test('accepts valid codes', () => {
       assert.equal(isKnownTemplateCode('signature'), true)
       assert.equal(isKnownTemplateCode('essentiel'), true)
+      assert.equal(isKnownTemplateCode('visuel'), true)
     })
 
     test('rejects unknown codes', () => {
@@ -63,6 +65,10 @@ describe('YC2.2 — coach-template-registry (pure resolver)', () => {
 
     test('returns "essentiel" for templateCode="essentiel"', () => {
       assert.equal(resolveCoachTemplateCode('essentiel'), 'essentiel')
+    })
+
+    test('returns "visuel" for templateCode="visuel"', () => {
+      assert.equal(resolveCoachTemplateCode('visuel'), 'visuel')
     })
 
     test('falls back to "essentiel" for unknown code', () => {
@@ -102,7 +108,7 @@ describe('YC2.2 — useCoachPageTemplate (Vue composable, file-based checks)', (
     )
   })
 
-  test('TEMPLATE_MAP contains signature and essentiel loaders', () => {
+  test('TEMPLATE_MAP contains signature, essentiel and visuel loaders', () => {
     const content = readFile('composables/useCoachPageTemplate.ts')
     assert.ok(
       /signature:\s*\(\)\s*=>\s*import\([^)]*CoachPageSignature\.vue['"]?\)/.test(content),
@@ -112,13 +118,19 @@ describe('YC2.2 — useCoachPageTemplate (Vue composable, file-based checks)', (
       /essentiel:\s*\(\)\s*=>\s*import\([^)]*CoachPageEssentiel\.vue['"]?\)/.test(content),
       'TEMPLATE_MAP must have essentiel → CoachPageEssentiel.vue loader'
     )
+    assert.ok(
+      /visuel:\s*\(\)\s*=>\s*import\([^)]*CoachPageVisuel\.vue['"]?\)/.test(content),
+      'TEMPLATE_MAP must have visuel → CoachPageVisuel.vue loader'
+    )
   })
 
   test('template files referenced by TEMPLATE_MAP actually exist', () => {
     const signature = path.join(appRoot, 'components/templates/coach-pages/CoachPageSignature.vue')
     const essentiel = path.join(appRoot, 'components/templates/coach-pages/CoachPageEssentiel.vue')
+    const visuel = path.join(appRoot, 'components/templates/coach-pages/CoachPageVisuel.vue')
     assert.ok(fs.existsSync(signature), 'CoachPageSignature.vue must exist')
     assert.ok(fs.existsSync(essentiel), 'CoachPageEssentiel.vue must exist')
+    assert.ok(fs.existsSync(visuel), 'CoachPageVisuel.vue must exist')
   })
 
   test('TEMPLATE_MAP keys match SUPPORTED_COACH_TEMPLATE_CODES (parity)', () => {

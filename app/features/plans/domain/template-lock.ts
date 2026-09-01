@@ -35,6 +35,13 @@ import {
  * ouvrirait le gating en silence.
  */
 export const ESSENTIEL_TEMPLATE_CODE = 'essentiel'
+export const VISUEL_TEMPLATE_CODE = 'visuel'
+
+/** Codes des templates ouverts à tous les plans sans surcoût. */
+export const STANDARD_COACH_TEMPLATE_CODES: readonly string[] = [
+  ESSENTIEL_TEMPLATE_CODE,
+  VISUEL_TEMPLATE_CODE
+]
 
 /**
  * Libellé de la pastille de verrouillage — « Premium » (Convention A31).
@@ -48,15 +55,16 @@ export const PREMIUM_TEMPLATE_BADGE_LABEL
 /**
  * `true` si la carte doit être présentée verrouillée (désactivée + pastille).
  *
- * Règle miroir du backend 18.3a : « tout code différent d'`essentiel` », et non
- * une liste blanche — l'admin peut créer d'autres codes
- * (`POST /admin/coach-page-templates`) qu'une liste en dur ouvrirait.
+ * Règle miroir du backend 18.3a : « tout code autre que les templates standard
+ * (`essentiel`, `visuel`) », et non une liste blanche arbitraire — l'admin
+ * peut créer d'autres codes (`POST /admin/coach-page-templates`) qu'une liste
+ * en dur ouvrirait.
  */
 export function isTemplateLocked(
   tmpl: { code: string },
   hasPremiumTemplates: boolean
 ): boolean {
-  return tmpl.code !== ESSENTIEL_TEMPLATE_CODE && !hasPremiumTemplates
+  return !STANDARD_COACH_TEMPLATE_CODES.includes(tmpl.code) && !hasPremiumTemplates
 }
 
 /**

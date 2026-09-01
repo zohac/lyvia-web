@@ -260,7 +260,7 @@ async function handleSecondaryPhotoUpload() {
 // ── Testimonials form state (rapatrié, AC-5) ──
 const testimonialsForm = ref<TestimonialItem[]>([])
 
-// ── Hero section form state (Story 0-37 AC-1, AC-2) ──
+// ── Hero section form state (Story 0-37 AC-1, AC-2, Story 0-38) ──
 const heroForm = reactive({
   heroHeadline: '',
   heroDescription: '',
@@ -269,6 +269,52 @@ const heroForm = reactive({
 const heroHeadlineCharCount = computed(() => heroForm.heroHeadline?.length ?? 0)
 const heroDescriptionCharCount = computed(() => heroForm.heroDescription?.length ?? 0)
 const urgencyCharCount = computed(() => heroForm.urgencyText?.length ?? 0)
+
+// ── Photo Hero / Fond (Story 0-38) ──
+const heroPhotoFile = ref<File | null>(null)
+const heroPhotoPreview = ref<string | null>(null)
+const heroPhotoUploading = ref(false)
+const heroPhotoError = ref<string | null>(null)
+const heroFileInputRef = ref<HTMLInputElement | null>(null)
+
+function triggerHeroFileInput() {
+  heroFileInputRef.value?.click()
+}
+
+function onHeroFileSelected(event: Event) {
+  heroPhotoError.value = null
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  const err = validateFileUpload(file, 2 * 1024 * 1024, ['image/jpeg', 'image/png', 'image/webp'])
+  if (err) {
+    heroPhotoError.value = err
+    return
+  }
+
+  heroPhotoFile.value = file
+  heroPhotoPreview.value = URL.createObjectURL(file)
+}
+
+async function handleHeroPhotoUpload() {
+  if (!heroPhotoFile.value) return
+  heroPhotoUploading.value = true
+  heroPhotoError.value = null
+
+  try {
+    const result = await uploadAsset('profile_photo', heroPhotoFile.value)
+    heroPhotoPreview.value = result.url
+    heroPhotoFile.value = null
+    await fetchAccount()
+    toast.add({ title: 'Photo d\'en-tête enregistrée', color: 'primary' })
+  } catch (e: unknown) {
+    heroPhotoError.value = formatUploadError(e)
+    toast.add({ title: 'Erreur', description: heroPhotoError.value, color: 'error' })
+  } finally {
+    heroPhotoUploading.value = false
+  }
+}
 
 // ── Palette form state (Story 0-37 AC-5, AC-6) ──
 const paletteForm = reactive({
@@ -433,11 +479,11 @@ const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
     import('~/features/seo/api/public-provider-profile.contract').ProblemStatementJson | null
   >,
   templateCode: previewTemplateCode,
-  // Story 0-28 CR-3 — propage la photo secondaire en cours d'upload (object
-  // URL local) ou tout juste persistée (URL S3 retournée par l'upload). Sans
-  // ça la preview gardait `null` même après que Sophie ait sélectionné un
-  // fichier ou terminé son upload.
-  secondaryPhotoPreview
+  // Story 0-28 CR-3 & Story 0-38 — propage les photos en cours d'upload (object
+  // URL local) ou tout juste persistées (URL S3 retournée par l'upload). Sans
+  // ça la preview gardait l'ancienne URL même après sélection de fichier.
+  secondaryPhotoPreview,
+  heroPhotoPreview
 })
 
 // Story 0-28 round terrain — la preview affiche les vrais tarifs (price plans
@@ -911,6 +957,13 @@ function externalSection(section: string) {
       accept="image/jpeg,image/png,image/webp"
       class="hidden"
       @change="onSecondaryFileSelected"
+    >
+    <input
+      ref="heroFileInputRef"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      class="hidden"
+      @change="onHeroFileSelected"
     >
 
     <AtomsDsPageHeader>
@@ -1470,6 +1523,55 @@ function externalSection(section: string) {
           </div>
 
           <div class="space-y-4 px-6 py-5">
+            <!-- Photo de fond / Portrait Hero (Story 0-38) -->
+            <div>
+              <p class="mb-2 text-sm font-medium text-[color:var(--color-text-primary)]">
+                Photo d'en-tête (fond du Hero en template Visuel, portrait en Signature)
+              </p>
+              <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
+                JPEG, PNG ou WebP, max 2 Mo.
+              </p>
+              <div class="flex items-center gap-6">
+                <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+                  <img
+                    v-if="heroPhotoPreview || account?.heroImageUrl || account?.imageUrl"
+                    :src="(heroPhotoPreview || account?.heroImageUrl || account?.imageUrl)!"
+                    alt="Photo Hero"
+                    class="h-full w-full object-cover"
+                  >
+                  <UIcon
+                    v-else
+                    name="i-lucide-image"
+                    class="h-10 w-10 text-[color:var(--color-brand-muted)]"
+                  />
+                </div>
+                <div class="flex flex-col items-start gap-2">
+                  <UButton
+                    variant="outline"
+                    icon="i-lucide-upload"
+                    label="Modifier la photo"
+                    size="sm"
+                    type="button"
+                    @click="triggerHeroFileInput"
+                  />
+                  <UButton
+                    v-if="heroPhotoFile"
+                    :loading="heroPhotoUploading"
+                    :disabled="heroPhotoUploading"
+                    label="Enregistrer la photo"
+                    size="sm"
+                    @click="handleHeroPhotoUpload"
+                  />
+                  <p
+                    v-if="heroPhotoError"
+                    class="text-sm text-[color:var(--color-error)]"
+                  >
+                    {{ heroPhotoError }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <FormControl
               id="heroHeadline"
               label="Accroche / Sous-titre principal"
@@ -1716,8 +1818,8 @@ function externalSection(section: string) {
                     <div class="flex items-center gap-6">
                       <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
                         <img
-                          v-if="secondaryPhotoPreview"
-                          :src="secondaryPhotoPreview"
+                          v-if="secondaryPhotoPreview || account?.secondaryPhotoUrl"
+                          :src="(secondaryPhotoPreview || account?.secondaryPhotoUrl)!"
                           alt="Photo Qui suis-je"
                           class="h-full w-full object-cover"
                         >

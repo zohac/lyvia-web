@@ -162,7 +162,7 @@ test('useCoachSectionVisibility hides bio when toggle is off even with content',
   scope.stop()
 })
 
-test('useCoachSectionVisibility hides bio when content is empty even if toggle is on', async () => {
+test('useCoachSectionVisibility displays bio when toggle is on even if content is empty (fallbacks apply)', async () => {
   const profile = ref(createProfile({
     bio: '   ',
     longBio: '\n\n',
@@ -180,7 +180,7 @@ test('useCoachSectionVisibility hides bio when content is empty even if toggle i
   })
 
   assert.equal(hasBio?.value, false)
-  assert.equal(showBio?.value, false)
+  assert.equal(showBio?.value, true)
 
   profile.value = createProfile({
     longBio: 'Premier paragraphe.\n\nDeuxieme paragraphe.',

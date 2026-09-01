@@ -99,13 +99,8 @@ const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMi
 const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
 const sectionTitles = computed(() => props.coachProfile?.sectionTitlesJson ?? {})
 
-// Pricing — gate par toggle ET contenu (Story 0-26 round terrain).
-// Story 0-28 round terrain — en preview, on affiche le bloc dès que le toggle
-// est ON même sans plans/programs chargés : le composant `CoachPricing` rend
-// toujours la card "Appel découverte gratuit", suffisante pour matérialiser
-// la section dans l'éditeur. Sinon Sophie ne voit jamais l'effet du toggle.
-const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
-const showPricing = computed(() => isToggleOn('pricing') && (props.previewMode || hasPricing.value))
+// Pricing — la carte appel découverte gratuit est toujours présente, donc showPricing = toggle
+const showPricing = computed(() => isToggleOn('pricing'))
 
 // --- Header navigation links (anchor scroll) ---
 const navLinks = computed(() => {
@@ -134,12 +129,25 @@ const bioParagraphs = computed<string[]>(() => {
   return []
 })
 
-const apiTestimonials = computed(() => props.coachProfile?.testimonialsJson ?? [])
+const FALLBACK_TESTIMONIALS = [
+  { quote: 'Un accompagnement précieux qui m\'a permis de retrouver le sommeil et de comprendre mon corps.', firstName: 'Nathalie', age: 52, rating: 5 },
+  { quote: 'Enfin une écoute bienveillante sans jugement. Je me sens beaucoup plus sereine au quotidien.', firstName: 'Corinne', age: 49, rating: 5 }
+]
+
+const apiTestimonials = computed(() => {
+  const t = props.coachProfile?.testimonialsJson
+  return t?.length ? t : FALLBACK_TESTIMONIALS
+})
+
+const FALLBACK_FAQ = [
+  { label: 'Comment se déroule le premier appel découverte ?', content: 'C\'est un échange téléphonique ou visio de 15 minutes, entièrement gratuit et sans engagement. Nous faisons le point sur votre situation et vos attentes pour voir si mon approche vous correspond.' },
+  { label: 'Les séances ont-elles lieu en présentiel ou à distance ?', content: 'Les séances sont proposées en visioconférence sécurisée ou au cabinet selon vos préférences et disponibilités.' },
+  { label: 'Combien de séances sont généralement nécessaires ?', content: 'Le nombre de séances varie selon chaque femme et la nature de ses besoins. Nous définissons ensemble un rythme adapté lors du premier bilan.' }
+]
 
 // FAQ items (same mapping as Signature)
 const faqItems = computed<AccordionItem[]>(() => {
-  const api = props.coachProfile?.faqJson
-  if (!api?.length) return []
+  const api = props.coachProfile?.faqJson?.length ? props.coachProfile.faqJson : FALLBACK_FAQ
   return api.map((item, i) => ({
     label: item.label,
     content: item.content,
@@ -202,7 +210,7 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 1.5 PROBLÈME (optionnel) ==================== -->
     <section
-      v-if="showProblemStatement && problemStatement"
+      v-if="showProblemStatement"
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
     >
@@ -231,12 +239,12 @@ const heroProps = computed(() => ({
             aria-hidden="true"
           >"</span>
           <p class="relative font-serif text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] text-[color:var(--color-text-primary)]">
-            {{ problemStatement.blockquote }}
+            {{ problemStatement?.blockquote || "« On me dit que c'est dans la tête, mais je ne reconnais plus mon corps. »" }}
           </p>
         </blockquote>
 
         <div
-          v-if="problemStatement.paragraphs?.length"
+          v-if="problemStatement?.paragraphs?.length"
           class="mt-12 space-y-6"
         >
           <p

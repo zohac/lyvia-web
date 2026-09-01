@@ -47,20 +47,20 @@ describe('YC2.3 — useCoachSectionVisibility composable (DRY factorisation)', (
     // P-Y3 rule (toggle AND content) holds when previewMode === false (page
     // publique default).
     assert.ok(
-      /showBenefits\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('benefits'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasBenefits\.value\)?\)/.test(content),
-      'showBenefits must combine isToggleOn("benefits") && hasBenefits.value (with optional previewMode short-circuit)'
+      /showBenefits\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('benefits'\)/.test(content),
+      'showBenefits must be driven by isToggleOn("benefits")'
     )
     assert.ok(
-      /showPillars\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('pillars'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasPillars\.value\)?\)/.test(content),
-      'showPillars must combine isToggleOn("pillars") && hasPillars.value (with optional previewMode short-circuit)'
+      /showPillars\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('pillars'\)/.test(content),
+      'showPillars must be driven by isToggleOn("pillars")'
     )
     assert.ok(
-      /showHowItWorks\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('howItWorks'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasHowItWorks\.value\)?\)/.test(content),
-      'showHowItWorks must combine isToggleOn("howItWorks") && hasHowItWorks.value (with optional previewMode short-circuit)'
+      /showHowItWorks\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('howItWorks'\)/.test(content),
+      'showHowItWorks must be driven by isToggleOn("howItWorks")'
     )
     assert.ok(
-      /showFaq\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('faq'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasFaq\.value\)?\)/.test(content),
-      'showFaq must combine isToggleOn("faq") && hasFaq.value (with optional previewMode short-circuit)'
+      /showFaq\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('faq'\)/.test(content),
+      'showFaq must be driven by isToggleOn("faq")'
     )
   })
 
@@ -804,12 +804,11 @@ describe('YC2.3 review — bio section obeys toggle/empty gate (AC-2, AC-3)', ()
     assert.ok(/trim\(\)/.test(content), 'hasBio must trim content before checking')
   })
 
-  test('showBio combines toggle AND hasBio', () => {
+  test('showBio is driven by isToggleOn', () => {
     const content = readFile(VISIBILITY_COMPOSABLE)
     assert.ok(
-      // Story 0-28 — accepts `(previewMode.value || hasBio.value)` short-circuit.
-      /showBio\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('bio'\)\s*&&\s*\(?(?:previewMode\.value\s*\|\|\s*)?hasBio\.value\)?\)/.test(content),
-      'showBio must be computed(() => isToggleOn("bio") && hasBio.value) — Story 0-28 accepts (previewMode.value || hasBio.value) short-circuit'
+      /showBio\s*=\s*computed\(\(\)\s*=>\s*isToggleOn\('bio'\)/.test(content),
+      'showBio must be computed(() => isToggleOn("bio"))'
     )
   })
 

@@ -97,6 +97,12 @@ export interface CoachPagePreviewDeps {
    * feedback visuel instant à Sophie. Default null/undefined si non passé.
    */
   secondaryPhotoPreview?: Ref<string | null>
+  /**
+   * Story 0-38 — preview URL de la photo hero (fond) pendant l'upload
+   * (object URL local d'abord, puis URL S3 après succès). Quand non null,
+   * elle prend le dessus sur `account.heroImageUrl`.
+   */
+  heroPhotoPreview?: Ref<string | null>
 }
 
 /**
@@ -226,11 +232,12 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
 
     const snap = debouncedSnapshot.value
 
-    // Story 0-28 CR-3 — la photo secondaire prend la valeur locale (object
+    // Story 0-28 CR-3 & Story 0-38 — les photos prennent la valeur locale (object
     // URL d'upload-en-cours, puis URL S3 après succès) si fournie, sinon
     // celle du serveur. Permet à Sophie de voir le résultat de son upload
     // en preview avant même le retour de l'API.
     const localSecondaryPhoto = deps.secondaryPhotoPreview?.value ?? null
+    const localHeroPhoto = deps.heroPhotoPreview?.value ?? null
 
     return {
       slug: acc.slug,
@@ -246,7 +253,7 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       // pour que la preview reflète la vraie page publique (le hero
       // photo, la mini-photo, la photo "Qui suis-je").
       imageUrl: acc.imageUrl,
-      heroImageUrl: acc.heroImageUrl,
+      heroImageUrl: localHeroPhoto ?? acc.heroImageUrl,
       discoveryDurationMinutes: acc.defaultDiscoveryDurationMinutes,
       discoveryBufferAfterMinutes: acc.discoveryBufferAfterMinutes,
       isActive: true,

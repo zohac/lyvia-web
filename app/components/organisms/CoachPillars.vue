@@ -28,8 +28,15 @@ function normalizeIcon(iconName?: string | null, fallback = 'i-lucide-circle'): 
   return `i-lucide-${trimmed}`
 }
 
+const FALLBACK_PILLARS = [
+  { title: 'Alimentation & Vitalité', description: 'Une nutrition adaptée pour stabiliser l\'énergie et réguler les fluctuations hormonales.', icon: undefined },
+  { title: 'Gestion du Stress & Émotions', description: 'Des outils concrets pour apaiser le système nerveux et retrouver la sérénité.', icon: undefined },
+  { title: 'Sommeil Réparateur', description: 'Des rituels et conseils ciblés pour des nuits paisibles et régénérantes.', icon: undefined },
+  { title: 'Mouvement & Souplesse', description: 'Une activité douce et personnalisée pour préserver les articulations et la masse musculaire.', icon: undefined }
+]
+
 const pillarItems = computed(() => {
-  const items = props.pillars?.items ?? []
+  const items = props.pillars?.items?.length ? props.pillars.items : FALLBACK_PILLARS
   return items.map((p, i) => ({
     ...p,
     icon: p.icon ? normalizeIcon(p.icon) : (DEFAULT_PILLAR_ICONS[i] || 'i-lucide-circle')

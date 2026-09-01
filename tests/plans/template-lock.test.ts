@@ -23,15 +23,17 @@ import {
 } from '../../app/features/plans/domain/template-lock'
 
 describe('18.3b — isTemplateLocked', () => {
-  test('REGRESSION: le template `essentiel` n\'est JAMAIS verrouillé, quel que soit le flag', () => {
-    // Le PRD interdit de bloquer le template Standard : c'est précisément la
-    // raison pour laquelle le sélecteur est verrouillé CARTE PAR CARTE et non
+  test('REGRESSION: les templates standard (`essentiel`, `visuel`) ne sont JAMAIS verrouillés, quel que soit le flag', () => {
+    // Le PRD interdit de bloquer les templates Standard (Essentiel) :
+    // le sélecteur est verrouillé CARTE PAR CARTE et non
     // enveloppé dans un <FeatureGate> de section.
     assert.equal(isTemplateLocked({ code: ESSENTIEL_TEMPLATE_CODE }, false), false)
     assert.equal(isTemplateLocked({ code: ESSENTIEL_TEMPLATE_CODE }, true), false)
+    assert.equal(isTemplateLocked({ code: 'visuel' }, false), false)
+    assert.equal(isTemplateLocked({ code: 'visuel' }, true), false)
   })
 
-  test('un template de code différent d\'`essentiel` est verrouillé sans la feature', () => {
+  test('un template de code premium (ex: signature) est verrouillé sans la feature', () => {
     assert.equal(isTemplateLocked({ code: 'signature' }, false), true)
   })
 
@@ -39,7 +41,7 @@ describe('18.3b — isTemplateLocked', () => {
     assert.equal(isTemplateLocked({ code: 'signature' }, true), false)
   })
 
-  test('REGRESSION: la règle est « code !== essentiel », pas une liste blanche', () => {
+  test('REGRESSION: la règle verrouille tout code hors STANDARD_COACH_TEMPLATE_CODES', () => {
     // Miroir exact du backend 18.3a
     // (typeorm-provider-account-command.service.ts) : l'admin peut créer
     // d'autres codes via POST /admin/coach-page-templates, qu'une liste en dur
@@ -50,7 +52,7 @@ describe('18.3b — isTemplateLocked', () => {
     }
   })
 
-  test('le code du template libre est le miroir du backend (ESSENTIEL_TEMPLATE_CODE)', () => {
+  test('le code du template libre essentiel est le miroir du backend (ESSENTIEL_TEMPLATE_CODE)', () => {
     assert.equal(ESSENTIEL_TEMPLATE_CODE, 'essentiel')
   })
 })
