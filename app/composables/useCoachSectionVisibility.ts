@@ -84,7 +84,7 @@ export function useCoachSectionVisibility(
   options?: CoachSectionVisibilityOptions
 ): CoachSectionVisibility {
   const profile = computed<PublicProviderProfile | null>(() => toValue(source) ?? null)
-  const previewMode = computed<boolean>(() => Boolean(toValue(options?.previewMode)))
+  const _previewMode = computed<boolean>(() => Boolean(toValue(options?.previewMode)))
 
   function isToggleOn(section: CoachConfigurableSection): boolean {
     const config = profile.value?.sectionsConfig
@@ -136,21 +136,17 @@ export function useCoachSectionVisibility(
     return !!(t && Array.isArray(t) && t.length > 0)
   })
 
-  // --- Visibility = toggle AND content non-empty (P-Y3) ---
-  // Story 0-28 — `previewMode` short-circuits the hasContent check so Sophie
-  // sees the toggle effect immediately in the live preview, even before she
-  // has filled in the section content. The organisms (CoachPillars, CoachFaq,
-  // etc.) all guard against empty arrays/null content so this is safe.
-
-  const showBio = computed(() => isToggleOn('bio') && (previewMode.value || hasBio.value))
-  const showBenefits = computed(() => isToggleOn('benefits') && (previewMode.value || hasBenefits.value))
-  const showPillars = computed(() => isToggleOn('pillars') && (previewMode.value || hasPillars.value))
-  const showHowItWorks = computed(() => isToggleOn('howItWorks') && (previewMode.value || hasHowItWorks.value))
-  const showEducationalContent = computed(() => isToggleOn('educationalContent') && (previewMode.value || hasEducationalContent.value))
-  const showProblemStatement = computed(() => isToggleOn('problemStatement') && (previewMode.value || hasProblemStatement.value))
-  const showFaq = computed(() => isToggleOn('faq') && (previewMode.value || hasFaq.value))
-  const showMiniTestimonial = computed(() => isToggleOn('miniTestimonial') && (previewMode.value || hasTestimonials.value))
-  const showTestimonials = computed(() => isToggleOn('testimonials') && (previewMode.value || hasTestimonials.value))
+  // --- Visibility = toggle is on (P-Y3 updated) ---
+  // Sections configured as visible are displayed directly on public page & preview.
+  const showBio = computed(() => isToggleOn('bio'))
+  const showBenefits = computed(() => isToggleOn('benefits'))
+  const showPillars = computed(() => isToggleOn('pillars'))
+  const showHowItWorks = computed(() => isToggleOn('howItWorks'))
+  const showEducationalContent = computed(() => isToggleOn('educationalContent'))
+  const showProblemStatement = computed(() => isToggleOn('problemStatement'))
+  const showFaq = computed(() => isToggleOn('faq'))
+  const showMiniTestimonial = computed(() => isToggleOn('miniTestimonial'))
+  const showTestimonials = computed(() => isToggleOn('testimonials'))
 
   return {
     show: {

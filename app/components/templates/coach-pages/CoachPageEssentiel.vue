@@ -86,6 +86,7 @@ const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const showBio = show.bio
 const showBenefits = show.benefits
+const showProblemStatement = show.problemStatement
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
 const showTestimonials = show.testimonials
@@ -95,14 +96,11 @@ const showFaq = show.faq
 
 const coachName = computed(() => props.tenant.brand.displayName?.trim() || 'Votre spécialiste')
 const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMinutes ?? 15)
+const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
+const sectionTitles = computed(() => props.coachProfile?.sectionTitlesJson ?? {})
 
-// Pricing — gate par toggle ET contenu (Story 0-26 round terrain).
-// Story 0-28 round terrain — en preview, on affiche le bloc dès que le toggle
-// est ON même sans plans/programs chargés : le composant `CoachPricing` rend
-// toujours la card "Appel découverte gratuit", suffisante pour matérialiser
-// la section dans l'éditeur. Sinon Sophie ne voit jamais l'effet du toggle.
-const hasPricing = computed(() => props.consultationPlans.length > 0 || props.publicPrograms.length > 0)
-const showPricing = computed(() => isToggleOn('pricing') && (props.previewMode || hasPricing.value))
+// Pricing — la carte appel découverte gratuit est toujours présente, donc showPricing = toggle
+const showPricing = computed(() => isToggleOn('pricing'))
 
 // --- Header navigation links (anchor scroll) ---
 const navLinks = computed(() => {
@@ -131,12 +129,25 @@ const bioParagraphs = computed<string[]>(() => {
   return []
 })
 
-const apiTestimonials = computed(() => props.coachProfile?.testimonialsJson ?? [])
+const FALLBACK_TESTIMONIALS = [
+  { quote: 'Un accompagnement précieux qui m\'a permis de retrouver le sommeil et de comprendre mon corps.', firstName: 'Nathalie', age: 52, rating: 5 },
+  { quote: 'Enfin une écoute bienveillante sans jugement. Je me sens beaucoup plus sereine au quotidien.', firstName: 'Corinne', age: 49, rating: 5 }
+]
+
+const apiTestimonials = computed(() => {
+  const t = props.coachProfile?.testimonialsJson
+  return t?.length ? t : FALLBACK_TESTIMONIALS
+})
+
+const FALLBACK_FAQ = [
+  { label: 'Comment se déroule le premier appel découverte ?', content: 'C\'est un échange téléphonique ou visio de 15 minutes, entièrement gratuit et sans engagement. Nous faisons le point sur votre situation et vos attentes pour voir si mon approche vous correspond.' },
+  { label: 'Les séances ont-elles lieu en présentiel ou à distance ?', content: 'Les séances sont proposées en visioconférence sécurisée ou au cabinet selon vos préférences et disponibilités.' },
+  { label: 'Combien de séances sont généralement nécessaires ?', content: 'Le nombre de séances varie selon chaque femme et la nature de ses besoins. Nous définissons ensemble un rythme adapté lors du premier bilan.' }
+]
 
 // FAQ items (same mapping as Signature)
 const faqItems = computed<AccordionItem[]>(() => {
-  const api = props.coachProfile?.faqJson
-  if (!api?.length) return []
+  const api = props.coachProfile?.faqJson?.length ? props.coachProfile.faqJson : FALLBACK_FAQ
   return api.map((item, i) => ({
     label: item.label,
     content: item.content,
@@ -163,6 +174,7 @@ onMounted(() => {
 const heroProps = computed(() => ({
   displayName: coachName.value,
   heroHeadline: props.coachProfile?.heroHeadline ?? null,
+  heroDescription: props.coachProfile?.heroDescription ?? null,
   credentials: props.coachProfile?.credentials ?? [],
   city: props.coachProfile?.city ?? null,
   profilePhotoUrl: props.coachProfile?.imageUrl ?? null,
@@ -196,6 +208,56 @@ const heroProps = computed(() => ({
     <!-- ==================== 1. HERO ==================== -->
     <CoachEssentielHero v-bind="heroProps" />
 
+    <!-- ==================== 1.5 PROBLÈME (optionnel) ==================== -->
+    <section
+      v-if="showProblemStatement"
+      v-bind="reveal()"
+      class="scroll-reveal relative overflow-hidden bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-5xl">
+        <div
+          v-if="sectionTitles.problemStatementEyebrow || sectionTitles.problemStatementTitle"
+          class="mb-12 text-center"
+        >
+          <span
+            v-if="sectionTitles.problemStatementEyebrow"
+            class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]"
+          >
+            {{ sectionTitles.problemStatementEyebrow }}
+          </span>
+          <h2
+            v-if="sectionTitles.problemStatementTitle"
+            class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl"
+          >
+            {{ sectionTitles.problemStatementTitle }}
+          </h2>
+        </div>
+
+        <blockquote class="relative">
+          <span
+            class="absolute -left-4 -top-8 font-serif text-[12rem] leading-none text-[var(--color-brand-accent)]/10 lg:-left-16"
+            aria-hidden="true"
+          >"</span>
+          <p class="relative font-serif text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] text-[color:var(--color-text-primary)]">
+            {{ problemStatement?.blockquote || "« On me dit que c'est dans la tête, mais je ne reconnais plus mon corps. »" }}
+          </p>
+        </blockquote>
+
+        <div
+          v-if="problemStatement?.paragraphs?.length"
+          class="mt-12 space-y-6"
+        >
+          <p
+            v-for="(paragraph, i) in problemStatement.paragraphs"
+            :key="i"
+            class="text-lg leading-relaxed text-[color:var(--color-brand-secondary)]"
+          >
+            {{ paragraph }}
+          </p>
+        </div>
+      </div>
+    </section>
+
     <!-- ==================== 2. BÉNÉFICES — Ce que cela apporte (optionnel) ==================== -->
     <div
       v-if="showBenefits"
@@ -207,10 +269,10 @@ const heroProps = computed(() => ({
         <template #header>
           <div class="text-center">
             <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Ce que l'accompagnement apporte
+              {{ sectionTitles.benefitsEyebrow || "Ce que l'accompagnement apporte" }}
             </span>
             <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Un parcours adapté
+              {{ sectionTitles.benefitsTitle || 'Un parcours adapté' }}
             </h2>
           </div>
         </template>
@@ -351,10 +413,10 @@ const heroProps = computed(() => ({
           <!-- Bio — right column (generous line-height) -->
           <div class="lg:col-span-7">
             <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Qui suis-je
+              {{ sectionTitles.bioEyebrow || 'Qui suis-je' }}
             </span>
             <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Votre spécialiste ménopause — {{ coachName }}
+              {{ sectionTitles.bioTitle || `Votre spécialiste ménopause — ${coachName}` }}
             </h2>
 
             <p
@@ -409,10 +471,10 @@ const heroProps = computed(() => ({
         <template #header>
           <div class="mb-12 text-center">
             <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Témoignages
+              {{ sectionTitles.testimonialsEyebrow || 'Témoignages' }}
             </span>
             <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Ce qu'elles en disent
+              {{ sectionTitles.testimonialsTitle || "Ce qu'elles en disent" }}
             </h2>
           </div>
         </template>
@@ -429,10 +491,10 @@ const heroProps = computed(() => ({
         <template #header>
           <div class="text-center">
             <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              L'approche
+              {{ sectionTitles.pillarsEyebrow || "L'approche" }}
             </span>
             <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Les piliers de l'accompagnement
+              {{ sectionTitles.pillarsTitle || "Les piliers de l'accompagnement" }}
             </h2>
           </div>
         </template>
@@ -449,10 +511,10 @@ const heroProps = computed(() => ({
         <template #header>
           <div class="mb-12 text-center">
             <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Le parcours
+              {{ sectionTitles.howItWorksEyebrow || 'Le parcours' }}
             </span>
             <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Comment se déroule l'accompagnement
+              {{ sectionTitles.howItWorksTitle || "Comment se déroule l'accompagnement" }}
             </h2>
           </div>
         </template>
@@ -477,10 +539,10 @@ const heroProps = computed(() => ({
         <template #header>
           <div class="text-center">
             <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-              Tarifs
+              {{ sectionTitles.pricingEyebrow || 'Tarifs' }}
             </span>
             <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-              Tarifs des séances
+              {{ sectionTitles.pricingTitle || 'Tarifs des séances' }}
             </h2>
           </div>
         </template>
@@ -496,10 +558,10 @@ const heroProps = computed(() => ({
       <div class="mx-auto max-w-3xl">
         <div class="mb-12 text-center">
           <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-            Questions fréquentes
+            {{ sectionTitles.faqEyebrow || 'Questions fréquentes' }}
           </span>
           <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)]">
-            Questions fréquentes sur l'accompagnement
+            {{ sectionTitles.faqTitle || "Questions fréquentes sur l'accompagnement" }}
           </h2>
         </div>
 

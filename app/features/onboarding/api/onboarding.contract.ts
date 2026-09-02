@@ -16,6 +16,7 @@ export type TenantBrand = {
   displayName: string
   domain: string | null
   brandColor: string | null // verified against OpenAPI spec
+  brandAccentColor?: string | null
 }
 
 export type PublicTenantResponse = {

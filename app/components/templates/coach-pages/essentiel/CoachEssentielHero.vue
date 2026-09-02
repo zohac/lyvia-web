@@ -92,9 +92,8 @@ const initials = computed(() => {
           </p>
 
           <!-- Description paragraph -->
-          <p class="mt-5 max-w-xl text-base leading-relaxed text-[color:var(--color-brand-secondary)]">
-            Accompagnement personnalisé en périménopause et ménopause.
-            Alimentation, stress, sommeil, mouvement. Une approche complète, à votre rythme.
+          <p class="mt-5 max-w-xl text-base leading-relaxed text-[color:var(--color-brand-secondary)] whitespace-pre-line">
+            {{ heroDescription || 'Accompagnement personnalisé en périménopause et ménopause.\nAlimentation, stress, sommeil, mouvement. Une approche complète, à votre rythme.' }}
           </p>
 
           <!-- CTA row -->

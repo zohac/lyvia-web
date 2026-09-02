@@ -3,9 +3,11 @@ import '~/assets/css/main.css'
 
 import PublicFooter from '../components/organisms/PublicFooter.vue'
 import PublicHeader from '../components/organisms/PublicHeader.vue'
+import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
 
 useCommonLayoutHead()
 await usePublicHeaderInit()
+useBrandColorInjection()
 
 const route = useRoute()
 
@@ -29,10 +31,10 @@ const isFullBleed = computed(() => publicLayout.value.fullBleed === true)
 </script>
 
 <template>
-  <div class="min-h-[100svh] bg-[#f9f8fa] text-[#221d28]">
+  <div class="min-h-[100svh] bg-[color:var(--color-surface-page)] text-[color:var(--color-text-primary)]">
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-[#5b4b6e] focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[9999] focus:rounded-lg focus:bg-[color:var(--color-brand-primary)] focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
     >
       Aller au contenu
     </a>

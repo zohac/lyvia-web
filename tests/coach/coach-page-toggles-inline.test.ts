@@ -200,7 +200,7 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     assert.match(source, /function removeTestimonial\(/)
     assert.match(source, /async function onSaveTestimonials\(\)/)
     // Persist via updateAccount (exposé directement par useCoachPageEditor — story 0-26 round terrain).
-    assert.match(source, /\bupdateAccount\(\{\s*testimonialsJson:\s*filtered\s*\}\)/)
+    assert.match(source, /\bupdateAccount\(\{[\s\S]*?testimonialsJson:\s*filtered[\s\S]*?\}\)/)
     // Limite max alignée sur la constante TESTIMONIALS_MAX (10 — pattern existant /provider/account).
     assert.match(source, /TESTIMONIALS_MAX\s*=\s*10/)
   })

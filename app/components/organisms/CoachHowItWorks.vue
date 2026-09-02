@@ -11,11 +11,25 @@ const { reveal } = useScrollReveal()
 // (visibility rule = toggle AND content non-empty).
 const STEP_ICONS = ['i-lucide-calendar', 'i-lucide-phone', 'i-lucide-compass', 'i-lucide-heart-handshake']
 
+function normalizeIcon(iconName?: string | null, fallback = 'i-lucide-circle'): string {
+  if (!iconName || !iconName.trim()) return fallback
+  const trimmed = iconName.trim()
+  if (trimmed.startsWith('i-')) return trimmed
+  return `i-lucide-${trimmed}`
+}
+
+const FALLBACK_STEPS = [
+  { number: '1', title: 'Appel découverte', description: 'Un premier échange offert de 15 minutes pour faire le point sur votre situation et vos besoins.', icon: undefined },
+  { number: '2', title: 'Bilan approfondi', description: 'Une analyse détaillée de votre historique, de vos habitudes et de vos symptômes.', icon: undefined },
+  { number: '3', title: 'Plan d\'action personnalisé', description: 'Des recommandations concrètes et adaptées à votre rythme de vie.', icon: undefined },
+  { number: '4', title: 'Suivi et ajustements', description: 'Un accompagnement pas à pas pour consolider vos progrès dans la durée.', icon: undefined }
+]
+
 const steps = computed(() => {
-  const apiSteps = props.steps ?? []
+  const apiSteps = props.steps?.length ? props.steps : FALLBACK_STEPS
   return apiSteps.map((s, i) => ({
     ...s,
-    icon: STEP_ICONS[i] ?? 'i-lucide-circle'
+    icon: s.icon ? normalizeIcon(s.icon) : (STEP_ICONS[i] ?? 'i-lucide-circle')
   }))
 })
 </script>

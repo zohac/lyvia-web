@@ -10,7 +10,7 @@
  */
 
 /** Codes de template supportés par `useCoachPageTemplate`. */
-export type CoachTemplateCode = 'signature' | 'essentiel'
+export type CoachTemplateCode = 'signature' | 'essentiel' | 'visuel'
 
 /** Code utilisé comme fallback quand le templateCode est inconnu ou absent. */
 export const DEFAULT_COACH_TEMPLATE_CODE: CoachTemplateCode = 'essentiel'
@@ -22,7 +22,8 @@ export const DEFAULT_COACH_TEMPLATE_CODE: CoachTemplateCode = 'essentiel'
  */
 export const SUPPORTED_COACH_TEMPLATE_CODES: readonly CoachTemplateCode[] = [
   'signature',
-  'essentiel'
+  'essentiel',
+  'visuel'
 ]
 
 /**

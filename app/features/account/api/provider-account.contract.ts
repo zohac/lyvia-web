@@ -6,7 +6,8 @@ import type {
   BenefitsJson,
   HowItWorksStep,
   EducationalContentJson,
-  ProblemStatementJson
+  ProblemStatementJson,
+  SectionTitlesJson
 } from '~/features/seo/api/public-provider-profile.contract'
 
 export interface CredentialItem {
@@ -50,6 +51,7 @@ export type ProviderAccountResponse = {
   publicPhone: string | null
   urgencyText: string | null
   heroHeadline: string | null
+  heroDescription?: string | null
   testimonialsJson: TestimonialItem[]
   leadMagnetUrl: string | null
   leadMagnetTitle: string | null
@@ -60,7 +62,9 @@ export type ProviderAccountResponse = {
   // Coach Page Configuration (YC1.2 / YC3.1)
   coachPageTemplateId: string | null
   sectionsConfig: Record<string, boolean>
+  sectionTitlesJson?: SectionTitlesJson | null
   brandColor: string | null
+  brandAccentColor?: string | null
   pillarsJson: PillarsJson | null
   faqJson: FaqItem[] | null
   benefitsJson: BenefitsJson | null
@@ -102,6 +106,7 @@ export type UpdateProviderAccountRequest = {
   publicPhone?: string | null
   urgencyText?: string | null
   heroHeadline?: string | null
+  heroDescription?: string | null
   testimonialsJson?: TestimonialItem[]
   leadMagnetUrl?: string | null
   leadMagnetTitle?: string | null
@@ -112,7 +117,9 @@ export type UpdateProviderAccountRequest = {
   // Coach Page Configuration (YC3.1)
   coachPageTemplateId?: string | null
   sectionsConfig?: Record<string, boolean>
+  sectionTitlesJson?: SectionTitlesJson | null
   brandColor?: string | null
+  brandAccentColor?: string | null
   pillarsJson?: PillarsJson | null
   faqJson?: FaqItem[] | null
   benefitsJson?: BenefitsJson | null
@@ -125,4 +132,4 @@ export type UpdateProviderAccountRequest = {
 }
 
 // Re-export JSONB types for convenience
-export type { PillarsJson, FaqItem, BenefitsJson, HowItWorksStep, EducationalContentJson, ProblemStatementJson }
+export type { PillarsJson, FaqItem, BenefitsJson, HowItWorksStep, EducationalContentJson, ProblemStatementJson, SectionTitlesJson }

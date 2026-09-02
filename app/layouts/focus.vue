@@ -3,8 +3,10 @@ import '~/assets/css/main.css'
 
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
 import { getDomainContext } from '#shared/utils/domain-context'
+import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
 
 useCommonLayoutHead()
+useBrandColorInjection()
 
 const currentYear = new Date().getFullYear()
 const requestUrl = useRequestURL()

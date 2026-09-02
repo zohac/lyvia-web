@@ -1,19 +1,21 @@
 import { getDomainContext } from '#shared/utils/domain-context'
 import { bindBrandColorScope } from '#shared/utils/brand-color-scope'
-import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
+import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 
 /**
- * Injects --color-brand-primary, --color-brand-primary-light, and
- * --color-brand-primary-dark CSS custom properties on white-label domains
- * when the provider has configured a brandColor.
+ * Injects --color-brand-primary, --color-brand-accent, and derived CSS custom
+ * properties into the document root whenever a coach tenant has configured brand colors.
  *
- * Call this in dashboard layouts (provider, client) only.
- * Public pages are NOT impacted — isolation is guaranteed by layout boundary.
+ * Resolves tenant from available Nuxt data sources:
+ * - 'public-tenant-home' (custom domain / home)
+ * - 'public-tenant-discovery' (white-label discovery booking)
+ * - `public-tenant:${route.params.slug}` (platform coach page / booking)
  *
- * On unmount (layout change), the overrides are removed so the CSS defaults
- * from main.css (Crépuscule palette) take over.
+ * On unmount (layout / route change), the overrides are removed so default CSS
+ * variables take over.
  */
 export function useBrandColorInjection() {
+  const route = useRoute()
   const requestUrl = useRequestURL()
   const hostname = requestUrl.hostname.toLowerCase()
   const runtimeConfig = useRuntimeConfig()
@@ -21,15 +23,28 @@ export function useBrandColorInjection() {
   const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
   const ctx = getDomainContext(hostname, platformDomain, platformDomainB2B || undefined)
 
-  // RF5: early return BEFORE any network fetch on platform domains
-  if (!ctx.isWhiteLabel) return
+  const routeSlug = computed(() => (typeof route.params.slug === 'string' ? route.params.slug.trim() : ''))
 
-  const { data: tenant } = usePublicTenantHome()
+  const tenantHome = useNuxtData<PublicTenantResponse | null>('public-tenant-home')
+  const tenantDiscovery = useNuxtData<PublicTenantResponse | null>('public-tenant-discovery')
+  const tenantRoute = computed(() => {
+    if (!routeSlug.value) return null
+    return useNuxtData<PublicTenantResponse | null>(`public-tenant:${routeSlug.value}`).data.value
+  })
+
+  const tenant = computed<PublicTenantResponse | null>(() => {
+    return tenantHome.data.value || tenantDiscovery.data.value || tenantRoute.value || null
+  })
+
+  // If on platform domain and not on a coach route / no tenant data, early return
+  if (!ctx.isWhiteLabel && !routeSlug.value && !tenant.value) return
 
   if (import.meta.server) return
 
   bindBrandColorScope(
     document.documentElement.style,
-    () => tenant.value?.brand?.brandColor
+    () => tenant.value?.brand?.brandColor,
+    true,
+    () => tenant.value?.brand?.brandAccentColor
   )
 }

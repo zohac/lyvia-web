@@ -27,7 +27,8 @@ type TemplateLoader = () => Promise<unknown>
  */
 const TEMPLATE_MAP = {
   signature: () => import('~/components/templates/coach-pages/CoachPageSignature.vue'),
-  essentiel: () => import('~/components/templates/coach-pages/CoachPageEssentiel.vue')
+  essentiel: () => import('~/components/templates/coach-pages/CoachPageEssentiel.vue'),
+  visuel: () => import('~/components/templates/coach-pages/CoachPageVisuel.vue')
 } as const satisfies Record<CoachTemplateCode, TemplateLoader>
 
 /**

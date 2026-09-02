@@ -21,7 +21,7 @@
  *     inside an `inert` container so external CTAs / form submits are
  *     globally neutralised (HTML-native, no per-button wrapping).
  */
-import { computed, markRaw, shallowRef, watch } from 'vue'
+import { computed, markRaw, shallowRef, watch, ref } from 'vue'
 import type { Component } from 'vue'
 
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
@@ -30,6 +30,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { useCoachPageTemplate } from '~/composables/useCoachPageTemplate'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
+import { bindBrandColorScope } from '#shared/utils/brand-color-scope'
 import PublicHeader from '~/components/organisms/PublicHeader.vue'
 import type { PublicHeaderState } from '~/features/public/state/public-header.state'
 
@@ -175,6 +176,19 @@ const contentZoomStyle = computed(() =>
 function selectDevice(next: PreviewDevice): void {
   if (next !== props.device) emit('update:device', next)
 }
+
+const previewContainerRef = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  if (previewContainerRef.value) {
+    bindBrandColorScope(
+      previewContainerRef.value.style,
+      () => props.tenant?.brand.brandColor,
+      true,
+      () => props.tenant?.brand.brandAccentColor
+    )
+  }
+})
 </script>
 
 <template>
@@ -274,6 +288,7 @@ function selectDevice(next: PreviewDevice): void {
         cannot accidentally trigger booking/checkout/lead-magnet flows
         from her own preview. -->
       <div
+        ref="previewContainerRef"
         :class="frameClasses"
         :data-preview-device="device"
         inert
