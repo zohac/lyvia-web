@@ -48,6 +48,15 @@ const photoSrc = computed(() => {
     || '/images/templates/visuel/bio-default.webp'
   )
 })
+const displayedCredentials = computed(() => {
+  if (props.coachProfile?.credentials?.length) {
+    return props.coachProfile.credentials
+  }
+  return [
+    { title: '20 ans d\'expérience infirmière' },
+    { title: 'Accompagnement ménopause & vitalité' }
+  ]
+})
 </script>
 
 <template>
@@ -65,6 +74,9 @@ const photoSrc = computed(() => {
             :alt="coachName"
             class="h-full w-full object-cover object-top"
             loading="lazy"
+            width="480"
+            height="560"
+            @error="($event.target as HTMLImageElement).src = '/images/templates/visuel/bio-default.webp'"
           >
         </div>
 
@@ -91,19 +103,16 @@ const photoSrc = computed(() => {
             </p>
           </div>
 
-          <!-- Badges certifications -->
-          <div
-            v-if="coachProfile?.credentials?.length"
-            class="mt-8 flex flex-wrap gap-2.5"
-          >
+          <!-- Badges certifications & parcours -->
+          <div class="mt-8 flex flex-wrap gap-2.5">
             <span
-              v-for="(cred, i) in coachProfile.credentials"
+              v-for="(cred, i) in displayedCredentials"
               :key="i"
               class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 px-3.5 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary)]"
             >
               <UIcon
                 name="i-lucide-award"
-                class="size-3.5"
+                class="size-3.5 text-[color:var(--color-brand-accent)]"
               />
               {{ cred.title }}
             </span>

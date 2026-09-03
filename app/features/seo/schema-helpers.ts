@@ -67,6 +67,8 @@ export function mapProfileToSchemaRefs(
     city: Ref<string | undefined>
     /** Story 0-27 — brand logo URL for Person.logo Schema.org enrichment. */
     logoUrl?: Ref<string | undefined>
+    /** Story 0-39 — FAQ items for FAQPage Schema.org enrichment. */
+    faqItems?: Ref<Array<{ label: string, content: string }>>
   },
   options?: {
     /** YC2.4: white-label domain to add as sameAs (hub → WL cross-reference) */
@@ -81,6 +83,8 @@ export function mapProfileToSchemaRefs(
   if (profile.specialties.length > 0) refs.specialties.value = profile.specialties
   // Story 0-27 — Person.logo enrichment when brand logo is set.
   if (refs.logoUrl && profile.logoUrl) refs.logoUrl.value = profile.logoUrl
+  // Story 0-39 — FAQPage enrichment when faqJson is set.
+  if (refs.faqItems && profile.faqJson?.length) refs.faqItems.value = profile.faqJson
 
   if (profile.credentials.length > 0) {
     refs.credentials.value = profile.credentials.map(c => ({
@@ -143,5 +147,25 @@ export function buildCredentialSchemaItems(
     'credentialCategory': c.title,
     ...(c.institution ? { recognizedBy: { '@type': 'Organization', 'name': c.institution } } : {}),
     ...(c.year ? { dateCreated: String(c.year) } : {})
+  }))
+}
+
+/**
+ * Builds Schema.org Question / Answer items for FAQPage.mainEntity.
+ * Returns undefined when no FAQ items — keeps JSON-LD clean.
+ *
+ * Story 0-39 — Convention 5: pure helper testable for composable SEO logic.
+ */
+export function buildFaqSchemaItems(
+  faq: Array<{ label: string, content: string }> | undefined | null
+): Array<{ '@type': 'Question', 'name': string, 'acceptedAnswer': { '@type': 'Answer', 'text': string } }> | undefined {
+  if (!faq || faq.length === 0) return undefined
+  return faq.map(item => ({
+    '@type': 'Question' as const,
+    'name': item.label,
+    'acceptedAnswer': {
+      '@type': 'Answer' as const,
+      'text': item.content
+    }
   }))
 }

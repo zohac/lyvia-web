@@ -69,6 +69,7 @@ const showPillars = show.pillars
 const showBenefits = show.benefits
 const showHowItWorks = show.howItWorks
 const showTestimonials = show.testimonials
+const showFit = show.fit
 const showPricingToggle = computed(() => isToggleOn('pricing'))
 const showFaq = show.faq
 
@@ -215,6 +216,11 @@ const heroProps = computed(() => ({
       :steps="coachProfile?.howItWorksJson ?? null"
       :eyebrow="sectionTitles.howItWorksEyebrow"
       :title="sectionTitles.howItWorksTitle"
+    />
+
+    <!-- ==================== 6b. POUR QUI / FIT (optionnel) ==================== -->
+    <AtomsCoachFitSection
+      v-if="showFit"
     />
 
     <!-- ==================== 7. TÉMOIGNAGES (optionnel) ==================== -->

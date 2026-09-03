@@ -1,10 +1,10 @@
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { apiFetch } from '~/services/api/apiFetch'
-import { buildCoachUrls, buildCredentialSchemaItems, buildPersonAddress, buildPersonLogo, mapProfileToSchemaRefs } from '~/features/seo/schema-helpers'
+import { buildCoachUrls, buildCredentialSchemaItems, buildFaqSchemaItems, buildPersonAddress, buildPersonLogo, mapProfileToSchemaRefs } from '~/features/seo/schema-helpers'
 
 /**
- * Injects Person + ProfessionalService + BreadcrumbList schemas for coach pages.
+ * Injects Person + ProfessionalService + BreadcrumbList + FAQPage schemas for coach pages.
  *
  * All useSchemaOrg() calls happen BEFORE await to preserve Nuxt context.
  * Reactive refs bridge post-await data updates into the schema nodes.
@@ -33,6 +33,8 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
   const city = ref<string | undefined>(undefined)
   // Story 0-27 — brand logo URL for Person.logo enrichment.
   const logoUrl = ref<string | undefined>(undefined)
+  // Story 0-39 — FAQ items for FAQPage schema.
+  const faqItems = ref<Array<{ label: string, content: string }>>([])
 
   // Person schema (AC-1, AC-2) — single source of Person data on white-label
   // (useGlobalSchemaOrg no longer injects Person to avoid duplicates)
@@ -77,6 +79,12 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
     }])
   }
 
+  // FAQPage schema (Story 0-39 AC-6)
+  useSchemaOrg([{
+    '@type': 'FAQPage',
+    'mainEntity': () => buildFaqSchemaItems(faqItems.value)
+  }])
+
   // BreadcrumbList — platform only (AC-1: Accueil > {displayName})
   // White-label: page racine, pas de breadcrumb (AC-2)
   if (isPlatform) {
@@ -110,7 +118,7 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
   watchEffect(() => {
     mapProfileToSchemaRefs(
       profile.value,
-      { name, bio, imageUrl, specialties, credentials, sameAs, city, logoUrl },
+      { name, bio, imageUrl, specialties, credentials, sameAs, city, logoUrl, faqItems },
       { whiteLabeldomain: options?.whiteLabeldomain }
     )
   })

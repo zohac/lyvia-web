@@ -37,6 +37,9 @@ const heroBackgroundSrc = computed(() => {
       class="absolute inset-0 h-full w-full object-cover object-center"
       loading="eager"
       fetchpriority="high"
+      width="1920"
+      height="1080"
+      @error="($event.target as HTMLImageElement).src = '/images/templates/visuel/hero-default.webp'"
     >
 
     <!-- Overlay sombre vertical progressif -->

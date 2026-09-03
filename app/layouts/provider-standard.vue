@@ -5,7 +5,7 @@ import { useCurrentUser } from '../features/auth/useCurrentUser'
 import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
 import DashboardShell from '../components/templates/DashboardShell.vue'
 
-useCommonLayoutHead()
+useCommonLayoutHead({ noindex: true })
 useBrandColorInjection()
 
 const { user } = useCurrentUser()

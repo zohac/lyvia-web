@@ -8,6 +8,7 @@ import {
   buildPersonAddress,
   buildCredentialSchemaItems,
   buildPersonLogo,
+  buildFaqSchemaItems,
   mapProfileToSchemaRefs
 } from '../../app/features/seo/schema-helpers'
 import type { PublicProviderProfile } from '../../app/features/seo/api/public-provider-profile.contract'
@@ -512,5 +513,51 @@ describe('mapProfileToSchemaRefs — Story 0-27 logoUrl propagation', () => {
 
     // Must not throw when refs.logoUrl is undefined
     assert.doesNotThrow(() => mapProfileToSchemaRefs(profile, legacyRefs))
+  })
+
+  test('maps profile.faqJson into refs.faqItems when set', () => {
+    const refs = {
+      ...createFullRefs(),
+      faqItems: createRef<Array<{ label: string, content: string }>>([])
+    }
+    const profile = makeProfile({
+      faqJson: [
+        { label: 'Comment se passe la séance ?', content: 'En visio ou en présentiel.' }
+      ]
+    })
+
+    mapProfileToSchemaRefs(profile, refs)
+
+    assert.equal(refs.faqItems.value.length, 1)
+    assert.equal(refs.faqItems.value[0].label, 'Comment se passe la séance ?')
+  })
+})
+
+// --- buildFaqSchemaItems ---
+
+describe('buildFaqSchemaItems (Story 0-39 AC-6)', () => {
+  test('returns undefined when faq is empty or null', () => {
+    assert.equal(buildFaqSchemaItems(null), undefined)
+    assert.equal(buildFaqSchemaItems(undefined), undefined)
+    assert.equal(buildFaqSchemaItems([]), undefined)
+  })
+
+  test('maps FAQ items to Schema.org Question / Answer items', () => {
+    const items = [
+      { label: 'Question 1', content: 'Réponse 1' },
+      { label: 'Question 2', content: 'Réponse 2' }
+    ]
+    const result = buildFaqSchemaItems(items)
+
+    assert.ok(result)
+    assert.equal(result!.length, 2)
+    assert.deepStrictEqual(result![0], {
+      '@type': 'Question',
+      'name': 'Question 1',
+      'acceptedAnswer': {
+        '@type': 'Answer',
+        'text': 'Réponse 1'
+      }
+    })
   })
 })

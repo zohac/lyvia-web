@@ -1,6 +1,6 @@
 import { resolveAlternateHref } from '#shared/utils/resolve-alternate-href'
 
-export function useCommonLayoutHead() {
+export function useCommonLayoutHead(options?: { noindex?: boolean }) {
   const faviconHref = useDomainAwareFaviconHref()
   const canonicalState = usePublicCanonicalState()
   const requestUrl = useRequestURL()
@@ -19,13 +19,19 @@ export function useCommonLayoutHead() {
     })
   })
 
-  useHead(() => ({
-    meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
-    link: [
-      { rel: 'icon', href: faviconHref.value },
-      { rel: 'alternate', hreflang: 'fr', href: hreflangHref.value },
-      { rel: 'alternate', hreflang: 'x-default', href: hreflangHref.value }
-    ],
-    htmlAttrs: { lang: 'fr' }
-  }))
+  useHead(() => {
+    const meta = [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }]
+    if (options?.noindex) {
+      meta.push({ name: 'robots', content: 'noindex, nofollow' })
+    }
+    return {
+      meta,
+      link: [
+        { rel: 'icon', href: faviconHref.value },
+        { rel: 'alternate', hreflang: 'fr', href: hreflangHref.value },
+        { rel: 'alternate', hreflang: 'x-default', href: hreflangHref.value }
+      ],
+      htmlAttrs: { lang: 'fr' }
+    }
+  })
 }

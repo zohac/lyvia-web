@@ -79,6 +79,13 @@ export type ProviderAccountResponse = {
   imageUrl: string | null
   heroImageUrl: string | null
   secondaryPhotoUrl: string | null
+  // Legal fields (AC-1)
+  legalCompanyName?: string | null
+  legalSiret?: string | null
+  legalAddress?: string | null
+  legalDirector?: string | null
+  legalRcpInsurance?: string | null
+  legalEmail?: string | null
   // Plan & feature gating (Story 18.2) — LECTURE SEULE.
   // Le plan se change côté admin (15-5) : ces champs n'ont volontairement PAS
   // d'équivalent dans `UpdateProviderAccountRequest`.
@@ -129,6 +136,13 @@ export type UpdateProviderAccountRequest = {
   // White-label email branding (story 0-20a/0-20c)
   brandName?: string | null
   logoUrl?: string | null
+  // Legal fields (AC-1)
+  legalCompanyName?: string | null
+  legalSiret?: string | null
+  legalAddress?: string | null
+  legalDirector?: string | null
+  legalRcpInsurance?: string | null
+  legalEmail?: string | null
 }
 
 // Re-export JSONB types for convenience

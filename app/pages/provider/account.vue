@@ -63,6 +63,16 @@ const phoneValid = computed(() => {
   return p === '' || /^\+[1-9]\d{6,14}$/.test(p)
 })
 
+// ── Legal form state ────────────────────────────────
+const legalForm = reactive({
+  companyName: '',
+  siret: '',
+  address: '',
+  director: '',
+  rcpInsurance: '',
+  email: ''
+})
+
 // ── Photo upload state ──────────────────────────────
 const photoFile = ref<File | null>(null)
 const photoPreview = ref<string | null>(null)
@@ -155,6 +165,14 @@ function syncFormsFromAccount() {
 
   // Phone
   phoneForm.publicPhone = acc.publicPhone ?? ''
+
+  // Legal
+  legalForm.companyName = acc.legalCompanyName ?? ''
+  legalForm.siret = acc.legalSiret ?? ''
+  legalForm.address = acc.legalAddress ?? ''
+  legalForm.director = acc.legalDirector ?? ''
+  legalForm.rcpInsurance = acc.legalRcpInsurance ?? ''
+  legalForm.email = acc.legalEmail ?? ''
 
   // Lead magnet
   leadMagnetForm.url = acc.leadMagnetUrl
@@ -252,7 +270,21 @@ function validateSocialUrl(url: string): boolean {
   return url.startsWith('https://')
 }
 
-// ── Form handlers ───────────────────────────────────
+async function handleLegalSubmit() {
+  const success = await updateAccount({
+    legalCompanyName: legalForm.companyName || null,
+    legalSiret: legalForm.siret || null,
+    legalAddress: legalForm.address || null,
+    legalDirector: legalForm.director || null,
+    legalRcpInsurance: legalForm.rcpInsurance || null,
+    legalEmail: legalForm.email || null
+  })
+  if (success) {
+    toast.add({ title: 'Informations légales mises à jour', color: 'primary' })
+  } else {
+    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
+  }
+}
 async function handlePersonalSubmit() {
   const success = await updateAccount({
     firstname: personalForm.firstname,
@@ -861,7 +893,126 @@ async function handlePasswordChange() {
         </form>
       </div>
 
-      <!-- Section 6: Téléphone public -->
+      <!-- Section 7: Informations légales -->
+      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+            <UIcon
+              name="i-lucide-file-text"
+              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
+            />
+          </div>
+          <div>
+            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
+              Informations légales
+            </h2>
+            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
+              Informations requises pour les prestataires à statut juridique.
+            </p>
+          </div>
+        </div>
+
+        <form
+          class="mt-6 grid gap-4"
+          @submit.prevent="handleLegalSubmit"
+        >
+          <FormControl
+            id="legalCompanyName"
+            label="Raison sociale"
+            class="max-w-md"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="legalForm.companyName"
+                v-bind="inputAttrs"
+                placeholder="Nom de l'entreprise"
+              />
+            </template>
+          </FormControl>
+
+          <FormControl
+            id="legalSiret"
+            label="Numéro SIRET"
+            class="max-w-md"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="legalForm.siret"
+                v-bind="inputAttrs"
+                placeholder="123 456 789 00001"
+              />
+            </template>
+          </FormControl>
+
+          <FormControl
+            id="legalAddress"
+            label="Adresse légale"
+            class="max-w-md"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="legalForm.address"
+                v-bind="inputAttrs"
+                placeholder="123 Rue de la Paix, 75000 Paris"
+              />
+            </template>
+          </FormControl>
+
+          <FormControl
+            id="legalDirector"
+            label="Directeur de la publication"
+            class="max-w-md"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="legalForm.director"
+                v-bind="inputAttrs"
+                placeholder="Prénom Nom"
+              />
+            </template>
+          </FormControl>
+
+          <FormControl
+            id="legalRcpInsurance"
+            label="Assurance RCP"
+            class="max-w-md"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="legalForm.rcpInsurance"
+                v-bind="inputAttrs"
+                placeholder="Numéro de police"
+              />
+            </template>
+          </FormControl>
+
+          <FormControl
+            id="legalEmail"
+            label="Email légal"
+            class="max-w-md"
+          >
+            <template #default="{ inputAttrs }">
+              <UInput
+                v-model="legalForm.email"
+                v-bind="inputAttrs"
+                type="email"
+                placeholder="contact@entreprise.fr"
+              />
+            </template>
+          </FormControl>
+
+          <div>
+            <UButton
+              type="submit"
+              :loading="saving"
+              :disabled="saving"
+              label="Enregistrer les informations légales"
+            />
+          </div>
+        </form>
+      </div>
+
+      <!-- Section 8: Téléphone public -->
       <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
         <div class="flex items-start gap-4">
           <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">

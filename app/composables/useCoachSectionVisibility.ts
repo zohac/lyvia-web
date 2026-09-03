@@ -32,6 +32,7 @@ export type CoachConfigurableSection
     | 'miniTestimonial'
     | 'testimonials'
     | 'bio'
+    | 'fit'
     | 'pricing' // Story 0-26 round terrain — toggle pricing doit gater l'affichage public
 
 export interface CoachSectionVisibility {
@@ -46,6 +47,7 @@ export interface CoachSectionVisibility {
     faq: ComputedRef<boolean>
     miniTestimonial: ComputedRef<boolean>
     testimonials: ComputedRef<boolean>
+    fit: ComputedRef<boolean>
   }
   /** Lecture isolée du toggle `sectionsConfig[section]`. Toggle absent → `true`. */
   isToggleOn: (section: CoachConfigurableSection) => boolean
@@ -59,6 +61,7 @@ export interface CoachSectionVisibility {
     problemStatement: ComputedRef<boolean>
     faq: ComputedRef<boolean>
     testimonials: ComputedRef<boolean>
+    fit: ComputedRef<boolean>
   }
 }
 
@@ -147,6 +150,8 @@ export function useCoachSectionVisibility(
   const showFaq = computed(() => isToggleOn('faq'))
   const showMiniTestimonial = computed(() => isToggleOn('miniTestimonial'))
   const showTestimonials = computed(() => isToggleOn('testimonials'))
+  const showFit = computed(() => isToggleOn('fit'))
+  const hasFit = computed(() => true)
 
   return {
     show: {
@@ -158,7 +163,8 @@ export function useCoachSectionVisibility(
       problemStatement: showProblemStatement,
       faq: showFaq,
       miniTestimonial: showMiniTestimonial,
-      testimonials: showTestimonials
+      testimonials: showTestimonials,
+      fit: showFit
     },
     isToggleOn,
     has: {
@@ -169,7 +175,8 @@ export function useCoachSectionVisibility(
       educationalContent: hasEducationalContent,
       problemStatement: hasProblemStatement,
       faq: hasFaq,
-      testimonials: hasTestimonials
+      testimonials: hasTestimonials,
+      fit: hasFit
     }
   }
 }

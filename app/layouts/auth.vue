@@ -3,7 +3,7 @@ import '~/assets/css/auth.css'
 
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
 
-useCommonLayoutHead()
+useCommonLayoutHead({ noindex: true })
 </script>
 
 <template>

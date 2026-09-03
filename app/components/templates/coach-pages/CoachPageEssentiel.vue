@@ -90,6 +90,7 @@ const showProblemStatement = show.problemStatement
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
 const showTestimonials = show.testimonials
+const showFit = show.fit
 const showFaq = show.faq
 
 // --- Derived data ---
@@ -520,6 +521,11 @@ const heroProps = computed(() => ({
         </template>
       </CoachHowItWorks>
     </div>
+
+    <!-- ==================== 6b. POUR QUI / FIT (optionnel) ==================== -->
+    <AtomsCoachFitSection
+      v-if="showFit"
+    />
 
     <!-- ==================== 7. TARIFS ==================== -->
     <div

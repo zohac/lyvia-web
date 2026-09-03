@@ -2,12 +2,15 @@
 import LegalPageContent from '../../components/templates/LegalPageContent.vue'
 import { buildLegalBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
 import { useLegalPageSeo } from '~/features/seo/useLegalPageSeo'
+import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 
 definePageMeta({
   layout: 'legal'
 })
 
+const { data: tenant } = usePublicTenantHome()
 const breadcrumbs = buildLegalBreadcrumbs('Conditions Générales d\'Utilisation')
+const isCustomDomain = computed(() => tenant.value?.brand?.mode === 'custom_domain')
 
 useLegalPageSeo({
   pageTitle: 'Conditions Générales d\'Utilisation',
@@ -131,7 +134,7 @@ useLegalPageSeo({
         Pour toute question relative aux présentes CGU, vous pouvez nous contacter :
       </p>
       <ul>
-        <li><strong>Email :</strong> contact@keova.fr</li>
+        <li><strong>Email :</strong> {{ isCustomDomain ? (tenant?.legalInfo?.email || 'contact@keova.fr') : 'contact@keova.fr' }}</li>
       </ul>
     </LegalPageContent>
   </div>

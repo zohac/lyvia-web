@@ -81,7 +81,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           class="hidden h-5 w-px bg-[color:var(--color-border-emphasis)] sm:block"
           aria-hidden="true"
         />
-        <span class="hidden text-sm font-medium text-[color:var(--color-brand-secondary)] sm:inline">
+        <span class="hidden text-sm font-medium text-[color:var(--color-text-primary)] sm:inline">
           {{ coachName }}
         </span>
       </NuxtLink>
@@ -96,7 +96,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           v-for="link in navLinks"
           :key="link.href"
           :href="link.href"
-          class="text-sm font-medium text-[color:var(--color-brand-secondary)] transition-colors duration-200 hover:text-[color:var(--color-brand-primary)]"
+          class="text-sm font-medium text-[color:var(--color-text-primary)] transition-colors duration-200 hover:text-[color:var(--color-brand-primary)]"
         >
           {{ link.label }}
         </a>
@@ -167,7 +167,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           </div>
 
           <!-- Coach name -->
-          <div class="border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-sm text-[color:var(--color-brand-secondary)]">
+          <div class="border-b border-[color:var(--color-border-subtle)] px-6 py-4 text-sm text-[color:var(--color-text-primary)]">
             {{ coachName }}
           </div>
 

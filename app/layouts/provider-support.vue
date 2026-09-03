@@ -5,7 +5,7 @@ import { SUPPORT_NAVIGATION_ITEMS } from '../features/support-session/api/suppor
 import DashboardShell from '../components/templates/DashboardShell.vue'
 import SupportSessionBanner from '../components/organisms/SupportSessionBanner.vue'
 
-useCommonLayoutHead()
+useCommonLayoutHead({ noindex: true })
 useBrandColorInjection()
 
 const { user } = useCurrentUser()
