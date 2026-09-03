@@ -49,13 +49,7 @@ const photoSrc = computed(() => {
   )
 })
 const displayedCredentials = computed(() => {
-  if (props.coachProfile?.credentials?.length) {
-    return props.coachProfile.credentials
-  }
-  return [
-    { title: '20 ans d\'expérience infirmière' },
-    { title: 'Accompagnement ménopause & vitalité' }
-  ]
+  return props.coachProfile?.credentials ?? []
 })
 </script>
 

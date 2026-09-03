@@ -11,10 +11,15 @@ definePageMeta({
 const { data: tenant } = usePublicTenantHome()
 const breadcrumbs = buildLegalBreadcrumbs('Conditions Générales d\'Utilisation')
 const isCustomDomain = computed(() => tenant.value?.brand?.mode === 'custom_domain')
+const siteDisplayName = computed(() => isCustomDomain.value ? (tenant.value?.brand?.displayName || 'votre praticienne') : 'Keova')
+const seoDescription = computed(() => isCustomDomain.value
+  ? `Conditions générales d'utilisation du site de ${tenant.value?.brand?.displayName || 'votre praticienne'}.`
+  : 'Conditions générales d\'utilisation de la plateforme Keova.'
+)
 
 useLegalPageSeo({
   pageTitle: 'Conditions Générales d\'Utilisation',
-  description: 'Conditions générales d\'utilisation de la plateforme Keova.',
+  description: seoDescription.value,
   path: '/legal/cgu'
 })
 </script>
@@ -30,8 +35,7 @@ useLegalPageSeo({
       <h2>1. Objet</h2>
       <p>
         Les présentes Conditions Générales d'Utilisation (CGU) ont pour objet de définir
-        les modalités d'accès et d'utilisation de la plateforme <strong>Keova</strong>,
-        accessible à l'adresse keova.fr et ses sous-domaines.
+        les modalités d'accès et d'utilisation du site et des services de <strong>{{ siteDisplayName }}</strong>{{ isCustomDomain ? '' : ', accessible à l\'adresse keova.fr et ses sous-domaines' }}.
       </p>
       <p>
         Keova est une plateforme de mise en relation entre des professionnels du coaching

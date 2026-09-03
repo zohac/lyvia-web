@@ -105,6 +105,7 @@ const {
   howItWorksForm,
   educationalContentForm,
   problemStatementForm,
+  fitForm,
   init,
   isAlwaysOn,
   isSectionOn,
@@ -769,6 +770,37 @@ async function onSaveHowItWorksSection() {
   })
   toast.add({
     title: ok ? 'Comment ça marche enregistré' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+function initFitFormIfNull() {
+  if (!fitForm.value) {
+    fitForm.value = {
+      eyebrow: 'Adéquation',
+      title: 'Cet accompagnement est-il fait pour vous ?',
+      items: []
+    }
+  }
+}
+
+function addFitItem(type: 'for' | 'not_for') {
+  initFitFormIfNull()
+  fitForm.value!.items.push({ type, text: '' })
+}
+
+function removeFitItem(index: number) {
+  if (!fitForm.value?.items) return
+  fitForm.value.items.splice(index, 1)
+}
+
+async function onSaveFitSection() {
+  const ok = await updateAccount({
+    fitJson: fitForm.value,
+    sectionTitlesJson: { ...sectionTitlesForm }
+  })
+  toast.add({
+    title: ok ? 'Section Pour qui enregistrée' : 'Erreur d\'enregistrement',
     color: ok ? 'primary' : 'error'
   })
 }
@@ -2391,6 +2423,114 @@ function externalSection(section: string) {
                     size="sm"
                     :loading="saving"
                     @click="onSaveHowItWorksSection"
+                  >
+                    Enregistrer
+                  </UButton>
+                </div>
+              </template>
+
+              <!-- ── FIT / POUR QUI ── -->
+              <template v-if="section === 'fit'">
+                <div class="px-6 py-5">
+                  <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label
+                        for="fitEyebrow"
+                        class="mb-1 block text-xs font-medium text-[color:var(--color-text-muted)]"
+                      >Surtitre</label>
+                      <UInput
+                        id="fitEyebrow"
+                        :model-value="fitForm?.eyebrow ?? ''"
+                        placeholder="Adéquation"
+                        @update:model-value="(val: string) => { initFitFormIfNull(); fitForm!.eyebrow = val }"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        for="fitTitle"
+                        class="mb-1 block text-xs font-medium text-[color:var(--color-text-muted)]"
+                      >Titre de section</label>
+                      <UInput
+                        id="fitTitle"
+                        :model-value="fitForm?.title ?? ''"
+                        placeholder="Cet accompagnement est-il fait pour vous ?"
+                        @update:model-value="(val: string) => { initFitFormIfNull(); fitForm!.title = val }"
+                      />
+                    </div>
+                  </div>
+
+                  <p class="mb-3 text-xs text-[color:var(--color-text-muted)]">
+                    Définissez les critères d'adéquation pour vos clientes (pour qui c'est fait / pour qui ce n'est pas adapté).
+                  </p>
+
+                  <div class="space-y-3">
+                    <div
+                      v-for="(item, idx) in (fitForm?.items ?? [])"
+                      :key="idx"
+                      class="flex items-start gap-2 rounded-lg border border-[color:var(--color-border-subtle)] p-3"
+                    >
+                      <div class="w-40 shrink-0">
+                        <select
+                          v-model="item.type"
+                          class="w-full rounded border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] px-2 py-1 text-xs font-medium text-[color:var(--color-text-primary)]"
+                        >
+                          <option value="for">
+                            Pour vous si
+                          </option>
+                          <option value="not_for">
+                            Ce n'est pas adapté si
+                          </option>
+                        </select>
+                      </div>
+                      <div class="flex-1">
+                        <UInput
+                          v-model="item.text"
+                          placeholder="Décrivez un critère..."
+                          size="sm"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        class="mt-1 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
+                        title="Supprimer"
+                        @click="removeFitItem(idx)"
+                      >
+                        <UIcon
+                          name="i-lucide-trash-2"
+                          class="size-4"
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 flex gap-2">
+                    <UButton
+                      size="xs"
+                      variant="soft"
+                      icon="i-lucide-check"
+                      color="primary"
+                      @click="addFitItem('for')"
+                    >
+                      Ajouter un critère « Pour vous »
+                    </UButton>
+                    <UButton
+                      size="xs"
+                      variant="soft"
+                      icon="i-lucide-x"
+                      color="neutral"
+                      @click="addFitItem('not_for')"
+                    >
+                      Ajouter un critère « Pas adapté »
+                    </UButton>
+                  </div>
+                </div>
+                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
+                  <UButton
+                    color="primary"
+                    variant="solid"
+                    size="sm"
+                    :loading="saving"
+                    @click="onSaveFitSection"
                   >
                     Enregistrer
                   </UButton>

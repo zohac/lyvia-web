@@ -11,10 +11,15 @@ definePageMeta({
 const { data: tenant } = usePublicTenantHome()
 const breadcrumbs = buildLegalBreadcrumbs('Politique de confidentialité')
 const isCustomDomain = computed(() => tenant.value?.brand?.mode === 'custom_domain')
+const siteDisplayName = computed(() => isCustomDomain.value ? (tenant.value?.brand?.displayName || 'votre praticienne') : 'Keova')
+const seoDescription = computed(() => isCustomDomain.value
+  ? `Politique de confidentialité et protection des données personnelles du site de ${tenant.value?.brand?.displayName || 'votre praticienne'}.`
+  : 'Politique de confidentialité et protection des données personnelles de la plateforme Keova.'
+)
 
 useLegalPageSeo({
   pageTitle: 'Politique de confidentialité',
-  description: 'Politique de confidentialité et protection des données personnelles de la plateforme Keova.',
+  description: seoDescription.value,
   path: '/legal/confidentialite'
 })
 </script>
@@ -29,7 +34,7 @@ useLegalPageSeo({
     >
       <h2>1. Introduction</h2>
       <p>
-        La protection de vos données personnelles est une priorité pour <strong>Keova</strong>.
+        La protection de vos données personnelles est une priorité pour <strong>{{ siteDisplayName }}</strong>.
         Cette politique de confidentialité vous informe sur la manière dont nous collectons,
         utilisons et protégeons vos données personnelles conformément au Règlement Général
         sur la Protection des Données (RGPD) et à la loi Informatique et Libertés.

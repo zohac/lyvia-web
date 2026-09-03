@@ -99,6 +99,17 @@ export interface ProblemStatementJson {
   paragraphs: string[]
 }
 
+export interface FitItem {
+  type: 'for' | 'not_for'
+  text: string
+}
+
+export interface FitJson {
+  eyebrow?: string
+  title?: string
+  items: FitItem[]
+}
+
 export interface PublicProviderProfile {
   slug: string
   firstName: string
@@ -141,4 +152,5 @@ export interface PublicProviderProfile {
   howItWorksJson: HowItWorksStep[] | null
   educationalContentJson: EducationalContentJson | null
   problemStatementJson: ProblemStatementJson | null
+  fitJson?: FitJson | null
 }

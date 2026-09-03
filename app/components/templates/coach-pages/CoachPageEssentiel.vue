@@ -525,6 +525,9 @@ const heroProps = computed(() => ({
     <!-- ==================== 6b. POUR QUI / FIT (optionnel) ==================== -->
     <AtomsCoachFitSection
       v-if="showFit"
+      :items="coachProfile?.fitJson?.items"
+      :eyebrow="coachProfile?.fitJson?.eyebrow"
+      :title="coachProfile?.fitJson?.title"
     />
 
     <!-- ==================== 7. TARIFS ==================== -->

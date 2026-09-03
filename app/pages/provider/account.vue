@@ -273,7 +273,7 @@ function validateSocialUrl(url: string): boolean {
 async function handleLegalSubmit() {
   const success = await updateAccount({
     legalCompanyName: legalForm.companyName || null,
-    legalSiret: legalForm.siret || null,
+    legalSiret: legalForm.siret ? legalForm.siret.replace(/\s+/g, '') : null,
     legalAddress: legalForm.address || null,
     legalDirector: legalForm.director || null,
     legalRcpInsurance: legalForm.rcpInsurance || null,
@@ -940,6 +940,7 @@ async function handlePasswordChange() {
                 v-model="legalForm.siret"
                 v-bind="inputAttrs"
                 placeholder="123 456 789 00001"
+                :maxlength="20"
               />
             </template>
           </FormControl>

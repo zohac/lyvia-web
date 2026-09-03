@@ -11,10 +11,15 @@ definePageMeta({
 const { data: tenant } = usePublicTenantHome()
 const breadcrumbs = buildLegalBreadcrumbs('Mentions légales')
 const isCustomDomain = computed(() => tenant.value?.brand?.mode === 'custom_domain')
+const siteDisplayName = computed(() => isCustomDomain.value ? (tenant.value?.brand?.displayName || 'votre praticienne') : 'Keova')
+const seoDescription = computed(() => isCustomDomain.value
+  ? `Mentions légales du site de ${tenant.value?.brand?.displayName || 'votre praticienne'}.`
+  : 'Mentions légales de la plateforme Keova.'
+)
 
 useLegalPageSeo({
   pageTitle: 'Mentions légales',
-  description: 'Mentions légales de la plateforme Keova.',
+  description: seoDescription.value,
   path: '/legal/mentions-legales'
 })
 </script>
@@ -29,7 +34,7 @@ useLegalPageSeo({
     >
       <h2>1. Éditeur du site</h2>
       <p>
-        Le site <strong>Keova</strong> est édité par :
+        Le site <strong>{{ siteDisplayName }}</strong> est édité par :
       </p>
       <ul>
         <li><strong>Raison sociale :</strong> {{ isCustomDomain ? (tenant?.legalInfo?.companyName || tenant?.brand?.displayName || 'Le Praticien') : 'Keova SAS' }}</li>
