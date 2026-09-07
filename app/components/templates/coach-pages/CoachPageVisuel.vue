@@ -149,7 +149,7 @@ const heroProps = computed(() => ({
 
 <template>
   <div
-    class="min-h-screen bg-[color:var(--color-surface-page)] text-[color:var(--color-text-primary)]"
+    class="relative min-h-screen bg-[color:var(--color-surface-page)] text-[color:var(--color-text-primary)]"
     :class="{ 'js-scroll-ready': isReady }"
   >
     <!-- ==================== 0. HEADER ==================== -->
