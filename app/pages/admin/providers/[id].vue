@@ -6,6 +6,7 @@ import { apiFetch } from '~/services/api/apiFetch'
 import { listAdminProviderPrograms, listAdminProviderSubscriptions } from '~/features/programs/services/admin-programs.service'
 import { mapRequirementKeyToMessage } from '~/features/finance/domain/finance-state'
 import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
+import { copyToClipboard } from '~/utils/clipboard'
 import { formatDateTime, formatDateShort } from '~/composables/useDateFormat'
 import { getStatusBadgeClasses } from '~/composables/useAdminBadges'
 import { PLAN_SELECT_ITEMS, DEFAULT_PLAN_SLUG, getPlanBadgeVariant, type PlanSlug } from '~/features/admin/providers/plan-select'
@@ -487,9 +488,114 @@ async function confirmStartSupportSession() {
 }
 
 const syncPending = ref(false)
+const resendActivationPending = ref(false)
+const copyActivationPending = ref(false)
+
+async function onResendActivation() {
+  if (resendActivationPending.value || copyActivationPending.value) return
+  resendActivationPending.value = true
+  try {
+    const result = await apiFetch<{ sent: boolean, activationUrl?: string, alreadyActivated?: boolean }>(
+      `/admin/providers/${providerId.value}/resend-activation`,
+      { method: 'POST' }
+    )
+
+    if (result.alreadyActivated) {
+      toast.add({
+        title: 'Compte déjà activé',
+        description: 'Ce provider a déjà activé son compte.',
+        color: 'primary'
+      })
+      await refreshDetail()
+    } else {
+      toast.add({
+        title: 'Invitation envoyée',
+        description: 'Email d\'activation envoyé au provider.',
+        color: 'success'
+      })
+    }
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors du renvoi de l\'invitation',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    resendActivationPending.value = false
+  }
+}
+
+async function onCopyActivationLink() {
+  if (copyActivationPending.value || resendActivationPending.value) return
+  copyActivationPending.value = true
+  try {
+    const result = await apiFetch<{ sent: boolean, activationUrl?: string, alreadyActivated?: boolean }>(
+      `/admin/providers/${providerId.value}/resend-activation`,
+      { method: 'POST' }
+    )
+
+    if (result.alreadyActivated) {
+      toast.add({
+        title: 'Compte déjà activé',
+        description: 'Ce provider a déjà activé son compte.',
+        color: 'primary'
+      })
+      await refreshDetail()
+      return
+    }
+
+    if (result.activationUrl) {
+      const copied = await copyToClipboard(result.activationUrl)
+      if (copied) {
+        toast.add({
+          title: 'Lien copié',
+          description: 'Lien d\'invitation copié dans le presse-papier. Vous pouvez l\'envoyer par WhatsApp ou SMS.',
+          color: 'success'
+        })
+      } else {
+        toast.add({
+          title: 'Lien d\'invitation',
+          description: `Impossible de copier automatiquement dans le presse-papier. Voici le lien : ${result.activationUrl}`,
+          color: 'warning'
+        })
+      }
+    } else {
+      toast.add({
+        title: 'Invitation envoyée',
+        description: 'Email d\'activation envoyé au provider.',
+        color: 'success'
+      })
+    }
+  } catch (err) {
+    toast.add({
+      title: 'Erreur lors de la récupération du lien',
+      description: err instanceof Error ? err.message : 'Erreur inattendue',
+      color: 'error'
+    })
+  } finally {
+    copyActivationPending.value = false
+  }
+}
 
 const actionItems = computed(() => [
   [
+    ...(!detail.value?.activatedAt
+      ? [
+          {
+            label: 'Copier le lien d\'invitation',
+            icon: 'i-lucide-copy',
+            disabled: copyActivationPending.value || resendActivationPending.value,
+            onSelect: onCopyActivationLink
+          },
+          {
+            label: 'Renvoyer l\'invitation',
+            icon: 'i-lucide-send',
+            disabled: resendActivationPending.value || copyActivationPending.value,
+            onSelect: onResendActivation
+          }
+        ]
+      : []
+    ),
     {
       label: 'Synchroniser Stripe',
       icon: 'i-lucide-refresh-cw',
@@ -857,10 +963,37 @@ const SEO_TARGET_ICONS: Record<string, string> = {
                 </dd>
               </div>
               <div class="rounded-xl border border-[color:var(--color-border-subtle)] bg-white p-4">
-                <dt class="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                  Activation
-                </dt>
-                <dd class="text-sm text-[color:var(--color-brand-secondary)]">
+                <div class="flex items-center justify-between">
+                  <dt class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+                    Activation
+                  </dt>
+                  <div
+                    v-if="!detail.activatedAt"
+                    class="flex items-center gap-1"
+                  >
+                    <UButton
+                      variant="ghost"
+                      color="neutral"
+                      size="xs"
+                      icon="i-lucide-copy"
+                      :loading="copyActivationPending"
+                      @click="onCopyActivationLink"
+                    >
+                      Copier le lien
+                    </UButton>
+                    <UButton
+                      variant="ghost"
+                      color="primary"
+                      size="xs"
+                      icon="i-lucide-send"
+                      :loading="resendActivationPending"
+                      @click="onResendActivation"
+                    >
+                      Renvoyer
+                    </UButton>
+                  </div>
+                </div>
+                <dd class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
                   {{ detail.activatedAt ? formatDateTime(detail.activatedAt) : 'Non activé' }}
                 </dd>
               </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { SLUG_REGEX, SIRET_REGEX, EMAIL_REGEX } from '~/utils/validation-regex'
+import { copyToClipboard } from '~/utils/clipboard'
 import { PLAN_SELECT_ITEMS, DEFAULT_PLAN_SLUG, type PlanSlug } from '~/features/admin/providers/plan-select'
 
 const props = defineProps<{
@@ -82,13 +83,30 @@ async function handleSubmit() {
     if (form.isTest) body.isTest = true
 
     const { apiFetch } = await import('~/services/api/apiFetch')
-    const result = await apiFetch<{ id: string }>('/admin/providers', { method: 'POST', body })
+    const result = await apiFetch<{ id: string, activationUrl?: string }>('/admin/providers', { method: 'POST', body })
 
-    toast.add({
-      title: 'Provider créé',
-      description: 'Email d\'activation envoyé.',
-      color: 'success'
-    })
+    if (result.activationUrl) {
+      const copied = await copyToClipboard(result.activationUrl)
+      if (copied) {
+        toast.add({
+          title: 'Provider créé',
+          description: 'Email d\'activation envoyé et lien copié dans le presse-papier. Vous pouvez l\'envoyer par WhatsApp ou SMS.',
+          color: 'success'
+        })
+      } else {
+        toast.add({
+          title: 'Provider créé',
+          description: `Email d'activation envoyé. Lien d'activation : ${result.activationUrl}`,
+          color: 'warning'
+        })
+      }
+    } else {
+      toast.add({
+        title: 'Provider créé',
+        description: 'Email d\'activation envoyé.',
+        color: 'success'
+      })
+    }
 
     emit('update:open', false)
     emit('created', result.id)

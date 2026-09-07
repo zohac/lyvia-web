@@ -45,14 +45,14 @@ useLegalPageSeo({
         Le responsable du traitement des données personnelles est :
       </p>
       <ul>
-        <li><strong>{{ isCustomDomain ? (tenant?.legalInfo?.companyName || tenant?.brand?.displayName) : 'Keova SAS' }}</strong></li>
+        <li><strong>{{ isCustomDomain ? (tenant?.legalInfo?.companyName || tenant?.brand?.displayName) : 'Simon JOUAN EI (Keova)' }}</strong></li>
         <li v-if="isCustomDomain && tenant?.legalInfo?.address">
           Adresse : {{ tenant?.legalInfo?.address }}
         </li>
         <li v-if="!isCustomDomain">
-          Adresse : 156 rue de Charonne, 75011 Paris
+          Adresse : 3 rue Calas, 50700 Valognes
         </li>
-        <li>Email : {{ isCustomDomain ? (tenant?.legalInfo?.email || 'dpo@keova.fr') : 'dpo@keova.fr' }}</li>
+        <li>Email : {{ isCustomDomain ? (tenant?.legalInfo?.email || 'contact@keova.fr') : 'contact@keova.fr' }}</li>
       </ul>
 
       <h2>3. Données collectées</h2>
