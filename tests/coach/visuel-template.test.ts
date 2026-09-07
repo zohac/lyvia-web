@@ -102,5 +102,27 @@ describe('Story 0-38 — Template Visuel (Essentiel tier)', () => {
       assert.ok(midCta.includes('width="1200"') && midCta.includes('height="480"'), 'MidCta image must have width and height dimensions')
       assert.ok(midCta.includes('@error="($event.target as HTMLImageElement).src = \'/images/templates/visuel/band-default.webp\'"'), 'MidCta image must have @error fallback')
     })
+
+    test('CoachVisuelHeader is sticky, transparent at rest without black bar or dark gradient, and elevated on scroll (Client feedback)', () => {
+      const headerContent = readFile('components/templates/coach-pages/visuel/CoachVisuelHeader.vue')
+      assert.ok(headerContent.includes('sticky top-0'), 'Header must be sticky top-0')
+      assert.ok(headerContent.includes('bg-transparent'), 'Header should be transparent at rest')
+      assert.ok(!headerContent.includes('bg-gradient-to-b from-black'), 'Header must not have dark gradient band')
+      assert.ok(headerContent.includes('hasScrolled'), 'Header must track scroll state')
+      assert.ok(headerContent.includes('bg-neutral-950/85'), 'Header should have dark backdrop when scrolled')
+    })
+
+    test('CoachVisuelProblem has no symptom cards and renders narrative directly (Client feedback)', () => {
+      const problemContent = readFile('components/templates/coach-pages/visuel/CoachVisuelProblem.vue')
+      assert.ok(!problemContent.includes('defaultSymptoms'), 'Problem section must not declare defaultSymptoms')
+      assert.ok(!problemContent.includes('Bouffées de chaleur'), 'Problem section must not have Bouffées de chaleur card')
+      assert.ok(!problemContent.includes('grid-cols-2'), 'Problem section must not have symptoms grid')
+      assert.ok(problemContent.includes('whitespace-pre-line'), 'Paragraphs should preserve whitespace line breaks')
+    })
+
+    test('CoachPagePreviewPanel suppresses PublicHeader for visuel (Luna) template', () => {
+      const previewContent = readFile('components/organisms/CoachPagePreviewPanel.vue')
+      assert.ok(previewContent.includes('visuel'), 'showPreviewPublicHeader should exclude visuel template')
+    })
   })
 })

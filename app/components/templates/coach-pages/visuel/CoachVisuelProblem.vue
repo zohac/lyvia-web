@@ -1,9 +1,9 @@
 <script setup lang="ts">
 /**
- * CoachVisuelProblem — Section Énoncé du problème pour le template Visuel.
+ * CoachVisuelProblem — Section Énoncé du problème pour le template Visuel (Luna).
  *
- * Design sombre profond (var(--color-neutral-950)), citation grand format en italique,
- * et grille de symptômes avec fond translucide.
+ * Design sombre profond (var(--color-neutral-950)), citation grand format en italique
+ * et texte narratif de la coach.
  */
 import type { ProblemStatementJson } from '~/features/seo/api/public-provider-profile.contract'
 import { useScrollReveal } from '~/composables/useScrollReveal'
@@ -15,15 +15,6 @@ defineProps<{
 }>()
 
 const { reveal } = useScrollReveal()
-
-const defaultSymptoms = [
-  { icon: 'i-lucide-wind', label: 'Bouffées de chaleur' },
-  { icon: 'i-lucide-moon-star', label: 'Troubles du sommeil' },
-  { icon: 'i-lucide-battery-low', label: 'Fatigue persistante' },
-  { icon: 'i-lucide-activity', label: 'Irritabilité & anxiété' },
-  { icon: 'i-lucide-scale', label: 'Prise de poids' },
-  { icon: 'i-lucide-heart-pulse', label: 'Douleurs articulaires' }
-]
 </script>
 
 <template>
@@ -68,32 +59,15 @@ const defaultSymptoms = [
         </p>
       </div>
 
-      <!-- Grille de symptômes -->
-      <div class="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-        <div
-          v-for="(sy, i) in defaultSymptoms"
-          :key="i"
-          v-bind="reveal({ delay: i * 60 })"
-          class="scroll-reveal flex items-center gap-3.5 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xs transition-colors hover:border-white/20"
-        >
-          <div class="grid size-10 shrink-0 place-items-center rounded-xl bg-[color-mix(in_srgb,var(--color-brand-primary)_35%,transparent)] text-white">
-            <UIcon
-              :name="sy.icon"
-              class="size-5"
-            />
-          </div>
-          <span class="text-sm font-semibold text-white/90 sm:text-base">{{ sy.label }}</span>
-        </div>
-      </div>
-
       <!-- Paragraphes explicatifs -->
       <div
         v-if="problemStatement?.paragraphs?.length"
-        class="mt-10 max-w-2xl space-y-4 text-base leading-relaxed text-white/75 sm:text-lg"
+        class="mt-10 max-w-2xl space-y-4 text-base leading-relaxed text-white/75 sm:mt-12 sm:text-lg"
       >
         <p
           v-for="(para, idx) in problemStatement.paragraphs"
           :key="idx"
+          class="whitespace-pre-line"
         >
           {{ para }}
         </p>

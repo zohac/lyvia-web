@@ -104,16 +104,12 @@ const frameClasses = computed(() =>
 // Story 0-28 CR-1 (Codex review 2026-05-02) — sur la page publique, chaque
 // template décide qui rend le header :
 //   - Signature : utilise le `PublicHeader` global (Keova-style dock).
-//   - Essentiel : pose un `hideLayoutHeader = true` et rend son propre
-//     `<CoachEssentielHeader>` interne.
-// La preview doit refléter cette règle exactement. Sinon Essentiel affiche
-// deux headers superposés (le `PublicHeader` du panel + le header interne du
-// template), une page qui n'existe pas en réalité. On ne rend donc le
-// `PublicHeader` que pour les templates qui l'utilisent réellement (par
-// défaut tout sauf Essentiel — futurs templates rejoignent le même pattern
-// que Signature et héritent automatiquement du PublicHeader).
+//   - Essentiel & Visuel (Luna) : rendent leur propre header interne
+//     (`<CoachEssentielHeader>`, `<CoachVisuelHeader>`).
+// La preview doit refléter cette règle exactement pour éviter les doubles headers.
 const showPreviewPublicHeader = computed(() =>
   (props.coachProfile?.templateCode || 'essentiel') !== 'essentiel'
+  && (props.coachProfile?.templateCode || 'essentiel') !== 'visuel'
 )
 
 // Story 0-28 round terrain Simon (2026-05-02) — la preview rend le VRAI

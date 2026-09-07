@@ -1,11 +1,11 @@
 <script setup lang="ts">
 /**
- * CoachVisuelHeader — Header sticky pour le template Visuel.
+ * CoachVisuelHeader — Header sticky et transparent pour le template Visuel (Luna).
  *
- * Positionnement : sticky top-0, z-40, edge to edge.
+ * Positionnement : sticky top-0, z-40, edge to edge sur le hero.
  * Style :
- *   - Au repos (en haut du hero) : fond translucide sombre avec backdrop-blur
- *   - Au scroll (> 10px) : fond plus opaque avec ombre portée
+ *   - Au repos (haut du hero) : 100% transparent, sans dégradé sombre ni barre noire
+ *   - Au scroll (> 10px) : fond sombre (bg-neutral-950/85) avec backdrop-blur
  *   - Logo Keova avec filtre brightness pour ressortir parfaitement sur fond sombre
  *   - Typo blanche avec légers ombrages et bouton CTA de réservation sticky
  *   - Mobile : burger ouvrant un USlideover Nuxt UI v4.
@@ -57,7 +57,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
     :class="[
       hasScrolled
         ? 'border-b border-white/10 bg-neutral-950/85 shadow-lg backdrop-blur-md'
-        : 'border-b border-transparent bg-gradient-to-b from-black/60 via-black/25 to-transparent'
+        : 'border-b border-transparent bg-transparent'
     ]"
     aria-label="Navigation principale"
   >
