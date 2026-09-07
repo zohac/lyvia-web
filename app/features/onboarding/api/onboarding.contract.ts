@@ -11,6 +11,15 @@
  * - `POST /public/onboarding/discovery?slug=...`
  */
 
+export type TenantLegalInfo = {
+  companyName: string | null
+  siret: string | null
+  address: string | null
+  director: string | null
+  rcpInsurance: string | null
+  email: string | null
+}
+
 export type TenantBrand = {
   mode: 'platform' | 'custom_domain'
   displayName: string
@@ -25,6 +34,7 @@ export type PublicTenantResponse = {
   timezone: string
   isActive: boolean
   brand: TenantBrand
+  legalInfo?: TenantLegalInfo | null
   googleAdsId?: string | null
   googleAdsConversionLabel?: string | null
   googleTagId?: string | null

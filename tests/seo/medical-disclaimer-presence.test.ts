@@ -50,6 +50,22 @@ describe('MedicalDisclaimer presence (U1.4a)', () => {
     )
   })
 
+  test('CoachPageEssentiel (rendered template) includes MedicalDisclaimer (FR-Y9)', () => {
+    const content = readFile('components/templates/coach-pages/CoachPageEssentiel.vue')
+    assert.ok(
+      content.includes('MedicalDisclaimer'),
+      'Coach profile template (Essentiel) should include MedicalDisclaimer'
+    )
+  })
+
+  test('CoachPageVisuel (rendered template) includes MedicalDisclaimer (FR-Y9)', () => {
+    const content = readFile('components/templates/coach-pages/CoachPageVisuel.vue')
+    assert.ok(
+      content.includes('MedicalDisclaimer'),
+      'Coach profile template (Visuel) should include MedicalDisclaimer'
+    )
+  })
+
   // Story 0-22 — FR-Y9 : disclaimer obligatoire sur chaque article du blog
   test('article page (/articles/[...slug]) includes MedicalDisclaimer (FR-Y9)', () => {
     const content = readFile('pages/articles/[...slug].vue')

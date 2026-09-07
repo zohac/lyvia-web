@@ -34,6 +34,9 @@ const bgSrc = computed(() => {
       aria-hidden="true"
       class="absolute inset-0 h-full w-full object-cover object-center"
       loading="lazy"
+      width="1200"
+      height="480"
+      @error="($event.target as HTMLImageElement).src = '/images/templates/visuel/band-default.webp'"
     >
 
     <!-- Overlay sombre -->

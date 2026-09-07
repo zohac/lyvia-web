@@ -5,6 +5,7 @@ export const COACH_PAGE_INLINE_EDITOR_SECTIONS = [
   'faq',
   'benefits',
   'howItWorks',
+  'fit',
   'educationalContent',
   'problemStatement',
   'bio',

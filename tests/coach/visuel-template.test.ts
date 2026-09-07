@@ -84,5 +84,23 @@ describe('Story 0-38 — Template Visuel (Essentiel tier)', () => {
       const bioContent = readFile('components/templates/coach-pages/visuel/CoachVisuelBio.vue')
       assert.ok(bioContent.includes('bio-default.webp'), 'Bio should reference bio-default.webp')
     })
+
+    test('CoachVisuel image components have width, height, proper loading and @error fallbacks (AC-3)', () => {
+      const hero = readFile('components/templates/coach-pages/visuel/CoachVisuelHero.vue')
+      assert.ok(hero.includes('fetchpriority="high"'), 'Hero must have fetchpriority="high"')
+      assert.ok(hero.includes('loading="eager"'), 'Hero must have loading="eager"')
+      assert.ok(hero.includes('width="1920"') && hero.includes('height="1080"'), 'Hero must have width and height dimensions')
+      assert.ok(hero.includes('@error="($event.target as HTMLImageElement).src = \'/images/templates/visuel/hero-default.webp\'"'), 'Hero must have @error fallback')
+
+      const bio = readFile('components/templates/coach-pages/visuel/CoachVisuelBio.vue')
+      assert.ok(bio.includes('loading="lazy"'), 'Bio image must have loading="lazy"')
+      assert.ok(bio.includes('width="480"') && bio.includes('height="560"'), 'Bio image must have width and height dimensions')
+      assert.ok(bio.includes('@error="($event.target as HTMLImageElement).src = \'/images/templates/visuel/bio-default.webp\'"'), 'Bio image must have @error fallback')
+
+      const midCta = readFile('components/templates/coach-pages/visuel/CoachVisuelMidCta.vue')
+      assert.ok(midCta.includes('loading="lazy"'), 'MidCta image must have loading="lazy"')
+      assert.ok(midCta.includes('width="1200"') && midCta.includes('height="480"'), 'MidCta image must have width and height dimensions')
+      assert.ok(midCta.includes('@error="($event.target as HTMLImageElement).src = \'/images/templates/visuel/band-default.webp\'"'), 'MidCta image must have @error fallback')
+    })
   })
 })

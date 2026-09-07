@@ -71,7 +71,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
         <img
           src="/images/keova-logo.webp"
           alt="Keova"
-          class="h-8 w-auto brightness-0 invert drop-shadow-md sm:h-9"
+          class="h-8 w-auto drop-shadow-md brightness-0 invert sm:h-9"
         >
         <span
           class="h-5 w-px bg-white/30"
@@ -92,7 +92,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           v-for="link in navLinks"
           :key="link.href"
           :href="link.href"
-          class="rounded-full px-4 py-2 text-sm font-medium text-white/85 backdrop-blur-xs transition-colors duration-200 hover:bg-white/10 hover:text-white"
+          class="rounded-full px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-xs transition-colors duration-200 hover:bg-white/10 hover:text-white"
         >
           {{ link.label }}
         </a>
@@ -108,7 +108,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           icon="i-lucide-user"
           size="sm"
           aria-label="Se connecter"
-          class="hidden text-white hover:bg-white/10 sm:inline-flex"
+          class="hidden text-white/90 hover:bg-white/10 sm:inline-flex"
         />
 
         <UButton
@@ -129,7 +129,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           size="md"
           :aria-expanded="isMobileOpen"
           aria-label="Ouvrir le menu"
-          class="text-white hover:bg-white/10 sm:hidden"
+          class="text-white/90 hover:bg-white/10 sm:hidden"
           @click="isMobileOpen = true"
         />
       </div>
@@ -160,7 +160,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           </div>
 
           <!-- Coach name -->
-          <div class="border-b border-[color:var(--color-border-subtle)] px-6 py-3 text-sm font-medium text-[color:var(--color-brand-secondary)]">
+          <div class="border-b border-[color:var(--color-border-subtle)] px-6 py-3 text-sm font-medium text-[color:var(--color-text-primary)]">
             {{ coachName }}
           </div>
 

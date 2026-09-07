@@ -56,6 +56,7 @@ test('inline editor sections stay aligned with the provider editor forms', () =>
     'faq',
     'benefits',
     'howItWorks',
+    'fit',
     'educationalContent',
     'problemStatement',
     'bio',

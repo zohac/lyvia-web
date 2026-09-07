@@ -201,6 +201,7 @@ export type ProviderClientDetailResponse = {
  */
 export type ResendActivationResponse = {
   sent: boolean
+  activationUrl?: string
   alreadyActivated?: boolean
 }
 

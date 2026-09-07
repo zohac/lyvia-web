@@ -2,16 +2,24 @@
 import LegalPageContent from '../../components/templates/LegalPageContent.vue'
 import { buildLegalBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
 import { useLegalPageSeo } from '~/features/seo/useLegalPageSeo'
+import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 
 definePageMeta({
   layout: 'legal'
 })
 
+const { data: tenant } = usePublicTenantHome()
 const breadcrumbs = buildLegalBreadcrumbs('Politique de confidentialité')
+const isCustomDomain = computed(() => tenant.value?.brand?.mode === 'custom_domain')
+const siteDisplayName = computed(() => isCustomDomain.value ? (tenant.value?.brand?.displayName || 'votre praticienne') : 'Keova')
+const seoDescription = computed(() => isCustomDomain.value
+  ? `Politique de confidentialité et protection des données personnelles du site de ${tenant.value?.brand?.displayName || 'votre praticienne'}.`
+  : 'Politique de confidentialité et protection des données personnelles de la plateforme Keova.'
+)
 
 useLegalPageSeo({
   pageTitle: 'Politique de confidentialité',
-  description: 'Politique de confidentialité et protection des données personnelles de la plateforme Keova.',
+  description: seoDescription.value,
   path: '/legal/confidentialite'
 })
 </script>
@@ -26,7 +34,7 @@ useLegalPageSeo({
     >
       <h2>1. Introduction</h2>
       <p>
-        La protection de vos données personnelles est une priorité pour <strong>Keova</strong>.
+        La protection de vos données personnelles est une priorité pour <strong>{{ siteDisplayName }}</strong>.
         Cette politique de confidentialité vous informe sur la manière dont nous collectons,
         utilisons et protégeons vos données personnelles conformément au Règlement Général
         sur la Protection des Données (RGPD) et à la loi Informatique et Libertés.
@@ -37,9 +45,14 @@ useLegalPageSeo({
         Le responsable du traitement des données personnelles est :
       </p>
       <ul>
-        <li><strong>Keova SAS</strong></li>
-        <li>Adresse : [À compléter]</li>
-        <li>Email : dpo@keova.fr</li>
+        <li><strong>{{ isCustomDomain ? (tenant?.legalInfo?.companyName || tenant?.brand?.displayName) : 'Simon JOUAN EI (Keova)' }}</strong></li>
+        <li v-if="isCustomDomain && tenant?.legalInfo?.address">
+          Adresse : {{ tenant?.legalInfo?.address }}
+        </li>
+        <li v-if="!isCustomDomain">
+          Adresse : 3 rue Calas, 50700 Valognes
+        </li>
+        <li>Email : {{ isCustomDomain ? (tenant?.legalInfo?.email || 'contact@keova.fr') : 'contact@keova.fr' }}</li>
       </ul>
 
       <h2>3. Données collectées</h2>
@@ -196,7 +209,12 @@ useLegalPageSeo({
       </p>
       <ul>
         <li><strong>Email :</strong> dpo@keova.fr</li>
-        <li><strong>Courrier :</strong> Keova SAS - Protection des données - [Adresse]</li>
+        <li v-if="isCustomDomain && tenant?.legalInfo?.address">
+          <strong>Courrier :</strong> {{ isCustomDomain ? (tenant?.legalInfo?.companyName || tenant?.brand?.displayName) : 'Keova SAS' }} - Protection des données - {{ tenant?.legalInfo?.address || 'Sur demande' }}
+        </li>
+        <li v-if="!isCustomDomain">
+          <strong>Courrier :</strong> Keova SAS - Protection des données - 156 rue de Charonne, 75011 Paris
+        </li>
       </ul>
     </LegalPageContent>
   </div>

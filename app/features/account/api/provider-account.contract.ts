@@ -7,7 +7,9 @@ import type {
   HowItWorksStep,
   EducationalContentJson,
   ProblemStatementJson,
-  SectionTitlesJson
+  SectionTitlesJson,
+  FitItem,
+  FitJson
 } from '~/features/seo/api/public-provider-profile.contract'
 
 export interface CredentialItem {
@@ -71,6 +73,7 @@ export type ProviderAccountResponse = {
   howItWorksJson: HowItWorksStep[] | null
   educationalContentJson: EducationalContentJson | null
   problemStatementJson: ProblemStatementJson | null
+  fitJson?: FitJson | null
   // White-label email branding (story 0-20a/0-20c) — replaces "Keova" in transactional emails
   brandName: string | null
   logoUrl: string | null
@@ -79,6 +82,13 @@ export type ProviderAccountResponse = {
   imageUrl: string | null
   heroImageUrl: string | null
   secondaryPhotoUrl: string | null
+  // Legal fields (AC-1)
+  legalCompanyName?: string | null
+  legalSiret?: string | null
+  legalAddress?: string | null
+  legalDirector?: string | null
+  legalRcpInsurance?: string | null
+  legalEmail?: string | null
   // Plan & feature gating (Story 18.2) — LECTURE SEULE.
   // Le plan se change côté admin (15-5) : ces champs n'ont volontairement PAS
   // d'équivalent dans `UpdateProviderAccountRequest`.
@@ -126,10 +136,18 @@ export type UpdateProviderAccountRequest = {
   howItWorksJson?: HowItWorksStep[] | null
   educationalContentJson?: EducationalContentJson | null
   problemStatementJson?: ProblemStatementJson | null
+  fitJson?: FitJson | null
   // White-label email branding (story 0-20a/0-20c)
   brandName?: string | null
   logoUrl?: string | null
+  // Legal fields (AC-1)
+  legalCompanyName?: string | null
+  legalSiret?: string | null
+  legalAddress?: string | null
+  legalDirector?: string | null
+  legalRcpInsurance?: string | null
+  legalEmail?: string | null
 }
 
 // Re-export JSONB types for convenience
-export type { PillarsJson, FaqItem, BenefitsJson, HowItWorksStep, EducationalContentJson, ProblemStatementJson, SectionTitlesJson }
+export type { PillarsJson, FaqItem, BenefitsJson, HowItWorksStep, EducationalContentJson, ProblemStatementJson, SectionTitlesJson, FitItem, FitJson }

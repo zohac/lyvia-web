@@ -15,7 +15,8 @@ import type {
   BenefitsJson,
   HowItWorksStep,
   EducationalContentJson,
-  ProblemStatementJson
+  ProblemStatementJson,
+  FitJson
 } from '../account/api/provider-account.contract'
 
 export interface ProviderAccountStore {
@@ -55,6 +56,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
   const howItWorksForm = ref<HowItWorksStep[]>([])
   const educationalContentForm = ref<EducationalContentJson | null>(null)
   const problemStatementForm = ref<ProblemStatementJson | null>(null)
+  const fitForm = ref<FitJson | null>(null)
 
   const selectedTemplateId = ref<string | null>(null)
 
@@ -202,6 +204,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     howItWorksForm.value = acc.howItWorksJson ? cloneMutable(acc.howItWorksJson) as HowItWorksStep[] : []
     educationalContentForm.value = acc.educationalContentJson ? cloneMutable(acc.educationalContentJson) as EducationalContentJson : null
     problemStatementForm.value = acc.problemStatementJson ? cloneMutable(acc.problemStatementJson) as ProblemStatementJson : null
+    fitForm.value = acc.fitJson ? cloneMutable(acc.fitJson) as FitJson : null
   }
 
   async function saveTemplate(templateId: string): Promise<{ ok: boolean, errorCode?: string }> {
@@ -243,6 +246,10 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     return updateAccount({ problemStatementJson: problemStatementForm.value })
   }
 
+  async function saveFit(): Promise<boolean> {
+    return updateAccount({ fitJson: fitForm.value })
+  }
+
   return {
     account: readonly(account),
     loading: readonly(loading),
@@ -265,6 +272,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     howItWorksForm,
     educationalContentForm,
     problemStatementForm,
+    fitForm,
     init,
     isAlwaysOn,
     isSectionOn,
@@ -276,6 +284,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     saveHowItWorks,
     saveEducationalContent,
     saveProblemStatement,
+    saveFit,
     setBenefitsVisionIntro,
     setBenefitsVisionText,
     addBenefit,

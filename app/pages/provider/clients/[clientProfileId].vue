@@ -114,7 +114,23 @@
               Appeler
             </UButton>
 
-            <!-- Story 10.3: Resend activation email -->
+            <!-- Story 10.3 & Hotfix 22: Copy activation link and resend activation email -->
+            <UButton
+              v-if="detail && !detail.isActivated && detail.stage === 'active'"
+              variant="soft"
+              color="neutral"
+              block
+              class="justify-start"
+              :loading="copyActivationLoading"
+              @click="handleCopyActivationLink"
+            >
+              <UIcon
+                name="lucide:copy"
+                class="mr-2 h-4 w-4"
+              />
+              Copier le lien d'invitation
+            </UButton>
+
             <UButton
               v-if="detail && !detail.isActivated && detail.stage === 'active'"
               variant="soft"
@@ -373,6 +389,7 @@
 import { useProviderClientDetail } from '../../../features/clients/useProviderClientDetail'
 import { pauseClient, reactivateClient, convertLeadToActive, updateProviderClient } from '../../../features/clients/services/provider-clients.service'
 import { resendActivation } from '../../../features/clients/services/provider-client-detail.service'
+import { copyToClipboard } from '../../../utils/clipboard'
 import { validateClientFields } from '../../../utils/validate-client-fields'
 import {
   formatClientName,
@@ -544,8 +561,58 @@ const canConvert = computed(() => {
   return detail.value?.computedStatus === 'lead' && completedDiscoveryId.value !== null
 })
 
+const copyActivationLoading = ref(false)
+
+async function handleCopyActivationLink() {
+  if (!clientProfileId.value || copyActivationLoading.value) return
+  copyActivationLoading.value = true
+
+  try {
+    const result = await resendActivation(clientProfileId.value)
+    if (result.alreadyActivated) {
+      toast.add({
+        title: 'Compte déjà activé',
+        description: 'Cette cliente a déjà activé son compte.',
+        color: 'primary'
+      })
+      await refresh()
+      return
+    }
+
+    if (result.activationUrl) {
+      const copied = await copyToClipboard(result.activationUrl)
+      if (copied) {
+        toast.add({
+          title: 'Lien copié',
+          description: 'Lien d\'invitation copié dans le presse-papier. Vous pouvez l\'envoyer par WhatsApp ou SMS.',
+          color: 'primary'
+        })
+      } else {
+        toast.add({
+          title: 'Lien d\'invitation',
+          description: `Impossible de copier dans le presse-papier. Voici le lien : ${result.activationUrl}`,
+          color: 'warning'
+        })
+      }
+    } else {
+      toast.add({
+        title: `Invitation envoyée à ${client.value?.firstname ?? 'la cliente'}`,
+        color: 'primary'
+      })
+    }
+  } catch {
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de récupérer le lien d\'invitation.',
+      color: 'error'
+    })
+  } finally {
+    copyActivationLoading.value = false
+  }
+}
+
 async function handleResendActivation() {
-  if (!clientProfileId.value) return
+  if (!clientProfileId.value || resendLoading.value) return
   resendLoading.value = true
 
   try {
@@ -560,6 +627,7 @@ async function handleResendActivation() {
     } else if (result.sent) {
       toast.add({
         title: `Invitation envoyée à ${client.value?.firstname ?? 'la cliente'}`,
+        description: 'Email d\'activation envoyé.',
         color: 'primary'
       })
     }

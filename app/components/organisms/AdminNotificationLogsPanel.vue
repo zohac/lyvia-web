@@ -1,5 +1,6 @@
 <template>
   <div>
+    <AdminReminderJobsPanel @executed="refresh()" />
     <!-- Filters -->
     <section class="mb-8 space-y-4">
       <!-- Row 1: Type + Status -->
@@ -362,6 +363,7 @@
 
 <script setup lang="ts">
 import { h } from 'vue'
+import AdminReminderJobsPanel from './AdminReminderJobsPanel.vue'
 import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import {
