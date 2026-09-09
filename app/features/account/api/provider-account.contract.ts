@@ -82,6 +82,7 @@ export type ProviderAccountResponse = {
   imageUrl: string | null
   heroImageUrl: string | null
   secondaryPhotoUrl: string | null
+  problemStatementPhotoUrl?: string | null
   // Legal fields (AC-1)
   legalCompanyName?: string | null
   legalSiret?: string | null
@@ -140,6 +141,8 @@ export type UpdateProviderAccountRequest = {
   // White-label email branding (story 0-20a/0-20c)
   brandName?: string | null
   logoUrl?: string | null
+  heroImageUrl?: string | null
+  problemStatementPhotoUrl?: string | null
   // Legal fields (AC-1)
   legalCompanyName?: string | null
   legalSiret?: string | null

@@ -10,6 +10,7 @@ import { useScrollReveal } from '~/composables/useScrollReveal'
 
 defineProps<{
   problemStatement: ProblemStatementJson | null
+  problemStatementPhotoUrl?: string | null
   eyebrow?: string
   title?: string
 }>()
@@ -22,6 +23,25 @@ const { reveal } = useScrollReveal()
     v-bind="reveal()"
     class="scroll-reveal relative overflow-hidden bg-neutral-950 px-6 py-20 text-white sm:px-12 sm:py-28 lg:px-16"
   >
+    <!-- Background Image si configurée -->
+    <img
+      v-if="problemStatementPhotoUrl"
+      :src="problemStatementPhotoUrl"
+      alt=""
+      aria-hidden="true"
+      class="absolute inset-0 h-full w-full object-cover object-center"
+      loading="lazy"
+      width="1920"
+      height="1080"
+    >
+
+    <!-- Overlay sombre protecteur pour garantir la lisibilité -->
+    <div
+      v-if="problemStatementPhotoUrl"
+      aria-hidden="true"
+      class="absolute inset-0 bg-black/80 backdrop-blur-[2px]"
+    />
+
     <!-- Background glowing ambient radial -->
     <div
       aria-hidden="true"

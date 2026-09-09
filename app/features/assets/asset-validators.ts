@@ -10,6 +10,7 @@
 export type UploadAssetType
   = | 'profile_photo'
     | 'secondary_photo'
+    | 'problem_statement_photo'
     | 'og_image'
     | 'favicon'
     | 'lead_magnet'

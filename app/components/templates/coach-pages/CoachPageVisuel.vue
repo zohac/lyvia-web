@@ -169,6 +169,7 @@ const heroProps = computed(() => ({
     <CoachVisuelProblem
       v-if="showProblemStatement"
       :problem-statement="problemStatement"
+      :problem-statement-photo-url="coachProfile?.problemStatementPhotoUrl"
       :eyebrow="sectionTitles.problemStatementEyebrow"
       :title="sectionTitles.problemStatementTitle"
     />

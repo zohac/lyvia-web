@@ -319,6 +319,96 @@ async function handleHeroPhotoUpload() {
   }
 }
 
+async function handleHeroPhotoDelete() {
+  heroPhotoUploading.value = true
+  heroPhotoError.value = null
+
+  try {
+    const ok = await updateAccount({ heroImageUrl: null })
+    if (ok) {
+      heroPhotoPreview.value = ''
+      heroPhotoFile.value = null
+      await fetchAccount()
+      toast.add({ title: 'Photo d\'en-tête retirée', color: 'primary' })
+    } else {
+      toast.add({ title: 'Erreur lors du retrait de la photo', color: 'error' })
+    }
+  } catch (e: unknown) {
+    heroPhotoError.value = formatUploadError(e)
+    toast.add({ title: 'Erreur', description: heroPhotoError.value, color: 'error' })
+  } finally {
+    heroPhotoUploading.value = false
+  }
+}
+
+// ── Photo d'arrière-plan Énoncé du problème ──
+const problemStatementPhotoFile = ref<File | null>(null)
+const problemStatementPhotoPreview = ref<string | null>(null)
+const problemStatementPhotoUploading = ref(false)
+const problemStatementPhotoError = ref<string | null>(null)
+const problemStatementFileInputRef = ref<HTMLInputElement | null>(null)
+
+function triggerProblemStatementFileInput() {
+  problemStatementFileInputRef.value?.click()
+}
+
+function onProblemStatementFileSelected(event: Event) {
+  problemStatementPhotoError.value = null
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  const err = validateFileUpload(file, 5 * 1024 * 1024, ['image/jpeg', 'image/png', 'image/webp'])
+  if (err) {
+    problemStatementPhotoError.value = err
+    return
+  }
+
+  problemStatementPhotoFile.value = file
+  problemStatementPhotoPreview.value = URL.createObjectURL(file)
+}
+
+async function handleProblemStatementPhotoUpload() {
+  if (!problemStatementPhotoFile.value) return
+  problemStatementPhotoUploading.value = true
+  problemStatementPhotoError.value = null
+
+  try {
+    const result = await uploadAsset('problem_statement_photo', problemStatementPhotoFile.value)
+    problemStatementPhotoPreview.value = result.url
+    problemStatementPhotoFile.value = null
+    await fetchAccount()
+    toast.add({ title: 'Photo d\'arrière-plan enregistrée', color: 'primary' })
+  } catch (e: unknown) {
+    problemStatementPhotoError.value = formatUploadError(e)
+    toast.add({ title: 'Erreur', description: problemStatementPhotoError.value, color: 'error' })
+  } finally {
+    problemStatementPhotoUploading.value = false
+  }
+}
+
+async function handleProblemStatementPhotoDelete() {
+  problemStatementPhotoUploading.value = true
+  problemStatementPhotoError.value = null
+
+  try {
+    const ok = await updateAccount({ problemStatementPhotoUrl: null })
+    if (ok) {
+      problemStatementPhotoPreview.value = ''
+      problemStatementPhotoFile.value = null
+      await fetchAccount()
+      toast.add({ title: 'Photo d\'arrière-plan supprimée', color: 'primary' })
+    } else {
+      toast.add({ title: 'Erreur lors de la suppression de la photo', color: 'error' })
+    }
+  } catch (e: unknown) {
+    problemStatementPhotoError.value = formatUploadError(e)
+    toast.add({ title: 'Erreur', description: problemStatementPhotoError.value, color: 'error' })
+  } finally {
+    problemStatementPhotoUploading.value = false
+  }
+}
+
 // ── Palette form state (Story 0-37 AC-5, AC-6) ──
 const paletteForm = reactive({
   brandColor: '#5B4B6E',
@@ -486,7 +576,8 @@ const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
   // URL local) ou tout juste persistées (URL S3 retournée par l'upload). Sans
   // ça la preview gardait l'ancienne URL même après sélection de fichier.
   secondaryPhotoPreview,
-  heroPhotoPreview
+  heroPhotoPreview,
+  problemStatementPhotoPreview
 })
 
 // Story 0-28 round terrain — la preview affiche les vrais tarifs (price plans
@@ -1580,14 +1671,35 @@ function externalSection(section: string) {
                   />
                 </div>
                 <div class="flex flex-col items-start gap-2">
-                  <UButton
-                    variant="outline"
-                    icon="i-lucide-upload"
-                    label="Modifier la photo"
-                    size="sm"
-                    type="button"
-                    @click="triggerHeroFileInput"
-                  />
+                  <input
+                    ref="heroFileInputRef"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    class="hidden"
+                    @change="onHeroFileSelected"
+                  >
+                  <div class="flex flex-wrap gap-2">
+                    <UButton
+                      variant="outline"
+                      icon="i-lucide-upload"
+                      :label="heroPhotoPreview || account?.heroImageUrl ? 'Modifier la photo' : 'Ajouter une photo'"
+                      size="sm"
+                      type="button"
+                      @click="triggerHeroFileInput"
+                    />
+                    <UButton
+                      v-if="heroPhotoPreview || account?.heroImageUrl"
+                      variant="ghost"
+                      color="error"
+                      icon="i-lucide-trash-2"
+                      label="Supprimer la photo"
+                      size="sm"
+                      type="button"
+                      :loading="heroPhotoUploading"
+                      :disabled="heroPhotoUploading"
+                      @click="handleHeroPhotoDelete"
+                    />
+                  </div>
                   <UButton
                     v-if="heroPhotoFile"
                     :loading="heroPhotoUploading"
@@ -2047,6 +2159,76 @@ function externalSection(section: string) {
                   >
                     Ajouter un paragraphe
                   </UButton>
+
+                  <!-- Photo de fond de la section (Option B) -->
+                  <div class="mt-8 border-t border-[color:var(--color-border-subtle)] pt-6">
+                    <p class="mb-1 text-sm font-medium text-[color:var(--color-text-primary)]">
+                      Image d'arrière-plan de la section (template Visuel / Luna)
+                    </p>
+                    <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
+                      JPEG, PNG ou WebP, max 5 Mo. Recommandé : 1920×1080 (paysage ambiance sombre).
+                    </p>
+                    <div class="flex items-center gap-6">
+                      <div class="flex h-20 w-32 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+                        <img
+                          v-if="problemStatementPhotoPreview || account?.problemStatementPhotoUrl"
+                          :src="(problemStatementPhotoPreview || account?.problemStatementPhotoUrl)!"
+                          alt="Image d'arrière-plan du problème"
+                          class="h-full w-full object-cover"
+                        >
+                        <UIcon
+                          v-else
+                          name="i-lucide-image"
+                          class="h-8 w-8 text-[color:var(--color-brand-muted)]"
+                        />
+                      </div>
+                      <div class="flex flex-col items-start gap-2">
+                        <input
+                          ref="problemStatementFileInputRef"
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          class="hidden"
+                          @change="onProblemStatementFileSelected"
+                        >
+                        <div class="flex flex-wrap gap-2">
+                          <UButton
+                            variant="outline"
+                            icon="i-lucide-upload"
+                            :label="problemStatementPhotoPreview || account?.problemStatementPhotoUrl ? 'Modifier l\'image' : 'Ajouter une image'"
+                            size="sm"
+                            type="button"
+                            @click="triggerProblemStatementFileInput"
+                          />
+                          <UButton
+                            v-if="problemStatementPhotoPreview || account?.problemStatementPhotoUrl"
+                            variant="ghost"
+                            color="error"
+                            icon="i-lucide-trash-2"
+                            label="Supprimer l'image"
+                            size="sm"
+                            type="button"
+                            :loading="problemStatementPhotoUploading"
+                            :disabled="problemStatementPhotoUploading"
+                            @click="handleProblemStatementPhotoDelete"
+                          />
+                        </div>
+                        <UButton
+                          v-if="problemStatementPhotoFile"
+                          :loading="problemStatementPhotoUploading"
+                          :disabled="problemStatementPhotoUploading"
+                          label="Enregistrer l'image"
+                          size="sm"
+                          @click="handleProblemStatementPhotoUpload"
+                        />
+                        <p
+                          v-if="problemStatementPhotoError"
+                          class="text-sm text-[color:var(--color-error)]"
+                        >
+                          {{ problemStatementPhotoError }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
                   <UButton

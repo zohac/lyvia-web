@@ -20,17 +20,18 @@ const specialtyLabel = computed<string>(() => {
 })
 
 const heroBackgroundSrc = computed(() => {
-  return props.heroPhotoUrl || '/images/templates/visuel/hero-default.webp'
+  return props.heroPhotoUrl?.trim() || null
 })
 </script>
 
 <template>
   <section
     id="hero"
-    class="relative flex min-h-[620px] items-end overflow-hidden lg:min-h-[min(92vh,820px)]"
+    class="relative flex min-h-[620px] items-end overflow-hidden bg-neutral-950 lg:min-h-[min(92vh,820px)]"
   >
-    <!-- Background image -->
+    <!-- Background image (optionnelle si configurée) -->
     <img
+      v-if="heroBackgroundSrc"
       :src="heroBackgroundSrc"
       alt=""
       aria-hidden="true"
@@ -39,19 +40,18 @@ const heroBackgroundSrc = computed(() => {
       fetchpriority="high"
       width="1920"
       height="1080"
-      @error="($event.target as HTMLImageElement).src = '/images/templates/visuel/hero-default.webp'"
     >
 
     <!-- Overlay sombre vertical progressif -->
     <div
       aria-hidden="true"
-      class="absolute inset-0 bg-gradient-to-b from-[rgba(20,17,26,0.5)] via-[rgba(20,17,26,0.25)] to-[rgba(20,17,26,0.88)]"
+      class="absolute inset-0 bg-gradient-to-b from-[rgba(20,17,26,0.65)] via-[rgba(20,17,26,0.45)] to-[rgba(20,17,26,0.92)]"
     />
 
     <!-- Overlay subtil teinte marque (mix-blend-mode multiply) -->
     <div
       aria-hidden="true"
-      class="absolute inset-0 bg-gradient-to-r from-[color-mix(in_srgb,var(--color-brand-primary)_35%,transparent)] to-transparent mix-blend-multiply"
+      class="absolute inset-0 bg-gradient-to-r from-[color-mix(in_srgb,var(--color-brand-primary)_40%,transparent)] to-transparent mix-blend-multiply"
     />
 
     <!-- Contenu hero -->
