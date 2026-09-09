@@ -120,6 +120,7 @@ export interface PublicProviderProfile {
   timezone: string
   imageUrl: string | null
   heroImageUrl: string | null
+  heroImageDisabled?: boolean
   discoveryDurationMinutes: number
   discoveryBufferAfterMinutes: number
   isActive: boolean

@@ -319,19 +319,41 @@ async function handleHeroPhotoUpload() {
   }
 }
 
-async function handleHeroPhotoDelete() {
+async function handleHeroPhotoDisable() {
   heroPhotoUploading.value = true
   heroPhotoError.value = null
 
   try {
-    const ok = await updateAccount({ heroImageUrl: null })
+    const ok = await updateAccount({ heroImageUrl: null, heroImageDisabled: true })
     if (ok) {
-      heroPhotoPreview.value = ''
+      heroPhotoPreview.value = null
       heroPhotoFile.value = null
       await fetchAccount()
-      toast.add({ title: 'Photo d\'en-tête retirée', color: 'primary' })
+      toast.add({ title: 'Image d\'en-tête retirée', color: 'primary' })
     } else {
-      toast.add({ title: 'Erreur lors du retrait de la photo', color: 'error' })
+      toast.add({ title: 'Erreur lors du retrait de l\'image', color: 'error' })
+    }
+  } catch (e: unknown) {
+    heroPhotoError.value = formatUploadError(e)
+    toast.add({ title: 'Erreur', description: heroPhotoError.value, color: 'error' })
+  } finally {
+    heroPhotoUploading.value = false
+  }
+}
+
+async function handleHeroPhotoEnableDefault() {
+  heroPhotoUploading.value = true
+  heroPhotoError.value = null
+
+  try {
+    const ok = await updateAccount({ heroImageUrl: null, heroImageDisabled: false })
+    if (ok) {
+      heroPhotoPreview.value = null
+      heroPhotoFile.value = null
+      await fetchAccount()
+      toast.add({ title: 'Image par défaut rétablie', color: 'primary' })
+    } else {
+      toast.add({ title: 'Erreur lors du rétablissement de l\'image', color: 'error' })
     }
   } catch (e: unknown) {
     heroPhotoError.value = formatUploadError(e)
@@ -1658,10 +1680,32 @@ function externalSection(section: string) {
               </p>
               <div class="flex items-center gap-6">
                 <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+                  <div
+                    v-if="account?.heroImageDisabled"
+                    class="flex h-full w-full flex-col items-center justify-center p-2 text-center text-[10px] font-medium text-[color:var(--color-brand-muted)]"
+                  >
+                    <UIcon
+                      name="i-lucide-eye-off"
+                      class="mb-1 h-5 w-5"
+                    />
+                    Fond sombre
+                  </div>
                   <img
-                    v-if="heroPhotoPreview || account?.heroImageUrl || account?.imageUrl"
-                    :src="(heroPhotoPreview || account?.heroImageUrl || account?.imageUrl)!"
+                    v-else-if="heroPhotoPreview || account?.heroImageUrl"
+                    :src="(heroPhotoPreview || account?.heroImageUrl)!"
                     alt="Photo Hero"
+                    class="h-full w-full object-cover"
+                  >
+                  <img
+                    v-else-if="previewTemplateCode === 'visuel'"
+                    src="/images/templates/visuel/hero-default.webp"
+                    alt="Photo Hero par défaut"
+                    class="h-full w-full object-cover opacity-75"
+                  >
+                  <img
+                    v-else-if="account?.imageUrl"
+                    :src="account.imageUrl"
+                    alt="Photo de profil"
                     class="h-full w-full object-cover"
                   >
                   <UIcon
@@ -1688,16 +1732,27 @@ function externalSection(section: string) {
                       @click="triggerHeroFileInput"
                     />
                     <UButton
-                      v-if="heroPhotoPreview || account?.heroImageUrl"
+                      v-if="!account?.heroImageDisabled"
                       variant="ghost"
                       color="error"
                       icon="i-lucide-trash-2"
-                      label="Supprimer la photo"
+                      label="Retirer l'image"
                       size="sm"
                       type="button"
                       :loading="heroPhotoUploading"
                       :disabled="heroPhotoUploading"
-                      @click="handleHeroPhotoDelete"
+                      @click="handleHeroPhotoDisable"
+                    />
+                    <UButton
+                      v-else
+                      variant="ghost"
+                      icon="i-lucide-rotate-ccw"
+                      label="Rétablir l'image par défaut"
+                      size="sm"
+                      type="button"
+                      :loading="heroPhotoUploading"
+                      :disabled="heroPhotoUploading"
+                      @click="handleHeroPhotoEnableDefault"
                     />
                   </div>
                   <UButton

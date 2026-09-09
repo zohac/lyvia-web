@@ -112,12 +112,20 @@ describe('Story 0-38 — Template Visuel (Essentiel tier)', () => {
       assert.ok(headerContent.includes('bg-neutral-950/85'), 'Header should have dark backdrop when scrolled')
     })
 
-    test('CoachVisuelProblem has no symptom cards and renders narrative directly (Client feedback)', () => {
+    test('CoachVisuelProblem has no symptom cards, renders narrative directly, and supports background photo (Client feedback)', () => {
       const problemContent = readFile('components/templates/coach-pages/visuel/CoachVisuelProblem.vue')
       assert.ok(!problemContent.includes('defaultSymptoms'), 'Problem section must not declare defaultSymptoms')
       assert.ok(!problemContent.includes('Bouffées de chaleur'), 'Problem section must not have Bouffées de chaleur card')
       assert.ok(!problemContent.includes('grid-cols-2'), 'Problem section must not have symptoms grid')
       assert.ok(problemContent.includes('whitespace-pre-line'), 'Paragraphs should preserve whitespace line breaks')
+      assert.ok(problemContent.includes('problemStatementPhotoUrl'), 'Problem section must support problemStatementPhotoUrl')
+    })
+
+    test('CoachVisuelHero supports heroImageDisabled for explicit dark background without breaking historical default fallback', () => {
+      const heroContent = readFile('components/templates/coach-pages/visuel/CoachVisuelHero.vue')
+      assert.ok(heroContent.includes('heroImageDisabled'), 'CoachVisuelHero must check heroImageDisabled')
+      assert.ok(heroContent.includes('hero-default.webp'), 'CoachVisuelHero must retain hero-default.webp fallback when not disabled')
+      assert.ok(heroContent.includes('v-if="heroBackgroundSrc"'), 'Hero image must be conditionally rendered based on heroBackgroundSrc')
     })
 
     test('CoachPagePreviewPanel suppresses PublicHeader for visuel (Luna) template', () => {

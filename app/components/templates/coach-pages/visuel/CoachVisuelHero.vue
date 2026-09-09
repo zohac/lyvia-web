@@ -20,7 +20,8 @@ const specialtyLabel = computed<string>(() => {
 })
 
 const heroBackgroundSrc = computed(() => {
-  return props.heroPhotoUrl?.trim() || null
+  if (props.heroImageDisabled) return null
+  return props.heroPhotoUrl?.trim() || '/images/templates/visuel/hero-default.webp'
 })
 </script>
 
@@ -29,7 +30,7 @@ const heroBackgroundSrc = computed(() => {
     id="hero"
     class="relative flex min-h-[620px] items-end overflow-hidden bg-neutral-950 lg:min-h-[min(92vh,820px)]"
   >
-    <!-- Background image (optionnelle si configurée) -->
+    <!-- Background image (optionnelle si configurée ou fallback par défaut) -->
     <img
       v-if="heroBackgroundSrc"
       :src="heroBackgroundSrc"
@@ -40,6 +41,7 @@ const heroBackgroundSrc = computed(() => {
       fetchpriority="high"
       width="1920"
       height="1080"
+      @error="($event.target as HTMLImageElement).src = '/images/templates/visuel/hero-default.webp'"
     >
 
     <!-- Overlay sombre vertical progressif -->

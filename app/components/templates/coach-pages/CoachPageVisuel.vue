@@ -138,6 +138,7 @@ const heroProps = computed(() => ({
   city: props.coachProfile?.city ?? null,
   profilePhotoUrl: props.coachProfile?.imageUrl ?? null,
   heroPhotoUrl: props.coachProfile?.heroImageUrl ?? null,
+  heroImageDisabled: props.coachProfile?.heroImageDisabled ?? false,
   profilePhotoAlt: props.coachProfile?.imageUrl ? `${coachName.value}, spécialiste accompagnement ménopause` : null,
   logoUrl: props.coachProfile?.logoUrl ?? null,
   discoveryDurationMinutes: props.coachProfile?.discoveryDurationMinutes ?? 15,

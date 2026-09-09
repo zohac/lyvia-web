@@ -81,6 +81,7 @@ export type ProviderAccountResponse = {
   // de refléter les photos réellement affichées sur la page publique du coach.
   imageUrl: string | null
   heroImageUrl: string | null
+  heroImageDisabled?: boolean
   secondaryPhotoUrl: string | null
   problemStatementPhotoUrl?: string | null
   // Legal fields (AC-1)
@@ -142,6 +143,7 @@ export type UpdateProviderAccountRequest = {
   brandName?: string | null
   logoUrl?: string | null
   heroImageUrl?: string | null
+  heroImageDisabled?: boolean
   problemStatementPhotoUrl?: string | null
   // Legal fields (AC-1)
   legalCompanyName?: string | null

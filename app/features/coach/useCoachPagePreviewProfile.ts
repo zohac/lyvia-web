@@ -259,6 +259,7 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       // photo, la mini-photo, la photo "Qui suis-je").
       imageUrl: acc.imageUrl,
       heroImageUrl: localHeroPhoto !== null ? localHeroPhoto : acc.heroImageUrl,
+      heroImageDisabled: acc.heroImageDisabled ?? false,
       discoveryDurationMinutes: acc.defaultDiscoveryDurationMinutes,
       discoveryBufferAfterMinutes: acc.discoveryBufferAfterMinutes,
       isActive: true,
