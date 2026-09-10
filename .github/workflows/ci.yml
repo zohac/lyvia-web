@@ -13,11 +13,11 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Checkout lyvia-api (for contract check)
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.repository_owner }}/lyvia-api
           token: ${{ secrets.LYVIA_API_TOKEN }}
