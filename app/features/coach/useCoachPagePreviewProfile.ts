@@ -103,6 +103,10 @@ export interface CoachPagePreviewDeps {
    * elle prend le dessus sur `account.heroImageUrl`.
    */
   heroPhotoPreview?: Ref<string | null>
+  /**
+   * Preview URL de la photo d'arrière-plan de la section problème pendant l'upload.
+   */
+  problemStatementPhotoPreview?: Ref<string | null>
 }
 
 /**
@@ -238,6 +242,7 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
     // en preview avant même le retour de l'API.
     const localSecondaryPhoto = deps.secondaryPhotoPreview?.value ?? null
     const localHeroPhoto = deps.heroPhotoPreview?.value ?? null
+    const localProblemStatementPhoto = deps.problemStatementPhotoPreview?.value ?? null
 
     return {
       slug: acc.slug,
@@ -253,7 +258,8 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       // pour que la preview reflète la vraie page publique (le hero
       // photo, la mini-photo, la photo "Qui suis-je").
       imageUrl: acc.imageUrl,
-      heroImageUrl: localHeroPhoto ?? acc.heroImageUrl,
+      heroImageUrl: localHeroPhoto !== null ? localHeroPhoto : acc.heroImageUrl,
+      heroImageDisabled: acc.heroImageDisabled ?? false,
       discoveryDurationMinutes: acc.defaultDiscoveryDurationMinutes,
       discoveryBufferAfterMinutes: acc.discoveryBufferAfterMinutes,
       isActive: true,
@@ -274,6 +280,7 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       sectionTitlesJson: snap.hydrated ? (deps.sectionTitlesForm ? snap.sectionTitles : acc.sectionTitlesJson) : acc.sectionTitlesJson,
       testimonialsJson: snap.testimonials,
       secondaryPhotoUrl: localSecondaryPhoto ?? acc.secondaryPhotoUrl,
+      problemStatementPhotoUrl: localProblemStatementPhoto !== null ? localProblemStatementPhoto : (acc.problemStatementPhotoUrl ?? null),
       logoUrl: acc.logoUrl,
       leadMagnetUrl: acc.leadMagnetUrl,
       leadMagnetTitle: acc.leadMagnetTitle,

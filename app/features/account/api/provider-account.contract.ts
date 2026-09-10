@@ -81,7 +81,9 @@ export type ProviderAccountResponse = {
   // de refléter les photos réellement affichées sur la page publique du coach.
   imageUrl: string | null
   heroImageUrl: string | null
+  heroImageDisabled?: boolean
   secondaryPhotoUrl: string | null
+  problemStatementPhotoUrl?: string | null
   // Legal fields (AC-1)
   legalCompanyName?: string | null
   legalSiret?: string | null
@@ -140,6 +142,9 @@ export type UpdateProviderAccountRequest = {
   // White-label email branding (story 0-20a/0-20c)
   brandName?: string | null
   logoUrl?: string | null
+  heroImageUrl?: string | null
+  heroImageDisabled?: boolean
+  problemStatementPhotoUrl?: string | null
   // Legal fields (AC-1)
   legalCompanyName?: string | null
   legalSiret?: string | null

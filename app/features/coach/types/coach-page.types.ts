@@ -35,6 +35,7 @@ export interface CoachHeroProps {
   city?: string | null
   profilePhotoUrl?: string | null
   heroPhotoUrl?: string | null
+  heroImageDisabled?: boolean
   profilePhotoAlt?: string | null
   /** Brand logo URL (Story 0-27) — displayed above the displayName eyebrow when present. */
   logoUrl?: string | null
