@@ -30,6 +30,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { useCoachPageTemplate } from '~/composables/useCoachPageTemplate'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
+import { useCoachLink } from '~/composables/useCoachLink'
 import { bindBrandColorScope } from '#shared/utils/brand-color-scope'
 import PublicHeader from '~/components/organisms/PublicHeader.vue'
 import type { PublicHeaderState } from '~/features/public/state/public-header.state'
@@ -91,6 +92,14 @@ const plans = computed<ConsultationPricePlan[]>(() => props.consultationPlans ??
 const deviceSubLabel = computed(() =>
   props.device === 'mobile' ? 'Mobile · 375px' : 'Desktop · 1280px+'
 )
+
+const publicPageTarget = computed(() => {
+  if (!props.tenant?.slug) return null
+  return useCoachLink({
+    slug: props.tenant.slug,
+    domain: props.tenant.brand.domain
+  })
+})
 
 // Story 0-28 brief — Frame fine sans skeuomorphisme phone (Q2 retenu).
 // Mobile mockup = max-w-[375px] + rounded-2xl + border-emphasis + shadow-card,
@@ -260,6 +269,21 @@ onMounted(() => {
             <span>Mobile</span>
           </button>
         </div>
+
+        <UButton
+          v-if="publicPageTarget"
+          :to="publicPageTarget.site"
+          :external="!!props.tenant?.brand?.domain"
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="ghost"
+          color="neutral"
+          size="sm"
+          icon="i-lucide-external-link"
+          aria-label="Ouvrir la page publique dans un nouvel onglet"
+          title="Ouvrir la page publique dans un nouvel onglet"
+          data-testid="coach-preview-external-link"
+        />
 
         <UButton
           v-if="showClose"

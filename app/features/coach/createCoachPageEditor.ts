@@ -29,6 +29,8 @@ export interface ProviderAccountStore {
   updateAccountDetailed: (patch: UpdateProviderAccountRequest) => Promise<
     { ok: true, data: ProviderAccountResponse } | { ok: false, errorCode?: string }
   >
+  publishCoachPage?: () => Promise<{ ok: true, data: ProviderAccountResponse } | { ok: false, errorCode?: string, details?: unknown }>
+  unpublishCoachPage?: () => Promise<{ ok: true, data: ProviderAccountResponse } | { ok: false, errorCode?: string }>
 }
 
 export interface CreateCoachPageEditorDependencies {
@@ -38,7 +40,7 @@ export interface CreateCoachPageEditorDependencies {
 
 export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
   const { providerAccount, listTemplates } = deps
-  const { account, loading, saving, error, fetchAccount, updateAccountDetailed } = providerAccount
+  const { account, loading, saving, error, fetchAccount, updateAccountDetailed, publishCoachPage, unpublishCoachPage } = providerAccount
   // Story 0-26 — `updateAccount` exposé directement aux pages éditeur pour les sections
   // rapatriées (bio/longBio, testimonials, branding) qui n'ont pas de save helper dédié.
   // Garantit qu'un seul store providerAccount est utilisé (sinon 2 instances refresh
@@ -295,6 +297,8 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     setEducationalInsightContent,
     setProblemStatementBlockquote,
     addProblemParagraph,
-    removeProblemParagraph
+    removeProblemParagraph,
+    publishCoachPage,
+    unpublishCoachPage
   }
 }

@@ -33,6 +33,9 @@ export type PublicTenantResponse = {
   slug: string
   timezone: string
   isActive: boolean
+  isPublished: boolean
+  isTest: boolean
+  isPreview?: boolean
   brand: TenantBrand
   legalInfo?: TenantLegalInfo | null
   googleAdsId?: string | null

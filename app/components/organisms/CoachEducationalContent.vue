@@ -6,11 +6,18 @@ const props = defineProps<CoachEducationalContentProps>()
 
 const { reveal } = useScrollReveal()
 
-// P-Y3: no fallback content at organism level.
-// The parent template is responsible for mounting this component only when
-// content.paragraphs is non-empty (visibility rule = toggle AND content non-empty).
-const paragraphs = computed(() => props.content?.paragraphs ?? [])
-const insightBox = computed(() => props.content?.insightBox ?? null)
+const FALLBACK_PARAGRAPHS = [
+  'La périménopause et la ménopause sont des transitions physiologiques majeures, trop souvent banalisées ou mal comprises. Comprendre les fluctuations hormonales est la première étape pour reprendre le contrôle de son corps et de son énergie.',
+  'En combinant nutrition ciblée, micronutrition et ajustements du mode de vie, il est possible de soulager durablement les bouffées de chaleur, les troubles du sommeil et les variations de l\'humeur.'
+]
+
+const FALLBACK_INSIGHT_BOX = {
+  title: 'Le saviez-vous ?',
+  content: '80 % des symptômes liés à la ménopause peuvent être significativement atténués grâce à des ajustements personnalisés de l\'alimentation et du rythme de vie.'
+}
+
+const paragraphs = computed(() => props.content?.paragraphs?.length ? props.content.paragraphs : FALLBACK_PARAGRAPHS)
+const insightBox = computed(() => props.content?.insightBox ?? (props.content?.paragraphs?.length ? null : FALLBACK_INSIGHT_BOX))
 </script>
 
 <template>

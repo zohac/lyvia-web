@@ -14,6 +14,7 @@ import { setPublicHeader } from '~/features/public/state/public-header.state'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
+import CoachPreviewBanner from '~/components/molecules/CoachPreviewBanner.vue'
 import CoachPageHub from '~/components/templates/coach-pages/CoachPageHub.vue'
 
 definePageMeta({
@@ -31,12 +32,17 @@ if (!slug.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
-const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant:${slug.value}`, async () => {
+const isPreview = computed(() => route.query.preview === 'true' || route.query.preview === '1')
+
+const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant:${slug.value}${isPreview.value ? ':preview' : ''}`, async () => {
   try {
     return await apiFetch<PublicTenantResponse>('/public/tenant', {
       method: 'GET',
-      withAuth: false,
-      query: { slug: slug.value }
+      withAuth: isPreview.value,
+      query: {
+        slug: slug.value,
+        ...(isPreview.value ? { preview: 'true' } : {})
+      }
     })
   } catch (err: unknown) {
     if (err instanceof ApiFetchError && err.apiError.code === 'TENANT_NOT_FOUND') {
@@ -67,7 +73,8 @@ const hasWlDomain = !!tenant.value?.brand.domain
 // YC2.4: hubMode skips ProfessionalService (F2), sameAs cross-references WL site (AC-6)
 await useCoachSchemaOrg(slug.value, {
   whiteLabeldomain: tenant.value?.brand.domain,
-  hubMode: isPlatform && hasWlDomain
+  hubMode: isPlatform && hasWlDomain,
+  preview: isPreview.value
 })
 
 usePageTracking(providerId)
@@ -185,6 +192,10 @@ watchEffect(() => {
     :coach-name="tenant.brand.displayName"
   />
   <div v-else>
+    <CoachPreviewBanner
+      v-if="tenant?.isPreview"
+      :is-test="tenant.isTest"
+    />
     <AtomsBreadcrumbNav :items="breadcrumbItems" />
     <!-- YC2.4 — Hub card when platform host + coach has WL domain -->
     <CoachPageHub

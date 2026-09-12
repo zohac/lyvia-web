@@ -16,6 +16,7 @@ import type {
   BenefitsJson,
   EducationalContentJson,
   FaqItem,
+  FitJson,
   HowItWorksStep,
   PillarsJson,
   ProblemStatementJson
@@ -65,6 +66,7 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     howItWorksJson: null,
     educationalContentJson: null,
     problemStatementJson: null,
+    fitJson: null,
     brandName: null,
     logoUrl: null,
     imageUrl: null,
@@ -73,7 +75,21 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     // Story 18.2 — champs read-only ajoutés au contrat ProviderAccountResponse.
     plan: { slug: 'fondatrice', name: 'Fondatrice' },
     enabledFeatures: ['custom_domain', 'white_label_branding', 'coach_page_premium_templates', 'lead_magnet'],
-    ...overrides
+    ...overrides,
+    isPublished: overrides.isPublished ?? false,
+    publishedAt: overrides.publishedAt ?? null,
+    isTest: overrides.isTest ?? false,
+    publishChecklist: overrides.publishChecklist ?? {
+      isReady: false,
+      items: {
+        hasIdentity: true,
+        hasBio: true,
+        hasPhoto: false,
+        hasOffer: false,
+        hasTemplate: true
+      },
+      missingItems: ['hasPhoto', 'hasOffer']
+    }
   }
 }
 
@@ -103,6 +119,7 @@ function createHarness(account: ProviderAccountResponse | null): Harness {
     howItWorksForm: ref<HowItWorksStep[]>([]) as Ref<HowItWorksStep[]>,
     educationalContentForm: ref<EducationalContentJson | null>(null) as Ref<EducationalContentJson | null>,
     problemStatementForm: ref<ProblemStatementJson | null>(null) as Ref<ProblemStatementJson | null>,
+    fitForm: ref<FitJson | null>(null) as Ref<FitJson | null>,
     templateCode: ref<string | null>('essentiel') as Ref<string | null | undefined>,
     secondaryPhotoPreview: ref<string | null>(null)
   }

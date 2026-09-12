@@ -9,6 +9,8 @@ import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
+import CoachWaitingTemplate from '~/components/templates/CoachWaitingTemplate.vue'
+import CoachPreviewBanner from '~/components/molecules/CoachPreviewBanner.vue'
 import MarketingLandingB2B from '~/components/templates/MarketingLandingB2B.vue'
 import MarketingLandingB2C from '~/components/templates/MarketingLandingB2C.vue'
 
@@ -179,11 +181,22 @@ watch([tenant, ctx], updatePublicHeader)
     :coach-name="tenant.brand.displayName"
   />
 
-  <CoachPublicPageTemplate
-    v-else-if="tenant"
+  <CoachWaitingTemplate
+    v-else-if="tenant && !tenant.isPublished && !tenant.isPreview"
     :tenant="tenant"
-    cta-to="/onboarding/discovery"
+    :coach-name="tenant.brand.displayName"
   />
+
+  <div v-else-if="tenant">
+    <CoachPreviewBanner
+      v-if="tenant.isPreview"
+      :is-test="tenant.isTest"
+    />
+    <CoachPublicPageTemplate
+      :tenant="tenant"
+      cta-to="/onboarding/discovery"
+    />
+  </div>
 
   <MarketingLandingB2C v-else-if="ctx.isB2C" />
 

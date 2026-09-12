@@ -48,9 +48,12 @@ import { listMyPrograms } from '~/features/programs/services/provider-programs.s
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import type { ProgramResponse, PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import CoachPagePreviewPanel from '~/components/organisms/CoachPagePreviewPanel.vue'
+import { useCoachLink } from '~/composables/useCoachLink'
 import FormControl from '~/components/molecules/FormControl.vue'
 import SystemAlert from '~/components/atoms/SystemAlert.vue'
 import IconPicker from '~/components/molecules/IconPicker.vue'
+import CoachPublishChecklistModal from '~/components/molecules/CoachPublishChecklistModal.vue'
+import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 import {
   parseHex,
   getRelativeLuminance,
@@ -593,6 +596,9 @@ const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
   problemStatementForm: problemStatementForm as unknown as import('vue').Ref<
     import('~/features/seo/api/public-provider-profile.contract').ProblemStatementJson | null
   >,
+  fitForm: fitForm as unknown as import('vue').Ref<
+    import('~/features/seo/api/public-provider-profile.contract').FitJson | null
+  >,
   templateCode: previewTemplateCode,
   // Story 0-28 CR-3 & Story 0-38 — propage les photos en cours d'upload (object
   // URL local) ou tout juste persistées (URL S3 retournée par l'upload). Sans
@@ -669,6 +675,105 @@ function closeDesktopPreview(): void {
 
 function setPreviewDevice(next: 'desktop' | 'mobile'): void {
   previewState.setDevice(next)
+}
+
+const publicCoachPageLink = computed(() => {
+  if (!account.value?.slug) return null
+  return useCoachLink({
+    slug: account.value.slug,
+    domain: account.value.customDomain
+  })
+})
+
+const previewCoachPageLink = computed(() => {
+  if (!account.value?.slug) return null
+  const link = useCoachLink({
+    slug: account.value.slug,
+    domain: account.value.customDomain
+  })
+  const separator = link.site.includes('?') ? '&' : '?'
+  return `${link.site}${separator}preview=true`
+})
+
+const checklistModalOpen = ref(false)
+const confirmUnpublishModalOpen = ref(false)
+const publishing = ref(false)
+const publishError = ref<string | null>(null)
+
+async function handleOpenPublish() {
+  if (account.value?.isTest) return
+  if (!account.value?.publishChecklist?.isReady) {
+    checklistModalOpen.value = true
+    return
+  }
+  await executePublish()
+}
+
+async function executePublish() {
+  publishing.value = true
+  publishError.value = null
+  try {
+    const result = await editor.publishCoachPage?.()
+    if (result?.ok) {
+      checklistModalOpen.value = false
+      toast.add({
+        title: 'Page mise en ligne',
+        description: 'Votre page coach est maintenant accessible publiquement.',
+        color: 'success'
+      })
+    } else {
+      publishError.value = 'Impossible de publier votre page coach.'
+      checklistModalOpen.value = true
+    }
+  } catch {
+    publishError.value = 'Une erreur inattendue est survenue.'
+    checklistModalOpen.value = true
+  } finally {
+    publishing.value = false
+  }
+}
+
+async function handleUnpublish() {
+  publishing.value = true
+  try {
+    const result = await editor.unpublishCoachPage?.()
+    if (result?.ok) {
+      confirmUnpublishModalOpen.value = false
+      toast.add({
+        title: 'Page dépubliée',
+        description: 'Votre page coach est désormais en brouillon.',
+        color: 'neutral'
+      })
+    } else {
+      toast.add({
+        title: 'Erreur',
+        description: 'Impossible de dépublier votre page coach.',
+        color: 'error'
+      })
+    }
+  } catch {
+    toast.add({
+      title: 'Erreur',
+      description: 'Une erreur inattendue est survenue.',
+      color: 'error'
+    })
+  } finally {
+    publishing.value = false
+  }
+}
+
+function handleNavigateToSection(sectionId: string) {
+  if (sectionId === 'template') {
+    const el = document.getElementById('section-template')
+    el?.scrollIntoView({ behavior: 'smooth' })
+    return
+  }
+  if (sectionId === 'offers') {
+    navigateTo('/provider/tarifs')
+    return
+  }
+  const el = document.getElementById(`section-${sectionId}`)
+  el?.scrollIntoView({ behavior: 'smooth' })
 }
 
 // ── Feature gating (Story 18.3b) ──
@@ -1114,9 +1219,102 @@ function externalSection(section: string) {
     >
 
     <AtomsDsPageHeader>
-      Ma page coach
+      <div class="flex flex-wrap items-center gap-3">
+        <span>Ma page coach</span>
+        <UBadge
+          v-if="account?.isTest"
+          color="warning"
+          variant="subtle"
+          icon="i-lucide-flask-conical"
+        >
+          Compte de test
+        </UBadge>
+        <UBadge
+          v-else-if="account?.isPublished"
+          color="success"
+          variant="subtle"
+          icon="i-lucide-check-circle-2"
+        >
+          En ligne
+        </UBadge>
+        <UBadge
+          v-else
+          color="neutral"
+          variant="subtle"
+          icon="i-lucide-file-text"
+        >
+          Brouillon
+        </UBadge>
+      </div>
       <template #subtitle>
         Choisissez un template et personnalisez le contenu de votre page publique.
+      </template>
+      <template #actions>
+        <div class="flex flex-wrap items-center gap-2">
+          <UButton
+            v-if="previewCoachPageLink"
+            :to="previewCoachPageLink"
+            :external="true"
+            target="_blank"
+            rel="noopener noreferrer"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-eye"
+            data-testid="coach-page-preview-full-btn"
+          >
+            Aperçu
+          </UButton>
+
+          <UTooltip
+            v-if="account?.isTest"
+            text="Les comptes de test ne peuvent pas être mis en ligne."
+          >
+            <UButton
+              disabled
+              color="neutral"
+              variant="solid"
+              icon="i-lucide-globe"
+            >
+              Mettre en ligne
+            </UButton>
+          </UTooltip>
+
+          <UButton
+            v-else-if="account?.isPublished"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-globe-lock"
+            :loading="publishing"
+            @click="confirmUnpublishModalOpen = true"
+          >
+            Dépublier
+          </UButton>
+
+          <UButton
+            v-else
+            color="primary"
+            variant="solid"
+            icon="i-lucide-globe"
+            :loading="publishing"
+            @click="handleOpenPublish"
+          >
+            Mettre en ligne
+          </UButton>
+
+          <UButton
+            v-if="account?.isPublished && publicCoachPageLink"
+            :to="publicCoachPageLink.site"
+            :external="!!account?.customDomain"
+            target="_blank"
+            rel="noopener noreferrer"
+            color="neutral"
+            variant="subtle"
+            icon="i-lucide-external-link"
+            data-testid="coach-page-view-public-btn"
+          >
+            Voir ma page
+          </UButton>
+        </div>
       </template>
     </AtomsDsPageHeader>
 
@@ -1151,7 +1349,10 @@ function externalSection(section: string) {
         data-testid="coach-page-editor-column"
       >
         <!-- ═══════ 1. TEMPLATE SELECTOR ═══════ -->
-        <section class="mb-10">
+        <section
+          id="section-template"
+          class="mb-10"
+        >
           <h2 class="mb-4 text-lg font-semibold text-[color:var(--color-text-primary)]">
             Template
           </h2>
@@ -3171,5 +3372,26 @@ function externalSection(section: string) {
         />
       </template>
     </USlideover>
+
+    <!-- Modal checklist de publication -->
+    <CoachPublishChecklistModal
+      v-if="account?.publishChecklist"
+      v-model:open="checklistModalOpen"
+      :checklist="account.publishChecklist"
+      :loading="publishing"
+      :error="publishError"
+      @publish="executePublish"
+      @navigate-to-section="handleNavigateToSection"
+    />
+
+    <!-- Modal confirmation de dépublication -->
+    <ConfirmActionModal
+      v-model:open="confirmUnpublishModalOpen"
+      title="Dépublier ma page coach"
+      description="Votre site repassera en brouillon. Les visiteurs accédant à votre adresse ne pourront plus voir votre page ni réserver de créneaux. Voulez-vous continuer ?"
+      confirm-label="Dépublier"
+      :loading="publishing"
+      @confirm="handleUnpublish"
+    />
   </div>
 </template>

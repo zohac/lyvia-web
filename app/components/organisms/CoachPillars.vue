@@ -71,7 +71,7 @@ const emotionalSupport = computed(() => props.pillars?.emotionalSupport ?? null)
       <div class="mt-16 grid gap-8 md:grid-cols-2">
         <article
           v-for="(pillar, index) in pillarItems"
-          :key="pillar.title"
+          :key="`${index}-${pillar.title}`"
           v-bind="reveal({ delay: index * 120 })"
           class="pillar-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
         >

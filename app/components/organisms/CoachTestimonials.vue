@@ -2,9 +2,30 @@
 import type { CoachTestimonialsProps } from '~/features/coach/types/coach-page.types'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 
-defineProps<CoachTestimonialsProps>()
+const props = defineProps<CoachTestimonialsProps>()
 
 const { reveal } = useScrollReveal()
+
+const FALLBACK_TESTIMONIALS = [
+  {
+    quote: 'Un accompagnement précieux qui a transformé mon quotidien. Je me sens enfin comprise, écoutée et actrice de mon bien-être.',
+    firstName: 'Marie',
+    age: 49,
+    location: 'Paris',
+    rating: 5,
+    result: 'Sommeil et énergie retrouvés'
+  },
+  {
+    quote: 'Grâce à des conseils personnalisés et bienveillants, mes bouffées de chaleur se sont estompées en quelques semaines.',
+    firstName: 'Valérie',
+    age: 52,
+    location: 'Lyon',
+    rating: 5,
+    result: 'Sérénité au quotidien'
+  }
+]
+
+const displayTestimonials = computed(() => props.testimonials?.length ? props.testimonials : FALLBACK_TESTIMONIALS)
 
 const avatarColors = ['var(--color-brand-primary)', 'var(--color-brand-accent)', 'var(--color-crepuscule-500)', 'var(--color-brand-accent)', 'var(--color-crepuscule-700)']
 
@@ -28,7 +49,7 @@ function getAvatarColor(name: string): string {
 
       <div class="space-y-8">
         <article
-          v-for="(testimonial, index) in testimonials"
+          v-for="(testimonial, index) in displayTestimonials"
           :key="index"
           v-bind="reveal({ delay: index * 150 })"
           class="testimonial-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300 sm:p-10"
