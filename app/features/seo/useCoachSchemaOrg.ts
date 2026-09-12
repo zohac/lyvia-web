@@ -116,8 +116,14 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
   // Fetch enriched profile data (T2.1 endpoint)
   const { data: profile } = await useAsyncData<PublicProviderProfile | null>(
     `public-provider-profile:${slug}${isPreview ? ':preview' : ''}`,
-    () => fetchPublicProviderProfile(slug, isPreview),
-    { default: () => null }
+    async () => {
+      if (isPreview && import.meta.client) {
+        const { useAuth } = await import('~/composables/useAuth')
+        await useAuth().bootstrap()
+      }
+      return fetchPublicProviderProfile(slug, isPreview)
+    },
+    { default: () => null, server: !isPreview }
   )
 
   // Update refs reactively — schemas pick up new values automatically

@@ -58,8 +58,14 @@ const { data: pricingData } = await useAsyncData<ListConsultationPricePlansRespo
 const isPreview = computed(() => route?.query?.preview === 'true' || route?.query?.preview === '1')
 const { data: coachProfile } = await useAsyncData<PublicProviderProfile | null>(
   `public-provider-profile:${props.tenant.slug}${isPreview.value ? ':preview' : ''}`,
-  () => fetchPublicProviderProfile(props.tenant.slug, isPreview.value),
-  { default: () => null }
+  async () => {
+    if (isPreview.value && import.meta.client) {
+      const { useAuth } = await import('~/composables/useAuth')
+      await useAuth().bootstrap()
+    }
+    return fetchPublicProviderProfile(props.tenant.slug, isPreview.value)
+  },
+  { default: () => null, server: !isPreview.value }
 )
 
 const consultationPlans = computed(() => pricingData.value?.plans ?? [])

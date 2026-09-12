@@ -34,25 +34,35 @@ if (!slug.value) {
 
 const isPreview = computed(() => route.query.preview === 'true' || route.query.preview === '1')
 
-const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant:${slug.value}${isPreview.value ? ':preview' : ''}`, async () => {
-  try {
-    return await apiFetch<PublicTenantResponse>('/public/tenant', {
-      method: 'GET',
-      withAuth: isPreview.value,
-      query: {
-        slug: slug.value,
-        ...(isPreview.value ? { preview: 'true' } : {})
-      }
-    })
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError && err.apiError.code === 'TENANT_NOT_FOUND') {
-      throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
+const { data: tenant, status: tenantStatus } = await useAsyncData<PublicTenantResponse>(
+  `public-tenant:${slug.value}${isPreview.value ? ':preview' : ''}`,
+  async () => {
+    if (isPreview.value && import.meta.client) {
+      const { useAuth } = await import('~/composables/useAuth')
+      await useAuth().bootstrap()
     }
-    throw err
+    try {
+      return await apiFetch<PublicTenantResponse>('/public/tenant', {
+        method: 'GET',
+        withAuth: isPreview.value,
+        query: {
+          slug: slug.value,
+          ...(isPreview.value ? { preview: 'true' } : {})
+        }
+      })
+    } catch (err: unknown) {
+      if (err instanceof ApiFetchError && err.apiError.code === 'TENANT_NOT_FOUND') {
+        throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
+      }
+      throw err
+    }
+  },
+  {
+    server: !isPreview.value
   }
-})
+)
 
-if (!tenant.value) {
+if (!isPreview.value && !tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
@@ -80,7 +90,7 @@ await useCoachSchemaOrg(slug.value, {
 usePageTracking(providerId)
 
 // YC2.4: widen type to PublicProviderProfile so both OG strategy and CoachPageHub can consume it
-const { data: coachProfile } = useNuxtData<PublicProviderProfile>(`public-provider-profile:${slug.value}`)
+const { data: coachProfile } = useNuxtData<PublicProviderProfile>(`public-provider-profile:${slug.value}${isPreview.value ? ':preview' : ''}`)
 
 const ogStrategy = computed(() => resolveOgImageStrategy({
   customOgImageUrl: seo.value?.ogImageUrl,
@@ -187,11 +197,17 @@ watchEffect(() => {
 </script>
 
 <template>
+  <div
+    v-if="isPreview && tenantStatus === 'pending'"
+    class="min-h-screen flex items-center justify-center"
+  >
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
+  </div>
   <CoachUnavailableTemplate
-    v-if="tenant && !tenant.isActive"
+    v-else-if="tenant && !tenant.isActive"
     :coach-name="tenant.brand.displayName"
   />
-  <div v-else>
+  <div v-else-if="tenant">
     <CoachPreviewBanner
       v-if="tenant?.isPreview"
       :is-test="tenant.isTest"
@@ -208,5 +224,31 @@ watchEffect(() => {
       :tenant="requiredTenant"
       :cta-to="ctaTo"
     />
+  </div>
+  <div
+    v-else-if="isPreview"
+    class="min-h-screen flex items-center justify-center p-4 bg-warm-50"
+  >
+    <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-neutral-100 text-center space-y-4">
+      <div class="w-12 h-12 mx-auto rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
+        <UIcon
+          name="i-lucide-eye-off"
+          class="w-6 h-6"
+        />
+      </div>
+      <h1 class="text-xl font-bold text-neutral-900">
+        Aperçu indisponible
+      </h1>
+      <p class="text-sm text-neutral-600">
+        La page de cette praticienne n'est pas accessible en mode prévisualisation. Vérifiez que vous êtes bien connecté à votre compte ou que le lien est valide.
+      </p>
+      <UButton
+        to="/login"
+        color="primary"
+        class="mt-2"
+      >
+        Se connecter
+      </UButton>
+    </div>
   </div>
 </template>

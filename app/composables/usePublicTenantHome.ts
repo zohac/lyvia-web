@@ -10,7 +10,11 @@ export function usePublicTenantHome() {
   const route = useRoute()
   const isPreview = route?.query?.preview === 'true' || route?.query?.preview === '1'
 
-  return useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
+  return useAsyncData<PublicTenantResponse | null>('public-tenant-home' + (isPreview ? ':preview' : ''), async () => {
+    if (isPreview && import.meta.client) {
+      const { useAuth } = await import('~/composables/useAuth')
+      await useAuth().bootstrap()
+    }
     try {
       return await apiFetch<PublicTenantResponse>('/public/tenant', {
         method: 'GET',
@@ -20,5 +24,5 @@ export function usePublicTenantHome() {
     } catch {
       return null
     }
-  }, { default: () => null })
+  }, { default: () => null, server: !isPreview })
 }
