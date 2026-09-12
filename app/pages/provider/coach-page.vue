@@ -687,12 +687,7 @@ const publicCoachPageLink = computed(() => {
 
 const previewCoachPageLink = computed(() => {
   if (!account.value?.slug) return null
-  const link = useCoachLink({
-    slug: account.value.slug,
-    domain: account.value.customDomain
-  })
-  const separator = link.site.includes('?') ? '&' : '?'
-  return `${link.site}${separator}preview=true`
+  return `/coach/${account.value.slug}?preview=true`
 })
 
 const checklistModalOpen = ref(false)

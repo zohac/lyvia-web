@@ -4,6 +4,7 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 const props = defineProps<{
   tenant?: PublicTenantResponse | null
   coachName?: string
+  logoUrl?: string | null
 }>()
 
 const resolvedCoachName = computed(() => {
@@ -20,8 +21,21 @@ const currentYear = new Date().getFullYear()
 <template>
   <div class="relative flex min-h-[85vh] flex-col items-center justify-between px-6 py-16 text-center">
     <div class="my-auto mx-auto max-w-lg">
-      <!-- Icon with soft warm pulse glow -->
-      <div class="relative mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-[color:var(--color-crepuscule-100)] shadow-sm">
+      <!-- Logo or Icon with soft warm pulse glow -->
+      <div
+        v-if="logoUrl"
+        class="relative mx-auto mb-8 flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-sm border border-[color:var(--color-border-subtle)]"
+      >
+        <img
+          :src="logoUrl"
+          :alt="resolvedCoachName"
+          class="h-full w-full object-cover"
+        >
+      </div>
+      <div
+        v-else
+        class="relative mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-[color:var(--color-crepuscule-100)] shadow-sm"
+      >
         <div class="absolute inset-0 rounded-3xl bg-[color:var(--color-crepuscule-200)]/40 animate-pulse" />
         <UIcon
           name="lucide:sparkles"

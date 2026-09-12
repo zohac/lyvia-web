@@ -44,6 +44,22 @@ if (!isPlatformDomain.value && !tenant.value && !isPreview.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
+if (isPreview.value) {
+  useHead({
+    meta: [
+      { name: 'robots', content: 'noindex, nofollow' }
+    ]
+  })
+
+  if (!isPlatformDomain.value && import.meta.client) {
+    watch([tenantStatus, tenant], ([status, t]) => {
+      if (status !== 'pending' && !t) {
+        showError(createError({ statusCode: 404, statusMessage: 'Coach introuvable' }))
+      }
+    })
+  }
+}
+
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_profile', providerId)
 
@@ -206,33 +222,6 @@ watch([tenant, ctx], updatePublicHeader)
       :tenant="tenant"
       cta-to="/onboarding/discovery"
     />
-  </div>
-
-  <div
-    v-else-if="!isPlatformDomain && isPreview"
-    class="min-h-screen flex items-center justify-center p-4 bg-warm-50"
-  >
-    <div class="max-w-md w-full bg-white p-8 rounded-2xl shadow-sm border border-neutral-100 text-center space-y-4">
-      <div class="w-12 h-12 mx-auto rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
-        <UIcon
-          name="i-lucide-eye-off"
-          class="w-6 h-6"
-        />
-      </div>
-      <h1 class="text-xl font-bold text-neutral-900">
-        Aperçu indisponible
-      </h1>
-      <p class="text-sm text-neutral-600">
-        La page de cette praticienne n'est pas accessible en mode prévisualisation. Vérifiez que vous êtes bien connecté à votre compte.
-      </p>
-      <UButton
-        to="/login"
-        color="primary"
-        class="mt-2"
-      >
-        Se connecter
-      </UButton>
-    </div>
   </div>
 
   <MarketingLandingB2C v-else-if="ctx.isB2C" />
