@@ -93,7 +93,21 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     plan: { slug: 'fondatrice', name: 'Fondatrice' },
     enabledFeatures: ['custom_domain', 'white_label_branding', 'coach_page_premium_templates', 'lead_magnet'],
     updatedAt: '2026-04-12T10:00:00.000Z',
-    ...overrides
+    ...overrides,
+    isPublished: overrides.isPublished ?? false,
+    publishedAt: overrides.publishedAt ?? null,
+    isTest: overrides.isTest ?? false,
+    publishChecklist: overrides.publishChecklist ?? {
+      isReady: false,
+      items: {
+        hasIdentity: true,
+        hasBio: true,
+        hasPhoto: false,
+        hasOffer: false,
+        hasTemplate: true
+      },
+      missingItems: ['hasPhoto', 'hasOffer']
+    }
   }
 }
 

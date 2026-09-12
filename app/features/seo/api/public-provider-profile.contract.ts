@@ -124,6 +124,9 @@ export interface PublicProviderProfile {
   discoveryDurationMinutes: number
   discoveryBufferAfterMinutes: number
   isActive: boolean
+  isPublished: boolean
+  isTest: boolean
+  isPreview?: boolean
   longBio: string | null
   credentials: CredentialItem[]
   city: string | null

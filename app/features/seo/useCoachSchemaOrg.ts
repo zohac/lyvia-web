@@ -3,6 +3,18 @@ import { getDomainContext } from '#shared/utils/domain-context'
 import { apiFetch } from '~/services/api/apiFetch'
 import { buildCoachUrls, buildCredentialSchemaItems, buildFaqSchemaItems, buildPersonAddress, buildPersonLogo, mapProfileToSchemaRefs } from '~/features/seo/schema-helpers'
 
+export async function fetchPublicProviderProfile(slug: string, isPreview = false): Promise<PublicProviderProfile | null> {
+  try {
+    return await apiFetch<PublicProviderProfile>(`/public/provider/${slug}/profile`, {
+      method: 'GET',
+      query: isPreview ? { preview: 'true' } : undefined,
+      withAuth: isPreview
+    })
+  } catch {
+    return null
+  }
+}
+
 /**
  * Injects Person + ProfessionalService + BreadcrumbList + FAQPage schemas for coach pages.
  *
@@ -11,9 +23,12 @@ import { buildCoachUrls, buildCredentialSchemaItems, buildFaqSchemaItems, buildP
  *
  * @param slug - Coach slug (API fetch + URL construction)
  * @param options - Optional: whiteLabeldomain for sameAs cross-reference (YC2.4),
- *   hubMode skips ProfessionalService (F2 YC2.4)
+ *   hubMode skips ProfessionalService (F2 YC2.4),
+ *   preview for authenticated preview of draft/test profiles
  */
-export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldomain?: string | null, hubMode?: boolean }) {
+export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldomain?: string | null, hubMode?: boolean, preview?: boolean }) {
+  const route = useRoute()
+  const isPreview = options?.preview ?? (route?.query?.preview === 'true' || route?.query?.preview === '1')
   const requestUrl = useRequestURL()
   const origin = requestUrl.origin
   const runtimeConfig = useRuntimeConfig()
@@ -100,18 +115,15 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
 
   // Fetch enriched profile data (T2.1 endpoint)
   const { data: profile } = await useAsyncData<PublicProviderProfile | null>(
-    `public-provider-profile:${slug}`,
+    `public-provider-profile:${slug}${isPreview ? ':preview' : ''}`,
     async () => {
-      try {
-        return await apiFetch<PublicProviderProfile>(`/public/provider/${slug}/profile`, {
-          method: 'GET',
-          withAuth: false
-        })
-      } catch {
-        return null
+      if (isPreview && import.meta.client) {
+        const { useAuth } = await import('~/composables/useAuth')
+        await useAuth().bootstrap()
       }
+      return fetchPublicProviderProfile(slug, isPreview)
     },
-    { default: () => null }
+    { default: () => null, server: !isPreview }
   )
 
   // Update refs reactively — schemas pick up new values automatically

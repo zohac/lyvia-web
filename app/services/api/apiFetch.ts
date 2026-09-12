@@ -188,7 +188,18 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const accessToken = withAuth ? resolveAccessToken(accessTokenOverride) : null
 
   const headers = new Headers(headersInit)
-  if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`)
+  } else if (import.meta.server && withAuth) {
+    try {
+      const incomingAuth = useRequestHeaders(['authorization']).authorization
+      if (incomingAuth && !headers.has('Authorization')) {
+        headers.set('Authorization', incomingAuth)
+      }
+    } catch {
+      // Outside Nuxt request context
+    }
+  }
 
   const contextFetch = getContextualFetch()
   const nuxtApp = captureNuxtApp()

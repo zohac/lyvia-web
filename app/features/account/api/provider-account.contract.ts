@@ -35,6 +35,20 @@ export interface TestimonialItem {
   result?: string
 }
 
+export interface PublishChecklistItems {
+  readonly hasIdentity: boolean
+  readonly hasBio: boolean
+  readonly hasPhoto: boolean
+  readonly hasOffer: boolean
+  readonly hasTemplate: boolean
+}
+
+export interface PublishChecklist {
+  readonly isReady: boolean
+  readonly missingItems: readonly string[]
+  readonly items: PublishChecklistItems
+}
+
 export type ProviderAccountResponse = {
   email: string
   firstname: string
@@ -42,6 +56,7 @@ export type ProviderAccountResponse = {
   bio: string | null
   specialties: string[]
   slug: string
+  customDomain?: string | null
   defaultDiscoveryDurationMinutes: number
   discoveryBufferAfterMinutes: number
   minBookingNoticeHours: number
@@ -91,6 +106,11 @@ export type ProviderAccountResponse = {
   legalDirector?: string | null
   legalRcpInsurance?: string | null
   legalEmail?: string | null
+  // Publication lifecycle (SPEC-coach-page-publication-and-preview)
+  isPublished: boolean
+  publishedAt: string | null
+  isTest: boolean
+  publishChecklist: PublishChecklist
   // Plan & feature gating (Story 18.2) — LECTURE SEULE.
   // Le plan se change côté admin (15-5) : ces champs n'ont volontairement PAS
   // d'équivalent dans `UpdateProviderAccountRequest`.

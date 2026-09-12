@@ -29,6 +29,8 @@ test('coach legal modal data extraction: falls back to brand.displayName if lega
     slug: 'marie-dupont',
     timezone: 'Europe/Paris',
     isActive: true,
+    isPublished: true,
+    isTest: false,
     brand: {
       mode: 'platform',
       displayName: 'Marie Dupont',
@@ -51,6 +53,8 @@ test('coach legal modal data extraction: uses legalInfo when available', () => {
     slug: 'sophie-jouan',
     timezone: 'Europe/Paris',
     isActive: true,
+    isPublished: true,
+    isTest: false,
     brand: {
       mode: 'platform',
       displayName: 'Sophie Jouan',

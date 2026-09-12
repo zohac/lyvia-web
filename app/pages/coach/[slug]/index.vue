@@ -14,6 +14,7 @@ import { setPublicHeader } from '~/features/public/state/public-header.state'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
+import CoachPreviewBanner from '~/components/molecules/CoachPreviewBanner.vue'
 import CoachPageHub from '~/components/templates/coach-pages/CoachPageHub.vue'
 
 definePageMeta({
@@ -31,23 +32,54 @@ if (!slug.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
 
-const { data: tenant } = await useAsyncData<PublicTenantResponse>(`public-tenant:${slug.value}`, async () => {
-  try {
-    return await apiFetch<PublicTenantResponse>('/public/tenant', {
-      method: 'GET',
-      withAuth: false,
-      query: { slug: slug.value }
-    })
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError && err.apiError.code === 'TENANT_NOT_FOUND') {
-      throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
-    }
-    throw err
-  }
-})
+const isPreview = computed(() => route.query.preview === 'true' || route.query.preview === '1')
 
-if (!tenant.value) {
+const { data: tenant, status: tenantStatus } = await useAsyncData<PublicTenantResponse>(
+  `public-tenant:${slug.value}${isPreview.value ? ':preview' : ''}`,
+  async () => {
+    if (isPreview.value && import.meta.client) {
+      const { useAuth } = await import('~/composables/useAuth')
+      await useAuth().bootstrap()
+    }
+    try {
+      return await apiFetch<PublicTenantResponse>('/public/tenant', {
+        method: 'GET',
+        withAuth: isPreview.value,
+        query: {
+          slug: slug.value,
+          ...(isPreview.value ? { preview: 'true' } : {})
+        }
+      })
+    } catch (err: unknown) {
+      if (err instanceof ApiFetchError && err.apiError.code === 'TENANT_NOT_FOUND') {
+        throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
+      }
+      throw err
+    }
+  },
+  {
+    server: !isPreview.value
+  }
+)
+
+if (!isPreview.value && !tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
+}
+
+if (isPreview.value) {
+  useHead({
+    meta: [
+      { name: 'robots', content: 'noindex, nofollow' }
+    ]
+  })
+
+  if (import.meta.client) {
+    watch([tenantStatus, tenant], ([status, t]) => {
+      if (status !== 'pending' && !t) {
+        showError(createError({ statusCode: 404, statusMessage: 'Coach introuvable' }))
+      }
+    })
+  }
 }
 
 const providerId = computed(() => tenant.value?.providerId)
@@ -67,13 +99,14 @@ const hasWlDomain = !!tenant.value?.brand.domain
 // YC2.4: hubMode skips ProfessionalService (F2), sameAs cross-references WL site (AC-6)
 await useCoachSchemaOrg(slug.value, {
   whiteLabeldomain: tenant.value?.brand.domain,
-  hubMode: isPlatform && hasWlDomain
+  hubMode: isPlatform && hasWlDomain,
+  preview: isPreview.value
 })
 
 usePageTracking(providerId)
 
 // YC2.4: widen type to PublicProviderProfile so both OG strategy and CoachPageHub can consume it
-const { data: coachProfile } = useNuxtData<PublicProviderProfile>(`public-provider-profile:${slug.value}`)
+const { data: coachProfile } = useNuxtData<PublicProviderProfile>(`public-provider-profile:${slug.value}${isPreview.value ? ':preview' : ''}`)
 
 const ogStrategy = computed(() => resolveOgImageStrategy({
   customOgImageUrl: seo.value?.ogImageUrl,
@@ -180,11 +213,21 @@ watchEffect(() => {
 </script>
 
 <template>
+  <div
+    v-if="isPreview && tenantStatus === 'pending'"
+    class="min-h-screen flex items-center justify-center"
+  >
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
+  </div>
   <CoachUnavailableTemplate
-    v-if="tenant && !tenant.isActive"
+    v-else-if="tenant && !tenant.isActive"
     :coach-name="tenant.brand.displayName"
   />
-  <div v-else>
+  <div v-else-if="tenant">
+    <CoachPreviewBanner
+      v-if="tenant?.isPreview"
+      :is-test="tenant.isTest"
+    />
     <AtomsBreadcrumbNav :items="breadcrumbItems" />
     <!-- YC2.4 — Hub card when platform host + coach has WL domain -->
     <CoachPageHub

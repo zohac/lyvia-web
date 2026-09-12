@@ -68,7 +68,7 @@ const visionText = computed(() => props.benefits?.visionText ?? null)
       <div class="mt-20 grid gap-6 sm:grid-cols-2">
         <article
           v-for="(benefit, index) in displayBenefits"
-          :key="benefit.title"
+          :key="`${index}-${benefit.title}`"
           v-bind="reveal({ delay: index * 100 })"
           class="benefit-card scroll-reveal group relative overflow-hidden rounded-2xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] p-8 transition-all duration-300"
         >

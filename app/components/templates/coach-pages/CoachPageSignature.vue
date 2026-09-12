@@ -70,27 +70,27 @@ const showProblemStatement = show.problemStatement
 const showBenefits = show.benefits
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
+const showFit = show.fit
 const showEducationalContent = show.educationalContent
 const showFaq = show.faq
-// Round terrain Simon (2026-05-02) — `showMiniTestimonial` retiré avec
-// la section MINI-TÉMOIGNAGE. Le premier témoignage est désormais visible
-// uniquement dans la section Témoignages globale.
 const showTestimonials = show.testimonials
 
 // --- Derived content ---
 
 const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
-
-// Testimonials — API only, no hardcoded fallback
-// `hasTestimonials` was previously used as v-if guard before story 0-26 round terrain ;
-// remplacé par `showTestimonials` (toggle + contenu, via useCoachSectionVisibility).
 const apiTestimonials = computed(() => props.coachProfile?.testimonialsJson ?? [])
+
+const FALLBACK_FAQ = [
+  { label: 'Comment se déroule le premier rendez-vous ?', content: 'L\'appel découverte de 15 minutes est gratuit et sans engagement. C\'est l\'occasion de faire connaissance, d\'aborder vos problématiques et de voir si mon approche correspond à vos attentes.' },
+  { label: 'L\'accompagnement remplace-t-il un suivi médical ?', content: 'Non. Mon accompagnement en bien-être et nutrition s\'inscrit en complémentarité de votre suivi médical habituel (gynécologue, médecin traitant).' },
+  { label: 'Combien de temps dure un accompagnement ?', content: 'La durée dépend de vos besoins et objectifs. En général, un suivi de 3 à 6 mois permet d\'ancrer de nouvelles habitudes et d\'observer des améliorations durables.' }
+]
 
 // FAQ items
 const faqItems = computed<AccordionItem[]>(() => {
   const api = props.coachProfile?.faqJson
-  if (!api?.length) return []
-  return api.map((item, i) => ({
+  const list = api?.length ? api : FALLBACK_FAQ
+  return list.map((item, i) => ({
     label: item.label,
     content: item.content,
     value: `faq-${i + 1}`
@@ -178,7 +178,7 @@ const heroProps = computed(() => ({
 
     <!-- ==================== 2. BLOC PROBLÈME (blanc) ==================== -->
     <section
-      v-if="showProblemStatement && problemStatement"
+      v-if="showProblemStatement"
       v-bind="reveal()"
       class="scroll-reveal relative overflow-hidden bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
     >
@@ -208,16 +208,16 @@ const heroProps = computed(() => ({
             aria-hidden="true"
           >"</span>
           <p class="relative font-serif text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] text-[var(--color-crepuscule-950)]">
-            {{ problemStatement.blockquote }}
+            {{ problemStatement?.blockquote || "« On me dit que c'est dans la tête, mais je ne reconnais plus mon corps. »" }}
           </p>
         </blockquote>
 
         <div
-          v-if="problemStatement.paragraphs?.length"
+          v-if="problemStatement?.paragraphs?.length"
           class="mt-12 space-y-6"
         >
           <p
-            v-for="(paragraph, i) in problemStatement.paragraphs"
+            v-for="(paragraph, i) in (problemStatement?.paragraphs ?? [])"
             :key="i"
             class="text-lg leading-relaxed text-[var(--color-crepuscule-700)]"
           >
@@ -507,6 +507,14 @@ const heroProps = computed(() => ({
         </h2>
       </template>
     </CoachHowItWorks>
+
+    <!-- ==================== 7b. POUR QUI / FIT (optionnel) ==================== -->
+    <AtomsCoachFitSection
+      v-if="showFit"
+      :items="coachProfile?.fitJson?.items"
+      :eyebrow="coachProfile?.fitJson?.eyebrow"
+      :title="coachProfile?.fitJson?.title"
+    />
 
     <!-- ==================== 8. TARIFS & PROGRAMMES (blanc) ==================== -->
     <!-- Story 0-26 round terrain — gate par toggle (sectionsConfig.pricing !== false) ET contenu -->

@@ -7,14 +7,22 @@ import { apiFetch } from '~/services/api/apiFetch'
  * duplicate useAsyncData keys with different handlers.
  */
 export function usePublicTenantHome() {
-  return useAsyncData<PublicTenantResponse | null>('public-tenant-home', async () => {
+  const route = useRoute()
+  const isPreview = route?.query?.preview === 'true' || route?.query?.preview === '1'
+
+  return useAsyncData<PublicTenantResponse | null>('public-tenant-home' + (isPreview ? ':preview' : ''), async () => {
+    if (isPreview && import.meta.client) {
+      const { useAuth } = await import('~/composables/useAuth')
+      await useAuth().bootstrap()
+    }
     try {
       return await apiFetch<PublicTenantResponse>('/public/tenant', {
         method: 'GET',
-        withAuth: false
+        query: isPreview ? { preview: 'true' } : undefined,
+        withAuth: isPreview
       })
     } catch {
       return null
     }
-  }, { default: () => null })
+  }, { default: () => null, server: !isPreview })
 }

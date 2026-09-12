@@ -10,6 +10,7 @@ import type {
   BenefitsJson,
   EducationalContentJson,
   FaqItem,
+  FitJson,
   HowItWorksStep,
   PillarsJson,
   ProblemStatementJson,
@@ -82,6 +83,7 @@ export interface CoachPagePreviewDeps {
   howItWorksForm: Ref<HowItWorksStep[]>
   educationalContentForm: Ref<EducationalContentJson | null>
   problemStatementForm: Ref<ProblemStatementJson | null>
+  fitForm?: Ref<FitJson | null>
   /**
    * Story 0-28 — code du template actuellement sélectionné par le provider
    * (signature / essentiel / futurs templates). Le draft route vers le bon
@@ -134,6 +136,7 @@ type DebouncedSnapshot = {
   howItWorks: HowItWorksStep[]
   educationalContent: EducationalContentJson | null
   problemStatement: ProblemStatementJson | null
+  fit: FitJson | null
 }
 
 function emptySnapshot(): DebouncedSnapshot {
@@ -152,7 +155,8 @@ function emptySnapshot(): DebouncedSnapshot {
     benefits: null,
     howItWorks: [],
     educationalContent: null,
-    problemStatement: null
+    problemStatement: null,
+    fit: null
   }
 }
 
@@ -193,12 +197,14 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       benefits: cloneRaw(deps.benefitsForm.value),
       howItWorks: cloneRaw(deps.howItWorksForm.value),
       educationalContent: cloneRaw(deps.educationalContentForm.value),
-      problemStatement: cloneRaw(deps.problemStatementForm.value)
+      problemStatement: cloneRaw(deps.problemStatementForm.value),
+      fit: cloneRaw(deps.fitForm?.value ?? null)
     }
   }
 
   watch(
     [
+      () => deps.account.value,
       () => deps.bioForm.longBio,
       () => deps.bioForm.city,
       () => deps.bioForm.region,
@@ -212,7 +218,8 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       () => deps.benefitsForm.value,
       () => deps.howItWorksForm.value,
       () => deps.educationalContentForm.value,
-      () => deps.problemStatementForm.value
+      () => deps.problemStatementForm.value,
+      () => deps.fitForm?.value
     ],
     () => {
       if (timeout) clearTimeout(timeout)
@@ -263,6 +270,9 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       discoveryDurationMinutes: acc.defaultDiscoveryDurationMinutes,
       discoveryBufferAfterMinutes: acc.discoveryBufferAfterMinutes,
       isActive: true,
+      isPublished: Boolean(acc.isPublished),
+      isTest: Boolean(acc.isTest),
+      isPreview: true,
       // Story 0-28 CR-2 — free-text overlay : avant hydratation on retombe
       // sur la valeur serveur (évite le flash empty pendant 250ms au
       // premier paint), après hydratation on respecte STRICTEMENT le
@@ -278,7 +288,7 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       heroHeadline: snap.hydrated ? (deps.heroForm ? snap.heroHeadline : acc.heroHeadline) : acc.heroHeadline,
       heroDescription: snap.hydrated ? (deps.heroForm ? snap.heroDescription : acc.heroDescription) : acc.heroDescription,
       sectionTitlesJson: snap.hydrated ? (deps.sectionTitlesForm ? snap.sectionTitles : acc.sectionTitlesJson) : acc.sectionTitlesJson,
-      testimonialsJson: snap.testimonials,
+      testimonialsJson: snap.hydrated ? snap.testimonials : (acc.testimonialsJson ?? []),
       secondaryPhotoUrl: localSecondaryPhoto ?? acc.secondaryPhotoUrl,
       problemStatementPhotoUrl: localProblemStatementPhoto !== null ? localProblemStatementPhoto : (acc.problemStatementPhotoUrl ?? null),
       logoUrl: acc.logoUrl,
@@ -291,12 +301,13 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       templateCode: deps.templateCode.value || 'essentiel',
       // Instant overlays (no debounce — AC-3)
       sectionsConfig: { ...deps.sectionsConfig },
-      pillarsJson: snap.pillars,
-      faqJson: snap.faq.length > 0 ? snap.faq : null,
-      benefitsJson: snap.benefits,
-      howItWorksJson: snap.howItWorks.length > 0 ? snap.howItWorks : null,
-      educationalContentJson: snap.educationalContent,
-      problemStatementJson: snap.problemStatement
+      pillarsJson: snap.hydrated ? snap.pillars : acc.pillarsJson,
+      faqJson: snap.hydrated ? (snap.faq.length > 0 ? snap.faq : null) : acc.faqJson,
+      benefitsJson: snap.hydrated ? snap.benefits : acc.benefitsJson,
+      howItWorksJson: snap.hydrated ? (snap.howItWorks.length > 0 ? snap.howItWorks : null) : acc.howItWorksJson,
+      educationalContentJson: snap.hydrated ? snap.educationalContent : acc.educationalContentJson,
+      problemStatementJson: snap.hydrated ? snap.problemStatement : acc.problemStatementJson,
+      fitJson: snap.hydrated ? snap.fit : (acc.fitJson ?? null)
     }
   })
 
@@ -314,15 +325,20 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
     const liveBrandColor = deps.paletteForm?.brandColor?.trim() || acc.brandColor
     const liveBrandAccentColor = deps.paletteForm?.brandAccentColor?.trim() || acc.brandAccentColor
 
+    const customDomain = acc.customDomain?.trim() || null
+
     return {
       providerId: acc.slug,
       slug: acc.slug,
       timezone: 'Europe/Paris',
       isActive: true,
+      isPublished: Boolean(acc.isPublished),
+      isTest: Boolean(acc.isTest),
+      isPreview: true,
       brand: {
-        mode: 'platform',
+        mode: customDomain ? 'custom_domain' : 'platform',
         displayName: liveBrandName,
-        domain: null,
+        domain: customDomain,
         brandColor: liveBrandColor,
         brandAccentColor: liveBrandAccentColor
       }

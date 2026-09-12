@@ -1,15 +1,7 @@
 <script setup lang="ts">
 /**
  * CoachPublicPageTemplate — Data loader de la page coach publique.
- *
- * Fetch les données (programmes, pricing, profil enrichi) et délègue le rendu
- * au template résolu dynamiquement via `useCoachPageTemplate(templateCode)`
- * (YC2.2). Le `templateCode` provient du profil enrichi, fallback sur
- * "essentiel" si absent ou inconnu.
- *
- * YC2.1 : les données sont passées en props EXPLICITES au template.
- * YC2.2 : le template concret (Signature, Essentiel, ...) est résolu au
- * runtime via `<component :is="...">` avec code-splitting natif.
+ * Fetches programs, pricing, and profile, then delegates rendering to resolved template.
  */
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
@@ -19,6 +11,7 @@ import { useAuthState } from '~/features/auth/state/auth.state'
 import { listPublicPrograms } from '~/features/programs/services/public-programs.service'
 import { listConsultationPricePlans } from '~/features/consultation/services/client-consultation.service'
 import { useCoachPageTemplate } from '~/composables/useCoachPageTemplate'
+import { fetchPublicProviderProfile } from '~/features/seo/useCoachSchemaOrg'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -61,9 +54,19 @@ const { data: pricingData } = await useAsyncData<ListConsultationPricePlansRespo
   { default: () => null }
 )
 
-// Enriched profile is populated by useCoachSchemaOrg in the parent page.
-// We read it here once and forward it as an EXPLICIT prop to the template (YC2.1 F1).
-const { data: coachProfile } = useNuxtData<PublicProviderProfile>(`public-provider-profile:${props.tenant.slug}`)
+// Enriched profile is populated by useCoachSchemaOrg or fetched directly.
+const isPreview = computed(() => route?.query?.preview === 'true' || route?.query?.preview === '1')
+const { data: coachProfile } = await useAsyncData<PublicProviderProfile | null>(
+  `public-provider-profile:${props.tenant.slug}${isPreview.value ? ':preview' : ''}`,
+  async () => {
+    if (isPreview.value && import.meta.client) {
+      const { useAuth } = await import('~/composables/useAuth')
+      await useAuth().bootstrap()
+    }
+    return fetchPublicProviderProfile(props.tenant.slug, isPreview.value)
+  },
+  { default: () => null, server: !isPreview.value }
+)
 
 const consultationPlans = computed(() => pricingData.value?.plans ?? [])
 

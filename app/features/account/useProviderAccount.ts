@@ -55,6 +55,47 @@ export function useProviderAccount() {
     return result.ok
   }
 
+  async function publishCoachPage(): Promise<{ ok: true, data: ProviderAccountResponse } | { ok: false, errorCode?: string, details?: unknown }> {
+    saving.value = true
+    error.value = null
+
+    try {
+      const result = await apiFetch<ProviderAccountResponse>('/provider/account/publish', {
+        method: 'POST'
+      })
+      account.value = result
+      return { ok: true, data: result }
+    } catch (e: unknown) {
+      const code = e instanceof ApiFetchError ? e.apiError.code : undefined
+      const details = e instanceof ApiFetchError ? e.apiError.details : undefined
+      error.value = 'Impossible de mettre en ligne votre page coach'
+      console.error('[useProviderAccount] publishCoachPage error:', e)
+      return { ok: false, errorCode: code, details }
+    } finally {
+      saving.value = false
+    }
+  }
+
+  async function unpublishCoachPage(): Promise<{ ok: true, data: ProviderAccountResponse } | { ok: false, errorCode?: string }> {
+    saving.value = true
+    error.value = null
+
+    try {
+      const result = await apiFetch<ProviderAccountResponse>('/provider/account/unpublish', {
+        method: 'POST'
+      })
+      account.value = result
+      return { ok: true, data: result }
+    } catch (e: unknown) {
+      const code = e instanceof ApiFetchError ? e.apiError.code : undefined
+      error.value = 'Impossible de dépublier votre page coach'
+      console.error('[useProviderAccount] unpublishCoachPage error:', e)
+      return { ok: false, errorCode: code }
+    } finally {
+      saving.value = false
+    }
+  }
+
   return {
     account: readonly(account),
     loading: readonly(loading),
@@ -62,6 +103,8 @@ export function useProviderAccount() {
     error: readonly(error),
     fetchAccount,
     updateAccountDetailed,
-    updateAccount
+    updateAccount,
+    publishCoachPage,
+    unpublishCoachPage
   }
 }

@@ -83,9 +83,11 @@ const showPricing = computed(() => showPricingToggle.value)
 // --- Header navigation links ---
 const navLinks = computed(() => {
   const links: { label: string, href: string }[] = []
+  if (showBenefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
+  if (showBio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
+  if (showTestimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
   if (showPillars.value) links.push({ label: 'Approche', href: '#approche' })
   if (showHowItWorks.value) links.push({ label: 'Parcours', href: '#parcours' })
-  if (showBio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
   if (showPricing.value) links.push({ label: 'Tarifs', href: '#tarifs' })
   return links
 })
@@ -175,26 +177,10 @@ const heroProps = computed(() => ({
       :title="sectionTitles.problemStatementTitle"
     />
 
-    <!-- ==================== 3. QUI SUIS-JE (optionnel) ==================== -->
-    <CoachVisuelBio
-      v-if="showBio"
-      :coach-profile="coachProfile"
-      :coach-name="coachName"
-      :eyebrow="sectionTitles.bioEyebrow"
-      :title="sectionTitles.bioTitle"
-    />
-
-    <!-- ==================== 4. PILIERS (optionnel) ==================== -->
-    <CoachVisuelPillars
-      v-if="showPillars"
-      :pillars="coachProfile?.pillarsJson ?? null"
-      :eyebrow="sectionTitles.pillarsEyebrow"
-      :title="sectionTitles.pillarsTitle"
-    />
-
-    <!-- ==================== 5. BÉNÉFICES (optionnel) ==================== -->
+    <!-- ==================== 3. BÉNÉFICES (optionnel) ==================== -->
     <div
       v-if="showBenefits"
+      id="accompagnement"
       v-bind="reveal()"
       class="scroll-reveal bg-[color:var(--color-surface-card)]"
     >
@@ -212,23 +198,16 @@ const heroProps = computed(() => ({
       </CoachTransformationBenefits>
     </div>
 
-    <!-- ==================== 6. PARCOURS (optionnel) ==================== -->
-    <CoachVisuelSteps
-      v-if="showHowItWorks"
-      :steps="coachProfile?.howItWorksJson ?? null"
-      :eyebrow="sectionTitles.howItWorksEyebrow"
-      :title="sectionTitles.howItWorksTitle"
+    <!-- ==================== 4. QUI SUIS-JE (optionnel) ==================== -->
+    <CoachVisuelBio
+      v-if="showBio"
+      :coach-profile="coachProfile"
+      :coach-name="coachName"
+      :eyebrow="sectionTitles.bioEyebrow"
+      :title="sectionTitles.bioTitle"
     />
 
-    <!-- ==================== 6b. POUR QUI / FIT (optionnel) ==================== -->
-    <AtomsCoachFitSection
-      v-if="showFit"
-      :items="coachProfile?.fitJson?.items"
-      :eyebrow="coachProfile?.fitJson?.eyebrow"
-      :title="coachProfile?.fitJson?.title"
-    />
-
-    <!-- ==================== 7. TÉMOIGNAGES (optionnel) ==================== -->
+    <!-- ==================== 5. TÉMOIGNAGES (optionnel) ==================== -->
     <div
       v-if="showTestimonials"
       id="temoignages"
@@ -249,7 +228,31 @@ const heroProps = computed(() => ({
       </CoachTestimonials>
     </div>
 
-    <!-- ==================== 8. TARIFS (optionnel) ==================== -->
+    <!-- ==================== 6. PILIERS (optionnel) ==================== -->
+    <CoachVisuelPillars
+      v-if="showPillars"
+      :pillars="coachProfile?.pillarsJson ?? null"
+      :eyebrow="sectionTitles.pillarsEyebrow"
+      :title="sectionTitles.pillarsTitle"
+    />
+
+    <!-- ==================== 7. PARCOURS (optionnel) ==================== -->
+    <CoachVisuelSteps
+      v-if="showHowItWorks"
+      :steps="coachProfile?.howItWorksJson ?? null"
+      :eyebrow="sectionTitles.howItWorksEyebrow"
+      :title="sectionTitles.howItWorksTitle"
+    />
+
+    <!-- ==================== 8. POUR QUI / FIT (optionnel) ==================== -->
+    <AtomsCoachFitSection
+      v-if="showFit"
+      :items="coachProfile?.fitJson?.items"
+      :eyebrow="coachProfile?.fitJson?.eyebrow"
+      :title="coachProfile?.fitJson?.title"
+    />
+
+    <!-- ==================== 9. TARIFS (optionnel) ==================== -->
     <div
       v-if="showPricing"
       id="tarifs"
@@ -277,14 +280,14 @@ const heroProps = computed(() => ({
       </CoachPricing>
     </div>
 
-    <!-- ==================== 9. BANDEAU CTA INTERMÉDIAIRE ==================== -->
+    <!-- ==================== 10. BANDEAU CTA INTERMÉDIAIRE ==================== -->
     <CoachVisuelMidCta
       :cta-to="ctaTo"
       :discovery-duration-minutes="discoveryDuration"
       :band-photo-url="coachProfile?.secondaryPhotoUrl"
     />
 
-    <!-- ==================== 10. FAQ (optionnel) ==================== -->
+    <!-- ==================== 11. FAQ (optionnel) ==================== -->
     <section
       v-if="showFaq"
       v-bind="reveal()"
@@ -320,7 +323,7 @@ const heroProps = computed(() => ({
       </div>
     </section>
 
-    <!-- ==================== 11. DISCLAIMER MÉDICAL (toujours visible) ==================== -->
+    <!-- ==================== 12. DISCLAIMER MÉDICAL (toujours visible) ==================== -->
     <AtomsMedicalDisclaimer />
 
     <!-- Spacer for mobile sticky CTA -->

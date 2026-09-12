@@ -119,7 +119,9 @@ describe('mapProfileToSchemaRefs', () => {
     benefitsJson: null,
     howItWorksJson: null,
     educationalContentJson: null,
-    problemStatementJson: null
+    problemStatementJson: null,
+    isPublished: true,
+    isTest: false
   }
 
   test('maps all profile fields to refs', () => {
@@ -354,7 +356,9 @@ describe('mapProfileToSchemaRefs — YC2.4 hub sameAs', () => {
     benefitsJson: null,
     howItWorksJson: null,
     educationalContentJson: null,
-    problemStatementJson: null
+    problemStatementJson: null,
+    isPublished: true,
+    isTest: false
   }
 
   test('whiteLabeldomain adds WL URL as first sameAs entry', () => {
@@ -475,7 +479,9 @@ describe('mapProfileToSchemaRefs — Story 0-27 logoUrl propagation', () => {
       howItWorksJson: null,
       educationalContentJson: null,
       problemStatementJson: null,
-      ...overrides
+      ...overrides,
+      isPublished: overrides?.isPublished ?? true,
+      isTest: overrides?.isTest ?? false
     }
   }
 

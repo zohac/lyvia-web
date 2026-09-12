@@ -9,6 +9,8 @@ import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
 import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
+import CoachWaitingTemplate from '~/components/templates/CoachWaitingTemplate.vue'
+import CoachPreviewBanner from '~/components/molecules/CoachPreviewBanner.vue'
 import MarketingLandingB2B from '~/components/templates/MarketingLandingB2B.vue'
 import MarketingLandingB2C from '~/components/templates/MarketingLandingB2C.vue'
 
@@ -32,11 +34,30 @@ const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.to
 const ctx = computed(() => getDomainContext(hostname.value, platformDomain, platformDomainB2B || undefined))
 const isPlatformDomain = computed(() => ctx.value.isPlatform)
 
-// Shared composable — same key+handler as useGlobalSchemaOrg (no duplicate key warning)
-const { data: tenant } = await usePublicTenantHome()
+const route = useRoute()
+const isPreview = computed(() => route.query.preview === 'true' || route.query.preview === '1')
 
-if (!isPlatformDomain.value && !tenant.value) {
+// Shared composable — same key+handler as useGlobalSchemaOrg (no duplicate key warning)
+const { data: tenant, status: tenantStatus } = await usePublicTenantHome()
+
+if (!isPlatformDomain.value && !tenant.value && !isPreview.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
+}
+
+if (isPreview.value) {
+  useHead({
+    meta: [
+      { name: 'robots', content: 'noindex, nofollow' }
+    ]
+  })
+
+  if (!isPlatformDomain.value && import.meta.client) {
+    watch([tenantStatus, tenant], ([status, t]) => {
+      if (status !== 'pending' && !t) {
+        showError(createError({ statusCode: 404, statusMessage: 'Coach introuvable' }))
+      }
+    })
+  }
 }
 
 const providerId = computed(() => tenant.value?.providerId)
@@ -174,16 +195,34 @@ watch([tenant, ctx], updatePublicHeader)
 </script>
 
 <template>
+  <div
+    v-if="!isPlatformDomain && isPreview && tenantStatus === 'pending'"
+    class="min-h-screen flex items-center justify-center"
+  >
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500" />
+  </div>
+
   <CoachUnavailableTemplate
-    v-if="tenant && !tenant.isActive"
+    v-else-if="tenant && !tenant.isActive"
     :coach-name="tenant.brand.displayName"
   />
 
-  <CoachPublicPageTemplate
-    v-else-if="tenant"
+  <CoachWaitingTemplate
+    v-else-if="tenant && !tenant.isPublished && !tenant.isPreview"
     :tenant="tenant"
-    cta-to="/onboarding/discovery"
+    :coach-name="tenant.brand.displayName"
   />
+
+  <div v-else-if="tenant">
+    <CoachPreviewBanner
+      v-if="tenant.isPreview"
+      :is-test="tenant.isTest"
+    />
+    <CoachPublicPageTemplate
+      :tenant="tenant"
+      cta-to="/onboarding/discovery"
+    />
+  </div>
 
   <MarketingLandingB2C v-else-if="ctx.isB2C" />
 

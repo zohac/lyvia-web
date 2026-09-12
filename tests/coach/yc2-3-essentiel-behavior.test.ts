@@ -63,7 +63,9 @@ function createProfile(overrides: Partial<PublicProviderProfile> = {}): PublicPr
     howItWorksJson: null,
     educationalContentJson: null,
     problemStatementJson: null,
-    ...overrides
+    ...overrides,
+    isPublished: overrides.isPublished ?? true,
+    isTest: overrides.isTest ?? false
   }
 }
 
