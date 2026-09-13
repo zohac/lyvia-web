@@ -49,6 +49,7 @@
 
   --font-sans: var(--font-family-body);
   --font-serif: var(--font-family-heading);
+  --font-heading: var(--font-family-heading);
 
   /* =================================================================================================
    * CRÉPUSCULE PALETTE

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getDomainContext } from '#shared/utils/domain-context'
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import PageBlockRenderer, { type ContentBlock } from '~/components/molecules/PageBlockRenderer.vue'
@@ -12,6 +13,20 @@ definePageMeta({
 })
 
 const route = useRoute()
+const requestUrl = useRequestURL()
+const hostname = requestUrl.hostname.toLowerCase()
+
+const runtimeConfig = useRuntimeConfig()
+const platformDomain = (runtimeConfig.public.platformDomain as string)?.toLowerCase() || 'keova.fr'
+const platformDomainB2B = (runtimeConfig.public.platformDomainB2B as string)?.toLowerCase() || ''
+
+const ctx = getDomainContext(hostname, platformDomain, platformDomainB2B || undefined)
+
+// Dedicated platform coach route is strictly for platform domains
+if (ctx.isWhiteLabel) {
+  throw createError({ statusCode: 404, statusMessage: 'Page introuvable', fatal: true })
+}
+
 const providerSlug = computed(() => String(route.params.slug ?? '').trim())
 const pageSlug = computed(() => String(route.params.pageSlug ?? '').trim())
 
@@ -20,7 +35,7 @@ if (!providerSlug.value || !pageSlug.value) {
 }
 
 // Load tenant profile on platform
-await useAsyncData<PublicTenantResponse | null>(
+const { data: tenant } = await useAsyncData<PublicTenantResponse | null>(
   `public-tenant:${providerSlug.value}`,
   async () => {
     try {
@@ -28,11 +43,20 @@ await useAsyncData<PublicTenantResponse | null>(
         method: 'GET',
         query: { slug: providerSlug.value }
       })
-    } catch {
+    } catch (err: unknown) {
+      if (err instanceof ApiFetchError && (err.apiError?.statusCode === 404 || err.apiError?.code === 'TENANT_NOT_FOUND')) {
+        throw createError({ statusCode: 404, statusMessage: 'Coach introuvable', fatal: true })
+      }
       return null
     }
   }
 )
+
+if (!tenant.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Coach introuvable', fatal: true })
+}
+
+useBrandColorInjection()
 
 export interface PublicPageResponse {
   slug: string
@@ -43,6 +67,24 @@ export interface PublicPageResponse {
   sortOrder: number
   publishedAt: string
   version: number
+}
+
+interface ErrorWithStatus {
+  statusCode?: number
+  apiError?: {
+    statusCode?: number
+    code?: string
+  }
+  cause?: unknown
+}
+
+function isNotFoundError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const e = err as ErrorWithStatus
+  if (e.statusCode === 404) return true
+  if (e.apiError?.statusCode === 404 || e.apiError?.code === 'PAGE_NOT_FOUND' || e.apiError?.code === 'TENANT_NOT_FOUND') return true
+  if (e.cause && isNotFoundError(e.cause)) return true
+  return false
 }
 
 const { data: page, error } = await useAsyncData<PublicPageResponse>(
@@ -64,7 +106,14 @@ const { data: page, error } = await useAsyncData<PublicPageResponse>(
   }
 )
 
-if (error.value || !page.value) {
+if (error.value) {
+  if (isNotFoundError(error.value)) {
+    throw createError({ statusCode: 404, statusMessage: 'Page introuvable', fatal: true })
+  }
+  throw error.value
+}
+
+if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page introuvable', fatal: true })
 }
 

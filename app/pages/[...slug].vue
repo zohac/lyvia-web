@@ -39,6 +39,7 @@ const pageSlug = slugArray[0].trim()
 
 // Load tenant branding & profile context
 await usePublicTenantHome()
+useBrandColorInjection()
 
 export interface PublicPageResponse {
   slug: string
@@ -49,6 +50,24 @@ export interface PublicPageResponse {
   sortOrder: number
   publishedAt: string
   version: number
+}
+
+interface ErrorWithStatus {
+  statusCode?: number
+  apiError?: {
+    statusCode?: number
+    code?: string
+  }
+  cause?: unknown
+}
+
+function isNotFoundError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const e = err as ErrorWithStatus
+  if (e.statusCode === 404) return true
+  if (e.apiError?.statusCode === 404 || e.apiError?.code === 'PAGE_NOT_FOUND' || e.apiError?.code === 'TENANT_NOT_FOUND') return true
+  if (e.cause && isNotFoundError(e.cause)) return true
+  return false
 }
 
 const { data: page, error } = await useAsyncData<PublicPageResponse>(
@@ -67,7 +86,14 @@ const { data: page, error } = await useAsyncData<PublicPageResponse>(
   }
 )
 
-if (error.value || !page.value) {
+if (error.value) {
+  if (isNotFoundError(error.value)) {
+    throw createError({ statusCode: 404, statusMessage: 'Page introuvable', fatal: true })
+  }
+  throw error.value
+}
+
+if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page introuvable', fatal: true })
 }
 

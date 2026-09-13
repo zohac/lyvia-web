@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 export interface ImageBlockData {
   assetId: string
   url?: string | null
@@ -11,12 +13,14 @@ export interface ImageBlockData {
 defineProps<{
   data: ImageBlockData
 }>()
+
+const hasLoadError = ref(false)
 </script>
 
 <template>
   <figure class="page-block-image w-full max-w-full my-6">
     <div
-      v-if="data.url"
+      v-if="data.url && !hasLoadError"
       class="w-full max-w-full rounded-2xl overflow-hidden shadow-sm bg-surface-muted border border-border-subtle"
     >
       <img
@@ -27,10 +31,11 @@ defineProps<{
         loading="lazy"
         decoding="async"
         class="w-full h-auto max-w-full object-cover block"
+        @error="hasLoadError = true"
       >
     </div>
 
-    <!-- Fallback placeholder if url is missing -->
+    <!-- Fallback placeholder if url is missing or failed to load -->
     <div
       v-else
       class="w-full aspect-video rounded-2xl border border-dashed border-border-subtle bg-surface-highlight flex flex-col items-center justify-center p-6 text-text-muted text-center"

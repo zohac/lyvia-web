@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { secureBlankLinks } from '#shared/utils/link-security'
 
 export interface TextBlockLink {
   href: string
@@ -21,27 +22,7 @@ const props = defineProps<{
  * - Guarantees rel="noopener noreferrer" for any external links having target="_blank"
  */
 const sanitizedHtml = computed(() => {
-  if (!props.data?.html) return ''
-  let html = props.data.html
-
-  // Ensure rel="noopener noreferrer" on all links with target="_blank"
-  html = html.replace(/<a\b([^>]*)>/gi, (match, attributes: string) => {
-    const hasTargetBlank = /target=["']_blank["']/i.test(attributes)
-    if (!hasTargetBlank) return match
-
-    const hasRel = /rel=["']([^"']*)["']/i.test(attributes)
-    if (hasRel) {
-      return match.replace(/rel=["']([^"']*)["']/i, (relMatch, relValue: string) => {
-        const parts = relValue.split(/\s+/).filter(Boolean)
-        if (!parts.includes('noopener')) parts.push('noopener')
-        if (!parts.includes('noreferrer')) parts.push('noreferrer')
-        return `rel="${parts.join(' ')}"`
-      })
-    }
-    return `<a${attributes} rel="noopener noreferrer">`
-  })
-
-  return html
+  return secureBlankLinks(props.data?.html)
 })
 </script>
 
@@ -105,7 +86,6 @@ const sanitizedHtml = computed(() => {
   padding-left: 1.5rem;
   margin-top: 0.75em;
   margin-bottom: 0.75em;
-  space-y: 0.375rem;
 }
 
 .page-block-text :deep(ol) {
@@ -113,7 +93,6 @@ const sanitizedHtml = computed(() => {
   padding-left: 1.5rem;
   margin-top: 0.75em;
   margin-bottom: 0.75em;
-  space-y: 0.375rem;
 }
 
 .page-block-text :deep(li) {

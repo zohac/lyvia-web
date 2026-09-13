@@ -44,7 +44,11 @@ export function useBrandColorInjection() {
   if (!ctx.isWhiteLabel && !routeSlug.value && !tenant.value) return
 
   if (import.meta.server) {
-    if (shouldInjectBrandColor(ctx.isWhiteLabel, tenant.value?.brand?.brandColor)) {
+    const isTargetContext = ctx.isWhiteLabel || !!routeSlug.value
+    const hasPrimary = shouldInjectBrandColor(isTargetContext, tenant.value?.brand?.brandColor)
+    const hasAccent = shouldInjectBrandColor(isTargetContext, tenant.value?.brand?.brandAccentColor)
+
+    if (hasPrimary || hasAccent) {
       const cssString = generateBrandCssString(
         tenant.value?.brand?.brandColor,
         tenant.value?.brand?.brandAccentColor
