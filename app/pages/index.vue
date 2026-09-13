@@ -13,6 +13,8 @@ import CoachWaitingTemplate from '~/components/templates/CoachWaitingTemplate.vu
 import CoachPreviewBanner from '~/components/molecules/CoachPreviewBanner.vue'
 import MarketingLandingB2B from '~/components/templates/MarketingLandingB2B.vue'
 import MarketingLandingB2C from '~/components/templates/MarketingLandingB2C.vue'
+import { formatPageNavLinks } from '#shared/utils/page-seo-helpers'
+import { usePublicPagesMenu, type PublicPageMenuItem } from '~/composables/usePublicPagesMenu'
 
 definePageMeta({
   layout: 'public',
@@ -39,6 +41,12 @@ const isPreview = computed(() => route.query.preview === 'true' || route.query.p
 
 // Shared composable — same key+handler as useGlobalSchemaOrg (no duplicate key warning)
 const { data: tenant, status: tenantStatus } = await usePublicTenantHome()
+
+const menuPages = ref<PublicPageMenuItem[]>([])
+if (!isPlatformDomain.value) {
+  const { menuPages: loadedPages } = await usePublicPagesMenu()
+  menuPages.value = loadedPages.value
+}
 
 if (!isPlatformDomain.value && !tenant.value && !isPreview.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
@@ -127,6 +135,7 @@ usePublicCanonicalHead(canonicalHref)
 function updatePublicHeader() {
   if (tenant.value) {
     const coachName = tenant.value.brand.displayName || 'Votre coach'
+    const dynamicLinks = formatPageNavLinks(menuPages.value)
     setPublicHeader({
       variant: 'white-label',
       layoutStyle: 'dock',
@@ -138,7 +147,8 @@ function updatePublicHeader() {
         { label: 'Accompagnement', href: '#accompagnement' },
         { label: 'Tarifs', href: '#tarifs' },
         { label: 'Témoignages', href: '#temoignages' },
-        { label: 'Qui suis-je', href: '#qui-suis-je' }
+        { label: 'Qui suis-je', href: '#qui-suis-je' },
+        ...dynamicLinks
       ],
       loginLabel: 'Espace cliente',
       loginTo: '/login',
@@ -191,7 +201,7 @@ function updatePublicHeader() {
 updatePublicHeader()
 
 // Reactive watch for client-side navigation (tenant data may change)
-watch([tenant, ctx], updatePublicHeader)
+watch([tenant, ctx, menuPages], updatePublicHeader)
 </script>
 
 <template>

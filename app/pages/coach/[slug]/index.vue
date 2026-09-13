@@ -16,6 +16,8 @@ import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTempl
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 import CoachPreviewBanner from '~/components/molecules/CoachPreviewBanner.vue'
 import CoachPageHub from '~/components/templates/coach-pages/CoachPageHub.vue'
+import { formatPageNavLinks } from '#shared/utils/page-seo-helpers'
+import { usePublicPagesMenu } from '~/composables/usePublicPagesMenu'
 
 definePageMeta({
   layout: 'public',
@@ -65,6 +67,8 @@ const { data: tenant, status: tenantStatus } = await useAsyncData<PublicTenantRe
 if (!isPreview.value && !tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
+
+const { menuPages } = await usePublicPagesMenu(slug.value)
 
 if (isPreview.value) {
   useHead({
@@ -186,13 +190,14 @@ usePublicCanonicalHead(canonicalHref)
 const { show, isToggleOn } = useCoachSectionVisibility(coachProfile)
 
 const coachNavLinks = computed(() => {
-  if (isHubPage.value) return [] // YC2.4: hub pages have no anchor sections
+  const dynamicLinks = formatPageNavLinks(menuPages.value, `/coach/${slug.value}`)
+  if (isHubPage.value) return dynamicLinks // YC2.4: hub pages have no anchor sections
   const links: { label: string, href: string }[] = []
   if (show.benefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
   if (isToggleOn('pricing')) links.push({ label: 'Tarifs', href: '#tarifs' })
   if (show.testimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
   if (show.bio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
-  return links
+  return [...links, ...dynamicLinks]
 })
 
 watchEffect(() => {

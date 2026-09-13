@@ -1,8 +1,19 @@
 <script setup lang="ts">
 import { getDomainContext } from '#shared/utils/domain-context'
+import {
+  resolvePageTitle,
+  resolvePageDescription,
+  resolvePageOgImage,
+  resolvePageCanonical,
+  buildPageBreadcrumbs,
+  formatPageNavLinks,
+  adjustHomeAnchorLinks
+} from '#shared/utils/page-seo-helpers'
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicTenantHome } from '~/composables/usePublicTenantHome'
+import { usePublicPagesMenu } from '~/composables/usePublicPagesMenu'
+import { setPublicHeader } from '~/features/public/state/public-header.state'
 import PageBlockRenderer, { type ContentBlock } from '~/components/molecules/PageBlockRenderer.vue'
 
 definePageMeta({
@@ -38,7 +49,7 @@ if (slugArray.length !== 1 || !slugArray[0] || typeof slugArray[0] !== 'string' 
 const pageSlug = slugArray[0].trim()
 
 // Load tenant branding & profile context
-await usePublicTenantHome()
+const { data: tenant } = await usePublicTenantHome()
 useBrandColorInjection()
 
 export interface PublicPageResponse {
@@ -50,6 +61,8 @@ export interface PublicPageResponse {
   sortOrder: number
   publishedAt: string
   version: number
+  seoTitle?: string | null
+  seoDescription?: string | null
 }
 
 interface ErrorWithStatus {
@@ -97,8 +110,78 @@ if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page introuvable', fatal: true })
 }
 
-useHead({
-  title: page.value.title
+// SEO, OpenGraph & Canonical
+const origin = computed(() => `https://${hostname}`)
+const brandName = computed(() => tenant.value?.brand.displayName?.trim() || '')
+
+const seoTitle = computed(() => resolvePageTitle(page.value?.title || '', page.value?.seoTitle, brandName.value))
+const seoDescription = computed(() => resolvePageDescription(page.value?.contentBlocks || [], page.value?.seoDescription, brandName.value, page.value?.title))
+const ogImage = computed(() => resolvePageOgImage(page.value?.contentBlocks || [], undefined, '/images/keova-logo-white-label.webp', origin.value))
+const canonicalUrl = computed(() => resolvePageCanonical({
+  hostname,
+  pageSlug,
+  isWhiteLabel: true,
+  platformDomain
+}))
+
+useSeoMeta({
+  title: () => seoTitle.value,
+  description: () => seoDescription.value,
+  ogTitle: () => seoTitle.value,
+  ogDescription: () => seoDescription.value,
+  ogImage: () => ogImage.value,
+  ogUrl: () => canonicalUrl.value,
+  ogType: 'website',
+  ogSiteName: () => brandName.value || undefined,
+  twitterCard: 'summary_large_image'
+})
+
+usePublicCanonicalHead(canonicalUrl)
+
+// Schema.org
+const breadcrumbItems = computed(() => buildPageBreadcrumbs({
+  pageTitle: page.value?.title || '',
+  pageSlug,
+  isWhiteLabel: true,
+  origin: `https://${hostname}`,
+  brandName: brandName.value || 'Accueil'
+}))
+
+useSchemaOrg([
+  defineWebPage({
+    name: () => page.value?.title || '',
+    description: () => seoDescription.value,
+    url: () => canonicalUrl.value,
+    inLanguage: 'fr-FR',
+    datePublished: () => page.value?.publishedAt,
+    dateModified: () => page.value?.publishedAt
+  }),
+  defineBreadcrumb({ itemListElement: breadcrumbItems.value })
+])
+
+// Navigation
+const { menuPages } = await usePublicPagesMenu()
+const homeBaseLinks = [
+  { label: 'Accompagnement', href: '#accompagnement' },
+  { label: 'Tarifs', href: '#tarifs' },
+  { label: 'Témoignages', href: '#temoignages' },
+  { label: 'Qui suis-je', href: '#qui-suis-je' }
+]
+const adjustedHomeLinks = adjustHomeAnchorLinks(homeBaseLinks, false, '/')
+const dynamicLinks = formatPageNavLinks(menuPages.value)
+
+setPublicHeader({
+  variant: 'white-label',
+  layoutStyle: 'dock',
+  brandLabel: brandName.value || 'Votre coach',
+  brandLogoSrc: '/images/keova-logo-white-label.webp',
+  brandTo: '/',
+  showBrandIcon: false,
+  navLinks: [...adjustedHomeLinks, ...dynamicLinks],
+  loginLabel: 'Espace cliente',
+  loginTo: '/login',
+  ctaLabel: 'Prendre RDV',
+  ctaTo: '/onboarding/discovery'
 })
 </script>
 
