@@ -1,5 +1,9 @@
 import { getDomainContext } from '#shared/utils/domain-context'
 import { bindBrandColorScope } from '#shared/utils/brand-color-scope'
+import {
+  generateBrandCssString,
+  shouldInjectBrandColor
+} from '#shared/utils/brand-color-helpers'
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 
 /**
@@ -39,7 +43,25 @@ export function useBrandColorInjection() {
   // If on platform domain and not on a coach route / no tenant data, early return
   if (!ctx.isWhiteLabel && !routeSlug.value && !tenant.value) return
 
-  if (import.meta.server) return
+  if (import.meta.server) {
+    if (shouldInjectBrandColor(ctx.isWhiteLabel, tenant.value?.brand?.brandColor)) {
+      const cssString = generateBrandCssString(
+        tenant.value?.brand?.brandColor,
+        tenant.value?.brand?.brandAccentColor
+      )
+      if (cssString) {
+        useHead({
+          style: [
+            {
+              id: 'brand-color-overrides-ssr',
+              innerHTML: cssString
+            }
+          ]
+        })
+      }
+    }
+    return
+  }
 
   bindBrandColorScope(
     document.documentElement.style,

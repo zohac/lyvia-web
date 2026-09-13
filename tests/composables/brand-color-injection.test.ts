@@ -14,6 +14,7 @@ import {
   deriveAccentVariants,
   applyBrandColors,
   removeBrandColors,
+  generateBrandCssString,
   BRAND_CSS_VARS
 } from '../../shared/utils/brand-color-helpers'
 
@@ -302,4 +303,36 @@ test('removeBrandColors clears all variables including accent', () => {
   removeBrandColors(style)
 
   assert.deepEqual(style._store, {})
+})
+
+// =============================================================================
+// generateBrandCssString — SSR CSS style tag generation
+// =============================================================================
+
+test('generateBrandCssString: generates :root CSS string with primary and accent variables', () => {
+  const css = generateBrandCssString('#5b4b6e', '#d4956a')
+  assert.ok(css.startsWith(':root {'), 'should start with :root selector')
+  assert.ok(css.includes('--color-brand-primary: #5b4b6e;'))
+  assert.ok(css.includes('--color-brand-primary-light:'))
+  assert.ok(css.includes('--color-brand-primary-dark:'))
+  assert.ok(css.includes('--color-brand-primary-lightest:'))
+  assert.ok(css.includes('--color-surface-page:'))
+  assert.ok(css.includes('--color-crepuscule-50:'))
+  assert.ok(css.includes('--color-surface-highlight:'))
+  assert.ok(css.includes('--color-brand-accent: #d4956a;'))
+  assert.ok(css.includes('--color-brand-accent-hover:'))
+  assert.ok(css.includes('--color-text-on-accent:'))
+})
+
+test('generateBrandCssString: handles primary only', () => {
+  const css = generateBrandCssString('#5b4b6e', null)
+  assert.ok(css.includes('--color-brand-primary: #5b4b6e;'))
+  assert.ok(!css.includes('--color-brand-accent:'))
+})
+
+test('generateBrandCssString: returns empty string when no valid colors provided', () => {
+  assert.equal(generateBrandCssString(null, null), '')
+  assert.equal(generateBrandCssString(undefined, undefined), '')
+  assert.equal(generateBrandCssString('', ''), '')
+  assert.equal(generateBrandCssString('invalid-hex', null), '')
 })
