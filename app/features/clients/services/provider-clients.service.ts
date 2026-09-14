@@ -1,5 +1,7 @@
 import type {
   CreateClientByProviderRequest,
+  CreateDiscoveryClientByProviderRequest,
+  CreateDiscoveryClientResponse,
   ListProviderClientsParams,
   ListProviderClientsResponse,
   ProviderClientResponse,
@@ -60,6 +62,21 @@ export async function createProviderClient(
 ): Promise<ProviderClientResponse> {
   return await apiFetch<ProviderClientResponse>('/provider/clients', {
     method: 'POST',
+    body
+  })
+}
+
+/**
+ * Story 0-41: Create a prospect client with a scheduled discovery call as a provider.
+ */
+export async function createProviderDiscoveryClient(
+  body: CreateDiscoveryClientByProviderRequest,
+  idempotencyKey?: string
+): Promise<CreateDiscoveryClientResponse> {
+  const key = idempotencyKey ?? (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : undefined)
+  return await apiFetch<CreateDiscoveryClientResponse>('/provider/clients/discovery', {
+    method: 'POST',
+    headers: key ? { 'Idempotency-Key': key } : undefined,
     body
   })
 }
