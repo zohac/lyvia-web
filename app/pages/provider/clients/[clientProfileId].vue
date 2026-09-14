@@ -441,10 +441,34 @@ const currentStatusMicrocopy = computed(() => {
 
 const nextAppointmentLabel = computed(() => {
   if (!detail.value) return 'Aucun rendez-vous planifié'
-  const formatted = formatNextAppointment(detail.value.stats.nextConsultationAt, timezoneLabel.value)
+  const nextAppointmentAt = getNextScheduledAppointmentAt()
+  const formatted = formatNextAppointment(nextAppointmentAt, timezoneLabel.value)
   if (!formatted) return 'Aucun rendez-vous planifié'
   return formatted
 })
+
+function getNextScheduledAppointmentAt(): string | null {
+  if (!detail.value) return null
+
+  const scheduledAppointments = detail.value.appointments
+    .filter(appointment => appointment.status === 'scheduled')
+    .map(appointment => appointment.scheduledAt)
+
+  if (detail.value.stats.nextConsultationAt) {
+    scheduledAppointments.push(detail.value.stats.nextConsultationAt)
+  }
+
+  const now = Date.now()
+  const next = scheduledAppointments
+    .map(scheduledAt => ({
+      scheduledAt,
+      timestamp: new Date(scheduledAt).getTime()
+    }))
+    .filter(({ timestamp }) => Number.isFinite(timestamp) && timestamp >= now)
+    .sort((left, right) => left.timestamp - right.timestamp)[0]
+
+  return next?.scheduledAt ?? null
+}
 
 // ============================================================================
 // Edit form (Story 14-2)

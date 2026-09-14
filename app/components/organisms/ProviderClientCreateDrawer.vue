@@ -47,6 +47,8 @@ const providerDiscoveryDuration = computed(
 const saving = ref(false)
 
 const formErrors = computed(() => validateClientFields(form))
+const drawerTitle = 'Nouvelle cliente'
+const drawerDescription = 'Remplissez les informations pour créer le compte'
 
 const discoveryErrors = computed(() => {
   if (clientType.value !== 'discovery') return {}
@@ -96,14 +98,15 @@ async function loadProviderSchedulingConfig() {
 }
 
 // Auto-focus firstName on drawer open
-const firstNameRef = ref<{ focus: () => void } | null>(null)
+const firstNameRef = ref<{ focus?: () => void } | null>(null)
 watch(
   () => props.open,
   async (open) => {
     if (open) {
       await loadProviderSchedulingConfig()
       resetForm()
-      nextTick(() => firstNameRef.value?.focus())
+      await nextTick()
+      firstNameRef.value?.focus?.()
     }
   }
 )
@@ -111,6 +114,7 @@ watch(
 async function handleSubmit() {
   if (hasErrors.value || saving.value) return
 
+  blurActiveElement()
   saving.value = true
   try {
     if (clientType.value === 'active') {
@@ -159,12 +163,15 @@ async function handleSubmit() {
       }, discoveryIdempotencyKey.value)
 
       toast.add({
-        title: 'Prospecte enregistrée',
-        description: 'Appel découverte planifié et email de confirmation envoyé.',
+        title: 'Cliente créée et appel découverte planifié',
+        description: 'Email de confirmation envoyé.',
         color: 'success'
       })
     }
 
+    saving.value = false
+    await nextTick()
+    blurActiveElement()
     emit('update:open', false)
     emit('created')
   } catch (err) {
@@ -175,8 +182,16 @@ async function handleSubmit() {
       color: 'error'
     })
   } finally {
-    saving.value = false
+    if (saving.value) {
+      saving.value = false
+    }
   }
+}
+
+function blurActiveElement() {
+  if (!import.meta.client) return
+  if (!(document.activeElement instanceof HTMLElement)) return
+  document.activeElement.blur()
 }
 </script>
 
@@ -186,10 +201,12 @@ async function handleSubmit() {
     :direction="direction"
     :inset="inset"
     :handle="!isDesktop"
+    :title="drawerTitle"
+    :description="drawerDescription"
     @update:open="emit('update:open', $event)"
   >
-    <template #header>
-      <div class="flex items-center gap-3">
+    <template #title>
+      <div class="flex items-center gap-3 not-italic">
         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-crepuscule-100">
           <UIcon
             name="lucide:user-plus"
@@ -197,15 +214,16 @@ async function handleSubmit() {
             class="text-crepuscule-600"
           />
         </div>
-        <div>
-          <h3 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
-            Nouvelle cliente
-          </h3>
-          <p class="text-sm text-[color:var(--color-text-muted)]">
-            Remplissez les informations pour créer le compte
-          </p>
-        </div>
+        <span class="text-lg font-semibold text-[color:var(--color-text-primary)]">
+          {{ drawerTitle }}
+        </span>
       </div>
+    </template>
+
+    <template #description>
+      <span class="block text-sm text-[color:var(--color-text-muted)] not-italic">
+        {{ drawerDescription }}
+      </span>
     </template>
 
     <template #body>
@@ -274,6 +292,7 @@ async function handleSubmit() {
           <UInput
             ref="firstNameRef"
             v-model="form.firstName"
+            name="firstName"
             class="w-full"
             placeholder="Prénom"
             autocomplete="given-name"
@@ -287,6 +306,7 @@ async function handleSubmit() {
         >
           <UInput
             v-model="form.lastName"
+            name="lastName"
             class="w-full"
             placeholder="Nom"
             autocomplete="family-name"
@@ -301,6 +321,7 @@ async function handleSubmit() {
           <UInput
             v-model="form.email"
             type="email"
+            name="email"
             class="w-full"
             placeholder="email@exemple.com"
             autocomplete="email"
@@ -311,6 +332,7 @@ async function handleSubmit() {
           <UInput
             v-model="form.phone"
             type="tel"
+            name="phone"
             class="w-full"
             placeholder="06 00 00 00 00"
             autocomplete="tel"
@@ -341,6 +363,7 @@ async function handleSubmit() {
               <UInput
                 v-model="discoveryDate"
                 type="date"
+                name="discoveryDate"
                 class="w-full"
               />
             </UFormField>
@@ -353,6 +376,7 @@ async function handleSubmit() {
               <UInput
                 v-model="discoveryTime"
                 type="time"
+                name="discoveryTime"
                 class="w-full"
               />
             </UFormField>
@@ -364,6 +388,7 @@ async function handleSubmit() {
           >
             <UTextarea
               v-model="discoveryNotes"
+              name="discoveryNotes"
               class="w-full"
               placeholder="Origine du contact, attentes..."
               :rows="2"

@@ -27,3 +27,13 @@ test('provider client drawer disables duplicate submits and reuses its idempoten
   assert.match(service, /'Idempotency-Key': key/)
   assert.doesNotMatch(service, /crypto\.randomUUID\(\)/)
 })
+
+test('provider client drawer exposes accessible dialog metadata and the expected discovery success copy', () => {
+  const drawer = readAppFile('components/organisms/ProviderClientCreateDrawer.vue')
+
+  assert.match(drawer, /:title="drawerTitle"/)
+  assert.match(drawer, /:description="drawerDescription"/)
+  assert.match(drawer, /#title/)
+  assert.match(drawer, /#description/)
+  assert.match(drawer, /Cliente créée et appel découverte planifié/)
+})
