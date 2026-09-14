@@ -71,12 +71,13 @@ export async function createProviderClient(
  */
 export async function createProviderDiscoveryClient(
   body: CreateDiscoveryClientByProviderRequest,
-  idempotencyKey?: string
+  idempotencyKey: string
 ): Promise<CreateDiscoveryClientResponse> {
-  const key = idempotencyKey ?? (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : undefined)
+  const key = idempotencyKey.trim()
+  if (!key) throw new Error('Idempotency key is required')
   return await apiFetch<CreateDiscoveryClientResponse>('/provider/clients/discovery', {
     method: 'POST',
-    headers: key ? { 'Idempotency-Key': key } : undefined,
+    headers: { 'Idempotency-Key': key },
     body
   })
 }

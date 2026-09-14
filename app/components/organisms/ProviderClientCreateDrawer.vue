@@ -6,6 +6,8 @@ import {
 } from '~/features/clients/services/provider-clients.service'
 import { zonedLocalDateTimeToUtcIso } from '~/features/calendar/domain/zoned-datetime'
 import { getYmdInTimeZone } from '~/features/slots/domain/slots'
+import { getMyProviderProfileIdentity } from '~/features/availability/services/provider-availability.service'
+import { useProviderAccount } from '~/features/account/useProviderAccount'
 
 const props = defineProps<{
   open: boolean
@@ -17,6 +19,7 @@ const emit = defineEmits<{
 }>()
 
 const toast = useToast()
+const providerAccount = useProviderAccount()
 
 const isDesktop = useMediaQuery('(min-width: 1024px)', { defaultValue: true })
 const direction = computed(() => (isDesktop.value ? 'right' : 'bottom'))
@@ -36,6 +39,10 @@ const discoveryDate = ref('')
 const discoveryTime = ref('10:00')
 const discoveryNotes = ref('')
 const providerTimeZone = ref('Europe/Paris')
+const discoveryIdempotencyKey = ref<string | null>(null)
+const providerDiscoveryDuration = computed(
+  () => providerAccount.account.value?.defaultDiscoveryDurationMinutes ?? 15
+)
 
 const saving = ref(false)
 
@@ -71,17 +78,30 @@ function resetForm() {
   form.email = ''
   form.phone = ''
   discoveryNotes.value = ''
+  discoveryIdempotencyKey.value = null
   const today = new Date()
   discoveryDate.value = getYmdInTimeZone(today, providerTimeZone.value)
   discoveryTime.value = '10:00'
+}
+
+async function loadProviderSchedulingConfig() {
+  await Promise.all([
+    getMyProviderProfileIdentity()
+      .then((identity) => {
+        providerTimeZone.value = identity.timezone
+      })
+      .catch(() => undefined),
+    providerAccount.fetchAccount()
+  ])
 }
 
 // Auto-focus firstName on drawer open
 const firstNameRef = ref<{ focus: () => void } | null>(null)
 watch(
   () => props.open,
-  (open) => {
+  async (open) => {
     if (open) {
+      await loadProviderSchedulingConfig()
       resetForm()
       nextTick(() => firstNameRef.value?.focus())
     }
@@ -122,6 +142,13 @@ async function handleSubmit() {
         return
       }
 
+      if (!discoveryIdempotencyKey.value) {
+        if (typeof globalThis.crypto?.randomUUID !== 'function') {
+          throw new Error('Impossible de sécuriser la requête. Veuillez réessayer.')
+        }
+        discoveryIdempotencyKey.value = globalThis.crypto.randomUUID()
+      }
+
       await createProviderDiscoveryClient({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -129,7 +156,7 @@ async function handleSubmit() {
         phone: form.phone.trim() || undefined,
         startAt: utcIso,
         notes: discoveryNotes.value.trim() || undefined
-      })
+      }, discoveryIdempotencyKey.value)
 
       toast.add({
         title: 'Prospecte enregistrée',
@@ -301,7 +328,7 @@ async function handleSubmit() {
               class="size-4 text-sunset-600"
             />
             <span class="text-xs font-semibold uppercase tracking-wider text-sunset-800 dark:text-sunset-300">
-              Appel découverte (15 min)
+              Appel découverte ({{ providerDiscoveryDuration }} min)
             </span>
           </div>
 
@@ -359,7 +386,7 @@ async function handleSubmit() {
         <UButton
           color="primary"
           :loading="saving"
-          :disabled="hasErrors"
+          :disabled="hasErrors || saving"
           @click="handleSubmit"
         >
           {{ clientType === 'discovery' ? 'Créer la prospecte & planifier' : 'Créer la cliente' }}
