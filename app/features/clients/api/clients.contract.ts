@@ -227,6 +227,38 @@ export type CreateClientByProviderRequest = {
 }
 
 /**
+ * Request body for creating a prospect client with a discovery appointment as a provider (0-41).
+ */
+export type CreateDiscoveryClientByProviderRequest = {
+  firstName: string
+  lastName: string
+  email: string
+  phone?: string
+  startAt: string
+  notes?: string
+}
+
+/**
+ * Response for discovery appointment summary in CreateDiscoveryClientResponse.
+ */
+export type DiscoveryAppointmentSummary = {
+  id: string
+  startAt: string
+  endAt: string
+  durationMinutes: number
+  paymentRequired: boolean
+  paymentStatus: string
+}
+
+/**
+ * Response from creating a prospect client and discovery appointment (0-41).
+ */
+export type CreateDiscoveryClientResponse = {
+  client: ProviderClientResponse
+  appointment: DiscoveryAppointmentSummary
+}
+
+/**
  * Request body for updating a client as a provider.
  * All fields optional — only changed fields should be sent.
  */
