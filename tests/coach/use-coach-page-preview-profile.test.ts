@@ -460,4 +460,31 @@ describe('useCoachPagePreviewProfile', () => {
     await sleep(PREVIEW_DEBOUNCE_MS + 100)
     assert.ok(true, 'scope.stop() must clear the pending debounce timer cleanly')
   })
+
+  test('Task 8 — heroImageDisabled from account surfaces in draftCoachProfile', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount({
+          heroImageDisabled: true,
+          problemStatementPhotoUrl: 'https://cdn.example.com/problem-bg.jpg'
+        }))
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+
+        assert.equal(
+          draftCoachProfile.value?.heroImageDisabled,
+          true,
+          'heroImageDisabled from account must surface in draftCoachProfile'
+        )
+        assert.equal(
+          draftCoachProfile.value?.problemStatementPhotoUrl,
+          'https://cdn.example.com/problem-bg.jpg',
+          'problemStatementPhotoUrl from account must surface in draftCoachProfile'
+        )
+      })
+    } finally {
+      scope.stop()
+    }
+  })
 })

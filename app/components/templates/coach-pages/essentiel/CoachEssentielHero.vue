@@ -52,6 +52,12 @@ const initials = computed(() => {
     .join('')
     .toUpperCase()
 })
+
+// Effective photo URL — respects heroImageDisabled (never falls back to profile photo if disabled)
+const effectivePhotoUrl = computed(() => {
+  if (props.heroImageDisabled) return null
+  return props.heroPhotoUrl || props.profilePhotoUrl || null
+})
 </script>
 
 <template>
@@ -196,8 +202,8 @@ const initials = computed(() => {
           <div class="relative mx-auto max-w-md">
             <div class="hero-photo-card group aspect-[4/5] overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] shadow-sm">
               <NuxtImg
-                v-if="heroPhotoUrl || profilePhotoUrl"
-                :src="(heroPhotoUrl || profilePhotoUrl)!"
+                v-if="effectivePhotoUrl"
+                :src="effectivePhotoUrl"
                 :alt="profilePhotoAlt ?? `${displayName}, spécialiste accompagnement ménopause`"
                 class="h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 loading="eager"

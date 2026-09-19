@@ -901,3 +901,90 @@ describe('YC2.3 review — hero CTA uses primary solid (design refonte)', () => 
     )
   })
 })
+
+describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & upload image Énoncé du problème (AC-12)', () => {
+  const SIGNATURE_HERO_PATH = 'components/organisms/CoachHeroProfile.vue'
+  const SIGNATURE_PATH = 'components/templates/coach-pages/CoachPageSignature.vue'
+  const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+
+  test('8.1: CoachEssentielHero respects heroImageDisabled and shows initials fallback even if profilePhotoUrl exists', () => {
+    const content = readFile(ESSENTIEL_HERO_PATH)
+    assert.ok(
+      content.includes('heroImageDisabled'),
+      'CoachEssentielHero must reference heroImageDisabled'
+    )
+    assert.ok(
+      /effectivePhotoUrl\s*=\s*computed\(\(\)\s*=>/.test(content)
+      || /props\.heroImageDisabled/.test(content),
+      'CoachEssentielHero must define effectivePhotoUrl or condition based on heroImageDisabled'
+    )
+    assert.ok(
+      /v-if="effectivePhotoUrl"/.test(content)
+      || /v-if="!heroImageDisabled/.test(content),
+      'CoachEssentielHero must guard NuxtImg with effectivePhotoUrl or !heroImageDisabled'
+    )
+  })
+
+  test('8.2: CoachHeroProfile (Signature) respects heroImageDisabled and shows initials fallback', () => {
+    const content = readFile(SIGNATURE_HERO_PATH)
+    assert.ok(
+      content.includes('heroImageDisabled'),
+      'CoachHeroProfile must reference heroImageDisabled'
+    )
+    assert.ok(
+      /effectivePhotoUrl\s*=\s*computed\(\(\)\s*=>/.test(content)
+      || /props\.heroImageDisabled/.test(content),
+      'CoachHeroProfile must define effectivePhotoUrl or condition based on heroImageDisabled'
+    )
+    assert.ok(
+      /v-if="effectivePhotoUrl"/.test(content)
+      || /v-if="!heroImageDisabled/.test(content),
+      'CoachHeroProfile must guard NuxtImg with effectivePhotoUrl or !heroImageDisabled'
+    )
+  })
+
+  test('8.3: CoachPageEssentiel and CoachPageSignature propagate heroImageDisabled in heroProps', () => {
+    const essentielContent = readFile(ESSENTIEL_PATH)
+    assert.ok(
+      /heroImageDisabled:\s*props\.coachProfile\?\.heroImageDisabled\s*\?\?\s*false/.test(essentielContent),
+      'CoachPageEssentiel must propagate heroImageDisabled in heroProps'
+    )
+
+    const signatureContent = readFile(SIGNATURE_PATH)
+    assert.ok(
+      /heroImageDisabled:\s*props\.coachProfile\?\.heroImageDisabled\s*\?\?\s*false/.test(signatureContent),
+      'CoachPageSignature must propagate heroImageDisabled in heroProps'
+    )
+  })
+
+  test('8.4: coach-page.vue places problemStatementFileInputRef at root level outside v-for', () => {
+    const pageContent = readFile(COACH_PAGE_PATH)
+
+    // Check that problemStatementFileInputRef is placed before AtomsDsPageHeader (root level)
+    const headerIndex = pageContent.indexOf('<AtomsDsPageHeader')
+    assert.ok(headerIndex > 0, 'Could not find AtomsDsPageHeader in coach-page.vue')
+
+    const rootSection = pageContent.slice(0, headerIndex)
+    assert.ok(
+      rootSection.includes('ref="problemStatementFileInputRef"'),
+      'problemStatementFileInputRef must be placed before AtomsDsPageHeader at root level'
+    )
+
+    // Check that problemStatementFileInputRef is NOT inside orderedEditableSections v-for
+    const sectionsLoopIndex = pageContent.indexOf('v-for="section in orderedEditableSections"')
+    assert.ok(sectionsLoopIndex > 0, 'Could not find v-for="section in orderedEditableSections" in coach-page.vue')
+    const sectionsLoop = pageContent.slice(sectionsLoopIndex)
+    assert.ok(
+      !sectionsLoop.includes('ref="problemStatementFileInputRef"'),
+      'problemStatementFileInputRef must NOT be inside the orderedEditableSections v-for'
+    )
+  })
+
+  test('8.5: coach-page.vue adapts hero disabled thumbnail label based on previewTemplateCode', () => {
+    const pageContent = readFile(COACH_PAGE_PATH)
+    assert.ok(
+      pageContent.includes('previewTemplateCode === \'visuel\' ? \'Fond sombre\' : \'Sans photo\''),
+      'coach-page.vue must display \'Fond sombre\' only for visuel template and \'Sans photo\' for Essentiel/Signature'
+    )
+  })
+})

@@ -36,6 +36,12 @@ const initials = computed(() => {
   const words = name.split(/\s+/)
   return words.slice(0, 2).map(w => w[0] || '').join('').toUpperCase()
 })
+
+// Effective photo URL — respects heroImageDisabled (never falls back to profile photo if disabled)
+const effectivePhotoUrl = computed(() => {
+  if (props.heroImageDisabled) return null
+  return props.heroPhotoUrl || props.profilePhotoUrl || null
+})
 </script>
 
 <template>
@@ -146,8 +152,8 @@ const initials = computed(() => {
               <!-- Photo or initials placeholder -->
               <div class="hero-photo-shape relative h-[50vh] w-80 overflow-hidden shadow-2xl shadow-[var(--color-brand-primary)]/15">
                 <NuxtImg
-                  v-if="heroPhotoUrl || profilePhotoUrl"
-                  :src="(heroPhotoUrl || profilePhotoUrl)!"
+                  v-if="effectivePhotoUrl"
+                  :src="effectivePhotoUrl"
                   :alt="`${displayName}, spécialiste accompagnement ménopause`"
                   class="h-full w-full object-cover object-top"
                   loading="eager"
