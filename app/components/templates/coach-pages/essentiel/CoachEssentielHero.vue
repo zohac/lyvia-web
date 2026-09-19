@@ -44,13 +44,16 @@ const firstCredential = computed(() => props.credentials[0]?.title ?? null)
 
 // Initials for photo fallback (sober, not dramatic)
 const initials = computed(() => {
-  const name = props.displayName || ''
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(w => w[0] || '')
-    .join('')
-    .toUpperCase()
+  const name = props.displayName?.trim() || ''
+  const words = name.split(/\s+/).filter(Boolean)
+  const letters = words.slice(0, 2).map(w => w[0] || '').join('').toUpperCase()
+  return letters || 'K'
+})
+
+// Effective photo URL — respects heroImageDisabled (never falls back to profile photo if disabled)
+const effectivePhotoUrl = computed(() => {
+  if (props.heroImageDisabled) return null
+  return props.heroPhotoUrl || props.profilePhotoUrl || null
 })
 </script>
 
@@ -196,8 +199,8 @@ const initials = computed(() => {
           <div class="relative mx-auto max-w-md">
             <div class="hero-photo-card group aspect-[4/5] overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] shadow-sm">
               <NuxtImg
-                v-if="heroPhotoUrl || profilePhotoUrl"
-                :src="(heroPhotoUrl || profilePhotoUrl)!"
+                v-if="effectivePhotoUrl"
+                :src="effectivePhotoUrl"
                 :alt="profilePhotoAlt ?? `${displayName}, spécialiste accompagnement ménopause`"
                 class="h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 loading="eager"

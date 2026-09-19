@@ -126,7 +126,10 @@ export function useCoachSectionVisibility(
 
   const hasProblemStatement = computed(() => {
     const p = profile.value?.problemStatementJson
-    return !!(p && typeof p.blockquote === 'string' && p.blockquote.trim().length > 0)
+    if (!p) return false
+    const hasQuote = typeof p.blockquote === 'string' && p.blockquote.trim().length > 0
+    const hasParagraphs = Array.isArray(p.paragraphs) && p.paragraphs.some(par => typeof par === 'string' && par.trim().length > 0)
+    return hasQuote || hasParagraphs
   })
 
   const hasFaq = computed(() => {

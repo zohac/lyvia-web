@@ -419,7 +419,7 @@ async function handleProblemStatementPhotoDelete() {
   try {
     const ok = await updateAccount({ problemStatementPhotoUrl: null })
     if (ok) {
-      problemStatementPhotoPreview.value = ''
+      problemStatementPhotoPreview.value = null
       problemStatementPhotoFile.value = null
       await fetchAccount()
       toast.add({ title: 'Photo d\'arrière-plan supprimée', color: 'primary' })
@@ -1195,8 +1195,8 @@ function externalSection(section: string) {
 
 <template>
   <div>
-    <!-- Hidden file input — placé au niveau page (pas dans le v-for des éditeurs)
-      pour que la template ref `secondaryFileInputRef` soit un seul HTMLInputElement
+    <!-- Hidden file inputs — placés au niveau page (pas dans le v-for des éditeurs)
+      pour que les template refs soient de simples HTMLInputElement
       et non un array, sinon `.click()` est silencieusement ignoré par Vue 3. -->
     <input
       ref="secondaryFileInputRef"
@@ -1211,6 +1211,13 @@ function externalSection(section: string) {
       accept="image/jpeg,image/png,image/webp"
       class="hidden"
       @change="onHeroFileSelected"
+    >
+    <input
+      ref="problemStatementFileInputRef"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      class="hidden"
+      @change="onProblemStatementFileSelected"
     >
 
     <AtomsDsPageHeader>
@@ -1884,7 +1891,7 @@ function externalSection(section: string) {
                       name="i-lucide-eye-off"
                       class="mb-1 h-5 w-5"
                     />
-                    Fond sombre
+                    {{ previewTemplateCode === 'visuel' ? 'Fond sombre' : 'Sans photo' }}
                   </div>
                   <img
                     v-else-if="heroPhotoPreview || account?.heroImageUrl"
@@ -1911,13 +1918,6 @@ function externalSection(section: string) {
                   />
                 </div>
                 <div class="flex flex-col items-start gap-2">
-                  <input
-                    ref="heroFileInputRef"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    class="hidden"
-                    @change="onHeroFileSelected"
-                  >
                   <div class="flex flex-wrap gap-2">
                     <UButton
                       variant="outline"
@@ -2434,13 +2434,6 @@ function externalSection(section: string) {
                         />
                       </div>
                       <div class="flex flex-col items-start gap-2">
-                        <input
-                          ref="problemStatementFileInputRef"
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          class="hidden"
-                          @change="onProblemStatementFileSelected"
-                        >
                         <div class="flex flex-wrap gap-2">
                           <UButton
                             variant="outline"

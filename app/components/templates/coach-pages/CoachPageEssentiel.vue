@@ -176,6 +176,7 @@ const heroProps = computed(() => ({
   displayName: coachName.value,
   heroHeadline: props.coachProfile?.heroHeadline ?? null,
   heroDescription: props.coachProfile?.heroDescription ?? null,
+  heroImageDisabled: props.coachProfile?.heroImageDisabled ?? false,
   credentials: props.coachProfile?.credentials ?? [],
   city: props.coachProfile?.city ?? null,
   profilePhotoUrl: props.coachProfile?.imageUrl ?? null,
