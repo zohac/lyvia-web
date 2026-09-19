@@ -44,13 +44,10 @@ const firstCredential = computed(() => props.credentials[0]?.title ?? null)
 
 // Initials for photo fallback (sober, not dramatic)
 const initials = computed(() => {
-  const name = props.displayName || ''
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(w => w[0] || '')
-    .join('')
-    .toUpperCase()
+  const name = props.displayName?.trim() || ''
+  const words = name.split(/\s+/).filter(Boolean)
+  const letters = words.slice(0, 2).map(w => w[0] || '').join('').toUpperCase()
+  return letters || 'K'
 })
 
 // Effective photo URL — respects heroImageDisabled (never falls back to profile photo if disabled)

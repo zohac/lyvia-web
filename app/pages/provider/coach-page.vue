@@ -1918,13 +1918,6 @@ function externalSection(section: string) {
                   />
                 </div>
                 <div class="flex flex-col items-start gap-2">
-                  <input
-                    ref="heroFileInputRef"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    class="hidden"
-                    @change="onHeroFileSelected"
-                  >
                   <div class="flex flex-wrap gap-2">
                     <UButton
                       variant="outline"

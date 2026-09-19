@@ -978,6 +978,18 @@ describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & uplo
       !sectionsLoop.includes('ref="problemStatementFileInputRef"'),
       'problemStatementFileInputRef must NOT be inside the orderedEditableSections v-for'
     )
+
+    // Check that heroFileInputRef and secondaryFileInputRef are unique at root level
+    assert.equal(
+      (pageContent.match(/ref="heroFileInputRef"/g) || []).length,
+      1,
+      'heroFileInputRef must appear exactly once in coach-page.vue at root level'
+    )
+    assert.equal(
+      (pageContent.match(/ref="secondaryFileInputRef"/g) || []).length,
+      1,
+      'secondaryFileInputRef must appear exactly once in coach-page.vue at root level'
+    )
   })
 
   test('8.5: coach-page.vue adapts hero disabled thumbnail label based on previewTemplateCode', () => {

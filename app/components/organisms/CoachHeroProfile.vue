@@ -32,9 +32,10 @@ const heroSubtitleLine1 = computed(() => {
 
 // Initials for photo placeholder
 const initials = computed(() => {
-  const name = props.displayName || ''
-  const words = name.split(/\s+/)
-  return words.slice(0, 2).map(w => w[0] || '').join('').toUpperCase()
+  const name = props.displayName?.trim() || ''
+  const words = name.split(/\s+/).filter(Boolean)
+  const letters = words.slice(0, 2).map(w => w[0] || '').join('').toUpperCase()
+  return letters || 'K'
 })
 
 // Effective photo URL — respects heroImageDisabled (never falls back to profile photo if disabled)
