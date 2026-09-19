@@ -6,9 +6,31 @@ import WaitlistForm from '~/components/organisms/WaitlistForm.vue'
 import YoutubeFacade from '~/components/molecules/YoutubeFacade.vue'
 import LandingPricing from '~/components/organisms/LandingPricing.vue'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+import { useLandingAnalytics } from '~/composables/useLandingAnalytics'
 
 const isWaitlistModalOpen = ref(false)
 const { reveal, isReady: scrollReady } = useScrollReveal()
+const { track: trackLanding, trackOnce: trackLandingOnce } = useLandingAnalytics()
+
+function openWaitlist(zone: 'hero' | 'mid_page' | 'pricing') {
+  trackLanding('access_cta_click', { zone })
+  isWaitlistModalOpen.value = true
+}
+
+function handleReserve() {
+  trackLanding('access_cta_click', { zone: 'pricing' })
+  isWaitlistModalOpen.value = true
+}
+
+/**
+ * La modale NE se ferme PLUS à la soumission : `WaitlistForm` y remplace le
+ * formulaire par l'état de confirmation (AC LB.2 « le formulaire est remplacé
+ * par un état focusable »). Fermer ici démonterait la confirmation avant
+ * qu'elle soit lisible — seul le toast resterait.
+ */
+function handleWaitlistSubmitted() {
+  // Volontairement vide : la modale reste ouverte sur l'état de confirmation.
+}
 
 // --- Comparatif outils fragmentés ---
 const fragmentedTools = [
@@ -19,37 +41,37 @@ const fragmentedTools = [
   { name: 'Doctolib', icon: 'i-lucide-stethoscope', color: 'var(--color-info)' }
 ]
 
-// --- Stats pour le social proof ---
+// --- Stats factuelles (aucun « 10 min pour démarrer » : claim interdit) ---
 const stats = [
   { value: '1', label: 'seul espace' },
   { value: '0\u00A0%', label: 'de commission' },
-  { value: '10\u00A0min', label: 'pour démarrer' }
+  { value: '1\u20132', label: 'semaines apr\u00e8s vos \u00e9l\u00e9ments' }
 ]
 
-// --- Features V5 ---
+// --- Ce que Keova met en place (uniquement des capacités livrées) ---
 const features = [
   {
-    icon: 'i-lucide-calendar',
-    title: 'Agenda en ligne',
+    icon: 'i-lucide-globe',
+    title: 'Votre page professionnelle',
     paragraphs: [
-      'Vos clientes réservent en ligne, 24h/24. Confirmation et rappel envoyés automatiquement. Plus de SMS « on était bien mardi à 14h\u00A0? ».',
-      'Vous choisissez vos créneaux, Keova gère les disponibilités. Les rendez-vous apparaissent dans votre agenda — sans double saisie.'
+      'Une page à votre nom avec votre présentation, vos offres et vos tarifs. Elle présente votre activité — pas celle de Keova.',
+      'Avec Premium, elle vit sur votre propre nom de domaine, sans logo Keova.'
+    ]
+  },
+  {
+    icon: 'i-lucide-calendar',
+    title: 'Réservations en ligne',
+    paragraphs: [
+      'Vos clientes réservent elles-mêmes dans vos créneaux, sans allers-retours par message. Vous gardez la main sur vos disponibilités.',
+      'Les confirmations et les rappels partent pour vous comme pour elles — moins de rendez-vous oubliés.'
     ]
   },
   {
     icon: 'i-lucide-credit-card',
-    title: 'Paiements automatiques',
+    title: 'Paiements et suivi des clientes',
     paragraphs: [
-      'Votre cliente paie en 1 clic après la séance. Facture envoyée automatiquement. Relance si impayé. Vous ne touchez à rien.',
-      'Stripe intégré, conforme aux normes françaises. Votre trésorerie est visible en temps réel — plus besoin d\'Excel.'
-    ]
-  },
-  {
-    icon: 'i-lucide-folder-heart',
-    title: 'Suivi client et ressources',
-    paragraphs: [
-      'Envoyez un exercice après la séance, une fiche à J+7, ou structurez un programme complet — 6, 8, 12 séances. Chaque cliente reçoit le bon contenu au bon moment.',
-      'L\'historique des séances et les notes sont centralisés. Vous retrouvez le dossier d\'une cliente en 2 clics.'
+      'Votre cliente règle en ligne, de façon sécurisée, et le paiement est enregistré dans votre espace. Vous suivez vos encaissements sans tableur.',
+      'Keova ne prélève aucun pourcentage sur vos séances.'
     ]
   }
 ]
@@ -77,33 +99,48 @@ const faqItems: AccordionItem[] = [
     value: 'faq-sortie'
   },
   {
-    label: 'Quelles sont les fonctionnalités de Keova\u00A0?',
-    content: 'Keova réunit trois fonctionnalités principales :\n— Agenda en ligne avec réservation et rappels automatiques\n— Paiements intégrés (Stripe) avec facturation et relance automatiques\n— Suivi client avec partage de ressources et programmes structurés\n\nD\'autres fonctionnalités sont en cours de développement, co-construites avec les praticiennes de la beta.',
+    label: 'Que fait Keova concrètement\u00A0?',
+    content: 'Keova réunit :\n— Votre page professionnelle, vos offres et vos tarifs\n— La réservation en ligne et les rappels\n— Le paiement en ligne et le suivi de vos encaissements\n— Le suivi de vos clientes\n\nAucun pourcentage n\'est prélevé sur vos séances. L\'outil évolue pendant la bêta.',
     value: 'faq-2'
   },
   {
     label: 'Est-ce que Keova remplace Doctolib\u00A0?',
-    content: 'Keova n\'est pas un annuaire de praticiens. C\'est votre espace de gestion : agenda, paiements, suivi client, tout-en-un. Doctolib vous donne de la visibilité. Keova gère tout ce qui se passe après le premier contact. Les deux peuvent coexister.',
+    content: 'Keova n\'est pas un annuaire de praticiens. C\'est votre espace : page professionnelle, réservations, paiements et suivi de vos clientes. Doctolib vous donne de la visibilité. Keova gère ce qui se passe après le premier contact. Les deux peuvent coexister.',
     value: 'faq-3'
   },
   {
-    label: 'Comment migrer depuis Calendly ou un autre outil\u00A0?',
-    content: 'Vous n\'avez rien à migrer. Créez votre page Keova en 10 minutes, partagez le lien à vos clientes, et les nouvelles réservations passent par Keova. Vos anciens outils peuvent rester actifs le temps de la transition.',
+    label: 'Comment se passe la mise en place\u00A0?',
+    content: 'Pendant la bêta, nous configurons votre espace avec vous à partir des informations que vous fournissez : contenus, photo, offres et tarifs, disponibilités, connexion au paiement et, le cas échéant, votre nom de domaine. Une à deux visioconférences servent à présenter, vérifier et ajuster, puis à vous rendre autonome.',
     value: 'faq-4'
   },
   {
-    label: 'Mes données sont-elles en sécurité\u00A0?',
-    content: 'Keova est développé et hébergé en France. Vos données et celles de vos clientes ne quittent jamais le territoire français. Les paiements sont sécurisés par Stripe, leader mondial du paiement en ligne. Keova est conforme au RGPD.',
+    label: 'Combien de temps pour être en ligne\u00A0?',
+    content: 'Une mise en ligne généralement réalisée sous 1 à 2 semaines, une fois vos éléments nécessaires reçus. Le point de départ dépend de ce que vous fournissez : contenus, photo, offres et tarifs, disponibilités, informations de paiement et, éventuellement, votre domaine.',
+    value: 'faq-delai'
+  },
+  {
+    label: 'Mes données sont-elles protégées\u00A0?',
+    content: 'Keova est développé en France. Les paiements sont opérés par Stripe. Le traitement de vos données et de celles de vos clientes est détaillé dans notre politique de confidentialité, qui précise la finalité, la durée de conservation et vos droits.',
     value: 'faq-5'
   },
   {
-    label: 'Keova est-il adapté si j\'ai peu de clientes\u00A0?',
-    content: 'Oui. Keova est particulièrement utile quand vous démarrez : il vous donne une page pro, un agenda en ligne et une facturation automatique dès le premier jour — sans investir dans un site web ou 5 outils différents.',
+    label: 'Keova m\'apporte-t-il des clientes\u00A0?',
+    content: 'Non, et nous ne le promettons pas. Keova vous aide à présenter votre activité et à permettre à vos clientes de réserver en ligne. Développer votre clientèle reste votre travail — le nôtre est de rendre votre outillage simple.',
+    value: 'faq-clientes'
+  },
+  {
+    label: 'Keova est-il adapté si je débute\u00A0?',
+    content: 'Oui. Keova est pensé pour les activités qui se lancent ou se structurent : vous obtenez une page professionnelle, la réservation et le paiement en ligne dès le départ, sans monter vous-même toute la partie technique.',
     value: 'faq-6'
   },
   {
+    label: 'Comment vous contacter pendant la bêta\u00A0?',
+    content: 'Pendant la bêta, vous échangez directement avec l\'équipe Keova par email ou WhatsApp. Nous vous répondons sous deux jours ouvrés.',
+    value: 'faq-support'
+  },
+  {
     label: 'Puis-je utiliser Keova si je ne suis pas spécialiste ménopause\u00A0?',
-    content: 'Oui. Keova est conçu pour les coachs ménopause mais fonctionne pour tous les métiers de l\'accompagnement : sophrologie, naturopathie, coaching bien-être, coaching de vie. Les fonctionnalités (agenda, paiements, suivi) sont les mêmes.',
+    content: 'Oui. Keova est conçu d\'abord pour les professionnelles qui accompagnent les femmes autour de la ménopause, et convient aux métiers de l\'accompagnement : sophrologie, naturopathie, coaching bien-être, coaching de vie.',
     value: 'faq-7'
   }
 ]
@@ -114,6 +151,10 @@ const faqDefaultValue = ref<string[]>(allFaqValues)
 
 onMounted(() => {
   faqDefaultValue.value = []
+  // `trackOnce` et non `track` : pour une première visite le consentement est
+  // donné APRÈS ce montage, un `track` serait perdu et `landing_view` — la vue
+  // de tête d'entonnoir — ne serait jamais mesuré (AC LB.3).
+  trackLandingOnce('landing_view')
 })
 
 function scrollTo(id: string) {
@@ -166,56 +207,53 @@ function scrollTo(id: string) {
 
             <!-- Main headline -->
             <h1 class="font-serif text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] text-[var(--color-crepuscule-950)]">
-              Le logiciel
-              <span class="relative inline-block">
-                tout-en-un
-                <span class="absolute -bottom-2 left-0 h-3 w-full -skew-x-6 bg-gradient-to-r from-[var(--color-sunset-400)] to-[var(--color-brand-accent)] opacity-30" />
-              </span>
+              Lancez votre activité.
               <br>
               <span class="hero-gradient-text">
-                pour coachs ménopause
-              </span>.
+                Pas votre informatique.
+              </span>
             </h1>
 
-            <!-- Description V5 -->
+            <!-- Sous-titre verrouillé -->
             <div class="space-y-3">
               <p class="max-w-xl text-lg leading-relaxed text-[var(--color-crepuscule-700)]">
-                Agenda en ligne, paiements automatiques, suivi client — réunis dans un seul outil.
-                Vous ouvrez Keova, vous voyez vos rendez-vous, vos règlements, vos clientes.
-                Tout ce qu'il faut. Rien de superflu.
+                Keova réunit votre site professionnel, vos réservations, vos paiements et le suivi de vos clientes dans un même espace.
+                Pendant la bêta, nous le mettons en place avec vous, sans repartir dans un projet technique.
               </p>
               <p class="text-sm text-[var(--color-crepuscule-500)]">
-                Conçu pour les coachs ménopause. Adapté à tous les métiers de l'accompagnement.
+                Conçu d'abord pour les professionnelles qui accompagnent les femmes autour de la ménopause.
               </p>
             </div>
             <p class="text-sm text-[var(--color-crepuscule-500)]">
-              Les premières praticiennes construisent Keova avec nous avant le lancement.
-              Il reste des places — inscrivez-vous pour en faire partie.
+              Bêta privée : nous accompagnons chaque praticienne personnellement,
+              c'est pourquoi nous ouvrons progressivement.
             </p>
 
             <!-- CTA + reassurance pills -->
             <div class="flex flex-col gap-5 pt-2">
               <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <button
-                  class="cta-primary group relative overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
-                  @click="isWaitlistModalOpen = true"
+                <a
+                  href="#waitlist"
+                  class="cta-primary group relative inline-flex overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
+                  @click.prevent="openWaitlist('hero')"
                 >
                   <span class="cta-primary-bg" />
                   <span class="relative z-10 flex items-center gap-2">
-                    Je réserve ma place
+                    Demander un accès
                     <UIcon
                       name="i-lucide-arrow-right"
                       class="size-5 transition-transform duration-300 group-hover:translate-x-1"
                     />
                   </span>
-                </button>
+                </a>
 
                 <!-- Login link discret -->
                 <NuxtLink
                   to="/login"
                   class="text-sm text-[var(--color-crepuscule-500)] underline-offset-2 transition-colors duration-200 hover:text-[var(--color-brand-primary)] hover:underline"
+                  @click="trackLanding('login_click')"
                 >
-                  Déjà inscrite ?
+                  Déjà inscrite ? Se connecter
                 </NuxtLink>
               </div>
 
@@ -226,21 +264,21 @@ function scrollTo(id: string) {
                     name="i-lucide-credit-card"
                     class="size-3.5 text-[var(--color-brand-accent)]"
                   />
-                  Sans carte bancaire
+                  Aucune carte requise
                 </span>
                 <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-crepuscule-100)] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[var(--color-crepuscule-700)] backdrop-blur-sm">
                   <UIcon
                     name="i-lucide-zap"
                     class="size-3.5 text-[var(--color-brand-accent)]"
                   />
-                  Inscription en 30 secondes
+                  Mise en ligne accompagnée
                 </span>
                 <span class="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-crepuscule-100)] bg-white/60 px-3.5 py-1.5 text-xs font-medium text-[var(--color-crepuscule-700)] backdrop-blur-sm">
                   <UIcon
                     name="i-lucide-shield-check"
                     class="size-3.5 text-[var(--color-brand-accent)]"
                   />
-                  Données hébergées en France
+                  Sans engagement
                 </span>
               </div>
             </div>
@@ -299,7 +337,7 @@ function scrollTo(id: string) {
                   src="/images/screenshot-dashboard.png"
                   format="webp"
                   class="w-full rounded-2xl"
-                  alt="Interface Keova — agenda, paiements et suivi client"
+                  alt="Aperçu de l'espace Keova — réservations, paiements et suivi des clientes"
                   loading="eager"
                   fetchpriority="high"
                   preload
@@ -342,7 +380,7 @@ function scrollTo(id: string) {
             Keova en vidéo, sans vous inscrire
           </h2>
           <p class="mx-auto mt-4 max-w-2xl text-[var(--color-crepuscule-600)]">
-            Le site de Sophie, une cliente qui réserve, un paiement qui arrive — 5 minutes en conditions réelles.
+            Un aperçu de l'espace Keova : page professionnelle, réservation en ligne et paiement sécurisé.
           </p>
         </div>
       </div>
@@ -358,19 +396,20 @@ function scrollTo(id: string) {
         />
         <!-- CTA sous la vidéo (optionnel) -->
         <div class="mt-8 text-center">
-          <button
-            class="cta-primary group relative overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
-            @click="isWaitlistModalOpen = true"
+          <a
+            href="#waitlist"
+            class="cta-primary group relative inline-flex overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
+            @click.prevent="openWaitlist('mid_page')"
           >
             <span class="cta-primary-bg" />
             <span class="relative z-10 flex items-center gap-2">
-              Je réserve ma place
+              Demander un accès
               <UIcon
                 name="i-lucide-arrow-right"
                 class="size-5 transition-transform duration-300 group-hover:translate-x-1"
               />
             </span>
-          </button>
+          </a>
         </div>
       </div>
     </section>
@@ -393,7 +432,7 @@ function scrollTo(id: string) {
             Un site — ou juste un lien Instagram.
           </p>
           <p>
-            Trois, quatre, cinq outils. Aucun ne se parle.
+            Plusieurs outils. Aucun ne se parle.
             Et entre chaque séance, c'est l'admin qui prend le dessus.
           </p>
           <p>
@@ -425,13 +464,12 @@ function scrollTo(id: string) {
         >
           <span class="mb-4 inline-block h-1 w-12 rounded-full bg-gradient-to-r from-[var(--color-crepuscule-500)] to-[var(--color-brand-accent)]" />
           <h2 class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
-            Un seul logiciel
-            <span class="bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-transparent">au lieu de cinq.</span>
+            Plusieurs outils.
+            <span class="bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-transparent">Ou un seul espace.</span>
           </h2>
           <p class="mx-auto mt-4 max-w-2xl text-[var(--color-crepuscule-500)]">
-            Calendly pour l'agenda. Stripe pour les paiements. Excel pour le suivi.
-            WordPress pour le site. Doctolib pour la visibilité.
-            Cinq abonnements, cinq mots de passe, zéro lien entre eux.
+            Un agenda ici. Les paiements là. Le suivi ailleurs. Un site en plus.
+            Plusieurs outils, plusieurs mots de passe, aucun lien entre eux.
             Keova réunit tout dans un seul espace.
           </p>
         </div>
@@ -465,7 +503,7 @@ function scrollTo(id: string) {
                 </div>
               </div>
               <p class="mt-8 text-center text-sm text-[var(--color-crepuscule-400)]">
-                5 outils · 5 logins · 5 factures
+                Plusieurs outils · plusieurs logins · plusieurs factures
               </p>
             </div>
 
@@ -477,11 +515,11 @@ function scrollTo(id: string) {
               <div class="space-y-3">
                 <div
                   v-for="item in [
-                    { icon: 'i-lucide-calendar', label: 'Agenda et créneaux' },
-                    { icon: 'i-lucide-credit-card', label: 'Paiements automatiques' },
-                    { icon: 'i-lucide-folder-heart', label: 'Dossier client complet' },
-                    { icon: 'i-lucide-globe', label: 'Votre site pro' },
-                    { icon: 'i-lucide-mouse-pointer-click', label: 'Réservation en ligne' }
+                    { icon: 'i-lucide-calendar', label: 'Réservations et créneaux' },
+                    { icon: 'i-lucide-credit-card', label: 'Paiements en ligne' },
+                    { icon: 'i-lucide-folder-heart', label: 'Suivi de vos clientes' },
+                    { icon: 'i-lucide-globe', label: 'Votre page professionnelle' },
+                    { icon: 'i-lucide-mouse-pointer-click', label: 'Votre nom de domaine (Premium)' }
                   ]"
                   :key="item.label"
                   class="flex items-center gap-4 rounded-xl border border-[var(--color-crepuscule-100)] px-4 py-3 transition-all duration-300 hover:border-[var(--color-brand-accent)]/30 hover:bg-[var(--color-sunset-50)]"
@@ -582,19 +620,20 @@ function scrollTo(id: string) {
 
         <!-- CTA intermédiaire -->
         <div class="mt-12 text-center">
-          <button
-            class="cta-primary group relative overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
-            @click="isWaitlistModalOpen = true"
+          <a
+            href="#waitlist"
+            class="cta-primary group relative inline-flex overflow-hidden rounded-full px-8 py-4 font-semibold text-white shadow-lg"
+            @click.prevent="openWaitlist('mid_page')"
           >
             <span class="cta-primary-bg" />
             <span class="relative z-10 flex items-center gap-2">
-              Je réserve ma place
+              Demander un accès
               <UIcon
                 name="i-lucide-arrow-right"
                 class="size-5 transition-transform duration-300 group-hover:translate-x-1"
               />
             </span>
-          </button>
+          </a>
         </div>
       </div>
     </section>
@@ -613,8 +652,8 @@ function scrollTo(id: string) {
             Le parcours
           </span>
           <h2 class="font-serif text-4xl leading-tight text-[var(--color-crepuscule-950)] lg:text-5xl">
-            Prête en
-            <span class="bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-transparent">3 étapes</span>
+            Qui fait quoi, de la mise en place
+            <span class="bg-gradient-to-r from-[var(--color-brand-accent)] to-[var(--color-sunset-600)] bg-clip-text text-transparent">à la mise en ligne</span>
           </h2>
         </div>
 
@@ -631,15 +670,14 @@ function scrollTo(id: string) {
               >
                 <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-crepuscule-100)] px-4 py-2 text-sm font-semibold text-[var(--color-crepuscule-700)]">
                   <span class="grid size-6 place-items-center rounded-full bg-[var(--color-brand-primary)] text-xs font-bold text-white">1</span>
-                  Créez votre page pro
+                  Nous préparons votre espace
                 </span>
                 <h3 class="mt-4 font-serif text-2xl text-[var(--color-crepuscule-800)] lg:text-3xl">
-                  10 minutes, c'est prêt.
+                  Vous fournissez vos éléments, nous configurons.
                 </h3>
                 <p class="mt-4 text-[var(--color-crepuscule-500)]">
-                  Ajoutez votre photo, vos horaires et vos tarifs.
-                  Votre page est en ligne — vos clientes peuvent réserver.
-                  Pas besoin de webmaster ni de site WordPress.
+                  Présentation, offres, tarifs, disponibilités, paiement : nous intégrons
+                  vos contenus et mettons l'espace en place avec vous.
                 </p>
               </div>
               <div
@@ -668,15 +706,15 @@ function scrollTo(id: string) {
               >
                 <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-sunset-100)] px-4 py-2 text-sm font-semibold text-[var(--color-sunset-700)]">
                   <span class="grid size-6 place-items-center rounded-full bg-[var(--color-brand-accent)] text-xs font-bold text-white">2</span>
-                  Laissez Keova gérer l'admin
+                  Vos clientes réservent et règlent
                 </span>
                 <h3 class="mt-4 font-serif text-2xl text-[var(--color-crepuscule-800)] lg:text-3xl">
-                  Paiements, confirmations, rappels — automatiques.
+                  Réservations et paiements en ligne.
                 </h3>
                 <p class="mt-4 text-[var(--color-crepuscule-500)]">
                   Une cliente réserve&#8239;? Elle reçoit la confirmation.
-                  La veille du RDV&#8239;? Elle reçoit le rappel.
-                  Après la séance&#8239;? La facture part toute seule.
+                  La veille du rendez-vous&#8239;? Le rappel.
+                  Elle règle en ligne, et vous suivez vos encaissements.
                 </p>
               </div>
               <div
@@ -705,14 +743,14 @@ function scrollTo(id: string) {
               >
                 <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-[var(--color-crepuscule-100)] px-4 py-2 text-sm font-semibold text-[var(--color-crepuscule-700)]">
                   <span class="grid size-6 place-items-center rounded-full bg-[var(--color-brand-primary)] text-xs font-bold text-white">3</span>
-                  Gardez le lien entre les séances
+                  Vous validez, nous ajustons
                 </span>
                 <h3 class="mt-4 font-serif text-2xl text-[var(--color-crepuscule-800)] lg:text-3xl">
-                  Vos clientes restent engagées.
+                  Vous restez autonome.
                 </h3>
                 <p class="mt-4 text-[var(--color-crepuscule-500)]">
-                  Partagez un exercice, un article, un bilan.
-                  Vos clientes reçoivent le bon contenu au bon moment de leur parcours.
+                  Une à deux visioconférences pour vérifier, ajuster et vous rendre autonome.
+                  Ensuite, vous pilotez votre espace au quotidien.
                 </p>
               </div>
               <div
@@ -737,9 +775,9 @@ function scrollTo(id: string) {
       </div>
     </section>
 
-    <!-- ====================== CASE STUDY SOPHIE ====================== -->
+    <!-- ====================== PREUVE RÉELLE — SOPHIE ====================== -->
     <section
-      id="temoignage"
+      id="preuve"
       class="relative bg-[color:var(--color-surface-card)] px-6 py-32 sm:px-12 lg:px-20"
     >
       <div class="mx-auto max-w-4xl">
@@ -750,10 +788,10 @@ function scrollTo(id: string) {
         >
           <span class="inline-flex items-center gap-2 rounded-full bg-[var(--color-sunset-100)] px-4 py-2 text-sm font-semibold text-[var(--color-sunset-700)]">
             <UIcon
-              name="i-lucide-badge-check"
+              name="i-lucide-circle-check"
               class="size-4"
             />
-            Première spécialiste vérifiée sur Keova
+            Sophie Jouan utilise Keova en production
           </span>
         </div>
 
@@ -771,38 +809,17 @@ function scrollTo(id: string) {
             </div>
 
             <div class="flex-1">
-              <!-- Citation -->
-              <UIcon
-                name="i-lucide-quote"
-                class="mb-3 size-8 text-[var(--color-brand-accent)]"
-              />
-              <blockquote class="font-serif text-xl italic leading-relaxed text-[var(--color-crepuscule-700)] lg:text-2xl">
-                &laquo;&nbsp;Keova a remplacé mes 5 outils par un seul espace calme.&nbsp;&raquo;
-              </blockquote>
+              <p class="font-serif text-xl leading-relaxed text-[var(--color-crepuscule-700)] lg:text-2xl">
+                Sophie Jouan utilise Keova en production pour son site professionnel.
+              </p>
 
               <div class="mt-4">
                 <p class="font-semibold text-[var(--color-crepuscule-800)]">
                   Sophie Jouan
                 </p>
                 <p class="text-sm text-[var(--color-crepuscule-500)]">
-                  Spécialiste ménopause, Valognes (Normandie)
+                  Praticienne de référence
                 </p>
-              </div>
-
-              <!-- Comparatif avant/après — enhanced -->
-              <div class="mt-6 flex flex-wrap items-center gap-2">
-                <span
-                  v-for="tool in ['Calendly', 'Stripe', 'Excel', 'WordPress', 'Doctolib']"
-                  :key="tool"
-                  class="rounded-full bg-[var(--color-crepuscule-100)] px-3 py-1 text-xs text-[var(--color-crepuscule-500)] transition-all duration-300 group-hover:bg-[var(--color-crepuscule-50)]"
-                >{{ tool }}</span>
-                <UIcon
-                  name="i-lucide-arrow-right"
-                  class="mx-1 size-5 text-[var(--color-brand-accent)]"
-                />
-                <span class="rounded-full bg-gradient-to-r from-[var(--color-brand-primary)] to-[var(--color-crepuscule-700)] px-4 py-1 text-xs font-semibold text-white shadow-md">
-                  Keova
-                </span>
               </div>
 
               <!-- Lien -->
@@ -810,9 +827,10 @@ function scrollTo(id: string) {
                 href="https://sophiejouan.fr"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-[var(--color-brand-primary)] transition-colors duration-200 hover:text-[var(--color-sunset-600)]"
+                class="mt-6 inline-flex items-center gap-1 text-sm font-medium text-[var(--color-brand-primary)] transition-colors duration-200 hover:text-[var(--color-sunset-600)]"
+                @click="trackLanding('proof_sophie_click')"
               >
-                Voir le profil de Sophie Jouan, spécialiste ménopause
+                Voir le site de Sophie
                 <UIcon
                   name="i-lucide-external-link"
                   class="size-3"
@@ -851,8 +869,8 @@ function scrollTo(id: string) {
               Ce que vous demandez aujourd'hui, on le construit demain.
             </p>
             <p class="font-medium text-[var(--color-crepuscule-950)]">
-              La gestion des programmes par séances&#8239;? Demandée par une praticienne.
-              Livrée en deux semaines.
+              Votre retour compte&#8239;: pendant la bêta, nous ouvrons progressivement
+              pour garder un échange direct avec chaque praticienne.
             </p>
           </div>
 
@@ -900,12 +918,6 @@ function scrollTo(id: string) {
               </div>
             </template>
           </div>
-
-          <!-- Citation -->
-          <blockquote class="mt-12 border-l-4 border-[var(--color-brand-accent)] pl-6 font-serif text-xl italic text-[var(--color-crepuscule-700)]">
-            &laquo;&nbsp;Aucun logiciel du marché n'a été conçu en écoutant des praticiennes ménopause.
-            Keova est le premier.&nbsp;&raquo;
-          </blockquote>
         </div>
       </div>
     </section>
@@ -929,8 +941,8 @@ function scrollTo(id: string) {
             rester proche de chaque praticienne plutôt que de grossir trop vite.
           </p>
           <p class="text-[var(--color-crepuscule-500)]">
-            Keova est développé et hébergé en France par Simon Jouan, conçu en Normandie et hébergé par Scalingo (Paris).
-            Chaque membre de la beta a un accès direct à l'équipe — par message, appel ou visio.
+            Keova est développé en France par Simon Jouan.
+            Pendant la bêta, chaque praticienne échange directement avec l'équipe — par email ou WhatsApp.
           </p>
         </div>
       </div>
@@ -938,7 +950,7 @@ function scrollTo(id: string) {
 
     <!-- ====================== PRICING (0-35) ====================== -->
     <!-- Ordre validé Simon 2026-07-13 : features → pricing → FAQ → waitlist -->
-    <LandingPricing @reserve="isWaitlistModalOpen = true" />
+    <LandingPricing @reserve="handleReserve" />
 
     <!-- ====================== FAQ (V5) ====================== -->
     <section
@@ -1003,12 +1015,12 @@ function scrollTo(id: string) {
         class="scroll-reveal relative mx-auto max-w-2xl text-center"
       >
         <h2 class="font-serif text-4xl leading-tight text-white lg:text-5xl">
-          Réservez votre
-          <span class="bg-gradient-to-r from-[var(--color-sunset-400)] to-[var(--color-sunset-300)] bg-clip-text text-transparent">place</span>
+          Demander un accès à
+          <span class="bg-gradient-to-r from-[var(--color-sunset-400)] to-[var(--color-sunset-300)] bg-clip-text text-transparent">Keova</span>
         </h2>
         <p class="mx-auto mt-4 max-w-lg text-lg text-[var(--color-crepuscule-300)]">
-          Quelques places pour construire Keova avec nous. Inscrivez-vous en 30 secondes.
-          Aucune carte bancaire. On vous prévient dès qu'un accès se libère.
+          Pendant la bêta, nous mettons votre espace en place avec vous.
+          Nous vous répondons sous deux jours ouvrés.
         </p>
 
         <div class="mt-10">
@@ -1016,16 +1028,15 @@ function scrollTo(id: string) {
         </div>
 
         <p class="mx-auto mt-4 max-w-lg text-sm text-[var(--color-crepuscule-300)]">
-          Jamais de spam. Données hébergées en France. Conforme RGPD.
+          Support par email ou WhatsApp pendant la bêta. Nous vous répondons sous deux jours ouvrés.
         </p>
 
         <!-- P.S. V5 -->
         <p class="mx-auto mt-10 max-w-lg text-left text-sm leading-relaxed text-[var(--color-crepuscule-300)]">
-          <strong class="text-[var(--color-sunset-300)]">P.S.</strong> — Les places en beta sont limitées : c'est ce qui nous permet d'accompagner chaque praticienne de près.
+          <strong class="text-[var(--color-sunset-300)]">P.S.</strong> — Les places en bêta sont limitées : c'est ce qui nous permet d'accompagner chaque praticienne de près.
           Les inscrites d'aujourd'hui gardent le tarif fondateur Premium — 49 € au lieu de 99 € — sur toute leur première année,
-          un seul accès pour votre site, votre agenda et vos paiements au lieu de cinq,
-          et un accès direct à l'équipe pour orienter les prochaines fonctionnalités.
-          Si vous hésitez, inscrivez-vous : vous pourrez toujours dire non quand on vous appellera.
+          et un seul accès pour votre site, votre agenda et vos paiements.
+          Demander un accès ne vous engage à rien : nous faisons connaissance, puis vous décidez.
         </p>
       </div>
     </section>
@@ -1035,7 +1046,7 @@ function scrollTo(id: string) {
     <ClientOnly>
       <UModal
         v-model:open="isWaitlistModalOpen"
-        title="Rejoindre la beta Keova"
+        title="Demander un accès à Keova"
         description="Votre demande reste confidentielle. Aucun engagement."
         :ui="{
           content: 'rounded-3xl border border-[var(--color-crepuscule-100)] bg-[color:var(--color-surface-card)] shadow-2xl max-w-lg overflow-hidden',
@@ -1053,7 +1064,7 @@ function scrollTo(id: string) {
             aria-hidden="true"
           />
           <h3 class="relative font-serif text-2xl text-white">
-            Rejoindre la beta
+            Demander un accès à
             <span class="bg-gradient-to-r from-[var(--color-sunset-300)] to-[var(--color-sunset-400)] bg-clip-text text-transparent">Keova</span>
           </h3>
           <p class="relative mt-1 text-sm text-[var(--color-crepuscule-200)]">
@@ -1064,7 +1075,7 @@ function scrollTo(id: string) {
         <template #body>
           <WaitlistForm
             mode="modal"
-            @submitted="isWaitlistModalOpen = false"
+            @submitted="handleWaitlistSubmitted"
           />
         </template>
       </UModal>

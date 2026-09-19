@@ -42,7 +42,8 @@ export async function useGlobalSchemaOrg() {
       defineWebPage({
         inLanguage: 'fr-FR'
       }),
-      // SoftwareApplication with Review (AC-14) + VideoObject (Story 0-35 AC-9)
+      // SoftwareApplication + VideoObject (Story 0-35 AC-9).
+      // Aucun Review/AggregateRating : pas d'avis réel validé (décisions 2026-09-19).
       //
       // Offer (révisé en code review du 2026-07-22, amende la spec §3 règle 1) :
       // `offers.price` est une propriété REQUISE par Google pour SoftwareApplication.
@@ -59,7 +60,7 @@ export async function useGlobalSchemaOrg() {
         'applicationCategory': 'BusinessApplication',
         'operatingSystem': 'Web',
         'url': origin,
-        'description': 'Logiciel tout-en-un pour spécialistes ménopause : agenda en ligne, paiements automatiques, suivi client.',
+        'description': 'Espace professionnel pour spécialistes ménopause : site, réservations en ligne, paiements et suivi des clientes.',
         'offers': {
           '@type': 'Offer',
           'price': '29',
@@ -88,18 +89,7 @@ export async function useGlobalSchemaOrg() {
                 'embedUrl': `https://www.youtube-nocookie.com/embed/${KEOVA_DEMO_VIDEO_ID}`
               }
             }
-          : {}),
-        'review': {
-          '@type': 'Review',
-          'author': {
-            '@type': 'Person',
-            'name': 'Sophie Jouan',
-            'jobTitle': 'Spécialiste ménopause',
-            'address': { '@type': 'PostalAddress', 'addressLocality': 'Valognes', 'addressRegion': 'Normandie' }
-          },
-          'reviewBody': 'Keova a remplacé mes 5 outils par un seul espace. Ma page pro était en ligne en quelques minutes.',
-          'reviewRating': { '@type': 'Rating', 'ratingValue': '5', 'bestRating': '5' }
-        }
+          : {})
       }
     ])
     return

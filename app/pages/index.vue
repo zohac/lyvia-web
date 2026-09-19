@@ -82,8 +82,8 @@ usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.v
 
 const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
-const b2bTitle = 'Keova — Logiciel tout-en-un pour spécialistes ménopause'
-const b2bDescription = 'Keova réunit agenda en ligne, paiements et suivi client pour les coachs ménopause. Logiciel co-construit avec les praticiennes. Beta privée sur invitation.'
+const b2bTitle = 'Keova — Lancez votre activité, pas votre informatique'
+const b2bDescription = 'Keova réunit votre site professionnel, vos réservations, vos paiements et le suivi de vos clientes. Pendant la bêta, nous mettons votre espace en place avec vous.'
 const b2cTitle = 'Accompagnement ménopause — Spécialistes formées | Keova'
 const b2cDescription = 'Périménopause, ménopause, post-ménopause : comprenez vos symptômes et trouvez une spécialiste près de chez vous. Premier appel gratuit. Keova.'
 
@@ -184,14 +184,14 @@ function updatePublicHeader() {
       // Toute modification ici doit être répercutée dans les deux autres.
       navLinks: [
         { label: 'Le problème', href: '#pourquoi' },
-        { label: 'La solution', href: '#atelier' },
-        { label: 'Témoignages', href: '#temoignage' },
+        { label: 'Ce que fait Keova', href: '#atelier' },
+        { label: 'Preuve', href: '#preuve' },
         { label: 'Tarifs', href: '#tarifs' },
         { label: 'FAQ', href: '#faq' }
       ],
       loginLabel: 'Se connecter',
       loginTo: '/login',
-      ctaLabel: 'Je réserve ma place',
+      ctaLabel: 'Demander un accès',
       ctaTo: '#waitlist'
     })
   }

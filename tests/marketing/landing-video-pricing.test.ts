@@ -66,9 +66,9 @@ describe('0-35 — Pricing plans data (AC-3, AC-4, spec §2.2)', () => {
     const essentiel = PRICING_PLANS[0]!
     assert.equal(essentiel.priceLabel, '29 € TTC / mois')
     assert.equal(essentiel.priceSuffix, undefined)
-    assert.equal(essentiel.audience, 'Pour lancer votre pratique.')
+    assert.equal(essentiel.audience, 'Pour lancer ou structurer votre activité.')
     assert.equal(essentiel.featured, false)
-    assert.equal(essentiel.ctaLabel, 'Je réserve ma place')
+    assert.equal(essentiel.ctaLabel, 'Demander un accès')
     // « 0 % de commission » est expliqué une seule fois, en nommant l'alternative
     // (les annuaires) plutôt qu'en répétant un taux nu — décision Simon 2026-07-22.
     assert.match(essentiel.keyLine, /ne prélève aucun pourcentage sur vos séances/)
@@ -83,10 +83,10 @@ describe('0-35 — Pricing plans data (AC-3, AC-4, spec §2.2)', () => {
   test('Premium : 49 € TTC 1ʳᵉ année, suffixe cadré « verrouillé », badge Tarif fondateur', () => {
     const premium = PRICING_PLANS[1]!
     assert.equal(premium.priceLabel, '49 € TTC / mois la 1ʳᵉ année')
-    assert.equal(premium.audience, 'Pour développer votre clientèle.')
+    assert.equal(premium.audience, 'Pour une présence professionnelle complète.')
     assert.equal(premium.featured, true)
     assert.equal(premium.badge, 'Tarif fondateur')
-    assert.equal(premium.ctaLabel, 'Je réserve ma place')
+    assert.equal(premium.ctaLabel, 'Demander un accès')
     assert.match(premium.keyLine, /sans logo Keova/)
     // Spec §2.2 : cadrer « verrouillé pour les inscrites beta », pas « ça va augmenter ».
     // Un « puis 99 € / mois » nu se lit comme une menace, pas comme une affaire.
@@ -115,7 +115,7 @@ describe('0-35 — Pricing plans data (AC-3, AC-4, spec §2.2)', () => {
     assert.equal(PRICING_REASSURANCE, '0 % de commission · Sans engagement · Sans frais d\'installation')
     assert.equal(
       PRICING_MICROCOPY,
-      'Rien à payer ici : vous rejoignez la liste en 30 secondes, et vous choisissez votre formule avec nous avant l\'ouverture de votre compte.'
+      'Rien à payer ici : vous demandez un accès, et nous choisissons votre formule ensemble avant l\'ouverture de votre compte.'
     )
   })
 
@@ -249,7 +249,10 @@ describe('0-35 — LandingPricing.vue (AC-3, AC-5, AC-6)', () => {
   test('AC-5 : le CTA émet un événement waitlist (pas de checkout/Stripe)', () => {
     const src = read(PRICING_PATH)
     assert.match(src, /defineEmits/, 'le composant émet un événement')
-    assert.match(src, /@click="emit\('reserve'\)"/, 'le CTA se contente d\'émettre reserve')
+    // `@click.prevent` : l'ancre « Demander un accès » doit rester une ancre
+    // `#waitlist` sans JavaScript, `.prevent` neutralise la navigation quand JS
+    // est présent pour ouvrir la modale.
+    assert.match(src, /@click\.prevent="emit\('reserve'\)"/, 'le CTA se contente d\'émettre reserve')
     assert.ok(!/stripe|loadstripe|navigateTo/i.test(src), 'aucun câblage paiement/navigation Stripe')
   })
 
@@ -328,13 +331,13 @@ describe('0-35 — MarketingLandingB2B.vue wiring (AC-1, AC-3, AC-5, AC-10)', ()
 
   test('AC-5 : le CTA pricing ouvre la modale waitlist', () => {
     const src = read(LANDING_PATH)
-    assert.match(src, /<LandingPricing[^>]*@reserve="isWaitlistModalOpen\s*=\s*true"/s)
+    assert.match(src, /<LandingPricing[^>]*@reserve="handleReserve"/s)
   })
 
   test('AC-10 : le P.S. « gratuit pendant toute la beta » est corrigé', () => {
     const src = read(LANDING_PATH)
     assert.ok(!src.includes('gratuit pendant toute la beta'), 'le P.S. « gratuit » périmé doit être retiré')
-    assert.match(src, /Les places en beta sont limitées/, 'nouveau P.S.')
+    assert.match(src, /Les places en bêta sont limitées/, 'nouveau P.S.')
   })
 
   test('AC-10 : le P.S. n\'affirme plus être moins cher que « vos 5 outils actuels »', () => {
@@ -414,7 +417,14 @@ describe('0-35 — Ancre #tarifs et cohérence de la nav', () => {
     for (const file of NAV_SOURCES) {
       const src = fs.readFileSync(file, 'utf-8')
       assert.match(src, /\{ label: 'Tarifs', href: '#tarifs' \}/, `lien Tarifs manquant dans ${path.basename(file)}`)
-      assert.match(src, /\{ label: 'Témoignages', href: '#temoignage' \}/, `libellé Témoignages non aligné dans ${path.basename(file)}`)
+      assert.match(src, /\{ label: 'Preuve', href: '#preuve' \}/, `libellé Preuve non aligné dans ${path.basename(file)}`)
+    }
+  })
+
+  test('les 3 sources de nav déclarent le CTA « Demander un accès »', () => {
+    for (const file of NAV_SOURCES) {
+      const src = fs.readFileSync(file, 'utf-8')
+      assert.match(src, /ctaLabel: 'Demander un accès'/, `CTA non aligné dans ${path.basename(file)}`)
     }
   })
 
@@ -476,5 +486,115 @@ describe('0-35 — useGlobalSchemaOrg.ts (AC-9)', () => {
     const src = read(SCHEMA_PATH)
     assert.ok(!src.includes('i.ytimg.com'), 'préférer le poster local, sous notre contrôle')
     assert.match(src, /images\/video-poster-keova\.jpg/)
+  })
+
+  // Décision 17 : aucune citation de Sophie ne doit être rédigée à sa place.
+  // Le bloc `Review` fabriqué (reviewBody « remplacé mes 5 outils… », note 5/5)
+  // a été retiré du JSON-LD ; ce garde empêche sa réintroduction silencieuse
+  // lors d'un merge de branche antérieure.
+  test('aucun Review/AggregateRating fabriqué dans le JSON-LD', () => {
+    // Les commentaires mentionnent légitimement ces types pour expliquer leur
+    // retrait : on ne juge donc que le code, pas la prose.
+    const src = read(SCHEMA_PATH).replace(/^\s*\/\/.*$/gm, '')
+    for (const forbidden of ['\'@type\': \'Review\'', 'reviewRating', 'reviewBody', 'aggregateRating']) {
+      assert.ok(!src.includes(forbidden), `markup d'avis fabriqué réintroduit : ${forbidden}`)
+    }
+  })
+})
+
+// ------------------------------------------------------------------ Refonte 2026-09-19 (LB.2b)
+
+describe('LB.2b — refonte landing B2B (décisions 2026-09-19)', () => {
+  test('H1 verrouillé « Lancez votre activité. Pas votre informatique. »', () => {
+    const src = read(LANDING_PATH)
+    assert.match(src, /Lancez votre activité\./)
+    assert.match(src, /Pas votre informatique\./)
+  })
+
+  test('aucun claim interdit ne subsiste dans la landing', () => {
+    const src = read(LANDING_PATH)
+    const forbidden = [
+      '5 outils',
+      'cinq outils',
+      'Première spécialiste vérifiée',
+      'Keova est le premier',
+      'remplacé mes 5',
+      'facturation et relance',
+      '10 minutes, c\'est prêt',
+      'Je réserve ma place',
+      'Rejoindre la beta',
+      'Profil mis en avant',
+      'au lieu de cinq'
+    ]
+    for (const claim of forbidden) {
+      assert.ok(!src.includes(claim), `claim interdit présent : « ${claim} »`)
+    }
+  })
+
+  test('CTA principal unique « Demander un accès »', () => {
+    const src = read(LANDING_PATH)
+    assert.match(src, /Demander un accès/, 'le CTA principal doit être « Demander un accès »')
+    assert.ok(!src.includes('Je réserve ma place'), 'aucun CTA concurrent « Je réserve ma place »')
+  })
+
+  test('preuve Sophie factuelle uniquement, sans citation inventée', () => {
+    const src = read(LANDING_PATH)
+    assert.match(src, /Sophie Jouan utilise Keova en production/)
+    assert.match(src, /https:\/\/sophiejouan\.fr/)
+    assert.ok(!src.includes('espace calme'), 'la citation inventée doit disparaître')
+    assert.match(src, /id="preuve"/)
+    assert.ok(!src.includes('id="temoignage"'), 'l\'ancre #temoignage est renommée #preuve')
+  })
+
+  test('délai et support affirmés conformément aux décisions', () => {
+    const src = read(LANDING_PATH)
+    assert.match(src, /1 à 2 semaines/)
+    assert.ok(!/garanti/i.test(src), 'aucune promesse de type « garanti »')
+    assert.match(src, /WhatsApp/)
+    assert.match(src, /deux jours ouvrés/)
+  })
+
+  test('acquisition de clientes explicitement non promise', () => {
+    const src = read(LANDING_PATH)
+    assert.match(src, /Keova m\\'apporte-t-il des clientes/)
+    assert.ok(!/apporte des clientes/i.test(src.replace(/Keova m\\'apporte-t-il des clientes/g, '')))
+  })
+})
+
+// ------------------------------------------------------------------ LB.3 — analytics + progressive enhancement
+
+describe('LB.3 — analytics consentis et dégradation sans JavaScript', () => {
+  test('les CTA principaux sont des ancres #waitlist (no-JS) améliorées par JS', () => {
+    const src = read(LANDING_PATH)
+    assert.match(src, /href="#waitlist"/, 'le CTA doit rester une ancre sans JS')
+    assert.match(src, /@click\.prevent="openWaitlist\('hero'\)"/)
+    assert.match(src, /@click\.prevent="openWaitlist\('mid_page'\)"/)
+  })
+
+  test('les six événements sont câblés dans la landing', () => {
+    const src = read(LANDING_PATH)
+    // `landing_view` passe par `trackOnce` : le consentement est donné APRÈS le
+    // montage lors d'une première visite, un `track` sec serait perdu.
+    assert.match(src, /trackLandingOnce\('landing_view'\)/)
+    assert.match(src, /trackLanding\('access_cta_click'/)
+    assert.match(src, /trackLanding\('proof_sophie_click'\)/)
+    assert.match(src, /trackLanding\('login_click'\)/)
+  })
+
+  test('le formulaire émet access_form_start et access_request_success', () => {
+    const src = read('components/organisms/WaitlistForm.vue')
+    assert.match(src, /trackLanding\('access_form_start'\)/)
+    assert.match(src, /trackLanding\('access_request_success'\)/)
+  })
+
+  test('le composable analytics délègue le push et ne persiste rien', () => {
+    const src = read('composables/useLandingAnalytics.ts')
+    // Le push (et donc la garde de consentement) vit dans le module pur, où il
+    // est éprouvé en l'exécutant (voir `tests/marketing/landing-events.test.ts`).
+    // Ce test ne couvre plus que ce que le module pur ne peut pas porter :
+    // l'absence de persistance navigateur.
+    assert.match(src, /pushLandingEvent\(/, 'le composable doit déléguer au module pur')
+    assert.ok(!src.includes('localStorage'), 'aucune persistance navigateur')
+    assert.ok(!src.includes('sessionStorage'), 'aucune persistance navigateur')
   })
 })
