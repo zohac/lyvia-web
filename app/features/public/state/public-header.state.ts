@@ -30,14 +30,14 @@ export const DEFAULT_HEADER_STATE: PublicHeaderState = {
   // (voir le commentaire dans index.vue : divergence = flicker de la nav au paint).
   navLinks: [
     { label: 'Le problème', href: '#pourquoi' },
-    { label: 'La solution', href: '#atelier' },
-    { label: 'Témoignages', href: '#temoignage' },
+    { label: 'Ce que fait Keova', href: '#atelier' },
+    { label: 'Preuve', href: '#preuve' },
     { label: 'Tarifs', href: '#tarifs' },
     { label: 'FAQ', href: '#faq' }
   ],
   loginLabel: 'Se connecter',
   loginTo: '/login',
-  ctaLabel: 'Je réserve ma place',
+  ctaLabel: 'Demander un accès',
   ctaTo: '#waitlist'
 }
 

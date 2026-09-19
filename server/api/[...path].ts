@@ -1,5 +1,7 @@
 import { appendResponseHeader, createError, defineEventHandler, getRequestHeader, getRequestURL, readRawBody, setResponseHeader, setResponseStatus } from 'h3'
 
+import { setForwardedHeaders } from '../utils/forwarded-headers'
+
 const HOP_BY_HOP_HEADERS = new Set([
   'connection',
   'keep-alive',
@@ -23,15 +25,6 @@ function rewriteSetCookieHeader(cookie: string): string {
   // proxy (`/api/**`), the browser would not send them back unless we rewrite
   // the cookie Path to match the proxied route.
   return cookie.replace(/(^|;\s*)Path=\/auth\/?(?=;|$)/i, '$1Path=/api/auth')
-}
-
-function normalizeIp(ip: string | undefined | null): string | null {
-  if (!ip) return null
-  const value = ip.trim()
-  if (!value) return null
-  // Common Node format when IPv4 is mapped into IPv6.
-  if (value.startsWith('::ffff:')) return value.slice('::ffff:'.length)
-  return value
 }
 
 function joinUrl(base: string, path: string): string {
@@ -105,15 +98,7 @@ export default defineEventHandler(async (event) => {
 
   // Trust boundary: we DO NOT forward X-Forwarded-* from the browser.
   // The upstream expects them from a trusted proxy; Nitro acts as that proxy here.
-  headers.set('x-forwarded-host', requestUrl.host)
-  headers.set('x-forwarded-proto', requestUrl.protocol.replace(':', ''))
-  const forwardedPort = requestUrl.port || (requestUrl.protocol === 'https:' ? '443' : '80')
-  headers.set('x-forwarded-port', forwardedPort)
-  const clientIp = normalizeIp(event.node.req.socket.remoteAddress)
-  if (clientIp) {
-    headers.set('x-forwarded-for', clientIp)
-    headers.set('x-real-ip', clientIp)
-  }
+  setForwardedHeaders(headers, event)
 
   const rawBody = method === 'GET' || method === 'HEAD' ? undefined : await readRawBody(event, false)
   // Convert Buffer to Uint8Array for fetch() BodyInit compatibility,
