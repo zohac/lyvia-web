@@ -21,6 +21,7 @@ import {
   appendImageBlock,
   isTextBlock,
   markOrphanImageBlocks,
+  moveBlock,
   shouldExcludeImageBlockFromSave,
   updateImageBlockData,
   updateTextBlockHtml
@@ -109,6 +110,27 @@ export function setEditorImageBlockData(
   patch: Partial<ImageBlockData>
 ): PageEditorState {
   return { ...state, blocks: updateImageBlockData(state.blocks, index, patch) }
+}
+
+/**
+ * V2.2d — Moves the block at `from` to `to`. The blocks array is the single
+ * source of truth for order, so `editableSnapshot` makes the move `dirty`
+ * automatically and the persisted payload keeps the new order.
+ */
+export function moveEditorBlock(
+  state: PageEditorState,
+  from: number,
+  to: number
+): PageEditorState {
+  return { ...state, blocks: moveBlock(state.blocks, from, to) }
+}
+
+/**
+ * V2.2d — Screen-reader announcement for a move. Wording is verbatim from the
+ * UX spec (§3.3): "Bloc 2 déplacé en position 1 sur 3".
+ */
+export function describeBlockMove(from: number, to: number, total: number): string {
+  return `Bloc ${from + 1} déplacé en position ${to + 1} sur ${total}`
 }
 
 /**

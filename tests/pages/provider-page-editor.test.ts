@@ -154,3 +154,64 @@ describe('pages/editor — image block wiring (V2.2c)', () => {
     assert.ok(!editor.includes('Ce bloc image sera modifiable dans une prochaine version.'))
   })
 })
+
+describe('pages/editor — accessible reordering wiring (V2.2d)', () => {
+  const editor = read('app/components/organisms/ProviderPageEditor.vue')
+  const controls = read('app/components/molecules/PageBlockReorderControls.vue')
+
+  test('renders a reorder bar per block and exposes stable render keys', () => {
+    assert.ok(editor.includes('PageBlockReorderControls'))
+    assert.ok(editor.includes(':key="blockKey(index)"'))
+    assert.ok(!editor.includes(':key="index"'), 'blocks must not be keyed by index')
+  })
+
+  test('wires the Monter/Descendre buttons to the editor move path', () => {
+    assert.match(editor, /:can-move-up="canMoveUp\(index\)"/)
+    assert.match(editor, /:can-move-down="canMoveDown\(index\)"/)
+    assert.match(editor, /@move-up="moveByButton\(index, 'up'\)"/)
+    assert.match(editor, /@move-down="moveByButton\(index, 'down'\)"/)
+    assert.match(editor, /moveEditorBlock/)
+    assert.match(editor, /focusButton/)
+    assert.match(editor, /await nextTick\(\)/)
+  })
+
+  test('adds native HTML5 mouse drag & drop (no library)', () => {
+    assert.ok(editor.includes('draggable="true"'))
+    assert.match(editor, /@dragstart="onDragStart\(index, \$event\)"/)
+    assert.match(editor, /@dragover\.prevent/)
+    assert.match(editor, /@drop\.prevent/)
+    assert.match(editor, /@dragend="onDragEnd"/)
+    assert.match(editor, /effectAllowed = 'move'/)
+  })
+
+  test('announces the new position through a polite live region', () => {
+    assert.ok(editor.includes('role="status"'))
+    assert.ok(editor.includes('aria-live="polite"'))
+    assert.ok(editor.includes('aria-atomic="true"'))
+    assert.ok(editor.includes('describeBlockMove'))
+  })
+
+  test('the reorder bar exposes accessible, ≥ 44px buttons and a decorative grip', () => {
+    assert.ok(controls.includes('UButton'))
+    assert.ok(controls.includes('i-lucide-grip-vertical'))
+    assert.ok(controls.includes('aria-hidden'))
+    assert.ok(controls.includes('Monter le bloc'))
+    assert.ok(controls.includes('Descendre le bloc'))
+    assert.match(controls, /:disabled="!canMoveUp"/)
+    assert.match(controls, /:disabled="!canMoveDown"/)
+    assert.ok(controls.includes('min-h-11'))
+    assert.ok(controls.includes('min-w-11'))
+    assert.ok(controls.includes('defineExpose({ focusButton })'))
+  })
+
+  test('uses only existing design tokens (no ghost var)', () => {
+    const shared = read('app/assets/css/shared.css')
+    for (const file of [editor, controls]) {
+      const vars = [...file.matchAll(/var\((--[a-z0-9-]+)/g)].map(match => match[1]!)
+      assert.ok(vars.length > 0)
+      for (const name of new Set(vars)) {
+        assert.ok(shared.includes(`${name}:`), `${name} must exist in shared.css`)
+      }
+    }
+  })
+})

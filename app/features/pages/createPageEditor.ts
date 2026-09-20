@@ -7,6 +7,8 @@ import type {
 } from './api/pages.contract'
 import {
   appendTextBlock,
+  canMoveBlockDown,
+  canMoveBlockUp,
   canRemoveBlock,
   removeBlockAt
 } from './domain/content-blocks'
@@ -16,6 +18,7 @@ import {
   createPageEditorState,
   editableSnapshot,
   isPageEditorDirty,
+  moveEditorBlock,
   resetPageEditorState,
   resolvePageSaveError,
   setEditorBlockHtml,
@@ -90,6 +93,19 @@ export function createPageEditor(
     state.value = setPageEditorBlocks(state.value, removeBlockAt(state.value.blocks, index))
   }
 
+  /** V2.2d — Moves a block; the new array order is the persisted order. */
+  function moveBlock(from: number, to: number) {
+    state.value = moveEditorBlock(state.value, from, to)
+  }
+
+  function canMoveUp(index: number): boolean {
+    return canMoveBlockUp(index)
+  }
+
+  function canMoveDown(index: number): boolean {
+    return canMoveBlockDown(index, state.value.blocks.length)
+  }
+
   function clearError() {
     saveError.value = null
   }
@@ -132,6 +148,9 @@ export function createPageEditor(
     addImageBlock,
     setImageBlockData,
     removeBlock,
+    moveBlock,
+    canMoveUp,
+    canMoveDown,
     clearError,
     save
   }

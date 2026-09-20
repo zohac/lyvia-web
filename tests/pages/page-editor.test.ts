@@ -11,7 +11,9 @@ import type { ProviderPageResponse } from '../../app/features/pages/api/pages.co
 import {
   applySavedVersion,
   createPageEditorState,
+  describeBlockMove,
   isPageEditorDirty,
+  moveEditorBlock,
   resetPageEditorState,
   resolvePageSaveError,
   sanitizeContentBlocks,
@@ -101,6 +103,57 @@ describe('pages/domain — save payload', () => {
       { type: 'image', data: { assetId: '00000000-0000-0000-0000-000000000000' } }
     ])
     assert.equal(withImage[0]?.type, 'image')
+  })
+})
+
+describe('pages/domain — reordering marks the editor dirty (V2.2d)', () => {
+  function makeThreeBlockPage(): ProviderPageResponse {
+    return makePage({
+      contentBlocks: [
+        { type: 'text', data: { html: '<p>a</p>' } },
+        { type: 'text', data: { html: '<p>b</p>' } },
+        { type: 'text', data: { html: '<p>c</p>' } }
+      ]
+    })
+  }
+
+  test('moveEditorBlock reorders the blocks and marks the state dirty', () => {
+    const base = createPageEditorState(makeThreeBlockPage())
+    assert.equal(isPageEditorDirty(base), false)
+
+    const moved = moveEditorBlock(base, 0, 2)
+
+    assert.deepEqual(moved.blocks.map(readTextBlockHtml), ['<p>b</p>', '<p>c</p>', '<p>a</p>'])
+    assert.equal(isPageEditorDirty(moved), true)
+  })
+
+  test('the save payload preserves the moved order', () => {
+    const moved = moveEditorBlock(createPageEditorState(makeThreeBlockPage()), 2, 0)
+    const payload = toUpdateProviderPageRequest(moved)
+    assert.deepEqual(
+      payload.contentBlocks.map(block => (block as { data: { html: string } }).data.html),
+      ['<p>c</p>', '<p>a</p>', '<p>b</p>']
+    )
+  })
+
+  test('moveEditorBlock is a bounded no-op on identity or out-of-range moves', () => {
+    const base = createPageEditorState(makeThreeBlockPage())
+    assert.equal(isPageEditorDirty(moveEditorBlock(base, 1, 1)), false)
+    assert.equal(isPageEditorDirty(moveEditorBlock(base, 5, 0)), false)
+  })
+
+  test('sanitizeContentBlocks keeps the reordered sequence', () => {
+    const moved = moveEditorBlock(createPageEditorState(makeThreeBlockPage()), 0, 1)
+    const sanitized = sanitizeContentBlocks(moved.blocks)
+    assert.deepEqual(
+      sanitized.map(block => (block as { data: { html: string } }).data.html),
+      ['<p>b</p>', '<p>a</p>', '<p>c</p>']
+    )
+  })
+
+  test('describeBlockMove announces the verbatim position wording', () => {
+    assert.equal(describeBlockMove(1, 2, 3), 'Bloc 2 déplacé en position 3 sur 3')
+    assert.equal(describeBlockMove(0, 2, 3), 'Bloc 1 déplacé en position 3 sur 3')
   })
 })
 

@@ -7,6 +7,9 @@ import test, { describe } from 'node:test'
 import {
   appendImageBlock,
   appendTextBlock,
+  blockTargetIndex,
+  canMoveBlockDown,
+  canMoveBlockUp,
   canRemoveBlock,
   createImageBlock,
   createTextBlock,
@@ -15,6 +18,7 @@ import {
   isOrphanImageBlock,
   isTextBlock,
   markOrphanImageBlocks,
+  moveBlock,
   readImageBlockData,
   readTextBlockHtml,
   removeBlockAt,
@@ -88,6 +92,65 @@ describe('pages/domain — content blocks', () => {
     const blocks = [image('00000000-0000-0000-0000-000000000000')]
     assert.equal(updateTextBlockHtml(blocks, 0, '<p>x</p>')[0]?.type, 'image')
     assert.equal(updateTextBlockHtml(blocks, 5, '<p>x</p>')[0]?.type, 'image')
+  })
+})
+
+describe('pages/domain — reordering (V2.2d)', () => {
+  const a = text('<p>a</p>')
+  const b = text('<p>b</p>')
+  const c = text('<p>c</p>')
+
+  test('canMoveBlockUp is false on the first block only', () => {
+    assert.equal(canMoveBlockUp(0), false)
+    assert.equal(canMoveBlockUp(1), true)
+    assert.equal(canMoveBlockUp(2), true)
+  })
+
+  test('canMoveBlockDown is false on the last block only', () => {
+    assert.equal(canMoveBlockDown(0, 3), true)
+    assert.equal(canMoveBlockDown(1, 3), true)
+    assert.equal(canMoveBlockDown(2, 3), false)
+    assert.equal(canMoveBlockDown(0, 1), false)
+  })
+
+  test('blockTargetIndex maps up to index - 1 and down to index + 1', () => {
+    assert.equal(blockTargetIndex(1, 'up', 3), 0)
+    assert.equal(blockTargetIndex(1, 'down', 3), 2)
+    assert.equal(blockTargetIndex(0, 'down', 3), 1)
+    assert.equal(blockTargetIndex(2, 'up', 3), 1)
+  })
+
+  test('blockTargetIndex is bounded to -1 at both extremities', () => {
+    assert.equal(blockTargetIndex(0, 'up', 3), -1)
+    assert.equal(blockTargetIndex(2, 'down', 3), -1)
+    assert.equal(blockTargetIndex(0, 'up', 1), -1)
+    assert.equal(blockTargetIndex(0, 'down', 1), -1)
+  })
+
+  test('moveBlock moves a block forward (remove-then-insert)', () => {
+    const next = moveBlock([a, b, c], 0, 2)
+    assert.deepEqual(next.map(readTextBlockHtml), ['<p>b</p>', '<p>c</p>', '<p>a</p>'])
+  })
+
+  test('moveBlock moves a block backward', () => {
+    const next = moveBlock([a, b, c], 2, 0)
+    assert.deepEqual(next.map(readTextBlockHtml), ['<p>c</p>', '<p>a</p>', '<p>b</p>'])
+  })
+
+  test('moveBlock is a bounded no-op on identity or out-of-range moves', () => {
+    const blocks = [a, b, c]
+    assert.deepEqual(moveBlock(blocks, 1, 1).map(readTextBlockHtml), ['<p>a</p>', '<p>b</p>', '<p>c</p>'])
+    assert.deepEqual(moveBlock(blocks, -1, 1).map(readTextBlockHtml), ['<p>a</p>', '<p>b</p>', '<p>c</p>'])
+    assert.deepEqual(moveBlock(blocks, 3, 1).map(readTextBlockHtml), ['<p>a</p>', '<p>b</p>', '<p>c</p>'])
+    assert.deepEqual(moveBlock(blocks, 0, 3).map(readTextBlockHtml), ['<p>a</p>', '<p>b</p>', '<p>c</p>'])
+    assert.deepEqual(moveBlock(blocks, 0, -1).map(readTextBlockHtml), ['<p>a</p>', '<p>b</p>', '<p>c</p>'])
+  })
+
+  test('moveBlock is immutable: the source array is never mutated', () => {
+    const blocks = [a, b, c]
+    const next = moveBlock(blocks, 0, 2)
+    assert.notEqual(next, blocks)
+    assert.deepEqual(blocks.map(readTextBlockHtml), ['<p>a</p>', '<p>b</p>', '<p>c</p>'])
   })
 })
 

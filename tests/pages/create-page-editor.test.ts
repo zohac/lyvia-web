@@ -35,6 +35,50 @@ function makePage(overrides: Partial<ProviderPageResponse> = {}): ProviderPageRe
   }
 }
 
+describe('createPageEditor — reordering (V2.2d)', () => {
+  function makeThreeBlockEditor() {
+    return createPageEditor(
+      makePage({
+        contentBlocks: [
+          { type: 'text', data: { html: '<p>a</p>' } },
+          { type: 'text', data: { html: '<p>b</p>' } },
+          { type: 'text', data: { html: '<p>c</p>' } }
+        ]
+      }),
+      { update: async () => makePage() }
+    )
+  }
+
+  test('canMoveDown is false on the last index and true otherwise', () => {
+    const editor = makeThreeBlockEditor()
+    assert.equal(editor.canMoveDown(0), true)
+    assert.equal(editor.canMoveDown(1), true)
+    assert.equal(editor.canMoveDown(2), false)
+  })
+
+  test('canMoveDown follows the block after a move', () => {
+    const editor = makeThreeBlockEditor()
+    editor.moveBlock(0, 2) // [a,b,c] → [b,c,a]
+
+    assert.equal(editor.canMoveDown(2), false, 'the moved block is now last')
+    assert.equal(editor.canMoveDown(1), true)
+    assert.equal(editor.canMoveDown(0), true)
+  })
+
+  test('moveBlock reorders state.blocks and marks the editor dirty', () => {
+    const editor = makeThreeBlockEditor()
+    assert.equal(editor.dirty.value, false)
+
+    editor.moveBlock(0, 2)
+
+    assert.deepEqual(
+      editor.state.value.blocks.map(readTextBlockHtml),
+      ['<p>b</p>', '<p>c</p>', '<p>a</p>']
+    )
+    assert.equal(editor.dirty.value, true)
+  })
+})
+
 describe('createPageEditor — save', () => {
   test('a successful save persists the sanitized payload and clears dirty', async () => {
     const received = { id: '', payload: null as UpdateProviderPageRequest | null }

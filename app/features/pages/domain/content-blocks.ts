@@ -144,6 +144,56 @@ export function canRemoveBlock(blocks: readonly ContentBlock[]): boolean {
   return blocks.length > 1
 }
 
+// ── V2.2d — accessible reordering ───────────────────────────────────────────
+
+/** True when the block at `index` can move up (i.e. it is not the first one). */
+export function canMoveBlockUp(index: number): boolean {
+  return index > 0
+}
+
+/** True when the block at `index` can move down (i.e. it is not the last one). */
+export function canMoveBlockDown(index: number, total: number): boolean {
+  return index >= 0 && index < total - 1
+}
+
+export type BlockMoveDirection = 'up' | 'down'
+
+/**
+ * V2.2d — Bounded direction → target index mapping. Returns `-1` when the move
+ * would leave the list (first block moving up / last block moving down), so
+ * callers never have to re-derive `index ± 1` themselves.
+ */
+export function blockTargetIndex(
+  index: number,
+  direction: BlockMoveDirection,
+  total: number
+): number {
+  const target = direction === 'up' ? index - 1 : index + 1
+  if (target < 0 || target >= total) return -1
+  return target
+}
+
+/**
+ * V2.2d — Moves the block at `from` to the `to` position, remove-then-insert.
+ * Pure and immutable: a new array is returned and out-of-range or identity
+ * moves are bounded no-ops (`[a,b,c].move(0,2) → [b,c,a]`).
+ */
+export function moveBlock(
+  blocks: readonly ContentBlock[],
+  from: number,
+  to: number
+): ContentBlock[] {
+  if (from === to) return [...blocks]
+  if (from < 0 || from >= blocks.length) return [...blocks]
+  if (to < 0 || to >= blocks.length) return [...blocks]
+
+  const next = [...blocks]
+  const [moved] = next.splice(from, 1)
+  if (moved === undefined) return [...blocks]
+  next.splice(to, 0, moved)
+  return next
+}
+
 /**
  * Removes the block at `index`. The last remaining block is never removed, so
  * the guard holds even if a caller forgets `canRemoveBlock`.
