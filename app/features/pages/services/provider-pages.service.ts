@@ -1,12 +1,14 @@
 import { apiFetch } from '../../../services/api/apiFetch'
+import { buildUpdateProviderPageCall } from '../api/provider-pages.request'
 import type {
   CreateProviderPageRequest,
   ProviderPageListItem,
-  ProviderPageResponse
+  ProviderPageResponse,
+  UpdateProviderPageRequest
 } from '../api/pages.contract'
 
 /**
- * V2.2a — Transport for `/provider/pages`.
+ * V2.2a/V2.2b — Transport for `/provider/pages`.
  *
  * Goes through `apiFetch` (Nitro proxy, `credentials: 'include'`, bearer token
  * when present) so the Host header is preserved for tenant resolution and the
@@ -34,4 +36,16 @@ export async function getProviderPage(id: string): Promise<ProviderPageResponse>
     method: 'GET',
     withAuth: true
   })
+}
+
+/**
+ * V2.2b — Persists the draft content blocks with optimistic locking.
+ * `payload.expectedVersion` must be the version returned by the last load/save.
+ */
+export async function updateProviderPage(
+  id: string,
+  payload: UpdateProviderPageRequest
+): Promise<ProviderPageResponse> {
+  const { path, options } = buildUpdateProviderPageCall(id, payload)
+  return await apiFetch<ProviderPageResponse>(path, options)
 }

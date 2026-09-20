@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { ImageBlockData } from '~/features/pages/api/pages.contract'
 
-export interface ImageBlockData {
-  assetId: string
-  url?: string | null
-  alt?: string
-  caption?: string
-  width?: number | null
-  height?: number | null
-}
+export type { ImageBlockData }
 
 defineProps<{
   data: ImageBlockData
