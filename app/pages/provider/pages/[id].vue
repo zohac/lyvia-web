@@ -4,6 +4,8 @@ import { getProviderPage, listProviderPages } from '~/features/pages/services/pr
 import type { ProviderPageResponse } from '~/features/pages/api/pages.contract'
 import { buildGuidedDestinations, selectGuidedPages, type GuidedDestination } from '~/features/pages/domain/guided-links'
 import { shouldLoadProviderPages } from '~/features/pages/domain/pages-list-view'
+import { buildPreviewHeaderOverrides } from '~/features/pages/domain/preview-header-overrides'
+import type { PageCommandOutcome } from '~/features/pages/createPageEditor'
 import { useProviderAccount } from '~/features/account/useProviderAccount'
 import { useCoachLink } from '~/composables/useCoachLink'
 import { useFeatureGate } from '~/features/plans/useFeatureGate'
@@ -11,6 +13,7 @@ import { FEATURE_PAGE_BUILDER } from '~/features/plans/domain/feature-codes'
 import { ApiFetchError } from '~/services/api/api-error'
 import FeatureGate from '~/components/molecules/FeatureGate.vue'
 import ProviderPageEditor from '~/components/organisms/ProviderPageEditor.vue'
+import ProviderPagePreviewOverlay from '~/components/organisms/ProviderPagePreviewOverlay.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -26,10 +29,40 @@ const page = ref<ProviderPageResponse | null>(null)
 const pending = ref(true)
 const errorMessage = ref<string | null>(null)
 const destinations = ref<GuidedDestination[]>([])
+const previewOpen = ref(false)
+const previewPublishing = ref(false)
 
 const providerAccount = useProviderAccount()
 const gate = useFeatureGate()
 const canUsePageBuilder = computed(() => gate.hasFeature(FEATURE_PAGE_BUILDER))
+
+interface PageEditorHandle {
+  requestPublish: () => Promise<PageCommandOutcome>
+}
+
+const editorRef = ref<PageEditorHandle | null>(null)
+
+/**
+ * V2.2e — Brand envelope of the private preview, built from the coach account
+ * and passed to `PublicHeader`/`PublicFooter` through `overrides`, so the
+ * overlay never mutates the global public header state (no re-seed pitfall).
+ */
+const headerOverrides = computed(() => buildPreviewHeaderOverrides(providerAccount.account.value))
+
+/**
+ * V2.2e — Publish from the preview banner: the editor runs the command (toast +
+ * error surface). The preview closes only on success so a refused publication
+ * keeps the coach in context.
+ */
+async function handlePreviewPublish() {
+  previewPublishing.value = true
+  try {
+    const outcome = await editorRef.value?.requestPublish()
+    if (outcome?.ok) previewOpen.value = false
+  } finally {
+    previewPublishing.value = false
+  }
+}
 
 async function loadPage() {
   pending.value = true
@@ -127,11 +160,23 @@ watch(
 
         <ProviderPageEditor
           v-else-if="page"
+          ref="editorRef"
           :page="page"
           :destinations="destinations"
+          :preview-disabled="!providerAccount.account.value"
           @reload="loadPage"
+          @preview="previewOpen = true"
         />
       </div>
     </FeatureGate>
+
+    <ProviderPagePreviewOverlay
+      :open="previewOpen"
+      :page-id="pageId"
+      :header-overrides="headerOverrides ?? undefined"
+      :publishing="previewPublishing"
+      @close="previewOpen = false"
+      @publish="handlePreviewPublish"
+    />
   </div>
 </template>

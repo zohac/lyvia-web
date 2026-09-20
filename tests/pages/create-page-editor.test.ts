@@ -9,7 +9,7 @@ import type {
   ProviderPageResponse,
   UpdateProviderPageRequest
 } from '../../app/features/pages/api/pages.contract'
-import { createPageEditor } from '../../app/features/pages/createPageEditor'
+import { createPageEditor, type PageEditorDependencies } from '../../app/features/pages/createPageEditor'
 import { readTextBlockHtml } from '../../app/features/pages/domain/content-blocks'
 
 function makePage(overrides: Partial<ProviderPageResponse> = {}): ProviderPageResponse {
@@ -35,6 +35,16 @@ function makePage(overrides: Partial<ProviderPageResponse> = {}): ProviderPageRe
   }
 }
 
+/** V2.2e — publish/unpublish transports are required by the editor factory. */
+function makeDeps(partial: Partial<PageEditorDependencies> = {}): PageEditorDependencies {
+  return {
+    update: async () => makePage(),
+    publish: async () => makePage(),
+    unpublish: async () => makePage(),
+    ...partial
+  }
+}
+
 describe('createPageEditor — reordering (V2.2d)', () => {
   function makeThreeBlockEditor() {
     return createPageEditor(
@@ -45,7 +55,7 @@ describe('createPageEditor — reordering (V2.2d)', () => {
           { type: 'text', data: { html: '<p>c</p>' } }
         ]
       }),
-      { update: async () => makePage() }
+      makeDeps({ update: async () => makePage() })
     )
   }
 
@@ -82,7 +92,7 @@ describe('createPageEditor — reordering (V2.2d)', () => {
 describe('createPageEditor — save', () => {
   test('a successful save persists the sanitized payload and clears dirty', async () => {
     const received = { id: '', payload: null as UpdateProviderPageRequest | null }
-    const editor = createPageEditor(makePage(), {
+    const editor = createPageEditor(makePage(), makeDeps({
       update: async (id, payload) => {
         received.id = id
         received.payload = payload
@@ -91,7 +101,7 @@ describe('createPageEditor — save', () => {
           contentBlocks: [{ type: 'text', data: { html: '<p>Modifié</p>' } }]
         })
       }
-    })
+    }))
 
     editor.setBlockHtml(0, '<p style="color:red">Modifié</p>')
     assert.equal(editor.dirty.value, true)
@@ -112,11 +122,11 @@ describe('createPageEditor — save', () => {
   })
 
   test('a 409 conflict is mapped and the local draft is preserved', async () => {
-    const editor = createPageEditor(makePage(), {
+    const editor = createPageEditor(makePage(), makeDeps({
       update: async () => {
         throw { apiError: { statusCode: 409, code: 'PAGE_CONCURRENT_MODIFICATION' } }
       }
-    })
+    }))
 
     editor.setBlockHtml(0, '<p>Brouillon local</p>')
     const outcome = await editor.save()
@@ -132,11 +142,11 @@ describe('createPageEditor — save', () => {
   })
 
   test('a network failure is mapped and the local draft is preserved', async () => {
-    const editor = createPageEditor(makePage(), {
+    const editor = createPageEditor(makePage(), makeDeps({
       update: async () => {
         throw new Error('offline')
       }
-    })
+    }))
 
     editor.setBlockHtml(0, '<p>Brouillon local</p>')
     const outcome = await editor.save()
@@ -148,7 +158,7 @@ describe('createPageEditor — save', () => {
   })
 
   test('edits typed during an in-flight save are never overwritten', async () => {
-    const editor = createPageEditor(makePage(), {
+    const editor = createPageEditor(makePage(), makeDeps({
       update: async () => {
         // Simulate the coach typing while the PUT is in flight.
         editor.setBlockHtml(0, '<p>Saisie plus récente</p>')
@@ -157,7 +167,7 @@ describe('createPageEditor — save', () => {
           contentBlocks: [{ type: 'text', data: { html: '<p>Ancienne saisie</p>' } }]
         })
       }
-    })
+    }))
 
     editor.setBlockHtml(0, '<p>Ancienne saisie</p>')
     const outcome = await editor.save()

@@ -9,6 +9,30 @@ export interface UpdateProviderPageCall {
   }
 }
 
+export interface GetProviderPagePreviewCall {
+  path: string
+  options: {
+    method: 'GET'
+    withAuth: true
+  }
+}
+
+export interface PublishProviderPageCall {
+  path: string
+  options: {
+    method: 'PATCH'
+    withAuth: true
+  }
+}
+
+export interface UnpublishProviderPageCall {
+  path: string
+  options: {
+    method: 'PATCH'
+    withAuth: true
+  }
+}
+
 /**
  * V2.2b — Pure request builder for the page draft PUT.
  *
@@ -24,5 +48,31 @@ export function buildUpdateProviderPageCall(
   return {
     path: `/provider/pages/${id}`,
     options: { method: 'PUT', withAuth: true, body: payload }
+  }
+}
+
+/**
+ * V2.2e — Pure request builders for the publication cycle. Same rationale as
+ * the PUT builder: the V2.1 endpoints (`GET /preview`, `PATCH /publish`,
+ * `PATCH /unpublish`) must be pinned to their exact verb + path.
+ */
+export function buildProviderPagePreviewCall(id: string): GetProviderPagePreviewCall {
+  return {
+    path: `/provider/pages/${id}/preview`,
+    options: { method: 'GET', withAuth: true }
+  }
+}
+
+export function buildPublishProviderPageCall(id: string): PublishProviderPageCall {
+  return {
+    path: `/provider/pages/${id}/publish`,
+    options: { method: 'PATCH', withAuth: true }
+  }
+}
+
+export function buildUnpublishProviderPageCall(id: string): UnpublishProviderPageCall {
+  return {
+    path: `/provider/pages/${id}/unpublish`,
+    options: { method: 'PATCH', withAuth: true }
   }
 }

@@ -122,6 +122,26 @@ export type UpdateProviderPageRequest = {
 }
 
 /**
+ * Body returned by `GET /provider/pages/:id/preview` (V2.2e).
+ *
+ * Mirrors the API `ProviderPagePreviewResponseDto`: the **draft** content with
+ * asset URLs resolved, rendered with the public components. It carries no
+ * `status`/`hasUnpublishedChanges` (a preview is never a publication state).
+ */
+export type ProviderPagePreviewResponse = {
+  slug: string
+  title: string
+  contentBlocks: ContentBlock[]
+  includeInMenu: boolean
+  menuLabel: string | null
+  sortOrder: number
+  publishedAt: string
+  version: number
+  seoTitle?: string | null
+  seoDescription?: string | null
+}
+
+/**
  * Full page returned by `POST /provider/pages`, `GET /provider/pages/:id` and
  * `PUT /provider/pages/:id`.
  */

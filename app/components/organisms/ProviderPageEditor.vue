@@ -4,6 +4,8 @@ import type { ContentBlock, ImageBlockData, ProviderPageResponse } from '~/featu
 import type { GuidedDestination } from '~/features/pages/domain/guided-links'
 import { blockTargetIndex, isImageBlock, isTextBlock, readImageBlockData, readTextBlockHtml } from '~/features/pages/domain/content-blocks'
 import { describeBlockMove } from '~/features/pages/domain/page-editor'
+import { PAGE_STATUS_META, resolvePageStatus } from '~/features/pages/domain/page-status'
+import type { PageCommandOutcome } from '~/features/pages/createPageEditor'
 import { usePageEditor } from '~/features/pages/usePageEditor'
 import PageEditorTextBlock from '~/components/organisms/PageEditorTextBlock.vue'
 import BlockImageEditor from '~/components/organisms/BlockImageEditor.vue'
@@ -23,16 +25,19 @@ const props = withDefaults(
   defineProps<{
     page: ProviderPageResponse
     destinations?: readonly GuidedDestination[]
+    /** Disables « Prévisualiser » until the coach account (brand envelope) resolves. */
+    previewDisabled?: boolean
   }>(),
   {
-    destinations: () => []
+    destinations: () => [],
+    previewDisabled: false
   }
 )
 
 const emit = defineEmits<{
   (event: 'saved', page: ProviderPageResponse): void
   (event: 'update:dirty', value: boolean): void
-  (event: 'reload'): void
+  (event: 'reload' | 'preview'): void
 }>()
 
 const toast = useToast()
@@ -40,7 +45,9 @@ const toast = useToast()
 const {
   state,
   saving,
+  publishing,
   saveError,
+  missingAltBlockIndices,
   dirty,
   canRemove,
   reset,
@@ -53,11 +60,37 @@ const {
   canMoveUp,
   canMoveDown,
   clearError,
-  save
+  save,
+  publish,
+  unpublish,
+  preparePreview
 } = usePageEditor(props.page)
 
 const blockToRemove = ref<number | null>(null)
 const autofocusIndex = ref<number | null>(null)
+const unpublishModalOpen = ref(false)
+
+const pageStatus = computed(() => resolvePageStatus({
+  status: state.value.status,
+  hasUnpublishedChanges: state.value.hasUnpublishedChanges
+}))
+const statusMeta = computed(() => PAGE_STATUS_META[pageStatus.value])
+
+/**
+ * Same `publish` command for both labels; the wording depends on whether the
+ * page is already online with a newer draft (UX §3.1).
+ */
+const publishLabel = computed(() =>
+  state.value.status === 'published' && state.value.hasUnpublishedChanges
+    ? 'Publier les modifications'
+    : 'Mettre en ligne'
+)
+
+const missingAltIndices = computed(() => new Set(missingAltBlockIndices.value))
+
+function isMissingAlt(index: number): boolean {
+  return missingAltIndices.value.has(index)
+}
 
 interface ReorderControlsHandle {
   focusButton: (direction: 'up' | 'down') => void
@@ -323,24 +356,146 @@ async function onSave() {
   })
 }
 
-defineExpose({ state })
+/**
+ * V2.2e — « Prévisualiser » must show the current editor content: save the
+ * draft first when it is dirty, aborting on failure (the save error is
+ * surfaced by the existing alert and a toast).
+ */
+async function onPreview() {
+  if (props.previewDisabled) return
+
+  const wasDirty = dirty.value
+  const outcome = await preparePreview()
+  if (!outcome.ok) {
+    toast.add({
+      title: outcome.error.title,
+      description: outcome.error.message,
+      color: 'error'
+    })
+    return
+  }
+
+  if (outcome.stale) {
+    toast.add({
+      title: 'Saisies très récentes non prévisualisées',
+      description: 'Vos dernières frappes n\'ont pas encore été enregistrées : la prévisualisation montre la version enregistrée.',
+      color: 'warning'
+    })
+  }
+
+  if (wasDirty) regenerateBlockKeys()
+  emit('preview')
+}
+
+/**
+ * V2.2e — Runs the publish command (same path as the toolbar button). Exposed
+ * so the preview overlay can publish from its banner; the caller decides
+ * whether to close the preview.
+ */
+async function requestPublish(): Promise<PageCommandOutcome> {
+  const outcome = await publish()
+
+  if (outcome.ok) {
+    regenerateBlockKeys()
+    toast.add({
+      title: 'Page mise en ligne',
+      description: outcome.stale
+        ? 'Votre page est en ligne. Les saisies effectuées pendant l\'enregistrement restent à enregistrer.'
+        : 'Votre page est maintenant visible sur votre site public.',
+      color: 'success'
+    })
+    emit('saved', outcome.page)
+    return outcome
+  }
+
+  toast.add({
+    title: outcome.error.title,
+    description: outcome.error.message,
+    color: 'error'
+  })
+  return outcome
+}
+
+async function confirmUnpublish() {
+  const outcome = await unpublish()
+  unpublishModalOpen.value = false
+
+  if (outcome.ok) {
+    toast.add({
+      title: 'Page dépubliée',
+      description: 'Cette page n\'apparaît plus sur votre site public.',
+      color: 'success'
+    })
+    emit('saved', outcome.page)
+    return
+  }
+
+  toast.add({
+    title: outcome.error.title,
+    description: outcome.error.message,
+    color: 'error'
+  })
+}
+
+defineExpose({ state, requestPublish })
 </script>
 
 <template>
   <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <p class="text-sm tabular-nums text-[color:var(--color-text-muted)]">
-        {{ state.blocks.length }} {{ state.blocks.length > 1 ? 'blocs' : 'bloc' }}
-      </p>
-      <UButton
-        color="primary"
-        icon="i-lucide-save"
-        :loading="saving"
-        :disabled="!dirty || saving"
-        @click="onSave"
-      >
-        Enregistrer
-      </UButton>
+      <div class="flex flex-wrap items-center gap-3">
+        <span :class="statusMeta.badge">
+          {{ statusMeta.label }}
+        </span>
+        <p class="text-sm tabular-nums text-[color:var(--color-text-muted)]">
+          {{ state.blocks.length }} {{ state.blocks.length > 1 ? 'blocs' : 'bloc' }}
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <UButton
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-eye"
+          class="min-h-11"
+          :disabled="previewDisabled || saving || publishing"
+          @click="onPreview"
+        >
+          Prévisualiser
+        </UButton>
+        <UButton
+          color="primary"
+          icon="i-lucide-save"
+          class="min-h-11"
+          :loading="saving"
+          :disabled="!dirty || saving || publishing"
+          @click="onSave"
+        >
+          Enregistrer
+        </UButton>
+        <UButton
+          color="primary"
+          variant="soft"
+          icon="i-lucide-upload-cloud"
+          class="min-h-11"
+          :loading="publishing"
+          :disabled="saving || publishing"
+          @click="requestPublish()"
+        >
+          {{ publishLabel }}
+        </UButton>
+        <UButton
+          v-if="state.status === 'published'"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-archive"
+          class="min-h-11"
+          :disabled="saving || publishing"
+          @click="unpublishModalOpen = true"
+        >
+          Dépublier
+        </UButton>
+      </div>
     </div>
 
     <UAlert
@@ -410,7 +565,12 @@ defineExpose({ state })
         v-for="(block, index) in state.blocks"
         :key="blockKey(index)"
         class="space-y-2 rounded-lg"
-        :class="dropTargetClass(index)"
+        :class="[
+          dropTargetClass(index),
+          isMissingAlt(index)
+            ? 'ring-2 ring-[color:var(--color-error-500)] ring-offset-2 ring-offset-[color:var(--color-surface-page)]'
+            : ''
+        ]"
         @dragover.prevent="onDragOver(index, $event)"
         @dragleave="onDragLeave(index, $event)"
         @drop.prevent="onDrop(index)"
@@ -503,6 +663,15 @@ defineExpose({ state })
       description="Le contenu de ce bloc sera retiré de la page. Cette action ne sera effective qu'après l'enregistrement."
       confirm-label="Supprimer"
       @confirm="confirmRemoveBlock"
+    />
+
+    <ConfirmActionModal
+      v-model:open="unpublishModalOpen"
+      title="Dépublier cette page ?"
+      description="La page sera retirée de votre site public et de votre menu. Vous pourrez la remettre en ligne à tout moment."
+      confirm-label="Dépublier"
+      :loading="publishing"
+      @confirm="confirmUnpublish"
     />
   </div>
 </template>

@@ -15,6 +15,7 @@ import type {
   ContentBlock,
   ImageBlockData,
   ProviderPageResponse,
+  ProviderPageStatus,
   UpdateProviderPageRequest
 } from '../api/pages.contract'
 import {
@@ -38,6 +39,13 @@ export interface PageEditorState {
   sortOrder: number
   seoTitle: string | null
   seoDescription: string | null
+  /**
+   * V2.2e — Publication status mirrored from the server so the editor can badge
+   * the page (`resolvePageStatus`) without owning a second source of truth.
+   */
+  status: ProviderPageStatus
+  publishedAt: string | null
+  hasUnpublishedChanges: boolean
   version: number
   /** Serialized editable payload at the last load/save, for `isDirty`. */
   baseline: string
@@ -63,6 +71,9 @@ export function createPageEditorState(page: ProviderPageResponse): PageEditorSta
     sortOrder: page.sortOrder,
     seoTitle: page.seoTitle,
     seoDescription: page.seoDescription,
+    status: page.status,
+    publishedAt: page.publishedAt,
+    hasUnpublishedChanges: page.hasUnpublishedChanges,
     version: page.version,
     baseline: editableSnapshot({ title: page.title, blocks })
   }
@@ -140,17 +151,56 @@ export function describeBlockMove(from: number, to: number, total: number): stri
  * baseline must advance to what the server just persisted — otherwise the next
  * save would replay a stale `expectedVersion` and the preserved edits would be
  * falsely reported as already saved.
+ *
+ * V2.2e — the publication fields also come from the server response. When
+ * newer local edits survived, `hasUnpublishedChanges` is recomputed from the
+ * local baseline instead of trusting the server flag (which only reflects what
+ * it persisted).
  */
 export function applySavedVersion(
   state: PageEditorState,
-  version: number,
+  page: Pick<
+    ProviderPageResponse,
+    'version' | 'status' | 'publishedAt' | 'hasUnpublishedChanges'
+  >,
   sent: UpdateProviderPageRequest
 ): PageEditorState {
-  return {
+  const next: PageEditorState = {
     ...state,
-    version,
+    version: page.version,
+    status: page.status,
+    publishedAt: page.publishedAt,
+    hasUnpublishedChanges: page.hasUnpublishedChanges,
     baseline: editableSnapshot({ title: sent.title, blocks: sent.contentBlocks })
   }
+  return isPageEditorDirty(next)
+    ? { ...next, hasUnpublishedChanges: next.status === 'published' }
+    : next
+}
+
+/**
+ * V2.2e — Applies a publish/unpublish server response while preserving unsaved
+ * local blocks (the command never touches the draft content). `version`,
+ * `status`, `publishedAt` and `hasUnpublishedChanges` follow the response; if
+ * local edits survived, the unpublished-changes flag is recomputed locally.
+ */
+export function applyCommandStatus(
+  state: PageEditorState,
+  page: Pick<
+    ProviderPageResponse,
+    'version' | 'status' | 'publishedAt' | 'hasUnpublishedChanges'
+  >
+): PageEditorState {
+  const next: PageEditorState = {
+    ...state,
+    version: page.version,
+    status: page.status,
+    publishedAt: page.publishedAt,
+    hasUnpublishedChanges: page.hasUnpublishedChanges
+  }
+  return isPageEditorDirty(next)
+    ? { ...next, hasUnpublishedChanges: next.status === 'published' }
+    : next
 }
 
 /**
@@ -208,12 +258,19 @@ export interface PageSaveError {
   title: string
   message: string
   code: string | null
+  /**
+   * V2.2e — Editor block indices flagged by the server as missing an image
+   * `alt` (`PAGE_CONTENT_INVALID.details.missingAltBlockIndices`). Present only
+   * on a refused publication.
+   */
+  missingAltBlockIndices?: number[]
 }
 
 interface ApiErrorLike {
   statusCode?: number
   code?: string
   message?: string
+  details?: Record<string, unknown>
 }
 
 function readApiError(error: unknown): ApiErrorLike | null {
@@ -224,13 +281,79 @@ function readApiError(error: unknown): ApiErrorLike | null {
   return {
     statusCode: typeof candidate.statusCode === 'number' ? candidate.statusCode : undefined,
     code: typeof candidate.code === 'string' ? candidate.code : undefined,
-    message: typeof candidate.message === 'string' ? candidate.message : undefined
+    message: typeof candidate.message === 'string' ? candidate.message : undefined,
+    details: isRecord(candidate.details) ? candidate.details : undefined
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 /**
- * Maps a `PUT /provider/pages/:id` failure to user-facing copy. The 409 wording
- * is verbatim from the UX spec (§4.2) and must not be paraphrased.
+ * V2.2e — Reads the server `missingAltBlockIndices` (indices into the
+ * **sanitized** payload sent to the API, i.e. excluding never-uploaded/orphan
+ * image blocks). Non-integer or negative entries are ignored.
+ */
+export function extractMissingAltBlockIndices(error: unknown): number[] {
+  const raw = readApiError(error)?.details?.missingAltBlockIndices
+  if (!Array.isArray(raw)) return []
+  return raw.filter(
+    (value): value is number => typeof value === 'number' && Number.isInteger(value) && value >= 0
+  )
+}
+
+/**
+ * V2.2e — Translates sanitized-payload indices back to positions in the
+ * editor's `state.blocks`. The mapping uses the exact same exclusion rule as
+ * `sanitizeContentBlocks` (`shouldExcludeImageBlockFromSave`), so a flagged
+ * image always resolves to the block the coach actually sees.
+ */
+export function mapSanitizedBlockIndicesToEditorIndices(
+  sanitizedIndices: readonly number[],
+  blocks: readonly ContentBlock[]
+): number[] {
+  const editorIndexBySanitizedIndex: number[] = []
+  blocks.forEach((block, editorIndex) => {
+    if (!shouldExcludeImageBlockFromSave(block)) {
+      editorIndexBySanitizedIndex.push(editorIndex)
+    }
+  })
+
+  return sanitizedIndices
+    .map(index => editorIndexBySanitizedIndex[index])
+    .filter((index): index is number => index !== undefined)
+}
+
+/** V2.2e — End-to-end mapping from a `PAGE_CONTENT_INVALID` error to editor blocks. */
+export function resolveMissingAltEditorIndices(
+  error: unknown,
+  blocks: readonly ContentBlock[]
+): number[] {
+  return mapSanitizedBlockIndicesToEditorIndices(
+    extractMissingAltBlockIndices(error),
+    blocks
+  )
+}
+
+/**
+ * V2.2e — Explicit French message naming the flagged blocks (1-based, as shown
+ * in the reorder bar).
+ */
+export function describeMissingAltBlocks(editorIndices: readonly number[]): string {
+  if (editorIndices.length === 0) return ''
+  const numbers = editorIndices.map(index => String(index + 1))
+  const list = numbers.length === 1
+    ? numbers[0]!
+    : `${numbers.slice(0, -1).join(', ')} et ${numbers[numbers.length - 1]}`
+  const plural = editorIndices.length > 1
+  return `${plural ? 'Les blocs' : 'Le bloc'} ${list} ${plural ? 'contiennent' : 'contient'} une image sans texte alternatif. Ajoutez une description, puis relancez la publication.`
+}
+
+/**
+ * Maps a `PUT /provider/pages/:id` (save) or publish/unpublish failure to
+ * user-facing copy. The 409 wording is verbatim from the UX spec (§4.2) and
+ * must not be paraphrased.
  */
 export function resolvePageSaveError(error: unknown): PageSaveError {
   const apiError = readApiError(error)
@@ -254,11 +377,15 @@ export function resolvePageSaveError(error: unknown): PageSaveError {
     || status === 422
     || status === 400
   ) {
+    const missingAltBlockIndices = extractMissingAltBlockIndices(error)
     return {
       kind: 'validation',
-      title: 'Enregistrement impossible',
-      message: 'Le contenu de la page est invalide. Vérifiez vos blocs puis réessayez.',
-      code
+      title: missingAltBlockIndices.length > 0 ? 'Publication impossible' : 'Enregistrement impossible',
+      message: missingAltBlockIndices.length > 0
+        ? 'Certaines images n\'ont pas de texte alternatif. Corrigez les blocs signalés, puis réessayez.'
+        : 'Le contenu de la page est invalide. Vérifiez vos blocs puis réessayez.',
+      code,
+      ...(missingAltBlockIndices.length > 0 ? { missingAltBlockIndices } : {})
     }
   }
 

@@ -13,8 +13,12 @@ import {
 } from '~/features/pages/domain/pages-list-view'
 import type { CreatePageErrorField } from '~/features/pages/domain/create-page-form'
 import type { ProviderPageListItem } from '~/features/pages/api/pages.contract'
+import { buildPreviewHeaderOverrides } from '~/features/pages/domain/preview-header-overrides'
+import { publishPreviewPage } from '~/features/pages/domain/preview-publish'
+import { publishProviderPage } from '~/features/pages/services/provider-pages.service'
 import { formatDateShort } from '~/composables/useDateFormat'
 import { useCoachLink } from '~/composables/useCoachLink'
+import ProviderPagePreviewOverlay from '~/components/organisms/ProviderPagePreviewOverlay.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -30,6 +34,7 @@ type PageActionItem = {
   target?: string
   rel?: string
   external?: boolean
+  disabled?: boolean
 }
 
 const toast = useToast()
@@ -104,6 +109,53 @@ const decoratedPages = computed(() =>
 const createModalOpen = ref(false)
 const createServerError = ref<{ field: CreatePageErrorField, message: string } | null>(null)
 
+const previewOpen = ref(false)
+const previewPageId = ref('')
+const previewPublishing = ref(false)
+
+/**
+ * V2.2e — Brand envelope of the private preview, built from the coach account
+ * and injected through `overrides` (no global public-header state mutation).
+ */
+const headerOverrides = computed(() => buildPreviewHeaderOverrides(providerAccount.account.value))
+
+/** The preview needs the resolved account for its brand envelope. */
+const previewEnabled = computed(() => providerAccount.account.value !== null)
+
+function openPreview(page: ProviderPageListItem) {
+  if (!previewEnabled.value) return
+  previewPageId.value = page.id
+  previewOpen.value = true
+}
+
+/**
+ * V2.2e — Publish from the preview banner (the list has no editor state). The
+ * publish→reload sequence lives in a testable helper; the page only toasts.
+ */
+async function handlePreviewPublish() {
+  previewPublishing.value = true
+  try {
+    const result = await publishPreviewPage(previewPageId.value, {
+      publish: publishProviderPage,
+      reload: load
+    })
+
+    if (result.ok) {
+      toast.add({
+        title: 'Page mise en ligne',
+        description: 'Votre page est maintenant visible sur votre site public.',
+        color: 'success'
+      })
+      return
+    }
+
+    toast.add({ title: result.error.title, description: result.error.message, color: 'error' })
+  } finally {
+    previewPublishing.value = false
+    previewOpen.value = false
+  }
+}
+
 function openCreateModal() {
   if (isLimitReached.value) return
   createServerError.value = null
@@ -148,6 +200,12 @@ function actionsFor(page: ProviderPageListItem): PageActionItem[] {
       onSelect: () => {
         void navigateTo(`/provider/pages/${page.id}`)
       }
+    },
+    {
+      label: 'Prévisualiser',
+      icon: 'i-lucide-eye',
+      disabled: !previewEnabled.value,
+      onSelect: () => openPreview(page)
     }
   ]
 
@@ -303,6 +361,15 @@ function menuLabel(page: ProviderPageListItem): string {
       :existing-slugs="existingSlugs"
       @submit="handleCreate"
       @clear-error="createServerError = null"
+    />
+
+    <ProviderPagePreviewOverlay
+      :open="previewOpen"
+      :page-id="previewPageId"
+      :header-overrides="headerOverrides ?? undefined"
+      :publishing="previewPublishing"
+      @close="previewOpen = false"
+      @publish="handlePreviewPublish"
     />
   </div>
 </template>

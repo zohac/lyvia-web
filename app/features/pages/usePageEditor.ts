@@ -1,11 +1,20 @@
 import type { ProviderPageResponse } from './api/pages.contract'
 import { createPageEditor } from './createPageEditor'
-import { updateProviderPage } from './services/provider-pages.service'
+import {
+  publishProviderPage,
+  unpublishProviderPage,
+  updateProviderPage
+} from './services/provider-pages.service'
 
 /**
- * V2.2b — Nuxt wrapper around `createPageEditor`, injecting the real `PUT`
- * transport. Mirrors `useProviderPages` / `createProviderPages`.
+ * V2.2b/V2.2e — Nuxt wrapper around `createPageEditor`, injecting the real
+ * draft and publication transports. Mirrors `useProviderPages` /
+ * `createProviderPages`.
  */
 export function usePageEditor(page: ProviderPageResponse) {
-  return createPageEditor(page, { update: updateProviderPage })
+  return createPageEditor(page, {
+    update: updateProviderPage,
+    publish: publishProviderPage,
+    unpublish: unpublishProviderPage
+  })
 }

@@ -162,7 +162,7 @@ describe('pages/domain — applySavedVersion', () => {
     const state = setEditorBlockHtml(createPageEditorState(makePage()), 0, '<p>local plus récent</p>')
     const sent = toUpdateProviderPageRequest(createPageEditorState(makePage()))
 
-    const next = applySavedVersion(state, 5, sent)
+    const next = applySavedVersion(state, makePage({ version: 5 }), sent)
 
     assert.equal(next.version, 5)
     assert.equal(readTextBlockHtml(next.blocks[0]!), '<p>local plus récent</p>')
