@@ -5,12 +5,21 @@ import * as assert from 'node:assert/strict'
 import test, { describe } from 'node:test'
 
 import {
+  appendImageBlock,
   appendTextBlock,
   canRemoveBlock,
+  createImageBlock,
   createTextBlock,
+  imageBlockDataFromUpload,
+  isImageBlock,
+  isOrphanImageBlock,
   isTextBlock,
+  markOrphanImageBlocks,
+  readImageBlockData,
   readTextBlockHtml,
   removeBlockAt,
+  shouldExcludeImageBlockFromSave,
+  updateImageBlockData,
   updateTextBlockHtml
 } from '../../app/features/pages/domain/content-blocks'
 import type { ContentBlock } from '../../app/features/pages/api/pages.contract'
@@ -79,5 +88,107 @@ describe('pages/domain — content blocks', () => {
     const blocks = [image('00000000-0000-0000-0000-000000000000')]
     assert.equal(updateTextBlockHtml(blocks, 0, '<p>x</p>')[0]?.type, 'image')
     assert.equal(updateTextBlockHtml(blocks, 5, '<p>x</p>')[0]?.type, 'image')
+  })
+})
+
+describe('pages/domain — image blocks (V2.2c)', () => {
+  test('createImageBlock produces the server block shape with an empty assetId', () => {
+    assert.deepEqual(createImageBlock(), { type: 'image', data: { assetId: '' } })
+    assert.deepEqual(createImageBlock({ assetId: 'a', alt: 'x' }), {
+      type: 'image',
+      data: { assetId: 'a', alt: 'x' }
+    })
+  })
+
+  test('isImageBlock / readImageBlockData narrow image blocks only', () => {
+    assert.equal(isImageBlock(image('00000000-0000-0000-0000-000000000000')), true)
+    assert.equal(isImageBlock(text('a')), false)
+    assert.deepEqual(readImageBlockData(image('00000000-0000-0000-0000-000000000000')), {
+      assetId: '00000000-0000-0000-0000-000000000000'
+    })
+    assert.equal(readImageBlockData(text('a')), null)
+  })
+
+  test('appendImageBlock adds an image block without mutating', () => {
+    const blocks = [text('<p>a</p>')]
+    const next = appendImageBlock(blocks, { assetId: 'a' })
+    assert.equal(next.length, 2)
+    assert.deepEqual(next[1], { type: 'image', data: { assetId: 'a' } })
+    assert.equal(blocks.length, 1)
+  })
+
+  test('updateImageBlockData merges a patch into the target image block only', () => {
+    const blocks = [image('a'), text('<p>t</p>')]
+    const next = updateImageBlockData(blocks, 0, { alt: 'décrit', url: 'https://cdn/x.webp' })
+    assert.deepEqual(next[0], {
+      type: 'image',
+      data: { assetId: 'a', alt: 'décrit', url: 'https://cdn/x.webp' }
+    })
+    assert.equal(updateImageBlockData(blocks, 5, { alt: 'z' })[0]?.type, 'image')
+  })
+
+  test('markOrphanImageBlocks marks orphan ONLY from the explicit server flag', () => {
+    const resolvedNoUrl: ContentBlock = { type: 'image', data: { assetId: 'a', url: null } }
+    const serverOrphan: ContentBlock = { type: 'image', data: { assetId: 'b', orphan: true } }
+
+    const [resolved, orphan] = markOrphanImageBlocks([resolvedNoUrl, serverOrphan])
+
+    assert.equal(isOrphanImageBlock(resolved!), false, 'missing url alone is never an orphan')
+    assert.deepEqual(resolved, { type: 'image', data: { assetId: 'a', url: null, orphan: false } })
+    assert.equal(isOrphanImageBlock(orphan!), true)
+  })
+
+  test('imageBlockDataFromUpload maps the upload result to block data, keeping assetId', () => {
+    const data = imageBlockDataFromUpload(
+      {
+        assetId: 'asset-1',
+        url: 'https://cdn/original.jpg',
+        optimizedUrl: 'https://cdn/original-optimized.webp'
+      },
+      { width: 1200, height: 800 }
+    )
+
+    assert.deepEqual(data, {
+      assetId: 'asset-1',
+      url: 'https://cdn/original-optimized.webp',
+      width: 1200,
+      height: 800,
+      orphan: false
+    })
+  })
+
+  test('imageBlockDataFromUpload falls back to url and server dimensions', () => {
+    const data = imageBlockDataFromUpload({
+      assetId: 'asset-2',
+      url: 'https://cdn/original.jpg',
+      optimizedUrl: null,
+      width: 640,
+      height: 480
+    })
+
+    assert.deepEqual(data, {
+      assetId: 'asset-2',
+      url: 'https://cdn/original.jpg',
+      width: 640,
+      height: 480,
+      orphan: false
+    })
+  })
+
+  test('shouldExcludeImageBlockFromSave excludes server orphans and never-uploaded blocks', () => {
+    assert.equal(
+      shouldExcludeImageBlockFromSave({ type: 'image', data: { assetId: '', orphan: false } }),
+      true
+    )
+    assert.equal(
+      shouldExcludeImageBlockFromSave({ type: 'image', data: { assetId: 'a', orphan: true } }),
+      true
+    )
+    assert.equal(
+      shouldExcludeImageBlockFromSave({ type: 'image', data: { assetId: 'a', url: null, orphan: false } }),
+      false,
+      'resolved block with missing url is kept'
+    )
+    assert.equal(shouldExcludeImageBlockFromSave(text('a')), false)
   })
 })

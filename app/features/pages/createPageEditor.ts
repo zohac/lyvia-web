@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import type {
   ContentBlock,
+  ImageBlockData,
   ProviderPageResponse,
   UpdateProviderPageRequest
 } from './api/pages.contract'
@@ -10,6 +11,7 @@ import {
   removeBlockAt
 } from './domain/content-blocks'
 import {
+  addEditorImageBlock,
   applySavedVersion,
   createPageEditorState,
   editableSnapshot,
@@ -17,6 +19,7 @@ import {
   resetPageEditorState,
   resolvePageSaveError,
   setEditorBlockHtml,
+  setEditorImageBlockData,
   setPageEditorBlocks,
   toUpdateProviderPageRequest,
   type PageEditorState,
@@ -63,6 +66,17 @@ export function createPageEditor(
 
   function setBlockHtml(index: number, html: string) {
     state.value = setEditorBlockHtml(state.value, index, html)
+  }
+
+  /** Appends an image block and returns its index (for focus). */
+  function addImageBlock(data?: Partial<ImageBlockData>): number {
+    state.value = addEditorImageBlock(state.value, data ?? {})
+    saveError.value = null
+    return state.value.blocks.length - 1
+  }
+
+  function setImageBlockData(index: number, patch: Partial<ImageBlockData>) {
+    state.value = setEditorImageBlockData(state.value, index, patch)
   }
 
   /** Appends an empty paragraph and returns its index (for focus). */
@@ -115,6 +129,8 @@ export function createPageEditor(
     setBlocks,
     setBlockHtml,
     addBlock,
+    addImageBlock,
+    setImageBlockData,
     removeBlock,
     clearError,
     save

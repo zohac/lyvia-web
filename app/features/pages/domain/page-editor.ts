@@ -13,10 +13,18 @@
  */
 import type {
   ContentBlock,
+  ImageBlockData,
   ProviderPageResponse,
   UpdateProviderPageRequest
 } from '../api/pages.contract'
-import { isTextBlock, updateTextBlockHtml } from './content-blocks'
+import {
+  appendImageBlock,
+  isTextBlock,
+  markOrphanImageBlocks,
+  shouldExcludeImageBlockFromSave,
+  updateImageBlockData,
+  updateTextBlockHtml
+} from './content-blocks'
 import { sanitizeHtmlContent } from './paste-sanitizer'
 
 export interface PageEditorState {
@@ -43,7 +51,7 @@ export function editableSnapshot(state: Pick<PageEditorState, 'title' | 'blocks'
 }
 
 export function createPageEditorState(page: ProviderPageResponse): PageEditorState {
-  const blocks = cloneBlocks(page.contentBlocks ?? [])
+  const blocks = markOrphanImageBlocks(cloneBlocks(page.contentBlocks ?? []))
   return {
     id: page.id,
     title: page.title,
@@ -86,6 +94,23 @@ export function setEditorBlockHtml(
   return { ...state, blocks: updateTextBlockHtml(state.blocks, index, html) }
 }
 
+/** Appends an image block (optionally pre-filled) at the end of the page. */
+export function addEditorImageBlock(
+  state: PageEditorState,
+  data: Partial<ImageBlockData> = {}
+): PageEditorState {
+  return { ...state, blocks: appendImageBlock(state.blocks, data) }
+}
+
+/** Merges a patch into the image block at `index`. */
+export function setEditorImageBlockData(
+  state: PageEditorState,
+  index: number,
+  patch: Partial<ImageBlockData>
+): PageEditorState {
+  return { ...state, blocks: updateImageBlockData(state.blocks, index, patch) }
+}
+
 /**
  * Applies a successful save when the coach kept editing DURING the request.
  *
@@ -109,21 +134,27 @@ export function applySavedVersion(
 /**
  * Sanitizes blocks before they hit the wire. Only text HTML is touched;
  * image/unknown blocks are passed through untouched.
+ *
+ * V2.2c — image blocks the server flagged `orphan` (or never uploaded,
+ * `assetId` empty) are EXCLUDED from the payload. A resolved block whose `url`
+ * is merely absent is never excluded (review 1).
  */
 export function sanitizeContentBlocks(
   blocks: readonly ContentBlock[]
 ): ContentBlock[] {
-  return blocks.map((block): ContentBlock => {
-    if (!isTextBlock(block)) return block
-    const links = block.data.links
-    return {
-      type: 'text',
-      data: {
-        html: sanitizeHtmlContent(block.data.html),
-        ...(links && links.length > 0 ? { links } : {})
+  return blocks
+    .filter(block => !shouldExcludeImageBlockFromSave(block))
+    .map((block): ContentBlock => {
+      if (!isTextBlock(block)) return block
+      const links = block.data.links
+      return {
+        type: 'text',
+        data: {
+          html: sanitizeHtmlContent(block.data.html),
+          ...(links && links.length > 0 ? { links } : {})
+        }
       }
-    }
-  })
+    })
 }
 
 export function toUpdateProviderPageRequest(

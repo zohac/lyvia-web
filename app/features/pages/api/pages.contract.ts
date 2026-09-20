@@ -37,6 +37,11 @@ export interface ImageBlockData {
   caption?: string
   width?: number | null
   height?: number | null
+  /**
+   * Explicit server flag: true only when the asset lookup succeeded and the
+   * asset is absent/not owned. Absence of `url` alone is never an orphan.
+   */
+  orphan?: boolean
 }
 
 export interface ImageContentBlock {

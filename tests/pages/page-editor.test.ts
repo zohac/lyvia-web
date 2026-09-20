@@ -117,6 +117,45 @@ describe('pages/domain — applySavedVersion', () => {
   })
 })
 
+describe('pages/domain — image blocks & orphan predicate (V2.2c)', () => {
+  test('a freshly loaded image block with a missing url is NOT dirty and NOT orphan', () => {
+    const state = createPageEditorState(makePage({
+      contentBlocks: [
+        { type: 'image', data: { assetId: '00000000-0000-0000-0000-000000000000', url: null } }
+      ]
+    }))
+
+    assert.equal(isPageEditorDirty(state), false)
+    assert.equal((state.blocks[0] as { data: { orphan?: boolean } }).data.orphan, false)
+  })
+
+  test('sanitizeContentBlocks drops server orphans and never-uploaded blocks, keeps resolved ones', () => {
+    const result = sanitizeContentBlocks([
+      { type: 'image', data: { assetId: 'a', orphan: true } },
+      { type: 'image', data: { assetId: '', orphan: false } },
+      { type: 'image', data: { assetId: 'b', url: null, orphan: false } },
+      { type: 'text', data: { html: '<p>Bonjour</p>' } }
+    ])
+
+    assert.equal(result.length, 2)
+    assert.deepEqual(result[0], { type: 'image', data: { assetId: 'b', url: null, orphan: false } })
+    assert.equal(result[1]?.type, 'text')
+  })
+
+  test('the save payload excludes orphaned blocks', () => {
+    const state = createPageEditorState(makePage({
+      contentBlocks: [
+        { type: 'text', data: { html: '<p>Bonjour</p>' } },
+        { type: 'image', data: { assetId: 'a', orphan: true } }
+      ]
+    }))
+
+    const payload = toUpdateProviderPageRequest(state)
+    assert.equal(payload.contentBlocks.length, 1)
+    assert.equal(payload.contentBlocks[0]?.type, 'text')
+  })
+})
+
 describe('pages/domain — save error mapping', () => {
   test('maps PAGE_CONCURRENT_MODIFICATION with the verbatim conflict copy', () => {
     const mapped = resolvePageSaveError({

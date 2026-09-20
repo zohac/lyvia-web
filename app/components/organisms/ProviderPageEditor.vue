@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import type { ContentBlock, ProviderPageResponse } from '~/features/pages/api/pages.contract'
+import type { ContentBlock, ImageBlockData, ProviderPageResponse } from '~/features/pages/api/pages.contract'
 import type { GuidedDestination } from '~/features/pages/domain/guided-links'
-import { isTextBlock, readTextBlockHtml } from '~/features/pages/domain/content-blocks'
+import { isImageBlock, isTextBlock, readImageBlockData, readTextBlockHtml } from '~/features/pages/domain/content-blocks'
 import { usePageEditor } from '~/features/pages/usePageEditor'
 import PageEditorTextBlock from '~/components/organisms/PageEditorTextBlock.vue'
+import BlockImageEditor from '~/components/organisms/BlockImageEditor.vue'
 import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 import PageBlockRenderer, { type ContentBlock as RendererContentBlock } from '~/components/molecules/PageBlockRenderer.vue'
 
@@ -43,6 +44,8 @@ const {
   reset,
   setBlockHtml,
   addBlock: appendBlock,
+  addImageBlock,
+  setImageBlockData,
   removeBlock,
   clearError,
   save
@@ -80,6 +83,22 @@ function addBlock() {
   void nextTick(() => {
     autofocusIndex.value = null
   })
+}
+
+function addImage() {
+  addImageBlock()
+}
+
+function updateImageBlockData(index: number, data: ImageBlockData) {
+  setImageBlockData(index, data)
+}
+
+function asImageData(block: ContentBlock): ImageBlockData {
+  return readImageBlockData(block) ?? { assetId: '' }
+}
+
+function isImage(block: ContentBlock): boolean {
+  return isImageBlock(block)
 }
 
 function requestRemoveBlock(index: number) {
@@ -174,13 +193,23 @@ defineExpose({ state })
       description="Ajoutez un premier paragraphe pour commencer à rédiger le contenu de votre page."
     >
       <template #action>
-        <UButton
-          color="primary"
-          icon="i-lucide-plus"
-          @click="addBlock"
-        >
-          Ajouter un paragraphe
-        </UButton>
+        <div class="flex flex-wrap items-center justify-center gap-2">
+          <UButton
+            color="primary"
+            icon="i-lucide-plus"
+            @click="addBlock"
+          >
+            Ajouter un paragraphe
+          </UButton>
+          <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-image-plus"
+            @click="addImage"
+          >
+            Ajouter une image
+          </UButton>
+        </div>
       </template>
     </AtomsDsEmptyState>
 
@@ -202,17 +231,28 @@ defineExpose({ state })
           @update:model-value="updateBlockHtml(index, $event)"
         />
 
+        <BlockImageEditor
+          v-else-if="isImage(block)"
+          :model-value="asImageData(block)"
+          :label="`Image ${index + 1}`"
+          @update:model-value="updateImageBlockData(index, $event)"
+          @remove="requestRemoveBlock(index)"
+        />
+
         <div
           v-else
           class="rounded-lg border border-dashed border-[color:var(--color-border-subtle)] p-3"
         >
           <p class="mb-2 text-xs text-[color:var(--color-text-muted)]">
-            Ce bloc image sera modifiable dans une prochaine version.
+            Ce bloc n'est pas modifiable dans cette version.
           </p>
           <PageBlockRenderer :blocks="asRendererBlocks(block)" />
         </div>
 
-        <div class="flex justify-end">
+        <div
+          v-if="isTextBlock(block)"
+          class="flex justify-end"
+        >
           <UButton
             color="error"
             variant="ghost"
@@ -227,15 +267,27 @@ defineExpose({ state })
       </div>
     </div>
 
-    <UButton
+    <div
       v-if="state.blocks.length > 0"
-      color="neutral"
-      variant="outline"
-      icon="i-lucide-plus"
-      @click="addBlock"
+      class="flex flex-wrap gap-2"
     >
-      Ajouter un paragraphe
-    </UButton>
+      <UButton
+        color="neutral"
+        variant="outline"
+        icon="i-lucide-plus"
+        @click="addBlock"
+      >
+        Ajouter un paragraphe
+      </UButton>
+      <UButton
+        color="neutral"
+        variant="outline"
+        icon="i-lucide-image-plus"
+        @click="addImage"
+      >
+        Ajouter une image
+      </UButton>
+    </div>
 
     <ConfirmActionModal
       v-model:open="removeModalOpen"

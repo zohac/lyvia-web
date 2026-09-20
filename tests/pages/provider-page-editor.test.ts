@@ -133,3 +133,24 @@ describe('pages/editor — /provider/pages/:id wiring', () => {
     assert.ok(page.includes('selectGuidedPages'))
   })
 })
+
+describe('pages/editor — image block wiring (V2.2c)', () => {
+  const editor = read('app/components/organisms/ProviderPageEditor.vue')
+
+  test('offers the image add action in the empty state and the add bar', () => {
+    assert.match(editor, /addImage/)
+    assert.ok(editor.includes('Ajouter une image'))
+  })
+
+  test('mounts the image block editor and routes removal through confirmation', () => {
+    assert.ok(editor.includes('BlockImageEditor'))
+    assert.match(editor, /@update:model-value="updateImageBlockData\(index, \$event\)"/)
+    assert.match(editor, /@remove="requestRemoveBlock\(index\)"/)
+    assert.match(editor, /function requestRemoveBlock\(index: number\)/)
+    assert.ok(editor.includes('setImageBlockData'))
+  })
+
+  test('does not render the placeholder image copy anymore', () => {
+    assert.ok(!editor.includes('Ce bloc image sera modifiable dans une prochaine version.'))
+  })
+})
