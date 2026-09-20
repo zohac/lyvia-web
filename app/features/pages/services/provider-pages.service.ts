@@ -1,4 +1,5 @@
 import { apiFetch } from '../../../services/api/apiFetch'
+import { buildUpdateProviderPageCall } from '../api/provider-pages.request'
 import type {
   CreateProviderPageRequest,
   ProviderPageListItem,
@@ -45,9 +46,6 @@ export async function updateProviderPage(
   id: string,
   payload: UpdateProviderPageRequest
 ): Promise<ProviderPageResponse> {
-  return await apiFetch<ProviderPageResponse>(`/provider/pages/${id}`, {
-    method: 'PUT',
-    withAuth: true,
-    body: payload
-  })
+  const { path, options } = buildUpdateProviderPageCall(id, payload)
+  return await apiFetch<ProviderPageResponse>(path, options)
 }

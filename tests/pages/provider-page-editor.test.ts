@@ -30,9 +30,16 @@ describe('pages/editor — PageEditorTextBlock', () => {
   })
 
   test('intercepts paste and normalizes through the shared sanitizer', () => {
-    assert.ok(block.includes('@paste="onPaste"'))
-    assert.ok(block.includes('sanitizeHtmlContent'))
-    assert.ok(block.includes('insertHTML'))
+    assert.match(block, /@paste="onPaste"/)
+    assert.match(block, /onPaste[\s\S]*?event\.preventDefault\(\)/)
+    assert.match(block, /onPaste[\s\S]*?resolvePasteSource\(/)
+    assert.ok(!block.includes('textToHtml'), 'the component must delegate text fallback to resolvePasteSource')
+  })
+
+  test('toolbar commands are reachable from a plain click (assistive tech activation)', () => {
+    assert.match(block, /@click="runCommand\(command\)"/)
+    assert.match(block, /@click="openLinkModal"/)
+    assert.match(block, /@mousedown\.prevent/)
   })
 
   test('every block-format command targets an allowlisted tag (I/O matrix: mise en forme)', () => {
@@ -51,8 +58,8 @@ describe('pages/editor — PageEditorTextBlock', () => {
   })
 
   test('opens the guided link modal and inserts the resolved anchor', () => {
-    assert.ok(block.includes('GuidedLinkModal'))
-    assert.ok(block.includes('@insert="onInsertLink"'))
+    assert.match(block, /<GuidedLinkModal/)
+    assert.match(block, /@insert="onInsertLink"/)
     assert.ok(block.includes('payload.rel'))
     assert.ok(block.includes('payload.target'))
   })
@@ -73,7 +80,7 @@ describe('pages/editor — GuidedLinkModal', () => {
   })
 
   test('validates external links and guarantees the new-tab rel', () => {
-    assert.ok(modal.includes('validateExternalLink'))
+    assert.match(modal, /buildExternalInsert\(validation\)/)
     assert.ok(modal.includes('Ouvrir dans un nouvel onglet'))
   })
 })
@@ -98,6 +105,10 @@ describe('pages/editor — ProviderPageEditor', () => {
     assert.ok(editor.includes('AtomsDsEmptyState'))
   })
 
+  test('passes the guided destinations down to every text block', () => {
+    assert.match(editor, /<PageEditorTextBlock[\s\S]*?:destinations="destinations"/)
+  })
+
   test('renders the conflict reload affordance for 409', () => {
     assert.ok(editor.includes('Recharger la dernière version'))
     assert.ok(editor.includes('reloadFromServer'))
@@ -113,6 +124,10 @@ describe('pages/editor — /provider/pages/:id wiring', () => {
   })
 
   test('builds guided destinations from useCoachLink and published pages', () => {
+    assert.match(page, /await loadDestinations\(\)/)
+    assert.match(page, /:destinations="destinations"/)
+    assert.match(page, /@reload="loadPage"/)
+    assert.match(page, /pricingEnabled: account\.sectionsConfig\?\.pricing/)
     assert.ok(page.includes('buildGuidedDestinations'))
     assert.ok(page.includes('useCoachLink'))
     assert.ok(page.includes('selectGuidedPages'))

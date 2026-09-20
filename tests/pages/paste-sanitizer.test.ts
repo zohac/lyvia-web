@@ -10,6 +10,7 @@ import test, { describe } from 'node:test'
 import {
   ALLOWED_TAGS,
   isSafeLinkHref,
+  resolvePasteSource,
   sanitizeHtmlContent
 } from '../../app/features/pages/domain/paste-sanitizer'
 
@@ -87,5 +88,31 @@ describe('pages/domain — paste sanitizer / HTML cleaning', () => {
   test('returns an empty string for falsy input', () => {
     assert.equal(sanitizeHtmlContent(''), '')
     assert.equal(sanitizeHtmlContent(null as unknown as string), '')
+  })
+})
+
+describe('pages/domain — paste source resolution', () => {
+  test('prefers the rich HTML flavour and sanitizes it', () => {
+    const output = resolvePasteSource({
+      html: '<div><p onclick="steal()">Bonjour</p></div>',
+      text: 'ignored'
+    })
+
+    assert.equal(output, '<p>Bonjour</p>')
+  })
+
+  test('falls back to escaped plain text when no HTML is available', () => {
+    const output = resolvePasteSource({ html: '   ', text: 'Bonjour\n<Sophie>' })
+
+    assert.equal(output, 'Bonjour<br>&lt;Sophie&gt;')
+  })
+
+  test('strips unsafe markup from the HTML flavour', () => {
+    const output = resolvePasteSource({
+      html: '<p>Voir <a href="javascript:alert(1)">ici</a></p>',
+      text: ''
+    })
+
+    assert.equal(output, '<p>Voir ici</p>')
   })
 })

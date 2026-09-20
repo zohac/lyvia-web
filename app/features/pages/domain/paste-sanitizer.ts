@@ -15,6 +15,7 @@
  * - If `target="_blank"`, `rel="noopener noreferrer"` is guaranteed.
  * - Every other tag, attribute, inline style and comment is stripped.
  */
+import { textToHtml } from './text-html'
 
 export const ALLOWED_TAGS: readonly string[] = [
   'p',
@@ -176,9 +177,27 @@ function escapeHtmlAttribute(str: string): string {
   return str
     // Escape only BARE ampersands: an href may already carry entities (e.g.
     // `&amp;`) and re-encoding them would corrupt the URL on every save.
+    // Keep this regex in sync with the server sanitizer (`page-content-sanitizer.ts`).
     .replace(/&(?!(?:[a-zA-Z][a-zA-Z0-9]*|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+}
+
+export interface PasteSource {
+  html: string
+  text: string
+}
+
+/**
+ * Resolves the clipboard payload of a paste into allowlisted HTML:
+ * the rich `text/html` flavour wins, otherwise the plain-text flavour is
+ * escaped and newline-converted. Always sanitized, so a paste can never
+ * inject a tag/attribute the server would strip or reject.
+ */
+export function resolvePasteSource(source: PasteSource): string {
+  const hasHtml = typeof source.html === 'string' && source.html.trim().length > 0
+  const raw = hasHtml ? source.html : textToHtml(source.text ?? '')
+  return sanitizeHtmlContent(raw)
 }

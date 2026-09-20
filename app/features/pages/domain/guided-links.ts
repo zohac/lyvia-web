@@ -52,6 +52,14 @@ export interface GuidedDestinationsInput {
   booking: string
   /** Published provider pages (already filtered by the caller). */
   pages: readonly GuidedPageOption[]
+  /**
+   * Whether the coach's public page exposes its `#tarifs` section. The section
+   * is rendered conditionally (`sectionsConfig.pricing` toggle + pricing
+   * content), so linking to it while it is off would create a dead anchor.
+   * `undefined` (unknown) keeps the entries, mirroring `isToggleOn`: a toggle
+   * absent from `sectionsConfig` is considered ON.
+   */
+  pricingEnabled?: boolean
 }
 
 export interface GuidedDestination {
@@ -90,6 +98,10 @@ export function buildPageHref(site: string, pageSlug: string): string {
 /**
  * Builds the ordered catalogue of safe destinations: discovery, pricing,
  * programmes (single `/#tarifs` entry) and every published page.
+ *
+ * The pricing/programmes entries are omitted when the coach's `#tarifs`
+ * section is explicitly disabled, so a guided link can never target a
+ * conditionally-rendered anchor that does not exist on the public page.
  */
 export function buildGuidedDestinations(
   input: GuidedDestinationsInput
@@ -100,20 +112,25 @@ export function buildGuidedDestinations(
       label: 'Séance Découverte',
       description: 'Réserver une séance découverte',
       href: input.booking
-    },
-    {
-      id: 'pricing',
-      label: 'Formules & Tarifs',
-      description: 'Voir les formules et les tarifs',
-      href: buildSiteHref(input.site, GUIDED_PRICING_ANCHOR)
-    },
-    {
-      id: 'programs',
-      label: 'Mes programmes',
-      description: 'Voir la présentation des programmes',
-      href: buildSiteHref(input.site, GUIDED_PRICING_ANCHOR)
     }
   ]
+
+  if (input.pricingEnabled !== false) {
+    destinations.push(
+      {
+        id: 'pricing',
+        label: 'Formules & Tarifs',
+        description: 'Voir les formules et les tarifs',
+        href: buildSiteHref(input.site, GUIDED_PRICING_ANCHOR)
+      },
+      {
+        id: 'programs',
+        label: 'Mes programmes',
+        description: 'Voir la présentation des programmes',
+        href: buildSiteHref(input.site, GUIDED_PRICING_ANCHOR)
+      }
+    )
+  }
 
   for (const page of input.pages) {
     destinations.push({
@@ -159,4 +176,19 @@ export function validateExternalLink(input: ExternalLinkInput): ExternalLinkVali
     return { ok: true, href: url, target: '_blank', rel: 'noopener noreferrer' }
   }
   return { ok: true, href: url }
+}
+
+/**
+ * Builds the insertion payload from a successful validation. Pure so the
+ * `target`/`rel` guarantee is unit-tested independently of the modal.
+ */
+export function buildExternalInsert(
+  validation: Extract<ExternalLinkValidation, { ok: true }>
+): GuidedLinkInsert {
+  return {
+    href: validation.href,
+    label: validation.href,
+    ...(validation.target ? { target: validation.target } : {}),
+    ...(validation.rel ? { rel: validation.rel } : {})
+  }
 }

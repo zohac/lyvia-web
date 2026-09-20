@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { sanitizeHtmlContent } from '~/features/pages/domain/paste-sanitizer'
-import { escapeHtml, textToHtml } from '~/features/pages/domain/text-html'
+import { resolvePasteSource, sanitizeHtmlContent } from '~/features/pages/domain/paste-sanitizer'
+import { escapeHtml } from '~/features/pages/domain/text-html'
 import type { GuidedDestination, GuidedLinkInsert } from '~/features/pages/domain/guided-links'
 import GuidedLinkModal from '~/components/organisms/GuidedLinkModal.vue'
 
@@ -133,10 +133,10 @@ function onPaste(event: ClipboardEvent) {
   if (!clipboard) return
 
   event.preventDefault()
-  const html = clipboard.getData('text/html')
-  const text = clipboard.getData('text/plain')
-  const source = html && html.trim().length > 0 ? html : textToHtml(text)
-  const safeHtml = sanitizeHtmlContent(source)
+  const safeHtml = resolvePasteSource({
+    html: clipboard.getData('text/html'),
+    text: clipboard.getData('text/plain')
+  })
 
   document.execCommand('insertHTML', false, safeHtml)
   syncFromDom()
@@ -209,7 +209,8 @@ function onInsertLink(payload: GuidedLinkInsert) {
           :aria-pressed="['bold', 'italic', 'underline'].includes(command.id) ? isActive(command.id) : undefined"
           class="inline-flex size-8 items-center justify-center rounded-md text-[color:var(--color-text-secondary)] transition-colors hover:bg-[color:var(--color-surface-highlight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-primary)]"
           :class="{ 'bg-[color:var(--color-surface-highlight)] text-[color:var(--color-brand-primary)]': isActive(command.id) }"
-          @mousedown.prevent="runCommand(command)"
+          @mousedown.prevent
+          @click="runCommand(command)"
           @keydown.enter.prevent="runCommand(command)"
           @keydown.space.prevent="runCommand(command)"
         >
@@ -230,7 +231,8 @@ function onInsertLink(payload: GuidedLinkInsert) {
         aria-label="Insérer un lien"
         title="Insérer un lien"
         class="inline-flex size-8 items-center justify-center rounded-md text-[color:var(--color-text-secondary)] transition-colors hover:bg-[color:var(--color-surface-highlight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-primary)]"
-        @mousedown.prevent="openLinkModal"
+        @mousedown.prevent
+        @click="openLinkModal"
         @keydown.enter.prevent="openLinkModal"
         @keydown.space.prevent="openLinkModal"
       >

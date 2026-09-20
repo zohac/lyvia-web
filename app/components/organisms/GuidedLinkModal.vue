@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import {
+  buildExternalInsert,
   validateExternalLink,
   type GuidedDestination,
   type GuidedLinkInsert
@@ -34,7 +35,7 @@ const selectedId = ref<string | null>(null)
 const externalUrl = ref('')
 const openInNewTab = ref(false)
 const externalError = ref<string | null>(null)
-const urlInputRef = ref<{ focus: () => void } | null>(null)
+const urlInputRef = ref<{ inputRef: HTMLInputElement | null } | null>(null)
 
 const tabItems = [
   { label: 'Destinations du site', value: 'site' as const },
@@ -59,7 +60,7 @@ watch(
 
 watch(activeTab, (tab) => {
   if (tab !== 'external') return
-  nextTick(() => urlInputRef.value?.focus())
+  nextTick(() => urlInputRef.value?.inputRef?.focus())
 })
 
 // Destinations are loaded asynchronously by the page: when they arrive after
@@ -92,12 +93,7 @@ function insertExternal() {
     return
   }
   externalError.value = null
-  emit('insert', {
-    href: validation.href,
-    label: validation.href,
-    ...(validation.target ? { target: validation.target } : {}),
-    ...(validation.rel ? { rel: validation.rel } : {})
-  })
+  emit('insert', buildExternalInsert(validation))
   close()
 }
 </script>

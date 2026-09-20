@@ -12,6 +12,7 @@ import {
   EXTERNAL_LINK_INVALID_MESSAGE,
   EXTERNAL_LINK_REQUIRED_MESSAGE,
   GUIDED_PRICING_ANCHOR,
+  buildExternalInsert,
   buildGuidedDestinations,
   buildPageHref,
   buildSiteHref,
@@ -65,6 +66,43 @@ describe('pages/domain — guided destinations (custom domain)', () => {
     })
     assert.equal(custom.find(entry => entry.id === 'pricing')!.href, 'https://sophiejouan.fr/#tarifs')
     assert.equal(custom[0]!.href, 'https://sophiejouan.fr/onboarding/discovery')
+  })
+})
+
+describe('pages/domain — pricing section visibility', () => {
+  const base = {
+    site: '/coach/sophie',
+    booking: '/coach/sophie/onboarding/discovery',
+    pages: []
+  }
+
+  test('keeps pricing and programmes when the toggle is on', () => {
+    const ids = buildGuidedDestinations({ ...base, pricingEnabled: true }).map(entry => entry.id)
+
+    assert.deepEqual(ids, ['discovery', 'pricing', 'programs'])
+  })
+
+  test('keeps pricing and programmes when the toggle is unknown (absent means ON)', () => {
+    const ids = buildGuidedDestinations({ ...base }).map(entry => entry.id)
+
+    assert.deepEqual(ids, ['discovery', 'pricing', 'programs'])
+  })
+
+  test('omits the dead #tarifs entries when the section is explicitly disabled', () => {
+    const entries = buildGuidedDestinations({ ...base, pricingEnabled: false })
+
+    assert.deepEqual(entries.map(entry => entry.id), ['discovery'])
+    assert.ok(!entries.some(entry => entry.href.includes('#tarifs')))
+  })
+
+  test('keeps published pages even when pricing is disabled', () => {
+    const entries = buildGuidedDestinations({
+      ...base,
+      pricingEnabled: false,
+      pages: [{ slug: 'mes-conseils', title: 'Mes conseils' }]
+    })
+
+    assert.deepEqual(entries.map(entry => entry.id), ['discovery', 'page:mes-conseils'])
   })
 })
 
@@ -147,5 +185,42 @@ describe('pages/domain — external link validation', () => {
       assert.equal(result.target, undefined)
       assert.equal(result.rel, undefined)
     }
+  })
+})
+
+describe('pages/domain — external insert payload', () => {
+  test('carries target and rel when the new-tab option is on', () => {
+    const validation = validateExternalLink({ url: 'https://example.com', newTab: true })
+    assert.equal(validation.ok, true)
+    if (!validation.ok) return
+
+    const payload = buildExternalInsert(validation)
+
+    assert.equal(payload.href, 'https://example.com')
+    assert.equal(payload.label, 'https://example.com')
+    assert.equal(payload.target, '_blank')
+    assert.equal(payload.rel, 'noopener noreferrer')
+  })
+
+  test('carries no target/rel when the new-tab option is off', () => {
+    const validation = validateExternalLink({ url: 'https://example.com', newTab: false })
+    assert.equal(validation.ok, true)
+    if (!validation.ok) return
+
+    const payload = buildExternalInsert(validation)
+
+    assert.equal(payload.target, undefined)
+    assert.equal(payload.rel, undefined)
+  })
+
+  test('never adds a target to mailto links', () => {
+    const validation = validateExternalLink({ url: 'mailto:contact@sophiejouan.fr', newTab: true })
+    assert.equal(validation.ok, true)
+    if (!validation.ok) return
+
+    const payload = buildExternalInsert(validation)
+
+    assert.equal(payload.target, undefined)
+    assert.equal(payload.rel, undefined)
   })
 })

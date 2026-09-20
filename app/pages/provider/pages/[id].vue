@@ -69,7 +69,8 @@ async function loadDestinations() {
   destinations.value = buildGuidedDestinations({
     site: link.site,
     booking: link.booking,
-    pages: publishedPages
+    pages: publishedPages,
+    pricingEnabled: account.sectionsConfig?.pricing
   })
 }
 

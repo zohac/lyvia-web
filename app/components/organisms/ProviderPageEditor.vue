@@ -109,7 +109,7 @@ async function onSave() {
     toast.add({
       title: 'Page enregistrée',
       description: outcome.stale
-        ? 'Vos modifications ont été enregistrées. Vos dernières saisies n\'ont pas été écrasées.'
+        ? 'Vos modifications ont été enregistrées. Les saisies effectuées pendant l\'enregistrement restent à enregistrer.'
         : 'Vos modifications ont été enregistrées.',
       color: 'success'
     })
