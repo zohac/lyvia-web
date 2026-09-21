@@ -291,16 +291,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * V2.2e — Reads the server `missingAltBlockIndices` (indices into the
- * **sanitized** payload sent to the API, i.e. excluding never-uploaded/orphan
- * image blocks). Non-integer or negative entries are ignored.
+ * V2.2e — Reads the server `missingAltBlockIndices`. Non-integer or negative
+ * entries are ignored and duplicates are collapsed (the server may report the
+ * same block twice).
  */
 export function extractMissingAltBlockIndices(error: unknown): number[] {
   const raw = readApiError(error)?.details?.missingAltBlockIndices
   if (!Array.isArray(raw)) return []
-  return raw.filter(
+  const valid = raw.filter(
     (value): value is number => typeof value === 'number' && Number.isInteger(value) && value >= 0
   )
+  return [...new Set(valid)]
 }
 
 /**
@@ -325,15 +326,28 @@ export function mapSanitizedBlockIndicesToEditorIndices(
     .filter((index): index is number => index !== undefined)
 }
 
-/** V2.2e — End-to-end mapping from a `PAGE_CONTENT_INVALID` error to editor blocks. */
+/**
+ * V2.2e — Resolves the server indices to positions in the editor's
+ * `state.blocks`.
+ *
+ * `projected` must be `true` only when a save payload was actually sent to the
+ * API before the failing command: the server then validated the **sanitized**
+ * payload (never-uploaded/orphan image blocks dropped), so the indices need the
+ * same projection. When no save was sent (publishing a clean page), the server
+ * validated the stored draft, whose block list matches the editor's, so the
+ * mapping is the identity — projecting would shift every index past an orphan
+ * block and highlight the wrong block (or none).
+ */
 export function resolveMissingAltEditorIndices(
   error: unknown,
-  blocks: readonly ContentBlock[]
+  blocks: readonly ContentBlock[],
+  projected: boolean
 ): number[] {
-  return mapSanitizedBlockIndicesToEditorIndices(
-    extractMissingAltBlockIndices(error),
-    blocks
-  )
+  const serverIndices = extractMissingAltBlockIndices(error)
+  const editorIndices = projected
+    ? mapSanitizedBlockIndicesToEditorIndices(serverIndices, blocks)
+    : serverIndices
+  return [...new Set(editorIndices)].filter(index => index < blocks.length)
 }
 
 /**
@@ -351,14 +365,25 @@ export function describeMissingAltBlocks(editorIndices: readonly number[]): stri
 }
 
 /**
+ * Which command failed: a draft save or a publication toggle. Only the generic
+ * fallbacks differ ("Enregistrement" vs "Publication"), so the message never
+ * tells a coach a publish failed to *save*.
+ */
+export type PageErrorContext = 'save' | 'publication'
+
+/**
  * Maps a `PUT /provider/pages/:id` (save) or publish/unpublish failure to
  * user-facing copy. The 409 wording is verbatim from the UX spec (§4.2) and
  * must not be paraphrased.
  */
-export function resolvePageSaveError(error: unknown): PageSaveError {
+export function resolvePageSaveError(
+  error: unknown,
+  context: PageErrorContext = 'save'
+): PageSaveError {
   const apiError = readApiError(error)
   const code = apiError?.code ?? null
   const status = apiError?.statusCode
+  const fallbackTitle = context === 'publication' ? 'Publication impossible' : 'Enregistrement impossible'
 
   // Only the optimistic-locking code is a conflict; a bare 409 (e.g. an
   // unrelated duplicate) must not be presented as a page-edit conflict.
@@ -380,10 +405,12 @@ export function resolvePageSaveError(error: unknown): PageSaveError {
     const missingAltBlockIndices = extractMissingAltBlockIndices(error)
     return {
       kind: 'validation',
-      title: missingAltBlockIndices.length > 0 ? 'Publication impossible' : 'Enregistrement impossible',
+      title: missingAltBlockIndices.length > 0 ? 'Publication impossible' : fallbackTitle,
       message: missingAltBlockIndices.length > 0
-        ? 'Certaines images n\'ont pas de texte alternatif. Corrigez les blocs signalés, puis réessayez.'
-        : 'Le contenu de la page est invalide. Vérifiez vos blocs puis réessayez.',
+        ? 'Certaines images n\'ont pas de texte alternatif. Ouvrez la page dans l\'éditeur, corrigez les blocs signalés, puis réessayez.'
+        : context === 'publication'
+          ? 'Le contenu de la page empêche sa mise en ligne. Vérifiez vos blocs puis réessayez.'
+          : 'Le contenu de la page est invalide. Vérifiez vos blocs puis réessayez.',
       code,
       ...(missingAltBlockIndices.length > 0 ? { missingAltBlockIndices } : {})
     }
@@ -418,8 +445,10 @@ export function resolvePageSaveError(error: unknown): PageSaveError {
 
   return {
     kind: 'network',
-    title: 'Enregistrement impossible',
-    message: 'Impossible d\'enregistrer. Vérifiez votre connexion et réessayez.',
+    title: fallbackTitle,
+    message: context === 'publication'
+      ? 'Impossible de mettre la page en ligne. Vérifiez votre connexion et réessayez.'
+      : 'Impossible d\'enregistrer. Vérifiez votre connexion et réessayez.',
     code
   }
 }

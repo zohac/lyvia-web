@@ -13,8 +13,9 @@ import {
 } from '~/features/pages/domain/pages-list-view'
 import type { CreatePageErrorField } from '~/features/pages/domain/create-page-form'
 import type { ProviderPageListItem } from '~/features/pages/api/pages.contract'
-import { buildPreviewHeaderOverrides } from '~/features/pages/domain/preview-header-overrides'
+import { buildPreviewHeaderOverrides, isPreviewEnabled } from '~/features/pages/domain/preview-header-overrides'
 import { publishPreviewPage } from '~/features/pages/domain/preview-publish'
+import type { PageSaveError } from '~/features/pages/domain/page-editor'
 import { publishProviderPage } from '~/features/pages/services/provider-pages.service'
 import { formatDateShort } from '~/composables/useDateFormat'
 import { useCoachLink } from '~/composables/useCoachLink'
@@ -112,6 +113,7 @@ const createServerError = ref<{ field: CreatePageErrorField, message: string } |
 const previewOpen = ref(false)
 const previewPageId = ref('')
 const previewPublishing = ref(false)
+const previewError = ref<PageSaveError | null>(null)
 
 /**
  * V2.2e — Brand envelope of the private preview, built from the coach account
@@ -119,11 +121,12 @@ const previewPublishing = ref(false)
  */
 const headerOverrides = computed(() => buildPreviewHeaderOverrides(providerAccount.account.value))
 
-/** The preview needs the resolved account for its brand envelope. */
-const previewEnabled = computed(() => providerAccount.account.value !== null)
+/** Shared predicate: the preview needs the resolved account for its envelope. */
+const previewEnabled = computed(() => isPreviewEnabled(providerAccount.account.value))
 
 function openPreview(page: ProviderPageListItem) {
   if (!previewEnabled.value) return
+  previewError.value = null
   previewPageId.value = page.id
   previewOpen.value = true
 }
@@ -131,28 +134,38 @@ function openPreview(page: ProviderPageListItem) {
 /**
  * V2.2e — Publish from the preview banner (the list has no editor state). The
  * publish→reload sequence lives in a testable helper; the page only toasts.
+ * On failure the preview stays open and shows the error inside the overlay.
  */
 async function handlePreviewPublish() {
   previewPublishing.value = true
+  previewError.value = null
   try {
     const result = await publishPreviewPage(previewPageId.value, {
       publish: publishProviderPage,
       reload: load
     })
 
-    if (result.ok) {
-      toast.add({
-        title: 'Page mise en ligne',
-        description: 'Votre page est maintenant visible sur votre site public.',
-        color: 'success'
-      })
+    if (!result.ok) {
+      previewError.value = result.error
       return
     }
 
-    toast.add({ title: result.error.title, description: result.error.message, color: 'error' })
+    previewOpen.value = false
+    if (result.reloadFailed) {
+      toast.add({
+        title: 'Page mise en ligne',
+        description: 'Votre page est en ligne, mais la liste n\'a pas pu être actualisée.',
+        color: 'warning'
+      })
+      return
+    }
+    toast.add({
+      title: 'Page mise en ligne',
+      description: 'Votre page est maintenant visible sur votre site public.',
+      color: 'success'
+    })
   } finally {
     previewPublishing.value = false
-    previewOpen.value = false
   }
 }
 
@@ -368,6 +381,8 @@ function menuLabel(page: ProviderPageListItem): string {
       :page-id="previewPageId"
       :header-overrides="headerOverrides ?? undefined"
       :publishing="previewPublishing"
+      :publish-error="previewError"
+      close-label="Fermer"
       @close="previewOpen = false"
       @publish="handlePreviewPublish"
     />

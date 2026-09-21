@@ -200,23 +200,31 @@ export function createPageEditor(
       if (!saved.ok) return { ok: false, error: saved.error }
       // Edits typed during the save are NOT part of the published version and
       // must survive: do not reset their blocks away (stale save).
-      if (saved.stale) return await runStatusCommand(() => deps.publish(state.value.id), true, true)
+      if (saved.stale) {
+        return await runStatusCommand(() => deps.publish(state.value.id), true, true, true)
+      }
+      // A save payload was sent → the server validated the sanitized blocks.
+      return await runStatusCommand(() => deps.publish(state.value.id), false, false, true)
     }
 
-    return await runStatusCommand(() => deps.publish(state.value.id), false)
+    // No save sent → the server validated the stored draft, whose block list
+    // matches the editor's (identity index mapping).
+    return await runStatusCommand(() => deps.publish(state.value.id), false, false, false)
   }
 
   /** V2.2e — Unpublishes the page (confirmation is owned by the UI). */
   async function unpublish(): Promise<PageCommandOutcome> {
     missingAltBlockIndices.value = []
     saveError.value = null
-    return await runStatusCommand(() => deps.unpublish(state.value.id), dirty.value)
+    return await runStatusCommand(() => deps.unpublish(state.value.id), dirty.value, false, false)
   }
 
   async function runStatusCommand(
     command: () => Promise<ProviderPageResponse>,
     preserveLocalBlocks: boolean,
-    staleBefore = false
+    staleBefore: boolean,
+    /** True when a save payload was sent, so server indices are projected. */
+    projected: boolean
   ): Promise<PageCommandOutcome> {
     // Same in-flight protection as `save()`: edits typed while the command is
     // running must never be overwritten by the older server snapshot.
@@ -230,8 +238,8 @@ export function createPageEditor(
         : resetPageEditorState(page)
       return { ok: true, page, stale: staleBefore || staleDuringCommand }
     } catch (error: unknown) {
-      const mapped = resolvePageSaveError(error)
-      const editorIndices = resolveMissingAltEditorIndices(error, state.value.blocks)
+      const mapped = resolvePageSaveError(error, 'publication')
+      const editorIndices = resolveMissingAltEditorIndices(error, state.value.blocks, projected)
       if (editorIndices.length > 0) {
         mapped.missingAltBlockIndices = editorIndices
         mapped.title = 'Publication impossible'

@@ -11,8 +11,11 @@
 withDefaults(defineProps<{
   /** Disables/locks the publish button while the command is in flight. */
   publishing?: boolean
+  /** Contextual close label ("Revenir à l'éditeur" from the editor). */
+  closeLabel?: string
 }>(), {
-  publishing: false
+  publishing: false,
+  closeLabel: 'Revenir à l\'éditeur'
 })
 
 const emit = defineEmits<{
@@ -42,9 +45,10 @@ const emit = defineEmits<{
         variant="soft"
         icon="i-lucide-arrow-left"
         class="min-h-11"
+        :disabled="publishing"
         @click="emit('close')"
       >
-        Revenir à l'éditeur
+        {{ closeLabel }}
       </UButton>
       <UButton
         color="primary"

@@ -1,11 +1,12 @@
 /**
- * V2.2e — Pure builder for the brand envelope of the private page preview.
+ * V2.2e — Pure builders for the private page preview.
  *
- * Extracted from `[id].vue` / `index.vue` (was duplicated verbatim) so the
- * white-label header/footer overrides are built in one place and unit-tested.
- * The returned object is structurally assignable to
- * `Partial<PublicHeaderState>` without importing the Nuxt-bound state module.
+ * `buildPreviewHeaderOverrides` produces the white-label header/footer
+ * overrides from the coach account (shared by the editor and the list screens);
+ * `isPreviewEnabled` is the single predicate both screens use to keep the
+ * preview action disabled until the account resolves.
  */
+import type { PublicHeaderState } from '../../public/state/public-header.state'
 
 export interface PreviewHeaderAccount {
   brandName?: string | null
@@ -13,28 +14,21 @@ export interface PreviewHeaderAccount {
   logoUrl?: string | null
 }
 
-export interface PreviewHeaderOverrides {
-  variant: 'white-label'
-  layoutStyle: 'dock'
-  brandLabel: string
-  brandLogoSrc?: string
-  brandTo: string
-  showBrandIcon: boolean
-  navLinks: { label: string, href: string }[]
-  loginLabel: string
-  loginTo: string
-  ctaLabel: string
-  ctaTo: string
+/** The preview needs a resolved account to build its brand envelope. */
+export function isPreviewEnabled(
+  account: PreviewHeaderAccount | null | undefined
+): boolean {
+  return account != null
 }
 
 /**
  * Builds the overrides from the coach account. Returns `null` when the account
- * is not resolved yet, so callers can keep the preview action disabled instead
- * of falling back to the default (Keova) envelope.
+ * is not resolved yet, so callers keep the preview action disabled instead of
+ * falling back to the default (Keova) envelope.
  */
 export function buildPreviewHeaderOverrides(
   account: PreviewHeaderAccount | null | undefined
-): PreviewHeaderOverrides | null {
+): Partial<PublicHeaderState> | null {
   if (!account) return null
 
   return {

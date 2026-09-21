@@ -366,14 +366,9 @@ async function onPreview() {
 
   const wasDirty = dirty.value
   const outcome = await preparePreview()
-  if (!outcome.ok) {
-    toast.add({
-      title: outcome.error.title,
-      description: outcome.error.message,
-      color: 'error'
-    })
-    return
-  }
+  // The save error is already surfaced by the editor's `saveError` alert —
+  // do not toast it again (double surface).
+  if (!outcome.ok) return
 
   if (outcome.stale) {
     toast.add({

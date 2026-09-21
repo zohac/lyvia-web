@@ -4,8 +4,9 @@ import { getProviderPage, listProviderPages } from '~/features/pages/services/pr
 import type { ProviderPageResponse } from '~/features/pages/api/pages.contract'
 import { buildGuidedDestinations, selectGuidedPages, type GuidedDestination } from '~/features/pages/domain/guided-links'
 import { shouldLoadProviderPages } from '~/features/pages/domain/pages-list-view'
-import { buildPreviewHeaderOverrides } from '~/features/pages/domain/preview-header-overrides'
+import { buildPreviewHeaderOverrides, isPreviewEnabled } from '~/features/pages/domain/preview-header-overrides'
 import type { PageCommandOutcome } from '~/features/pages/createPageEditor'
+import type { PageSaveError } from '~/features/pages/domain/page-editor'
 import { useProviderAccount } from '~/features/account/useProviderAccount'
 import { useCoachLink } from '~/composables/useCoachLink'
 import { useFeatureGate } from '~/features/plans/useFeatureGate'
@@ -31,6 +32,7 @@ const errorMessage = ref<string | null>(null)
 const destinations = ref<GuidedDestination[]>([])
 const previewOpen = ref(false)
 const previewPublishing = ref(false)
+const previewError = ref<PageSaveError | null>(null)
 
 const providerAccount = useProviderAccount()
 const gate = useFeatureGate()
@@ -49,16 +51,28 @@ const editorRef = ref<PageEditorHandle | null>(null)
  */
 const headerOverrides = computed(() => buildPreviewHeaderOverrides(providerAccount.account.value))
 
+/** Shared predicate: the preview needs the resolved account for its envelope. */
+const previewEnabled = computed(() => isPreviewEnabled(providerAccount.account.value))
+
+function openPreview() {
+  previewError.value = null
+  previewOpen.value = true
+}
+
 /**
- * V2.2e — Publish from the preview banner: the editor runs the command (toast +
- * error surface). The preview closes only on success so a refused publication
- * keeps the coach in context.
+ * V2.2e — Publish from the preview banner: the editor runs the command. The
+ * preview closes only on success; on failure it stays open and shows the error.
  */
 async function handlePreviewPublish() {
   previewPublishing.value = true
+  previewError.value = null
   try {
     const outcome = await editorRef.value?.requestPublish()
-    if (outcome?.ok) previewOpen.value = false
+    if (outcome?.ok) {
+      previewOpen.value = false
+      return
+    }
+    if (outcome && !outcome.ok) previewError.value = outcome.error
   } finally {
     previewPublishing.value = false
   }
@@ -163,9 +177,9 @@ watch(
           ref="editorRef"
           :page="page"
           :destinations="destinations"
-          :preview-disabled="!providerAccount.account.value"
+          :preview-disabled="!previewEnabled"
           @reload="loadPage"
-          @preview="previewOpen = true"
+          @preview="openPreview"
         />
       </div>
     </FeatureGate>
@@ -175,6 +189,7 @@ watch(
       :page-id="pageId"
       :header-overrides="headerOverrides ?? undefined"
       :publishing="previewPublishing"
+      :publish-error="previewError"
       @close="previewOpen = false"
       @publish="handlePreviewPublish"
     />

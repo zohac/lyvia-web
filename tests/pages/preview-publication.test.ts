@@ -28,7 +28,10 @@ import {
   resolvePageSaveError,
   toUpdateProviderPageRequest
 } from '../../app/features/pages/domain/page-editor'
-import { buildPreviewHeaderOverrides } from '../../app/features/pages/domain/preview-header-overrides'
+import {
+  buildPreviewHeaderOverrides,
+  isPreviewEnabled
+} from '../../app/features/pages/domain/preview-header-overrides'
 import { publishPreviewPage } from '../../app/features/pages/domain/preview-publish'
 
 const ROOT = process.cwd()
@@ -115,6 +118,13 @@ describe('pages/domain — missing alt mapping (V2.2e)', () => {
       extractMissingAltBlockIndices({ apiError: { code: 'PAGE_CONTENT_INVALID' } }),
       []
     )
+    // Duplicates are collapsed.
+    assert.deepEqual(
+      extractMissingAltBlockIndices({
+        apiError: { details: { missingAltBlockIndices: [2, 2, 0, 2] } }
+      }),
+      [2, 0]
+    )
   })
 
   test('maps sanitized indices back to editor positions through the save filter', () => {
@@ -139,12 +149,39 @@ describe('pages/domain — missing alt mapping (V2.2e)', () => {
     assert.deepEqual(mapSanitizedBlockIndicesToEditorIndices([0], blocks), [1])
   })
 
-  test('resolveMissingAltEditorIndices goes end-to-end from the API error', () => {
+  test('resolveMissingAltEditorIndices projects when a save payload was sent', () => {
     const blocks = [
       { type: 'text', data: { html: '<p>a</p>' } },
       { type: 'image', data: { assetId: 'a', orphan: false } }
     ] as const
-    assert.deepEqual(resolveMissingAltEditorIndices(MISSING_ALT_ERROR, blocks), [1])
+    assert.deepEqual(resolveMissingAltEditorIndices(MISSING_ALT_ERROR, blocks, true), [1])
+  })
+
+  test('resolveMissingAltEditorIndices is the identity when no save was sent', () => {
+    const blocks = [
+      { type: 'text', data: { html: '<p>a</p>' } },
+      { type: 'image', data: { assetId: 'orphan', orphan: true } },
+      { type: 'image', data: { assetId: 'no-alt', orphan: false } }
+    ] as const
+    // Server index 2 refers to the stored draft; projecting would shift it.
+    assert.deepEqual(resolveMissingAltEditorIndices(MISSING_ALT_ERROR, blocks, false), [1])
+    assert.deepEqual(
+      resolveMissingAltEditorIndices(
+        { apiError: { details: { missingAltBlockIndices: [2] } } },
+        blocks,
+        false
+      ),
+      [2]
+    )
+    // Out-of-range indices are dropped.
+    assert.deepEqual(
+      resolveMissingAltEditorIndices(
+        { apiError: { details: { missingAltBlockIndices: [9] } } },
+        blocks,
+        false
+      ),
+      []
+    )
   })
 
   test('describeMissingAltBlocks names the flagged blocks (1-based) verbatim', () => {
@@ -225,6 +262,23 @@ describe('pages/domain — save error mapping (V2.2e)', () => {
     })
     assert.equal(mapped.title, 'Enregistrement impossible')
     assert.equal(mapped.missingAltBlockIndices, undefined)
+  })
+
+  test('publication failures use a publication-specific title', () => {
+    const validation = resolvePageSaveError(
+      { apiError: { statusCode: 400, code: 'PAGE_CONTENT_INVALID' } },
+      'publication'
+    )
+    assert.equal(validation.title, 'Publication impossible')
+
+    const network = resolvePageSaveError(new Error('offline'), 'publication')
+    assert.equal(network.title, 'Publication impossible')
+    assert.equal(network.kind, 'network')
+  })
+
+  test('the missing-alt copy points to the editor (the list cannot highlight)', () => {
+    const mapped = resolvePageSaveError(MISSING_ALT_ERROR, 'publication')
+    assert.match(mapped.message, /dans l'éditeur/)
   })
 })
 
@@ -366,6 +420,36 @@ describe('createPageEditor — publish/unpublish (V2.2e)', () => {
     assert.equal(editor.dirty.value, true)
   })
 
+  test('publishing a clean draft maps server indices without the save projection', async () => {
+    const editor = createPageEditor(
+      makePage({
+        contentBlocks: [
+          { type: 'text', data: { html: '<p>a</p>' } },
+          { type: 'image', data: { assetId: 'orphan', orphan: true } },
+          { type: 'image', data: { assetId: 'no-alt', url: '/x.webp' } }
+        ]
+      }),
+      makeDeps({
+        publish: async () => {
+          throw {
+            apiError: {
+              statusCode: 400,
+              code: 'PAGE_CONTENT_INVALID',
+              details: { missingAltBlockIndices: [2] }
+            }
+          }
+        }
+      })
+    )
+
+    assert.equal(editor.dirty.value, false, 'no save is sent')
+    const outcome = await editor.publish()
+
+    assert.equal(outcome.ok, false)
+    // Identity mapping: the orphan at index 1 must not shift the flag.
+    assert.deepEqual(editor.missingAltBlockIndices.value, [2])
+  })
+
   test('a publish keeps edits typed while the command is in flight', async () => {
     const editor = createPageEditor(makePage(), makeDeps({
       publish: async () => {
@@ -424,10 +508,12 @@ describe('pages/domain — preview publish helper (V2.2e)', () => {
       },
       reload: async () => {
         calls.push('reload')
+        return true
       }
     })
 
     assert.equal(result.ok, true)
+    if (result.ok) assert.equal(result.reloadFailed, false)
     assert.deepEqual(calls, ['publish:page-1', 'reload'])
   })
 
@@ -439,12 +525,35 @@ describe('pages/domain — preview publish helper (V2.2e)', () => {
       },
       reload: async () => {
         calls.push('reload')
+        return true
       }
     })
 
     assert.equal(result.ok, false)
-    if (!result.ok) assert.equal(result.error.title, 'Enregistrement impossible')
+    if (!result.ok) assert.equal(result.error.title, 'Publication impossible')
     assert.deepEqual(calls, ['reload'])
+  })
+
+  test('surfaces a reload failure without hiding the publish success', async () => {
+    const result = await publishPreviewPage('page-1', {
+      publish: async () => {},
+      reload: async () => false
+    })
+
+    assert.equal(result.ok, true)
+    if (result.ok) assert.equal(result.reloadFailed, true)
+  })
+
+  test('a throwing reload is reported as failed', async () => {
+    const result = await publishPreviewPage('page-1', {
+      publish: async () => {},
+      reload: async () => {
+        throw new Error('offline')
+      }
+    })
+
+    assert.equal(result.ok, true)
+    if (result.ok) assert.equal(result.reloadFailed, true)
   })
 })
 
@@ -470,6 +579,12 @@ describe('pages/domain — preview header overrides (V2.2e)', () => {
     assert.equal(buildPreviewHeaderOverrides(null), null)
     assert.equal(buildPreviewHeaderOverrides(undefined), null)
   })
+
+  test('isPreviewEnabled is the shared gate for the preview action', () => {
+    assert.equal(isPreviewEnabled(null), false)
+    assert.equal(isPreviewEnabled(undefined), false)
+    assert.equal(isPreviewEnabled({ firstname: 'Sophie' }), true)
+  })
 })
 
 describe('pages/preview — component wiring (V2.2e)', () => {
@@ -481,6 +596,8 @@ describe('pages/preview — component wiring (V2.2e)', () => {
     assert.ok(banner.includes('Revenir à l\'éditeur'))
     assert.ok(banner.includes('Mettre en ligne'))
     assert.match(banner, /@click="emit\('publish'\)"/)
+    assert.match(banner, /:disabled="publishing"/)
+    assert.ok(banner.includes('closeLabel'))
     assert.ok(banner.includes('aria-label="Mode prévisualisation"'))
     assert.ok(banner.includes('--color-crepuscule-950'))
     assert.ok(banner.includes('--color-text-inverse'))
@@ -495,6 +612,11 @@ describe('pages/preview — component wiring (V2.2e)', () => {
     assert.match(overlay, /:overrides="headerOverrides"/)
     assert.ok(overlay.includes('aria-modal="true"'))
     assert.ok(overlay.includes('@keydown.escape'))
+    // Publish failure stays visible inside the overlay.
+    assert.ok(overlay.includes('publishError?: PageSaveError'))
+    assert.match(overlay, /v-if="publishError"/)
+    // Synchronous re-entry lock (the `publishing` prop alone is async).
+    assert.ok(overlay.includes('publishLocked'))
   })
 
   test('the preview overlay triggers zero tracking/analytics call', () => {
@@ -537,8 +659,12 @@ describe('pages/preview — page wiring (V2.2e)', () => {
     const page = read('app/pages/provider/pages/[id].vue')
     assert.ok(page.includes('ProviderPagePreviewOverlay'))
     assert.ok(page.includes('headerOverrides'))
-    assert.match(page, /@preview="previewOpen = true"/)
+    assert.match(page, /@preview="openPreview"/)
     assert.match(page, /:page-id="pageId"/)
+    assert.match(page, /:publish-error="previewError"/)
+    // The preview closes only on a successful publish.
+    assert.match(page, /if \(outcome\?\.ok\)/)
+    assert.ok(page.includes('isPreviewEnabled'))
   })
 
   test('index.vue adds a per-row Prévisualiser action opening the overlay', () => {
@@ -549,6 +675,10 @@ describe('pages/preview — page wiring (V2.2e)', () => {
     assert.match(page, /:page-id="previewPageId"/)
     assert.match(page, /previewPageId\.value = page\.id/)
     assert.match(page, /previewOpen\.value = true/)
+    assert.match(page, /:publish-error="previewError"/)
+    assert.ok(page.includes('close-label="Fermer"'))
+    assert.ok(page.includes('reloadFailed'))
+    assert.ok(page.includes('isPreviewEnabled'))
   })
 })
 

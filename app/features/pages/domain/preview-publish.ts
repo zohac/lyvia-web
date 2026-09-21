@@ -10,23 +10,32 @@ import { resolvePageSaveError, type PageSaveError } from './page-editor'
 export interface PreviewPublishDependencies {
   publish: (id: string) => Promise<unknown>
   /** Refreshes the list; always called, even when the publish failed. */
-  reload: () => Promise<unknown>
+  reload: () => Promise<boolean>
 }
 
 export type PreviewPublishResult
-  = | { ok: true }
-    | { ok: false, error: PageSaveError }
+  = | { ok: true, /** The publish succeeded but the list refresh failed. */ reloadFailed: boolean }
+    | { ok: false, error: PageSaveError, reloadFailed: boolean }
 
 export async function publishPreviewPage(
   id: string,
   deps: PreviewPublishDependencies
 ): Promise<PreviewPublishResult> {
+  let publishError: PageSaveError | null = null
   try {
     await deps.publish(id)
-    return { ok: true }
   } catch (error: unknown) {
-    return { ok: false, error: resolvePageSaveError(error) }
-  } finally {
-    await deps.reload()
+    publishError = resolvePageSaveError(error, 'publication')
   }
+
+  let reloadFailed = false
+  try {
+    reloadFailed = (await deps.reload()) === false
+  } catch {
+    reloadFailed = true
+  }
+
+  return publishError
+    ? { ok: false, error: publishError, reloadFailed }
+    : { ok: true, reloadFailed }
 }

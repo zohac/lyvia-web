@@ -2,6 +2,7 @@
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { getProviderPagePreview } from '~/features/pages/services/provider-pages.service'
 import type { ProviderPagePreviewResponse } from '~/features/pages/api/pages.contract'
+import type { PageSaveError } from '~/features/pages/domain/page-editor'
 import type { PublicHeaderState } from '~/features/public/state/public-header.state'
 import PagePreviewBanner from '~/components/molecules/PagePreviewBanner.vue'
 import PageBlockRenderer from '~/components/molecules/PageBlockRenderer.vue'
@@ -26,10 +27,16 @@ const props = withDefaults(
     headerOverrides?: Partial<PublicHeaderState>
     /** True while a banner-triggered publish is in flight. */
     publishing?: boolean
+    /** Publish failure kept visible inside the overlay (preview stays open). */
+    publishError?: PageSaveError | null
+    /** Contextual label of the close action ("Revenir à l'éditeur" by default). */
+    closeLabel?: string
   }>(),
   {
     headerOverrides: undefined,
-    publishing: false
+    publishing: false,
+    publishError: null,
+    closeLabel: 'Revenir à l\'éditeur'
   }
 )
 
@@ -73,7 +80,7 @@ async function loadPreview() {
     preview.value = result
   } catch {
     if (seq !== requestSeq) return
-    error.value = 'Impossible de charger la prévisualisation. Revenez à l\'éditeur puis réessayez.'
+    error.value = 'Impossible de charger la prévisualisation. Fermez cette fenêtre puis réessayez.'
   } finally {
     if (seq === requestSeq) loading.value = false
   }
@@ -88,6 +95,7 @@ watch(
           ? (document.activeElement as HTMLElement | null)
           : null
         lockScroll()
+        publishLocked = false
       }
       wasOpen = true
       void loadPreview()
@@ -104,15 +112,30 @@ watch(
   }
 )
 
-onBeforeUnmount(unlockScroll)
+onBeforeUnmount(() => {
+  // Invalidate any in-flight preview fetch and release the scroll lock.
+  requestSeq += 1
+  unlockScroll()
+})
 
 function close() {
+  if (props.publishing) return
   emit('close')
 }
 
-/** Guards repeated clicks while a publish is already in flight. */
+/**
+ * Synchronous re-entry lock: two clicks in the same tick both see the same
+ * (not yet updated) `publishing` prop, so the prop alone cannot guard them.
+ */
+let publishLocked = false
+
+watch(() => props.publishing, (value) => {
+  if (!value) publishLocked = false
+})
+
 function onBannerPublish() {
-  if (props.publishing) return
+  if (publishLocked || props.publishing) return
+  publishLocked = true
   emit('publish')
 }
 </script>
@@ -134,9 +157,23 @@ function onBannerPublish() {
       >
         <PagePreviewBanner
           :publishing="publishing"
+          :close-label="closeLabel"
           @close="close"
           @publish="onBannerPublish"
         />
+
+        <div
+          v-if="publishError"
+          class="mx-auto w-full max-w-4xl px-4 pt-8 sm:px-6"
+        >
+          <UAlert
+            color="error"
+            variant="soft"
+            icon="i-lucide-alert-circle"
+            :title="publishError.title"
+            :description="publishError.message"
+          />
+        </div>
 
         <PublicHeader
           :overrides="headerOverrides"
@@ -171,7 +208,7 @@ function onBannerPublish() {
             icon="i-lucide-arrow-left"
             @click="close"
           >
-            Revenir à l'éditeur
+            {{ closeLabel }}
           </UButton>
         </div>
 
