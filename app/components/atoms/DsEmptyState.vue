@@ -32,8 +32,14 @@ withDefaults(defineProps<DsEmptyStateProps>(), {
     >
       {{ description }}
     </p>
+    <div
+      v-if="$slots.action"
+      class="mt-6"
+    >
+      <slot name="action" />
+    </div>
     <UButton
-      v-if="ctaLabel && ctaTo"
+      v-else-if="ctaLabel && ctaTo"
       :to="ctaTo"
       color="primary"
       size="sm"

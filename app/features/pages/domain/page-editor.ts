@@ -1,0 +1,454 @@
+/**
+ * V2.2b — Pure editor state + save orchestration for `/provider/pages/:id`.
+ *
+ * Framework-free by design: the component owns a `ref` of this state and
+ * delegates every transition here, so `isDirty`, the optimistic-locking payload
+ * and the 409 mapping are unit-tested with the Node runner.
+ *
+ * Locked decisions (spec V2.2b):
+ * - Only content blocks are editable; title, slug, menu and SEO are preserved
+ *   from the loaded page and sent back unchanged.
+ * - Every save carries `expectedVersion`; a `409
+ *   PAGE_CONCURRENT_MODIFICATION` never overwrites the local draft.
+ */
+import type {
+  ContentBlock,
+  ImageBlockData,
+  ProviderPageResponse,
+  ProviderPageStatus,
+  UpdateProviderPageRequest
+} from '../api/pages.contract'
+import {
+  appendImageBlock,
+  isTextBlock,
+  markOrphanImageBlocks,
+  moveBlock,
+  shouldExcludeImageBlockFromSave,
+  updateImageBlockData,
+  updateTextBlockHtml
+} from './content-blocks'
+import { sanitizeHtmlContent } from './paste-sanitizer'
+
+export interface PageEditorState {
+  id: string
+  title: string
+  slug: string
+  blocks: ContentBlock[]
+  includeInMenu: boolean
+  menuLabel: string | null
+  sortOrder: number
+  seoTitle: string | null
+  seoDescription: string | null
+  /**
+   * V2.2e — Publication status mirrored from the server so the editor can badge
+   * the page (`resolvePageStatus`) without owning a second source of truth.
+   */
+  status: ProviderPageStatus
+  publishedAt: string | null
+  hasUnpublishedChanges: boolean
+  version: number
+  /** Serialized editable payload at the last load/save, for `isDirty`. */
+  baseline: string
+}
+
+function cloneBlocks(blocks: readonly ContentBlock[]): ContentBlock[] {
+  return JSON.parse(JSON.stringify(blocks)) as ContentBlock[]
+}
+
+export function editableSnapshot(state: Pick<PageEditorState, 'title' | 'blocks'>): string {
+  return JSON.stringify({ title: state.title, blocks: state.blocks })
+}
+
+export function createPageEditorState(page: ProviderPageResponse): PageEditorState {
+  const blocks = markOrphanImageBlocks(cloneBlocks(page.contentBlocks ?? []))
+  return {
+    id: page.id,
+    title: page.title,
+    slug: page.slug,
+    blocks,
+    includeInMenu: page.includeInMenu,
+    menuLabel: page.menuLabel,
+    sortOrder: page.sortOrder,
+    seoTitle: page.seoTitle,
+    seoDescription: page.seoDescription,
+    status: page.status,
+    publishedAt: page.publishedAt,
+    hasUnpublishedChanges: page.hasUnpublishedChanges,
+    version: page.version,
+    baseline: editableSnapshot({ title: page.title, blocks })
+  }
+}
+
+export function isPageEditorDirty(state: PageEditorState): boolean {
+  return editableSnapshot(state) !== state.baseline
+}
+
+export function setPageEditorBlocks(
+  state: PageEditorState,
+  blocks: readonly ContentBlock[]
+): PageEditorState {
+  return { ...state, blocks: [...blocks] }
+}
+
+/** Resets the editor to a freshly loaded/saved server page. */
+export function resetPageEditorState(page: ProviderPageResponse): PageEditorState {
+  return createPageEditorState(page)
+}
+
+/**
+ * Applies the sanitized HTML of the text block at `index`.
+ */
+export function setEditorBlockHtml(
+  state: PageEditorState,
+  index: number,
+  html: string
+): PageEditorState {
+  return { ...state, blocks: updateTextBlockHtml(state.blocks, index, html) }
+}
+
+/** Appends an image block (optionally pre-filled) at the end of the page. */
+export function addEditorImageBlock(
+  state: PageEditorState,
+  data: Partial<ImageBlockData> = {}
+): PageEditorState {
+  return { ...state, blocks: appendImageBlock(state.blocks, data) }
+}
+
+/** Merges a patch into the image block at `index`. */
+export function setEditorImageBlockData(
+  state: PageEditorState,
+  index: number,
+  patch: Partial<ImageBlockData>
+): PageEditorState {
+  return { ...state, blocks: updateImageBlockData(state.blocks, index, patch) }
+}
+
+/**
+ * V2.2d — Moves the block at `from` to `to`. The blocks array is the single
+ * source of truth for order, so `editableSnapshot` makes the move `dirty`
+ * automatically and the persisted payload keeps the new order.
+ */
+export function moveEditorBlock(
+  state: PageEditorState,
+  from: number,
+  to: number
+): PageEditorState {
+  return { ...state, blocks: moveBlock(state.blocks, from, to) }
+}
+
+/**
+ * V2.2d — Screen-reader announcement for a move. Wording is verbatim from the
+ * UX spec (§3.3): "Bloc 2 déplacé en position 1 sur 3".
+ */
+export function describeBlockMove(from: number, to: number, total: number): string {
+  return `Bloc ${from + 1} déplacé en position ${to + 1} sur ${total}`
+}
+
+/**
+ * Applies a successful save when the coach kept editing DURING the request.
+ *
+ * The local (newer) blocks are preserved, but the version and the dirty
+ * baseline must advance to what the server just persisted — otherwise the next
+ * save would replay a stale `expectedVersion` and the preserved edits would be
+ * falsely reported as already saved.
+ *
+ * V2.2e — the publication fields also come from the server response. When
+ * newer local edits survived, `hasUnpublishedChanges` is recomputed from the
+ * local baseline instead of trusting the server flag (which only reflects what
+ * it persisted).
+ */
+export function applySavedVersion(
+  state: PageEditorState,
+  page: Pick<
+    ProviderPageResponse,
+    'version' | 'status' | 'publishedAt' | 'hasUnpublishedChanges'
+  >,
+  sent: UpdateProviderPageRequest
+): PageEditorState {
+  const next: PageEditorState = {
+    ...state,
+    version: page.version,
+    status: page.status,
+    publishedAt: page.publishedAt,
+    hasUnpublishedChanges: page.hasUnpublishedChanges,
+    baseline: editableSnapshot({ title: sent.title, blocks: sent.contentBlocks })
+  }
+  return isPageEditorDirty(next)
+    ? { ...next, hasUnpublishedChanges: next.status === 'published' }
+    : next
+}
+
+/**
+ * V2.2e — Applies a publish/unpublish server response while preserving unsaved
+ * local blocks (the command never touches the draft content). `version`,
+ * `status`, `publishedAt` and `hasUnpublishedChanges` follow the response; if
+ * local edits survived, the unpublished-changes flag is recomputed locally.
+ */
+export function applyCommandStatus(
+  state: PageEditorState,
+  page: Pick<
+    ProviderPageResponse,
+    'version' | 'status' | 'publishedAt' | 'hasUnpublishedChanges'
+  >
+): PageEditorState {
+  const next: PageEditorState = {
+    ...state,
+    version: page.version,
+    status: page.status,
+    publishedAt: page.publishedAt,
+    hasUnpublishedChanges: page.hasUnpublishedChanges
+  }
+  return isPageEditorDirty(next)
+    ? { ...next, hasUnpublishedChanges: next.status === 'published' }
+    : next
+}
+
+/**
+ * Sanitizes blocks before they hit the wire. Only text HTML is touched;
+ * image/unknown blocks are passed through untouched.
+ *
+ * V2.2c — image blocks the server flagged `orphan` (or never uploaded,
+ * `assetId` empty) are EXCLUDED from the payload. A resolved block whose `url`
+ * is merely absent is never excluded (review 1).
+ */
+export function sanitizeContentBlocks(
+  blocks: readonly ContentBlock[]
+): ContentBlock[] {
+  return blocks
+    .filter(block => !shouldExcludeImageBlockFromSave(block))
+    .map((block): ContentBlock => {
+      if (!isTextBlock(block)) return block
+      const links = block.data.links
+      return {
+        type: 'text',
+        data: {
+          html: sanitizeHtmlContent(block.data.html),
+          ...(links && links.length > 0 ? { links } : {})
+        }
+      }
+    })
+}
+
+export function toUpdateProviderPageRequest(
+  state: PageEditorState
+): UpdateProviderPageRequest {
+  return {
+    title: state.title,
+    slug: state.slug,
+    contentBlocks: sanitizeContentBlocks(state.blocks),
+    includeInMenu: state.includeInMenu,
+    menuLabel: state.menuLabel,
+    sortOrder: state.sortOrder,
+    seoTitle: state.seoTitle,
+    seoDescription: state.seoDescription,
+    expectedVersion: state.version
+  }
+}
+
+export type PageSaveErrorKind
+  = | 'conflict'
+    | 'validation'
+    | 'not_found'
+    | 'forbidden'
+    | 'session'
+    | 'network'
+
+export interface PageSaveError {
+  kind: PageSaveErrorKind
+  title: string
+  message: string
+  code: string | null
+  /**
+   * V2.2e — Editor block indices flagged by the server as missing an image
+   * `alt` (`PAGE_CONTENT_INVALID.details.missingAltBlockIndices`). Present only
+   * on a refused publication.
+   */
+  missingAltBlockIndices?: number[]
+}
+
+interface ApiErrorLike {
+  statusCode?: number
+  code?: string
+  message?: string
+  details?: Record<string, unknown>
+}
+
+function readApiError(error: unknown): ApiErrorLike | null {
+  if (!error || typeof error !== 'object') return null
+  const apiError = (error as { apiError?: unknown }).apiError
+  if (!apiError || typeof apiError !== 'object') return null
+  const candidate = apiError as Record<string, unknown>
+  return {
+    statusCode: typeof candidate.statusCode === 'number' ? candidate.statusCode : undefined,
+    code: typeof candidate.code === 'string' ? candidate.code : undefined,
+    message: typeof candidate.message === 'string' ? candidate.message : undefined,
+    details: isRecord(candidate.details) ? candidate.details : undefined
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
+ * V2.2e — Reads the server `missingAltBlockIndices`. Non-integer or negative
+ * entries are ignored and duplicates are collapsed (the server may report the
+ * same block twice).
+ */
+export function extractMissingAltBlockIndices(error: unknown): number[] {
+  const raw = readApiError(error)?.details?.missingAltBlockIndices
+  if (!Array.isArray(raw)) return []
+  const valid = raw.filter(
+    (value): value is number => typeof value === 'number' && Number.isInteger(value) && value >= 0
+  )
+  return [...new Set(valid)]
+}
+
+/**
+ * V2.2e — Translates sanitized-payload indices back to positions in the
+ * editor's `state.blocks`. The mapping uses the exact same exclusion rule as
+ * `sanitizeContentBlocks` (`shouldExcludeImageBlockFromSave`), so a flagged
+ * image always resolves to the block the coach actually sees.
+ */
+export function mapSanitizedBlockIndicesToEditorIndices(
+  sanitizedIndices: readonly number[],
+  blocks: readonly ContentBlock[]
+): number[] {
+  const editorIndexBySanitizedIndex: number[] = []
+  blocks.forEach((block, editorIndex) => {
+    if (!shouldExcludeImageBlockFromSave(block)) {
+      editorIndexBySanitizedIndex.push(editorIndex)
+    }
+  })
+
+  return sanitizedIndices
+    .map(index => editorIndexBySanitizedIndex[index])
+    .filter((index): index is number => index !== undefined)
+}
+
+/**
+ * V2.2e — Resolves the server indices to positions in the editor's
+ * `state.blocks`.
+ *
+ * `projected` must be `true` only when a save payload was actually sent to the
+ * API before the failing command: the server then validated the **sanitized**
+ * payload (never-uploaded/orphan image blocks dropped), so the indices need the
+ * same projection. When no save was sent (publishing a clean page), the server
+ * validated the stored draft, whose block list matches the editor's, so the
+ * mapping is the identity — projecting would shift every index past an orphan
+ * block and highlight the wrong block (or none).
+ */
+export function resolveMissingAltEditorIndices(
+  error: unknown,
+  blocks: readonly ContentBlock[],
+  projected: boolean
+): number[] {
+  const serverIndices = extractMissingAltBlockIndices(error)
+  const editorIndices = projected
+    ? mapSanitizedBlockIndicesToEditorIndices(serverIndices, blocks)
+    : serverIndices
+  return [...new Set(editorIndices)].filter(index => index < blocks.length)
+}
+
+/**
+ * V2.2e — Explicit French message naming the flagged blocks (1-based, as shown
+ * in the reorder bar).
+ */
+export function describeMissingAltBlocks(editorIndices: readonly number[]): string {
+  if (editorIndices.length === 0) return ''
+  const numbers = editorIndices.map(index => String(index + 1))
+  const list = numbers.length === 1
+    ? numbers[0]!
+    : `${numbers.slice(0, -1).join(', ')} et ${numbers[numbers.length - 1]}`
+  const plural = editorIndices.length > 1
+  return `${plural ? 'Les blocs' : 'Le bloc'} ${list} ${plural ? 'contiennent' : 'contient'} une image sans texte alternatif. Ajoutez une description, puis relancez la publication.`
+}
+
+/**
+ * Which command failed: a draft save or a publication toggle. Only the generic
+ * fallbacks differ ("Enregistrement" vs "Publication"), so the message never
+ * tells a coach a publish failed to *save*.
+ */
+export type PageErrorContext = 'save' | 'publication'
+
+/**
+ * Maps a `PUT /provider/pages/:id` (save) or publish/unpublish failure to
+ * user-facing copy. The 409 wording is verbatim from the UX spec (§4.2) and
+ * must not be paraphrased.
+ */
+export function resolvePageSaveError(
+  error: unknown,
+  context: PageErrorContext = 'save'
+): PageSaveError {
+  const apiError = readApiError(error)
+  const code = apiError?.code ?? null
+  const status = apiError?.statusCode
+  const fallbackTitle = context === 'publication' ? 'Publication impossible' : 'Enregistrement impossible'
+
+  // Only the optimistic-locking code is a conflict; a bare 409 (e.g. an
+  // unrelated duplicate) must not be presented as a page-edit conflict.
+  if (code === 'PAGE_CONCURRENT_MODIFICATION') {
+    return {
+      kind: 'conflict',
+      title: 'La page a été modifiée par ailleurs',
+      message: 'Une modification plus récente a été enregistrée depuis un autre onglet ou appareil. Vos modifications actuelles n\'ont pas été écrasées.',
+      code
+    }
+  }
+
+  if (
+    code === 'PAGE_CONTENT_INVALID'
+    || code === 'PAGE_CONTENT_TOO_LARGE'
+    || status === 422
+    || status === 400
+  ) {
+    const missingAltBlockIndices = extractMissingAltBlockIndices(error)
+    return {
+      kind: 'validation',
+      title: missingAltBlockIndices.length > 0 ? 'Publication impossible' : fallbackTitle,
+      message: missingAltBlockIndices.length > 0
+        ? 'Certaines images n\'ont pas de texte alternatif. Ouvrez la page dans l\'éditeur, corrigez les blocs signalés, puis réessayez.'
+        : context === 'publication'
+          ? 'Le contenu de la page empêche sa mise en ligne. Vérifiez vos blocs puis réessayez.'
+          : 'Le contenu de la page est invalide. Vérifiez vos blocs puis réessayez.',
+      code,
+      ...(missingAltBlockIndices.length > 0 ? { missingAltBlockIndices } : {})
+    }
+  }
+
+  if (code === 'PAGE_NOT_FOUND' || status === 404) {
+    return {
+      kind: 'not_found',
+      title: 'Page introuvable',
+      message: 'Cette page n\'existe plus. Rechargez la liste de vos pages.',
+      code
+    }
+  }
+
+  if (code === 'INVALID_REFRESH_TOKEN' || status === 401) {
+    return {
+      kind: 'session',
+      title: 'Session expirée',
+      message: 'Votre session a expiré. Reconnectez-vous puis réessayez.',
+      code
+    }
+  }
+
+  if (status === 403) {
+    return {
+      kind: 'forbidden',
+      title: 'Non autorisé',
+      message: 'L\'enregistrement de cette page n\'est pas autorisé.',
+      code
+    }
+  }
+
+  return {
+    kind: 'network',
+    title: fallbackTitle,
+    message: context === 'publication'
+      ? 'Impossible de mettre la page en ligne. Vérifiez votre connexion et réessayez.'
+      : 'Impossible d\'enregistrer. Vérifiez votre connexion et réessayez.',
+    code
+  }
+}
