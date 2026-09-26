@@ -67,7 +67,7 @@ export async function markProviderAppointmentCompleted(
   appointmentId: ProviderAppointmentListItem['id'],
   body: UpdateProviderAppointmentStatusRequest
 ): Promise<UpdateProviderAppointmentStatusResponse> {
-  return await apiFetch<UpdateProviderAppointmentStatusResponse>(`/provider/appointments/${appointmentId}/status`, {
+  return await apiFetch<UpdateProviderAppointmentStatusResponse>(`/appointments/${appointmentId}/status`, {
     method: 'PATCH',
     body
   })

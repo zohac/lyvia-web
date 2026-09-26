@@ -49,7 +49,7 @@ export async function reactivateClient(
 export async function convertLeadToActive(
   appointmentId: string
 ): Promise<void> {
-  await apiFetch(`/provider/appointments/${appointmentId}/convert`, {
+  await apiFetch(`/appointments/${appointmentId}/convert`, {
     method: 'POST'
   })
 }

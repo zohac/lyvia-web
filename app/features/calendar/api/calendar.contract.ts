@@ -4,6 +4,7 @@
  * Source of truth:
  * - `repositories/lyvia-api/openapi.yaml`
  * - `repositories/lyvia-api/src/features/appointments/presentation/provider-appointments.controller.ts`
+ * - `repositories/lyvia-api/src/features/appointments/presentation/appointments.controller.ts` (status update)
  */
 
 // verified against OpenAPI spec
@@ -176,14 +177,20 @@ export type CancelProviderAppointmentResponse = {
 }
 
 /**
- * PATCH /provider/appointments/:id/status
+ * PATCH /appointments/:id/status
  * Mark a consultation as completed.
+ *
+ * NOTE: this route lives on `AppointmentsController`
+ * (`@Controller('appointments')`), NOT on `provider/appointments`.
  */
 export type UpdateProviderAppointmentStatusRequest = {
   status: 'completed'
 }
 
+/**
+ * Mirrors `UpdateAppointmentStatusResponseDto` on the API side.
+ */
 export type UpdateProviderAppointmentStatusResponse = {
-  appointmentId: string
-  status: ProviderCalendarAppointmentStatus
+  updated: true
+  status: 'completed' | 'cancelled'
 }
