@@ -34,6 +34,20 @@ export type UpdateAppointmentStatusRequest = {
   reason?: string | null
 }
 
+/**
+ * What the server actually accepts on `PATCH /appointments/:id/status`.
+ *
+ * Mirrors `UpdateAppointmentStatusDto`, which whitelists `status` and `reason`
+ * only. It deliberately does NOT include `cancelledByRole`: the production
+ * `ValidationPipe` runs with `forbidNonWhitelisted: true`, so sending that
+ * property is rejected with 422 `VALIDATION_ERROR`. `UpdateAppointmentStatusRequest`
+ * above is the shape the discovery page actually sends, and is itself suspect.
+ */
+export type UpdateAppointmentStatusBody = {
+  status: 'completed' | 'cancelled'
+  reason?: string | null
+}
+
 export type UpdateAppointmentStatusResponse = {
   updated: true
   status: 'completed' | 'cancelled'
