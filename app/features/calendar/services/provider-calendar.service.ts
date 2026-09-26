@@ -1,4 +1,5 @@
 import { apiFetch } from '../../../services/api/apiFetch'
+import { buildUpdateAppointmentStatusCall } from '../../appointments/api/appointments.request'
 import type {
   CancelProviderAppointmentRequest,
   CancelProviderAppointmentResponse,
@@ -67,8 +68,9 @@ export async function markProviderAppointmentCompleted(
   appointmentId: ProviderAppointmentListItem['id'],
   body: UpdateProviderAppointmentStatusRequest
 ): Promise<UpdateProviderAppointmentStatusResponse> {
-  return await apiFetch<UpdateProviderAppointmentStatusResponse>(`/appointments/${appointmentId}/status`, {
-    method: 'PATCH',
-    body
+  const call = buildUpdateAppointmentStatusCall(appointmentId, body)
+  return await apiFetch<UpdateProviderAppointmentStatusResponse>(call.path, {
+    method: call.options.method,
+    body: call.options.body
   })
 }

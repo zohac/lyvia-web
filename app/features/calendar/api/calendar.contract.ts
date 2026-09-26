@@ -189,8 +189,11 @@ export type UpdateProviderAppointmentStatusRequest = {
 
 /**
  * Mirrors `UpdateAppointmentStatusResponseDto` on the API side.
+ *
+ * Re-exported from the appointments contract rather than redeclared: hotfix-23
+ * originated from two sources of truth drifting apart on this exact route, so the
+ * single copy lives beside `UpdateAppointmentStatusRequest`.
  */
-export type UpdateProviderAppointmentStatusResponse = {
-  updated: true
-  status: 'completed' | 'cancelled'
-}
+export type {
+  UpdateAppointmentStatusResponse as UpdateProviderAppointmentStatusResponse
+} from '../../appointments/api/appointments.contract'

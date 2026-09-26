@@ -16,6 +16,7 @@
   "include": [
     "app/features/availability/domain/**/*.ts",
     "app/features/availability/api/availability.contract.ts",
+    "app/features/appointments/api/**/*.ts",
     "app/features/consultation/domain/**/*.ts",
     "app/features/public/domain/**/*.ts",
     "app/features/analytics/helpers/**/*.ts",
