@@ -14,11 +14,18 @@
  * route contract behaviourally covered, so reintroducing the `provider/` prefix
  * fails `pnpm test:unit`.
  *
+ * hotfix-24 — "Annuler un appel découverte" sent `cancelledByRole`, which
+ * `UpdateAppointmentStatusDto` does not whitelist, and the production
+ * `ValidationPipe` (`forbidNonWhitelisted: true`) answered 422
+ * `VALIDATION_ERROR` on **every** cancellation. The body construction therefore
+ * moved out of `pages/provider/discovery.vue` into `buildDiscoveryAppointmentStatusBody`
+ * so the whitelist is produced by something `node:test` can execute.
+ *
  * Source of truth: `repositories/lyvia-api/openapi.yaml`
  * (`/appointments/{id}/convert`, `/appointments/{id}/status`).
  */
 
-import type { UpdateAppointmentStatusBody } from './appointments.contract'
+import type { UpdateAppointmentStatusRequest } from './appointments.contract'
 
 export interface ConvertDiscoveryLeadCall {
   path: string
@@ -33,7 +40,7 @@ export interface UpdateAppointmentStatusCall {
   options: {
     method: 'PATCH'
     withAuth: true
-    body: UpdateAppointmentStatusBody
+    body: UpdateAppointmentStatusRequest
   }
 }
 
@@ -52,7 +59,24 @@ export function buildConvertDiscoveryLeadCall(
 }
 
 /**
- * `PATCH /appointments/:id/status` — marks a consultation as completed.
+ * hotfix-24 — the body of `PATCH /appointments/:id/status` for a discovery call.
+ *
+ * Only `status` is whitelisted by `UpdateAppointmentStatusDto`. The front MUST
+ * NOT send `cancelledByRole`: the production `ValidationPipe` runs with
+ * `forbidNonWhitelisted: true` and rejects it with 422 `VALIDATION_ERROR`,
+ * which is what made "Annuler un appel découverte" permanently fail. The server
+ * derives `cancelled_by_role` from the authenticated actor's role, so the
+ * builder carries the single accepted key and nothing else.
+ */
+export function buildDiscoveryAppointmentStatusBody(
+  status: UpdateAppointmentStatusRequest['status']
+): UpdateAppointmentStatusRequest {
+  return { status }
+}
+
+/**
+ * `PATCH /appointments/:id/status` — marks a consultation as completed or
+ * cancels it.
  *
  * The request must NOT carry `cancelledByRole`: the server DTO
  * (`UpdateAppointmentStatusDto`) only whitelists `status` and `reason`, and the
@@ -60,7 +84,7 @@ export function buildConvertDiscoveryLeadCall(
  */
 export function buildUpdateAppointmentStatusCall(
   appointmentId: string,
-  body: UpdateAppointmentStatusBody
+  body: UpdateAppointmentStatusRequest
 ): UpdateAppointmentStatusCall {
   return {
     path: `/appointments/${appointmentId}/status`,

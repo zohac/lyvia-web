@@ -232,6 +232,11 @@ import type {
   UpdateAppointmentStatusResponse
 } from '../../features/appointments/api/appointments.contract'
 import { mapAppointmentErrorCodeToUserMessage } from '../../features/appointments/api/appointments-error'
+import {
+  buildDiscoveryAppointmentStatusBody,
+  buildUpdateAppointmentStatusCall
+} from '../../features/appointments/api/appointments.request'
+import { isRequestedStatusAlreadyApplied } from '../../features/appointments/domain/status-update-conflict'
 import { ApiFetchError } from '../../services/api/api-error'
 import { apiFetch } from '../../services/api/apiFetch'
 import CalendarMonthView from '../../components/molecules/CalendarMonthView.vue'
@@ -601,23 +606,28 @@ async function requestUpdateAppointmentStatus(
   appointmentId: string,
   status: 'completed' | 'cancelled'
 ): Promise<{ ok: true } | { ok: false, message: string }> {
-  const body
-    = status === 'completed'
-      ? { status: 'completed' as const }
-      : { status: 'cancelled' as const, cancelledByRole: 'PROVIDER' as const }
+  // hotfix-24: path and body are produced by the tested pure builders. The body
+  // must stay limited to `status` — the cancellation attribution is not
+  // whitelisted by the server DTO, and the production ValidationPipe rejects it
+  // with 422. The server derives it from the authenticated actor's role.
+  const call = buildUpdateAppointmentStatusCall(
+    appointmentId,
+    buildDiscoveryAppointmentStatusBody(status)
+  )
 
   try {
-    await apiFetch<UpdateAppointmentStatusResponse>(`/appointments/${appointmentId}/status`, {
-      method: 'PATCH',
-      body
+    await apiFetch<UpdateAppointmentStatusResponse>(call.path, {
+      method: call.options.method,
+      body: call.options.body
     })
     return { ok: true }
   } catch (err: unknown) {
     if (err instanceof ApiFetchError) {
       if (err.apiError.code === 'INVALID_STATUS_TRANSITION') {
         await refresh()
-        const updatedStatus = data.value?.appointments?.find(a => a.id === appointmentId)?.status
-        if (updatedStatus === status) return { ok: true }
+        if (isRequestedStatusAlreadyApplied(data.value?.appointments, appointmentId, status)) {
+          return { ok: true }
+        }
       }
 
       return {
