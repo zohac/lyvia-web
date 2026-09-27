@@ -17,10 +17,12 @@
  * `refresh()` and passes the re-read list.
  */
 
+import type { AppointmentStatus } from '../api/appointments.contract'
+
 /** Minimal shape the resolver needs from the discovery appointments list. */
 export type StatusBearingAppointment = {
   id: string
-  status: string
+  status: AppointmentStatus
 }
 
 /**
@@ -29,11 +31,16 @@ export type StatusBearingAppointment = {
  *
  * Returns `false` when the appointment is absent from the list or carries another
  * status: in both cases the conflict is genuine and the error must surface.
+ *
+ * Both statuses are typed as `AppointmentStatus` rather than `string` on
+ * purpose: with bare strings a typo such as `'complete'` would compile and
+ * silently answer `false`, reporting a failure for an action that landed — the
+ * exact symptom this module exists to prevent.
  */
 export function isRequestedStatusAlreadyApplied(
   appointments: readonly StatusBearingAppointment[] | undefined,
   appointmentId: string,
-  requestedStatus: string
+  requestedStatus: AppointmentStatus
 ): boolean {
   if (!appointments) return false
 

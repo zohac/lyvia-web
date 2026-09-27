@@ -25,9 +25,17 @@ import {
   buildDiscoveryAppointmentStatusBody,
   buildUpdateAppointmentStatusCall
 } from '../../app/features/appointments/api/appointments.request'
+import type { AppointmentStatus } from '../../app/features/appointments/api/appointments.contract'
 import { isRequestedStatusAlreadyApplied } from '../../app/features/appointments/domain/status-update-conflict'
+import { runDiscoveryAppointmentStatusUpdate } from '../../app/features/appointments/domain/update-appointment-status'
+import { ApiFetchError } from '../../app/services/api/api-error'
 
 const APPOINTMENT_ID = 'appt-1'
+
+/** The error the transport throws for a given API error code. */
+function apiError(code: string): ApiFetchError {
+  return new ApiFetchError({ statusCode: 409, code, message: 'boom' })
+}
 
 const appRoot = path.resolve(process.cwd(), 'app')
 const DISCOVERY_PAGE_PATH = 'pages/provider/discovery.vue'
@@ -40,6 +48,14 @@ function readDiscoveryPage(): string {
 
 function readContract(): string {
   return fs.readFileSync(path.join(appRoot, CONTRACT_PATH), 'utf-8')
+}
+
+/**
+ * Removes block and line comments so a source-text guard can forbid a token in
+ * code without forbidding the rationale that explains why it is forbidden.
+ */
+function stripVueComments(source: string): string {
+  return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
 }
 
 function listSourceFiles(dir: string): string[] {
@@ -168,33 +184,29 @@ describe('appointments/api — discovery appointment status body (hotfix-24)', (
 })
 
 describe('appointments/api — provider discovery page wiring (hotfix-24)', () => {
-  // Structural second layer: the behavioural cases above prove the builders are
-  // correct, this one proves `discovery.vue` actually goes through them and does
-  // not re-inline the forbidden literal.
+  // Second layer, kept deliberately narrow. The page now hands its transport to
+  // `runDiscoveryAppointmentStatusUpdate`, so the outgoing request itself is
+  // asserted by executing that function (next describe). What is left to prove
+  // here is that the page does not compose a request of its own beside it.
 
-  test('requestUpdateAppointmentStatus delegates path and body to the tested builders', () => {
+  test('the page delegates to the tested runner instead of composing a request', () => {
     const source = readDiscoveryPage()
 
-    assert.match(source, /buildDiscoveryAppointmentStatusBody\(status\)/)
-    assert.match(source, /buildUpdateAppointmentStatusCall\(/)
-  })
-
-  test('page no longer contains the cancelledByRole literal anywhere', () => {
-    const source = readDiscoveryPage()
-
+    assert.match(source, /runDiscoveryAppointmentStatusUpdate\(/)
     assert.ok(
-      !source.includes('cancelledByRole'),
-      'cancelledByRole is not whitelisted by UpdateAppointmentStatusDto — it must not reappear in discovery.vue'
+      !source.includes('buildUpdateAppointmentStatusCall('),
+      'the page must not rebuild the request beside the delegated runner'
     )
   })
 
-  test('the 409 branch delegates to the pure conflict resolver instead of re-inlining it', () => {
-    const source = readDiscoveryPage()
+  test('the page never re-introduces the non-whitelisted property in code', () => {
+    // Comments are stripped first: the rationale may name the field, only
+    // executable code is forbidden from carrying it.
+    const code = stripVueComments(readDiscoveryPage())
 
-    assert.match(source, /isRequestedStatusAlreadyApplied\(/)
     assert.ok(
-      !/\.find\(\s*\w+\s*=>\s*\w+\.id\s*===\s*appointmentId\s*\)/.test(source),
-      'the status re-read must stay in the pure resolver, not be re-inlined in the page'
+      !code.includes('cancelledByRole'),
+      'cancelledByRole is not whitelisted by UpdateAppointmentStatusDto — it must not reappear in discovery.vue code'
     )
   })
 })
@@ -236,7 +248,7 @@ describe('appointments/domain — INVALID_STATUS_TRANSITION resolution (hotfix-2
   // carries the requested status the action effectively landed, so report success.
   // Extracted as a pure helper because the page cannot run under `node:test`.
 
-  const LIST = [
+  const LIST: ReadonlyArray<{ id: string, status: AppointmentStatus }> = [
     { id: 'appt-1', status: 'scheduled' },
     { id: 'appt-2', status: 'cancelled' }
   ]
@@ -262,5 +274,119 @@ describe('appointments/domain — INVALID_STATUS_TRANSITION resolution (hotfix-2
 
   test('never treats a completed request as applied on a cancelled row', () => {
     assert.equal(isRequestedStatusAlreadyApplied(LIST, 'appt-2', 'completed'), false)
+  })
+})
+
+describe('appointments/domain — discovery status update execution (hotfix-24)', () => {
+  // The load-bearing layer. It runs the function the page delegates to, with a
+  // fake transport, and asserts what actually reaches the network. Source-text
+  // guards cannot do this: a page that called the builders and then ignored their
+  // result passed every regex while sending a 404 route and a 422 body.
+
+  const FALLBACK = 'Une erreur est survenue. Veuillez réessayer.'
+  type Row = { id: string, status: 'scheduled' | 'completed' | 'cancelled' }
+
+  function harness(options: { failWith?: unknown, list?: readonly Row[] } = {}) {
+    const sent: Array<{ path: string, method: string, body: unknown }> = []
+    let reReadCalls = 0
+
+    return {
+      sent,
+      get reReadCalls() {
+        return reReadCalls
+      },
+      run: (appointmentId: string, status: 'completed' | 'cancelled') =>
+        runDiscoveryAppointmentStatusUpdate(appointmentId, status, {
+          send: async (request) => {
+            sent.push(request)
+            if (options.failWith !== undefined) throw options.failWith
+            return { updated: true, status }
+          },
+          reRead: async () => {
+            reReadCalls++
+            return options.list
+          },
+          messageFor: code => `mapped:${code}`,
+          fallbackMessage: FALLBACK
+        })
+    }
+  }
+
+  test('sends PATCH /appointments/:id/status with the whitelisted body only', async () => {
+    const h = harness()
+
+    await h.run(APPOINTMENT_ID, 'cancelled')
+
+    assert.equal(h.sent.length, 1)
+    assert.equal(h.sent[0]?.path, `/appointments/${APPOINTMENT_ID}/status`)
+    assert.equal(h.sent[0]?.method, 'PATCH')
+    assert.deepEqual(h.sent[0]?.body, { status: 'cancelled' })
+    assert.equal('cancelledByRole' in (h.sent[0]?.body as object), false)
+  })
+
+  test('never builds the /provider/appointments variant that 404s', async () => {
+    const h = harness()
+
+    await h.run(APPOINTMENT_ID, 'cancelled')
+
+    assert.ok(!h.sent[0]?.path.startsWith('/provider/appointments'))
+  })
+
+  test('reports success on a 2xx without re-reading the list', async () => {
+    const h = harness()
+
+    assert.deepEqual(await h.run(APPOINTMENT_ID, 'cancelled'), { ok: true })
+    assert.equal(h.reReadCalls, 0)
+  })
+
+  test('maps an API error code without re-reading the list', async () => {
+    const h = harness({ failWith: apiError('VALIDATION_ERROR') })
+
+    assert.deepEqual(await h.run(APPOINTMENT_ID, 'cancelled'), {
+      ok: false,
+      message: 'mapped:VALIDATION_ERROR'
+    })
+    assert.equal(h.reReadCalls, 0)
+  })
+
+  test('falls back to the generic message when the failure is not an API error', async () => {
+    const h = harness({ failWith: new TypeError('network down') })
+
+    assert.deepEqual(await h.run(APPOINTMENT_ID, 'cancelled'), {
+      ok: false,
+      message: FALLBACK
+    })
+  })
+
+  test('on a 409, re-reads and reports success when the status did land', async () => {
+    const h = harness({
+      failWith: apiError('INVALID_STATUS_TRANSITION'),
+      list: [{ id: APPOINTMENT_ID, status: 'cancelled' }]
+    })
+
+    assert.deepEqual(await h.run(APPOINTMENT_ID, 'cancelled'), { ok: true })
+    assert.equal(h.reReadCalls, 1)
+  })
+
+  test('on a 409, surfaces the mapped error when the re-read shows another status', async () => {
+    const h = harness({
+      failWith: apiError('INVALID_STATUS_TRANSITION'),
+      list: [{ id: APPOINTMENT_ID, status: 'scheduled' }]
+    })
+
+    assert.deepEqual(await h.run(APPOINTMENT_ID, 'cancelled'), {
+      ok: false,
+      message: 'mapped:INVALID_STATUS_TRANSITION'
+    })
+    assert.equal(h.reReadCalls, 1)
+  })
+
+  test('the completed branch is whitelisted exactly like the cancelled one', async () => {
+    const h = harness()
+
+    await h.run(APPOINTMENT_ID, 'completed')
+
+    assert.deepEqual(h.sent[0]?.body, { status: 'completed' })
+    assert.equal('cancelledByRole' in (h.sent[0]?.body as object), false)
   })
 })

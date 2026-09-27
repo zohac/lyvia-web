@@ -233,10 +233,9 @@ import type {
 } from '../../features/appointments/api/appointments.contract'
 import { mapAppointmentErrorCodeToUserMessage } from '../../features/appointments/api/appointments-error'
 import {
-  buildDiscoveryAppointmentStatusBody,
-  buildUpdateAppointmentStatusCall
-} from '../../features/appointments/api/appointments.request'
-import { isRequestedStatusAlreadyApplied } from '../../features/appointments/domain/status-update-conflict'
+  runDiscoveryAppointmentStatusUpdate,
+  type StatusUpdateOutcome
+} from '../../features/appointments/domain/update-appointment-status'
 import { ApiFetchError } from '../../services/api/api-error'
 import { apiFetch } from '../../services/api/apiFetch'
 import CalendarMonthView from '../../components/molecules/CalendarMonthView.vue'
@@ -602,41 +601,27 @@ const cancelLoading = computed(() => {
 })
 
 // API calls
+// hotfix-24: the request composition, its whitelist and its error handling live
+// in `runDiscoveryAppointmentStatusUpdate`, which takes the transport as a
+// parameter. That is what makes the outgoing path and body assertable: an inline
+// request here shipped two silent production bugs (a 404, then a 422) because no
+// test could observe what this page actually sent.
 async function requestUpdateAppointmentStatus(
   appointmentId: string,
   status: 'completed' | 'cancelled'
-): Promise<{ ok: true } | { ok: false, message: string }> {
-  // hotfix-24: path and body are produced by the tested pure builders. The body
-  // must stay limited to `status` — the cancellation attribution is not
-  // whitelisted by the server DTO, and the production ValidationPipe rejects it
-  // with 422. The server derives it from the authenticated actor's role.
-  const call = buildUpdateAppointmentStatusCall(
-    appointmentId,
-    buildDiscoveryAppointmentStatusBody(status)
-  )
-
-  try {
-    await apiFetch<UpdateAppointmentStatusResponse>(call.path, {
-      method: call.options.method,
-      body: call.options.body
-    })
-    return { ok: true }
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError) {
-      if (err.apiError.code === 'INVALID_STATUS_TRANSITION') {
-        await refresh()
-        if (isRequestedStatusAlreadyApplied(data.value?.appointments, appointmentId, status)) {
-          return { ok: true }
-        }
-      }
-
-      return {
-        ok: false,
-        message: mapAppointmentErrorCodeToUserMessage(err.apiError.code)
-      }
-    }
-    return { ok: false, message: 'Une erreur est survenue. Veuillez réessayer.' }
-  }
+): Promise<StatusUpdateOutcome> {
+  return await runDiscoveryAppointmentStatusUpdate(appointmentId, status, {
+    send: request => apiFetch<UpdateAppointmentStatusResponse>(request.path, {
+      method: request.method,
+      body: request.body
+    }),
+    reRead: async () => {
+      await refresh()
+      return data.value?.appointments
+    },
+    messageFor: code => mapAppointmentErrorCodeToUserMessage(code),
+    fallbackMessage: 'Une erreur est survenue. Veuillez réessayer.'
+  })
 }
 
 type BilanTargetStage = 'active' | 'lead' | 'paused'
