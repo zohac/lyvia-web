@@ -28,22 +28,20 @@ export type ListDiscoveryAppointmentsResponse = {
   appointments: DiscoveryAppointmentListItem[]
 }
 
-export type UpdateAppointmentStatusRequest = {
-  status: 'completed' | 'cancelled'
-  cancelledByRole?: 'CLIENT' | 'PROVIDER' | 'SYSTEM'
-  reason?: string | null
-}
-
 /**
- * What the server actually accepts on `PATCH /appointments/:id/status`.
+ * The body sent on `PATCH /appointments/:id/status`.
  *
  * Mirrors `UpdateAppointmentStatusDto`, which whitelists `status` and `reason`
  * only. It deliberately does NOT include `cancelledByRole`: the production
  * `ValidationPipe` runs with `forbidNonWhitelisted: true`, so sending that
- * property is rejected with 422 `VALIDATION_ERROR`. `UpdateAppointmentStatusRequest`
- * above is the shape the discovery page actually sends, and is itself suspect.
+ * property is rejected with 422 `VALIDATION_ERROR` (hotfix-24 — that field
+ * broke "Annuler un appel découverte" in `pages/provider/discovery.vue`).
+ * The server derives the cancellation attribution from the authenticated
+ * actor's role (`UpdateAppointmentStatusUseCase`), so the front must never
+ * assert it. `cancelledByRole` remains a *read* field on the calendar and
+ * clients response models.
  */
-export type UpdateAppointmentStatusBody = {
+export type UpdateAppointmentStatusRequest = {
   status: 'completed' | 'cancelled'
   reason?: string | null
 }
