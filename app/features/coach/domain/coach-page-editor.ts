@@ -1,9 +1,14 @@
 export const COACH_PAGE_ALWAYS_ON_SECTIONS = ['hero', 'disclaimer'] as const
 
+// YB.1.1 — `freeText` est inscrit APRÈS `benefits` : c'est la position
+// canonique du bloc sur la page (entre bénéfices et « qui suis-je », AD-7).
+// Cette liste est l'inscription n° 2 des cinq exigées par AD-7 — c'est elle qui
+// décide si l'éditeur rend un formulaire pour la section.
 export const COACH_PAGE_INLINE_EDITOR_SECTIONS = [
   'pillars',
   'faq',
   'benefits',
+  'freeText',
   'howItWorks',
   'fit',
   'educationalContent',
@@ -47,6 +52,29 @@ export function getCoachPageEditableSections(availableSections: readonly string[
 
 export function supportsEmotionalSupportSection(availableSections: readonly string[]): boolean {
   return availableSections.includes('emotionalSupport')
+}
+
+/**
+ * YB.1.1 — Présence RÉELLE de contenu dans le bloc de texte libre.
+ *
+ * Source UNIQUE de la règle, partagée par `CoachFreeText.vue` (qui s'y rend
+ * lui-même) et par les trois templates, dont le `<div>` enveloppant en dépend :
+ * un bloc allumé mais vide laisserait sinon une bande de surface vide
+ * (`bg-surface-card px-6 py-24`) sur la page publique.
+ *
+ * `useCoachSectionVisibility` reste le SEUL propriétaire de la règle de
+ * visibilité (toggle seul, AD-7) : ceci est un prédicat de CONTENU, pas une
+ * seconde règle de visibilité.
+ *
+ * Même convention que le rendu : un titre ou un paragraphe composé de blancs
+ * ne compte pas.
+ */
+export function hasCoachFreeTextContent(
+  freeText: { title?: string, paragraphs?: readonly string[] } | null | undefined
+): boolean {
+  if (!freeText) return false
+  if (freeText.title?.trim()) return true
+  return (freeText.paragraphs ?? []).some(paragraph => !!paragraph?.trim())
 }
 
 /**

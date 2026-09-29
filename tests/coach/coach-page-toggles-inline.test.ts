@@ -94,15 +94,36 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     )
   })
 
-  test('AC-1: contenu de l\'éditeur est collapse quand la section est off (v-if="isSectionOn(section)" sur le wrapper)', () => {
+  test('AC-1: contenu de l\'éditeur est collapse quand la section est off (wrapper isSectionBodyOpen)', () => {
     const source = readCoachPage()
     // Round PO 2026-05-01 : la structure a été simplifiée — un seul <template v-if="isSectionOn(section)">
-    // par card englobe contenu + footer (au lieu d\'un v-if par bloc interne). On vérifie qu\'il
-    // existe au moins 1 occurrence de ce pattern + 1 dans le branding card.
-    const matches = source.match(/v-if="isSectionOn\(section\)"|v-if="isSectionOn\('branding'\)"/g) ?? []
+    // par card englobe contenu + footer (au lieu d\'un v-if par bloc interne).
+    //
+    // YB.1.1 : ce wrapper est devenu `isSectionBodyOpen(section)`. La
+    // différentielle est EXPLICITE et bornée à la section `freeText` — dont
+    // la bascule est verrouillée tant que le contenu est vide, donc il faut
+    // que le formulaire reste déplié pour pouvoir l'écrire. Pour toutes les
+    // autres sections, `isSectionBodyOpen` === `isSectionOn`.
+    // Les DEUX wrappers de corps de la page :
+    //   - la card « external » (pricing), inchangée : isSectionOn(section) ;
+    //   - la card éditeur inline, YB.1.1 : isSectionBodyOpen(section).
+    const matches = source.match(
+      /v-if="isSectionBodyOpen\(section\)"|v-if="isSectionOn\(section\)"/g
+    ) ?? []
     assert.ok(
       matches.length >= 2,
-      `Au moins 2 v-if="isSectionOn(...)" attendus (1 wrapper card éditeur + 1 wrapper branding), trouvé : ${matches.length}`
+      `Les 2 wrappers de corps attendus (card external + card éditeur inline), trouvé : ${matches.length}`
+    )
+    // Le helper ne déborde PAS sur les autres sections.
+    assert.match(
+      source,
+      /function isSectionBodyOpen\(section: string\): boolean \{\s*return isSectionOn\(section\) \|\| isFreeTextSection\(section\)\s*\}/,
+      'isSectionBodyOpen doit ouvrir le corps SI la section est allumée OU si c\'est le bloc libre'
+    )
+    assert.match(
+      source,
+      /function isFreeTextSection\(section: string\): boolean \{\s*return section === 'freeText'\s*\}/,
+      'isFreeTextSection doit être borné à la seule section freeText'
     )
   })
 

@@ -29,6 +29,10 @@ const signatureSections = [
   'disclaimer'
 ]
 
+// Fixture LEGACY : la forme du template `essentiel` AVANT la correction de
+// l'écart NFR-YB13. Conservée telle quelle parce que deux tests ci-dessous
+// s'appuient dessus pour pincer l'AVANT (ils décrivent un jeu de sections
+// restreint, pas le catalogue réel).
 const essentielSections = [
   'hero',
   'bio',
@@ -39,6 +43,29 @@ const essentielSections = [
   'howItWorks',
   'pricing',
   'disclaimer'
+]
+
+/**
+ * YB.1.1 — la forme RÉELLE du template `essentiel` après la migration
+ * `1789778000000-add-free-text-block-coach-page` : `freeText` ajouté (bloc de
+ * texte libre) et `emotionalSupport` ajouté (écart NFR-YB13 — `CoachPillars`,
+ * partagé avec Signature, rend ce sous-bloc, donc une coach Essentiel ne
+ * pouvait pas le saisir).
+ */
+const essentielSectionsAfterYb11 = [
+  'hero',
+  'bio',
+  'problemStatement',
+  'pillars',
+  'faq',
+  'testimonials',
+  'benefits',
+  'freeText',
+  'howItWorks',
+  'fit',
+  'pricing',
+  'disclaimer',
+  'emotionalSupport'
 ]
 
 test('ALWAYS_ON sections stay limited to hero and disclaimer', () => {
@@ -55,6 +82,7 @@ test('inline editor sections stay aligned with the provider editor forms', () =>
     'pillars',
     'faq',
     'benefits',
+    'freeText',
     'howItWorks',
     'fit',
     'educationalContent',
@@ -72,7 +100,13 @@ test('inline editor sections stay aligned with the provider editor forms', () =>
 test('emotionalSupport is treated as a nested section, not a top-level toggle/editor card', () => {
   assert.equal(isCoachPageNestedEditorSection('emotionalSupport'), true)
   assert.equal(supportsEmotionalSupportSection(signatureSections), true)
+  // AVANT l'écart NFR-YB13 : le catalogue `essentiel` ne listait pas
+  // `emotionalSupport`, une coach Essentiel ne pouvait donc pas saisir le
+  // sous-bloc rendu par `CoachPillars` (composé avec Signature).
   assert.equal(supportsEmotionalSupportSection(essentielSections), false)
+  // APRÈS la migration `1789778000000` : le sous-formulaire existe. La règle
+  // du domaine n'a pas bougé — c'est le CONTENU du catalogue qui était faux.
+  assert.equal(supportsEmotionalSupportSection(essentielSectionsAfterYb11), true)
 })
 
 test('configurable sections hide nested emotionalSupport while keeping pricing configurable', () => {

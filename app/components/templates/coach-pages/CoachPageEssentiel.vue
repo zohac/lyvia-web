@@ -33,10 +33,12 @@ import type { PublicProviderProfile } from '~/features/seo/api/public-provider-p
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
+import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachEssentielHeader from '~/components/templates/coach-pages/essentiel/CoachEssentielHeader.vue'
 import CoachEssentielHero from '~/components/templates/coach-pages/essentiel/CoachEssentielHero.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
+import CoachFreeText from '~/components/organisms/CoachFreeText.vue'
 import CoachPillars from '~/components/organisms/CoachPillars.vue'
 import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
@@ -86,6 +88,13 @@ const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const showBio = show.bio
 const showBenefits = show.benefits
+// YB.1.1 — le toggle décide de l'intention, le CONTENU décide de
+// l'existence : sans ce second terme, un bloc allumé mais vide laisserait
+// une bande de surface vide (`px-6 py-24`) sur la page. Le composant
+// `CoachFreeText` porte le même garde pour son propre rendu.
+const showFreeText = computed(() =>
+  show.freeText.value && hasCoachFreeTextContent(props.coachProfile?.freeTextJson)
+)
 const showProblemStatement = show.problemStatement
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
@@ -278,6 +287,20 @@ const heroProps = computed(() => ({
           </div>
         </template>
       </CoachTransformationBenefits>
+    </div>
+
+    <!-- ==================== 2 bis. BLOC DE TEXTE LIBRE (optional) ==================== -->
+    <!-- YB.1.1 — position canonique : entre bénéfices et « qui suis-je », sur les
+      trois templates. Le composant est né partagé (AD-5) : il porte le contenu,
+      l'appelant porte la surface du template (AD-9) — et c'est pourquoi
+      l'appelant se gate aussi sur `showFreeText` (toggle ET contenu) : la
+      surface ne doit pas exister pour un bloc vide. Aucun lien d'ancre. -->
+    <div
+      v-if="showFreeText"
+      v-bind="reveal()"
+      class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
+    >
+      <CoachFreeText :free-text="coachProfile?.freeTextJson ?? null" />
     </div>
 
     <!-- ==================== 3. À PROPOS — Qui suis-je (crepuscule-50 bg — rupture visuelle "preuve") ==================== -->

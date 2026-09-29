@@ -17,11 +17,14 @@ function readFile(relativePath: string): string {
 
 describe('YC2.2 — coach-template-registry (pure resolver)', () => {
   describe('SUPPORTED_COACH_TEMPLATE_CODES', () => {
-    test('contains signature, essentiel and visuel', () => {
-      assert.ok(SUPPORTED_COACH_TEMPLATE_CODES.includes('signature'))
-      assert.ok(SUPPORTED_COACH_TEMPLATE_CODES.includes('essentiel'))
-      assert.ok(SUPPORTED_COACH_TEMPLATE_CODES.includes('visuel'))
-      assert.equal(SUPPORTED_COACH_TEMPLATE_CODES.length, 3)
+    test('contains exactly signature, essentiel and visuel (set, not count)', () => {
+      // AD-5 : on asserte un ENSEMBLE. Un `length === 3` passe aussi bien
+      // quand Alba remplace signature — et le remplacement silencieux d'un
+      // code est précisément ce qu'un compte ne voit pas.
+      assert.deepStrictEqual(
+        [...SUPPORTED_COACH_TEMPLATE_CODES].sort(),
+        ['essentiel', 'signature', 'visuel']
+      )
     })
   })
 
@@ -133,18 +136,34 @@ describe('YC2.2 — useCoachPageTemplate (Vue composable, file-based checks)', (
     assert.ok(fs.existsSync(visuel), 'CoachPageVisuel.vue must exist')
   })
 
-  test('TEMPLATE_MAP keys match SUPPORTED_COACH_TEMPLATE_CODES (parity)', () => {
+  test('TEMPLATE_MAP keys match SUPPORTED_COACH_TEMPLATE_CODES (parity, BOTH ways)', () => {
     const content = readFile('composables/useCoachPageTemplate.ts')
     // Extract the map object block
     const mapMatch = content.match(/TEMPLATE_MAP\s*=\s*\{([\s\S]*?)\}\s*as\s*const/)
     assert.ok(mapMatch, 'TEMPLATE_MAP block must be present')
     const keysInMap = Array.from((mapMatch![1] ?? '').matchAll(/^\s*(\w+):/gm)).map(m => m[1])
+
+    // Sens 1 — union → table (déjà couvert par le typage, on le garde).
     for (const code of SUPPORTED_COACH_TEMPLATE_CODES) {
       assert.ok(
         keysInMap.includes(code),
         `TEMPLATE_MAP must contain key "${code}" declared in SUPPORTED_COACH_TEMPLATE_CODES`
       )
     }
+
+    // Sens 2 — table → union. C'est le mode de défaillance RÉEL, et il est
+    // SILENCIEUX : un code présent dans l'union ET dans la table mais absent
+    // de `SUPPORTED_COACH_TEMPLATE_CODES` est ramené au template de repli par
+    // `resolveCoachTemplateCode` — une coach dont le template est enregistré
+    // en base voit la page d'un AUTRE, sans erreur. (AD-5)
+    const keysNotDeclared = keysInMap.filter(
+      key => !(SUPPORTED_COACH_TEMPLATE_CODES as readonly string[]).includes(key)
+    )
+    assert.deepStrictEqual(
+      keysNotDeclared,
+      [],
+      `TEMPLATE_MAP contains keys absent from SUPPORTED_COACH_TEMPLATE_CODES: ${keysNotDeclared.join(', ')}`
+    )
   })
 })
 

@@ -27,6 +27,7 @@
 import {
   getCoachPageExternalEditorSection,
   getCoachPageTemplateSaveErrorToast,
+  hasCoachFreeTextContent,
   isCoachPageInlineEditorSection
 } from '~/features/coach/domain/coach-page-editor'
 import { useCoachPageEditor } from '~/features/coach/useCoachPageEditor'
@@ -109,6 +110,7 @@ const {
   educationalContentForm,
   problemStatementForm,
   fitForm,
+  freeTextForm,
   init,
   isAlwaysOn,
   isSectionOn,
@@ -124,12 +126,22 @@ const {
   setEducationalInsightContent,
   setProblemStatementBlockquote,
   addProblemParagraph,
-  removeProblemParagraph
+  removeProblemParagraph,
+  setFreeTextTitle,
+  addFreeTextParagraph,
+  removeFreeTextParagraph,
+  saveFreeText
 } = editor
 
 onMounted(() => init())
 
 const PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH = 500
+// YB.1.1 — plafonds alignés sur `FreeTextJsonDto` côté API
+// (10 paragraphes × 2 000 caractères, titre ≤ 200). Le même plafond de 10 est
+// déjà appliqué à l'éditeur des paragraphes éducatifs.
+const FREE_TEXT_PARAGRAPH_MAX = 10
+const FREE_TEXT_PARAGRAPH_MAX_LENGTH = 2000
+const FREE_TEXT_TITLE_MAX_LENGTH = 200
 const TESTIMONIALS_MAX = 10
 // "Qui suis-je" édite `longBio` (5000 chars max — DTO `@MaxLength(5000)`),
 // pas le champ `bio` (500 chars, tagline hero). Le rendu public CoachPageSignature
@@ -145,6 +157,7 @@ const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero (en-tête)',
   bio: 'Qui suis-je',
   benefits: 'Bénéfices',
+  freeText: 'Bloc de texte libre',
   pillars: 'Piliers',
   howItWorks: 'Comment ça marche',
   fit: 'Pour qui / Adéquation',
@@ -162,14 +175,20 @@ function sectionLabel(section: string): string {
 }
 
 // ── Display order — aligné sur l'ordre de rendu de la page publique coach (PO 2026-05-02) ──
-// hero (always-on, top) → problemStatement → benefits (Ce que cela apporte) → bio
-// (Qui suis-je) → testimonials → pillars (L'accompagnement) → howItWorks (Le
-// parcours) → pricing → educationalContent (Comprendre) → faq → disclaimer
-// (always-on, bottom).
+// hero (always-on, top) → problemStatement → benefits (Ce que cela apporte) →
+// freeText (Bloc de texte libre) → bio (Qui suis-je) → testimonials → pillars
+// (L'accompagnement) → howItWorks (Le parcours) → pricing → educationalContent
+// (Comprendre) → faq → disclaimer (always-on, bottom).
+//
+// YB.1.1 — `freeText` est POSITIONNÉ entre `benefits` et `bio` : l'ordre de
+// rendu de la page est FIGÉ par template, la coach n'ordonne pas. C'est
+// l'inscription n° 3 des cinq exigées par AD-7. Une section inconnue est
+// ajoutée en FIN de liste — d'où l'importance de l'entrée explicite ici.
 const DISPLAY_SECTION_ORDER = [
   'hero',
   'problemStatement',
   'benefits',
+  'freeText',
   'bio',
   'testimonials',
   'pillars',
@@ -599,6 +618,12 @@ const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
   fitForm: fitForm as unknown as import('vue').Ref<
     import('~/features/seo/api/public-provider-profile.contract').FitJson | null
   >,
+  // YB.1.1 — la saisie non enregistrée doit se refléter dans l'aperçu sans
+  // publication implicite. Sans cette ligne, la LISTE D'AUTORISATION EXHAUSTIVE
+  // de `useCoachPagePreviewProfile` ignorerait le champ en silence.
+  freeTextForm: freeTextForm as unknown as import('vue').Ref<
+    import('~/features/seo/api/public-provider-profile.contract').FreeTextJson | null
+  >,
   templateCode: previewTemplateCode,
   // Story 0-28 CR-3 & Story 0-38 — propage les photos en cours d'upload (object
   // URL local) ou tout juste persistées (URL S3 retournée par l'upload). Sans
@@ -1018,6 +1043,16 @@ async function onSaveFitSection() {
   })
 }
 
+// YB.1.1 — `saveFreeText` enregistre `null` quand titre et paragraphes sont
+// tous deux vides : c'est ce que la page publique attend pour disparaître.
+async function onSaveFreeTextSection() {
+  const ok = await saveFreeText()
+  toast.add({
+    title: ok ? 'Bloc de texte libre enregistré' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
 async function onSaveEducationalContentSection() {
   const ok = await updateAccount({
     educationalContentJson: educationalContentForm.value,
@@ -1186,6 +1221,53 @@ function removeStep(index: number) {
 // ── Section has editable form? ──
 function hasEditor(section: string): boolean {
   return isCoachPageInlineEditorSection(section)
+}
+
+// ── YB.1.1 — Bloc de texte libre : bascule verrouillée tant que le contenu est vide ──
+//
+// La bascule est PRÉSENTE MAIS DÉSACTIVÉE, avec sa raison affichée, tant que la
+// coach n'a rien écrit : un contrôle qui disparaît est introuvable, un contrôle
+// désactivé et expliqué est découvrable (AD-7).
+//
+// Corollaire d'édition : le FORMULAIRE reste atteignable même section éteinte.
+// Sans cela, la coach ne pourrait jamais remplir le bloc — la seule action
+// disponible serait un interrupteur verrouillé. C'est le seul cas où le corps
+// de la card n'est pas replié par le toggle.
+const FREE_TEXT_LOCK_REASON
+  = 'Écrivez d’abord un titre ou un paragraphe pour pouvoir activer cette section.'
+
+// YB.1.1 — CR round 2 : le prédicat est PARTAGÉ (même règle que le composant et
+// les 3 templates). La copie locale, sans le garde `?? []`, faisait planter la
+// page sur un `freeTextJson: []` accepté par l'API (`@ValidateNested` n'invalide
+// aucun élément d'un tableau).
+const hasFreeTextContent = computed(() => hasCoachFreeTextContent(freeTextForm.value))
+
+function isFreeTextSection(section: string): boolean {
+  return section === 'freeText'
+}
+
+/**
+ * Le verrou n'interdit QUE l'ACTIVATION d'un bloc vide.
+ *
+ * Il faut `!isSectionOn(section)` : un bloc déjà allumé reste toujours
+ * désactivable, même une fois le contenu effacé. Sans ce terme, une coach qui
+ * avait écrit, allumé, puis tout effacé se retrouvait avec une bascule
+ * affichée ON et verrouillée, et une raison (« écrivez d'abord… ») qui
+ * l'interdisait de l'éteindre — un état dont on ne sort plus.
+ */
+function isSectionLocked(section: string): boolean {
+  return isFreeTextSection(section)
+    && !isSectionOn(section)
+    && !hasFreeTextContent.value
+}
+
+function sectionLockReason(section: string): string | null {
+  return isSectionLocked(section) ? FREE_TEXT_LOCK_REASON : null
+}
+
+/** Le corps du bloc libre reste déplié même éteint : c'est là qu'on l'écrit. */
+function isSectionBodyOpen(section: string): boolean {
+  return isSectionOn(section) || isFreeTextSection(section)
 }
 
 function externalSection(section: string) {
@@ -2152,7 +2234,7 @@ function externalSection(section: string) {
             border-b uniquement quand le contenu est visible (sinon trait orphelin sous une carte collapsée). -->
             <div
               class="flex items-center justify-between px-6 py-4"
-              :class="isSectionOn(section) ? 'border-b border-[color:var(--color-border-subtle)]' : ''"
+              :class="isSectionBodyOpen(section) ? 'border-b border-[color:var(--color-border-subtle)]' : ''"
             >
               <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
                 {{ sectionLabel(section) }}
@@ -2161,14 +2243,27 @@ function externalSection(section: string) {
                 <span class="text-sm text-[color:var(--color-brand-secondary)]">Visible sur ma page</span>
                 <USwitch
                   :model-value="isSectionOn(section)"
+                  :disabled="isSectionLocked(section)"
                   :aria-label="`${sectionLabel(section)} — visible sur ma page`"
                   @update:model-value="(v: boolean) => onToggleSection(section, v)"
                 />
               </label>
             </div>
 
+            <!-- YB.1.1 — raison affichée d'un contrôle désactivé : `disabled`
+                 retire l'interrupteur de l'ordre de tabulation, la raison est
+                 donc lue par un lecteur d'écran (et visible sans souris). -->
+            <p
+              v-if="sectionLockReason(section)"
+              data-testid="free-text-lock-reason"
+              class="border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] px-6 py-3 text-sm text-[color:var(--color-brand-secondary)]"
+              role="note"
+            >
+              {{ sectionLockReason(section) }}
+            </p>
+
             <!-- ── CONTENU (collapsed si off) + FOOTER (bouton Enregistrer) ── -->
-            <template v-if="isSectionOn(section)">
+            <template v-if="isSectionBodyOpen(section)">
               <!-- ── BIO (Qui suis-je) — inline editor (Story 0-26 AC-4) ── -->
               <template v-if="section === 'bio'">
                 <div class="space-y-4 px-6 py-5">
@@ -2606,6 +2701,107 @@ function externalSection(section: string) {
                     size="sm"
                     :loading="saving"
                     @click="onSaveBenefitsSection"
+                  >
+                    Enregistrer
+                  </UButton>
+                </div>
+              </template>
+
+              <!-- ── FREE TEXT (Bloc de texte libre) — YB.1.1 ── -->
+              <template v-if="section === 'freeText'">
+                <div class="space-y-4 px-6 py-5">
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    Un texte libre qui s'affiche entre vos bénéfices et la section
+                    « Qui suis-je ». Le titre est facultatif ; les paragraphes
+                    s'affichent tels que vous les saisissez.
+                  </p>
+
+                  <FormControl
+                    id="freeTextTitle"
+                    label="Titre du bloc (facultatif)"
+                    :hint="`Facultatif — ${FREE_TEXT_TITLE_MAX_LENGTH} caractères maximum`"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        :model-value="freeTextForm?.title ?? ''"
+                        v-bind="inputAttrs"
+                        placeholder="Comment je travaille avec vous"
+                        :maxlength="FREE_TEXT_TITLE_MAX_LENGTH"
+                        @update:model-value="(val: string) => setFreeTextTitle(val)"
+                      />
+                    </template>
+                  </FormControl>
+
+                  <FormControl
+                    id="freeTextParagraph"
+                    label="Paragraphes"
+                    :hint="`Jusqu'à ${FREE_TEXT_PARAGRAPH_MAX} paragraphes de ${FREE_TEXT_PARAGRAPH_MAX_LENGTH} caractères`"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <div class="space-y-3">
+                        <div
+                          v-for="(_, idx) in (freeTextForm?.paragraphs ?? [])"
+                          :key="idx"
+                          class="relative"
+                        >
+                          <button
+                            type="button"
+                            class="absolute -right-1 -top-1 z-10 text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-error)]"
+                            :aria-label="`Supprimer le paragraphe ${idx + 1}`"
+                            @click="removeFreeTextParagraph(idx)"
+                          >
+                            <UIcon
+                              name="i-lucide-x"
+                              class="size-4"
+                            />
+                          </button>
+                          <!-- YB.1.1 — CR round 2 : le premier textarea porte l'id
+                               et l'aria-describedby du FormControl ; sans cela le
+                               label « Paragraphes » et le hint pointaient dans le vide. -->
+                          <UTextarea
+                            :model-value="freeTextForm!.paragraphs[idx]"
+                            v-bind="idx === 0 ? inputAttrs : {}"
+                            class="w-full"
+                            :placeholder="`Paragraphe ${idx + 1} (max ${FREE_TEXT_PARAGRAPH_MAX_LENGTH} caractères)`"
+                            :maxlength="FREE_TEXT_PARAGRAPH_MAX_LENGTH"
+                            :rows="4"
+                            size="sm"
+                            @update:model-value="(val: string) => { if (freeTextForm) freeTextForm.paragraphs[idx] = val }"
+                          />
+                        </div>
+                      </div>
+                    </template>
+                  </FormControl>
+
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                    icon="i-lucide-plus"
+                    :disabled="(freeTextForm?.paragraphs?.length ?? 0) >= FREE_TEXT_PARAGRAPH_MAX"
+                    @click="addFreeTextParagraph"
+                  >
+                    Ajouter un paragraphe
+                  </UButton>
+
+                  <!-- Raison affichée d'un contrôle borné — `disabled` retire le
+                       bouton de l'ordre de tabulation, la raison reste lue. -->
+                  <p
+                    v-if="(freeTextForm?.paragraphs?.length ?? 0) >= FREE_TEXT_PARAGRAPH_MAX"
+                    data-testid="free-text-paragraph-limit-reason"
+                    class="text-sm text-[color:var(--color-brand-secondary)]"
+                    role="note"
+                  >
+                    Vous avez atteint le maximum de {{ FREE_TEXT_PARAGRAPH_MAX }} paragraphes.
+                  </p>
+                </div>
+                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
+                  <UButton
+                    color="primary"
+                    variant="solid"
+                    size="sm"
+                    :loading="saving"
+                    @click="onSaveFreeTextSection"
                   >
                     Enregistrer
                   </UButton>

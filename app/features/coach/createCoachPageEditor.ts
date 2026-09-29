@@ -3,6 +3,7 @@ import type { DeepReadonly, Ref } from 'vue'
 import {
   getCoachPageEditableSections,
   getCoachPageConfigurableSections,
+  hasCoachFreeTextContent,
   isCoachPageAlwaysOnSection,
   supportsEmotionalSupportSection
 } from './domain/coach-page-editor'
@@ -16,7 +17,8 @@ import type {
   HowItWorksStep,
   EducationalContentJson,
   ProblemStatementJson,
-  FitJson
+  FitJson,
+  FreeTextJson
 } from '../account/api/provider-account.contract'
 
 export interface ProviderAccountStore {
@@ -59,6 +61,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
   const educationalContentForm = ref<EducationalContentJson | null>(null)
   const problemStatementForm = ref<ProblemStatementJson | null>(null)
   const fitForm = ref<FitJson | null>(null)
+  const freeTextForm = ref<FreeTextJson | null>(null)
 
   const selectedTemplateId = ref<string | null>(null)
 
@@ -164,6 +167,34 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     problemStatementForm.value?.paragraphs.splice(index, 1)
   }
 
+  /**
+   * YB.1.1 — Bloc de texte libre.
+   *
+   * Le formulaire est lazy comme celui du « fit » : il naît au premier
+   * keystroke plutôt qu'au chargement, pour qu'un provider sans bloc ne
+   * porte pas un `{ title: '', paragraphs: [] }` en mémoire. `paragraphs`
+   * reste requis par le contrat — c'est le composant qui refuse de rendre un
+   * bloc sans paragraphe.
+   */
+  function ensureFreeTextForm(): FreeTextJson {
+    if (!freeTextForm.value) {
+      freeTextForm.value = { paragraphs: [] }
+    }
+    return freeTextForm.value
+  }
+
+  function setFreeTextTitle(value: string) {
+    ensureFreeTextForm().title = value || undefined
+  }
+
+  function addFreeTextParagraph() {
+    ensureFreeTextForm().paragraphs.push('')
+  }
+
+  function removeFreeTextParagraph(index: number) {
+    freeTextForm.value?.paragraphs.splice(index, 1)
+  }
+
   async function init() {
     templatesLoading.value = true
     try {
@@ -207,6 +238,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     educationalContentForm.value = acc.educationalContentJson ? cloneMutable(acc.educationalContentJson) as EducationalContentJson : null
     problemStatementForm.value = acc.problemStatementJson ? cloneMutable(acc.problemStatementJson) as ProblemStatementJson : null
     fitForm.value = acc.fitJson ? cloneMutable(acc.fitJson) as FitJson : null
+    freeTextForm.value = acc.freeTextJson ? cloneMutable(acc.freeTextJson) as FreeTextJson : null
   }
 
   async function saveTemplate(templateId: string): Promise<{ ok: boolean, errorCode?: string }> {
@@ -252,6 +284,18 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     return updateAccount({ fitJson: fitForm.value })
   }
 
+  /**
+   * YB.1.1 — Un bloc dont titre et paragraphes sont tous vides est enregistré
+   * comme `null` : c'est ce que la page publique attend pour disparaître, et
+   * `updateAccount` compare avant d'écrire (un no-op ne journalise rien).
+   */
+  async function saveFreeText(): Promise<boolean> {
+    const form = freeTextForm.value
+    // YB.1.1 — CR round 2 : même prédicat PARTAGÉ que le composant, les 3
+    // templates et le verrou de l'éditeur (plus de copie locale divergente).
+    return updateAccount({ freeTextJson: hasCoachFreeTextContent(form) ? form : null })
+  }
+
   return {
     account: readonly(account),
     loading: readonly(loading),
@@ -275,6 +319,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     educationalContentForm,
     problemStatementForm,
     fitForm,
+    freeTextForm,
     init,
     isAlwaysOn,
     isSectionOn,
@@ -287,6 +332,7 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     saveEducationalContent,
     saveProblemStatement,
     saveFit,
+    saveFreeText,
     setBenefitsVisionIntro,
     setBenefitsVisionText,
     addBenefit,
@@ -298,6 +344,9 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     setProblemStatementBlockquote,
     addProblemParagraph,
     removeProblemParagraph,
+    setFreeTextTitle,
+    addFreeTextParagraph,
+    removeFreeTextParagraph,
     publishCoachPage,
     unpublishCoachPage
   }

@@ -110,6 +110,18 @@ export interface FitJson {
   items: FitItem[]
 }
 
+/**
+ * YB.1.1 — Bloc de texte libre (titre optionnel + paragraphes).
+ *
+ * Texte PLAIN : rendu par interpolation Vue avec `whitespace-pre-line`, donc
+ * aucun HTML produit et aucun assainisseur requis (AD-7). Les paragraphes
+ * conservent leurs retours à la ligne saisis.
+ */
+export interface FreeTextJson {
+  title?: string
+  paragraphs: string[]
+}
+
 export interface PublicProviderProfile {
   slug: string
   firstName: string
@@ -158,4 +170,6 @@ export interface PublicProviderProfile {
   educationalContentJson: EducationalContentJson | null
   problemStatementJson: ProblemStatementJson | null
   fitJson?: FitJson | null
+  /** YB.1.1 — Bloc de texte libre, entre bénéfices et « qui suis-je ». */
+  freeTextJson?: FreeTextJson | null
 }
