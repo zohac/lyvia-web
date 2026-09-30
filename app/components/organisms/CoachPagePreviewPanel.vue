@@ -29,6 +29,10 @@ import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { useCoachPageTemplate } from '~/composables/useCoachPageTemplate'
+import {
+  resolveCoachTemplateCode,
+  templateRendersOwnHeader
+} from '~/composables/coach-template-registry'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { useCoachLink } from '~/composables/useCoachLink'
 import { bindBrandColorScope } from '#shared/utils/brand-color-scope'
@@ -68,7 +72,12 @@ const emit = defineEmits<{
 const templateCache = new Map<string, Component>()
 
 function resolveTemplate(code: string | null | undefined): Component {
-  const safeCode = code || 'essentiel'
+  // YB.1.2 — le repli passe par le REGISTRE, plus par un `'essentiel'` en dur.
+  // `resolveCoachTemplateCode` est la seule autorité sur « quel template rend
+  // quoi » : deux littéraux différents dans deux fichiers du même écran
+  // divergent silencieusement, et le cache ci-dessous se remplit alors de
+  // clés distinctes pour un même rendu.
+  const safeCode = resolveCoachTemplateCode(code)
   let cached = templateCache.get(safeCode)
   if (!cached) {
     cached = markRaw(useCoachPageTemplate(safeCode))
@@ -113,12 +122,18 @@ const frameClasses = computed(() =>
 // Story 0-28 CR-1 (Codex review 2026-05-02) — sur la page publique, chaque
 // template décide qui rend le header :
 //   - Signature : utilise le `PublicHeader` global (Keova-style dock).
-//   - Essentiel & Visuel (Luna) : rendent leur propre header interne
-//     (`<CoachEssentielHeader>`, `<CoachVisuelHeader>`).
+//   - Essentiel, Visuel (Luna) et Alba : rendent leur propre header interne
+//     (`<CoachEssentielHeader>`, `<CoachVisuelHeader>`, `<CoachAlbaHeader>`).
 // La preview doit refléter cette règle exactement pour éviter les doubles headers.
-const showPreviewPublicHeader = computed(() =>
-  (props.coachProfile?.templateCode || 'essentiel') !== 'essentiel'
-  && (props.coachProfile?.templateCode || 'essentiel') !== 'visuel'
+//
+// YB.1.2 — la règle vit désormais dans le REGISTRE
+// (`templateRendersOwnHeader`), plus dans une double négation par code. C'est
+// le mode de défaillance RÉEL de cette ligne : Alba y était traitée comme
+// Signature, et l'aperçu affichait DEUX headers — un global, un interne. Cette
+// classe de défaut est invisible au lint, au typecheck et à tout test de
+// rendu, d'où l'AC 3.
+const showPreviewPublicHeader = computed(
+  () => !templateRendersOwnHeader(props.coachProfile?.templateCode)
 )
 
 // Story 0-28 round terrain Simon (2026-05-02) — la preview rend le VRAI

@@ -354,4 +354,135 @@ describe('sitemap handler structural (urls.ts)', () => {
     const articlesSection = source.split('queryCollection(event, \'articles\')')[1] ?? ''
     assert.match(articlesSection, /priority:\s*0\.6/)
   })
+
+  // Story V1.3 — Dynamic pages in sitemap
+  test('queries /public/pages for dynamic pages in white-label branch', () => {
+    const wlSection = source.split('if (ctx.isWhiteLabel)')[1]?.split('if (ctx.isB2B)')[0] ?? ''
+    assert.match(wlSection, /\/public\/pages/)
+    assert.match(wlSection, /priority:\s*0\.7/)
+  })
+
+  test('queries /public/pages for dynamic pages per provider in B2C platform branch', () => {
+    const b2cSection = source.split('// B2C (keova.fr):')[1] ?? ''
+    assert.match(b2cSection, /\/public\/pages/)
+    assert.match(b2cSection, /Host:\s*platformDomain/)
+    assert.match(b2cSection, /\$\{origin\}\/coach\/\$\{p\.slug\}\/\$\{page\.slug\}/)
+    assert.match(b2cSection, /p\.hasVerifiedDomain \? 0\.5 : 0\.7/)
+  })
+
+  test('dynamic pages are gated behind try/catch to ensure graceful error handling', () => {
+    assert.match(source, /catch\s*\{[\s\S]*?\/\/ API unreachable or tenant resolution fails/)
+    assert.match(source, /catch\s*\{[\s\S]*?\/\/ Dynamic pages unreachable/)
+  })
+})
+
+describe('Story V1.3: Dynamic pages sitemap url generation logic', () => {
+  interface DynamicPageMock {
+    slug: string
+    publishedAt: string
+  }
+
+  function buildSitemapWithDynamicPages(
+    host: string,
+    providers: Array<{ slug: string, updatedAt: string, hasVerifiedDomain?: boolean }>,
+    dynamicPagesByProvider: Record<string, DynamicPageMock[]>
+  ): SitemapEntry[] {
+    const ctx = getDomainContext(host, PLATFORM, PLATFORM_B2B)
+    const origin = `https://${ctx.hostname}`
+
+    if (ctx.isWhiteLabel) {
+      const wlPages = dynamicPagesByProvider['default'] || []
+      return [
+        { loc: `${origin}/`, changefreq: 'weekly', priority: 1.0 },
+        { loc: `${origin}/onboarding/discovery`, changefreq: 'weekly', priority: 0.6 },
+        ...wlPages.map(p => ({
+          loc: `${origin}/${p.slug}`,
+          lastmod: p.publishedAt,
+          changefreq: 'weekly' as const,
+          priority: 0.7
+        })),
+        ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` }))
+      ]
+    }
+
+    if (ctx.isB2B) {
+      return [
+        { loc: `${origin}/`, lastmod: '2026-09-13' },
+        ...LEGAL_PAGES.map(p => ({ loc: `${origin}${p.loc}`, lastmod: '2026-09-13' }))
+      ]
+    }
+
+    const coachUrls = providers.flatMap(p => [
+      { loc: `${origin}/coach/${p.slug}`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: p.hasVerifiedDomain ? 0.5 : 0.8 },
+      { loc: `${origin}/coach/${p.slug}/onboarding/discovery`, lastmod: p.updatedAt, changefreq: 'weekly' as const, priority: 0.6 }
+    ])
+
+    const dynamicUrls = providers.flatMap((p) => {
+      const pages = dynamicPagesByProvider[p.slug] || []
+      const priority = p.hasVerifiedDomain ? 0.5 : 0.7
+      return pages.map(page => ({
+        loc: `${origin}/coach/${p.slug}/${page.slug}`,
+        lastmod: page.publishedAt,
+        changefreq: 'weekly' as const,
+        priority
+      }))
+    })
+
+    return [
+      { loc: `${origin}/`, changefreq: 'weekly', priority: 1.0 },
+      ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` })),
+      ...coachUrls,
+      ...dynamicUrls
+    ]
+  }
+
+  const mockDynamicPages = {
+    'default': [
+      { slug: 'mon-approche', publishedAt: '2026-09-10T12:00:00.000Z' },
+      { slug: 'ateliers', publishedAt: '2026-09-11T15:00:00.000Z' }
+    ],
+    'sophie-jouan': [
+      { slug: 'mon-approche', publishedAt: '2026-09-10T12:00:00.000Z' }
+    ],
+    'marie-dupont': [
+      { slug: 'faq', publishedAt: '2026-09-12T09:00:00.000Z' }
+    ]
+  }
+
+  test('white-label sitemap includes dynamic pages with priority 0.7 and lastmod', () => {
+    const urls = buildSitemapWithDynamicPages('sophiejouan.fr', [], mockDynamicPages)
+    const approcheUrl = urls.find(u => u.loc === 'https://sophiejouan.fr/mon-approche')
+    assert.ok(approcheUrl, 'mon-approche must be in white-label sitemap')
+    assert.equal(approcheUrl!.priority, 0.7)
+    assert.equal(approcheUrl!.changefreq, 'weekly')
+    assert.equal(approcheUrl!.lastmod, '2026-09-10T12:00:00.000Z')
+  })
+
+  test('platform B2C sitemap includes /coach/:slug/:pageSlug with priority 0.5 for verified domain coach', () => {
+    const providers = [
+      { slug: 'sophie-jouan', updatedAt: '2026-09-01T00:00:00.000Z', hasVerifiedDomain: true }
+    ]
+    const urls = buildSitemapWithDynamicPages('keova.fr', providers, mockDynamicPages)
+    const coachPageUrl = urls.find(u => u.loc === 'https://keova.fr/coach/sophie-jouan/mon-approche')
+    assert.ok(coachPageUrl, 'coach subpage must be in platform sitemap')
+    assert.equal(coachPageUrl!.priority, 0.5, 'Priority should be 0.5 when coach has verified custom domain (YC2.4)')
+    assert.equal(coachPageUrl!.lastmod, '2026-09-10T12:00:00.000Z')
+  })
+
+  test('platform B2C sitemap uses priority 0.7 when coach has NO verified domain', () => {
+    const providers = [
+      { slug: 'marie-dupont', updatedAt: '2026-09-01T00:00:00.000Z', hasVerifiedDomain: false }
+    ]
+    const urls = buildSitemapWithDynamicPages('keova.fr', providers, mockDynamicPages)
+    const coachPageUrl = urls.find(u => u.loc === 'https://keova.fr/coach/marie-dupont/faq')
+    assert.ok(coachPageUrl, 'coach subpage must be in platform sitemap')
+    assert.equal(coachPageUrl!.priority, 0.7, 'Priority should be 0.7 when coach has no custom domain')
+  })
+
+  test('platform B2B sitemap (keova.app) excludes coach dynamic pages', () => {
+    const urls = buildSitemapWithDynamicPages('keova.app', [], mockDynamicPages)
+    const locs = urls.map(u => u.loc)
+    assert.ok(!locs.some(l => l.includes('mon-approche')))
+    assert.ok(!locs.some(l => l.includes('/coach/')))
+  })
 })

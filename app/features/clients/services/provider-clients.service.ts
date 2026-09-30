@@ -8,6 +8,7 @@ import type {
   UpdateClientByProviderRequest
 } from '../api/clients.contract'
 import { apiFetch } from '../../../services/api/apiFetch'
+import { buildConvertDiscoveryLeadCall } from '../../appointments/api/appointments.request'
 
 export async function listProviderClients(
   params: ListProviderClientsParams
@@ -49,8 +50,9 @@ export async function reactivateClient(
 export async function convertLeadToActive(
   appointmentId: string
 ): Promise<void> {
-  await apiFetch(`/provider/appointments/${appointmentId}/convert`, {
-    method: 'POST'
+  const call = buildConvertDiscoveryLeadCall(appointmentId)
+  await apiFetch(call.path, {
+    method: call.options.method
   })
 }
 

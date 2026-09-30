@@ -18,9 +18,12 @@ export { WAITLIST_SPECIALTY_VALUES, type WaitlistSpecialty }
 export interface AdminWaitlistLead {
   id: string
   firstName: string
-  lastName: string
+  lastName: string | null
   email: string
   specialty: WaitlistSpecialty
+  activityStage: string | null
+  mainBlocker: string | null
+  discoverySource: string | null
   status: WaitlistStatus
   message: string | null
   createdAt: string

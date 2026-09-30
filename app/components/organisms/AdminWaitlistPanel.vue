@@ -158,6 +158,9 @@
                   Spécialité
                 </th>
                 <th class="px-6 py-3 font-semibold">
+                  Qualification
+                </th>
+                <th class="px-6 py-3 font-semibold">
                   Statut
                 </th>
                 <th class="px-6 py-3 font-semibold">
@@ -176,7 +179,7 @@
                 :data-testid="`admin-waitlist-row-${lead.id}`"
               >
                 <td class="px-6 py-3 text-[color:var(--color-brand-primary)]">
-                  {{ lead.firstName }} {{ lead.lastName }}
+                  {{ fullName(lead) }}
                 </td>
                 <td class="px-6 py-3 text-[color:var(--color-brand-secondary)]">
                   {{ lead.email }}
@@ -185,6 +188,20 @@
                   <span class="inline-flex items-center rounded-full bg-[color:var(--ui-color-primary-100)]/60 px-2.5 py-1 text-xs font-medium text-[color:var(--color-brand-primary)]">
                     {{ specialtyLabel(lead.specialty) }}
                   </span>
+                </td>
+                <td class="px-6 py-3 text-xs text-[color:var(--color-brand-secondary)]">
+                  <p>
+                    <span class="sr-only">Stade de l'activité&nbsp;:</span>
+                    {{ qualificationLabel(ACTIVITY_STAGE_LABELS, lead.activityStage) }}
+                  </p>
+                  <p>
+                    <span class="sr-only">Frein principal&nbsp;:</span>
+                    {{ qualificationLabel(MAIN_BLOCKER_LABELS, lead.mainBlocker) }}
+                  </p>
+                  <p>
+                    <span class="sr-only">Source&nbsp;:</span>
+                    {{ qualificationLabel(DISCOVERY_SOURCE_LABELS, lead.discoverySource) }}
+                  </p>
                 </td>
                 <td class="px-6 py-3">
                   <span :class="`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClasses(lead.status)}`">
@@ -202,7 +219,7 @@
                       color="neutral"
                       size="sm"
                       :loading="pendingUpdates[lead.id] === true"
-                      :aria-label="`Actions pour ${lead.firstName} ${lead.lastName}`"
+                      :aria-label="`Actions pour ${fullName(lead)}`"
                     />
                   </UDropdownMenu>
                 </td>
@@ -221,7 +238,7 @@
             <div class="flex items-start justify-between gap-3">
               <div>
                 <p class="text-sm font-semibold text-[color:var(--color-brand-primary)]">
-                  {{ lead.firstName }} {{ lead.lastName }}
+                  {{ fullName(lead) }}
                 </p>
                 <p class="text-xs text-[color:var(--color-brand-secondary)]">
                   {{ lead.email }}
@@ -236,6 +253,20 @@
                 {{ specialtyLabel(lead.specialty) }}
               </span>
               <span>{{ formatDateShort(lead.createdAt) }}</span>
+            </div>
+            <div class="mt-2 space-y-0.5 text-xs text-[color:var(--color-brand-secondary)]">
+              <p>
+                <span class="text-[color:var(--color-brand-muted)]">Stade&nbsp;:</span>
+                {{ qualificationLabel(ACTIVITY_STAGE_LABELS, lead.activityStage) }}
+              </p>
+              <p>
+                <span class="text-[color:var(--color-brand-muted)]">Frein&nbsp;:</span>
+                {{ qualificationLabel(MAIN_BLOCKER_LABELS, lead.mainBlocker) }}
+              </p>
+              <p>
+                <span class="text-[color:var(--color-brand-muted)]">Source&nbsp;:</span>
+                {{ qualificationLabel(DISCOVERY_SOURCE_LABELS, lead.discoverySource) }}
+              </p>
             </div>
             <div class="mt-3 flex justify-end">
               <UDropdownMenu :items="actionsFor(lead)">
@@ -291,6 +322,12 @@ import {
   WAITLIST_SPECIALTY_LABELS,
   WAITLIST_STATUS_LABELS
 } from '~/features/admin/use-admin-waitlist'
+import {
+  ACTIVITY_STAGE_LABELS,
+  DISCOVERY_SOURCE_LABELS,
+  MAIN_BLOCKER_LABELS,
+  qualificationLabel
+} from '~/features/waitlist/waitlist-labels'
 import {
   WAITLIST_SPECIALTY_VALUES,
   type AdminWaitlistLead,
@@ -385,6 +422,14 @@ function statusLabel(status: WaitlistStatus): string {
 
 function specialtyLabel(specialty: WaitlistSpecialty): string {
   return WAITLIST_SPECIALTY_LABELS[specialty] ?? specialty
+}
+
+/**
+ * `lastName` est facultatif depuis LB.1 : on ne concatène que ce qui existe,
+ * sinon les lecteurs d'écran annoncent « Actions pour Émilie null ».
+ */
+function fullName(lead: AdminWaitlistLead): string {
+  return lead.lastName ? `${lead.firstName} ${lead.lastName}` : lead.firstName
 }
 
 async function performUpdate(lead: AdminWaitlistLead, next: WaitlistStatus) {

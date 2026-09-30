@@ -33,12 +33,14 @@ export const FEATURE_CUSTOM_DOMAIN = 'custom_domain'
 export const FEATURE_WHITE_LABEL_BRANDING = 'white_label_branding'
 export const FEATURE_COACH_PAGE_PREMIUM_TEMPLATES = 'coach_page_premium_templates'
 export const FEATURE_LEAD_MAGNET = 'lead_magnet'
+export const FEATURE_PAGE_BUILDER = 'page_builder'
 
 export const PLAN_FEATURE_CODES = [
   FEATURE_CUSTOM_DOMAIN,
   FEATURE_WHITE_LABEL_BRANDING,
   FEATURE_COACH_PAGE_PREMIUM_TEMPLATES,
-  FEATURE_LEAD_MAGNET
+  FEATURE_LEAD_MAGNET,
+  FEATURE_PAGE_BUILDER
 ] as const
 
 export type PlanFeatureCode = (typeof PLAN_FEATURE_CODES)[number]
@@ -59,5 +61,6 @@ export const FEATURE_MIN_PLAN_LABEL: Record<PlanFeatureCode, string> = {
   custom_domain: 'Premium',
   white_label_branding: 'Premium',
   coach_page_premium_templates: 'Premium',
-  lead_magnet: 'Premium'
+  lead_magnet: 'Premium',
+  page_builder: 'Premium'
 }

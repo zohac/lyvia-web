@@ -81,6 +81,7 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     howItWorksJson: null,
     educationalContentJson: null,
     problemStatementJson: null,
+    freeTextJson: null,
     brandName: null,
     logoUrl: null,
     imageUrl: null,
@@ -314,5 +315,92 @@ describe('R1-F1 + R1-F4 — Échec saveSectionsConfig : retourne `false`, le cal
     assert.equal(ok, false, 'l\'éditeur retourne false sur échec ; le caller doit rollback')
     // L'account ref n'a PAS été muté par le PATCH échoué (anti-régression : éviter d'écraser le serveur)
     assert.equal(editor.account.value?.sectionsConfig?.bio, true, 'le ref serveur reste intact malgré l\'échec')
+  })
+})
+
+describe('YB.1.1 — Bloc de texte libre : hydratation et suppression', () => {
+  // Sans ces deux cas, un `saveFreeText` réduit à un simple
+  // `updateAccount({ freeTextJson: freeTextForm.value })` passerait tous les
+  // tests : le bloc deviendrait alors impossible à supprimer de la page, faute
+  // de chemin produisant `null`.
+  test('syncFromAccount hydrate freeTextForm depuis le compte (et null si absent)', async () => {
+    const content = {
+      title: 'Comment je travaille avec vous',
+      paragraphs: ['Un paragraphe', 'Un autre']
+    }
+    const { editor } = createHarness({
+      account: makeAccount({ freeTextJson: content })
+    })
+
+    await editor.init()
+
+    assert.deepEqual(editor.freeTextForm.value, content)
+    // Copie PROFONDE : muter le formulaire ne doit pas muter le store du compte.
+    editor.freeTextForm.value?.paragraphs.push('Ajout local')
+    assert.equal(editor.account.value?.freeTextJson?.paragraphs.length, 2)
+  })
+
+  test('syncFromAccount laisse freeTextForm à null quand le compte n\'a pas de bloc', async () => {
+    const { editor } = createHarness({ account: makeAccount({ freeTextJson: null }) })
+
+    await editor.init()
+
+    assert.equal(editor.freeTextForm.value, null)
+  })
+
+  test('saveFreeText envoie null pour un formulaire vide — le bloc doit pouvoir être supprimé', async () => {
+    const { editor, updatePatches } = createHarness({
+      account: makeAccount({
+        freeTextJson: { title: 'Ancien titre', paragraphs: ['Ancien texte'] }
+      })
+    })
+    await editor.init()
+
+    // Sophie efface tout : la coach a supprimé chaque paragraphe puis le titre.
+    editor.freeTextForm.value = { paragraphs: [''] }
+    editor.setFreeTextTitle('')
+    assert.equal(editor.freeTextForm.value?.paragraphs.length, 1)
+
+    const ok = await editor.saveFreeText()
+
+    assert.equal(ok, true)
+    assert.deepStrictEqual(
+      updatePatches[0],
+      { freeTextJson: null },
+      'un formulaire sans titre ni paragraphe non blanc doit être persisté comme null'
+    )
+  })
+
+  test('saveFreeText envoie null pour un formulaire entièrement composé de blancs', async () => {
+    const { editor, updatePatches } = createHarness()
+    await editor.init()
+
+    editor.addFreeTextParagraph()
+    editor.setFreeTextTitle('   ')
+    assert.equal(updatePatches.length, 0, 'les helpers locaux ne doivent rien envoyer seuls')
+
+    await editor.saveFreeText()
+
+    assert.deepStrictEqual(updatePatches[0], { freeTextJson: null })
+  })
+
+  test('saveFreeText envoie le contenu VIVANT, et rien d\'autre', async () => {
+    const { editor, updatePatches } = createHarness()
+    await editor.init()
+
+    editor.setFreeTextTitle('Comment je travaille')
+    editor.addFreeTextParagraph()
+    editor.addFreeTextParagraph()
+    const paragraphs = editor.freeTextForm.value!.paragraphs
+    paragraphs[0] = 'Premier'
+    paragraphs[1] = 'Second'
+    editor.removeFreeTextParagraph(0)
+
+    const ok = await editor.saveFreeText()
+
+    assert.equal(ok, true)
+    assert.deepStrictEqual(updatePatches[0], {
+      freeTextJson: { title: 'Comment je travaille', paragraphs: ['Second'] }
+    })
   })
 })

@@ -31,12 +31,13 @@ describe('plans/domain — feature codes', () => {
         'custom_domain',
         'white_label_branding',
         'coach_page_premium_templates',
-        'lead_magnet'
+        'lead_magnet',
+        'page_builder'
       ]
     )
   })
 
-  test('FEATURE_MIN_PLAN_LABEL couvre exactement les 4 codes', () => {
+  test('FEATURE_MIN_PLAN_LABEL couvre exactement les 5 codes', () => {
     assert.deepEqual(
       Object.keys(FEATURE_MIN_PLAN_LABEL).sort(),
       [...PLAN_FEATURE_CODES].sort()

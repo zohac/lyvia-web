@@ -8,6 +8,7 @@ import {
   listAdminWaitlist,
   updateAdminWaitlistStatus
 } from './services/admin-waitlist.service'
+import { SPECIALTY_LABELS } from '~/features/waitlist/waitlist-labels'
 
 export interface UseAdminWaitlistOptions {
   service?: AdminWaitlistService
@@ -22,15 +23,11 @@ export function useAdminWaitlist(options: UseAdminWaitlistOptions = {}): AdminWa
   return createAdminWaitlistStore({ service, debounceMs: options.debounceMs })
 }
 
-export const WAITLIST_SPECIALTY_LABELS: Record<string, string> = {
-  'naturopathie': 'Naturopathie',
-  'sophrologie': 'Sophrologie',
-  'coaching-bien-etre': 'Coaching bien-être',
-  'hypnose': 'Hypnose',
-  'yoga-meditation': 'Yoga & méditation',
-  'nutrition': 'Nutrition',
-  'autre': 'Autre'
-}
+/**
+ * Source unique des libellés de domaine, partagée avec le formulaire public.
+ * Ré-exporté ici pour ne pas casser les consommateurs admin existants.
+ */
+export const WAITLIST_SPECIALTY_LABELS: Record<string, string> = SPECIALTY_LABELS
 
 export const WAITLIST_STATUS_LABELS: Record<WaitlistStatus, string> = {
   pending: 'En attente',

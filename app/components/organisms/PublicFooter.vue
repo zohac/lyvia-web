@@ -1,8 +1,25 @@
 <script setup lang="ts">
+import type { PublicHeaderState } from '../../features/public/state/public-header.state'
 import { usePublicHeaderState } from '../../features/public/state/public-header.state'
 import LegalFooterLinks from '../atoms/LegalFooterLinks.vue'
 
-const headerState = usePublicHeaderState()
+/**
+ * V2.2e — `overrides` permet d'embed le footer public dans un sous-arbre isolé
+ * (overlay de prévisualisation privée) sans muter le state global Nuxt, au
+ * même titre que `PublicHeader`. Comportement legacy strictement inchangé
+ * quand `overrides` est absent.
+ */
+const props = withDefaults(defineProps<{
+  overrides?: Partial<PublicHeaderState>
+}>(), {
+  overrides: undefined
+})
+
+const sharedState = usePublicHeaderState()
+const headerState = computed(() => ({
+  ...sharedState.value,
+  ...(props.overrides ?? {})
+}))
 const currentYear = new Date().getFullYear()
 
 const isWhiteLabel = computed(() => headerState.value.variant === 'white-label')

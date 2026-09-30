@@ -16,9 +16,31 @@ export default defineEventHandler(async (event) => {
 
   // White-label: coach-scoped sitemap
   if (ctx.isWhiteLabel) {
+    let dynamicPageUrls: Array<{ loc: string, lastmod?: string, changefreq: 'weekly', priority: number }> = []
+    try {
+      const response = await $fetch<{ pages: Array<{ slug: string, publishedAt: string }> }>(
+        `${apiBase}/public/pages`,
+        {
+          headers: {
+            Host: host
+          },
+          timeout: 5000
+        }
+      )
+      dynamicPageUrls = (response.pages || []).map(p => ({
+        loc: `${origin}/${p.slug}`,
+        lastmod: p.publishedAt,
+        changefreq: 'weekly' as const,
+        priority: 0.7
+      }))
+    } catch {
+      // API unreachable or tenant resolution fails — return base sitemap
+    }
+
     return [
       { loc: `${origin}/`, changefreq: 'weekly' as const, priority: 1.0 },
       { loc: `${origin}/onboarding/discovery`, changefreq: 'weekly' as const, priority: 0.6 },
+      ...dynamicPageUrls,
       ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` }))
     ]
   }
@@ -51,6 +73,40 @@ export default defineEventHandler(async (event) => {
     ]
   })
 
+  // Dynamic pages for each provider on platform B2C
+  const dynamicPageUrls: Array<{ loc: string, lastmod?: string, changefreq: 'weekly', priority: number }> = []
+  try {
+    const pagesResults = await Promise.allSettled(
+      providers.map(async (p) => {
+        const response = await $fetch<{ pages: Array<{ slug: string, publishedAt: string }> }>(
+          `${apiBase}/public/pages`,
+          {
+            query: { providerSlug: p.slug },
+            headers: {
+              Host: platformDomain
+            },
+            timeout: 5000
+          }
+        )
+        const priority = p.hasVerifiedDomain ? 0.5 : 0.7
+        return (response.pages || []).map(page => ({
+          loc: `${origin}/coach/${p.slug}/${page.slug}`,
+          lastmod: page.publishedAt,
+          changefreq: 'weekly' as const,
+          priority
+        }))
+      })
+    )
+
+    for (const result of pagesResults) {
+      if (result.status === 'fulfilled') {
+        dynamicPageUrls.push(...result.value)
+      }
+    }
+  } catch {
+    // Dynamic pages unreachable — proceed with base sitemap
+  }
+
   // Story 0-22: blog articles /articles/* (B2C uniquement)
   let articleUrls: Array<{ loc: string, lastmod?: string, changefreq: 'weekly', priority: number }> = []
   try {
@@ -72,6 +128,7 @@ export default defineEventHandler(async (event) => {
     { loc: `${origin}/`, changefreq: 'weekly' as const, priority: 1.0 },
     ...LEGAL_PAGES.map(p => ({ ...p, loc: `${origin}${p.loc}` })),
     ...coachUrls,
+    ...dynamicPageUrls,
     ...articleUrls
   ]
 })

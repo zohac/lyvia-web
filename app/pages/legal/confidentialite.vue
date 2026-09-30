@@ -77,6 +77,22 @@ useLegalPageSeo({
         <li>Historique des paiements</li>
         <li>Données bancaires (traitées par notre prestataire de paiement sécurisé)</li>
       </ul>
+      <h3>3.4 Données de demande d'accès à la bêta</h3>
+      <p>
+        Lorsque vous demandez un accès à la bêta de Keova, nous collectons :
+      </p>
+      <ul>
+        <li>Prénom</li>
+        <li>Nom (facultatif)</li>
+        <li>Adresse email professionnelle</li>
+        <li>Domaine de pratique, stade de l'activité et frein principal</li>
+        <li>Source de découverte (facultative)</li>
+        <li>Message libre (facultatif)</li>
+      </ul>
+      <p>
+        Ce formulaire ne vous demande aucune information de santé ni aucune donnée
+        concernant vos clientes.
+      </p>
 
       <h2>4. Finalités du traitement</h2>
       <p>
@@ -84,6 +100,7 @@ useLegalPageSeo({
       </p>
       <ul>
         <li>Création et gestion de votre compte utilisateur</li>
+        <li>Examen de votre demande d'accès à la bêta et recontact à ce sujet</li>
         <li>Fourniture de nos services (prise de rendez-vous, paiements)</li>
         <li>Communication relative à votre compte et vos rendez-vous</li>
         <li>Amélioration de nos services</li>
@@ -97,6 +114,10 @@ useLegalPageSeo({
       </p>
       <ul>
         <li><strong>L'exécution du contrat :</strong> pour la fourniture de nos services</li>
+        <li>
+          <strong>Les mesures précontractuelles prises à votre demande :</strong>
+          pour l'examen de votre demande d'accès à la bêta et le recontact qui en découle
+        </li>
         <li><strong>Le consentement :</strong> pour les communications marketing</li>
         <li><strong>L'intérêt légitime :</strong> pour l'amélioration de nos services</li>
         <li><strong>Les obligations légales :</strong> pour la conservation de certaines données</li>
@@ -110,6 +131,7 @@ useLegalPageSeo({
       <ul>
         <li><strong>Données de compte :</strong> durée de la relation contractuelle + 3 ans</li>
         <li><strong>Données de transaction :</strong> 10 ans (obligations comptables)</li>
+        <li><strong>Demande d'accès à la bêta :</strong> 12 mois après le dernier échange, si la demande ne donne pas lieu à la création d'un compte</li>
         <li><strong>Données de prospection :</strong> 3 ans à compter du dernier contact</li>
         <li><strong>Cookies :</strong> 13 mois maximum</li>
       </ul>

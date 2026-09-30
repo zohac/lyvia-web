@@ -6,7 +6,7 @@ interface DsErrorStateProps {
 
 withDefaults(defineProps<DsErrorStateProps>(), {
   message: 'Une erreur est survenue',
-  retryLabel: 'Reessayer'
+  retryLabel: 'Réessayer'
 })
 
 defineEmits<{

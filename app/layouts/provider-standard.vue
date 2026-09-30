@@ -123,6 +123,12 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
+          label: 'Mes pages',
+          to: '/provider/pages',
+          icon: 'lucide:files',
+          match: 'prefix' as const
+        },
+        {
           label: 'Contenus',
           to: '/provider/content',
           icon: 'lucide:file-text',

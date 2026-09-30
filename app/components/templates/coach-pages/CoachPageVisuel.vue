@@ -22,6 +22,7 @@ import type { PublicProviderProfile } from '~/features/seo/api/public-provider-p
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
+import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachVisuelHeader from '~/components/templates/coach-pages/visuel/CoachVisuelHeader.vue'
 import CoachVisuelHero from '~/components/templates/coach-pages/visuel/CoachVisuelHero.vue'
@@ -29,6 +30,7 @@ import CoachVisuelProblem from '~/components/templates/coach-pages/visuel/CoachV
 import CoachVisuelBio from '~/components/templates/coach-pages/visuel/CoachVisuelBio.vue'
 import CoachVisuelPillars from '~/components/templates/coach-pages/visuel/CoachVisuelPillars.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
+import CoachFreeText from '~/components/organisms/CoachFreeText.vue'
 import CoachVisuelSteps from '~/components/templates/coach-pages/visuel/CoachVisuelSteps.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
 import CoachPricing from '~/components/organisms/CoachPricing.vue'
@@ -67,6 +69,13 @@ const showProblemStatement = show.problemStatement
 const showBio = show.bio
 const showPillars = show.pillars
 const showBenefits = show.benefits
+// YB.1.1 — le toggle décide de l'intention, le CONTENU décide de
+// l'existence : sans ce second terme, un bloc allumé mais vide laisserait
+// une bande de surface vide (`px-6 py-24`) sur la page. Le composant
+// `CoachFreeText` porte le même garde pour son propre rendu.
+const showFreeText = computed(() =>
+  show.freeText.value && hasCoachFreeTextContent(props.coachProfile?.freeTextJson)
+)
 const showHowItWorks = show.howItWorks
 const showTestimonials = show.testimonials
 const showFit = show.fit
@@ -196,6 +205,20 @@ const heroProps = computed(() => ({
           </div>
         </template>
       </CoachTransformationBenefits>
+    </div>
+
+    <!-- ==================== 3 bis. BLOC DE TEXTE LIBRE (optionnel) ==================== -->
+    <!-- YB.1.1 — position canonique : entre bénéfices et « qui suis-je », sur les
+      trois templates. Le composant est né partagé (AD-5) : il porte le contenu,
+      l'appelant porte la surface du template (AD-9) — et c'est pourquoi
+      l'appelant se gate aussi sur `showFreeText` (toggle ET contenu) : la
+      surface ne doit pas exister pour un bloc vide. Aucun lien d'ancre. -->
+    <div
+      v-if="showFreeText"
+      v-bind="reveal()"
+      class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
+    >
+      <CoachFreeText :free-text="coachProfile?.freeTextJson ?? null" />
     </div>
 
     <!-- ==================== 4. QUI SUIS-JE (optionnel) ==================== -->

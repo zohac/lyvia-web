@@ -13,6 +13,8 @@ import CoachWaitingTemplate from '~/components/templates/CoachWaitingTemplate.vu
 import CoachPreviewBanner from '~/components/molecules/CoachPreviewBanner.vue'
 import MarketingLandingB2B from '~/components/templates/MarketingLandingB2B.vue'
 import MarketingLandingB2C from '~/components/templates/MarketingLandingB2C.vue'
+import { formatPageNavLinks } from '#shared/utils/page-seo-helpers'
+import { usePublicPagesMenu, type PublicPageMenuItem } from '~/composables/usePublicPagesMenu'
 
 definePageMeta({
   layout: 'public',
@@ -39,6 +41,12 @@ const isPreview = computed(() => route.query.preview === 'true' || route.query.p
 
 // Shared composable — same key+handler as useGlobalSchemaOrg (no duplicate key warning)
 const { data: tenant, status: tenantStatus } = await usePublicTenantHome()
+
+const menuPages = ref<PublicPageMenuItem[]>([])
+if (!isPlatformDomain.value) {
+  const { menuPages: loadedPages } = await usePublicPagesMenu()
+  menuPages.value = loadedPages.value
+}
 
 if (!isPlatformDomain.value && !tenant.value && !isPreview.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
@@ -74,8 +82,8 @@ usePageTracking(computed(() => isPlatformDomain.value ? undefined : providerId.v
 
 const whiteLabelBrandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 
-const b2bTitle = 'Keova — Logiciel tout-en-un pour spécialistes ménopause'
-const b2bDescription = 'Keova réunit agenda en ligne, paiements et suivi client pour les coachs ménopause. Logiciel co-construit avec les praticiennes. Beta privée sur invitation.'
+const b2bTitle = 'Keova — Lancez votre activité, pas votre informatique'
+const b2bDescription = 'Keova réunit votre site professionnel, vos réservations, vos paiements et le suivi de vos clientes. Pendant la bêta, nous mettons votre espace en place avec vous.'
 const b2cTitle = 'Accompagnement ménopause — Spécialistes formées | Keova'
 const b2cDescription = 'Périménopause, ménopause, post-ménopause : comprenez vos symptômes et trouvez une spécialiste près de chez vous. Premier appel gratuit. Keova.'
 
@@ -127,6 +135,7 @@ usePublicCanonicalHead(canonicalHref)
 function updatePublicHeader() {
   if (tenant.value) {
     const coachName = tenant.value.brand.displayName || 'Votre coach'
+    const dynamicLinks = formatPageNavLinks(menuPages.value)
     setPublicHeader({
       variant: 'white-label',
       layoutStyle: 'dock',
@@ -138,7 +147,8 @@ function updatePublicHeader() {
         { label: 'Accompagnement', href: '#accompagnement' },
         { label: 'Tarifs', href: '#tarifs' },
         { label: 'Témoignages', href: '#temoignages' },
-        { label: 'Qui suis-je', href: '#qui-suis-je' }
+        { label: 'Qui suis-je', href: '#qui-suis-je' },
+        ...dynamicLinks
       ],
       loginLabel: 'Espace cliente',
       loginTo: '/login',
@@ -174,14 +184,14 @@ function updatePublicHeader() {
       // Toute modification ici doit être répercutée dans les deux autres.
       navLinks: [
         { label: 'Le problème', href: '#pourquoi' },
-        { label: 'La solution', href: '#atelier' },
-        { label: 'Témoignages', href: '#temoignage' },
+        { label: 'Ce que fait Keova', href: '#atelier' },
+        { label: 'Preuve', href: '#preuve' },
         { label: 'Tarifs', href: '#tarifs' },
         { label: 'FAQ', href: '#faq' }
       ],
       loginLabel: 'Se connecter',
       loginTo: '/login',
-      ctaLabel: 'Je réserve ma place',
+      ctaLabel: 'Demander un accès',
       ctaTo: '#waitlist'
     })
   }
@@ -191,7 +201,7 @@ function updatePublicHeader() {
 updatePublicHeader()
 
 // Reactive watch for client-side navigation (tenant data may change)
-watch([tenant, ctx], updatePublicHeader)
+watch([tenant, ctx, menuPages], updatePublicHeader)
 </script>
 
 <template>

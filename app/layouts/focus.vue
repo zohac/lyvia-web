@@ -4,9 +4,25 @@ import '~/assets/css/main.css'
 import LegalFooterLinks from '../components/atoms/LegalFooterLinks.vue'
 import { getDomainContext } from '#shared/utils/domain-context'
 import { useBrandColorInjection } from '~/composables/useBrandColorInjection'
+import { usePublicTenant } from '~/composables/usePublicTenant'
+import { usePublicTenantDiscovery } from '~/composables/usePublicTenantDiscovery'
 
 useCommonLayoutHead()
 useBrandColorInjection()
+
+const route = useRoute()
+
+// Revue YB.1.2 — le footer (donc `LegalFooterLinks`) rend AVANT le setup de la
+// page, sur le serveur. Le tenant doit donc être semé ici pour que le lien
+// « Mentions légales de la praticienne » (et sa modale) existent à l'identique
+// au SSR et à l'hydratation. La page réutilise la même source (composable
+// partagé), donc pas de requête en double ni de handler divergent.
+const coachSlug = typeof route.params.slug === 'string' ? route.params.slug.trim() : ''
+if (coachSlug) {
+  await usePublicTenant(coachSlug)
+} else {
+  await usePublicTenantDiscovery()
+}
 
 const currentYear = new Date().getFullYear()
 const requestUrl = useRequestURL()

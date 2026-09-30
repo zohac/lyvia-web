@@ -282,3 +282,37 @@ export function removeBrandColors(style: CSSStyleSetter): void {
   style.removeProperty(BRAND_CSS_VARS.accentHover)
   style.removeProperty(BRAND_CSS_VARS.textOnAccent)
 }
+
+/**
+ * Generates a CSS string `:root { ... }` containing all brand variables for SSR injection.
+ */
+export function generateBrandCssString(
+  brandColor?: string | null,
+  brandAccentColor?: string | null
+): string {
+  const declarations: string[] = []
+
+  if (brandColor && parseHex(brandColor)) {
+    const variants = deriveBrandVariants(brandColor)
+    declarations.push(`${BRAND_CSS_VARS.primary}: ${variants.primary};`)
+    declarations.push(`${BRAND_CSS_VARS.primaryLight}: ${variants.primaryLight};`)
+    declarations.push(`${BRAND_CSS_VARS.primaryDark}: ${variants.primaryDark};`)
+    declarations.push(`${BRAND_CSS_VARS.primaryLightest}: ${variants.primaryLightest};`)
+    declarations.push(`${BRAND_CSS_VARS.surfacePage}: ${variants.primaryLightest};`)
+    declarations.push(`${BRAND_CSS_VARS.crepuscule50}: ${variants.primaryLightest};`)
+    declarations.push(`${BRAND_CSS_VARS.surfaceHighlight}: ${variants.surfaceHighlight};`)
+  }
+
+  if (brandAccentColor && parseHex(brandAccentColor)) {
+    const accentVariants = deriveAccentVariants(brandAccentColor)
+    declarations.push(`${BRAND_CSS_VARS.accent}: ${accentVariants.accent};`)
+    declarations.push(`${BRAND_CSS_VARS.accentHover}: ${accentVariants.accentHover};`)
+    declarations.push(`${BRAND_CSS_VARS.textOnAccent}: ${accentVariants.textOnAccent};`)
+  }
+
+  if (declarations.length === 0) {
+    return ''
+  }
+
+  return `:root {\n  ${declarations.join('\n  ')}\n}`
+}

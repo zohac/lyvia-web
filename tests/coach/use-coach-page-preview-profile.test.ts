@@ -17,6 +17,7 @@ import type {
   EducationalContentJson,
   FaqItem,
   FitJson,
+  FreeTextJson,
   HowItWorksStep,
   PillarsJson,
   ProblemStatementJson
@@ -67,6 +68,7 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
     educationalContentJson: null,
     problemStatementJson: null,
     fitJson: null,
+    freeTextJson: null,
     brandName: null,
     logoUrl: null,
     imageUrl: null,
@@ -96,6 +98,14 @@ function makeAccount(overrides: Partial<ProviderAccountResponse> = {}): Provider
 type Harness = CoachPagePreviewDeps
 
 /**
+ * Le composable déclare `freeTextForm` en OPTIONNEL (il ne sert qu'aux pages
+ * qui éditent le bloc). Le harness le fournit TOUJOURS : on retranche le type
+ * `| undefined` pour que les tests YB.1.1 puissent écrire dedans sans
+ * non-null assertions.
+ */
+type HarnessWithFreeText = Harness & { freeTextForm: Ref<FreeTextJson | null> }
+
+/**
  * Story 0-28 — mirrors `useCoachPageEditor.init()` behaviour in real usage:
  * the bioForm is seeded from the server account values. The composable does
  * NOT do the seeding itself (separation of concerns) — the test must mimic
@@ -120,6 +130,7 @@ function createHarness(account: ProviderAccountResponse | null): Harness {
     educationalContentForm: ref<EducationalContentJson | null>(null) as Ref<EducationalContentJson | null>,
     problemStatementForm: ref<ProblemStatementJson | null>(null) as Ref<ProblemStatementJson | null>,
     fitForm: ref<FitJson | null>(null) as Ref<FitJson | null>,
+    freeTextForm: ref<FreeTextJson | null>(null) as Ref<FreeTextJson | null>,
     templateCode: ref<string | null>('essentiel') as Ref<string | null | undefined>,
     secondaryPhotoPreview: ref<string | null>(null)
   }
@@ -436,6 +447,83 @@ describe('useCoachPagePreviewProfile', () => {
         assert.equal(
           draftCoachProfile.value?.secondaryPhotoUrl,
           'https://cdn.example.com/old-secondary.jpg'
+        )
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  // ── YB.1.1 — bloc de texte libre ──────────────────────────────────────
+  // La liste d'autorisation du composable est EXHAUSTIVE et SILENCIEUSE : un
+  // champ non inscrit est ignoré sans erreur. Ces trois tests sont donc la
+  // seule preuve machine que la saisie locale du bloc atteint l'aperçu.
+  test('YB.1.1 — the free text block hydrates from the server account', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const freeTextJson: FreeTextJson = {
+          title: 'Comment je travaille avec vous',
+          paragraphs: ['Premier paragraphe']
+        }
+        const h = createHarness(makeAccount({ freeTextJson })) as HarnessWithFreeText
+        h.freeTextForm.value = freeTextJson
+
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+
+        assert.deepEqual(draftCoachProfile.value?.freeTextJson, freeTextJson)
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  test('YB.1.1 — an UNSAVED local edit reaches the preview after the debounce', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount()) as HarnessWithFreeText
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(draftCoachProfile.value?.freeTextJson, null)
+
+        // Sophie tape, sans enregistrer : rien n'est publié, l'aperçu suit.
+        h.freeTextForm.value = {
+          title: 'Brouillon',
+          paragraphs: ['Pas encore enregistré']
+        }
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+
+        assert.deepEqual(draftCoachProfile.value?.freeTextJson, {
+          title: 'Brouillon',
+          paragraphs: ['Pas encore enregistré']
+        })
+      })
+    } finally {
+      scope.stop()
+    }
+  })
+
+  test('YB.1.1 — clearing the block locally empties the preview (no server fallback)', async () => {
+    const scope = effectScope()
+    try {
+      await scope.run(async () => {
+        const h = createHarness(makeAccount({
+          freeTextJson: { title: 'Serveur', paragraphs: ['Ancien'] }
+        })) as HarnessWithFreeText
+        h.freeTextForm.value = { title: 'Serveur', paragraphs: ['Ancien'] }
+        const { draftCoachProfile } = useCoachPagePreviewProfile(h)
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+        assert.equal(draftCoachProfile.value?.freeTextJson?.title, 'Serveur')
+
+        h.freeTextForm.value = null
+        await sleep(PREVIEW_DEBOUNCE_MS + 50)
+
+        assert.equal(
+          draftCoachProfile.value?.freeTextJson,
+          null,
+          'un bloc effacé doit disparaître de l\'aperçu, pas retomber sur la valeur serveur'
         )
       })
     } finally {

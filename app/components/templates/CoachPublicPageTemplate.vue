@@ -4,14 +4,13 @@
  * Fetches programs, pricing, and profile, then delegates rendering to resolved template.
  */
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
-import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import type { PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import type { ListConsultationPricePlansResponse } from '~/features/consultation/api/consultation.contract'
 import { useAuthState } from '~/features/auth/state/auth.state'
 import { listPublicPrograms } from '~/features/programs/services/public-programs.service'
 import { listConsultationPricePlans } from '~/features/consultation/services/client-consultation.service'
 import { useCoachPageTemplate } from '~/composables/useCoachPageTemplate'
-import { fetchPublicProviderProfile } from '~/features/seo/useCoachSchemaOrg'
+import { usePublicProviderProfile } from '~/composables/usePublicProviderProfile'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -56,17 +55,7 @@ const { data: pricingData } = await useAsyncData<ListConsultationPricePlansRespo
 
 // Enriched profile is populated by useCoachSchemaOrg or fetched directly.
 const isPreview = computed(() => route?.query?.preview === 'true' || route?.query?.preview === '1')
-const { data: coachProfile } = await useAsyncData<PublicProviderProfile | null>(
-  `public-provider-profile:${props.tenant.slug}${isPreview.value ? ':preview' : ''}`,
-  async () => {
-    if (isPreview.value && import.meta.client) {
-      const { useAuth } = await import('~/composables/useAuth')
-      await useAuth().bootstrap()
-    }
-    return fetchPublicProviderProfile(props.tenant.slug, isPreview.value)
-  },
-  { default: () => null, server: !isPreview.value }
-)
+const { data: coachProfile } = await usePublicProviderProfile(props.tenant.slug, isPreview.value)
 
 const consultationPlans = computed(() => pricingData.value?.plans ?? [])
 

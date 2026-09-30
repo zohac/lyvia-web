@@ -64,13 +64,13 @@ export const PRICING_REASSURANCE = '0 % de commission · Sans engagement · Sans
  * paie à la première facture, pas au bounce. La reformulation dit la vérité sur le moment
  * de facturation et couvre au passage la perte du choix de formule au CTA.
  */
-export const PRICING_MICROCOPY = 'Rien à payer ici : vous rejoignez la liste en 30 secondes, et vous choisissez votre formule avec nous avant l\'ouverture de votre compte.'
+export const PRICING_MICROCOPY = 'Rien à payer ici : vous demandez un accès, et nous choisissons votre formule ensemble avant l\'ouverture de votre compte.'
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
     id: 'essentiel',
     name: 'Essentiel',
-    audience: 'Pour lancer votre pratique.',
+    audience: 'Pour lancer ou structurer votre activité.',
     priceLabel: '29 € TTC / mois',
     // Explique « 0 % de commission » UNE fois, en nommant l'alternative plutôt que le taux :
     // la lectrice n'a jamais payé de commission (aucun de ses outils actuels n'en prélève),
@@ -83,13 +83,13 @@ export const PRICING_PLANS: PricingPlan[] = [
       'Réservation en ligne',
       'Aucun frais d\'installation'
     ],
-    ctaLabel: 'Je réserve ma place',
+    ctaLabel: 'Demander un accès',
     featured: false
   },
   {
     id: 'premium',
     name: 'Premium',
-    audience: 'Pour développer votre clientèle.',
+    audience: 'Pour une présence professionnelle complète.',
     priceLabel: '49 € TTC / mois la 1ʳᵉ année',
     // Spec §2.2 exigeait un cadrage « verrouillé pour les inscrites beta », PAS « ça va
     // augmenter ». Le « puis 99 € / mois » nu, rendu en légende grise, ne disait qu'une
@@ -98,10 +98,10 @@ export const PRICING_PLANS: PricingPlan[] = [
     keyLine: 'Votre nom de domaine, votre marque — sans logo Keova. 0 % de commission.',
     bullets: [
       'Tout Essentiel, plus votre domaine propre',
-      'Profil mis en avant sur keova.fr, l\'annuaire des spécialistes ménopause',
-      'Mise en ligne accompagnée — on configure tout avec vous'
+      'Votre nom de domaine et votre marque, sans logo Keova',
+      'Mise en ligne accompagnée — nous configurons votre espace avec vous'
     ],
-    ctaLabel: 'Je réserve ma place',
+    ctaLabel: 'Demander un accès',
     featured: true,
     badge: 'Tarif fondateur'
   }

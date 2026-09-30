@@ -45,6 +45,12 @@ export const SUPPORT_NAVIGATION_ITEMS: readonly SupportNavigationItem[] = [
     match: 'exact'
   },
   {
+    label: 'Mes pages',
+    to: '/provider/pages',
+    icon: 'lucide:files',
+    match: 'prefix'
+  },
+  {
     label: 'Créneaux & Tarifs',
     to: '/provider/scheduling',
     icon: 'lucide:clock',

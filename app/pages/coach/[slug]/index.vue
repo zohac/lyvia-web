@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
-import { ApiFetchError } from '~/services/api/api-error'
-import { apiFetch } from '~/services/api/apiFetch'
+import { usePublicTenant } from '~/composables/usePublicTenant'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useCoachSchemaOrg } from '~/features/seo/useCoachSchemaOrg'
 import { resolveOgImageStrategy } from '~/features/seo/og-image-helpers'
@@ -11,11 +10,12 @@ import { getDomainContext } from '#shared/utils/domain-context'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
-import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
-import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
+import { buildCoachLayoutSeed } from '~/features/public/state/coach-layout-seed'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 import CoachPreviewBanner from '~/components/molecules/CoachPreviewBanner.vue'
+import CoachPublicPageTemplate from '~/components/templates/CoachPublicPageTemplate.vue'
 import CoachPageHub from '~/components/templates/coach-pages/CoachPageHub.vue'
+import { usePublicPagesMenu } from '~/composables/usePublicPagesMenu'
 
 definePageMeta({
   layout: 'public',
@@ -34,37 +34,13 @@ if (!slug.value) {
 
 const isPreview = computed(() => route.query.preview === 'true' || route.query.preview === '1')
 
-const { data: tenant, status: tenantStatus } = await useAsyncData<PublicTenantResponse>(
-  `public-tenant:${slug.value}${isPreview.value ? ':preview' : ''}`,
-  async () => {
-    if (isPreview.value && import.meta.client) {
-      const { useAuth } = await import('~/composables/useAuth')
-      await useAuth().bootstrap()
-    }
-    try {
-      return await apiFetch<PublicTenantResponse>('/public/tenant', {
-        method: 'GET',
-        withAuth: isPreview.value,
-        query: {
-          slug: slug.value,
-          ...(isPreview.value ? { preview: 'true' } : {})
-        }
-      })
-    } catch (err: unknown) {
-      if (err instanceof ApiFetchError && err.apiError.code === 'TENANT_NOT_FOUND') {
-        throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
-      }
-      throw err
-    }
-  },
-  {
-    server: !isPreview.value
-  }
-)
+const { data: tenant, status: tenantStatus } = await usePublicTenant(slug.value, isPreview.value)
 
 if (!isPreview.value && !tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable' })
 }
+
+const { menuPages } = await usePublicPagesMenu(slug.value)
 
 if (isPreview.value) {
   useHead({
@@ -183,32 +159,19 @@ usePublicCanonicalHead(canonicalHref)
 // les plans ne sont pas chargés à ce niveau (chargés dans le template). Le rendu de
 // la section CoachPricing dans le template gate aussi sur hasPricing donc une nav-link
 // orpheline mènerait juste à une ancre absente — comportement acceptable v0.
-const { show, isToggleOn } = useCoachSectionVisibility(coachProfile)
-
-const coachNavLinks = computed(() => {
-  if (isHubPage.value) return [] // YC2.4: hub pages have no anchor sections
-  const links: { label: string, href: string }[] = []
-  if (show.benefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
-  if (isToggleOn('pricing')) links.push({ label: 'Tarifs', href: '#tarifs' })
-  if (show.testimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
-  if (show.bio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
-  return links
-})
-
+// YB.1.2 (revue) — la semence du header est partagée avec `usePublicHeaderInit`
+// (source unique `buildCoachLayoutSeed`), pour que le rendu SSR du layout et
+// l'hydratation coïncident. La page ne fait que la rafraîchir côté client.
 watchEffect(() => {
-  setPublicHeader({
-    variant: 'coach',
-    layoutStyle: 'dock',
-    brandLabel: 'Keova',
-    brandTo: '/',
-    showBrandIcon: true,
-    navLinks: coachNavLinks.value,
-    loginLabel: 'Se connecter',
-    loginTo: '/login',
-    // F4: hub has no header CTA (2 CTAs already in the hub card)
-    ctaLabel: isHubPage.value ? '' : 'Réserver',
-    ctaTo: isHubPage.value ? '' : ctaTo.value
+  if (!tenant.value) return
+  const seed = buildCoachLayoutSeed({
+    slug: slug.value,
+    profile: coachProfile.value,
+    menuPages: menuPages.value,
+    isHubPage: isHubPage.value,
+    ctaTo: ctaTo.value
   })
+  setPublicHeader(seed.header)
 })
 </script>
 

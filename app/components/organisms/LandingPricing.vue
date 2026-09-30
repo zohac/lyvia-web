@@ -111,19 +111,21 @@ const { reveal, isReady } = useScrollReveal()
             </li>
           </ul>
 
-          <!-- CTA → waitlist (pas de checkout) -->
-          <button
-            type="button"
+          <!-- CTA → waitlist (pas de checkout). Ancre et non bouton : sans
+               JavaScript le clic doit mener au formulaire inline `#waitlist`,
+               comme les CTA hero et mi-page (AC LB.2). -->
+          <a
+            href="#waitlist"
             :class="[
-              'mt-8 w-full rounded-full px-6 py-3 font-semibold transition-all duration-300',
+              'mt-8 block w-full rounded-full px-6 py-3 text-center font-semibold transition-all duration-300',
               plan.featured
                 ? 'cta-featured text-white shadow-lg'
                 : 'border border-[var(--color-crepuscule-300)] text-[var(--color-crepuscule-800)] hover:border-[var(--color-brand-accent)] hover:text-[var(--color-brand-primary)]'
             ]"
-            @click="emit('reserve')"
+            @click.prevent="emit('reserve')"
           >
             {{ plan.ctaLabel }}
-          </button>
+          </a>
         </div>
       </div>
 

@@ -30,10 +30,10 @@ describe('PublicHeaderState defaults (source verification)', () => {
     )
   })
 
-  it('ctaLabel should be "Je réserve ma place"', () => {
+  it('ctaLabel should be "Demander un accès"', () => {
     assert.ok(
-      source.includes("ctaLabel: 'Je réserve ma place'"),
-      'DEFAULT_HEADER_STATE should have ctaLabel: \'Je réserve ma place\''
+      source.includes("ctaLabel: 'Demander un accès'"),
+      'DEFAULT_HEADER_STATE should have ctaLabel: \'Demander un accès\''
     )
   })
 
@@ -51,21 +51,20 @@ describe('PublicHeaderState defaults (source verification)', () => {
     )
   })
 
-  it('navLinks should contain "La solution"', () => {
+  it('navLinks should contain "Ce que fait Keova"', () => {
     assert.ok(
-      source.includes("label: 'La solution'"),
-      'navLinks should include \'La solution\''
+      source.includes("label: 'Ce que fait Keova'"),
+      'navLinks should include \'Ce que fait Keova\''
     )
   })
 
-  // Libellé aligné sur `app/pages/index.vue` et `usePublicHeaderInit.ts` en code review
-  // du 2026-07-22 : les 3 sources divergeaient (« Témoignage » au singulier ici et dans
-  // le composable, « Témoignages » au pluriel dans index.vue), ce qui provoquait un
-  // changement de libellé entre le premier paint et l'hydratation.
-  it('navLinks should contain "Témoignages"', () => {
+  // Libellé aligné sur `app/pages/index.vue` et `usePublicHeaderInit.ts` : les 3 sources
+  // doivent rester identiques, sinon changement de libellé entre premier paint et hydratation.
+  // Renommé « Preuve » (décisions 2026-09-19) : plus de témoignages fictifs.
+  it('navLinks should contain "Preuve"', () => {
     assert.ok(
-      source.includes("label: 'Témoignages'"),
-      'navLinks should include \'Témoignages\''
+      source.includes("label: 'Preuve'"),
+      'navLinks should include \'Preuve\''
     )
   })
 
@@ -130,7 +129,7 @@ describe('usePublicHeaderInit B2B seeding (source verification)', () => {
 
   it('should set B2B CTA', () => {
     assert.ok(
-      initSource.includes("ctaLabel: 'Je réserve ma place'"),
+      initSource.includes("ctaLabel: 'Demander un accès'"),
       'usePublicHeaderInit should set B2B CTA'
     )
   })

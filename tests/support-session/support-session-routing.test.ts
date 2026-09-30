@@ -12,11 +12,12 @@ import {
 
 describe('support-session.contract & routing', () => {
   describe('SUPPORT_NAVIGATION_ITEMS', () => {
-    it('contains exactly 6 items in the exact required order', () => {
-      assert.equal(SUPPORT_NAVIGATION_ITEMS.length, 6)
+    it('contains exactly 7 items in the exact required order', () => {
+      assert.equal(SUPPORT_NAVIGATION_ITEMS.length, 7)
       const expectedPaths = [
         '/provider/account',
         '/provider/coach-page',
+        '/provider/pages',
         '/provider/scheduling',
         '/provider/availability',
         '/provider/programs',
@@ -33,16 +34,18 @@ describe('support-session.contract & routing', () => {
     it('allows exact authorized paths', () => {
       assert.equal(isAllowedSupportPath('/provider/account'), true)
       assert.equal(isAllowedSupportPath('/provider/coach-page'), true)
+      assert.equal(isAllowedSupportPath('/provider/pages'), true)
       assert.equal(isAllowedSupportPath('/provider/scheduling'), true)
       assert.equal(isAllowedSupportPath('/provider/availability'), true)
       assert.equal(isAllowedSupportPath('/provider/programs'), true)
       assert.equal(isAllowedSupportPath('/provider/seo'), true)
     })
 
-    it('allows child routes ONLY for /provider/programs', () => {
+    it('allows child routes ONLY for /provider/programs and /provider/pages', () => {
       assert.equal(isAllowedSupportPath('/provider/programs/new'), true)
       assert.equal(isAllowedSupportPath('/provider/programs/123-abc'), true)
       assert.equal(isAllowedSupportPath('/provider/programs/123-abc/edit'), true)
+      assert.equal(isAllowedSupportPath('/provider/pages/123-abc'), true)
     })
 
     it('rejects prefix attacks and unauthorized child routes', () => {

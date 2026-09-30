@@ -4,7 +4,10 @@ import { describe, it } from 'node:test'
 import {
   validateWaitlistForm,
   isWaitlistFormValid,
-  WAITLIST_SPECIALTY_VALUES
+  WAITLIST_SPECIALTY_VALUES,
+  WAITLIST_ACTIVITY_STAGE_VALUES,
+  WAITLIST_MAIN_BLOCKER_VALUES,
+  WAITLIST_DISCOVERY_SOURCE_VALUES
 } from '../../app/features/waitlist/waitlist-validation'
 
 const validForm = {
@@ -12,8 +15,10 @@ const validForm = {
   lastName: 'Dupont',
   email: 'marie@monactivite.fr',
   specialty: 'naturopathie',
-  message: '',
-  legalConsent: true
+  activityStage: 'preparation-lancement',
+  mainBlocker: 'partie-technique',
+  discoverySource: 'recommandation',
+  message: ''
 }
 
 // ── validateWaitlistForm ──
@@ -34,6 +39,13 @@ describe('validateWaitlistForm', () => {
     assert.ok(errors.firstName)
   })
 
+  it('trims firstName before validation', () => {
+    const errors = validateWaitlistForm({ ...validForm, firstName: '  Jo  ' })
+    assert.strictEqual(errors.firstName, undefined)
+  })
+
+  // Bornes basses et hautes acceptées : la règle 2..50 est inchangée par la
+  // refonte, seuls ses tests avaient disparu.
   it('accepts firstName of exactly 2 chars', () => {
     const errors = validateWaitlistForm({ ...validForm, firstName: 'Jo' })
     assert.strictEqual(errors.firstName, undefined)
@@ -44,12 +56,12 @@ describe('validateWaitlistForm', () => {
     assert.strictEqual(errors.firstName, undefined)
   })
 
-  it('trims firstName before validation', () => {
-    const errors = validateWaitlistForm({ ...validForm, firstName: '  Jo  ' })
-    assert.strictEqual(errors.firstName, undefined)
+  it('accepts an empty optional lastName', () => {
+    const errors = validateWaitlistForm({ ...validForm, lastName: '' })
+    assert.strictEqual(errors.lastName, undefined)
   })
 
-  it('returns lastName error when too short', () => {
+  it('returns lastName error when non-empty and too short', () => {
     const errors = validateWaitlistForm({ ...validForm, lastName: 'J' })
     assert.ok(errors.lastName)
   })
@@ -79,9 +91,19 @@ describe('validateWaitlistForm', () => {
     assert.ok(errors.specialty)
   })
 
-  it('returns specialty error when undefined', () => {
-    const errors = validateWaitlistForm({ ...validForm, specialty: undefined })
-    assert.ok(errors.specialty)
+  it('returns activityStage error when undefined', () => {
+    const errors = validateWaitlistForm({ ...validForm, activityStage: undefined })
+    assert.ok(errors.activityStage)
+  })
+
+  it('returns mainBlocker error when undefined', () => {
+    const errors = validateWaitlistForm({ ...validForm, mainBlocker: undefined })
+    assert.ok(errors.mainBlocker)
+  })
+
+  it('accepts an optional discoverySource when undefined', () => {
+    const errors = validateWaitlistForm({ ...validForm, discoverySource: undefined })
+    assert.strictEqual(errors.discoverySource, undefined)
   })
 
   it('returns message error when > 500 chars', () => {
@@ -98,16 +120,6 @@ describe('validateWaitlistForm', () => {
     const errors = validateWaitlistForm({ ...validForm, message: '' })
     assert.strictEqual(errors.message, undefined)
   })
-
-  it('returns legalConsent error when false', () => {
-    const errors = validateWaitlistForm({ ...validForm, legalConsent: false })
-    assert.ok(errors.legalConsent)
-  })
-
-  it('accepts legalConsent when true', () => {
-    const errors = validateWaitlistForm({ ...validForm, legalConsent: true })
-    assert.strictEqual(errors.legalConsent, undefined)
-  })
 })
 
 // ── isWaitlistFormValid ──
@@ -115,6 +127,10 @@ describe('validateWaitlistForm', () => {
 describe('isWaitlistFormValid', () => {
   it('returns true for valid form', () => {
     assert.strictEqual(isWaitlistFormValid(validForm), true)
+  })
+
+  it('returns true when optional lastName is empty', () => {
+    assert.strictEqual(isWaitlistFormValid({ ...validForm, lastName: '' }), true)
   })
 
   it('returns false when firstName too short', () => {
@@ -133,8 +149,12 @@ describe('isWaitlistFormValid', () => {
     assert.strictEqual(isWaitlistFormValid({ ...validForm, specialty: '' }), false)
   })
 
-  it('returns false when specialty undefined', () => {
-    assert.strictEqual(isWaitlistFormValid({ ...validForm, specialty: undefined }), false)
+  it('returns false when activityStage undefined', () => {
+    assert.strictEqual(isWaitlistFormValid({ ...validForm, activityStage: undefined }), false)
+  })
+
+  it('returns false when mainBlocker undefined', () => {
+    assert.strictEqual(isWaitlistFormValid({ ...validForm, mainBlocker: undefined }), false)
   })
 
   it('returns false when message exceeds 500', () => {
@@ -144,27 +164,54 @@ describe('isWaitlistFormValid', () => {
   it('returns true with valid message', () => {
     assert.strictEqual(isWaitlistFormValid({ ...validForm, message: 'Je suis naturopathe' }), true)
   })
-
-  it('returns false when legalConsent is false', () => {
-    assert.strictEqual(isWaitlistFormValid({ ...validForm, legalConsent: false }), false)
-  })
-
-  it('returns true when legalConsent is true', () => {
-    assert.strictEqual(isWaitlistFormValid({ ...validForm, legalConsent: true }), true)
-  })
 })
 
-// ── WAITLIST_SPECIALTY_VALUES ──
+// ── Enum values ──
 
-describe('WAITLIST_SPECIALTY_VALUES', () => {
-  it('contains exactly 7 specialties', () => {
-    assert.strictEqual(WAITLIST_SPECIALTY_VALUES.length, 7)
+describe('waitlist select values', () => {
+  // La longueur seule ne protège pas d'une valeur manquante ou mal orthographiée :
+  // ces enums sont recopiés à l'identique dans les CHECK de la migration API et
+  // dans les libellés d'UI. On assert donc la liste exhaustive, pas sa taille.
+  it('contains exactly the expected specialties', () => {
+    assert.deepStrictEqual([...WAITLIST_SPECIALTY_VALUES], [
+      'naturopathie',
+      'sophrologie',
+      'coaching-bien-etre',
+      'hypnose',
+      'yoga-meditation',
+      'nutrition',
+      'autre'
+    ])
   })
 
-  it('includes all expected values', () => {
-    const expected = ['naturopathie', 'sophrologie', 'coaching-bien-etre', 'hypnose', 'yoga-meditation', 'nutrition', 'autre']
-    for (const v of expected) {
-      assert.ok(WAITLIST_SPECIALTY_VALUES.includes(v as never), `Missing: ${v}`)
-    }
+  it('contains exactly the expected activity stages', () => {
+    assert.deepStrictEqual([...WAITLIST_ACTIVITY_STAGE_VALUES], [
+      'preparation-lancement',
+      'lancement-recent',
+      'structuration',
+      'bien-installee'
+    ])
+  })
+
+  it('contains exactly the expected main blockers', () => {
+    assert.deepStrictEqual([...WAITLIST_MAIN_BLOCKER_VALUES], [
+      'creer-site',
+      'organiser-reservations',
+      'gerer-paiements',
+      'suivre-clients',
+      'trop-outils',
+      'partie-technique',
+      'autre'
+    ])
+  })
+
+  it('contains exactly the expected discovery sources', () => {
+    assert.deepStrictEqual([...WAITLIST_DISCOVERY_SOURCE_VALUES], [
+      'recommandation',
+      'autre-praticienne',
+      'google',
+      'reseaux-sociaux',
+      'autre'
+    ])
   })
 })

@@ -14,15 +14,14 @@
 </template>
 
 <script setup lang="ts">
-import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
-import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
-import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicSeo } from '~/features/seo/usePublicSeo'
 import { useBookingSchemaOrg } from '~/features/seo/useBookingSchemaOrg'
 import { usePageTracking } from '~/features/analytics/usePageTracking'
 import { resolveCanonical } from '~/features/seo/resolveCanonical'
 import { buildBookingBreadcrumbs } from '~/features/seo/breadcrumb-helpers'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
+import { usePublicTenantDiscovery } from '~/composables/usePublicTenantDiscovery'
+import { usePublicProviderProfile } from '~/composables/usePublicProviderProfile'
 import DiscoveryBookingWizard from '~/components/organisms/DiscoveryBookingWizard.vue'
 import CoachUnavailableTemplate from '~/components/templates/CoachUnavailableTemplate.vue'
 
@@ -33,16 +32,7 @@ definePageMeta({
 const origin = useRequestURL().origin
 
 // Resolve tenant for white-label (Host header resolution, no slug)
-const { data: tenant } = await useAsyncData<PublicTenantResponse | null>('public-tenant-discovery', async () => {
-  try {
-    return await apiFetch<PublicTenantResponse>('/public/tenant', {
-      method: 'GET',
-      withAuth: false
-    })
-  } catch {
-    return null
-  }
-}, { default: () => null })
+const { data: tenant } = await usePublicTenantDiscovery()
 
 // Guard 404: white-label route requires a resolved tenant
 // Covers: unknown domain (tenant not found) and platform domain without slug (SLUG_REQUIRED → null)
@@ -54,20 +44,7 @@ const tenantSlug = tenant.value.slug
 const providerId = computed(() => tenant.value?.providerId)
 const { seo } = usePublicSeo('coach_booking', providerId)
 
-await useAsyncData<PublicProviderProfile | null>(
-  `public-provider-profile:${tenantSlug}`,
-  async () => {
-    try {
-      return await apiFetch<PublicProviderProfile>(`/public/provider/${tenantSlug}/profile`, {
-        method: 'GET',
-        withAuth: false
-      })
-    } catch {
-      return null
-    }
-  },
-  { default: () => null }
-)
+await usePublicProviderProfile(tenantSlug)
 
 const brandName = computed(() => tenant.value?.brand.displayName?.trim() || 'Coach')
 

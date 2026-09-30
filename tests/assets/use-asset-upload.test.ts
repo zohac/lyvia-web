@@ -4,10 +4,17 @@ import test, { describe } from 'node:test'
 import {
   validateBrandLogoFile,
   validateFileUpload,
+  validatePageImageDimensions,
+  validatePageImageFile,
   formatUploadError,
   BRAND_LOGO_MAX_BYTES,
   BRAND_LOGO_ALLOWED_MIME_TYPES
 } from '../../app/features/assets/asset-validators'
+import {
+  PAGE_IMAGE_MAX_BYTES,
+  PAGE_IMAGE_MAX_DIMENSION,
+  PAGE_IMAGE_MAX_PIXELS
+} from '../../app/features/assets/api/asset.contract'
 
 /**
  * Story 0-27 — pure helpers for the brand logo upload widget.
@@ -106,5 +113,60 @@ describe('validateFileUpload (shared helper, regression guard)', () => {
     const file = makeFile('virus.exe', 'application/x-msdownload', 100)
     const err = validateFileUpload(file, 2 * 1024 * 1024, ['image/jpeg', 'image/png'])
     assert.match(err ?? '', /Formats acceptés/)
+  })
+})
+
+describe('page_image validation (V2.2c)', () => {
+  test('accepts a valid JPEG/PNG/WebP under 5 MB', () => {
+    for (const mime of ['image/jpeg', 'image/png', 'image/webp']) {
+      assert.equal(validatePageImageFile(makeFile('x', mime, 1_000_000)), null)
+    }
+  })
+
+  test('rejects a file over 5 MB with the human message', () => {
+    const err = validatePageImageFile(makeFile('big.jpg', 'image/jpeg', 6 * 1024 * 1024))
+    assert.equal(err, 'L\'image doit faire moins de 5 Mo.')
+  })
+
+  test('rejects a GIF with the format message', () => {
+    const err = validatePageImageFile(makeFile('anim.gif', 'image/gif', 1_000))
+    assert.equal(err, 'Formats acceptés : JPEG, PNG, WEBP.')
+  })
+
+  test('dimension guard mirrors the server limits', () => {
+    assert.equal(validatePageImageDimensions(2000, 1500), null)
+    assert.equal(
+      validatePageImageDimensions(4001, 100),
+      'L\'image ne doit pas dépasser 4 000 px de côté.'
+    )
+    assert.equal(
+      validatePageImageDimensions(4000, 3000),
+      'L\'image est trop grande (maximum 10 mégapixels).'
+    )
+  })
+
+  test('contract constants mirror ASSET_LIMITS.page_image', () => {
+    assert.equal(PAGE_IMAGE_MAX_BYTES, 5 * 1024 * 1024)
+    assert.equal(PAGE_IMAGE_MAX_DIMENSION, 4000)
+    assert.equal(PAGE_IMAGE_MAX_PIXELS, 10_000_000)
+  })
+
+  test('formatUploadError maps page_image server codes to human copy', () => {
+    assert.equal(
+      formatUploadError(new Error('SEO_UPLOAD_DIMENSIONS_EXCEEDED'), 'page_image'),
+      'L\'image ne doit pas dépasser 4 000 px de côté.'
+    )
+    assert.equal(
+      formatUploadError(new Error('SEO_UPLOAD_PIXELS_EXCEEDED'), 'page_image'),
+      'L\'image est trop grande (maximum 10 mégapixels).'
+    )
+    assert.equal(
+      formatUploadError(new Error('SEO_UPLOAD_TOO_LARGE'), 'page_image'),
+      'L\'image doit faire moins de 5 Mo.'
+    )
+    assert.equal(
+      formatUploadError(new Error('SEO_UPLOAD_INVALID_MIME'), 'page_image'),
+      'Format d\'image non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
+    )
   })
 })

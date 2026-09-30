@@ -16,6 +16,8 @@
   "include": [
     "app/features/availability/domain/**/*.ts",
     "app/features/availability/api/availability.contract.ts",
+    "app/features/appointments/api/**/*.ts",
+    "app/features/appointments/domain/**/*.ts",
     "app/features/consultation/domain/**/*.ts",
     "app/features/public/domain/**/*.ts",
     "app/features/analytics/helpers/**/*.ts",
@@ -34,6 +36,9 @@
     "app/features/plans/domain/**/*.ts",
     "app/features/plans/createFeatureGate.ts",
     "app/features/plans/in-flight-deduper.ts",
+    "app/features/pages/createProviderPages.ts",
+    "app/features/pages/domain/**/*.ts",
+    "app/features/pages/api/**/*.ts",
     "app/features/support-session/api/support-session.contract.ts",
     "app/features/support-session/state/create-support-session-coordinator.ts",
     "app/services/api/support-auth-recovery.ts",

@@ -232,6 +232,10 @@ import type {
   UpdateAppointmentStatusResponse
 } from '../../features/appointments/api/appointments.contract'
 import { mapAppointmentErrorCodeToUserMessage } from '../../features/appointments/api/appointments-error'
+import {
+  runDiscoveryAppointmentStatusUpdate,
+  type StatusUpdateOutcome
+} from '../../features/appointments/domain/update-appointment-status'
 import { ApiFetchError } from '../../services/api/api-error'
 import { apiFetch } from '../../services/api/apiFetch'
 import CalendarMonthView from '../../components/molecules/CalendarMonthView.vue'
@@ -597,36 +601,27 @@ const cancelLoading = computed(() => {
 })
 
 // API calls
+// hotfix-24: the request composition, its whitelist and its error handling live
+// in `runDiscoveryAppointmentStatusUpdate`, which takes the transport as a
+// parameter. That is what makes the outgoing path and body assertable: an inline
+// request here shipped two silent production bugs (a 404, then a 422) because no
+// test could observe what this page actually sent.
 async function requestUpdateAppointmentStatus(
   appointmentId: string,
   status: 'completed' | 'cancelled'
-): Promise<{ ok: true } | { ok: false, message: string }> {
-  const body
-    = status === 'completed'
-      ? { status: 'completed' as const }
-      : { status: 'cancelled' as const, cancelledByRole: 'PROVIDER' as const }
-
-  try {
-    await apiFetch<UpdateAppointmentStatusResponse>(`/appointments/${appointmentId}/status`, {
-      method: 'PATCH',
-      body
-    })
-    return { ok: true }
-  } catch (err: unknown) {
-    if (err instanceof ApiFetchError) {
-      if (err.apiError.code === 'INVALID_STATUS_TRANSITION') {
-        await refresh()
-        const updatedStatus = data.value?.appointments?.find(a => a.id === appointmentId)?.status
-        if (updatedStatus === status) return { ok: true }
-      }
-
-      return {
-        ok: false,
-        message: mapAppointmentErrorCodeToUserMessage(err.apiError.code)
-      }
-    }
-    return { ok: false, message: 'Une erreur est survenue. Veuillez réessayer.' }
-  }
+): Promise<StatusUpdateOutcome> {
+  return await runDiscoveryAppointmentStatusUpdate(appointmentId, status, {
+    send: request => apiFetch<UpdateAppointmentStatusResponse>(request.path, {
+      method: request.method,
+      body: request.body
+    }),
+    reRead: async () => {
+      await refresh()
+      return data.value?.appointments
+    },
+    messageFor: code => mapAppointmentErrorCodeToUserMessage(code),
+    fallbackMessage: 'Une erreur est survenue. Veuillez réessayer.'
+  })
 }
 
 type BilanTargetStage = 'active' | 'lead' | 'paused'
