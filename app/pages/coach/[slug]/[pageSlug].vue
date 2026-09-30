@@ -12,9 +12,9 @@ import {
 import { ApiFetchError } from '~/services/api/api-error'
 import { apiFetch } from '~/services/api/apiFetch'
 import { usePublicPagesMenu } from '~/composables/usePublicPagesMenu'
+import { usePublicTenant } from '~/composables/usePublicTenant'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
 import PageBlockRenderer, { type ContentBlock } from '~/components/molecules/PageBlockRenderer.vue'
-import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 
 definePageMeta({
   layout: 'public',
@@ -45,23 +45,9 @@ if (!providerSlug.value || !pageSlug.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page introuvable', fatal: true })
 }
 
-// Load tenant profile on platform
-const { data: tenant } = await useAsyncData<PublicTenantResponse | null>(
-  `public-tenant:${providerSlug.value}`,
-  async () => {
-    try {
-      return await apiFetch<PublicTenantResponse>('/public/tenant', {
-        method: 'GET',
-        query: { slug: providerSlug.value }
-      })
-    } catch (err: unknown) {
-      if (err instanceof ApiFetchError && (err.apiError?.statusCode === 404 || err.apiError?.code === 'TENANT_NOT_FOUND')) {
-        throw createError({ statusCode: 404, statusMessage: 'Coach introuvable', fatal: true })
-      }
-      return null
-    }
-  }
-)
+// Load tenant profile on platform — source unique partagée avec usePublicHeaderInit
+// (qui le seme avant le rendu du footer pour éviter un mismatch d'hydratation).
+const { data: tenant } = await usePublicTenant(providerSlug.value)
 
 if (!tenant.value) {
   throw createError({ statusCode: 404, statusMessage: 'Coach introuvable', fatal: true })
