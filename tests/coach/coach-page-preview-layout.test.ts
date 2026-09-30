@@ -183,24 +183,79 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
     )
   })
 
-  test('CR-1 — CoachPagePreviewPanel renders PublicHeader conditionally (excluded for Essentiel which owns its own header)', () => {
+  test('CR-1 — CoachPagePreviewPanel renders PublicHeader conditionally (excluded for templates owning their own header)', () => {
     const source = read(PREVIEW_PANEL_PATH)
     // Conditional flag must exist + the <PublicHeader> must use v-if to skip
-    // for templates that own their internal header (Essentiel).
+    // for templates that own their internal header.
     assert.match(
       source,
       /const\s+showPreviewPublicHeader\s*=\s*computed/,
       'panel must declare a `showPreviewPublicHeader` computed gate'
     )
+    // YB.1.2 — le gate n'est PLUS une double négation par code littéral : il
+    // passe par le registre. Sans cela Alba y était traitée comme Signature
+    // et l'aperçu montrait DEUX headers — défaut invisible au lint, au
+    // typecheck et à tout test de rendu.
     assert.match(
       source,
-      /\(props\.coachProfile\?\.templateCode[\s\S]*?\)\s*!==\s*'essentiel'/,
-      'gate must exclude templateCode === "essentiel" (which renders its own internal header)'
+      /templateRendersOwnHeader\(props\.coachProfile\?\.templateCode\)/,
+      'gate must route through the registry, not compare template codes to literals'
+    )
+    assert.equal(
+      /\(props\.coachProfile\?\.templateCode[\s\S]*?\)\s*!==\s*'essentiel'/.test(source),
+      false,
+      'the per-code double negation must be retired in favour of the registry'
     )
     assert.match(
       source,
       /<PublicHeader[\s\S]*?v-if="showPreviewPublicHeader"/,
       'PublicHeader render must be guarded by v-if="showPreviewPublicHeader"'
+    )
+  })
+
+  // YB.1.2 — the "Photo d'en-tête" thumbnail chain describes a hero BACKGROUND
+  // (a `visuel` strata). Alba's hero is flat and renders the coach's PORTRAIT,
+  // and it does not read `hero_image_disabled`. Without the guard, the editor
+  // advertises a "Fond sombre" marker or an ambience image that Alba's page
+  // never shows — the preview would lie about the page.
+  //
+  // BOTH branches must carry the condition: inverting `!==`, or dropping it from
+  // one branch only, would pass every other check in this file.
+  test('YB.1.2 — the hero-BACKGROUND thumbnail branches are skipped for Alba', () => {
+    const source = read(COACH_PAGE_PATH)
+
+    // The signal itself, derived from the selected template.
+    assert.match(
+      source,
+      /const isHeroBackgroundTemplate = computed\(\s*\(\) => previewTemplateCode\.value !== ALBA_TEMPLATE_CODE\s*\)/,
+      'coach-page must declare isHeroBackgroundTemplate off the Alba template code'
+    )
+    assert.match(
+      source,
+      /import\s*\{[\s\S]{0,200}?ALBA_TEMPLATE_CODE[\s\S]{0,200}?\}\s*from\s*'~\/features\/plans\/domain\/template-lock'/,
+      'ALBA_TEMPLATE_CODE must be imported, not inlined as a string literal'
+    )
+
+    // Branch 1 — the "Fond sombre" marker (`hero_image_disabled`).
+    assert.match(
+      source,
+      /v-if="isHeroBackgroundTemplate && account\?\.heroImageDisabled"/,
+      'the "Fond sombre" marker must be skipped for Alba — it reads a flag Alba ignores'
+    )
+
+    // Branch 2 — the hero photo itself.
+    assert.match(
+      source,
+      /v-else-if="isHeroBackgroundTemplate && \(heroPhotoPreview \|\| account\?\.heroImageUrl\)"/,
+      'the hero-image branch must be skipped for Alba — Alba renders the portrait'
+    )
+
+    // And the fall-through Alba takes: the portrait, while the Visuel default
+    // stays Visuel-only.
+    assert.match(
+      source,
+      /v-else-if="previewTemplateCode === 'visuel'"[\s\S]{0,200}?hero-default\.webp/,
+      'the Visuel default background must remain gated on the visuel template alone'
     )
   })
 

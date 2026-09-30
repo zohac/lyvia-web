@@ -338,8 +338,10 @@ describe('YC2.3 — neutral fallbacks (FR-Y18, AC-5)', () => {
 describe('YC2.3 — useCoachPageTemplate resolution', () => {
   test('useCoachPageTemplate registers the "essentiel" code in its TEMPLATE_MAP', () => {
     const content = readFile('composables/useCoachPageTemplate.ts')
+    // La clé est tolérée QUOTÉE ou nue : YB.1.2 a ajouté `'visuel-portrait'`,
+    // ce qui impose à `@stylistic/quote-props` de coter les quatre clés.
     assert.ok(
-      /essentiel:\s*\(\)\s*=>\s*import\('~\/components\/templates\/coach-pages\/CoachPageEssentiel\.vue'\)/.test(content),
+      /'?essentiel'?:?\s*\(\)\s*=>\s*import\('~\/components\/templates\/coach-pages\/CoachPageEssentiel\.vue'\)/.test(content),
       'TEMPLATE_MAP must resolve "essentiel" to CoachPageEssentiel.vue'
     )
   })

@@ -1,6 +1,11 @@
 import { computed, onScopeDispose, ref, toRaw, watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 
+// YB.1.2 — chemin RELATIF, pas l'alias `~/` : ce fichier est réellement
+// exécuté par le coureur `tsc -p tsconfig.tests.json && node --test`, qui
+// n'efface que les imports de TYPE. Un `import { … } from '~/…'` À VALEUR
+// survit à l'émission et échoue au chargement (`Cannot find module '~/…'`).
+import { resolveCoachTemplateCode } from '../../composables/coach-template-registry'
 import type {
   ProviderAccountResponse,
   TestimonialItem
@@ -309,7 +314,12 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       googleAdsConversionLabel: acc.googleAdsConversionLabel,
       microsoftClarityId: acc.microsoftClarityId,
       // Live template choice — reflects the provider's selectedTemplateId.
-      templateCode: deps.templateCode.value || 'essentiel',
+      // YB.1.2 — le repli passe par le REGISTRE (`resolveCoachTemplateCode`),
+      // troisième des trois littéraux `'essentiel'` qui pilotaient l'aperçu.
+      // Alba y était traitée comme un code inconnu, donc comme Signature :
+      // double header dans l'aperçu. Un littéral ici diverge en silence de
+      // `CoachPagePreviewPanel`, et rien — lint, typecheck, test — ne le voit.
+      templateCode: resolveCoachTemplateCode(deps.templateCode.value),
       // Instant overlays (no debounce — AC-3)
       sectionsConfig: { ...deps.sectionsConfig },
       pillarsJson: snap.hydrated ? snap.pillars : acc.pillarsJson,

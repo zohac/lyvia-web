@@ -11,6 +11,7 @@ import {
   isCoachPageInlineEditorSection
 } from '../../app/features/coach/domain/coach-page-editor'
 import {
+  ALBA_TEMPLATE_CODE,
   ESSENTIEL_TEMPLATE_CODE,
   STANDARD_COACH_TEMPLATE_CODES,
   VISUEL_TEMPLATE_CODE
@@ -62,7 +63,11 @@ const FREE_TEXT_COMPONENT_PATH = 'components/organisms/CoachFreeText.vue'
 const TEMPLATES = [
   'components/templates/coach-pages/CoachPageSignature.vue',
   'components/templates/coach-pages/CoachPageEssentiel.vue',
-  'components/templates/coach-pages/CoachPageVisuel.vue'
+  'components/templates/coach-pages/CoachPageVisuel.vue',
+  // YB.1.2 — Alba. Sans cette ligne, la couverture « le bloc libre existe sur
+  // tous les templates » passerait sans vérifier le 4ᵉ : un template né après
+  // cette story serait exempté de la fonctionnalité par simple omission.
+  'components/templates/coach-pages/CoachPageAlba.vue'
 ] as const
 
 const FREE_TEXT_JSON: FreeTextJson = {
@@ -178,6 +183,11 @@ describe('YB.1.1 — les cinq emplacements d\u2019inscription (AD-7)', () => {
         /export const (\w+SectionsAvailable) = \[([\s\S]*?)\] as const/g
       )
     )
+    // YB.1.2 — il reste TROIS tableaux, et c'est délibéré : Alba réutilise
+    // `visuelSectionsAvailable` TEL QUEL (parité B7), il n'a donc pas de liste
+    // propre. Un quatrième tableau serait une COPIE : elle dériverait en
+    // silence, et la parité base↔seed comparerait la copie, plus la source.
+    // La couverture du 4ᵉ template est assurée par le test suivant, sur l'upsert.
     assert.equal(arrays.length, 3, 'les trois tableaux sectionsAvailable doivent exister')
     for (const [, name, body] of arrays) {
       assert.match(
@@ -187,13 +197,54 @@ describe('YB.1.1 — les cinq emplacements d\u2019inscription (AD-7)', () => {
       )
     }
   })
+
+  // YB.1.2 — Alba n'a pas de tableau `sectionsAvailable`, c'est le point de la
+  // parité B7. Ce test l'inscrit explicitement : sans lui, l'omission d'Alba du
+  // catalogue se glisserait dans le compte du test précédent sans être vue.
+  test('n° 1 bis — l\'upsert d\'Alba reprend visuelSectionsAvailable, sans le recopier', (t) => {
+    const source = readApiSource(
+      'src/features/providers/infrastructure/coach-page-seed.ts'
+    )
+    if (source === null) {
+      t.skip(
+        'source lyvia-api absente (CI en sparse-checkout) — verrouillé par '
+        + 'coach-page-templates-seed.db.spec.ts côté API'
+      )
+      return
+    }
+
+    assert.match(
+      source,
+      /export const ALBA_TEMPLATE_CODE = 'visuel-portrait'/,
+      'le code d\'Alba est `visuel-portrait` — le tiret est imposé par le DTO d\'admin'
+    )
+    // L'upsert d'Alba sérialise `visuelSectionsAvailable`, pas un littéral
+    // recopié : c'est ce qui garantit que les deux restent alignés.
+    const albaUpsert = source.match(
+      /ALBA_TEMPLATE_CODE,[\s\S]*?JSON\.stringify\((\w+)\)/
+    )
+    assert.ok(albaUpsert, 'l\'upsert d\'Alba est introuvable dans le seed')
+    assert.equal(
+      albaUpsert![1],
+      'visuelSectionsAvailable',
+      'Alba doit hériter des sections de visuel, pas d\'une copie'
+    )
+    assert.equal(
+      /export const albaSectionsAvailable/.test(source),
+      false,
+      'aucun tableau dérivé : une copie divergerait en silence'
+    )
+  })
 })
 
 describe('YB.1.1 — l\u2019égalité croisée des deux listes de templates standard (AD-8)', () => {
-  test('STANDARD_COACH_TEMPLATE_CODES est exactement le couple de ses constantes', () => {
+  test('STANDARD_COACH_TEMPLATE_CODES est exactement le trio de ses constantes', () => {
+    // YB.1.2 — Alba entre dans le standard. Premium et Fondatrice accèdent à
+    // tout, standard compris (AD-8) : Alba est donc proposé aux trois paliers,
+    // sans cadenas.
     assert.deepStrictEqual(
       [...STANDARD_COACH_TEMPLATE_CODES].sort(),
-      [ESSENTIEL_TEMPLATE_CODE, VISUEL_TEMPLATE_CODE].sort()
+      [ESSENTIEL_TEMPLATE_CODE, VISUEL_TEMPLATE_CODE, ALBA_TEMPLATE_CODE].sort()
     )
     assert.equal(STANDARD_COACH_TEMPLATE_CODES.includes('signature'), false)
   })
@@ -217,10 +268,17 @@ describe('YB.1.1 — l\u2019égalité croisée des deux listes de templates stan
     // L\u2019expression est une ALTERNATIVE de constantes, pas une liste : on
     // résout chaque constante dans le catalogue, puis on aligne l\u2019ensemble
     // obtenu sur la liste web.
+    //
+    // YB.1.2 — `ALBA_TEMPLATE_CODE` rejoint l’alternative. C’est le SEUL
+    // endroit où ce test doit être touché : résolution et comparaison
+    // s’étendent seules, et c’est une ÉGALITÉ, pas une juxtaposition —
+    // ajouter la constante d’un seul côté fait échouer l’assertion.
     const referencedConstants = [
       ...new Set(
         Array.from(
-          (match![1] ?? '').matchAll(/ESSENTIEL_TEMPLATE_CODE|VISUEL_TEMPLATE_CODE/g)
+          (match![1] ?? '').matchAll(
+            /ESSENTIEL_TEMPLATE_CODE|VISUEL_TEMPLATE_CODE|ALBA_TEMPLATE_CODE/g
+          )
         ).map(m => m[0])
       )
     ]
@@ -308,7 +366,7 @@ describe('YB.1.1 — le composant (AD-5, AD-7, AD-9)', () => {
   test('existe, et rend RIEN quand titre et paragraphes sont vides', () => {
     const source = readFile(FREE_TEXT_COMPONENT_PATH)
     // Le garde est celui du domaine, PAS une règle locale : le composant et
-    // les trois templates doivent être d'accord sur « y a-t-il du texte ».
+    // les quatre templates doivent être d'accord sur « y a-t-il du texte ».
     assert.match(
       source,
       /const hasContent = computed\(\(\) => hasCoachFreeTextContent\(props\.freeText\)\)/,
@@ -468,7 +526,7 @@ describe('YB.1.1 — le composant (AD-5, AD-7, AD-9)', () => {
   })
 })
 
-describe('YB.1.1 — insertion dans les trois templates', () => {
+describe('YB.1.1 — insertion dans les quatre templates (Alba inclus, YB.1.2)', () => {
   for (const template of TEMPLATES) {
     test(`${template.split('/').pop()} rend CoachFreeText entre bénéfices et « qui suis-je »`, () => {
       const source = readFile(template)
@@ -476,7 +534,7 @@ describe('YB.1.1 — insertion dans les trois templates', () => {
       assert.match(
         source,
         /import CoachFreeText from '~\/components\/organisms\/CoachFreeText\.vue'/,
-        'le composant est importé explicitement (convention des 3 templates)'
+        'le composant est importé explicitement (convention des 4 templates)'
       )
       // Le <div> enveloppant porte la surface du template : il ne doit exister
       // QUE s'il y a du texte, sinon un bloc allume mais vide laisserait une
@@ -502,7 +560,7 @@ describe('YB.1.1 — insertion dans les trois templates', () => {
       )
       // CR round 2 : le binding profil → composant doit être asserté. Sans lui,
       // passer `null` laisse la suite verte et le bloc devient invisible sur
-      // les 3 templates (le trou exact de la réserve A35 n° 1).
+      // les 4 templates (le trou exact de la réserve A35 n° 1).
       assert.match(
         source,
         /<CoachFreeText :free-text="coachProfile\?\.freeTextJson \?\? null" \/>/,

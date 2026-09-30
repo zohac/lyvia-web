@@ -70,6 +70,7 @@ import { FEATURE_COACH_PAGE_PREMIUM_TEMPLATES } from '~/features/plans/domain/fe
 // tabulation, la pastille 🔒 « Premium » n'était donc jamais annoncée.
 import { featureGateLockTitle } from '~/features/plans/domain/feature-gate-copy'
 import {
+  ALBA_TEMPLATE_CODE,
   PREMIUM_TEMPLATE_BADGE_LABEL,
   isTemplateLocked,
   resolvePremiumTemplatesAccess
@@ -580,6 +581,14 @@ const previewTemplateCode = computed<string | null>(() => {
   const match = templates.value.find(t => t.id === id)
   return match?.code ?? null
 })
+
+// YB.1.2 — le champ « Photo d'en-tête » alimente un FOND de hero, pas le
+// portrait. Alba n'a ni fond ni strate (AD-6) et son hero ne lit pas
+// `hero_image_disabled` : lui appliquer la sémantique « fond » de ce champ
+// afficherait dans l'éditeur un marqueur que sa page ne rend pas.
+const isHeroBackgroundTemplate = computed(
+  () => previewTemplateCode.value !== ALBA_TEMPLATE_CODE
+)
 //
 // `account` is exposed as `readonly(account)` by createCoachPageEditor for
 // safety (no external mutation), but the preview composable only reads
@@ -1954,12 +1963,24 @@ function externalSection(section: string) {
                 Photo d'en-tête (fond du Hero en template Visuel, portrait en Signature)
               </p>
               <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
-                JPEG, PNG ou WebP, max 2 Mo.
+                JPEG, PNG ou WebP, max 2 Mo. Le template Alba n'utilise pas ce champ :
+                son hero affiche votre portrait, à gauche du titre.
               </p>
               <div class="flex items-center gap-6">
                 <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+                  <!--
+                    YB.1.2 — Alba. Les deux premières branches décrivent le
+                    champ « Photo d'en-tête », dont la sémantique est celle d'un
+                    FOND de hero : c'est le fond que Visuel étale en strate, et
+                    que le hero d'Alba n'a pas (AD-6 : hero plat, ni strate, ni
+                    image de fond, et `hero_image_disabled` n'y est pas lu).
+                    Alba saute donc la chaîne et tombe sur son PORTRAIT, plus
+                    bas. Sans cette garde, l'aperçu de l'éditeur annonçait à la
+                    coach un « fond sombre » ou une image d'ambiance que son
+                    hero n'affiche jamais — l'aperçu mentirait sur la page.
+                  -->
                   <div
-                    v-if="account?.heroImageDisabled"
+                    v-if="isHeroBackgroundTemplate && account?.heroImageDisabled"
                     class="flex h-full w-full flex-col items-center justify-center p-2 text-center text-[10px] font-medium text-[color:var(--color-brand-muted)]"
                   >
                     <UIcon
@@ -1969,7 +1990,7 @@ function externalSection(section: string) {
                     Fond sombre
                   </div>
                   <img
-                    v-else-if="heroPhotoPreview || account?.heroImageUrl"
+                    v-else-if="isHeroBackgroundTemplate && (heroPhotoPreview || account?.heroImageUrl)"
                     :src="(heroPhotoPreview || account?.heroImageUrl)!"
                     alt="Photo Hero"
                     class="h-full w-full object-cover"
@@ -1980,6 +2001,8 @@ function externalSection(section: string) {
                     alt="Photo Hero par défaut"
                     class="h-full w-full object-cover opacity-75"
                   >
+                  <!-- Alba : portrait de la coach, c'est-à-dire ce que rend
+                       réellement `CoachAlbaHero` — pas une image de fond. -->
                   <img
                     v-else-if="account?.imageUrl"
                     :src="account.imageUrl"
@@ -2054,7 +2077,7 @@ function externalSection(section: string) {
             <FormControl
               id="heroHeadline"
               label="Accroche / Sous-titre principal"
-              hint="Laissez vide pour afficher la spécialité par défaut"
+              hint="Laissez vide : le hero affiche alors « Bonjour, je suis {votre prénom}. », avec la spécialité en surtitre"
             >
               <template #default="{ inputAttrs }">
                 <UInput
