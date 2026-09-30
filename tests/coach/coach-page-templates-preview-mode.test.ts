@@ -14,6 +14,7 @@ import test, { describe } from 'node:test'
 const appRoot = path.resolve(process.cwd(), 'app')
 const SIGNATURE_PATH = 'components/templates/coach-pages/CoachPageSignature.vue'
 const ESSENTIEL_PATH = 'components/templates/coach-pages/CoachPageEssentiel.vue'
+const ALBA_PATH = 'components/templates/coach-pages/CoachPageAlba.vue'
 const SCROLL_REVEAL_PATH = 'composables/useScrollReveal.ts'
 
 function read(p: string): string {
@@ -91,6 +92,56 @@ describe('0-28 — previewMode prop on coach templates', () => {
       source,
       /<StickyCtaMobile[\s\S]*?v-if="!previewMode"/,
       'CoachPageEssentiel must guard <StickyCtaMobile> with v-if="!previewMode"'
+    )
+  })
+
+  // YB.1.2 — Alba est auto-portrée : elle masque la PublicHeader globale comme
+  // Essentiel. Ce contrat n'était asserté que pour Essentiel ; sans ces cas,
+  // supprimer le side-effect d'Alba laisserait sa page publique afficher DEUX
+  // headers, sans qu'aucun test ne tombe.
+  test('CoachPageAlba defines previewMode?: boolean on its props', () => {
+    const source = read(ALBA_PATH)
+    assert.match(
+      source,
+      /previewMode\?:\s*boolean/,
+      'CoachPageAlba must expose previewMode?: boolean prop'
+    )
+  })
+
+  test('Alba opts out of useScrollReveal when previewMode is true', () => {
+    const source = read(ALBA_PATH)
+    assert.match(
+      source,
+      /useScrollReveal\(\{\s*disabled:\s*props\.previewMode\s*\}\)/,
+      'CoachPageAlba must call useScrollReveal({ disabled: props.previewMode })'
+    )
+  })
+
+  test('Alba skips the hide-layout-header side-effect when previewMode is true', () => {
+    const source = read(ALBA_PATH)
+    assert.match(
+      source,
+      /useState\(['"]hide-layout-header['"]/,
+      'CoachPageAlba must call useState("hide-layout-header")'
+    )
+    assert.match(
+      source,
+      /if\s*\(\s*!props\.previewMode\s*\)\s*\{[\s\S]*?hideLayoutHeader\.value\s*=\s*true/,
+      'CoachPageAlba must guard the hideLayoutHeader mutation with !props.previewMode'
+    )
+    assert.match(
+      source,
+      /onBeforeUnmount\(\(\)\s*=>\s*\{\s*hideLayoutHeader\.value\s*=\s*false/,
+      'CoachPageAlba must restore hideLayoutHeader.value = false on unmount'
+    )
+  })
+
+  test('Alba hides StickyCtaMobile + spacer in preview mode', () => {
+    const source = read(ALBA_PATH)
+    assert.match(
+      source,
+      /<StickyCtaMobile[\s\S]*?v-if="!previewMode"/,
+      'CoachPageAlba must guard <StickyCtaMobile> with v-if="!previewMode"'
     )
   })
 

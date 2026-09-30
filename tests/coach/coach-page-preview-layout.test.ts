@@ -198,8 +198,8 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
     // typecheck et à tout test de rendu.
     assert.match(
       source,
-      /templateRendersOwnHeader\(props\.coachProfile\?\.templateCode\)/,
-      'gate must route through the registry, not compare template codes to literals'
+      /!\s*templateRendersOwnHeader\(props\.coachProfile\?\.templateCode\)/,
+      'gate must NEGATE the registry result — without the `!`, Alba gets a double header'
     )
     assert.equal(
       /\(props\.coachProfile\?\.templateCode[\s\S]*?\)\s*!==\s*'essentiel'/.test(source),
@@ -256,6 +256,16 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
       source,
       /v-else-if="previewTemplateCode === 'visuel'"[\s\S]{0,200}?hero-default\.webp/,
       'the Visuel default background must remain gated on the visuel template alone'
+    )
+
+    // Revue YB.1.2 — le BLOC DE CONTRÔLES (upload / retrait / rétablissement)
+    // pilote le même champ « fond de hero » : il doit être sauté pour Alba au
+    // même titre que la vignette. Sans cette garde, un bouton « Modifier la
+    // photo » écrit une image de fond que la page d'Alba ne rend jamais.
+    assert.match(
+      source,
+      /v-if="isHeroBackgroundTemplate"\s+class="flex flex-col items-start gap-2"/,
+      'the hero-photo control block must be skipped for Alba (it edits the background)'
     )
   })
 

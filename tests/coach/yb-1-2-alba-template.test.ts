@@ -79,20 +79,26 @@ describe('YB.1.2 — CoachAlbaHero rend l\'accroche saisie par la coach', () => 
     )
   })
 
-  test('l\'aide de l\'éditeur documente le repli RÉEL (spécialité), pas une phrase codée en dur', () => {
-    // L'ancien texte promettait « la spécialité par défaut » : c'était faux
-    // pour Alba, dont le repli est le H1 humanisé + la pillule de spécialité.
+  test('l\'aide de l\'éditeur décrit un repli PAR TEMPLATE, jamais un repli faux', () => {
+    // Revue YB.1.2 — le `FormControl` `heroHeadline` est partagé par les
+    // quatre templates, mais chaque hero a son propre repli. Une phrase unique
+    // était vraie pour Alba/Essentiel et FAUSSE pour Visuel et Signature.
     const page = readFile('pages/provider/coach-page.vue')
     assert.equal(
       /Laissez vide pour afficher la spécialité par défaut/.test(page),
       false,
-      'l\'aide ne doit plus promettre un repli que le hero ne rend pas'
+      'l\'aide ne doit plus promettre un repli que deux heroes ne rendent pas'
     )
     assert.match(
       page,
-      /id="heroHeadline"[\s\S]{0,400}?Laissez vide[\s\S]{0,200}?Bonjour, je suis/,
-      'l\'aide doit décrire le repli réellement rendu'
+      /:hint="heroHeadlineHint"/,
+      'le hint doit être dérivé du template, pas figé dans le markup'
     )
+    const decl = page.match(/const heroHeadlineHint = computed<string>\(\(\) => \{[\s\S]*?\n\}\)/)
+    assert.ok(decl, 'la déclaration de heroHeadlineHint est introuvable')
+    assert.match(decl![0], /Bonjour, je suis/, 'repli Alba/Essentiel absent')
+    assert.match(decl![0], /Retrouvez votre équilibre/, 'repli Visuel absent')
+    assert.match(decl![0], /Spécialiste accompagnement ménopause/, 'repli Signature absent')
   })
 })
 
@@ -158,5 +164,69 @@ describe('YB.1.2 — l\'ancre secondaire du hero n\'est pas un lien mort', () =>
     const template = readTemplateBlock(ALBA_HERO_PATH)
     assert.match(template, /<UButton[\s\S]{0,200}?:to="ctaTo"/, 'le CTA principal doit rester un UButton :to')
     assert.match(template, /data-hero-cta/, 'le CTA principal doit garder son marqueur data-hero-cta')
+  })
+})
+
+describe('YB.1.2 — le bloc photo d\'Alba et l\'ordre du menu (AC 1)', () => {
+  test('la photo est à GAUCHE : `lg:col-span-5` précède `lg:col-span-7`', () => {
+    // AC 1 — la disposition fondatrice du template. Sans assertion, une
+    // inversion des colonnes (photo à droite = Essentiel) passerait sous
+    // lint/typecheck/tests et ne serait vue qu'en capture navigateur.
+    const template = readTemplateBlock(ALBA_HERO_PATH)
+    const photoIdx = template.indexOf('lg:col-span-5')
+    const contentIdx = template.indexOf('lg:col-span-7')
+    assert.ok(photoIdx >= 0, 'la photo doit porter lg:col-span-5')
+    assert.ok(contentIdx >= 0, 'le contenu doit porter lg:col-span-7')
+    assert.ok(
+      photoIdx < contentIdx,
+      'la photo (col-span-5) doit précéder le contenu (col-span-7) dans le DOM'
+    )
+  })
+
+  test('le hero est plat : aucune strate décorative, `heroImageDisabled` jamais lu', () => {
+    const template = readTemplateBlock(ALBA_HERO_PATH)
+    assert.equal(
+      /absolute inset-0/.test(template),
+      false,
+      'aucune couche `absolute inset-0` (ni strate, ni overlay, ni fond)'
+    )
+    assert.equal(
+      /heroImageDisabled/.test(template),
+      false,
+      'le hero d\'Alba ne doit pas lire heroImageDisabled (drapeau du hero immersif de Visuel)'
+    )
+  })
+
+  test('le hero est TOUJOURS rendu (aucun v-if sur <CoachAlbaHero>)', () => {
+    const page = readFile(ALBA_PATH)
+    const heroTag = page.match(/<CoachAlbaHero[\s\S]*?\/>/)
+    assert.ok(heroTag, '<CoachAlbaHero> introuvable dans CoachPageAlba')
+    assert.equal(
+      /v-if/.test(heroTag![0]),
+      false,
+      'le hero ne doit pas être conditionnel'
+    )
+  })
+
+  test('le menu suit l\'ordre du document (témoignages avant piliers et parcours)', () => {
+    // Revue YB.1.2 — l'ordre du `navLinks` d'Alba contredisait l'ordre de
+    // rendu : « Approche »/« Parcours » étaient listés avant « Témoignages »,
+    // alors que la page les rend après.
+    const page = readFile(ALBA_PATH)
+    const navBlock = page.match(/const navLinks = computed[\s\S]*?\n\}\)/)
+    assert.ok(navBlock, 'le bloc navLinks est introuvable')
+    const nav = navBlock![0]
+    assert.ok(
+      nav.indexOf('#qui-suis-je') < nav.indexOf('#temoignages'),
+      '« Qui suis-je » doit précéder « Témoignages »'
+    )
+    assert.ok(
+      nav.indexOf('#temoignages') < nav.indexOf('#approche'),
+      '« Témoignages » doit précéder « Approche »'
+    )
+    assert.ok(
+      nav.indexOf('#approche') < nav.indexOf('#parcours'),
+      '« Approche » doit précéder « Parcours »'
+    )
   })
 })

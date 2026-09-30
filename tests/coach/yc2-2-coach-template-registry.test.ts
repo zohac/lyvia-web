@@ -74,8 +74,8 @@ describe('YC2.2 — coach-template-registry (pure resolver)', () => {
       )
       assert.match(
         panel,
-        /templateRendersOwnHeader\(props\.coachProfile\?\.templateCode\)/,
-        'le gate de header de l\'aperçu doit passer par le registre'
+        /!\s*templateRendersOwnHeader\(props\.coachProfile\?\.templateCode\)/,
+        'le gate de header de l\'aperçu doit passer par le registre ET le nier — sans `!`, double header pour Alba'
       )
 
       // Deuxième des trois points, hors du composant : le draft d'aperçu.

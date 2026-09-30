@@ -589,6 +589,22 @@ const previewTemplateCode = computed<string | null>(() => {
 const isHeroBackgroundTemplate = computed(
   () => previewTemplateCode.value !== ALBA_TEMPLATE_CODE
 )
+
+// Revue YB.1.2 — le champ « Accroche » est rendu par le MÊME `FormControl`
+// pour les quatre templates, mais chaque hero a son propre repli quand le
+// champ est vide. Une phrase unique décrivait donc un repli FAUX pour Visuel
+// (« Retrouvez votre équilibre… ») et Signature (« Spécialiste accompagnement
+// ménopause… »). On dérive l'aide du template sélectionné.
+const heroHeadlineHint = computed<string>(() => {
+  switch (previewTemplateCode.value) {
+    case 'visuel':
+      return 'Laissez vide : le hero affiche alors « Retrouvez votre équilibre et votre vitalité avec {votre prénom} ».'
+    case 'signature':
+      return 'Laissez vide : le hero affiche alors « Spécialiste accompagnement ménopause », avec votre ville si elle est renseignée.'
+    default:
+      return 'Laissez vide : le hero affiche alors « Bonjour, je suis {votre prénom}. », avec la spécialité en surtitre.'
+  }
+})
 //
 // `account` is exposed as `readonly(account)` by createCoachPageEditor for
 // safety (no external mutation), but the preview composable only reads
@@ -2015,7 +2031,10 @@ function externalSection(section: string) {
                     class="h-10 w-10 text-[color:var(--color-brand-muted)]"
                   />
                 </div>
-                <div class="flex flex-col items-start gap-2">
+                <div
+                  v-if="isHeroBackgroundTemplate"
+                  class="flex flex-col items-start gap-2"
+                >
                   <input
                     ref="heroFileInputRef"
                     type="file"
@@ -2071,13 +2090,26 @@ function externalSection(section: string) {
                     {{ heroPhotoError }}
                   </p>
                 </div>
+                <!-- Revue YB.1.2 — sur Alba, ce bloc de contrôles pilote un
+                     fond de hero (upload/retrait/rétablissement) que sa page
+                     ne rend pas. Le portrait se modifie depuis Mon compte. -->
+                <p
+                  v-else
+                  class="text-xs text-[color:var(--color-brand-secondary)]"
+                >
+                  Le template Alba affiche votre portrait : modifiez-le depuis
+                  <NuxtLink
+                    to="/provider/account"
+                    class="font-medium text-[color:var(--color-brand-primary)] underline-offset-4 hover:underline"
+                  >Mon compte → Photo de profil</NuxtLink>.
+                </p>
               </div>
             </div>
 
             <FormControl
               id="heroHeadline"
               label="Accroche / Sous-titre principal"
-              hint="Laissez vide : le hero affiche alors « Bonjour, je suis {votre prénom}. », avec la spécialité en surtitre"
+              :hint="heroHeadlineHint"
             >
               <template #default="{ inputAttrs }">
                 <UInput

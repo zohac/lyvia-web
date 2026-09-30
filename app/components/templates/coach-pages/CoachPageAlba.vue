@@ -125,11 +125,13 @@ const bioParagraphs = computed<string[]>(() => {
 // template, parce qu'une ancre vers une section conditionnelle est un lien mort.
 const navLinks = computed(() => {
   const links: { label: string, href: string }[] = []
+  // Revue YB.1.2 — l'ordre du menu suit l'ORDRE DU DOCUMENT (comme Visuel) :
+  // les témoignages sont rendus avant les piliers et le parcours.
   if (showBenefits.value) links.push({ label: 'Accompagnement', href: '#accompagnement' })
   if (showBio.value) links.push({ label: 'Qui suis-je', href: '#qui-suis-je' })
+  if (showTestimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
   if (showPillars.value) links.push({ label: 'Approche', href: '#approche' })
   if (showHowItWorks.value) links.push({ label: 'Parcours', href: '#parcours' })
-  if (showTestimonials.value) links.push({ label: 'Témoignages', href: '#temoignages' })
   if (showPricing.value) links.push({ label: 'Tarifs', href: '#tarifs' })
   return links
 })
