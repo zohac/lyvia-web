@@ -2,17 +2,15 @@
 /**
  * CoachAlbaHeader — Header interne du template Alba (YB.1.2).
  *
- * Décision produit du 2026-09-29 : Alba est « auto-portrait » sur une page
- * calme, donc un header sobre sur fond clair — le modèle d'Essentiel, pas la
- * barre transparente sur fond sombre de Visuel. Alba rend SON header et masque
- * la `PublicHeader` globale via l'état `hide-layout-header` ; l'aperçu de
- * l'éditeur reproduit cette répartition par
- * `templateRendersOwnHeader` (registre), sans quoi l'écran afficherait deux
- * headers.
+ * Révision de design du 2026-09-30 (décision PO) : le hero d'Alba est passé en
+ * sombre immersif (voir `CoachAlbaHero.vue`). Le header se pose donc DESSUS en
+ * transparent, texte clair, puis repasse en barre claire après défilement —
+ * même contrat que `CoachVisuelHeader` (jusqu'alors le modèle de Visuel).
  *
- * Structure identique à `CoachEssentielHeader` / `CoachVisuelHeader` : ce
- * header est volontairement l'un des composants NON PARTAGÉS du périmètre
- * (AD-5), sa surface est celle d'Alba.
+ * Alba rend SON header et masque la `PublicHeader` globale via l'état
+ * `hide-layout-header` ; l'aperçu de l'éditeur reproduit cette répartition par
+ * `templateRendersOwnHeader` (registre). Ce header reste l'un des composants
+ * NON PARTAGÉS du périmètre (AD-5) : sa surface est celle d'Alba.
  */
 export interface CoachAlbaHeaderNavLink {
   label: string
@@ -34,7 +32,7 @@ function closeMobile() {
   isMobileOpen.value = false
 }
 
-// Scroll elevation: ombre après le seuil de 10px.
+// Bascule transparent → clair après le seuil de 10px.
 const hasScrolled = ref(false)
 
 function handleScroll() {
@@ -57,8 +55,12 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
 
 <template>
   <header
-    class="sticky top-0 z-40 w-full border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]/95 backdrop-blur-md transition-shadow duration-300"
-    :class="[hasScrolled ? 'shadow-md' : 'shadow-sm']"
+    class="sticky top-0 z-40 -mb-16 w-full transition-colors duration-300 sm:-mb-18"
+    :class="[
+      hasScrolled
+        ? 'border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]/95 shadow-md backdrop-blur-md'
+        : 'border-b border-transparent bg-transparent'
+    ]"
     aria-label="Navigation principale"
   >
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-6 sm:h-18 lg:px-8">
@@ -70,13 +72,18 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
         <img
           src="/images/keova-logo.webp"
           alt="Keova"
-          class="h-7 w-auto sm:h-8"
+          class="h-7 w-auto transition-[filter] duration-300 sm:h-8"
+          :class="hasScrolled ? '' : 'brightness-0 invert drop-shadow-md'"
         >
         <span
-          class="hidden h-5 w-px bg-[color:var(--color-border-emphasis)] sm:block"
+          class="hidden h-5 w-px transition-colors duration-300 sm:block"
+          :class="hasScrolled ? 'bg-[color:var(--color-border-emphasis)]' : 'bg-white/30'"
           aria-hidden="true"
         />
-        <span class="hidden text-sm font-medium text-[color:var(--color-text-primary)] sm:inline">
+        <span
+          class="hidden text-sm font-medium transition-colors duration-300 sm:inline"
+          :class="hasScrolled ? 'text-[color:var(--color-text-primary)]' : 'text-[color:var(--color-crepuscule-50)] drop-shadow-sm'"
+        >
           {{ coachName }}
         </span>
       </NuxtLink>
@@ -90,7 +97,10 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           v-for="link in navLinks"
           :key="link.href"
           :href="link.href"
-          class="text-sm font-medium text-[color:var(--color-text-primary)] transition-colors duration-200 hover:text-[color:var(--color-brand-primary)]"
+          class="text-sm font-medium transition-colors duration-200"
+          :class="hasScrolled
+            ? 'text-[color:var(--color-text-primary)] hover:text-[color:var(--color-brand-primary)]'
+            : 'text-[color:var(--color-crepuscule-50)]/85 hover:text-[color:var(--color-crepuscule-50)]'"
         >
           {{ link.label }}
         </a>
@@ -106,6 +116,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           size="sm"
           aria-label="Se connecter"
           class="hidden sm:inline-flex"
+          :class="hasScrolled ? '' : 'text-[color:var(--color-crepuscule-50)]/90 hover:bg-white/10'"
         />
 
         <UButton
@@ -114,6 +125,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           variant="solid"
           size="sm"
           class="hidden sm:inline-flex"
+          :class="hasScrolled ? '' : 'shadow-lg shadow-black/20'"
         >
           {{ ctaLabel }}
         </UButton>
@@ -126,6 +138,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
           :aria-expanded="isMobileOpen"
           aria-label="Ouvrir le menu"
           class="lg:hidden"
+          :class="hasScrolled ? '' : 'text-[color:var(--color-crepuscule-50)]/90 hover:bg-white/10'"
           @click="isMobileOpen = true"
         />
       </div>
@@ -137,7 +150,7 @@ const showLogin = computed(() => !props.isAuthenticated && !!props.loginTo)
       title="Menu"
     >
       <template #content>
-        <div class="flex h-full flex-col">
+        <div class="flex h-full flex-col bg-[color:var(--color-surface-card)]">
           <div class="flex items-center justify-between border-b border-[color:var(--color-border-subtle)] px-6 py-4">
             <img
               src="/images/keova-logo.webp"

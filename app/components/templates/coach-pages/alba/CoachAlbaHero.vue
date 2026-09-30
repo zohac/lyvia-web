@@ -1,28 +1,29 @@
 <script setup lang="ts">
 /**
- * CoachAlbaHero — Bloc hero du template Alba (YB.1.2).
+ * CoachAlbaHero — Hero immersif du template Alba (YB.1.2).
  *
- * AD-6 — ce bloc est PROPRE à Alba, et il ne le doit pas par goût mais par
- * contrainte : les deux blocs photo existants sont structurellement
- * incomparables. `CoachHeroProfile` (Signature) porte cinq décorations — deux
- * blobs radiaux, une forme fantôme décalée, un voile chaud, un `accent-ring`
- * animé, plus un filet d'indicateur de défilement ; `CoachEssentielHero`
- * (Aurore) n'en porte aucune, c'est une simple carte `aspect-[4/5]`. Un
- * composant commun devrait être paramétré sur chacune de ces cinq
- * décorations : ce ne serait plus un composant partagé, ce serait un système
- * de mise en page — précisément ce qu'AD-1 refuse. Le dupliqué est donc le
- * PRIX de l'AC « aucun fichier de hero existant modifié », et il est BORNÉ :
- * Alba ne portera jamais de décoration.
+ * Révision de design du 2026-09-30 (décision PO) : le premier rendu — un split
+ * clair, portrait encadré sur fond blanc — était jugé trop plat et trop éloigné
+ * de l'ambiance des autres templates. Alba reprend donc le parti pris de
+ * `CoachVisuelHero` (fond sombre, texte clair, CTA accent) mais SANS image de
+ * fond : le portrait de la praticienne reste l'élément principal, à GAUCHE.
  *
- * Le hero est PLAT par conception :
- *   - la photo est à GAUCHE du titre, pas au-dessus ni en fond ;
- *   - le fond est un aplat de surface, jamais une image ;
- *   - aucune strate, aucun overlay, aucun `absolute inset-0` décoratif ;
- *   - `heroImageDisabled` N'EST PAS LU — ce drapeau gouverne le hero immersif
- *     de Visuel (`CoachVisuelHero.vue`), hors périmètre de cette story.
+ * Ambiance « heure dorée » (2e révision, 2026-09-30) : le quasi-noir
+ * `crepuscule-950` pesait trop pour une page ménopause. Le fond glisse
+ * maintenant d'un violet profond (`crepuscule-800`) vers un prune chaud, avec
+ * un halo sunset en bas à droite et un halo violet en haut à gauche. Les halos
+ * sont FIGÉS (violet + sunset de la marque) pour que l'ambiance reste chaude
+ * même quand la coach a une couleur de marque froide ; le CTA, lui, garde
+ * l'accent du tenant.
  *
- * Colonnes inversées par rapport à `CoachEssentielHero.vue` : photo en
- * `lg:col-span-5` EN PREMIER, contenu en `lg:col-span-7`.
+ * Ce bloc est PROPRE à Alba (AD-6) : il ne modifie ni `CoachHeroProfile`
+ * (Signature) ni `CoachEssentielHero` (Aurore).
+ *
+ * Invariants conservés (AC 1 / AD-6) :
+ *   - la photo est à GAUCHE du titre (`lg:col-span-5` avant `lg:col-span-7`) ;
+ *   - AUCUNE image de fond : on ne lit jamais `heroPhotoUrl` ni
+ *     `heroImageDisabled` (drapeaux du hero immersif de Visuel) ;
+ *   - la profondeur vient de dégradés CSS de marque, pas d'une photo.
  */
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
 
@@ -31,14 +32,9 @@ const props = defineProps<CoachHeroProps & {
    * YB.1.2 — la section « Qui suis-je » est-elle rendue ?
    *
    * OBLIGATOIRE, non optionnel : l'ancre secondaire `#qui-suis-je` ne doit
-   * exister que si sa cible existe. La conditionner par un prop facultatif la
-   * cacherait silencieusement quand l'appelant oublie de le passer — donc on
-   * recréerait le lien mort que ce prop existe pour empêcher. En obligatoire,
-   * l'oubli est une erreur de compilation.
-   *
-   * Source de vérité : `show.bio` de `useCoachSectionVisibility`, le MÊME
-   * interrupteur que celui qui conditionne l'ancre du header dans
-   * `CoachPageAlba.vue`. Un signal, une décision.
+   * exister que si sa cible existe. Source de vérité : `show.bio` de
+   * `useCoachSectionVisibility`, le MÊME interrupteur que celui qui conditionne
+   * l'ancre du header dans `CoachPageAlba.vue`. Un signal, une décision.
    */
   showBio: boolean
 }>()
@@ -53,15 +49,14 @@ const firstName = computed(() => {
 /**
  * Accroche saisie par la coach (« Accroche / Sous-titre principal » de
  * l'éditeur). Elle porte le H1 quand elle existe ; sinon le H1 garde sa forme
- * humanisée. Sans ce repli, le champ serait INERT sur Alba alors que les trois
- * autres templates le rendent.
+ * humanisée.
  */
 const configuredHeadline = computed(() => props.heroHeadline?.trim() || '')
 
 /**
  * Pillule d'accroche dérivée de la spécialité — AUCUN libellé codé en dur :
  * sans spécialité configurée, la pillule disparaît plutôt que d'afficher un
- * placeholder générique. Même règle que le hero d'Essentiel.
+ * placeholder générique.
  */
 const eyebrowLabel = computed<string | null>(() => {
   const first = (props.specialties ?? []).find(s => !!s?.trim())
@@ -70,10 +65,10 @@ const eyebrowLabel = computed<string | null>(() => {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1)
 })
 
-/** Photo du bloc : le PORTRAIT de la coach. Jamais une image de fond. */
+/** Portrait de la coach — jamais une image de fond. */
 const portraitSrc = computed(() => props.profilePhotoUrl?.trim() || null)
 
-/** Initiales de repli — sobres, comme sur Essentiel, pas dramatiques. */
+/** Initiales de repli lorsque la coach n'a pas encore de portrait. */
 const initials = computed(() => {
   const name = props.displayName || ''
   return name
@@ -88,17 +83,33 @@ const initials = computed(() => {
 <template>
   <section
     id="hero"
-    class="relative bg-[color:var(--color-surface-card)] px-6 py-16 sm:px-12 lg:px-20 lg:py-24"
+    class="relative isolate overflow-hidden bg-[color:var(--color-crepuscule-900)] px-6 pb-16 pt-28 text-[color:var(--color-crepuscule-50)] sm:px-12 sm:pb-20 sm:pt-32 lg:px-20 lg:pb-28 lg:pt-36"
   >
+    <!-- Ambiance « heure dorée » : ciel violet qui s'éclaircit en haut, lueur
+         d'horizon chaude en bas, halo violet adouci en haut à gauche. Aucune image. -->
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 -z-10"
+    >
+      <div class="absolute inset-0 bg-gradient-to-b from-[color:var(--color-crepuscule-700)] via-[color:var(--color-crepuscule-800)] to-[color:var(--color-crepuscule-900)]" />
+      <div class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[color-mix(in_srgb,var(--color-sunset-500)_30%,transparent)] via-[color-mix(in_srgb,var(--color-sunset-700)_10%,transparent)] to-transparent" />
+      <div class="absolute -left-32 -top-32 h-[32rem] w-[32rem] rounded-full bg-[color:var(--color-crepuscule-500)]/25 blur-[100px]" />
+    </div>
+
     <div class="mx-auto max-w-7xl">
-      <div class="grid gap-12 lg:grid-cols-12 lg:items-center lg:gap-16">
-        <!-- GAUCHE — bloc photo d'Alba. Aplat, aucune décoration. -->
+      <div class="grid gap-14 lg:grid-cols-12 lg:items-center lg:gap-16">
+        <!-- GAUCHE — le portrait -->
         <div
           class="hero-anim lg:col-span-5"
           style="--hero-anim-delay: 0ms"
         >
-          <div class="mx-auto w-full max-w-sm">
-            <div class="aspect-[4/5] overflow-hidden rounded-2xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)]">
+          <div class="relative mx-auto w-full max-w-[16rem] sm:max-w-sm lg:max-w-md">
+            <!-- Cadre décalé, en retrait : donne de la profondeur sans photo. -->
+            <div
+              aria-hidden="true"
+              class="absolute -bottom-4 -right-4 h-full w-full rounded-[2rem] border border-white/10 bg-white/[0.03]"
+            />
+            <div class="relative aspect-[4/5] overflow-hidden rounded-[2rem] shadow-2xl shadow-black/50 ring-1 ring-white/15">
               <NuxtImg
                 v-if="portraitSrc"
                 :src="portraitSrc"
@@ -106,79 +117,76 @@ const initials = computed(() => {
                 class="h-full w-full object-cover object-top"
                 loading="eager"
                 fetchpriority="high"
-                sizes="(max-width: 1024px) 90vw, 400px"
-                width="400"
-                height="500"
+                sizes="(max-width: 1024px) 85vw, 440px"
+                width="800"
+                height="1000"
               />
               <div
                 v-else
-                class="flex h-full w-full items-center justify-center bg-[color:var(--color-surface-highlight)]"
+                class="flex h-full w-full items-center justify-center bg-white/5"
               >
-                <span class="font-serif text-7xl text-[color:var(--color-brand-primary)]/30">
+                <span class="font-serif text-7xl text-[color:var(--color-crepuscule-300)]">
                   {{ initials }}
                 </span>
               </div>
+              <!-- Léger voile bas : rattache le portrait au fond. -->
+              <div
+                aria-hidden="true"
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent"
+              />
             </div>
           </div>
         </div>
 
-        <!-- DROITE — le titre -->
+        <!-- DROITE — le propos -->
         <div
           class="hero-anim lg:col-span-7"
           style="--hero-anim-delay: 120ms"
         >
-          <div
+          <span
             v-if="eyebrowLabel"
-            class="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] px-4 py-1.5"
+            class="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[color:var(--color-crepuscule-50)] backdrop-blur-md"
           >
-            <UIcon
-              name="i-lucide-sparkles"
-              class="size-3.5 text-[color:var(--color-brand-accent)]"
-            />
-            <span class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-brand-secondary)]">
-              {{ eyebrowLabel }}
-            </span>
-          </div>
+            <span class="size-2 rounded-full bg-[color:var(--color-brand-accent)]" />
+            {{ eyebrowLabel }}
+          </span>
 
           <!-- H1 — accroche saisie si elle existe, sinon forme humanisée. -->
-          <h1 class="mt-6 font-serif text-4xl leading-[1.05] tracking-tight text-[color:var(--color-text-primary)] lg:text-6xl">
+          <h1 class="mt-6 font-serif text-4xl leading-[1.06] tracking-tight text-[color:var(--color-crepuscule-50)] text-balance sm:text-5xl lg:text-6xl">
             <span
               v-if="configuredHeadline"
-              class="block text-[color:var(--color-brand-primary)]"
+              class="block"
             >
               {{ configuredHeadline }}
             </span>
             <template v-else>
-              <span class="block text-[color:var(--color-brand-secondary)]">Bonjour, je suis</span>
-              <span class="block text-[color:var(--color-brand-primary)]">{{ firstName || displayName }}.</span>
+              <span class="block text-[color:var(--color-crepuscule-50)]/60">Bonjour, je suis</span>
+              <span class="block">{{ firstName || displayName }}.</span>
             </template>
           </h1>
 
-          <p class="mt-6 max-w-xl text-lg leading-snug text-[color:var(--color-brand-secondary)] lg:text-xl">
-            {{ heroDescription || 'Un accompagnement personnalisé en périménopause et ménopause. Alimentation, stress, sommeil, mouvement — une approche complète, à votre rythme.' }}
+          <p class="mt-6 max-w-xl text-lg leading-relaxed text-[color:var(--color-crepuscule-50)]/75 lg:text-xl">
+            {{ heroDescription || 'Un accompagnement personnalisé en périménopause et ménopause. Alimentation, stress, sommeil, mouvement : une approche complète, à votre rythme.' }}
           </p>
 
-          <div class="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div class="mt-9 flex flex-col gap-5 sm:flex-row sm:items-center">
             <UButton
               :to="ctaTo"
-              color="primary"
+              color="secondary"
               variant="solid"
               size="xl"
               trailing-icon="i-lucide-arrow-right"
+              class="shadow-xl shadow-black/30"
               data-hero-cta
             >
               Réserver mon appel gratuit
             </UButton>
 
-            <!-- Ancre secondaire : rendue UNIQUEMENT si sa cible existe.
-                 Sans ce garde, une coach qui éteint « Qui suis-je » laisse un
-                 lien qui ne mène nulle part — l'CTA principal, lui, est un
-                 `UButton :to`, donc unaffected. Même source de vérité que le
-                 header (`show.bio`). -->
+            <!-- Ancre secondaire : rendue UNIQUEMENT si sa cible existe. -->
             <a
               v-if="showBio"
               href="#qui-suis-je"
-              class="group inline-flex items-center gap-2 text-sm font-medium text-[color:var(--color-brand-primary)] underline-offset-4 hover:underline"
+              class="group inline-flex items-center gap-2 text-sm font-medium text-[color:var(--color-crepuscule-50)]/80 underline-offset-4 transition-colors hover:text-[color:var(--color-crepuscule-50)] hover:underline"
             >
               En savoir plus
               <UIcon
@@ -189,35 +197,35 @@ const initials = computed(() => {
           </div>
 
           <!-- Réassurance : les objections levées au bon moment, sous le CTA. -->
-          <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[color:var(--color-brand-muted)]">
+          <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs font-medium text-[color:var(--color-crepuscule-50)]/70">
             <span class="inline-flex items-center gap-1.5">
               <UIcon
                 name="i-lucide-check"
-                class="size-3.5 text-[color:var(--color-brand-primary)]"
+                class="size-3.5 text-[color:var(--color-brand-accent)]"
               />
               Gratuit
             </span>
             <span class="inline-flex items-center gap-1.5">
               <UIcon
                 name="i-lucide-check"
-                class="size-3.5 text-[color:var(--color-brand-primary)]"
+                class="size-3.5 text-[color:var(--color-brand-accent)]"
               />
               Sans engagement
             </span>
             <span class="inline-flex items-center gap-1.5">
               <UIcon
                 name="i-lucide-check"
-                class="size-3.5 text-[color:var(--color-brand-primary)]"
+                class="size-3.5 text-[color:var(--color-brand-accent)]"
               />
               {{ discoveryDurationMinutes }} min
             </span>
           </div>
 
-          <!-- Trust chips — uniquement des données réellement configurées. -->
+          <!-- Chips — uniquement des données réellement configurées. -->
           <div class="mt-8 flex flex-wrap gap-2">
             <span
               v-if="credentials[0]?.title"
-              class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
+              class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-[color:var(--color-crepuscule-50)]/80 backdrop-blur-sm"
             >
               <UIcon
                 name="i-lucide-graduation-cap"
@@ -227,7 +235,7 @@ const initials = computed(() => {
             </span>
             <span
               v-if="city"
-              class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
+              class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-[color:var(--color-crepuscule-50)]/80 backdrop-blur-sm"
             >
               <UIcon
                 name="i-lucide-map-pin"
@@ -239,8 +247,9 @@ const initials = computed(() => {
 
           <p
             v-if="urgencyText"
-            class="mt-4 text-xs font-medium text-[color:var(--color-brand-accent)]"
+            class="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-[color:var(--color-crepuscule-50)]/90"
           >
+            <span class="size-2 rounded-full bg-[color:var(--color-brand-accent)] animate-pulse" />
             {{ urgencyText }}
           </p>
         </div>

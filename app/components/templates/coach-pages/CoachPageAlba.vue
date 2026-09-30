@@ -120,6 +120,24 @@ const bioParagraphs = computed<string[]>(() => {
   return []
 })
 
+// Révision du 2026-09-30 (retour PO) — la section « Qui suis-je » doit garder la
+// SECONDE image de la praticienne, comme Luna. L'inline d'Alba l'avait perdue :
+// on reprend la même source que `CoachVisuelBio` (`secondaryPhotoUrl`, repli
+// `imageUrl`), avec un repli initiales fidèle au hero si aucune image n'existe.
+const bioPhotoSrc = computed(
+  () => props.coachProfile?.secondaryPhotoUrl || props.coachProfile?.imageUrl || null
+)
+
+const bioInitials = computed(() => {
+  const name = coachName.value
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(w => w[0] || '')
+    .join('')
+    .toUpperCase()
+})
+
 // --- Ancres du header interne ---
 // Le bloc libre en est VOLONTAIREMENT absent : il n'a pas d'ancre, sur aucun
 // template, parce qu'une ancre vers une section conditionnelle est un lien mort.
@@ -186,8 +204,8 @@ const heroProps = computed(() => ({
   heroDescription: props.coachProfile?.heroDescription ?? null,
   credentials: props.coachProfile?.credentials ?? [],
   city: props.coachProfile?.city ?? null,
-  profilePhotoUrl: props.coachProfile?.imageUrl ?? null,
-  profilePhotoAlt: props.coachProfile?.imageUrl
+  profilePhotoUrl: props.coachProfile?.heroImageUrl ?? props.coachProfile?.imageUrl ?? null,
+  profilePhotoAlt: (props.coachProfile?.heroImageUrl ?? props.coachProfile?.imageUrl)
     ? `${coachName.value}, spécialiste accompagnement ménopause`
     : null,
   discoveryDurationMinutes: props.coachProfile?.discoveryDurationMinutes ?? 15,
@@ -305,66 +323,96 @@ const heroProps = computed(() => ({
     </div>
 
     <!-- ==================== 4. QUI SUIS-JE (optionnel) ==================== -->
+    <!-- Révision du 2026-09-30 (retour PO) — mise en scène « Luna » : carte,
+         photo de la praticienne (seconde image) à gauche, contenu à droite.
+         L'inline précédent avait perdu la photo. -->
     <section
       v-if="showBio"
       id="qui-suis-je"
       v-bind="reveal()"
       class="scroll-reveal bg-[color:var(--color-crepuscule-50)] px-6 py-20 sm:px-12 lg:px-20"
     >
-      <div class="mx-auto max-w-5xl">
-        <span class="inline-block text-xs font-bold uppercase tracking-[0.25em] text-[color:var(--color-brand-primary)]">
-          {{ sectionTitles.bioEyebrow || 'Qui suis-je' }}
-        </span>
-        <h2 class="mt-4 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] lg:text-4xl">
-          {{ sectionTitles.bioTitle || `Votre spécialiste ménopause — ${coachName}` }}
-        </h2>
-
-        <p
-          v-if="credentialLine"
-          class="mt-4 text-base text-[color:var(--color-brand-accent)]"
-        >
-          {{ credentialLine }}
-        </p>
-
-        <div
-          v-if="coachProfile?.credentials?.length"
-          class="mt-6 flex flex-wrap gap-2"
-        >
-          <span
-            v-for="cred in coachProfile.credentials"
-            :key="cred.title"
-            class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
-          >
-            <UIcon
-              v-if="cred.verified"
-              name="i-lucide-badge-check"
-              class="size-3.5 text-[color:var(--color-brand-accent)]"
+      <div class="mx-auto max-w-6xl">
+        <div class="overflow-hidden rounded-3xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] shadow-xl lg:grid lg:grid-cols-12">
+          <!-- Photo de la praticienne (seconde image) -->
+          <div class="relative min-h-[320px] lg:col-span-5 lg:min-h-[480px]">
+            <NuxtImg
+              v-if="bioPhotoSrc"
+              :src="bioPhotoSrc"
+              :alt="coachName"
+              class="h-full w-full object-cover object-top"
+              loading="lazy"
+              sizes="(max-width: 1024px) 100vw, 480px"
+              width="480"
+              height="560"
             />
-            {{ cred.title }}
-          </span>
-        </div>
+            <div
+              v-else
+              class="flex h-full w-full items-center justify-center bg-[color:var(--color-brand-primary)]/10"
+            >
+              <span class="font-serif text-7xl text-[color:var(--color-brand-primary)]/30">
+                {{ bioInitials }}
+              </span>
+            </div>
+          </div>
 
-        <div class="mt-8 space-y-5 text-base leading-relaxed text-[color:var(--color-crepuscule-700)]">
-          <p
-            v-for="(paragraph, i) in bioParagraphs"
-            :key="i"
-          >
-            {{ paragraph }}
-          </p>
-        </div>
+          <!-- Contenu -->
+          <div class="flex flex-col justify-center p-8 sm:p-12 lg:col-span-7 lg:p-16">
+            <span class="text-xs font-bold uppercase tracking-[0.2em] text-[color:var(--color-brand-primary)]">
+              {{ sectionTitles.bioEyebrow || 'Qui suis-je' }}
+            </span>
 
-        <p
-          v-if="coachProfile?.city"
-          class="mt-8 flex items-center gap-2 text-sm text-[color:var(--color-brand-secondary)]"
-        >
-          <UIcon
-            name="i-lucide-map-pin"
-            class="size-4 text-[color:var(--color-brand-accent)]"
-          />
-          <span>
-            {{ coachProfile.city }}<template v-if="coachProfile.region"> · {{ coachProfile.region }}</template>
-          </span>
-        </p>
+            <h2 class="mt-3 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)] sm:text-4xl">
+              {{ sectionTitles.bioTitle || `Votre spécialiste ménopause — ${coachName}` }}
+            </h2>
+
+            <p
+              v-if="credentialLine"
+              class="mt-2 text-base font-semibold text-[color:var(--color-brand-accent)]"
+            >
+              {{ credentialLine }}
+            </p>
+
+            <div class="mt-6 space-y-4 text-base leading-relaxed text-[color:var(--color-crepuscule-700)]">
+              <p
+                v-for="(paragraph, i) in bioParagraphs"
+                :key="i"
+              >
+                {{ paragraph }}
+              </p>
+            </div>
+
+            <div
+              v-if="coachProfile?.credentials?.length"
+              class="mt-8 flex flex-wrap gap-2.5"
+            >
+              <span
+                v-for="cred in coachProfile.credentials"
+                :key="cred.title"
+                class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 px-3.5 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary)]"
+              >
+                <UIcon
+                  name="i-lucide-award"
+                  class="size-3.5 text-[color:var(--color-brand-accent)]"
+                />
+                {{ cred.title }}
+              </span>
+            </div>
+
+            <p
+              v-if="coachProfile?.city"
+              class="mt-6 flex items-center gap-2 text-sm text-[color:var(--color-brand-secondary)]"
+            >
+              <UIcon
+                name="i-lucide-map-pin"
+                class="size-4 text-[color:var(--color-brand-accent)]"
+              />
+              <span>
+                {{ coachProfile.city }}<template v-if="coachProfile.region"> · {{ coachProfile.region }}</template>
+              </span>
+            </p>
+          </div>
+        </div>
       </div>
     </section>
 

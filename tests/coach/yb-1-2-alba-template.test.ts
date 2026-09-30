@@ -183,17 +183,26 @@ describe('YB.1.2 — le bloc photo d\'Alba et l\'ordre du menu (AC 1)', () => {
     )
   })
 
-  test('le hero est plat : aucune strate décorative, `heroImageDisabled` jamais lu', () => {
+  test('le hero n\'a pas d\'image de fond : portrait seul, `heroPhotoUrl`/`heroImageDisabled` jamais lus', () => {
     const template = readTemplateBlock(ALBA_HERO_PATH)
+    // Révision de design 2026-09-30 (PO) : le hero est devenu sombre immersif et
+    // porte des dégradés décoratifs. L'invariant qui reste est « aucune image de
+    // fond » : on ne lit donc ni le champ « Photo d'en-tête » (`heroPhotoUrl`)
+    // ni son drapeau (`heroImageDisabled`), tous deux propres à Visuel.
     assert.equal(
-      /absolute inset-0/.test(template),
+      /heroPhotoUrl/.test(template),
       false,
-      'aucune couche `absolute inset-0` (ni strate, ni overlay, ni fond)'
+      'le hero d\'Alba ne doit pas lire heroPhotoUrl (image de fond de Visuel)'
     )
     assert.equal(
       /heroImageDisabled/.test(template),
       false,
       'le hero d\'Alba ne doit pas lire heroImageDisabled (drapeau du hero immersif de Visuel)'
+    )
+    assert.match(
+      template,
+      /<NuxtImg[\s\S]{0,400}?:src="portraitSrc"/,
+      'le portrait doit être rendu comme une image explicite'
     )
   })
 
