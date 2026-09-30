@@ -21,8 +21,10 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
+import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
 import CoachHeroProfile from '~/components/organisms/CoachHeroProfile.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
+import CoachFreeText from '~/components/organisms/CoachFreeText.vue'
 import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
 import CoachPillars from '~/components/organisms/CoachPillars.vue'
 import CoachPricing from '~/components/organisms/CoachPricing.vue'
@@ -68,6 +70,13 @@ const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile,
 const showBio = show.bio
 const showProblemStatement = show.problemStatement
 const showBenefits = show.benefits
+// YB.1.1 — le toggle décide de l'intention, le CONTENU décide de
+// l'existence : sans ce second terme, un bloc allumé mais vide laisserait
+// une bande de surface vide (`px-6 py-24`) sur la page. Le composant
+// `CoachFreeText` porte le même garde pour son propre rendu.
+const showFreeText = computed(() =>
+  show.freeText.value && hasCoachFreeTextContent(props.coachProfile?.freeTextJson)
+)
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
 const showFit = show.fit
@@ -247,6 +256,20 @@ const heroProps = computed(() => ({
           </h2>
         </template>
       </CoachTransformationBenefits>
+    </div>
+
+    <!-- ==================== 3 bis. BLOC DE TEXTE LIBRE (optional) ==================== -->
+    <!-- YB.1.1 — position canonique : entre bénéfices et « qui suis-je », sur les
+      trois templates. Le composant est né partagé (AD-5) : il porte le contenu,
+      l'appelant porte la surface du template (AD-9) — et c'est pourquoi
+      l'appelant se gate aussi sur `showFreeText` (toggle ET contenu) : la
+      surface ne doit pas exister pour un bloc vide. Aucun lien d'ancre. -->
+    <div
+      v-if="showFreeText"
+      v-bind="reveal()"
+      class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-24 sm:px-12 lg:px-20"
+    >
+      <CoachFreeText :free-text="coachProfile?.freeTextJson ?? null" />
     </div>
 
     <!-- Mini-CTA after Benefits -->

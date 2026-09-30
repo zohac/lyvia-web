@@ -1,6 +1,11 @@
 import { computed, onScopeDispose, ref, toRaw, watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 
+// YB.1.2 — chemin RELATIF, pas l'alias `~/` : ce fichier est réellement
+// exécuté par le coureur `tsc -p tsconfig.tests.json && node --test`, qui
+// n'efface que les imports de TYPE. Un `import { … } from '~/…'` À VALEUR
+// survit à l'émission et échoue au chargement (`Cannot find module '~/…'`).
+import { resolveCoachTemplateCode } from '../../composables/coach-template-registry'
 import type {
   ProviderAccountResponse,
   TestimonialItem
@@ -11,6 +16,7 @@ import type {
   EducationalContentJson,
   FaqItem,
   FitJson,
+  FreeTextJson,
   HowItWorksStep,
   PillarsJson,
   ProblemStatementJson,
@@ -85,6 +91,12 @@ export interface CoachPagePreviewDeps {
   problemStatementForm: Ref<ProblemStatementJson | null>
   fitForm?: Ref<FitJson | null>
   /**
+   * YB.1.1 — Bloc de texte libre. Passe par le snapshot comme les autres
+   * champs texte : la saisie non enregistrée doit se refléter dans l'aperçu
+   * sans publication implicite.
+   */
+  freeTextForm?: Ref<FreeTextJson | null>
+  /**
    * Story 0-28 — code du template actuellement sélectionné par le provider
    * (signature / essentiel / futurs templates). Le draft route vers le bon
    * `<component :is>` via `useCoachPageTemplate(templateCode)`. Si null →
@@ -137,6 +149,7 @@ type DebouncedSnapshot = {
   educationalContent: EducationalContentJson | null
   problemStatement: ProblemStatementJson | null
   fit: FitJson | null
+  freeText: FreeTextJson | null
 }
 
 function emptySnapshot(): DebouncedSnapshot {
@@ -156,7 +169,8 @@ function emptySnapshot(): DebouncedSnapshot {
     howItWorks: [],
     educationalContent: null,
     problemStatement: null,
-    fit: null
+    fit: null,
+    freeText: null
   }
 }
 
@@ -198,7 +212,8 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       howItWorks: cloneRaw(deps.howItWorksForm.value),
       educationalContent: cloneRaw(deps.educationalContentForm.value),
       problemStatement: cloneRaw(deps.problemStatementForm.value),
-      fit: cloneRaw(deps.fitForm?.value ?? null)
+      fit: cloneRaw(deps.fitForm?.value ?? null),
+      freeText: cloneRaw(deps.freeTextForm?.value ?? null)
     }
   }
 
@@ -219,7 +234,8 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       () => deps.howItWorksForm.value,
       () => deps.educationalContentForm.value,
       () => deps.problemStatementForm.value,
-      () => deps.fitForm?.value
+      () => deps.fitForm?.value,
+      () => deps.freeTextForm?.value
     ],
     () => {
       if (timeout) clearTimeout(timeout)
@@ -298,7 +314,12 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       googleAdsConversionLabel: acc.googleAdsConversionLabel,
       microsoftClarityId: acc.microsoftClarityId,
       // Live template choice — reflects the provider's selectedTemplateId.
-      templateCode: deps.templateCode.value || 'essentiel',
+      // YB.1.2 — le repli passe par le REGISTRE (`resolveCoachTemplateCode`),
+      // troisième des trois littéraux `'essentiel'` qui pilotaient l'aperçu.
+      // Alba y était traitée comme un code inconnu, donc comme Signature :
+      // double header dans l'aperçu. Un littéral ici diverge en silence de
+      // `CoachPagePreviewPanel`, et rien — lint, typecheck, test — ne le voit.
+      templateCode: resolveCoachTemplateCode(deps.templateCode.value),
       // Instant overlays (no debounce — AC-3)
       sectionsConfig: { ...deps.sectionsConfig },
       pillarsJson: snap.hydrated ? snap.pillars : acc.pillarsJson,
@@ -307,7 +328,12 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       howItWorksJson: snap.hydrated ? (snap.howItWorks.length > 0 ? snap.howItWorks : null) : acc.howItWorksJson,
       educationalContentJson: snap.hydrated ? snap.educationalContent : acc.educationalContentJson,
       problemStatementJson: snap.hydrated ? snap.problemStatement : acc.problemStatementJson,
-      fitJson: snap.hydrated ? snap.fit : (acc.fitJson ?? null)
+      fitJson: snap.hydrated ? snap.fit : (acc.fitJson ?? null),
+      // YB.1.1 — inscrit dans la LISTE D'AUTORISATION EXHAUSTIVE : un champ
+      // non inscrit ici est ignoré SILENCIEUSEMENT (pas d'erreur, pas de
+      // champ dans le draft). Sans cette ligne, la saisie locale du bloc
+      // n'apparaîtrait jamais dans l'aperçu.
+      freeTextJson: snap.hydrated ? snap.freeText : (acc.freeTextJson ?? null)
     }
   })
 

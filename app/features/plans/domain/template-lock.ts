@@ -36,11 +36,23 @@ import {
  */
 export const ESSENTIEL_TEMPLATE_CODE = 'essentiel'
 export const VISUEL_TEMPLATE_CODE = 'visuel'
+/**
+ * YB.1.2 — Alba, quatrième template (hero portrait à gauche, sur fond uni).
+ *
+ * STANDARD (AD-8) : il rejoint `STANDARD_COACH_TEMPLATE_CODES` dans le même
+ * changement que la clause `ALBA_TEMPLATE_CODE` de `isStandardTemplate` côté
+ * API (`typeorm-provider-account-command.service.ts`). C'est une ÉGALITÉ
+ * CROISÉE, vérifiée par le test de parité — les deux moitiés doivent bouger
+ * ensemble, sinon une coach du plan Essentiel reçoit un 403 sur un template
+ * auquel elle a droit.
+ */
+export const ALBA_TEMPLATE_CODE = 'visuel-portrait'
 
 /** Codes des templates ouverts à tous les plans sans surcoût. */
 export const STANDARD_COACH_TEMPLATE_CODES: readonly string[] = [
   ESSENTIEL_TEMPLATE_CODE,
-  VISUEL_TEMPLATE_CODE
+  VISUEL_TEMPLATE_CODE,
+  ALBA_TEMPLATE_CODE
 ]
 
 /**
@@ -56,9 +68,9 @@ export const PREMIUM_TEMPLATE_BADGE_LABEL
  * `true` si la carte doit être présentée verrouillée (désactivée + pastille).
  *
  * Règle miroir du backend 18.3a : « tout code autre que les templates standard
- * (`essentiel`, `visuel`) », et non une liste blanche arbitraire — l'admin
- * peut créer d'autres codes (`POST /admin/coach-page-templates`) qu'une liste
- * en dur ouvrirait.
+ * (`essentiel`, `visuel`, `visuel-portrait`) », et non une liste blanche
+ * arbitraire — l'admin peut créer d'autres codes
+ * (`POST /admin/coach-page-templates`) qu'une liste en dur ouvrirait.
  */
 export function isTemplateLocked(
   tmpl: { code: string },

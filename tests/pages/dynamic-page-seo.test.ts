@@ -44,7 +44,21 @@ describe('Dynamic Page SEO & Navigation Integration', () => {
 
     // coach/[slug]/index.vue checks
     assert.ok(coachIndexSrc.includes('usePublicPagesMenu'), 'coach index must integrate usePublicPagesMenu')
-    assert.ok(coachIndexSrc.includes('formatPageNavLinks'), 'coach index must format dynamic nav links for coach header')
+    // YB.1.2 (revue) — la construction des nav-links est déléguée à la semence
+    // partagée (`buildCoachLayoutSeed`), utilisée aussi par `usePublicHeaderInit`
+    // pour que le SSR et le client rendent le même header.
+    assert.ok(
+      coachIndexSrc.includes('buildCoachLayoutSeed'),
+      'coach index must delegate header nav-links to the shared coach-layout seed'
+    )
+    const coachSeedSrc = readFileSync(
+      join(REPO_ROOT, 'app', 'features', 'public', 'state', 'coach-layout-seed.ts'),
+      'utf8'
+    )
+    assert.ok(
+      coachSeedSrc.includes('formatPageNavLinks'),
+      'the coach layout seed must format dynamic nav links for the coach header'
+    )
   })
 
   test('YC2.4 & Convention 1 Cross-Domain Canonical resolution for dynamic pages', () => {

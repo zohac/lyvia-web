@@ -16,8 +16,11 @@ import {
   FEATURE_MIN_PLAN_LABEL
 } from '../../app/features/plans/domain/feature-codes'
 import {
+  ALBA_TEMPLATE_CODE,
   ESSENTIEL_TEMPLATE_CODE,
   PREMIUM_TEMPLATE_BADGE_LABEL,
+  STANDARD_COACH_TEMPLATE_CODES,
+  VISUEL_TEMPLATE_CODE,
   isTemplateLocked,
   resolvePremiumTemplatesAccess
 } from '../../app/features/plans/domain/template-lock'
@@ -29,8 +32,26 @@ describe('18.3b — isTemplateLocked', () => {
     // enveloppé dans un <FeatureGate> de section.
     assert.equal(isTemplateLocked({ code: ESSENTIEL_TEMPLATE_CODE }, false), false)
     assert.equal(isTemplateLocked({ code: ESSENTIEL_TEMPLATE_CODE }, true), false)
-    assert.equal(isTemplateLocked({ code: 'visuel' }, false), false)
-    assert.equal(isTemplateLocked({ code: 'visuel' }, true), false)
+    assert.equal(isTemplateLocked({ code: VISUEL_TEMPLATE_CODE }, false), false)
+    assert.equal(isTemplateLocked({ code: VISUEL_TEMPLATE_CODE }, true), false)
+  })
+
+  // YB.1.2 — Alba est STANDARD (AD-8) : proposé sur les TROIS paliers
+  // réellement implémentés (`essentiel | premium | fondatrice`), sans cadenas.
+  //
+  // `hasPremiumTemplates` couvre les trois : `false` = plan Essentiel,
+  // `true` = Premium et Fondatrice, qui accèdent à tout. Alba doit être
+  // déverrouillé dans les DEUX cas — sinon une coach du plan Essentiel voit
+  // une carte « Premium » qu'elle a le droit de choisir, et l'API répond 403
+  // si elle clique.
+  test('REGRESSION: Alba est standard — JAMAIS verrouillée, sur aucun palier', () => {
+    assert.equal(ALBA_TEMPLATE_CODE, 'visuel-portrait')
+    assert.equal(isTemplateLocked({ code: ALBA_TEMPLATE_CODE }, false), false)
+    assert.equal(isTemplateLocked({ code: ALBA_TEMPLATE_CODE }, true), false)
+    assert.ok(
+      STANDARD_COACH_TEMPLATE_CODES.includes(ALBA_TEMPLATE_CODE),
+      'Alba doit figurer dans STANDARD_COACH_TEMPLATE_CODES'
+    )
   })
 
   test('un template de code premium (ex: signature) est verrouillé sans la feature', () => {

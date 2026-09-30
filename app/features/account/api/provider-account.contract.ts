@@ -9,7 +9,8 @@ import type {
   ProblemStatementJson,
   SectionTitlesJson,
   FitItem,
-  FitJson
+  FitJson,
+  FreeTextJson
 } from '~/features/seo/api/public-provider-profile.contract'
 
 export interface CredentialItem {
@@ -89,6 +90,8 @@ export type ProviderAccountResponse = {
   educationalContentJson: EducationalContentJson | null
   problemStatementJson: ProblemStatementJson | null
   fitJson?: FitJson | null
+  /** YB.1.1 — Bloc de texte libre, entre bénéfices et « qui suis-je ». */
+  freeTextJson?: FreeTextJson | null
   // White-label email branding (story 0-20a/0-20c) — replaces "Keova" in transactional emails
   brandName: string | null
   logoUrl: string | null
@@ -159,6 +162,8 @@ export type UpdateProviderAccountRequest = {
   educationalContentJson?: EducationalContentJson | null
   problemStatementJson?: ProblemStatementJson | null
   fitJson?: FitJson | null
+  /** YB.1.1 — Bloc de texte libre. `null` efface le bloc. */
+  freeTextJson?: FreeTextJson | null
   // White-label email branding (story 0-20a/0-20c)
   brandName?: string | null
   logoUrl?: string | null
@@ -175,4 +180,4 @@ export type UpdateProviderAccountRequest = {
 }
 
 // Re-export JSONB types for convenience
-export type { PillarsJson, FaqItem, BenefitsJson, HowItWorksStep, EducationalContentJson, ProblemStatementJson, SectionTitlesJson, FitItem, FitJson }
+export type { PillarsJson, FaqItem, BenefitsJson, HowItWorksStep, EducationalContentJson, ProblemStatementJson, SectionTitlesJson, FitItem, FitJson, FreeTextJson }

@@ -24,6 +24,8 @@ import type { PublicProviderProfile } from '~/features/seo/api/public-provider-p
 
 export type CoachConfigurableSection
   = | 'benefits'
+    /** YB.1.1 — bloc de texte libre, entre bénéfices et « qui suis-je ». */
+    | 'freeText'
     | 'pillars'
     | 'howItWorks'
     | 'educationalContent'
@@ -40,6 +42,12 @@ export interface CoachSectionVisibility {
   show: {
     bio: ComputedRef<boolean>
     benefits: ComputedRef<boolean>
+    /**
+     * YB.1.1 — Toggle SEUL, sans cas particulier : la présence de contenu
+     * est gardée par le composant `CoachFreeText` (AD-7), pas ici. La règle
+     * de visibilité reste la seule Propriété de ce composable.
+     */
+    freeText: ComputedRef<boolean>
     pillars: ComputedRef<boolean>
     howItWorks: ComputedRef<boolean>
     educationalContent: ComputedRef<boolean>
@@ -143,6 +151,9 @@ export function useCoachSectionVisibility(
   // Sections configured as visible are displayed directly on public page & preview.
   const showBio = computed(() => isToggleOn('bio'))
   const showBenefits = computed(() => isToggleOn('benefits'))
+  // YB.1.1 — aucun cas particulier : le toggle décide, le composant
+  // `CoachFreeText` refuse de rendre un bloc vide (AD-7).
+  const showFreeText = computed(() => isToggleOn('freeText'))
   const showPillars = computed(() => isToggleOn('pillars'))
   const showHowItWorks = computed(() => isToggleOn('howItWorks'))
   const showEducationalContent = computed(() => isToggleOn('educationalContent'))
@@ -157,6 +168,7 @@ export function useCoachSectionVisibility(
     show: {
       bio: showBio,
       benefits: showBenefits,
+      freeText: showFreeText,
       pillars: showPillars,
       howItWorks: showHowItWorks,
       educationalContent: showEducationalContent,
