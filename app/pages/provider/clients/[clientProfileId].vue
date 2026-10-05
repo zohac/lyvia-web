@@ -284,6 +284,58 @@
                 </p>
               </div>
             </div>
+
+            <!-- Contact consent (read-only, epic CC.1) -->
+            <div
+              v-if="contactConsentChannels.length > 0"
+              class="py-3 last:pb-0"
+            >
+              <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
+                Consentement de contact
+              </p>
+              <p class="mt-1 text-sm text-[color:var(--color-text-secondary)]">
+                Réponse donnée par la cliente, canal par canal.
+              </p>
+
+              <div class="mt-3 space-y-1">
+                <div
+                  v-for="item in contactConsentChannels"
+                  :key="item.channel"
+                  class="flex items-center justify-between gap-4 rounded-[var(--radius-md)] p-3"
+                >
+                  <p class="font-medium text-[color:var(--color-brand-primary)]">
+                    {{ item.label }}
+                  </p>
+                  <UBadge
+                    :color="item.display.tone"
+                    variant="soft"
+                    size="sm"
+                  >
+                    {{ item.display.label }}
+                  </UBadge>
+                </div>
+              </div>
+
+              <!--
+                The only place a consent date is rendered. The timestamp is
+                profile-level, so it is worded as a profile-level fact and never
+                attached to a channel row — see app/features/consent/contact-consent.ts.
+              -->
+              <p
+                v-if="contactConsentLastChange"
+                class="mt-3 flex items-center gap-2 text-xs text-[color:var(--color-brand-muted)]"
+              >
+                <UIcon
+                  name="i-lucide-clock"
+                  class="h-3.5 w-3.5"
+                />
+                {{ contactConsentLastChange.label }} : le {{ contactConsentLastChange.dateLabel }}<template
+                  v-if="contactConsentLastChange.originLabel"
+                >
+                  , {{ contactConsentLastChange.originLabel }}
+                </template>
+              </p>
+            </div>
           </div>
         </UCard>
 
@@ -392,6 +444,15 @@ import { resendActivation } from '../../../features/clients/services/provider-cl
 import { copyToClipboard } from '../../../utils/clipboard'
 import { validateClientFields } from '../../../utils/validate-client-fields'
 import {
+  CONTACT_CONSENT_CHANNEL_LABEL,
+  pickContactConsent,
+  resolveContactConsent,
+  resolveContactConsentLastChange,
+  type ContactConsentChannel,
+  type ContactConsentDisplay,
+  type ContactConsentPayload
+} from '../../../features/consent/contact-consent'
+import {
   formatClientName,
   formatNextAppointment,
   getClientStatusMeta,
@@ -469,6 +530,56 @@ function getNextScheduledAppointmentAt(): string | null {
 
   return next?.scheduledAt ?? null
 }
+
+// ============================================================================
+// Contact consent (read-only, epic CC.1)
+// ============================================================================
+
+/**
+ * Read-only consent. Nothing here writes: the provider space has no consent
+ * command, and this display must not trigger one.
+ *
+ * A profile born at booking always carries `consent_source='onboarding'` plus a
+ * `consent_updated_at`, even with no box ticked, so the wording comes from the
+ * shared rule rather than from a local guess.
+ */
+const contactConsentPayload = computed<ContactConsentPayload | null>(() => {
+  const source = detail.value?.client
+  if (!source) return null
+
+  return {
+    emailMarketingOptIn: source.emailMarketingOptIn,
+    smsMarketingOptIn: source.smsMarketingOptIn,
+    consentSource: source.consentSource,
+    consentUpdatedAt: source.consentUpdatedAt
+  }
+})
+
+const contactConsentChannels = computed<Array<{
+  channel: ContactConsentChannel
+  label: string
+  display: ContactConsentDisplay
+}>>(() => {
+  const payload = contactConsentPayload.value
+  if (!payload) return []
+
+  return (['email', 'sms'] as const).map(channel => ({
+    channel,
+    label: CONTACT_CONSENT_CHANNEL_LABEL[channel],
+    display: resolveContactConsent(pickContactConsent(payload, channel))
+  }))
+})
+
+/**
+ * The single date on this screen, resolved by the shared rule. It is `null` for
+ * a profile that never granted anything, so the booking instant can never read
+ * as a withdrawal.
+ */
+const contactConsentLastChange = computed(() => {
+  const payload = contactConsentPayload.value
+  if (!payload) return null
+  return resolveContactConsentLastChange(payload)
+})
 
 // ============================================================================
 // Edit form (Story 14-2)

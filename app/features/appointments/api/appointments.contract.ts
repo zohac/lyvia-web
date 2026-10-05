@@ -6,6 +6,8 @@
  * - `repositories/lyvia-api/src/features/appointments/presentation/*`
  */
 
+import type { ContactConsentSource } from '../../consent/contact-consent'
+
 export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled'
 
 export type DiscoveryAppointmentClient = {
@@ -14,6 +16,11 @@ export type DiscoveryAppointmentClient = {
   email: string
   phone: string
   stage: 'lead' | 'active'
+  /** Read-only contact consent, sourced from `client_profiles`. */
+  emailMarketingOptIn: boolean
+  smsMarketingOptIn: boolean
+  consentUpdatedAt: string | null
+  consentSource: ContactConsentSource
 }
 
 export type DiscoveryAppointmentListItem = {
