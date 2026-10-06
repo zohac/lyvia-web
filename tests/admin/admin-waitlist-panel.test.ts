@@ -25,6 +25,8 @@ import {
   computeActionsForStatus,
   fullName,
   reconcileLead,
+  resolveTriggers,
+  shouldIgnoreClickForSelection,
   statusBadgeClasses
 } from '../../app/features/admin/admin-waitlist-helpers'
 import { renderSfc } from '../helpers/render-sfc'
@@ -368,7 +370,9 @@ describe('WA.1 — Panneau rendu : la ligne et la carte ouvrent le détail', () 
     const source = readPanel()
 
     assert.match(source, /:return-focus-to="detailTriggers"/)
-    assert.match(source, /detailTriggers\.value = .*currentTarget/)
+    // `[\s\S]` et non `.` : l'assignation s'étale sur plusieurs lignes depuis
+    // que `resolveTriggers` est une fonction pure qui prend la racine.
+    assert.match(source, /detailTriggers\.value = [\s\S]*?currentTarget/)
   })
 
   test('la ligne est annoncée avec le nom et l\'email de la demande', async () => {
@@ -457,18 +461,39 @@ describe('WA.1 — Panneau rendu : la ligne et la carte ouvrent le détail', () 
 
   /**
    * Le vecteur le plus probable d'une régression NFR-WA1 n'est pas dans
-   * `openDetail` : c'est un `watch(detailOpen, …)` ajouté à côté, qui ne
-   * refait rien tant que le détail est fermé. On interdit donc le mot dans le
-   * **fichier entier** du panneau.
+   * `openDetail` : c'est un `watch(detailOpen, () => fetchInitial())` ajouté à
+   * côté.
+   *
+   * Ronde 3 : l'assertion interdisait **tout** `watch(` / `watchEffect(` du
+   * fichier, ce qui foreclôt le correctif que `deferred-work.md` recommande
+   * lui-même (fermer depuis le panneau via un `watch` sur `detailOpen`).
+   * NFR-WA1 interdit un *fetch à l'ouverture*, pas un observateur : on vise
+   * donc la **conséquence** — aucun observateur ne doit atteindre le réseau —
+   * et non le mot-clé.
    */
-  test('aucun watch ne peut rejouer un fetch à l’ouverture du détail (NFR-WA1)', () => {
+  test('aucun observateur du panneau n’atteint le réseau (NFR-WA1)', () => {
     const source = readPanel()
+    const networkTokens = [
+      'fetchInitial',
+      'loadMore',
+      'applyFilters',
+      'resetFilters',
+      'apiFetch',
+      '$fetch',
+      'useAsyncData'
+    ]
 
-    for (const token of ['watch(', 'watchEffect(']) {
-      assert.ok(
-        !source.includes(token),
-        `the panel must not declare ${token} — a watcher on detailOpen would refetch on open`
-      )
+    for (const match of source.matchAll(/watch(?:Effect)?\(/g)) {
+      // Fenêtre large autour de l'appel : suffisante pour englober un callback
+      // court, et sans risque de faux positif tant que le panneau n'a pas
+      // d'observateur légitime voisin d'un chargement.
+      const callback = source.slice(match.index, (match.index ?? 0) + 500)
+      for (const token of networkTokens) {
+        assert.ok(
+          !callback.includes(token),
+          `a watcher near "${token}" could refetch when the detail opens — NFR-WA1 forbids it`
+        )
+      }
     }
   })
 
@@ -663,6 +688,70 @@ describe('WA.1 — Panneau rendu : aucun déclencheur hors liste', () => {
       )
     })
   }
+})
+
+/**
+ * Ronde 3 : ces deux fonctions pures vivaient dans le `<script setup>` du
+ * panneau, donc n'étaient couvertes que par des assertions de source — inverser
+ * leur corps laissait la suite verte. Extraites dans `admin-waitlist-helpers.ts`
+ * pour être **exécutées**.
+ */
+describe('WA.1 — helpers de la zone déclencheuse (exécutés, ronde 3)', () => {
+  function fakeTrigger(tagName: string): HTMLElement {
+    return { tagName } as unknown as HTMLElement
+  }
+
+  function fakeRoot(elements: HTMLElement[]): ParentNode {
+    return { querySelectorAll: () => elements } as unknown as ParentNode
+  }
+
+  describe('shouldIgnoreClickForSelection', () => {
+    test('aucune sélection : le clic ouvre le détail', () => {
+      assert.equal(shouldIgnoreClickForSelection(''), false)
+    })
+
+    test('sélection non vide : le clic est ignoré', () => {
+      assert.equal(shouldIgnoreClickForSelection('emilie.durand@example.fr'), true)
+    })
+  })
+
+  describe('resolveTriggers', () => {
+    test('le déclencheur qui a reçu l’événement passe en premier', () => {
+      const row = fakeTrigger('TR')
+      const card = fakeTrigger('DIV')
+
+      assert.deepEqual(
+        resolveTriggers(fakeRoot([row, card]), 'abc', card),
+        [card, row],
+        'the fired element leads; the counterpart of the same lead follows'
+      )
+    })
+
+    test('sans élément déclencheur : les deux rendus sont rendus dans l’ordre du DOM', () => {
+      const row = fakeTrigger('TR')
+      const card = fakeTrigger('DIV')
+
+      assert.deepEqual(resolveTriggers(fakeRoot([row, card]), 'abc', null), [row, card])
+    })
+
+    test('racine absente : liste vide, aucun plantage', () => {
+      assert.deepEqual(resolveTriggers(null, 'abc', null), [])
+      assert.deepEqual(resolveTriggers(undefined, 'abc', null), [])
+    })
+
+    test('le déclencheur hors des correspondances est conservé en tête', () => {
+      const row = fakeTrigger('TR')
+      const other = fakeTrigger('DIV')
+
+      assert.deepEqual(resolveTriggers(fakeRoot([row]), 'abc', other), [other, row])
+    })
+
+    test('pas de doublon quand le déclencheur est aussi une correspondance', () => {
+      const row = fakeTrigger('TR')
+
+      assert.deepEqual(resolveTriggers(fakeRoot([row]), 'abc', row), [row])
+    })
+  })
 })
 
 describe('0-33 — Admin Waitlist Panel — action matrix (AC-6)', () => {

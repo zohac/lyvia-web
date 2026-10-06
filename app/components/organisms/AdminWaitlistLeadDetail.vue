@@ -43,7 +43,10 @@
           </p>
           <p class="text-sm text-[color:var(--color-brand-secondary)]">
             <span class="text-[color:var(--color-brand-muted)]">Email&nbsp;:</span>
-            <span data-testid="admin-waitlist-detail-email">{{ lead.email }}</span>
+            <span
+              data-testid="admin-waitlist-detail-email"
+              class="break-words"
+            >{{ lead.email }}</span>
           </p>
           <p class="flex flex-wrap items-center gap-2 text-sm">
             <span

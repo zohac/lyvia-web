@@ -123,6 +123,45 @@ export function restoreFocusToTrigger(
   return true
 }
 
+/**
+ * Le clic qui termine une sélection par glissement émet quand même `click` :
+ * sans ce garde, l'admin ne peut plus copier un email ou une date hors du
+ * tableau, le panneau s'ouvre par-dessus sa sélection.
+ *
+ * Décision de portée : ce motif n'existe que pour le **glissement**. `Entrée` et
+ * `Espace` ne changent pas la sélection — les appliquer là aussi rendait le
+ * détail inatteignable au clavier dès qu'une sélection traînait ailleurs dans
+ * le document (y compris dans un autre onglet `UTabs` maintenu en vie par
+ * `:unmount-on-hide="false"`), sans aucun retour pour l'admin. La fonction
+ * reçoit donc la sélection et décide : pure, testable dans les deux sens —
+ * c'est ce que la ronde 3 a rendu vérifiable en l'extrayant du panneau, où elle
+ * n'était couverte que par une assertion de source.
+ */
+export function shouldIgnoreClickForSelection(selection: string): boolean {
+  return selection !== ''
+}
+
+/**
+ * Les deux rendus d'une même demande portent `data-detail-trigger="<id>"` :
+ * la ligne du tableau desktop et la carte mobile. On les mémorise **tous les
+ * deux**, celui qui a reçu l'événement d'abord : après un redimensionnement
+ * franchissant `md`, le rendu déclenché devient `display:none` et `.focus()` y
+ * est un no-op silencieux qui envoie le focus sur `body`. Sans l'autre
+ * candidat, AC-2 (« pas sur le début du document ») ne tient pas.
+ *
+ * Pure (prend la racine en paramètre plutôt que de lire une ref de composant),
+ * pour être exécutée par les tests au lieu d'être seulement relue.
+ */
+export function resolveTriggers(
+  root: ParentNode | null | undefined,
+  leadId: string,
+  fired: HTMLElement | null
+): HTMLElement[] {
+  const matches = root?.querySelectorAll<HTMLElement>(`[data-detail-trigger="${leadId}"]`)
+  const all = matches ? Array.from(matches) : []
+  return fired ? [fired, ...all.filter(element => element !== fired)] : all
+}
+
 export function statusBadgeClasses(status: WaitlistStatus): string {
   switch (status) {
     case 'pending':

@@ -4,11 +4,11 @@
  * Pourquoi ce fichier existe (action de rétro E-11) : le dépôt tourne sur
  * `node --test` + `tsc -p tsconfig.tests.json`, sans `vitest`,
  * `@vue/test-utils` ni `jsdom` — absents du lockfile. Les tests de composants
- * étaient donc até|source texte, ce qui ne prouve rien : une assertion de regex
- * passe sur du markup mort. `LB2-11` est resté ouvert six semaines pour cette
- * raison.
+ * étaient donc des assertions de source texte, ce qui ne prouve rien : une
+ * assertion de regex passe sur du markup mort. `LB2-11` est resté ouvert six
+ * semaines pour cette raison.
  *
- * Ce harness compile le vrai SFC à locompilation (`@vue/compiler-sfc`), rend son
+ * Ce harness compile le vrai SFC à la compilation (`@vue/compiler-sfc`), rend son
  * HTML (`@vue/server-renderer`) et renvoie la chaîne. Aucune dépendance de
  * production ajoutée : `vue`, `@vue/compiler-sfc` et `@vue/server-renderer`
  * étaient déjà là pour le build Nuxt ; ils sont désormais **déclarés** en
@@ -30,7 +30,7 @@
  * 2. Les composants Nuxt sont des auto-imports : `USlideover` n'existe pas au
  *    runtime du test. Ils sont enregistrés globalement sur l'app SSR via
  *    `app.component(name, stub)`, ce que fait `resolveComponent()`.
- * 3. Les composables Nuxt (`useToast`…) sont des globales scrumées : elles
+ * 3. Les composables Nuxt (`useToast`…) sont des variables libres : elles
  *    sont injectées comme paramètres de la fonction qui exécute le module.
  * 4. **Deux instances du même module.** Un test qui importe
  *    `app/features/admin/admin-waitlist-helpers` obtient la copie compilée par

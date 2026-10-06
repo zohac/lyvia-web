@@ -382,6 +382,8 @@ import { formatDateShort } from '~/composables/useDateFormat'
 import {
   computeActionsForStatus,
   fullName,
+  resolveTriggers,
+  shouldIgnoreClickForSelection,
   statusBadgeClasses
 } from '~/features/admin/admin-waitlist-helpers'
 import {
@@ -507,43 +509,6 @@ function specialtyLabel(specialty: WaitlistSpecialty): string {
 }
 
 /**
- * Le clic qui termine une sélection par glissement émet quand même `click` :
- * sans ce garde, l'admin ne peut plus copier un email ou une date hors du
- * tableau, le panneau s'ouvre par-dessus sa sélection.
- *
- * Décision de portée : ce motif n'existe que pour le **glissement**. `Entrée` et
- * `Espace` ne changent pas la sélection — les appliquer là aussi rendait le
- * détail inatteignable au clavier dès qu'une sélection traînait ailleurs dans
- * le document (y compris dans un autre onglet `UTabs` maintenu en vie par
- * `:unmount-on-hide="false"`), sans aucun retour pour l'admin. La fonction est
- * donc pure : elle reçoit la sélection et décide, ce qui la rend testable dans
- * les deux sens sans DOM.
- *
- * Compromis assumé : surligner ailleurs puis cliquer une ligne sans avoir
- * désélectionné n'ouvre pas le détail. C'est le comportement standard des zones
- * activables entières, et le prix de l'option A.
- */
-function shouldIgnoreClickForSelection(selection: string): boolean {
-  return selection !== ''
-}
-
-/**
- * Les deux rendus d'une même demande portent `data-detail-trigger="<id>"` :
- * la ligne du tableau desktop et la carte mobile. On les mémorise **tous les
- * deux**, celui qui a reçu l'événement d'abord : après un redimensionnement
- * franchissant `md`, le rendu déclenché devient `display:none` et `.focus()` y
- * est un no-op silencieux qui envoie le focus sur `body`. Sans l'autre
- * candidat, AC-2 (« pas sur le début du document ») ne tient pas.
- */
-function resolveTriggers(leadId: string, fired: HTMLElement | null): HTMLElement[] {
-  const matches = panelRoot.value?.querySelectorAll<HTMLElement>(
-    `[data-detail-trigger="${leadId}"]`
-  )
-  const all = matches ? Array.from(matches) : []
-  return fired ? [fired, ...all.filter(element => element !== fired)] : all
-}
-
-/**
  * Sélection de texte active dans le document, ou chaîne vide côté SSR où
  * `getSelection` n'existe pas.
  */
@@ -565,7 +530,11 @@ function currentTextSelection(): string {
  */
 function openDetail(lead: AdminWaitlistLead, event: Event): void {
   if (event.type === 'click' && shouldIgnoreClickForSelection(currentTextSelection())) return
-  detailTriggers.value = resolveTriggers(lead.id, event.currentTarget as HTMLElement | null)
+  detailTriggers.value = resolveTriggers(
+    panelRoot.value,
+    lead.id,
+    event.currentTarget as HTMLElement | null
+  )
   selectedLead.value = lead
   detailOpen.value = true
 }
