@@ -179,10 +179,14 @@ describe('WA.1 — Détail d\'une demande : le message complet (AC-1)', () => {
     const text = block![0]
     assert.ok(!text.includes('2026-10-01T08:30:00.000Z'), 'no raw ISO date may be rendered')
     assert.ok(!text.includes('Invalid Date'), 'every timestamp must be a real date')
+    // Quatre dates depuis WA.2 : « Reçue le », « Réinscrite le » (l'indicateur
+    // est l'une d'elles), « Contactée le », « Onboardée le ». La fixture `baseLead`
+    // porte `updatedAt` postérieur à `createdAt`, donc l'indicateur est présent ;
+    // le test garde ses entrées d'origine et gagne une vérification de plus.
     assert.equal(
       (text.match(/\d{4}/g) ?? []).length,
-      3,
-      'three formatted dates, each carrying its year'
+      4,
+      'four formatted dates — reçue, réinscrite, contactée, onboardée — each carrying its year'
     )
     assert.ok(
       !/\d{4}-\d{2}-\d{2}T/.test(text),
@@ -416,6 +420,197 @@ describe('WA.1 — restoreFocusToTrigger franchit le point de rupture md', () =>
 
     assert.equal(restoreFocusToTrigger(event, [rowGone.element, cardGone.element]), false)
     assert.equal(prevented, false)
+  })
+})
+
+/**
+ * WA.2 — « La réinscription garde la dernière intention ».
+ *
+ * L'indicateur porte sur la **cellule** (`resubmittedCell`), jamais sur le HTML
+ * entier : le harness SSR conserve les commentaires de gabarit, et la nouvelle
+ * section en porte un long qui explique la règle. Chercher « Réinscrite le »
+ * dans toute la sortie ferait donc passer une assertion négative par un effet de
+ * formulation du commentaire — elle ne prouverait plus rien du rendu.
+ */
+function resubmittedCell(html: string): string | null {
+  const cell = html.match(
+    /<dd[^>]*data-testid="admin-waitlist-detail-resubmitted-cell"[^>]*>/
+  )
+  return cell ? cell[0] : null
+}
+
+/** Libellés des quatre dates de « Historique », dans l'ordre rendu. */
+function historyLabels(html: string): string[] {
+  const block = html.match(/data-testid="admin-waitlist-detail-timestamps"[\s\S]*?<\/dl>/)
+  assert.ok(block, 'the history block must render')
+  return [...block![0].matchAll(/<dt[^>]*>([\s\S]*?)<\/dt>/g)].map(m =>
+    (m[1] ?? '').replace(/<!--[\s\S]*?-->/g, '').replace(/&nbsp;|:|\s+/g, ' ').trim()
+  )
+}
+
+/**
+ * Jours **du mois** des dates rendues, dans l'ordre.
+ *
+ * On compare les jours et non les chaînes formatées : `formatDateTime` rend en
+ * heure locale, donc une assertion sur « 6 oct. 2026, 18:45 » serait fausse
+ * dans tout fuseau autre que celui du developpeur. Les fixtures sont en milieu
+ * de journée UTC, donc aucun jour ne bascule d'une zone à l'autre — le jour
+ * rendu identifie la date sans dépendre du décalage, tout en vérifiant que la
+ * date est bien passée par le formateur (pas de ISO brut).
+ */
+function historyDays(html: string): string[] {
+  const block = html.match(/data-testid="admin-waitlist-detail-timestamps"[\s\S]*?<\/dl>/)
+  assert.ok(block, 'the history block must render')
+  const cells = [...block![0].matchAll(/<dd[^>]*>([^<]*)<\/dd>/g)].map(m => (m[1] ?? '').trim())
+  return cells.map((cell) => {
+    assert.match(cell, /^\d{1,2}\s/, `a formatted date was expected, got "${cell}"`)
+    assert.ok(!/\d{4}-\d{2}-\d{2}T/.test(cell), `no raw ISO date may render, got "${cell}"`)
+    return cell.split(/\s/)[0]
+  })
+}
+
+describe('WA.2 — Indicateur « Réinscrite le » (AC-3)', () => {
+  test('présente quand updatedAt est postérieur à createdAt', async () => {
+    const html = await renderDetail(baseLead({
+      createdAt: '2026-10-01T08:30:00.000Z',
+      updatedAt: '2026-10-06T18:45:00.000Z'
+    }))
+
+    const cell = resubmittedCell(html)
+    assert.ok(cell, 'the resubmission cell must render when updatedAt > createdAt')
+    // Le libellé est dans la même ligne que la cellule : sinon un libellé
+    // orphelin traînerait dans le gabarit et la cellule pourrait être vide.
+    assert.match(
+      html,
+      /Réinscrite le[^<]*<\/dt>\s*<dd[^>]*data-testid="admin-waitlist-detail-resubmitted-cell"/,
+      'the label and the resubmission cell must belong to the same row'
+    )
+    // La date est formatée, pas brute : c'est ce qu'un admin lit.
+    assert.ok(
+      !html.includes('2026-10-06T18:45:00.000Z'),
+      'the resubmission date must be formatted, not printed as ISO'
+    )
+    assert.match(
+      html,
+      /<dd[^>]*data-testid="admin-waitlist-detail-resubmitted-cell"[^>]*>\s*\d{1,2}\s/,
+      'the cell must carry a formatted date'
+    )
+  })
+
+  test('absente quand updatedAt égale createdAt — demande antérieure au backfill', async () => {
+    // C'est l'état que la migration `1791247800000` produit sur la population
+    // antérieure à WA.2 : `contacted_at` dans le passé (la demande a bien été
+    // contactée), `updated_at` ramené à `created_at`. Sans le backfill, le
+    // panneau aurait affiché « Réinscrite le <date du contact> » — une date de
+    // contact pour une demande jamais réinscrite.
+    const html = await renderDetail(baseLead({
+      createdAt: '2026-08-01T08:30:00.000Z',
+      contactedAt: '2026-08-20T09:00:00.000Z',
+      updatedAt: '2026-08-01T08:30:00.000Z',
+      status: 'contacted'
+    }))
+
+    assert.equal(
+      resubmittedCell(html),
+      null,
+      'a lead whose status changed before the backfill must not show the indicator'
+    )
+    assert.match(html, /Contactée le/, 'the contact date stays visible — only the indicator is hidden')
+  })
+
+  test('absente quand updatedAt est antérieur à createdAt (horloge incohérente)', async () => {
+    const html = await renderDetail(baseLead({
+      createdAt: '2026-10-06T18:45:00.000Z',
+      updatedAt: '2026-10-01T08:30:00.000Z'
+    }))
+
+    assert.equal(
+      resubmittedCell(html),
+      null,
+      'updatedAt < createdAt is not a resubmission and must not be reported as one'
+    )
+  })
+
+  test('absente sur un updatedAt illisible plutôt que d\'afficher une date invalide', async () => {
+    // `Number.isFinite` masque l'indicateur au lieu de laisser passer une
+    // comparaison `NaN` : l'indicateur manquant est une information en moins,
+    // une date invalide en est une de trop.
+    const html = await renderDetail(baseLead({
+      createdAt: '2026-10-06T08:30:00.000Z',
+      updatedAt: 'pas-une-date'
+    }))
+
+    assert.equal(resubmittedCell(html), null, 'an unparseable date must not produce an indicator')
+    assert.ok(!html.includes('Invalid Date'), 'no "Invalid Date" may leak into the panel')
+    assert.match(html, /Reçue le/, 'the reception date still renders')
+  })
+
+  test('absente sur une demande neuve (jamais réinscrite)', async () => {
+    const html = await renderDetail(baseLead({
+      createdAt: '2026-10-06T08:30:00.000Z',
+      updatedAt: '2026-10-06T08:30:00.000Z',
+      contactedAt: null,
+      onboardedAt: null
+    }))
+
+    assert.equal(resubmittedCell(html), null)
+    assert.match(html, /Reçue le/, 'the reception date still renders')
+  })
+})
+
+describe('WA.2 — « Historique » est une chronologie, donc triée', () => {
+  test('les dates sont rendues de la plus récente à la plus ancienne', async () => {
+    // Un ordre figé (Reçue → Réinscrite → Contactée → Onboardée) sous un titre
+    // qui promet une chronologie ment dès que les dates suivent un autre ordre :
+    // ici contactée en septembre, réinscrite le 6 octobre.
+    // Heures volontairement en milieu de journée UTC : `formatDateTime` rend
+    // dans le fuseau local du runtime, donc une heure proche de minuit ferait
+    // basculer le jour du mois à l'est de UTC+5:30 et à l'ouest de UTC-9. Le test
+    // échouerait alors sur la machine du développeur, pas en CI (qui tourne UTC).
+    const html = await renderDetail(baseLead({
+      createdAt: '2026-08-01T12:00:00.000Z',
+      contactedAt: '2026-09-02T12:00:00.000Z',
+      onboardedAt: null,
+      updatedAt: '2026-10-06T12:00:00.000Z'
+    }))
+
+    assert.deepEqual(historyLabels(html), [
+      'Réinscrite le',
+      'Contactée le',
+      'Reçue le'
+    ])
+    assert.deepEqual(historyDays(html), ['6', '2', '1'])
+  })
+
+  test('un onboardée plus récent que la réinscription remonte en tête', async () => {
+    const html = await renderDetail(baseLead({
+      createdAt: '2026-08-01T08:30:00.000Z',
+      contactedAt: '2026-09-02T09:00:00.000Z',
+      onboardedAt: '2026-10-01T10:00:00.000Z',
+      updatedAt: '2026-10-06T18:45:00.000Z'
+    }))
+
+    assert.deepEqual(historyLabels(html), [
+      'Réinscrite le',
+      'Onboardée le',
+      'Contactée le',
+      'Reçue le'
+    ])
+  })
+
+  test('la réinscription affiche le message le plus récent, sans prétendre savoir ce qui a changé', async () => {
+    // Choix d'AC-1 : seule la dernière intention est conservée, le panneau ne
+    // prétend pas savoir ce que la personne a modifié entre les deux envois.
+    const html = await renderDetail(baseLead({
+      message: 'Je cherche un créneau le mardi soir, pas le lundi.',
+      updatedAt: '2026-10-06T18:45:00.000Z'
+    }))
+
+    assert.match(html, /mardi soir/, 'the most recent message is the one rendered')
+    assert.ok(
+      !/Modifié le|depuis la première demande|Changé le/i.test(html),
+      'the panel must not narrate a diff it does not have'
+    )
   })
 })
 

@@ -122,7 +122,20 @@
           </dl>
         </section>
 
-        <!-- Horodatages -->
+        <!--
+          Horodatages — **ordre décroissant** (WA.2).
+
+          La section s'appelle « Historique » : un ordre figé sous un titre qui
+          promet une chronologie ment quand les dates ne suivent pas cet ordre. Un
+          lead contacté en septembre puis réinscrit en octobre afficherait la date
+          de réinscription avant la date de contact. L'ordre vient donc des dates,
+          pas du gabarit — voir le `computed history`.
+
+          ⚠️ Aucun libellé de ligne n'est recopié dans ce commentaire : le harness
+          SSR conserve les commentaires de gabarit, donc y écrire les libellés
+          ferait passer les assertions négatives qui les cherchent dans le HTML
+          entier — elles cesseraient de porter sur le rendu.
+        -->
         <section>
           <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
             Historique
@@ -131,34 +144,19 @@
             class="mt-2 space-y-1 text-sm"
             data-testid="admin-waitlist-detail-timestamps"
           >
-            <div class="flex gap-2">
-              <dt class="text-[color:var(--color-brand-muted)]">
-                Reçue le&nbsp;:
-              </dt>
-              <dd class="text-[color:var(--color-brand-primary)]">
-                {{ formatDateTime(lead.createdAt) }}
-              </dd>
-            </div>
             <div
-              v-if="lead.contactedAt"
+              v-for="entry in history"
+              :key="entry.key"
               class="flex gap-2"
             >
               <dt class="text-[color:var(--color-brand-muted)]">
-                Contactée le&nbsp;:
+                {{ entry.label }}&nbsp;:
               </dt>
-              <dd class="text-[color:var(--color-brand-primary)]">
-                {{ formatDateTime(lead.contactedAt) }}
-              </dd>
-            </div>
-            <div
-              v-if="lead.onboardedAt"
-              class="flex gap-2"
-            >
-              <dt class="text-[color:var(--color-brand-muted)]">
-                Onboardée le&nbsp;:
-              </dt>
-              <dd class="text-[color:var(--color-brand-primary)]">
-                {{ formatDateTime(lead.onboardedAt) }}
+              <dd
+                :data-testid="entry.testId"
+                class="text-[color:var(--color-brand-primary)]"
+              >
+                {{ entry.value }}
               </dd>
             </div>
           </dl>
@@ -174,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import {
   fullName,
@@ -232,4 +230,124 @@ function onOpenAutoFocus(event: Event): void {
 function onCloseAutoFocus(event: Event): void {
   restoreFocusToTrigger(event, props.returnFocusTo ?? [])
 }
+
+/**
+ * Une ligne de « Historique », prête à rendre. `value` est calculé au dernier
+ * moment : une date illisible doit faire disparaître la ligne, pas s'imprimer.
+ */
+interface HistoryEntry {
+  key: string
+  label: string
+  value: string
+  testId: string
+}
+
+/** Idem, avant calcul de `value` : la date brute est encore à valider. */
+interface PendingHistoryEntry {
+  key: string
+  label: string
+  testId: string
+  at: string
+}
+
+/**
+ * WA.2 — la demande a-t-elle été réinscrite ?
+ *
+ * `updatedAt > createdAt` est le signal. Il est vrai seulement parce que :
+ *
+ * - la réinscription rafraîchit `updated_at` (c'est le seul écrivain de la
+ *   colonne côté personne) ;
+ * - le changement de statut **admin** ne la touche plus (décision 3a) ;
+ * - la migration `1791247800000-normalize-waitlist-updated-at` a aplati
+ *   `updated_at` à `created_at` sur la population antérieure, qui portait sinon
+ *   `updated_at > created_at` sans qu'aucune réinscription ait eu lieu (date de
+ *   CONTACT lue comme une date de réinscription — une affirmation fausse).
+ *
+ * Une horloge incohérente (`Number.isFinite` faux) masque l'indicateur plutôt que
+ * d'afficher une date invalide : l'indicateur manquant est une information en
+ * moins, une date fausse en est une de trop.
+ */
+const wasResubmitted = computed<boolean>(() => {
+  if (!props.lead) return false
+  const created = Date.parse(props.lead.createdAt)
+  const updated = Date.parse(props.lead.updatedAt)
+  if (!Number.isFinite(created) || !Number.isFinite(updated)) return false
+  return updated > created
+})
+
+/**
+ * Les quatre dates de « Historique », de la plus récente à la plus ancienne.
+ *
+ * Tri décroissant sur la valeur ISO : `createdAt` est le plancher de l'ordre,
+ * donc aucune entrée ne disparaît et l'égalité (dates confondues à la
+ * milliseconde) reste stable.
+ */
+const byRecency = (a: { atMs: number }, b: { atMs: number }): number => b.atMs - a.atMs
+
+const history = computed<HistoryEntry[]>(() => {
+  const lead = props.lead
+  if (!lead) return []
+
+  // « Reçue le » est la seule ligne toujours présente : elle est construite à
+  // part pour ne jamais disparaître, même si son horodatage est illisible.
+  const created: PendingHistoryEntry = {
+    key: 'created',
+    label: 'Reçue le',
+    testId: 'admin-waitlist-detail-created-cell',
+    at: lead.createdAt
+  }
+
+  const optional: PendingHistoryEntry[] = []
+  if (wasResubmitted.value) {
+    optional.push({
+      key: 'resubmitted',
+      label: 'Réinscrite le',
+      testId: 'admin-waitlist-detail-resubmitted-cell',
+      at: lead.updatedAt
+    })
+  }
+  if (lead.contactedAt) {
+    optional.push({
+      key: 'contacted',
+      label: 'Contactée le',
+      testId: 'admin-waitlist-detail-contacted-cell',
+      at: lead.contactedAt
+    })
+  }
+  if (lead.onboardedAt) {
+    optional.push({
+      key: 'onboarded',
+      label: 'Onboardée le',
+      testId: 'admin-waitlist-detail-onboarded-cell',
+      at: lead.onboardedAt
+    })
+  }
+
+  const toEntry = (entry: PendingHistoryEntry): HistoryEntry => ({
+    key: entry.key,
+    label: entry.label,
+    value: formatDateTime(entry.at),
+    testId: entry.testId
+  })
+
+  // Même politique que `wasResubmitted` : une horloge illisible fait disparaître
+  // la ligne optionnelle plutôt que d'afficher « Invalid Date ». Un indicateur
+  // absent est une information en moins ; une date fausse en est une de trop.
+  const datedOptional = optional
+    .map(entry => ({ ...entry, atMs: Date.parse(entry.at) }))
+    .filter((entry): entry is PendingHistoryEntry & { atMs: number } =>
+      Number.isFinite(entry.atMs)
+    )
+
+  const createdMs = Date.parse(created.at)
+  if (!Number.isFinite(createdMs)) {
+    // `createdAt` illisible : la ligne d'accueil reste, en dernier, avec un
+    // tiret — vider tout « Historique » cacherait même la date de réception.
+    return [...datedOptional.sort(byRecency).map(toEntry), { ...created, value: '—' }]
+  }
+
+  return [{ ...created, atMs: createdMs }, ...datedOptional]
+    .sort(byRecency)
+    .map(toEntry)
+})
 </script>

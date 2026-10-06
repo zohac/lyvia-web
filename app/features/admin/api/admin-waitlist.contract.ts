@@ -29,7 +29,19 @@ export interface AdminWaitlistLead {
   createdAt: string
   contactedAt: string | null
   onboardedAt: string | null
-  /** ISO 8601 UTC — bumped on every PATCH transition (Codex F2). */
+  /**
+   * ISO 8601 UTC — dernière intention de la personne (WA.2).
+   *
+   * Rafraîchie par la **réinscription** uniquement : le changement de statut
+   * admin ne la touche plus (décision 3a), sinon le panneau admin afficherait
+   * « Réinscrite le <date du clic admin> ». Sur la population antérieure à WA.2,
+   * la migration `1791247800000-normalize-waitlist-updated-at` l'a ramenée à
+   * `createdAt`, donc `updatedAt > createdAt` signifie bien « réinscrite ».
+   *
+   * Cas de base : une demande **jamais réinscrite** a `updatedAt === createdAt`
+   * (les deux colonnes prennent le même `now()` à l'INSERT). C'est cette égalité
+   * qui garantit qu'aucun indicateur ne s'affiche pour une demande neuve.
+   */
   updatedAt: string
 }
 
