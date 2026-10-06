@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div ref="panelRoot">
     <!-- Filters -->
     <section class="mb-8 space-y-4">
       <!-- Row 1: Status pills + Specialty select -->
@@ -172,11 +172,27 @@
               </tr>
             </thead>
             <tbody>
+              <!--
+                Toute la ligne ouvre le détail (WA.1, option A retenue) : la
+                surface cliquable doit être maximale, et c'est elle qui est
+                mémorisée comme déclencheur, donc la ligne à laquelle le focus
+                revient à la fermeture (AC-2). Le menu de ligne garde la
+                mutation de statut et arrête la propagation pour ne pas
+                déclencher le détail en même temps.
+              -->
               <tr
                 v-for="lead in items"
                 :key="lead.id"
-                class="border-b border-[color:var(--color-brand-subtle)]/30 last:border-0"
+                class="cursor-pointer border-b border-[color:var(--color-brand-subtle)]/30 transition-colors last:border-0 hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
                 :data-testid="`admin-waitlist-row-${lead.id}`"
+                :data-detail-trigger="lead.id"
+                tabindex="0"
+                :aria-label="`Ouvrir le détail de la demande de ${fullName(lead)}, ${lead.email}`"
+                aria-haspopup="dialog"
+                :aria-expanded="detailOpen && selectedLead?.id === lead.id"
+                @click="openDetail(lead, $event)"
+                @keydown.enter.prevent="openDetail(lead, $event)"
+                @keydown.space.prevent="openDetail(lead, $event)"
               >
                 <td class="px-6 py-3 text-[color:var(--color-brand-primary)]">
                   {{ fullName(lead) }}
@@ -211,7 +227,18 @@
                 <td class="px-6 py-3 text-[color:var(--color-brand-secondary)]">
                   {{ formatDateShort(lead.createdAt) }}
                 </td>
-                <td class="px-6 py-3 text-right">
+                <!--
+                  Le menu doit arrêter la propagation, sinon cliquer « Actions »
+                  ouvre aussi le détail. L'arrêt se pose sur la cellule, pas sur
+                  `UDropdownMenu` : `DropdownMenuRoot` de reka-ui ne rend aucun
+                  élément racine, donc un `@click.stop` posé sur le composant
+                  est silencieusement ignoré — défaut trouvé au gate A-35.
+                -->
+                <td
+                  class="px-6 py-3 text-right"
+                  @click.stop
+                  @keydown.stop
+                >
                   <UDropdownMenu :items="actionsFor(lead)">
                     <UButton
                       icon="i-lucide-more-horizontal"
@@ -230,10 +257,26 @@
 
         <!-- Mobile cards -->
         <div class="block space-y-3 p-4 md:hidden">
+          <!--
+            Même contrat que la ligne desktop (option A) : la carte entière
+            ouvre le détail. `role="button"` est a11y-fragile puisqu'elle
+            contient le menu de ligne — c'est pourquoi le parcours clavier est
+            une vérification A-35 explicite, pas une capture d'écran.
+          -->
           <div
             v-for="lead in items"
             :key="lead.id"
-            class="rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4"
+            class="cursor-pointer rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] p-4 transition-colors hover:bg-[color:var(--color-crepuscule-50)]/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-brand-primary)]"
+            :data-testid="`admin-waitlist-card-${lead.id}`"
+            :data-detail-trigger="lead.id"
+            role="button"
+            tabindex="0"
+            :aria-label="`Ouvrir le détail de la demande de ${fullName(lead)}, ${lead.email}`"
+            aria-haspopup="dialog"
+            :aria-expanded="detailOpen && selectedLead?.id === lead.id"
+            @click="openDetail(lead, $event)"
+            @keydown.enter.prevent="openDetail(lead, $event)"
+            @keydown.space.prevent="openDetail(lead, $event)"
           >
             <div class="flex items-start justify-between gap-3">
               <div>
@@ -268,13 +311,18 @@
                 {{ qualificationLabel(DISCOVERY_SOURCE_LABELS, lead.discoverySource) }}
               </p>
             </div>
-            <div class="mt-3 flex justify-end">
+            <div
+              class="mt-3 flex justify-end"
+              @click.stop
+              @keydown.stop
+            >
               <UDropdownMenu :items="actionsFor(lead)">
                 <UButton
                   icon="i-lucide-more-horizontal"
                   variant="outline"
                   color="neutral"
                   size="sm"
+                  :aria-label="`Actions pour ${fullName(lead)}`"
                   :loading="pendingUpdates[lead.id] === true"
                 >
                   Actions
@@ -305,16 +353,35 @@
         </div>
       </div>
     </section>
+
+    <!--
+      Vue de détail (WA.1). Elle lit `selectedLead`, une référence vers l'objet
+      déjà présent dans le store : **aucun appel réseau** à l'ouverture
+      (NFR-WA1). Le changement de statut reste dans le menu de ligne.
+    -->
+    <AdminWaitlistLeadDetail
+      v-model:open="detailOpen"
+      :lead="selectedLead"
+      :return-focus-to="detailTriggers"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, shallowRef } from 'vue'
 
+/**
+ * Import explicite, pas l'auto-import Nuxt : l'auto-import d'un composant
+ * imbriqué est préfixé par le dossier (`Organisms…`), donc un renommage, un
+ * déplacement ou un purge de `.nuxt` laisserait les lignes cliquables, sans
+ * détail et sans erreur visible. L'import explicite supprime la classe.
+ */
+import AdminWaitlistLeadDetail from './AdminWaitlistLeadDetail.vue'
 import { filterPillClasses } from '~/features/admin/admin-filter-pills'
 import { formatDateShort } from '~/composables/useDateFormat'
 import {
   computeActionsForStatus,
+  fullName,
   statusBadgeClasses
 } from '~/features/admin/admin-waitlist-helpers'
 import {
@@ -376,6 +443,21 @@ const dateToInput = ref('')
 
 const pendingUpdates = reactive<Record<string, boolean>>({})
 
+const detailOpen = ref(false)
+const selectedLead = ref<AdminWaitlistLead | null>(null)
+/**
+ * Rendu du panneau : sert à retrouver la ligne ET la carte d'une même demande,
+ * pour que la restitution du focus ait toujours une cible focusable.
+ */
+const panelRoot = ref<HTMLElement | null>(null)
+/**
+ * Déclencheurs mémorisés à l'ouverture, par ordre de préférence — la ligne ou la
+ * carte qui a reçu l'événement en premier, puis l'autre rendu de la même
+ * demande. `shallowRef` : on stocke des nœuds DOM, aucune réactivité n'est
+ * attendue dessus.
+ */
+const detailTriggers = shallowRef<HTMLElement[]>([])
+
 const hasActiveFilters = computed(() =>
   !!(statusFilter.value || specialtyFilter.value || searchInput.value || dateFromInput.value || dateToInput.value)
 )
@@ -425,11 +507,67 @@ function specialtyLabel(specialty: WaitlistSpecialty): string {
 }
 
 /**
- * `lastName` est facultatif depuis LB.1 : on ne concatène que ce qui existe,
- * sinon les lecteurs d'écran annoncent « Actions pour Émilie null ».
+ * Le clic qui termine une sélection par glissement émet quand même `click` :
+ * sans ce garde, l'admin ne peut plus copier un email ou une date hors du
+ * tableau, le panneau s'ouvre par-dessus sa sélection.
+ *
+ * Décision de portée : ce motif n'existe que pour le **glissement**. `Entrée` et
+ * `Espace` ne changent pas la sélection — les appliquer là aussi rendait le
+ * détail inatteignable au clavier dès qu'une sélection traînait ailleurs dans
+ * le document (y compris dans un autre onglet `UTabs` maintenu en vie par
+ * `:unmount-on-hide="false"`), sans aucun retour pour l'admin. La fonction est
+ * donc pure : elle reçoit la sélection et décide, ce qui la rend testable dans
+ * les deux sens sans DOM.
+ *
+ * Compromis assumé : surligner ailleurs puis cliquer une ligne sans avoir
+ * désélectionné n'ouvre pas le détail. C'est le comportement standard des zones
+ * activables entières, et le prix de l'option A.
  */
-function fullName(lead: AdminWaitlistLead): string {
-  return lead.lastName ? `${lead.firstName} ${lead.lastName}` : lead.firstName
+function shouldIgnoreClickForSelection(selection: string): boolean {
+  return selection !== ''
+}
+
+/**
+ * Les deux rendus d'une même demande portent `data-detail-trigger="<id>"` :
+ * la ligne du tableau desktop et la carte mobile. On les mémorise **tous les
+ * deux**, celui qui a reçu l'événement d'abord : après un redimensionnement
+ * franchissant `md`, le rendu déclenché devient `display:none` et `.focus()` y
+ * est un no-op silencieux qui envoie le focus sur `body`. Sans l'autre
+ * candidat, AC-2 (« pas sur le début du document ») ne tient pas.
+ */
+function resolveTriggers(leadId: string, fired: HTMLElement | null): HTMLElement[] {
+  const matches = panelRoot.value?.querySelectorAll<HTMLElement>(
+    `[data-detail-trigger="${leadId}"]`
+  )
+  const all = matches ? Array.from(matches) : []
+  return fired ? [fired, ...all.filter(element => element !== fired)] : all
+}
+
+/**
+ * Sélection de texte active dans le document, ou chaîne vide côté SSR où
+ * `getSelection` n'existe pas.
+ */
+function currentTextSelection(): string {
+  if (import.meta.server) return ''
+  return window.getSelection()?.toString() ?? ''
+}
+
+/**
+ * Ouvre le détail d'une demande. `selectedLead` pointe vers l'objet du store :
+ * la vue de détail ne déclenche donc aucun fetch (NFR-WA1).
+ *
+ * Les déclencheurs sont mémorisés depuis l'événement : ce sont eux que le
+ * détail re-focusera à la fermeture (AC-2). `event.currentTarget` est la ligne
+ * (desktop) ou la carte (mobile), y compris au clavier.
+ *
+ * Le garde anti-sélection ne vaut **que pour le clic** : `Entrée` et `Espace`
+ * ouvrent toujours le détail, quelle que soit la sélection qui traîne ailleurs.
+ */
+function openDetail(lead: AdminWaitlistLead, event: Event): void {
+  if (event.type === 'click' && shouldIgnoreClickForSelection(currentTextSelection())) return
+  detailTriggers.value = resolveTriggers(lead.id, event.currentTarget as HTMLElement | null)
+  selectedLead.value = lead
+  detailOpen.value = true
 }
 
 async function performUpdate(lead: AdminWaitlistLead, next: WaitlistStatus) {

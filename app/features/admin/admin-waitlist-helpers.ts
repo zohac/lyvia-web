@@ -1,4 +1,4 @@
-import type { WaitlistStatus } from './api/admin-waitlist.contract'
+import type { AdminWaitlistLead, WaitlistStatus } from './api/admin-waitlist.contract'
 
 export interface AdminWaitlistAction {
   label: string
@@ -34,6 +34,93 @@ export function computeActionsForStatus(status: WaitlistStatus): AdminWaitlistAc
         { label: 'Repasser en attente', nextStatus: 'pending', icon: 'i-lucide-rotate-ccw' }
       ]
   }
+}
+
+/**
+ * Nom affiché d'un lead.
+ *
+ * `lastName` est facultatif depuis LB.1 : on ne concatène que ce qui existe,
+ * sinon les lecteurs d'écran annoncent « Actions pour Émilie null ». Partagé
+ * entre le tableau et la vue de détail — deux copies de cette règle
+ * divergeraient, et c'est exactement le cas que LB2-11 a laissé sans test.
+ *
+ * Le type est dérivé du contrat, pas recopié : un changement de nullabilité
+ * côté API casserait ici, à la compilation, au lieu de produire un `undefined`
+ * silencieux dans le tableau.
+ */
+export function fullName(lead: Pick<AdminWaitlistLead, 'firstName' | 'lastName'>): string {
+  return lead.lastName ? `${lead.firstName} ${lead.lastName}` : lead.firstName
+}
+
+/**
+ * Prend la main sur l'autofocus de reka-ui à l'**ouverture** d'un `USlideover`.
+ *
+ * Sans cela, reka-ui autofocuse le premier élément focusable du panneau — le
+ * **bouton fermer** (UX-DR-WA2 veut le titre). On annule donc le défaut, puis
+ * on pose le focus sur le titre.
+ *
+ * Ce helper ne couvre que l'ouverture. La **fermeture** passe par
+ * `restoreFocusToTrigger`, qui répond à un problème différent : voir son
+ * docblock.
+ *
+ * Pur et testable sans DOM : on ne touche pas `document` ici.
+ *
+ * @returns `true` si le focus a été posé, `false` si aucun titre n'était
+ *   disponible — l'appelant peut alors laisser le comportement par défaut.
+ */
+export function focusSlideoverTitle(
+  event: { preventDefault: () => void },
+  heading: { focus: () => void } | null
+): boolean {
+  if (!heading) return false
+  event.preventDefault()
+  heading.focus()
+  return true
+}
+
+/** Cet élément peut-il recevoir le focus là où il est ? */
+function canReceiveFocus(element: HTMLElement): boolean {
+  // `display:none` — par exemple la ligne desktop passée en `hidden` quand la
+  // fenêtre franchit le point de rupture `md` — laisse `isConnected` vrai :
+  // `.focus()` y devient un no-op silencieux et le focus finit sur `body`.
+  return element.isConnected && element.offsetParent !== null
+}
+
+/**
+ * Restitue le focus à la demande qui a ouvert le panneau (AC-2), à la fermeture.
+ *
+ * Le défaut de reka-ui mémorise `document.activeElement` au montage du
+ * `DialogContent`. Or un clic sur la ligne ne la focus pas toujours — mesuré au
+ * gate A-35 : `event.currentTarget` est bien le `<tr>` alors que
+ * `document.activeElement` vaut encore `body`. Le focus partait donc dans le
+ * vide à la fermeture. Le panneau mémorise le(s) déclencheur(s) et on refocuse
+ * nous-mêmes, au moment exact où reka restituerait le sien.
+ *
+ * **Plusieurs candidats, par ordre de préférence.** Une même demande est rendue
+ * deux fois — la ligne du tableau desktop (`hidden md:block`) et la carte mobile
+ * (`md:hidden`). Après un redimensionnement franchissant `md`, celui qui a
+ * déclenché l'ouverture est `display:none` : `isConnected` y reste vrai,
+ * `.focus()` y devient un no-op silencieux et le focus finit sur `body`. Viser
+ * le premier candidat focusable — donc l'autre rendu — est ce qui tient AC-2
+ * (« pas sur le début du document ») sur ce chemin.
+ *
+ * Si **aucun** candidat n'est focusable — la demande a quitté la liste pendant
+ * que le panneau était ouvert — on ne touche à rien et on rend la main à reka,
+ * dont le repli est le début du document. C'est la seule issue restante, et elle
+ * reste explicitement tracée (`deferred-work.md`, WA.1).
+ *
+ * @returns `true` si le focus a été rendu, `false` si le défaut de reka reste
+ *   en place.
+ */
+export function restoreFocusToTrigger(
+  event: { preventDefault: () => void },
+  candidates: ReadonlyArray<HTMLElement | null>
+): boolean {
+  const target = candidates.find(candidate => candidate !== null && canReceiveFocus(candidate))
+  if (!target) return false
+  event.preventDefault()
+  target.focus()
+  return true
 }
 
 export function statusBadgeClasses(status: WaitlistStatus): string {
