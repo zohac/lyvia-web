@@ -141,6 +141,13 @@ describe('WA.1 — Détail d\'une demande : le message complet (AC-1)', () => {
     const html = await renderDetail(baseLead())
 
     assert.match(html, /emilie\.durand@example\.fr/)
+    const emailTag = html.match(/<span[^>]*data-testid="admin-waitlist-detail-email"[^>]*>/)
+    assert.ok(emailTag, 'the email element must render')
+    assert.match(
+      emailTag![0],
+      /\bbreak-words\b/,
+      'a long address must wrap instead of overflowing the mobile sheet'
+    )
     assert.match(html, /Je viens de me lancer/, 'activityStage label')
     assert.match(html, /Organiser mes réservations/, 'mainBlocker label')
     assert.match(html, /Une formatrice \/ une recommandation/, 'discoverySource label')

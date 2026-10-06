@@ -461,40 +461,29 @@ describe('WA.1 — Panneau rendu : la ligne et la carte ouvrent le détail', () 
 
   /**
    * Le vecteur le plus probable d'une régression NFR-WA1 n'est pas dans
-   * `openDetail` : c'est un `watch(detailOpen, () => fetchInitial())` ajouté à
-   * côté.
+   * `openDetail` : c'est un `watch(detailOpen, handler)` ajouté à côté, où le
+   * handler déclenche un fetch.
    *
-   * Ronde 3 : l'assertion interdisait **tout** `watch(` / `watchEffect(` du
-   * fichier, ce qui foreclôt le correctif que `deferred-work.md` recommande
-   * lui-même (fermer depuis le panneau via un `watch` sur `detailOpen`).
-   * NFR-WA1 interdit un *fetch à l'ouverture*, pas un observateur : on vise
-   * donc la **conséquence** — aucun observateur ne doit atteindre le réseau —
-   * et non le mot-clé.
+   * Ronde 4 : une assertion de **proximité** (scanner 500 caractères après
+   * chaque `watch(`) n'attrapait pas un handler nommé — `watch(detailOpen,
+   * refreshOnOpen)` avec `fetchInitial` dans `refreshOnOpen` laissait 57/57
+   * vert. Et avec zéro observateur, la boucle ne s'exécutait pas : l'assertion
+   * ne s'évaluait jamais. Le harnais SSR ne pouvant pas observer le réseau, la
+   * seule preuve tenable est **structurelle** : aucun observateur n'est
+   * autorisé, et en ajouter un exige de venir l'autoriser ici explicitement,
+   * après revue au regard de NFR-WA1.
    */
-  test('aucun observateur du panneau n’atteint le réseau (NFR-WA1)', () => {
+  test('tout observateur du panneau doit être explicitement autorisé (NFR-WA1)', () => {
     const source = readPanel()
-    const networkTokens = [
-      'fetchInitial',
-      'loadMore',
-      'applyFilters',
-      'resetFilters',
-      'apiFetch',
-      '$fetch',
-      'useAsyncData'
-    ]
+    const allowListedObservers: string[] = []
+    const observers = [...source.matchAll(/watch(?:Effect)?\(/g)]
+      .map(match => source.slice(match.index, (match.index ?? 0) + 40).split('\n')[0].trim())
 
-    for (const match of source.matchAll(/watch(?:Effect)?\(/g)) {
-      // Fenêtre large autour de l'appel : suffisante pour englober un callback
-      // court, et sans risque de faux positif tant que le panneau n'a pas
-      // d'observateur légitime voisin d'un chargement.
-      const callback = source.slice(match.index, (match.index ?? 0) + 500)
-      for (const token of networkTokens) {
-        assert.ok(
-          !callback.includes(token),
-          `a watcher near "${token}" could refetch when the detail opens — NFR-WA1 forbids it`
-        )
-      }
-    }
+    assert.deepEqual(
+      observers,
+      allowListedObservers,
+      `the panel must declare no watcher unless it is allow-listed here — found: ${observers.join(' | ')}`
+    )
   })
 
   test('openDetail ignore le clic qui termine une sélection de texte', () => {
@@ -701,8 +690,13 @@ describe('WA.1 — helpers de la zone déclencheuse (exécutés, ronde 3)', () =
     return { tagName } as unknown as HTMLElement
   }
 
-  function fakeRoot(elements: HTMLElement[]): ParentNode {
-    return { querySelectorAll: () => elements } as unknown as ParentNode
+  function fakeRoot(elements: HTMLElement[], selectors: string[] = []): ParentNode {
+    return {
+      querySelectorAll: (selector: string) => {
+        selectors.push(selector)
+        return elements
+      }
+    } as unknown as ParentNode
   }
 
   describe('shouldIgnoreClickForSelection', () => {
@@ -750,6 +744,43 @@ describe('WA.1 — helpers de la zone déclencheuse (exécutés, ronde 3)', () =
       const row = fakeTrigger('TR')
 
       assert.deepEqual(resolveTriggers(fakeRoot([row]), 'abc', row), [row])
+    })
+
+    /**
+     * Ronde 4 : les premiers tests laissaient `fakeRoot` ignorer son argument,
+     * donc retirer `${leadId}` du sélecteur restait vert. Le sélecteur est la
+     * partie qui décide *quels* rendus sont candidats : on l'épingle.
+     */
+    test('interroge le sélecteur de la demande, pas un attribut nu', () => {
+      const selectors: string[] = []
+      const row = fakeTrigger('TR')
+      const card = fakeTrigger('DIV')
+
+      resolveTriggers(fakeRoot([row, card], selectors), 'abc', null)
+
+      assert.deepEqual(
+        selectors,
+        ['[data-detail-trigger="abc"]'],
+        'the query must be scoped to the lead id'
+      )
+    })
+
+    test('un rendu d’une autre demande n’est jamais retenu', () => {
+      // Le leurre porte le même attribut mais pas le même id : il ne doit pas
+      // entrer dans les candidats de restitution du focus. Le faux `root`
+      // simule le filtrage du DOM, donc retirer `${leadId}` fait apparaître le
+      // leurre et tomber l'assertion.
+      const own = fakeTrigger('TR')
+      const decoy = fakeTrigger('DIV')
+      const root = {
+        querySelectorAll: (selector: string) => (selector.includes('"abc"') ? [own] : [own, decoy])
+      } as unknown as ParentNode
+
+      assert.deepEqual(
+        resolveTriggers(root, 'abc', null),
+        [own],
+        'another lead must never become a focus target'
+      )
     })
   })
 })

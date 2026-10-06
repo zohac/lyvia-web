@@ -8,7 +8,7 @@
  * assertion de regex passe sur du markup mort. `LB2-11` est resté ouvert six
  * semaines pour cette raison.
  *
- * Ce harness compile le vrai SFC à la compilation (`@vue/compiler-sfc`), rend son
+ * Ce harness compile le vrai SFC à la volée, à l'exécution (`@vue/compiler-sfc`), rend son
  * HTML (`@vue/server-renderer`) et renvoie la chaîne. Aucune dépendance de
  * production ajoutée : `vue`, `@vue/compiler-sfc` et `@vue/server-renderer`
  * étaient déjà là pour le build Nuxt ; ils sont désormais **déclarés** en

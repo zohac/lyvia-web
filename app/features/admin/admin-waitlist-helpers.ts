@@ -136,6 +136,10 @@ export function restoreFocusToTrigger(
  * reçoit donc la sélection et décide : pure, testable dans les deux sens —
  * c'est ce que la ronde 3 a rendu vérifiable en l'extrayant du panneau, où elle
  * n'était couverte que par une assertion de source.
+ *
+ * Compromis assumé : surligner ailleurs puis cliquer une ligne sans avoir
+ * désélectionné n'ouvre pas le détail. C'est le comportement standard des zones
+ * activables entières, et le prix de l'option A.
  */
 export function shouldIgnoreClickForSelection(selection: string): boolean {
   return selection !== ''
@@ -149,8 +153,10 @@ export function shouldIgnoreClickForSelection(selection: string): boolean {
  * est un no-op silencieux qui envoie le focus sur `body`. Sans l'autre
  * candidat, AC-2 (« pas sur le début du document ») ne tient pas.
  *
- * Pure (prend la racine en paramètre plutôt que de lire une ref de composant),
- * pour être exécutée par les tests au lieu d'être seulement relue.
+ * **Testable sans DOM réel** : la racine arrive en paramètre plutôt que d'être
+ * lue depuis une ref de composant, donc la fonction s'exécute dans les tests au
+ * lieu d'être seulement relue. Elle interroge bien le DOM via `root` — elle
+ * n'est donc pas pure au sens strict, seul le filtrage/ordonnancement l'est.
  */
 export function resolveTriggers(
   root: ParentNode | null | undefined,
