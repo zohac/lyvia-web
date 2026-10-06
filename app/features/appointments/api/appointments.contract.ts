@@ -19,7 +19,10 @@ export type DiscoveryAppointmentClient = {
   /** Read-only contact consent, sourced from `client_profiles`. */
   emailMarketingOptIn: boolean
   smsMarketingOptIn: boolean
-  consentUpdatedAt: string | null
+  /** Per channel (CC.1b). Exposed so the state stays exact; not rendered here. */
+  emailConsentUpdatedAt: string | null
+  smsConsentUpdatedAt: string | null
+  /** Provenance of the last write. Kept in the contract, unread by the UI. */
   consentSource: ContactConsentSource
 }
 

@@ -179,7 +179,12 @@ const isUpdating = computed(() => props.updatingId === props.appointment.id)
 /**
  * Read-only contact consent badges. The date is deliberately left out of the
  * list: the card is scanned, not read, and the client detail card carries it.
- * (AC 1 amended 2026-10-05 — see the planning artifact.)
+ * (AC 1 amended 2026-10-05, reaffirmed by cc-1b decision 3.)
+ *
+ * The per-channel timestamps are still fed through `pickContactConsent` — the
+ * state a badge shows depends on whether a date exists (« Retiré » vs
+ * « Jamais consenti »), so the list cannot decide on the flag alone either. Only
+ * the rendering of the date is withheld.
  */
 const contactConsentBadges = computed<
   Array<{ channel: ContactConsentChannel, label: string, display: ContactConsentDisplay }>
@@ -188,8 +193,8 @@ const contactConsentBadges = computed<
   const payload: ContactConsentPayload = {
     emailMarketingOptIn: client.emailMarketingOptIn,
     smsMarketingOptIn: client.smsMarketingOptIn,
-    consentSource: client.consentSource,
-    consentUpdatedAt: client.consentUpdatedAt
+    emailConsentUpdatedAt: client.emailConsentUpdatedAt,
+    smsConsentUpdatedAt: client.smsConsentUpdatedAt
   }
 
   return (['email', 'sms'] as const).map(channel => ({

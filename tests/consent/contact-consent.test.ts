@@ -9,216 +9,223 @@ import {
   getContactConsentState,
   pickContactConsent,
   resolveContactConsent,
-  resolveContactConsentLastChange,
   type ContactConsentChannel,
   type ContactConsentPayload,
   type ContactConsentSource
 } from '../../app/features/consent/contact-consent'
 
-const OCT_1 = '2026-10-01T09:30:00.000Z'
-const OCT_2 = '2026-10-02T10:00:00.000Z'
+const MON = '2026-10-12T09:30:00.000Z'
+const TUE = '2026-10-13T14:00:00.000Z'
 
 function payload(overrides: Partial<ContactConsentPayload> = {}): ContactConsentPayload {
   return {
     emailMarketingOptIn: false,
     smsMarketingOptIn: false,
-    consentSource: null,
-    consentUpdatedAt: null,
+    emailConsentUpdatedAt: null,
+    smsConsentUpdatedAt: null,
     ...overrides
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The three states must stay separable. Two booleans + a date are not enough:
-// `consent_source` is the discriminant (epic CC.1 Design Notes).
+// The whole rule of cc-1b: a timestamp means "modified after the profile was
+// born". No `consent_source` heuristic, no special case.
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('consent state: a granted flag is always "granted", whatever the source', () => {
+test('state: a granted flag is "granted", whatever the date or the origin', () => {
   for (const source of ['onboarding', 'settings', 'admin', null] as ContactConsentSource[]) {
-    assert.equal(getContactConsentState({ optedIn: true, consentSource: source }), 'granted')
+    for (const date of [null, MON]) {
+      assert.equal(getContactConsentState({ optedIn: true, consentUpdatedAt: date }), 'granted')
+      assert.equal(
+        getContactConsentState({ optedIn: true, consentUpdatedAt: date }),
+        'granted',
+        `source ${source} must not change the state of a granted flag`
+      )
+    }
   }
 })
 
-test('consent state: "onboarding" + false is "never consented", not "not authorized"', () => {
-  // The booking always writes consent_source='onboarding', even with no box ticked.
-  assert.equal(
-    getContactConsentState({ optedIn: false, consentSource: 'onboarding' }),
-    'never_consented'
-  )
+test('state: false with no date is "never consented"', () => {
+  assert.equal(getContactConsentState({ optedIn: false, consentUpdatedAt: null }), 'never_consented')
 })
 
-test('consent state: "settings"/"admin" + false is "not authorized"', () => {
-  for (const source of ['settings', 'admin'] as const) {
-    assert.equal(getContactConsentState({ optedIn: false, consentSource: source }), 'not_authorized')
-  }
+test('state: false with a date is "withdrawn" — a real change after creation', () => {
+  assert.equal(getContactConsentState({ optedIn: false, consentUpdatedAt: MON }), 'withdrawn')
 })
 
-test('consent state: null source + false is "never consented" (profile born outside booking)', () => {
-  assert.equal(getContactConsentState({ optedIn: false, consentSource: null }), 'never_consented')
+test('state: the origin is not an input any more, so it cannot decide the state', () => {
+  // `ContactConsentPayload` no longer carries `consentSource`: the CC.1 heuristic
+  // ("settings|admin means modified") had no field to read once the date moved
+  // per channel. A booking that granted nothing carries no date, so it reads
+  // "Jamais consenti" — and no origin could change that.
+  const input = payload()
+
+  assert.equal(resolveContactConsent(pickContactConsent(input, 'email')).label, 'Jamais consenti')
+  assert.equal(resolveContactConsent(pickContactConsent(input, 'sms')).label, 'Jamais consenti')
+
+  // Same flags, dated: the only thing that moved the label is the date.
+  const dated = payload({ emailConsentUpdatedAt: MON })
+  assert.equal(resolveContactConsent(pickContactConsent(dated, 'email')).label, 'Retiré')
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The wording. "Non autorisé" must never assert that the client chose it —
-// `IdentityForm.vue` unticks SMS when the phone field is cleared, and that write
-// is byte-for-byte a deliberate untick. Story §Piège.
+// The wording.
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('label: granted is "Accordé" in the success tone', () => {
-  const display = resolveContactConsent({ optedIn: true, consentSource: 'onboarding' })
+test('label: granted is "Accordé" in the success tone, with its date', () => {
+  const display = resolveContactConsent({ optedIn: true, consentUpdatedAt: MON })
 
   assert.equal(display.state, 'granted')
   assert.equal(display.label, 'Accordé')
   assert.equal(display.tone, 'success')
+  assert.equal(display.dateLabel, formatDateShort(MON))
 })
 
-test('label: never consented is "Jamais consenti" in the neutral tone', () => {
-  const display = resolveContactConsent({ optedIn: false, consentSource: 'onboarding' })
+test('label: never consented is "Jamais consenti", neutral, with no date', () => {
+  const display = resolveContactConsent({ optedIn: false, consentUpdatedAt: null })
 
   assert.equal(display.label, 'Jamais consenti')
   assert.equal(display.tone, 'neutral')
+  assert.equal(display.dateLabel, null)
 })
 
-test('label: settings + false reads "Non autorisé", never "Retiré"', () => {
-  // A word asserting a deliberate act would be a claim the data cannot prove.
-  const display = resolveContactConsent({ optedIn: false, consentSource: 'settings' })
+test('label: withdrawn is "Retiré" in the warning tone, at its own date', () => {
+  const display = resolveContactConsent({ optedIn: false, consentUpdatedAt: MON })
 
-  assert.equal(display.state, 'not_authorized')
-  assert.equal(display.label, 'Non autorisé')
+  assert.equal(display.state, 'withdrawn')
+  assert.equal(display.label, 'Retiré')
   assert.equal(display.tone, 'warning')
+  assert.equal(display.dateLabel, formatDateShort(MON))
 })
 
-test('label: the implicit SMS untick (phone cleared) never reads as an act', () => {
-  // IdentityForm emits exactly this payload when the phone field is emptied.
-  const display = resolveContactConsent(
-    pickContactConsent(payload({ smsMarketingOptIn: false, consentSource: 'settings' }), 'sms')
-  )
-
-  assert.equal(display.label, 'Non autorisé')
-  assert.ok(!display.label.includes('Retiré'))
-})
-
-test('label: the three states never collapse to the same string', () => {
+test('label: "Non autorisé" is gone — "Retiré" no longer overstates the data', () => {
+  // CC.1 renamed the state to `not_authorized` because a single profile-level
+  // timestamp could not prove a change on one channel. CC.1b gives each channel
+  // its own timestamp, so `false` + date on THAT channel is the proof.
   const labels = [
-    resolveContactConsent({ optedIn: true, consentSource: 'onboarding' }).label,
-    resolveContactConsent({ optedIn: false, consentSource: 'onboarding' }).label,
-    resolveContactConsent({ optedIn: false, consentSource: 'settings' }).label
+    resolveContactConsent({ optedIn: true, consentUpdatedAt: MON }).label,
+    resolveContactConsent({ optedIn: false, consentUpdatedAt: null }).label,
+    resolveContactConsent({ optedIn: false, consentUpdatedAt: MON }).label
   ]
 
   assert.equal(new Set(labels).size, 3)
+  assert.ok(!labels.includes('Non autorisé'))
 })
 
-test('a per-channel display carries no date at all', () => {
-  // Structural guard: `ContactConsentInput` has no date field, so a
-  // profile-level timestamp can never be attributed to one channel.
+test('label: the implicit SMS untick (phone cleared) reads "Retiré" at its date', () => {
+  // IdentityForm emits this payload when the phone field is emptied. It is still
+  // a real change to the SMS channel, so it is dated like any other.
   const display = resolveContactConsent(
-    pickContactConsent(
-      payload({ emailMarketingOptIn: true, consentSource: 'settings', consentUpdatedAt: OCT_2 }),
-      'email'
-    )
+    pickContactConsent(payload({ smsConsentUpdatedAt: MON }), 'sms')
   )
 
-  assert.equal(Object.keys(display).sort().join(','), 'label,state,tone')
+  assert.equal(display.label, 'Retiré')
+  assert.equal(display.dateLabel, formatDateShort(MON))
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The one date on the screen: profile-level, gated, and worded as a
-// profile-level fact.
+// The matrix of the spec, channel by channel.
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('last change: a booking that granted nothing shows NO date', () => {
-  // Regression guard for AC 2 ("sans date"). The booking writes
-  // consent_updated_at unconditionally, so printing it here would read as
-  // "withdrawn on <booking day>", a statement the visitor never made.
-  const result = resolveContactConsentLastChange(
-    payload({ consentSource: 'onboarding', consentUpdatedAt: OCT_1 })
-  )
-
-  assert.equal(result, null)
-})
-
-test('last change: a profile born outside booking with no grant shows no date', () => {
-  assert.equal(
-    resolveContactConsentLastChange(payload({ consentUpdatedAt: OCT_1 })),
-    null
-  )
-})
-
-test('last change: a booking that granted email dates the booking, not a change', () => {
-  const result = resolveContactConsentLastChange(
-    payload({ emailMarketingOptIn: true, consentSource: 'onboarding', consentUpdatedAt: OCT_1 })
-  )
-
-  assert.equal(result?.label, 'Consentement enregistré à la réservation')
-  assert.equal(result?.dateLabel, formatDateShort(OCT_1))
-  assert.equal(result?.originLabel, null)
-})
-
-test('last change: a post-booking write dates the last change and names its origin', () => {
-  const result = resolveContactConsentLastChange(
-    payload({ consentSource: 'settings', consentUpdatedAt: OCT_2 })
-  )
-
-  assert.equal(result?.label, 'Dernier changement enregistré')
-  assert.equal(result?.dateLabel, formatDateShort(OCT_2))
-  assert.equal(result?.originLabel, 'depuis son compte')
-})
-
-test('last change: an admin write is attributed to Keova, not to the client', () => {
-  const result = resolveContactConsentLastChange(
-    payload({ consentSource: 'admin', consentUpdatedAt: OCT_2 })
-  )
-
-  assert.equal(result?.originLabel, 'depuis l\'espace Keova')
-})
-
-test('last change: a post-booking write with no date degrades to no line', () => {
-  assert.equal(resolveContactConsentLastChange(payload({ consentSource: 'settings' })), null)
-})
-
-test('last change: an unparsable date degrades to no line instead of "Invalid Date"', () => {
-  const result = resolveContactConsentLastChange(
-    payload({ consentSource: 'settings', consentUpdatedAt: 'not-a-date' })
-  )
-
-  assert.equal(result, null)
-})
-
-test('the one date on the screen is unambiguous about which channel it belongs to', () => {
-  // A granted email with a later SMS-only change: the foot line states a
-  // profile-level fact, so it cannot be read as the email consent's date.
-  const result = resolveContactConsentLastChange(
-    payload({ emailMarketingOptIn: true, consentSource: 'settings', consentUpdatedAt: OCT_2 })
-  )
-
-  assert.equal(result?.label, 'Dernier changement enregistré')
-  assert.ok(result?.label.includes('Dernier'))
-})
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Date formatting: the shared cached-Intl helper, guarded.
-// ─────────────────────────────────────────────────────────────────────────────
-
-test('date formatting delegates to the shared helper rather than re-declaring it', () => {
-  assert.equal(formatContactConsentDate(OCT_1), formatDateShort(OCT_1))
-})
-
-test('date formatting returns null for an unparsable value', () => {
-  assert.equal(formatContactConsentDate('not-a-date'), null)
-})
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Channel selection — both provider screens share the rule
-// ─────────────────────────────────────────────────────────────────────────────
-
-test('channels: email and SMS are resolved independently from the same payload', () => {
-  const input = payload({
-    emailMarketingOptIn: true,
-    smsMarketingOptIn: false,
-    consentSource: 'onboarding'
+test('matrix: PATCH on one channel dates that channel and leaves the other intact', () => {
+  // Monday: she unticks email. SMS keeps its own date, untouched.
+  const monday = payload({
+    emailMarketingOptIn: false,
+    smsMarketingOptIn: true,
+    emailConsentUpdatedAt: MON,
+    smsConsentUpdatedAt: null
   })
 
-  assert.equal(resolveContactConsent(pickContactConsent(input, 'email')).label, 'Accordé')
-  assert.equal(resolveContactConsent(pickContactConsent(input, 'sms')).label, 'Jamais consenti')
+  assert.equal(resolveContactConsent(pickContactConsent(monday, 'email')).label, 'Retiré')
+  assert.equal(
+    resolveContactConsent(pickContactConsent(monday, 'email')).dateLabel,
+    formatDateShort(MON)
+  )
+  assert.equal(resolveContactConsent(pickContactConsent(monday, 'sms')).label, 'Accordé')
+  assert.equal(resolveContactConsent(pickContactConsent(monday, 'sms')).dateLabel, null)
+})
+
+test('matrix: unticking email Monday then SMS Tuesday gives each its own date', () => {
+  // The bug the story exists to fix: both channels used to read Tuesday.
+  const tuesday = payload({
+    emailMarketingOptIn: false,
+    smsMarketingOptIn: false,
+    emailConsentUpdatedAt: MON,
+    smsConsentUpdatedAt: TUE
+  })
+
+  const email = resolveContactConsent(pickContactConsent(tuesday, 'email'))
+  const sms = resolveContactConsent(pickContactConsent(tuesday, 'sms'))
+
+  assert.equal(email.label, 'Retiré')
+  assert.equal(email.dateLabel, formatDateShort(MON))
+  assert.equal(sms.label, 'Retiré')
+  assert.equal(sms.dateLabel, formatDateShort(TUE))
+  assert.notEqual(email.dateLabel, sms.dateLabel)
+})
+
+test('matrix: a fresh booking with email ticked and SMS not leaves SMS undated', () => {
+  const fresh = payload({
+    emailMarketingOptIn: true,
+    smsMarketingOptIn: false,
+    emailConsentUpdatedAt: MON,
+    smsConsentUpdatedAt: null
+  })
+
+  assert.equal(resolveContactConsent(pickContactConsent(fresh, 'email')).label, 'Accordé')
+  assert.equal(resolveContactConsent(pickContactConsent(fresh, 'sms')).label, 'Jamais consenti')
+  assert.equal(resolveContactConsent(pickContactConsent(fresh, 'sms')).dateLabel, null)
+})
+
+test('matrix: re-booking without re-ticking reads "Retiré", never "Jamais consenti"', () => {
+  const rebooked = payload({
+    emailMarketingOptIn: false,
+    smsMarketingOptIn: false,
+    emailConsentUpdatedAt: TUE,
+    smsConsentUpdatedAt: null
+  })
+
+  const email = resolveContactConsent(pickContactConsent(rebooked, 'email'))
+  assert.equal(email.label, 'Retiré')
+  assert.equal(email.dateLabel, formatDateShort(TUE))
+})
+
+test('matrix: untick then re-tick shows "Accordé" with the RE-tick date', () => {
+  const regranted = payload({
+    emailMarketingOptIn: true,
+    smsMarketingOptIn: false,
+    emailConsentUpdatedAt: TUE,
+    smsConsentUpdatedAt: null
+  })
+
+  const email = resolveContactConsent(pickContactConsent(regranted, 'email'))
+  assert.equal(email.label, 'Accordé')
+  assert.equal(email.dateLabel, formatDateShort(TUE))
+})
+
+test('matrix: a granted channel with no date reads "Accordé" without one', () => {
+  // Possible only for data written outside the two writers (admin, seeds); the
+  // rule must not invent a date for it.
+  const display = resolveContactConsent({ optedIn: true, consentUpdatedAt: null })
+
+  assert.equal(display.label, 'Accordé')
+  assert.equal(display.dateLabel, null)
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Per-channel wiring: `pickContactConsent` must carry the channel's own date.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test('channels: pickContactConsent gives each channel its own date, never the other', () => {
+  const input = payload({
+    emailMarketingOptIn: false,
+    smsMarketingOptIn: false,
+    emailConsentUpdatedAt: MON,
+    smsConsentUpdatedAt: TUE
+  })
+
+  assert.equal(pickContactConsent(input, 'email').consentUpdatedAt, MON)
+  assert.equal(pickContactConsent(input, 'sms').consentUpdatedAt, TUE)
 })
 
 test('channels: pickContactConsent never leaks the other channel flag', () => {
@@ -226,6 +233,20 @@ test('channels: pickContactConsent never leaks the other channel flag', () => {
 
   assert.equal(pickContactConsent(input, 'sms').optedIn, false)
   assert.equal(pickContactConsent(input, 'email').optedIn, true)
+})
+
+test('channels: a dated-but-unticked channel reads differently from an undated one', () => {
+  // The list card renders only the label, so the state must already be exact
+  // there: the presence of a date is what the label turns on.
+  const input = payload({
+    emailMarketingOptIn: false,
+    smsMarketingOptIn: false,
+    emailConsentUpdatedAt: MON,
+    smsConsentUpdatedAt: null
+  })
+
+  assert.equal(resolveContactConsent(pickContactConsent(input, 'email')).label, 'Retiré')
+  assert.equal(resolveContactConsent(pickContactConsent(input, 'sms')).label, 'Jamais consenti')
 })
 
 test('channels: every channel has a label and an icon', () => {
@@ -241,8 +262,26 @@ test('channels: every channel has a label and an icon', () => {
     icons.add(CONTACT_CONSENT_CHANNEL_ICON[channel])
   }
 
-  // One label and one icon per channel: a third channel cannot silently
-  // reuse another channel's wording.
   assert.equal(labels.size, channels.length)
   assert.equal(icons.size, channels.length)
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Date formatting: the shared cached-Intl helper, guarded.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test('date formatting delegates to the shared helper rather than re-declaring it', () => {
+  assert.equal(formatContactConsentDate(MON), formatDateShort(MON))
+})
+
+test('date formatting returns null for an unparsable value', () => {
+  assert.equal(formatContactConsentDate('not-a-date'), null)
+})
+
+test('an unparsable channel date degrades to no date instead of "Invalid Date"', () => {
+  const display = resolveContactConsent({ optedIn: false, consentUpdatedAt: 'not-a-date' })
+
+  // The state stays truthful — a date exists — but nothing unparsable is shown.
+  assert.equal(display.state, 'withdrawn')
+  assert.equal(display.dateLabel, null)
 })

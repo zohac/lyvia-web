@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useClientPreferences } from '../../features/preferences/useClientPreferences'
+import { formatContactConsentDate } from '../../features/consent/contact-consent'
 
 const {
   preferences,
@@ -14,13 +15,32 @@ onMounted(() => {
   fetchPreferences()
 })
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-}
+/**
+ * Each channel's own date (cc-1b). A single « Dernière modification » line
+ * described the profile, not the channel she is looking at, so a change to one
+ * box appeared to date the other. Formatting goes through the shared consent
+ * rule, which is also what degrades an unparsable value to no date at all.
+ */
+const consentDateRows = computed(() => {
+  if (!preferences.value) return []
+
+  return [
+    {
+      channel: 'Email',
+      iso: preferences.value.emailConsentUpdatedAt
+    },
+    {
+      channel: 'SMS',
+      iso: preferences.value.smsConsentUpdatedAt
+    }
+  ]
+    .filter(row => row.iso !== null)
+    .map(row => ({
+      channel: row.channel,
+      dateLabel: formatContactConsentDate(row.iso as string)
+    }))
+    .filter(row => row.dateLabel !== null)
+})
 
 async function handleEmailToggle(value: boolean) {
   await updatePreferences({ emailMarketingOptIn: value })
@@ -138,17 +158,25 @@ async function handleSmsToggle(value: boolean) {
           <p>{{ error }}</p>
         </div>
 
-        <!-- Last updated -->
-        <p
-          v-if="preferences.consentUpdatedAt"
-          class="mt-6 flex items-center gap-2 text-xs text-[color:var(--color-brand-muted)]"
+        <!-- Per-channel change dates -->
+        <div
+          v-if="consentDateRows.length > 0"
+          class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-muted)]"
         >
-          <UIcon
-            name="i-lucide-clock"
-            class="h-3.5 w-3.5"
-          />
-          Dernière modification : {{ formatDate(preferences.consentUpdatedAt) }}
-        </p>
+          <span class="flex items-center gap-2">
+            <UIcon
+              name="i-lucide-clock"
+              class="h-3.5 w-3.5"
+            />
+            Dernière modification :
+          </span>
+          <span
+            v-for="row in consentDateRows"
+            :key="row.channel"
+          >
+            {{ row.channel }} le {{ row.dateLabel }}
+          </span>
+        </div>
       </div>
 
       <!-- Info Card -->

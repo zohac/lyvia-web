@@ -34,7 +34,10 @@ export type ProviderClientDetailProfile = {
   /** Read-only contact consent, sourced from `client_profiles`. */
   emailMarketingOptIn: boolean
   smsMarketingOptIn: boolean
-  consentUpdatedAt: string | null
+  /** Per channel (CC.1b): each channel's own date, never the other's. */
+  emailConsentUpdatedAt: string | null
+  smsConsentUpdatedAt: string | null
+  /** Provenance of the last write. Kept in the contract, unread by the UI. */
   consentSource: ContactConsentSource
 }
 

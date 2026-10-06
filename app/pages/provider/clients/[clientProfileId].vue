@@ -306,35 +306,23 @@
                   <p class="font-medium text-[color:var(--color-brand-primary)]">
                     {{ item.label }}
                   </p>
-                  <UBadge
-                    :color="item.display.tone"
-                    variant="soft"
-                    size="sm"
-                  >
-                    {{ item.display.label }}
-                  </UBadge>
+                  <div class="flex items-center gap-2 text-right">
+                    <span
+                      v-if="item.display.dateLabel"
+                      class="text-xs text-[color:var(--color-brand-muted)]"
+                    >
+                      le {{ item.display.dateLabel }}
+                    </span>
+                    <UBadge
+                      :color="item.display.tone"
+                      variant="soft"
+                      size="sm"
+                    >
+                      {{ item.display.label }}
+                    </UBadge>
+                  </div>
                 </div>
               </div>
-
-              <!--
-                The only place a consent date is rendered. The timestamp is
-                profile-level, so it is worded as a profile-level fact and never
-                attached to a channel row — see app/features/consent/contact-consent.ts.
-              -->
-              <p
-                v-if="contactConsentLastChange"
-                class="mt-3 flex items-center gap-2 text-xs text-[color:var(--color-brand-muted)]"
-              >
-                <UIcon
-                  name="i-lucide-clock"
-                  class="h-3.5 w-3.5"
-                />
-                {{ contactConsentLastChange.label }} : le {{ contactConsentLastChange.dateLabel }}<template
-                  v-if="contactConsentLastChange.originLabel"
-                >
-                  , {{ contactConsentLastChange.originLabel }}
-                </template>
-              </p>
             </div>
           </div>
         </UCard>
@@ -447,7 +435,6 @@ import {
   CONTACT_CONSENT_CHANNEL_LABEL,
   pickContactConsent,
   resolveContactConsent,
-  resolveContactConsentLastChange,
   type ContactConsentChannel,
   type ContactConsentDisplay,
   type ContactConsentPayload
@@ -539,9 +526,8 @@ function getNextScheduledAppointmentAt(): string | null {
  * Read-only consent. Nothing here writes: the provider space has no consent
  * command, and this display must not trigger one.
  *
- * A profile born at booking always carries `consent_source='onboarding'` plus a
- * `consent_updated_at`, even with no box ticked, so the wording comes from the
- * shared rule rather than from a local guess.
+ * Each channel carries its own timestamp (CC.1b), so the wording comes from the
+ * shared rule rather than from a local guess on a profile-level date.
  */
 const contactConsentPayload = computed<ContactConsentPayload | null>(() => {
   const source = detail.value?.client
@@ -550,11 +536,17 @@ const contactConsentPayload = computed<ContactConsentPayload | null>(() => {
   return {
     emailMarketingOptIn: source.emailMarketingOptIn,
     smsMarketingOptIn: source.smsMarketingOptIn,
-    consentSource: source.consentSource,
-    consentUpdatedAt: source.consentUpdatedAt
+    emailConsentUpdatedAt: source.emailConsentUpdatedAt,
+    smsConsentUpdatedAt: source.smsConsentUpdatedAt
   }
 })
 
+/**
+ * Each channel carries its own state and its own date: CC.1b removed the
+ * profile-level timestamp precisely because one date cannot describe two
+ * channels. « Retiré » now reads with the date she unticked, not with the date
+ * she changed the other one.
+ */
 const contactConsentChannels = computed<Array<{
   channel: ContactConsentChannel
   label: string
@@ -568,17 +560,6 @@ const contactConsentChannels = computed<Array<{
     label: CONTACT_CONSENT_CHANNEL_LABEL[channel],
     display: resolveContactConsent(pickContactConsent(payload, channel))
   }))
-})
-
-/**
- * The single date on this screen, resolved by the shared rule. It is `null` for
- * a profile that never granted anything, so the booking instant can never read
- * as a withdrawal.
- */
-const contactConsentLastChange = computed(() => {
-  const payload = contactConsentPayload.value
-  if (!payload) return null
-  return resolveContactConsentLastChange(payload)
 })
 
 // ============================================================================
