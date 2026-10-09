@@ -41,6 +41,12 @@ export interface AdminWaitlistLead {
    * Cas de base : une demande **jamais réinscrite** a `updatedAt === createdAt`
    * (les deux colonnes prennent le même `now()` à l'INSERT). C'est cette égalité
    * qui garantit qu'aucun indicateur ne s'affiche pour une demande neuve.
+   *
+   * ⚠️ Ordre de release : livrer l'**API** (et sa migration
+   * `1791247800000-normalize-waitlist-updated-at`) **avant** ce front. Tant que
+   * l'API précédente sert du trafic, son bump de `updated_at` au changement de
+   * statut est toujours actif, et cet indicateur afficherait « Réinscrite le »
+   * pour une demande que personne n'a réinscrite.
    */
   updatedAt: string
 }

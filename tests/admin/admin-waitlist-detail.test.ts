@@ -59,7 +59,11 @@ function baseLead(overrides: Partial<AdminWaitlistLead> = {}): AdminWaitlistLead
     createdAt: '2026-10-01T08:30:00.000Z',
     contactedAt: '2026-10-02T09:00:00.000Z',
     onboardedAt: null,
-    updatedAt: '2026-10-02T09:00:00.000Z',
+    // `updatedAt === createdAt` : l'état d'une demande antérieure au backfill
+    // `1791247800000`, et celui de toute demande neuve. Un `updatedAt` postérieur
+    // signalerait une réinscription, or cette fixture n'en décrit pas — les tests
+    // WA.2 qui veulent l'indicateur l'activent explicitement par override.
+    updatedAt: '2026-10-01T08:30:00.000Z',
     ...overrides
   }
 }
@@ -179,14 +183,17 @@ describe('WA.1 — Détail d\'une demande : le message complet (AC-1)', () => {
     const text = block![0]
     assert.ok(!text.includes('2026-10-01T08:30:00.000Z'), 'no raw ISO date may be rendered')
     assert.ok(!text.includes('Invalid Date'), 'every timestamp must be a real date')
-    // Quatre dates depuis WA.2 : « Reçue le », « Réinscrite le » (l'indicateur
-    // est l'une d'elles), « Contactée le », « Onboardée le ». La fixture `baseLead`
-    // porte `updatedAt` postérieur à `createdAt`, donc l'indicateur est présent ;
-    // le test garde ses entrées d'origine et gagne une vérification de plus.
+    // Trois dates dans cette fixture : Reçue, Contactée et Onboardée — `baseLead`
+    // n'a pas de réinscription. Chaque ligne est nommée par sa cellule, donc
+    // l'échec dit laquelle manque ; le compte d'années reste la preuve que
+    // chacune est passée par le formateur.
+    for (const key of ['created', 'contacted', 'onboarded'] as const) {
+      assert.ok(historyCell(html, key), `the ${key} row must render`)
+    }
     assert.equal(
       (text.match(/\d{4}/g) ?? []).length,
-      4,
-      'four formatted dates — reçue, réinscrite, contactée, onboardée — each carrying its year'
+      3,
+      'three formatted dates — reçue, contactée, onboardée — each carrying its year'
     )
     assert.ok(
       !/\d{4}-\d{2}-\d{2}T/.test(text),
@@ -198,8 +205,11 @@ describe('WA.1 — Détail d\'une demande : le message complet (AC-1)', () => {
     const html = await renderDetail(baseLead({ contactedAt: null, onboardedAt: null }))
 
     assert.match(html, /Reçue le/)
-    assert.ok(!html.includes('Contactée le'), 'contactedAt must not render when null')
-    assert.ok(!html.includes('Onboardée le'), 'onboardedAt must not render when null')
+    // Assertions ciblées sur les cellules : le harness SSR conserve les
+    // commentaires de gabarit, donc chercher un libellé dans tout le HTML ne
+    // prouverait pas que la ligne est absente du rendu.
+    assert.equal(historyCell(html, 'contacted'), null, 'contactedAt must not render when null')
+    assert.equal(historyCell(html, 'onboarded'), null, 'onboardedAt must not render when null')
   })
 })
 
@@ -424,17 +434,20 @@ describe('WA.1 — restoreFocusToTrigger franchit le point de rupture md', () =>
 })
 
 /**
- * WA.2 — « La réinscription garde la dernière intention ».
+ * Ouvre la balise `<dd>` d'une ligne d'« Historique » par son `data-testid`, ou
+ * `null` si la ligne ne rend pas.
  *
- * L'indicateur porte sur la **cellule** (`resubmittedCell`), jamais sur le HTML
- * entier : le harness SSR conserve les commentaires de gabarit, et la nouvelle
- * section en porte un long qui explique la règle. Chercher « Réinscrite le »
- * dans toute la sortie ferait donc passer une assertion négative par un effet de
+ * Les assertions portent sur la **cellule**, jamais sur le HTML entier : le
+ * harness SSR conserve les commentaires de gabarit, donc chercher un libellé
+ * dans toute la sortie ferait passer une assertion négative par un effet de
  * formulation du commentaire — elle ne prouverait plus rien du rendu.
  */
-function resubmittedCell(html: string): string | null {
+function historyCell(
+  html: string,
+  key: 'created' | 'resubmitted' | 'contacted' | 'onboarded'
+): string | null {
   const cell = html.match(
-    /<dd[^>]*data-testid="admin-waitlist-detail-resubmitted-cell"[^>]*>/
+    new RegExp(`<dd[^>]*data-testid="admin-waitlist-detail-${key}-cell"[^>]*>`)
   )
   return cell ? cell[0] : null
 }
@@ -476,7 +489,7 @@ describe('WA.2 — Indicateur « Réinscrite le » (AC-3)', () => {
       updatedAt: '2026-10-06T18:45:00.000Z'
     }))
 
-    const cell = resubmittedCell(html)
+    const cell = historyCell(html, 'resubmitted')
     assert.ok(cell, 'the resubmission cell must render when updatedAt > createdAt')
     // Le libellé est dans la même ligne que la cellule : sinon un libellé
     // orphelin traînerait dans le gabarit et la cellule pourrait être vide.
@@ -511,7 +524,7 @@ describe('WA.2 — Indicateur « Réinscrite le » (AC-3)', () => {
     }))
 
     assert.equal(
-      resubmittedCell(html),
+      historyCell(html, 'resubmitted'),
       null,
       'a lead whose status changed before the backfill must not show the indicator'
     )
@@ -525,7 +538,7 @@ describe('WA.2 — Indicateur « Réinscrite le » (AC-3)', () => {
     }))
 
     assert.equal(
-      resubmittedCell(html),
+      historyCell(html, 'resubmitted'),
       null,
       'updatedAt < createdAt is not a resubmission and must not be reported as one'
     )
@@ -540,7 +553,7 @@ describe('WA.2 — Indicateur « Réinscrite le » (AC-3)', () => {
       updatedAt: 'pas-une-date'
     }))
 
-    assert.equal(resubmittedCell(html), null, 'an unparseable date must not produce an indicator')
+    assert.equal(historyCell(html, 'resubmitted'), null, 'an unparseable date must not produce an indicator')
     assert.ok(!html.includes('Invalid Date'), 'no "Invalid Date" may leak into the panel')
     assert.match(html, /Reçue le/, 'the reception date still renders')
   })
@@ -553,7 +566,7 @@ describe('WA.2 — Indicateur « Réinscrite le » (AC-3)', () => {
       onboardedAt: null
     }))
 
-    assert.equal(resubmittedCell(html), null)
+    assert.equal(historyCell(html, 'resubmitted'), null)
     assert.match(html, /Reçue le/, 'the reception date still renders')
   })
 })
@@ -611,6 +624,45 @@ describe('WA.2 — « Historique » est une chronologie, donc triée', () => {
       !/Modifié le|depuis la première demande|Changé le/i.test(html),
       'the panel must not narrate a diff it does not have'
     )
+  })
+
+  test('un createdAt illisible : la ligne « Reçue le » reste, en dernier, avec un tiret', async () => {
+    // `formatDateTime` délègue à `Intl.DateTimeFormat.format`, qui lève
+    // `RangeError: Invalid time value` sur une date invalide : c'est le garde
+    // `Number.isFinite(createdMs)` du computed qui empêche la fiche entière de
+    // jeter au rendu. Cette branche n'était couverte par aucun test.
+    const html = await renderDetail(baseLead({
+      createdAt: 'pas-une-date',
+      contactedAt: '2026-09-02T12:00:00.000Z',
+      onboardedAt: null
+    }))
+
+    assert.ok(!html.includes('Invalid Date'), 'no "Invalid Date" may leak into the panel')
+    const labels = historyLabels(html)
+    assert.equal(labels[labels.length - 1], 'Reçue le', 'the reception row stays, last')
+    // `wasResubmitted` retombe aussi sur `false` quand une des deux dates est
+    // illisible (comparaison `NaN`), donc aucune ligne « Réinscrite le » n'est
+    // fabriquée ; « Contactée le », elle, reste rendue et triée normalement.
+    assert.deepEqual(labels.slice(0, -1), ['Contactée le'])
+    assert.match(
+      html,
+      /<dd[^>]*data-testid="admin-waitlist-detail-created-cell"[^>]*>\s*—\s*</,
+      'the unreadable reception date renders as a dash'
+    )
+  })
+
+  test('un contactedAt illisible : la ligne « Contactée le » est omise, le reste tient', async () => {
+    // Même politique que `wasResubmitted` : `Number.isFinite` fait disparaître la
+    // ligne optionnelle au lieu de laisser `formatDateTime` jeter au rendu. Autre
+    // branche du même garde, également sans test jusqu'ici.
+    const html = await renderDetail(baseLead({
+      contactedAt: 'pas-une-date',
+      onboardedAt: null
+    }))
+
+    assert.ok(!html.includes('Invalid Date'), 'no "Invalid Date" may leak into the panel')
+    assert.equal(historyCell(html, 'contacted'), null, 'the unreadable row is omitted')
+    assert.deepEqual(historyLabels(html), ['Reçue le'])
   })
 })
 
