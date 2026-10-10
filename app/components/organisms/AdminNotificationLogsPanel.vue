@@ -173,7 +173,7 @@
               </p>
               <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--color-brand-muted)]">
                 <span class="font-mono">{{ formatRecipient(notif.recipient) }}</span>
-                <span>{{ formatDate(notif.createdAt) }}</span>
+                <span>{{ formatNotificationDate(notif.createdAt) }}</span>
               </div>
             </div>
           </button>
@@ -225,137 +225,10 @@
           <AtomsDsErrorState message="Erreur lors du chargement du détail" />
         </div>
 
-        <div
+        <AdminNotificationLogDetail
           v-else-if="notificationDetail"
-          class="space-y-6 p-4"
-        >
-          <!-- Type & Status -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                Type
-              </span>
-              <div class="mt-2">
-                <span :class="`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium ${getNotificationTypeBadgeClasses(notificationDetail.type)}`">
-                  {{ notificationDetail.type }}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                Status
-              </span>
-              <div class="mt-2">
-                <span :class="`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium ${getNotificationStatusBadgeClasses(notificationDetail.status)}`">
-                  {{ getNotificationStatusLabel(notificationDetail.status) }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Channel -->
-          <div>
-            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-              Channel
-            </span>
-            <p class="mt-2 text-sm text-[color:var(--color-brand-primary)]">
-              {{ notificationDetail.channel }}
-            </p>
-          </div>
-
-          <!-- Date -->
-          <div>
-            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-              Date
-            </span>
-            <p class="mt-2 text-sm text-[color:var(--color-brand-primary)]">
-              {{ formatDate(notificationDetail.createdAt) }}
-            </p>
-          </div>
-
-          <!-- Recipient -->
-          <div>
-            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-              Destinataire (hash)
-            </span>
-            <p class="mt-2 break-all font-mono text-xs text-[color:var(--color-brand-secondary)]">
-              {{ notificationDetail.recipient }}
-            </p>
-          </div>
-
-          <!-- Payload Preview -->
-          <div v-if="notificationDetail.payloadPreview">
-            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-              Payload Preview
-            </span>
-            <pre class="mt-2 max-h-48 overflow-auto rounded-lg bg-[color:var(--color-surface-muted)] p-4 text-xs text-[color:var(--color-brand-primary)]">{{ notificationDetail.payloadPreview }}</pre>
-          </div>
-
-          <!-- Error Message -->
-          <div
-            v-if="notificationDetail.errorMessage"
-            class="rounded-lg bg-[color:var(--color-error-50)] p-4"
-          >
-            <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-error-600)]">
-              Erreur
-            </span>
-            <p class="mt-2 text-sm text-[color:var(--color-error-700)]">
-              {{ notificationDetail.errorMessage }}
-            </p>
-          </div>
-
-          <!-- Provider Info -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                Provider Message ID
-              </span>
-              <p class="mt-2 font-mono text-xs text-[color:var(--color-brand-secondary)]">
-                {{ notificationDetail.providerMessageId ?? '—' }}
-              </p>
-            </div>
-
-            <div>
-              <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                Tentatives
-              </span>
-              <p class="mt-2 text-sm text-[color:var(--color-brand-primary)]">
-                {{ notificationDetail.attemptCount }}
-              </p>
-            </div>
-          </div>
-
-          <!-- IDs -->
-          <div class="space-y-4">
-            <div>
-              <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                Client ID
-              </span>
-              <p class="mt-2 font-mono text-xs text-[color:var(--color-brand-secondary)]">
-                {{ notificationDetail.clientId }}
-              </p>
-            </div>
-
-            <div v-if="notificationDetail.appointmentId">
-              <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                Appointment ID
-              </span>
-              <p class="mt-2 font-mono text-xs text-[color:var(--color-brand-secondary)]">
-                {{ notificationDetail.appointmentId }}
-              </p>
-            </div>
-
-            <div>
-              <span class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
-                Log ID
-              </span>
-              <p class="mt-2 font-mono text-xs text-[color:var(--color-brand-secondary)]">
-                {{ notificationDetail.id }}
-              </p>
-            </div>
-          </div>
-        </div>
+          :detail="notificationDetail"
+        />
       </template>
     </USlideover>
   </div>
@@ -364,6 +237,7 @@
 <script setup lang="ts">
 import { h } from 'vue'
 import AdminReminderJobsPanel from './AdminReminderJobsPanel.vue'
+import AdminNotificationLogDetail from './AdminNotificationLogDetail.vue'
 import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import {
@@ -372,19 +246,13 @@ import {
   getNotificationStatusLabel
 } from '~/composables/useAdminBadges'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
+import { formatNotificationDate } from '~/features/admin/format-notification-date'
+import type {
+  AdminNotificationLogDetail as NotificationLogDetail,
+  AdminNotificationLogListItem as NotificationLogListItem
+} from '~/features/admin/api/admin-notification-log.contract'
 
 const toast = useToast()
-
-// Types
-type NotificationLogListItem = {
-  id: string
-  type: string
-  channel: string
-  status: string
-  recipient: string
-  appointmentId: string | null
-  createdAt: string
-}
 
 type ListNotificationLogsResponse = {
   items: NotificationLogListItem[]
@@ -392,21 +260,6 @@ type ListNotificationLogsResponse = {
     limit: number
     nextCursor: string | null
   }
-}
-
-type NotificationLogDetail = {
-  id: string
-  type: string
-  channel: string
-  status: string
-  recipient: string
-  payloadPreview: string | null
-  errorMessage: string | null
-  providerMessageId: string | null
-  attemptCount: number
-  appointmentId: string | null
-  clientId: string
-  createdAt: string
 }
 
 // Filters
@@ -519,19 +372,6 @@ async function loadMore() {
   }
 }
 
-// Format date for display
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
-}
-
 // Format recipient (truncate SHA256 hash for table display)
 function formatRecipient(recipient: string): string {
   if (recipient.startsWith('sha256:')) {
@@ -563,7 +403,7 @@ const columns: TableColumn<NotificationLogListItem>[] = [
     accessorKey: 'createdAt',
     header: 'Date',
     cell: ({ row }) => {
-      return h('span', { class: 'text-sm text-[color:var(--color-brand-secondary)]' }, formatDate(row.original.createdAt))
+      return h('span', { class: 'text-sm text-[color:var(--color-brand-secondary)]' }, formatNotificationDate(row.original.createdAt))
     }
   },
   {
