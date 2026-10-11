@@ -20,6 +20,8 @@
     "app/features/appointments/domain/**/*.ts",
     "app/features/consultation/domain/**/*.ts",
     "app/features/consent/**/*.ts",
+    "app/features/preferences/consent-page.ts",
+    "app/features/preferences/public-consent.contract.ts",
     "app/features/public/domain/**/*.ts",
     "app/features/analytics/helpers/**/*.ts",
     "app/features/analytics/api/**/*.ts",
@@ -53,6 +55,8 @@
     "app/features/clarity/microsoft-clarity-runtime.ts",
     "app/services/api/api-error.ts",
     "app/services/api/contracts/error-response.ts",
+    "server/utils/**/*.ts",
+    "server/routes/preferences-submit.post.ts",
     "tests/types/**/*.d.ts",
     "tests/**/*.ts"
   ]
