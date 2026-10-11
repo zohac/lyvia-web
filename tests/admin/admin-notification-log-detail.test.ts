@@ -57,8 +57,11 @@ describe('WA.4 — détail d\'une notification : clientId nullable (AC-3)', () =
     })
 
     assert.equal(clientIdText(html), '—')
+    // L'assertion est portée sur la cellule (« Client ID »), pas sur tout le HTML :
+    // un attribut, une classe ou un libellé contenant « null » ailleurs dans le
+    // composant ne doit pas faire passer ou casser ce test.
     assert.ok(
-      !html.includes('null'),
+      !clientIdText(html).includes('null'),
       'no "null" may leak where the admin expects a dash'
     )
   })
