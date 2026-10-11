@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import FormControl from './FormControl.vue'
+import { buildConsentLabels } from '../../features/consent/coach-label'
 
 type IdentityModel = {
   firstname: string
@@ -18,6 +19,12 @@ const props = defineProps<{
   disabled?: boolean
   modelValue: IdentityModel
   consents: ConsentsModel
+  /**
+   * Nom résolu du responsable de traitement pour les libellés de consentement
+   * de contact, story cc-3. Résolu hors du composant via
+   * `resolveConsentCoachLabel` — la molécule ne lit jamais le tenant.
+   */
+  coachLabel: string
   errors?: Partial<Record<'firstname' | 'lastname' | 'email' | 'phone' | 'legalAccepted', string>>
 }>()
 
@@ -38,6 +45,10 @@ function updateField<K extends keyof IdentityModel>(key: K, value: string) {
 function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
   emit('update:consents', { ...props.consents, [key]: value })
 }
+
+// Les deux phrases de consentement vivent dans le helper pur (exécutable par un
+// test) ; le template ne fait que coller le nom résolu au milieu, en gras.
+const consentLabels = buildConsentLabels()
 </script>
 
 <template>
@@ -173,9 +184,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
           :disabled="disabled"
           @change="updateConsent('emailMarketingOptIn', ($event.target as HTMLInputElement).checked)"
         >
-        <span class="text-sm text-[color:var(--color-brand-primary)]">
-          Je souhaite recevoir des conseils bien-être par email (optionnel).
-        </span>
+        <span class="text-sm text-[color:var(--color-brand-primary)]">{{ consentLabels.email.lead }}<strong>{{ coachLabel }}</strong>{{ consentLabels.email.tail }}</span>
       </label>
 
       <label
@@ -190,7 +199,7 @@ function updateConsent<K extends keyof ConsentsModel>(key: K, value: boolean) {
           @change="updateConsent('smsMarketingOptIn', ($event.target as HTMLInputElement).checked)"
         >
         <span class="text-sm text-[color:var(--color-brand-primary)]">
-          Je souhaite recevoir des conseils bien-être par SMS (optionnel).
+          {{ consentLabels.sms.lead }}<strong>{{ coachLabel }}</strong>{{ consentLabels.sms.tail }}
           <span
             v-if="!modelValue.phone.trim()"
             class="block text-xs text-[color:var(--color-brand-muted)] mt-0.5"
