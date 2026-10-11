@@ -155,3 +155,50 @@ export function formatContactConsentDate(value: string): string | null {
   if (Number.isNaN(date.getTime())) return null
   return formatDateShort(value)
 }
+
+/** Une ligne « canal + date » d'un écran de préférences. */
+export type ContactConsentDateRow = {
+  channel: ContactConsentChannel
+  label: string
+  dateLabel: string
+}
+
+/**
+ * Construit les lignes « canal + date » d'un écran de préférences (cc-1b).
+ *
+ * Règle pure, hors du composant, pour être **exécutée** par un test : une date
+ * croisée entre les deux canaux — le défaut que cc-1b existe pour supprimer — ne
+ * doit pas pouvoir revenir avec une suite verte. Le libellé vient de
+ * `CONTACT_CONSENT_CHANNEL_LABEL` et le formatage de `formatContactConsentDate` :
+ * une seule source, pas une seconde dérivation dans le SFC.
+ *
+ * Un canal sans date exploitable est **omis** — la ligne n'existe que si elle a
+ * quelque chose à dater (une valeur illisible dégrade en absence, pas en
+ * « Invalid Date »).
+ */
+export function buildContactConsentDateRows(
+  input: Pick<
+    ContactConsentPayload,
+    'emailConsentUpdatedAt' | 'smsConsentUpdatedAt'
+  > | null
+): ContactConsentDateRow[] {
+  const channels: Array<[ContactConsentChannel, string | null | undefined]> = input
+    ? [
+        ['email', input.emailConsentUpdatedAt],
+        ['sms', input.smsConsentUpdatedAt]
+      ]
+    : []
+
+  const rows: ContactConsentDateRow[] = []
+
+  for (const [channel, iso] of channels) {
+    if (iso === null || iso === undefined) continue
+
+    const dateLabel = formatContactConsentDate(iso)
+    if (dateLabel === null) continue
+
+    rows.push({ channel, label: CONTACT_CONSENT_CHANNEL_LABEL[channel], dateLabel })
+  }
+
+  return rows
+}

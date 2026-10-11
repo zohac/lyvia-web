@@ -80,6 +80,31 @@ function readConsentScriptBlock(source: string): string {
   return block
 }
 
+/**
+ * Découpe bornée par deux ancres, toutes deux assertées. `indexOf` rend `-1`
+ * quand un marqueur bouge, et `slice(-1)` / `slice(a, -1)` produisent une tranche
+ * vide ou fausse sur laquelle les assertions « ne contient pas » passent — le
+ * mode d'échec silencieux que ce fichier refuse ailleurs.
+ */
+function anchoredSlice(source: string, from: string, to?: string): string {
+  const start = source.indexOf(from)
+  assert.notEqual(start, -1, `ancre introuvable : ${from}`)
+
+  if (to === undefined) {
+    const block = source.slice(start)
+    assert.notEqual(block.trim(), '', `tranche vide depuis : ${from}`)
+    return block
+  }
+
+  const end = source.indexOf(to, start)
+  assert.notEqual(end, -1, `ancre de fin introuvable : ${to}`)
+  assert.ok(end > start, `l'ancre de fin doit suivre l'ancre de début : ${to}`)
+
+  const block = source.slice(start, end)
+  assert.notEqual(block.trim(), '', `tranche vide : ${from} → ${to}`)
+  return block
+}
+
 describe('cc-1b — provider client sheet dates each channel (AC 1)', () => {
   test('resolves both channels through the shared rule, not a local guess', () => {
     const source = readAppFile(PROVIDER_SHEET)
@@ -108,9 +133,10 @@ describe('cc-1b — provider client sheet dates each channel (AC 1)', () => {
 
   test('builds the payload from exactly the two flags and two per-channel dates', () => {
     const source = readAppFile(PROVIDER_SHEET)
-    const block = source.slice(
-      source.indexOf('const contactConsentPayload'),
-      source.indexOf('const contactConsentChannels')
+    const block = anchoredSlice(
+      source,
+      'const contactConsentPayload',
+      'const contactConsentChannels'
     )
 
     for (const field of [
@@ -229,9 +255,7 @@ describe('cc-1b — discovery card carries the dates but renders none (decision 
 
   test('feeds the rule both per-channel timestamps, and nothing it does not need', () => {
     const source = readAppFile(APPOINTMENT_CARD)
-    const block = source.slice(
-      source.indexOf('const contactConsentBadges')
-    )
+    const block = anchoredSlice(source, 'const contactConsentBadges')
 
     for (const field of ['emailConsentUpdatedAt', 'smsConsentUpdatedAt']) {
       assert.match(
@@ -248,7 +272,9 @@ describe('cc-1b — discovery card carries the dates but renders none (decision 
 
   test('renders NO date at all', () => {
     const source = readAppFile(APPOINTMENT_CARD)
-    const template = source.slice(0, source.indexOf('</template>'))
+    const templateEnd = source.lastIndexOf('</template>')
+    assert.notEqual(templateEnd, -1, `${APPOINTMENT_CARD} must carry a template`)
+    const template = source.slice(0, templateEnd)
 
     // The list is scanned; a date per row degrades it. The rule still receives
     // the dates above — the label needs them — but nothing here renders one.
@@ -297,25 +323,18 @@ describe('cc-1b — discovery card carries the dates but renders none (decision 
 })
 
 describe('cc-1b — client preferences screen dates each channel (decision 2)', () => {
-  test('reads both per-channel timestamps off the preferences', () => {
-    const source = readAppFile(PREFERENCES_SECTION)
-
-    for (const field of ['emailConsentUpdatedAt', 'smsConsentUpdatedAt']) {
-      assert.match(
-        source,
-        new RegExp(`preferences(?:\\.value)?\\??\\.${field}`),
-        `${PREFERENCES_SECTION} must read ${field}`
-      )
-    }
-  })
-
-  test('formats dates through the shared rule, not a local formatter', () => {
+  test('builds the rows through the pure rule, not inline in the SFC', () => {
     const source = readAppFile(PREFERENCES_SECTION)
 
     assert.match(
       source,
-      /import\s*\{[^}]*formatContactConsentDate[^}]*\}\s*from\s*['"][^'"]*contact-consent['"]/,
-      `${PREFERENCES_SECTION} must import formatContactConsentDate from the shared consent rule`
+      /import\s*\{[^}]*buildContactConsentDateRows[^}]*\}\s*from\s*['"][^'"]*contact-consent['"]/,
+      `${PREFERENCES_SECTION} must import the row builder from the shared consent rule`
+    )
+    assert.match(
+      source,
+      /buildContactConsentDateRows\(preferences\.value\)/,
+      `${PREFERENCES_SECTION} must hand the payload to the pure row builder — the pairing is executed by contact-consent.test.ts, not by a regex`
     )
     assert.ok(
       !source.includes('toLocaleDateString'),
@@ -323,31 +342,39 @@ describe('cc-1b — client preferences screen dates each channel (decision 2)', 
     )
     assert.ok(
       !/function formatDate\(/.test(source),
-      'the local formatDate helper is superseded by formatContactConsentDate'
+      'the local formatDate helper is superseded by the shared rule'
     )
   })
 
-  test('drops the single profile-level "Dernière modification" date', () => {
+  test('drops the single profile-level "Dernière modification" line — wording included', () => {
     const source = readAppFile(PREFERENCES_SECTION)
 
     assert.ok(
       !source.includes('preferences.consentUpdatedAt'),
       'the profile-level timestamp is gone from the API contract'
     )
+    assert.ok(
+      !source.includes('preferences.value.consentUpdatedAt'),
+      'the profile-level timestamp is gone from the access form too (the old guard missed the `.value` form)'
+    )
+    // La décision figée n° 2 supprime la LIGNE, pas seulement sa donnée : l'ancien
+    // garde ne testait que le champ, donc le libellé « Dernière modification : »
+    // restait rendu au-dessus des deux lignes par canal.
+    assert.ok(
+      !source.includes('Dernière modification'),
+      'the shared « Dernière modification » label must be gone, not just its timestamp'
+    )
   })
 
   test('labels each rendered row with its own channel', () => {
     const source = readAppFile(PREFERENCES_SECTION)
 
-    for (const channel of ['Email', 'SMS']) {
-      assert.ok(
-        source.includes(`channel: '${channel}'`),
-        `${PREFERENCES_SECTION} must build a row for ${channel}`
-      )
-    }
+    // Les libellés « Email »/« SMS » vivent désormais dans le module pur
+    // (`CONTACT_CONSENT_CHANNEL_LABEL`), où ils sont exécutés par
+    // contact-consent.test.ts ; la page se contente de rendre la ligne.
     assert.match(
       source,
-      /\{\{ row\.channel \}\} le \{\{ row\.dateLabel \}\}/,
+      /\{\{ row\.label \}\} le \{\{ row\.dateLabel \}\}/,
       `${PREFERENCES_SECTION} must name the channel beside its date`
     )
   })

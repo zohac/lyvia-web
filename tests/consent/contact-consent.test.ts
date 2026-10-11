@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import { formatDateShort } from '../../app/composables/useDateFormat'
 import {
+  buildContactConsentDateRows,
   CONTACT_CONSENT_CHANNEL_ICON,
   CONTACT_CONSENT_CHANNEL_LABEL,
   formatContactConsentDate,
@@ -10,8 +11,7 @@ import {
   pickContactConsent,
   resolveContactConsent,
   type ContactConsentChannel,
-  type ContactConsentPayload,
-  type ContactConsentSource
+  type ContactConsentPayload
 } from '../../app/features/consent/contact-consent'
 
 const MON = '2026-10-12T09:30:00.000Z'
@@ -32,16 +32,14 @@ function payload(overrides: Partial<ContactConsentPayload> = {}): ContactConsent
 // born". No `consent_source` heuristic, no special case.
 // ─────────────────────────────────────────────────────────────────────────────
 
-test('state: a granted flag is "granted", whatever the date or the origin', () => {
-  for (const source of ['onboarding', 'settings', 'admin', null] as ContactConsentSource[]) {
-    for (const date of [null, MON]) {
-      assert.equal(getContactConsentState({ optedIn: true, consentUpdatedAt: date }), 'granted')
-      assert.equal(
-        getContactConsentState({ optedIn: true, consentUpdatedAt: date }),
-        'granted',
-        `source ${source} must not change the state of a granted flag`
-      )
-    }
+test('state: a granted flag is "granted", whatever the date', () => {
+  // The rule deliberately ignores provenance (`consent_source` = origin): since
+  // cc-1b the per-channel date is the whole answer, so the origin is not even an
+  // input. The previous version looped over origins it never passed in, so it
+  // asserted the same thing sixteen times and its message claimed a coverage it
+  // did not have.
+  for (const date of [null, MON]) {
+    assert.equal(getContactConsentState({ optedIn: true, consentUpdatedAt: date }), 'granted')
   }
 })
 
@@ -51,6 +49,54 @@ test('state: false with no date is "never consented"', () => {
 
 test('state: false with a date is "withdrawn" — a real change after creation', () => {
   assert.equal(getContactConsentState({ optedIn: false, consentUpdatedAt: MON }), 'withdrawn')
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// cc-1b — les lignes « canal + date » de l'écran de préférences, EXÉCUTÉES.
+// Le défaut que la story supprime (un canal affichant la date de l'autre) doit
+// tomber ici, pas seulement dans une assertion sur le texte du SFC.
+// ─────────────────────────────────────────────────────────────────────────────
+
+test('dateRows: chaque ligne porte SA date, jamais celle de l\u2019autre canal', () => {
+  const rows = buildContactConsentDateRows({
+    emailConsentUpdatedAt: MON,
+    smsConsentUpdatedAt: TUE
+  })
+
+  assert.deepEqual(
+    rows.map(row => [row.channel, row.dateLabel]),
+    [
+      ['email', formatContactConsentDate(MON)],
+      ['sms', formatContactConsentDate(TUE)]
+    ]
+  )
+  // Deux libellés distincts, deux dates distinctes : une inversion est visible.
+  assert.equal(rows[0]?.label, 'Email')
+  assert.equal(rows[1]?.label, 'SMS')
+  assert.notEqual(rows[0]?.dateLabel, rows[1]?.dateLabel)
+})
+
+test('dateRows: un canal sans date exploitable est omis', () => {
+  assert.deepEqual(
+    buildContactConsentDateRows({ emailConsentUpdatedAt: MON, smsConsentUpdatedAt: null })
+      .map(row => row.channel),
+    ['email']
+  )
+  assert.deepEqual(
+    buildContactConsentDateRows({ emailConsentUpdatedAt: null, smsConsentUpdatedAt: null }),
+    []
+  )
+  assert.deepEqual(buildContactConsentDateRows(null), [])
+})
+
+test('dateRows: une date illisible dégrade en absence, pas en ligne', () => {
+  assert.deepEqual(
+    buildContactConsentDateRows({
+      emailConsentUpdatedAt: 'pas-une-date',
+      smsConsentUpdatedAt: TUE
+    }).map(row => row.channel),
+    ['sms']
+  )
 })
 
 test('state: the origin is not an input any more, so it cannot decide the state', () => {

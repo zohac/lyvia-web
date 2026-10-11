@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useClientPreferences } from '../../features/preferences/useClientPreferences'
-import { formatContactConsentDate } from '../../features/consent/contact-consent'
+import { buildContactConsentDateRows } from '../../features/consent/contact-consent'
 
 const {
   preferences,
@@ -16,31 +16,13 @@ onMounted(() => {
 })
 
 /**
- * Each channel's own date (cc-1b). A single « Dernière modification » line
- * described the profile, not the channel she is looking at, so a change to one
- * box appeared to date the other. Formatting goes through the shared consent
- * rule, which is also what degrades an unparsable value to no date at all.
+ * Each channel's own date (cc-1b). A single shared line used to describe the
+ * profile, not the channel she is looking at, so a change to one box appeared to
+ * date the other. The row building lives in the pure consent rule
+ * (`buildContactConsentDateRows`) so it can be executed by a test — the
+ * crossed-date defect must not be able to come back with a green suite.
  */
-const consentDateRows = computed(() => {
-  if (!preferences.value) return []
-
-  return [
-    {
-      channel: 'Email',
-      iso: preferences.value.emailConsentUpdatedAt
-    },
-    {
-      channel: 'SMS',
-      iso: preferences.value.smsConsentUpdatedAt
-    }
-  ]
-    .filter(row => row.iso !== null)
-    .map(row => ({
-      channel: row.channel,
-      dateLabel: formatContactConsentDate(row.iso as string)
-    }))
-    .filter(row => row.dateLabel !== null)
-})
+const consentDateRows = computed(() => buildContactConsentDateRows(preferences.value))
 
 async function handleEmailToggle(value: boolean) {
   await updatePreferences({ emailMarketingOptIn: value })
@@ -163,18 +145,15 @@ async function handleSmsToggle(value: boolean) {
           v-if="consentDateRows.length > 0"
           class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[color:var(--color-brand-muted)]"
         >
-          <span class="flex items-center gap-2">
-            <UIcon
-              name="i-lucide-clock"
-              class="h-3.5 w-3.5"
-            />
-            Dernière modification :
-          </span>
+          <UIcon
+            name="i-lucide-clock"
+            class="h-3.5 w-3.5"
+          />
           <span
             v-for="row in consentDateRows"
             :key="row.channel"
           >
-            {{ row.channel }} le {{ row.dateLabel }}
+            {{ row.label }} le {{ row.dateLabel }}
           </span>
         </div>
       </div>
