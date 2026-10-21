@@ -1,4 +1,4 @@
-import { defineEventHandler, getQuery } from 'h3'
+import { defineEventHandler, getMethod, getQuery, getRequestURL, setResponseHeader } from 'h3'
 
 import { waitlistReplayStore } from '../utils/waitlist-replay-store'
 
@@ -11,8 +11,14 @@ import { waitlistReplayStore } from '../utils/waitlist-replay-store'
  * n'obtient plus rien, et la page s'affiche simplement sans les valeurs.
  */
 export default defineEventHandler((event) => {
-  const token = getQuery(event).r
+  const query = getQuery(event)
+  // Après routeRules : seuls les états personnels perdent le cache CDN.
+  if (query.access !== undefined || query.r !== undefined) {
+    setResponseHeader(event, 'cache-control', 'no-store')
+  }
+  const token = query.r
   if (typeof token !== 'string' || token.length === 0) return
+  if (getRequestURL(event).pathname !== '/' || getMethod(event) !== 'GET') return
 
   const values = waitlistReplayStore.consume(token)
   if (values) event.context.waitlistReplay = values

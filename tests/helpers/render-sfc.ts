@@ -72,6 +72,8 @@ const REPO_ROOT = process.cwd()
 export type ComponentStub = Record<string, unknown>
 
 export interface RenderSfcOptions {
+  /** Observe le vrai VNode rendu pour invoquer ses handlers dans les tests. */
+  inspect?: (instance: Vue.ComponentInternalInstance) => void | Promise<void>
   /** Props passées au composant racine rendu. */
   props?: Record<string, unknown>
   /**
@@ -321,8 +323,9 @@ export async function renderSfc(sfcPath: string, options: RenderSfcOptions = {})
 
   try {
     const component = compileSfc(absolutePath, mocks, cache)
+    let rendered: Vue.VNode | undefined
     const app = Vue.createSSRApp(Vue.defineComponent({
-      render: () => Vue.h(component, options.props ?? {})
+      render: () => (rendered = Vue.h(component, options.props ?? {}))
     }))
     for (const [name, stub] of Object.entries(options.stubs ?? {})) {
       app.component(name, stub as Vue.Component)
@@ -340,6 +343,11 @@ export async function renderSfc(sfcPath: string, options: RenderSfcOptions = {})
     }
 
     const html = await renderToString(app)
+    const instance = rendered?.component
+    if (options.inspect) {
+      if (!instance) throw new Error('Instance SFC absente après rendu')
+      await options.inspect(instance)
+    }
     if (failures.length > 0) {
       throw new Error(
         `renderSfc(${sfcPath}) failed:\n- ${failures.join('\n- ')}\n`
