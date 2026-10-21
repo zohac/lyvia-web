@@ -18,6 +18,7 @@
                 ? `${typeOption.activeClass} shadow-sm`
                 : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
+            :aria-pressed="selectedType === typeOption.value"
             @click="selectType(typeOption.value)"
           >
             {{ typeOption.label }}
@@ -45,6 +46,7 @@
                 ? `${statusOption.activeClass} shadow-sm`
                 : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
+            :aria-pressed="selectedStatus === statusOption.value"
             @click="selectStatus(statusOption.value)"
           >
             {{ statusOption.label }}
@@ -60,7 +62,35 @@
         </div>
       </div>
 
-      <!-- Row 2: Date Range -->
+      <!-- Row 2: Motif -->
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm text-[color:var(--color-brand-muted)]">Motif:</span>
+        <button
+          v-for="reasonOption in reasonOptions"
+          :key="reasonOption.value"
+          type="button"
+          :class="[
+            'rounded-full px-3 py-1.5 text-xs font-medium transition-all',
+            selectedReason === reasonOption.value
+              ? `${reasonOption.activeClass} shadow-sm`
+              : 'border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
+          ]"
+          :aria-pressed="selectedReason === reasonOption.value"
+          @click="selectReason(reasonOption.value)"
+        >
+          {{ reasonOption.label }}
+        </button>
+        <button
+          v-if="selectedReason"
+          type="button"
+          class="ml-1 text-xs text-[color:var(--color-brand-muted)] underline hover:text-[color:var(--color-brand-primary)]"
+          @click="clearReason"
+        >
+          Effacer
+        </button>
+      </div>
+
+      <!-- Row 3: Date Range -->
       <div class="flex flex-wrap items-center gap-4">
         <div class="flex items-center gap-2">
           <label
@@ -172,6 +202,13 @@
                 {{ notif.channel }}
               </p>
               <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--color-brand-muted)]">
+                <span
+                  v-if="notif.reason"
+                  data-testid="admin-notification-log-reason-card"
+                  :class="`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getNotificationReasonBadgeClasses(notif.reason)}`"
+                >
+                  {{ getNotificationReasonLabel(notif.reason) }}
+                </span>
                 <span class="font-mono">{{ formatRecipient(notif.recipient) }}</span>
                 <span>{{ formatNotificationDate(notif.createdAt) }}</span>
               </div>
@@ -235,10 +272,8 @@
 </template>
 
 <script setup lang="ts">
-import { h } from 'vue'
 import AdminReminderJobsPanel from './AdminReminderJobsPanel.vue'
 import AdminNotificationLogDetail from './AdminNotificationLogDetail.vue'
-import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import {
   getNotificationStatusBadgeClasses,
@@ -247,12 +282,29 @@ import {
 } from '~/composables/useAdminBadges'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
 import { formatNotificationDate } from '~/features/admin/format-notification-date'
+import {
+  buildNotificationLogColumns,
+  formatRecipient
+} from '~/features/admin/domain/admin-notification-log-columns'
+import {
+  NOTIFICATION_LOG_REASON_OPTIONS,
+  buildNotificationLogFilterQuery,
+  getNotificationReasonBadgeClasses,
+  getNotificationReasonLabel,
+  notificationLogFilterParams,
+  notificationLogFilterQueryPart,
+  parseNotificationLogFilters,
+  sameNotificationLogFilters,
+  type NotificationLogFilters
+} from '~/features/admin/domain/admin-notification-log-filters'
 import type {
   AdminNotificationLogDetail as NotificationLogDetail,
   AdminNotificationLogListItem as NotificationLogListItem
 } from '~/features/admin/api/admin-notification-log.contract'
 
 const toast = useToast()
+const route = useRoute()
+const router = useRouter()
 
 type ListNotificationLogsResponse = {
   items: NotificationLogListItem[]
@@ -265,6 +317,7 @@ type ListNotificationLogsResponse = {
 // Filters
 const selectedType = ref<string>('')
 const selectedStatus = ref<string>('')
+const selectedReason = ref<string>('')
 const dateFrom = ref('')
 const dateTo = ref('')
 const loadingMore = ref(false)
@@ -288,57 +341,153 @@ const statusOptions = [
   { value: 'skipped', label: 'Ignoré', activeClass: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]' }
 ]
 
+/** Motifs de rejet d'un robot et d'échec d'envoi (WA.7). */
+const reasonOptions = NOTIFICATION_LOG_REASON_OPTIONS
+
 const hasActiveFilters = computed(() => {
   return selectedType.value !== ''
     || selectedStatus.value !== ''
+    || selectedReason.value !== ''
     || dateFrom.value !== ''
     || dateTo.value !== ''
 })
 
-// API params
-const queryParams = computed(() => {
-  const params: Record<string, string> = { limit: '20' }
-  if (selectedType.value) params.type = selectedType.value
-  if (selectedStatus.value) params.status = selectedStatus.value
-  if (dateFrom.value) params.dateFrom = new Date(dateFrom.value).toISOString()
-  if (dateTo.value) params.dateTo = new Date(dateTo.value).toISOString()
-  return params
-})
+// URL — source de vérité partageable des filtres
+/**
+ * Filtres courants, dans la forme attendue par l'URL.
+ */
+function currentFilters(): NotificationLogFilters {
+  return {
+    type: selectedType.value,
+    status: selectedStatus.value,
+    reason: selectedReason.value,
+    dateFrom: dateFrom.value,
+    dateTo: dateTo.value
+  }
+}
 
-// Fetch notification logs (no watch - manual refresh to avoid double-fetch)
+/**
+ * Applique à l'état local les filtres lus dans l'URL.
+ *
+ * Un lien vers `/admin/tools?tab=notifications&reason=honeypot_detected`
+ * rejoue donc exactement la même liste.
+ */
+function applyFiltersFromRoute(): void {
+  const parsed = parseNotificationLogFilters(route.query)
+  selectedType.value = parsed.type
+  selectedStatus.value = parsed.status
+  selectedReason.value = parsed.reason
+  dateFrom.value = parsed.dateFrom
+  dateTo.value = parsed.dateTo
+}
+
+/**
+ * Reporte les filtres courants dans l'URL.
+ *
+ * `replace` et non `push` : un filtre n'est pas une navigation, il ne doit pas
+ * empiler l'historique. Les autres paramètres (`tab`) sont conservés.
+ */
+function syncFiltersToRoute(): void {
+  const next = buildNotificationLogFilterQuery(route.query, currentFilters())
+
+  // Rien à réécrire : on ne touche pas à l'URL (et on ne crée pas de boucle).
+  if (
+    JSON.stringify(notificationLogFilterQueryPart(next))
+    === JSON.stringify(notificationLogFilterQueryPart(route.query))
+  ) {
+    return
+  }
+
+  router.replace({ query: next })
+}
+
+// Les filtres de l'URL s'appliquent **avant** le premier appel : une URL
+// partagée recharge la liste qu'elle désigne.
+applyFiltersFromRoute()
+
+/**
+ * L'URL est réécrite avec les filtres **réellement appliqués**.
+ *
+ * Une URL éditée à la main peut porter un motif, un statut ou une date que le
+ * panneau abandonne (format non affichable, valeur inconnue) : l'URL
+ * advertise alors un filtre qui n'est pas en vigueur. On la réécrit donc —
+ * avec `replace` (pas d'entrée d'historique) et **seulement** si elle diffère,
+ * pour ne jamais boucler (le watcher compare les filtres et sort).
+ */
+syncFiltersToRoute()
+
+// API params
+const queryParams = computed(() => notificationLogFilterParams(currentFilters()))
+
+// Fetch notification logs.
+//
+// Le rechargement est **manuel** (`refresh()`) et non automatique sur les
+// params : le watcher de `route.query` ci-dessous ne sert qu'au retour
+// arrière / avant du navigateur, et il ne déclenche un fetch que si les
+// filtres **changent** — donc un seul aller-retour par action.
 const { data: notificationLogs, pending, error, refresh } = await useAsyncData<ListNotificationLogsResponse>(
   'admin-notification-logs',
   () => apiFetch<ListNotificationLogsResponse>('/admin/notification-logs', { params: queryParams.value })
 )
 
+/**
+ * Le retour arrière / avant du navigateur rejoue une URL : les filtres locaux
+ * doivent alors suivre l'URL, sinon l'écran affiche une liste et une URL
+ * discordants.
+ *
+ * Aucun aller-retour inutile : notre propre `router.replace` réécrit les
+ * mêmes valeurs, donc le watcher ne voit aucun changement et ne relança pas
+ * de fetch.
+ */
+watch(
+  () => route.query,
+  () => {
+    const parsed = parseNotificationLogFilters(route.query)
+    if (sameNotificationLogFilters(parsed, currentFilters())) return
+    applyFiltersFromRoute()
+    refresh()
+  }
+)
+
 // Filter handlers
 function selectType(type: string) {
   selectedType.value = selectedType.value === type ? '' : type
-  refresh()
+  applyFilters()
 }
 
 function clearType() {
   selectedType.value = ''
-  refresh()
+  applyFilters()
 }
 
 function selectStatus(status: string) {
   selectedStatus.value = selectedStatus.value === status ? '' : status
-  refresh()
+  applyFilters()
 }
 
 function clearStatus() {
   selectedStatus.value = ''
-  refresh()
+  applyFilters()
+}
+
+function selectReason(reason: string) {
+  selectedReason.value = selectedReason.value === reason ? '' : reason
+  applyFilters()
+}
+
+function clearReason() {
+  selectedReason.value = ''
+  applyFilters()
 }
 
 function clearDates() {
   dateFrom.value = ''
   dateTo.value = ''
-  refresh()
+  applyFilters()
 }
 
 function applyFilters() {
+  syncFiltersToRoute()
   refresh()
 }
 
@@ -346,14 +495,22 @@ function applyFilters() {
 async function loadMore() {
   if (!notificationLogs.value?.page.nextCursor || loadingMore.value) return
 
+  // Les paramètres sont **capturés** au moment de l'appel : si les filtres
+  // changent pendant le vol, la page reçue appartient à une autre liste et
+  // serait concaténée à la liste filtrée — deux jeux de filtres dans la même
+  // liste. On l'abandonne alors.
+  const requestedParams = { ...queryParams.value }
+
   loadingMore.value = true
   try {
     const moreData = await apiFetch<ListNotificationLogsResponse>('/admin/notification-logs', {
       params: {
-        ...queryParams.value,
+        ...requestedParams,
         cursor: notificationLogs.value.page.nextCursor
       }
     })
+
+    if (!sameRequestParams(requestedParams, queryParams.value)) return
 
     if (notificationLogs.value) {
       notificationLogs.value = {
@@ -372,12 +529,16 @@ async function loadMore() {
   }
 }
 
-// Format recipient (truncate SHA256 hash for table display)
-function formatRecipient(recipient: string): string {
-  if (recipient.startsWith('sha256:')) {
-    return `sha256:${recipient.slice(7, 15)}…`
+/** Deux jeux de paramètres de requête sont-ils identiques ? */
+function sameRequestParams(
+  a: Record<string, string>,
+  b: Record<string, string>
+): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+  for (const key of keys) {
+    if (a[key] !== b[key]) return false
   }
-  return recipient
+  return true
 }
 
 // Open detail drawer
@@ -397,77 +558,7 @@ async function openDetail(notification: NotificationLogListItem) {
   }
 }
 
-// Table columns
-const columns: TableColumn<NotificationLogListItem>[] = [
-  {
-    accessorKey: 'createdAt',
-    header: 'Date',
-    cell: ({ row }) => {
-      return h('span', { class: 'text-sm text-[color:var(--color-brand-secondary)]' }, formatNotificationDate(row.original.createdAt))
-    }
-  },
-  {
-    accessorKey: 'type',
-    header: 'Type',
-    cell: ({ row }) => {
-      return h('span', {
-        class: `inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getNotificationTypeBadgeClasses(row.original.type)}`
-      }, row.original.type)
-    }
-  },
-  {
-    accessorKey: 'channel',
-    header: 'Channel',
-    cell: ({ row }) => {
-      return h('span', {
-        class: 'text-sm text-[color:var(--color-brand-primary)]'
-      }, row.original.channel)
-    }
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) => {
-      return h('span', {
-        class: `inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getNotificationStatusBadgeClasses(row.original.status)}`
-      }, getNotificationStatusLabel(row.original.status))
-    }
-  },
-  {
-    accessorKey: 'recipient',
-    header: 'Destinataire',
-    cell: ({ row }) => {
-      return h('span', {
-        class: 'font-mono text-xs text-[color:var(--color-brand-muted)]',
-        title: row.original.recipient
-      }, formatRecipient(row.original.recipient))
-    }
-  },
-  {
-    id: 'actions',
-    header: '',
-    cell: ({ row }) => {
-      return h('button', {
-        class: 'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[color:var(--color-brand-secondary)] transition-colors hover:bg-[color:var(--ui-color-primary-50)] hover:text-[color:var(--color-brand-primary)]',
-        onClick: () => openDetail(row.original)
-      }, [
-        h('span', {}, 'Détails'),
-        h('svg', {
-          'class': 'h-3.5 w-3.5',
-          'xmlns': 'http://www.w3.org/2000/svg',
-          'fill': 'none',
-          'viewBox': '0 0 24 24',
-          'stroke': 'currentColor',
-          'stroke-width': '2'
-        }, [
-          h('path', {
-            'stroke-linecap': 'round',
-            'stroke-linejoin': 'round',
-            'd': 'M9 5l7 7-7 7'
-          })
-        ])
-      ])
-    }
-  }
-]
+// Table columns — le rendu des cellules vit dans le module domaine ; le
+// panneau ne fait que fournir l'ouverture du détail.
+const columns = buildNotificationLogColumns({ openDetail })
 </script>

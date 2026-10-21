@@ -6,6 +6,13 @@ export interface AdminNotificationLogListItem {
   status: string
   recipient: string
   appointmentId: string | null
+  /**
+   * Motif court **déduit** de `error_message` (WA.7).
+   *
+   * Ce n'est jamais le message brut — celui-ci reste dans le détail. `null`
+   * quand rien n'a échoué.
+   */
+  reason: string | null
   createdAt: string
 }
 
