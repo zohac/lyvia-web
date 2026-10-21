@@ -220,13 +220,50 @@ describe('cc-3 — l\u2019API refuse le SMS sans numéro (garde-fou serveur)', (
     const source = fs.readFileSync(apiPath, 'utf-8')
     assert.match(
       source,
-      /newSmsOptIn\s*===\s*true\s*&&\s*profile\.phone\s*===\s*null/,
+      /smsMarketingOptIn\s*===\s*true\s*&&\s*profile\.phone\s*===\s*null/,
       'the API must refuse a true SMS opt-in when the profile has no phone'
     )
     assert.match(
       source,
-      /phone_required_for_sms/,
-      'the API must return the phone_required_for_sms outcome'
+      /smsOptInRefused/,
+      'the API must report the refusal as a per-channel outcome, not a whole-request one'
+    )
+  })
+})
+
+describe('cc-3 — la route tokenisée retire, elle n’accorde jamais', () => {
+  test('le DTO public n’accepte que `false` comme valeur de drapeau', (t) => {
+    // Une route de retrait qui accepte `true` peut ACCORDER un consentement
+    // marketing : `email_marketing_opt_in = true` avec `consent_source =
+    // 'settings'` et une ligne `CLIENT_COMMUNICATION_CONSENT_UPDATED` — une
+    // preuve de consentement (art. 7(1)) que personne n’a donnée. L’invariant
+    // ne doit pas reposer sur le seul client web.
+    const candidates = [
+      path.resolve(
+        process.cwd(),
+        '../lyvia-api/src/features/clients/presentation/dto/update-consent-by-token.dto.ts'
+      ),
+      '/lyvia-api/src/features/clients/presentation/dto/update-consent-by-token.dto.ts',
+      '/app/src/features/clients/presentation/dto/update-consent-by-token.dto.ts'
+    ]
+    const apiPath = candidates.find(candidate => fs.existsSync(candidate))
+    if (apiPath === undefined) {
+      t.skip('source API non montée ici — contrat public non vérifiable dans ce job')
+      return
+    }
+
+    const source = fs.readFileSync(apiPath, 'utf-8')
+    // `@IsIn([false])` sur les deux drapeaux : seule la valeur `false` passe.
+    const isInFalse = (
+      source
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.startsWith('@IsIn([false])'))
+    )
+    assert.equal(
+      isInFalse.length,
+      2,
+      'both public consent flags must be restricted to `false` by the DTO'
     )
   })
 })

@@ -83,18 +83,39 @@ describe('la page ne lit rien', () => {
   })
 })
 
-describe('une soumission passive n\'écrit rien', () => {
-  it('court-circuite avant tout appel API', () => {
-    // Le court-circuit couvre les deux voies de passivité — aucune case cochée,
-    // ou un token inutilisable — via la règle partagée, pour que la page et le
-    // relais ne puissent pas diverger sur ce qu'est une soumission passive.
-    assert.match(PAGE_SOURCE, /isPassiveConsentSubmission\(/)
+describe('la page ne décide plus rien : elle rend un module exécuté', () => {
+  it('délègue son état et sa soumission au module exécuté', () => {
+    // R5 : la page est un SFC et le repo n'a pas de runner Vue — tout ce
+    // qu'elle décidait était hors de portée de tout test. Elle délègue
+    // désormais à `createConsentWithdrawalPage`, que le runner Node exécute.
+    assert.match(PAGE_SOURCE, /createConsentWithdrawalPage\(/)
+    assert.match(
+      PAGE_SOURCE,
+      /from '\.\.\/features\/preferences\/create-consent-withdrawal-page'/
+    )
+  })
+
+  it('ne redéfinit aucune règle de soumission', () => {
+    // Le corps soumis, la passivité et le classement de l'erreur vivent dans
+    // des modules purs, testés par EXÉCUTION. Les redéfinir dans la page les
+    // remettait hors de portée — c'est exactement le défaut R5.
+    assert.equal(/buildConsentWithdrawalPatch/.test(PAGE_SOURCE), false)
+    assert.equal(/isPassiveConsentSubmission/.test(PAGE_SOURCE), false)
+    assert.equal(/emailMarketingOptIn/.test(PAGE_SOURCE), false)
+    assert.equal(/smsMarketingOptIn/.test(PAGE_SOURCE), false)
   })
 
   it('ne construit jamais de patch contenant `true`', () => {
-    // Le mapping vit dans le helper pur ; la page ne doit pas le redéfinir.
     assert.equal(/emailMarketingOptIn:\s*true/.test(PAGE_SOURCE), false)
     assert.equal(/smsMarketingOptIn:\s*true/.test(PAGE_SOURCE), false)
+  })
+
+  it('laisse la sélection au module : la page ne choisit pas les canaux', () => {
+    // La sélection appartient au module exécuté. Si la page la possédait, le
+    // corps soumis dépendrait d'un code que rien n'exécute — et une
+    // sélection fixe ("retirer les deux canaux") passerait au vert.
+    assert.equal(/const\s+selection\s*=\s*ref/.test(PAGE_SOURCE), false)
+    assert.match(PAGE_SOURCE, /initialChannels:\s*parseConsentWithdrawals\(route\.query\.retrait\)/)
   })
 })
 
@@ -107,14 +128,25 @@ describe('les états rendus sont neutres', () => {
     }
   })
 
-  it('ne rend que `saved` et `error`', () => {
+  it('ne rend que `saved`, `error` et `rate-limited`', () => {
     assert.match(PAGE_SOURCE, /readConsentPageState\(route\.query\.state\)/)
   })
 
-  it('l\'erreur ne dépend pas du code HTTP reçu', () => {
-    // Un 429 et un échec transport sont tous deux « état=error » : le bucket
-    // partagé (LB2-5) ne doit pas produire une troisième branche.
-    assert.match(PAGE_SOURCE, /state\.value = 'error'/)
+  it('distingue le 429 sans jamais dépendre du token', () => {
+    // R9 : le 429 (bucket partagé, LB2-5) doit avoir son propre message —
+    // sinon la visiteuse lit « préférences non enregistrées » et peut croire
+    // son lien périmé. La distinction passe par la règle partagée…
+    assert.match(PAGE_SOURCE, /consentOutcomeToast/)
+    // …et la page ne classe rien elle-même : elle ne connaît même pas le
+    // code HTTP, seulement l'issue que le module lui rend.
+    assert.equal(/statusCode/.test(PAGE_SOURCE), false)
+    assert.equal(/429/.test(PAGE_SOURCE), false)
+  })
+
+  it('ne dit rien de l\'état du lien, quel que soit l\'échec', () => {
+    for (const forbidden of [/lien expir/i, /lien invalide/i, /lien expiré/i]) {
+      assert.equal(forbidden.test(PAGE_SOURCE), false, `${forbidden} ne doit pas exister`)
+    }
   })
 })
 
@@ -198,6 +230,15 @@ describe('le relais no-JS reste neutre et ne journalise rien', () => {
     // La règle partagée couvre les deux voies de passivité (rien de coché, ou
     // token inutilisable) : la page et le relais ne peuvent pas diverger.
     assert.match(RELAY_SOURCE, /if \(isPassiveConsentSubmission\(selection\)\)/)
+  })
+
+  it('distingue le 429 de l\'échec de transport', () => {
+    // R9 : le relais doit pouvoir dire à la page « trop de tentatives », sinon
+    // la visiteuse sans JavaScript lit le même message qu\'en cas de panne et
+    // peut abandonner son retrait. La règle est la MÊME que celle du chemin
+    // JS — c\'est elle qui garantit que les deux voies racontent la même chose.
+    assert.match(RELAY_SOURCE, /isRateLimitedError\(/)
+    assert.match(RELAY_SOURCE, /'rate-limited'/)
   })
 })
 

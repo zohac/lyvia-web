@@ -91,7 +91,7 @@ describe('buildConsentWithdrawalPatch', () => {
     const patch = buildConsentWithdrawalPatch('tok', ['email', 'sms'])
     assert.equal(patch.emailMarketingOptIn, false)
     assert.equal(patch.smsMarketingOptIn, false)
-    assert.equal(Object.values(patch).includes(true), false)
+    assert.equal((Object.values(patch) as unknown[]).includes(true), false)
   })
 
   it('laisse ABSENT le canal non coché, plutôt que d\'écrire une valeur', () => {
@@ -148,9 +148,13 @@ describe('isPassiveConsentSubmission', () => {
 })
 
 describe('readConsentPageState', () => {
-  it('n\'accepte que les deux états neutres', () => {
+  it('n\'accepte que les trois états neutres', () => {
     assert.equal(readConsentPageState('saved'), 'saved')
     assert.equal(readConsentPageState('error'), 'error')
+    // `rate-limited` est un état à part entière : le bucket partagé (LB2-5)
+    // ne dit rien du token, donc il peut être.renderé sans casser l'invariant
+    // de neutralité.
+    assert.equal(readConsentPageState('rate-limited'), 'rate-limited')
   })
 
   it('ramène tout le reste à l\'état neutre initial', () => {
@@ -226,8 +230,8 @@ describe('consentRedirectTarget', () => {
 })
 
 describe('la page ne rend aucun état dépendant du token', () => {
-  it('n\'expose que deux états, tous deux neutres', () => {
-    const outcomes = ['saved', 'error', null] as const
+  it('n\'expose que des états neutres', () => {
+    const outcomes = ['saved', 'error', 'rate-limited', null] as const
     const states = outcomes.map(state => consentRedirectTarget({ token: 'tok', state, channels: ['email'] }))
 
     // Aucun de ces chemins ne contient un mot qui évoquerait un lien périmé ou
@@ -235,6 +239,19 @@ describe('la page ne rend aucun état dépendant du token', () => {
     for (const target of states) {
       assert.equal(/expir|invalid|introuv|échoué|expired/i.test(target), false)
     }
+  })
+
+  it('reporte les canaux cochés sur un 429, comme sur une erreur', () => {
+    // L'AC de cc-2b : les valeurs sont conservées en cas d'erreur. Un 429
+    // invite à réessayer — donc les cases doivent être déjà cochées.
+    const target = consentRedirectTarget({
+      token: 'tok',
+      state: 'rate-limited',
+      channels: ['email', 'sms']
+    })
+
+    assert.match(target, /state=rate-limited/)
+    assert.match(target, /retrait=email%2Csms/)
   })
 
   it('le texte neutre d\'une soumission passive ne mentionne pas le token', () => {

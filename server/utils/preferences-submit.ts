@@ -42,14 +42,27 @@ export function pickConsentSubmitFields(form: FormData): {
 }
 
 /**
+ * What the relay observed.
+ *
+ * `ok` — the API accepted the write. `ko` — a transport failure. `rate-limited`
+ * — the shared bucket (LB2-5) answered 429. The last one is infrastructural:
+ * the bucket counts requests, not tokens, so it says nothing about the token's
+ * validity and can be told apart from a failure without breaking neutrality.
+ */
+export type ConsentRelayOutcome = 'ok' | 'ko' | 'rate-limited'
+
+/**
  * Which state a given outcome maps to.
  *
- * Only two outcomes exist and neither consults the token: a 200, or a 429 or a
- * transport failure. The API answers `200 { updated: true }` for every token, so
- * "the token was valid" is simply not information this handler can have.
+ * Three outcomes exist and none consults the token: a 200, a transport
+ * failure, and a 429 from the shared rate-limit bucket (LB2-5). The API
+ * answers `200 { updated: true }` for every token, so "the token was valid" is
+ * simply not information this handler can have.
  */
-export function consentStateFor(outcome: 'ok' | 'ko'): ConsentPageState {
-  return outcome === 'ok' ? 'saved' : 'error'
+export function consentStateFor(outcome: ConsentRelayOutcome): ConsentPageState {
+  if (outcome === 'ok') return 'saved'
+  if (outcome === 'rate-limited') return 'rate-limited'
+  return 'error'
 }
 
 /**
@@ -61,7 +74,7 @@ export function consentStateFor(outcome: 'ok' | 'ko'): ConsentPageState {
  */
 export function preferencesSubmitRedirect(input: {
   token: string
-  outcome: 'ok' | 'ko'
+  outcome: ConsentRelayOutcome
   channels: ConsentWithdrawalChannel[]
 }): string {
   if (isPassiveConsentSubmission({ token: input.token, channels: input.channels })) {

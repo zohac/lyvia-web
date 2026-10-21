@@ -26,9 +26,16 @@ export type UpdatePublicConsentResponse = {
  * (decision arbitrated on 2026-10-11), so an unchecked box means "no change",
  * and only a checked one contributes an explicit `false`. A passive submission
  * therefore sends `{ token }` alone and asks for no write at all.
+ *
+ * The type says `false` and not `boolean` on purpose: this route WITHDRAWS, it
+ * never grants. A `true` here would write `email_marketing_opt_in = true` with
+ * `consent_source = 'settings'` and a `CLIENT_COMMUNICATION_CONSENT_UPDATED`
+ * business log — a proof of consent (art. 7(1)) that nobody gave, and a
+ * prospection the client never asked for. The backend refuses it too (the DTO
+ * only accepts `false`), but the type makes the mistake unrepresentable here.
  */
 export type UpdatePublicConsentRequest = {
   token: string
-  emailMarketingOptIn?: boolean
-  smsMarketingOptIn?: boolean
+  emailMarketingOptIn?: false
+  smsMarketingOptIn?: false
 }

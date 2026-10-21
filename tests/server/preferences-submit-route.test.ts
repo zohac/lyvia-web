@@ -183,6 +183,50 @@ describe('POST /preferences-submit — relais no-JS monté (amended Task 4.2)', 
     upstreamStatus = 200
   })
 
+  it('distingue le 429 de l\'échec de transport (bucket partagé, LB2-5)', async () => {
+    // R9 : un 429 ne veut pas dire « lien périmé ». La visiteuse sans
+    // JavaScript doit lire « trop de tentatives », pas « préférences non
+    // enregistrées » — et ses choix doivent rester cochés pour réessayer.
+    upstreamStatus = 429
+    received.length = 0
+
+    const { status, location } = await submitForm({
+      token: 'tok-no-js-429',
+      retrait: ['email']
+    })
+
+    assert.equal(status, 303)
+    assert.equal(
+      location,
+      '/preferences?token=tok-no-js-429&state=rate-limited&retrait=email'
+    )
+
+    // Le 429 n'est PAS un « error » : les deux mots se distinguent, sinon le
+    // relais ne pourrait rien dire de plus à la visiteuse.
+    assert.equal(/state=error/.test(location), false)
+    assert.equal(/state=saved/.test(location), false)
+
+    upstreamStatus = 200
+  })
+
+  it('donne le même verdict pour un token valide et pour un token inconnu', async () => {
+    // Le 429 est infrastructurel : il compte des requêtes, pas des tokens.
+    // Un verdict qui dépendrait du token rouvrirait l'oracle que la feature
+    // interdit.
+    upstreamStatus = 429
+    received.length = 0
+
+    const valid = await submitForm({ token: 'tok-valide', retrait: 'email' })
+    const unknown = await submitForm({ token: 'tok-inconnu', retrait: 'email' })
+
+    assert.equal(
+      valid.location.replace(/token=[^&]+/, 'token=X'),
+      unknown.location.replace(/token=[^&]+/, 'token=X')
+    )
+
+    upstreamStatus = 200
+  })
+
   it('n\'appelle PAS l\'amont sur une soumission passive', async () => {
     // Rien n'est coché : la page ne doit rien écrire, donc le relais ne doit
     // rien demander. C'est l'invariant qui rend le formulaire sûr sans

@@ -6,9 +6,11 @@ import {
   isPassiveConsentSubmission,
   type ConsentWithdrawalSelection
 } from '../../app/features/preferences/consent-page'
+import { isRateLimitedError } from '../../app/features/preferences/consent-submit'
 import {
   pickConsentSubmitFields,
-  preferencesSubmitRedirect
+  preferencesSubmitRedirect,
+  type ConsentRelayOutcome
 } from '../utils/preferences-submit'
 
 /**
@@ -37,7 +39,7 @@ export default defineEventHandler(async (event) => {
     ? pickConsentSubmitFields(form)
     : { token: '', channels: [] }
 
-  function redirectTo(outcome: 'ok' | 'ko'): Promise<void> {
+  function redirectTo(outcome: ConsentRelayOutcome): Promise<void> {
     return sendRedirect(
       event,
       preferencesSubmitRedirect({
@@ -74,9 +76,12 @@ export default defineEventHandler(async (event) => {
     })
 
     return redirectTo('ok')
-  } catch {
-    // Transport failure or 429 — both independent of the token's validity, so
-    // this branch says nothing about whether the link is live.
-    return redirectTo('ko')
+  } catch (error: unknown) {
+    // A throttled request (429, shared bucket LB2-5) and a transport failure
+    // are told apart — and neither says anything about whether the link is
+    // live, so the two branches stay independent of the token's validity.
+    // The visitor must be able to tell "come back later" from "something
+    // broke": the first is a promise, the second would look like a dead link.
+    return redirectTo(isRateLimitedError(error) ? 'rate-limited' : 'ko')
   }
 })

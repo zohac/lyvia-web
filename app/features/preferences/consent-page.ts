@@ -52,14 +52,28 @@ export const CONSENT_SUBMIT_FIELD: Record<'token' | 'retrait', ConsentSubmitFiel
 }
 
 /**
- * The only two states a submission can end in, and neither of them says anything
- * about the token: a 200 and a 429/transport failure are the only observable
- * outcomes of a relay, because the API answers `200 { updated: true }` for every
- * token.
+ * The only states a submission can end in, and none of them says anything
+ * about the token: a 200, a transport failure and a 429 from the shared
+ * rate-limit bucket (LB2-5) are the only observable outcomes of a relay,
+ * because the API answers `200 { updated: true }` for every token.
+ *
+ * `rate-limited` is a state of its own, not a flavour of `error`: a throttled
+ * request means the withdrawal did not happen *yet*, while a transport failure
+ * says nothing about what happened. Telling the visitor « Trop de tentatives »
+ * instead of « vos préférences n'ont pas pu être enregistrées » is what keeps
+ * her from reading a shared bucket as a dead link — and from giving up a
+ * withdrawal she is entitled to.
+ *
+ * It remains independent of the token: the bucket counts requests, not tokens,
+ * so the same verdict holds for a valid token and for an unknown one.
  */
-export type ConsentPageState = 'saved' | 'error'
+export type ConsentPageState = 'saved' | 'error' | 'rate-limited'
 
-export const CONSENT_PAGE_STATE_VALUES: readonly ConsentPageState[] = ['saved', 'error']
+export const CONSENT_PAGE_STATE_VALUES: readonly ConsentPageState[] = [
+  'saved',
+  'error',
+  'rate-limited'
+]
 
 /** What the user checked, on either path. */
 export type ConsentWithdrawalSelection = {
@@ -195,12 +209,14 @@ export function readConsentToken(value: unknown): string {
  * The 303 target of the no-JS relay.
  *
  * Carries the token back (it is the page's own input, and the page is
- * `no-store`) and, on error, the checked channels so the boxes can be re-checked
- * rather than silently cleared. On success the selection is deliberately
- * dropped: nothing is left to retry.
+ * `no-store`) and, on every outcome that asks the visitor to try again, the
+ * checked channels so the boxes can be re-checked rather than silently
+ * cleared. On success the selection is deliberately dropped: nothing is left
+ * to retry.
  *
- * Only `saved` and `error` are ever produced. A passive submission gets no
- * `state` at all, which is the neutral page — see `CONSENT_NOOP_NOTICE`.
+ * Only `saved`, `error` and `rate-limited` are ever produced. A passive
+ * submission gets no `state` at all, which is the neutral page — see
+ * `CONSENT_NOOP_NOTICE`.
  */
 export function consentRedirectTarget(input: {
   token: string
@@ -212,7 +228,10 @@ export function consentRedirectTarget(input: {
   const token = input.token
   if (token) params.set('token', token)
   if (input.state) params.set('state', input.state)
-  if (input.state === 'error' && input.channels.length > 0) {
+  // The selection is re-carried on every failure — a transport error AND a
+  // throttled request. Losing it would make the visitor redo the gesture,
+  // and the AC requires the values to survive an error.
+  if (input.state !== null && input.state !== 'saved' && input.channels.length > 0) {
     params.set('retrait', serializeConsentWithdrawals(input.channels))
   }
 

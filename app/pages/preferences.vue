@@ -125,16 +125,17 @@ import type {
   UpdatePublicConsentResponse
 } from '../features/preferences/public-consent.contract'
 import {
-  buildConsentWithdrawalPatch,
   CONSENT_NOOP_NOTICE,
-  hasConsentWithdrawal,
-  isPassiveConsentSubmission,
   parseConsentWithdrawals,
   readConsentPageState,
   readConsentToken,
-  type ConsentPageState,
   type ConsentWithdrawalChannel
 } from '../features/preferences/consent-page'
+import {
+  consentOutcomeToast,
+  type ConsentSubmitOutcome
+} from '../features/preferences/consent-submit'
+import { createConsentWithdrawalPage } from '../features/preferences/create-consent-withdrawal-page'
 
 definePageMeta({
   layout: 'focus'
@@ -172,30 +173,42 @@ const token = computed(() => readConsentToken(route.query.token))
 
 // The no-JS error redirect re-checks what was checked, so an error must not
 // silently clear the visitor's choice (AC #4).
-const selection = ref<ConsentWithdrawalChannel[]>(
-  parseConsentWithdrawals(route.query.retrait)
-)
+//
+// The page owns NO decision: the selection, the submitted body and the outcome
+// (including the throttled one) belong to `createConsentWithdrawalPage`, which
+// the Node test runner can execute. The page reads the query, injects the
+// transport and renders — nothing else.
+const page = createConsentWithdrawalPage({
+  getToken: () => token.value,
+  initialChannels: parseConsentWithdrawals(route.query.retrait),
+  initialState: readConsentPageState(route.query.state),
+  // The visitor has no account yet: this page exists precisely for the window
+  // between the booking and the activation. The authenticated preferences
+  // composable targets `/client/preferences` and is not used here —
+  // deliberately, and by name nowhere near a call to it.
+  send: async (body: UpdatePublicConsentRequest) => {
+    await apiFetch<UpdatePublicConsentResponse>('/public/consent/preferences', {
+      method: 'PATCH',
+      withAuth: false,
+      body
+    })
+  },
+  notify: (outcome: ConsentSubmitOutcome) => {
+    toast.add(consentOutcomeToast(outcome))
+  }
+})
 
-const initialState = readConsentPageState(route.query.state)
-const state = ref<ConsentPageState | null>(initialState)
-const isSubmitting = ref(false)
+const {
+  selection,
+  isSubmitting,
+  hasError,
+  isSaved,
+  hasAnySelection,
+  errorMessage,
+  submit: onSubmit
+} = page
 
-const hasError = computed(() => state.value === 'error')
-const isSaved = computed(() => state.value === 'saved')
-const hasAnySelection = computed(() => hasConsentWithdrawal(selection.value))
 const noopNotice = CONSENT_NOOP_NOTICE
-
-/**
- * One wording for every failure, because there is only one failure to describe:
- * a transport error or a 429 from a shared bucket (LB2-5). Neither says anything
- * about the token, so a page that branched on the cause would leak what it is
- * forbidden to know.
- */
-const errorMessage = computed(() =>
-  hasError.value
-    ? 'Vos préférences n’ont pas pu être enregistrées. Vos choix sont conservés : vous pouvez réessayer.'
-    : ''
-)
 
 // The confirmation region is a focus target: announced by `role="status"`, and
 // reachable right after the submit so a keyboard or screen-reader user lands on
@@ -217,56 +230,5 @@ onMounted(() => {
 
 function focusStatusRegion() {
   statusRef.value?.focus()
-}
-
-async function onSubmit() {
-  if (isSubmitting.value) return
-
-  // Passive submission: no channel checked, or a token that cannot be acted on
-  // (blank, or longer than the API accepts — a malformed link, not an unknown
-  // one). Nothing is asked for, and the neutral state is what makes this page
-  // safe without pre-filling: reopening the link and pressing "Enregistrer"
-  // cannot withdraw anything by accident, and no token shape gets its own
-  // rendering.
-  if (isPassiveConsentSubmission({ token: token.value, channels: selection.value })) {
-    state.value = null
-    return
-  }
-
-  isSubmitting.value = true
-
-  const body: UpdatePublicConsentRequest = buildConsentWithdrawalPatch(
-    token.value,
-    selection.value
-  )
-
-  try {
-    await apiFetch<UpdatePublicConsentResponse>('/public/consent/preferences', {
-      method: 'PATCH',
-      // The visitor has no account yet: this page exists precisely for the
-      // window between the booking and the activation. The authenticated
-      // preferences composable targets `/client/preferences` and is not used
-      // here — deliberately, and by name nowhere near a call to it.
-      withAuth: false,
-      body
-    })
-
-    state.value = 'saved'
-    toast.add({
-      title: 'Préférences enregistrées',
-      color: 'success'
-    })
-  } catch {
-    // Only two things can be observed, and neither is the token's validity: a
-    // transport failure, and a 429 from a shared bucket (LB2-5).
-    state.value = 'error'
-    toast.add({
-      title: 'Erreur',
-      description: 'Vos préférences n’ont pas pu être enregistrées.',
-      color: 'error'
-    })
-  } finally {
-    isSubmitting.value = false
-  }
 }
 </script>
