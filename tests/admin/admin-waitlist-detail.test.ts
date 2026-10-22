@@ -68,10 +68,20 @@ function baseLead(overrides: Partial<AdminWaitlistLead> = {}): AdminWaitlistLead
   }
 }
 
+/**
+ * Auto-imports consommés par le détail. `UIcon` accompagne l'email depuis la
+ * refonte visuelle du panneau ; sans ce stub le harness échoue bruyamment
+ * (« Failed to resolve component »), ce qui est le comportement voulu.
+ */
+const DETAIL_STUBS = {
+  USlideover: slideoverStub(),
+  UIcon: { name: 'UIcon', setup: () => () => Vue.h('i') }
+}
+
 function renderDetail(lead: AdminWaitlistLead): Promise<string> {
   return renderSfc(DETAIL_PATH, {
     props: { open: true, lead },
-    stubs: { USlideover: slideoverStub() }
+    stubs: DETAIL_STUBS
   })
 }
 
@@ -250,7 +260,7 @@ describe('WA.1 — Le détail reste valide sans message ni qualification', () =>
   test('lead null : le panneau ne rend aucun contenu et ne lève pas', async () => {
     const html = await renderSfc(DETAIL_PATH, {
       props: { open: true, lead: null },
-      stubs: { USlideover: slideoverStub() }
+      stubs: DETAIL_STUBS
     })
 
     assert.ok(!html.includes('admin-waitlist-detail"'), 'no lead → no detail body')
@@ -711,7 +721,7 @@ async function renderWithCapture(props: Record<string, unknown>): Promise<{
   const closed: boolean[] = []
   await renderSfc(DETAIL_PATH, {
     props: { 'open': true, 'lead': baseLead(), ...props, 'onUpdate:open': (v: boolean) => closed.push(v) },
-    stubs: { USlideover: stub }
+    stubs: { ...DETAIL_STUBS, USlideover: stub }
   })
   return { calls, closed }
 }

@@ -2,6 +2,7 @@
   <USlideover
     :open="open"
     :content="{ onOpenAutoFocus, onCloseAutoFocus }"
+    :ui="{ content: 'sm:max-w-xl' }"
     side="right"
     @update:open="emit('update:open', $event)"
   >
@@ -30,34 +31,45 @@
     <template #body>
       <div
         v-if="lead"
-        class="space-y-6 p-4"
+        class="space-y-6"
         data-testid="admin-waitlist-detail"
       >
-        <!-- Identité : ce que l'admin peut lire sans ouvrir le détail -->
-        <div class="space-y-1">
-          <p
-            data-testid="admin-waitlist-detail-name"
-            class="text-base font-semibold text-[color:var(--color-brand-primary)]"
-          >
-            {{ fullName(lead) }}
-          </p>
-          <p class="text-sm text-[color:var(--color-brand-secondary)]">
-            <span class="text-[color:var(--color-brand-muted)]">Email&nbsp;:</span>
+        <!--
+          Identité — dense et hiérarchisée. Le panneau est plus large qu'avant
+          (xl au lieu de md) : une fiche de lecture seule dont tout le contenu
+          tient dans les 200 premiers pixels laisse une grande zone vide qui se
+          lit comme un panneau inachevé.
+        -->
+        <div class="space-y-3">
+          <div>
+            <p
+              data-testid="admin-waitlist-detail-name"
+              class="text-lg font-semibold leading-tight text-[color:var(--color-brand-primary)]"
+            >
+              {{ fullName(lead) }}
+            </p>
+            <p class="mt-1 flex items-baseline gap-1.5 text-sm text-[color:var(--color-brand-secondary)]">
+              <UIcon
+                name="lucide:mail"
+                size="14"
+                class="translate-y-0.5 shrink-0 text-[color:var(--color-brand-muted)]"
+              />
+              <span
+                data-testid="admin-waitlist-detail-email"
+                class="break-words"
+              >{{ lead.email }}</span>
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
             <span
-              data-testid="admin-waitlist-detail-email"
-              class="break-words"
-            >{{ lead.email }}</span>
-          </p>
-          <p class="flex flex-wrap items-center gap-2 text-sm">
-            <span
-              :class="`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${statusBadgeClasses(lead.status)}`"
+              :class="`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap ${statusBadgeClasses(lead.status)}`"
             >
               {{ WAITLIST_STATUS_LABELS[lead.status] }}
             </span>
             <span class="rounded-full bg-[color:var(--ui-color-primary-100)]/60 px-2.5 py-1 text-xs font-medium text-[color:var(--color-brand-primary)]">
               {{ WAITLIST_SPECIALTY_LABELS[lead.specialty] ?? lead.specialty }}
             </span>
-          </p>
+          </div>
         </div>
 
         <!--
@@ -65,55 +77,63 @@
           `whitespace-pre-wrap` respecte les retours à la ligne saisis ;
           `break-words` évite le débordement horizontal sur un mot long
           (URL collée). Aucune troncature, aucune info-bulle : FR-WA7.
+
+          Le fond teinté sépare le verbatim du reste de la fiche : sans lui, le
+          message se confondait avec les libellés de qualification.
         -->
-        <section>
-          <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+        <section class="border-t border-[color:var(--color-border-subtle)] pt-5">
+          <h3 class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brand-muted)]">
             Message
           </h3>
           <p
             v-if="lead.message"
             data-testid="admin-waitlist-detail-message"
-            class="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-[color:var(--color-brand-primary)]"
+            class="mt-3 whitespace-pre-wrap break-words rounded-[var(--radius-sm)] bg-[color:var(--color-crepuscule-50)]/70 p-4 text-sm leading-relaxed text-[color:var(--color-brand-primary)] ring-1 ring-inset ring-[color:var(--color-border-subtle)]"
           >
             {{ lead.message }}
           </p>
           <p
             v-else
             data-testid="admin-waitlist-detail-message-empty"
-            class="mt-2 text-sm italic text-[color:var(--color-brand-muted)]"
+            class="mt-3 text-sm italic text-[color:var(--color-brand-muted)]"
           >
             Aucun message renseigné.
           </p>
         </section>
 
-        <!-- Qualification : liste libellée (UX-DR-WA4) -->
-        <section>
-          <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+        <!--
+          Qualification — liste libellée (UX-DR-WA4). Deux colonnes à partir de
+          `sm` : les valeurs ne sont plus poussées par un libellé qui se casse
+          sur deux lignes (« Stade de l'activité : »), ce qui rendait la
+          colonne de droite irrégulière d'une ligne à l'autre.
+        -->
+        <section class="border-t border-[color:var(--color-border-subtle)] pt-5">
+          <h3 class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brand-muted)]">
             Qualification
           </h3>
           <dl
-            class="mt-2 space-y-1 text-sm"
+            class="mt-3 space-y-2.5 text-sm"
             data-testid="admin-waitlist-detail-qualification"
           >
-            <div class="flex gap-2">
+            <div class="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2 sm:grid-cols-[minmax(0,10.5rem)_1fr] sm:gap-3">
               <dt class="text-[color:var(--color-brand-muted)]">
-                Stade de l'activité&nbsp;:
+                Stade de l'activité
               </dt>
               <dd class="text-[color:var(--color-brand-primary)]">
                 {{ qualificationLabel(ACTIVITY_STAGE_LABELS, lead.activityStage) }}
               </dd>
             </div>
-            <div class="flex gap-2">
+            <div class="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2 sm:grid-cols-[minmax(0,10.5rem)_1fr] sm:gap-3">
               <dt class="text-[color:var(--color-brand-muted)]">
-                Frein principal&nbsp;:
+                Frein principal
               </dt>
               <dd class="text-[color:var(--color-brand-primary)]">
                 {{ qualificationLabel(MAIN_BLOCKER_LABELS, lead.mainBlocker) }}
               </dd>
             </div>
-            <div class="flex gap-2">
+            <div class="grid grid-cols-[minmax(0,7.5rem)_1fr] gap-2 sm:grid-cols-[minmax(0,10.5rem)_1fr] sm:gap-3">
               <dt class="text-[color:var(--color-brand-muted)]">
-                Source&nbsp;:
+                Source
               </dt>
               <dd class="text-[color:var(--color-brand-primary)]">
                 {{ qualificationLabel(DISCOVERY_SOURCE_LABELS, lead.discoverySource) }}
@@ -136,25 +156,25 @@
           ferait passer les assertions négatives qui les cherchent dans le HTML
           entier — elles cesseraient de porter sur le rendu.
         -->
-        <section>
-          <h3 class="text-xs font-bold uppercase tracking-[0.15em] text-[color:var(--color-brand-muted)]">
+        <section class="border-t border-[color:var(--color-border-subtle)] pt-5">
+          <h3 class="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brand-muted)]">
             Historique
           </h3>
           <dl
-            class="mt-2 space-y-1 text-sm"
+            class="mt-2 divide-y divide-[color:var(--color-border-subtle)] text-sm"
             data-testid="admin-waitlist-detail-timestamps"
           >
             <div
               v-for="entry in history"
               :key="entry.key"
-              class="flex gap-2"
+              class="flex items-baseline justify-between gap-4 py-2.5"
             >
               <dt class="text-[color:var(--color-brand-muted)]">
-                {{ entry.label }}&nbsp;:
+                {{ entry.label }}
               </dt>
               <dd
                 :data-testid="entry.testId"
-                class="text-[color:var(--color-brand-primary)]"
+                class="text-right tabular-nums text-[color:var(--color-brand-primary)]"
               >
                 {{ entry.value }}
               </dd>
@@ -215,7 +235,7 @@ const titleRef = ref<HTMLElement | null>(null)
  * `USlideover` transmet `content` à `DialogContent` via `v-bind`, donc
  * `onOpenAutoFocus` et `onCloseAutoFocus` sont surchargeables.
  *
- * - Ouverture : sans cette surcharge, reka-ui autofocuse le premier élément
+ * - Ouverture : sans cette surcharge, reka-ui autofocus le premier élément
  *   focusable, c'est-à-dire le bouton fermer. UX-DR-WA2 veut le titre.
  * - Fermeture : `onCloseAutoFocus` est surchargé *malgré* la note de spec
  *   qui Conseillait de ne pas le faire. Constaté au gate A-35 : le défaut de

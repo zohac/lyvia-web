@@ -238,14 +238,17 @@ function renderPanel(
 describe('WA.1 — Panneau rendu : nom complet et qualification (LB2-11)', () => {
   /**
    * Isole un bloc de qualification rendu — cellule desktop ou carte mobile.
-   * Le HTML du panneau contient déjà des tirets cadratins dans ses propres
-   * commentaires de gabarit : compter sur le document entier ne prouve rien,
-   * et supprimer le repli laisserait le test vert.
+   *
+   * Le repère est l'attribut `data-qualification-block`, pas une classe : la
+   * refonte visuelle du panneau a changé les classes, et une assertion qui
+   * épingle une classe casse au premier ajustement de style sans qu'aucun
+   * comportement n'ait bougé. Le HTML du panneau contient déjà des tirets
+   * cadratins dans ses propres commentaires de gabarit : compter sur le
+   * document entier ne prouve rien.
    */
   function sliceQualification(html: string, mobile = false): string {
-    const start = mobile
-      ? html.indexOf('space-y-0.5 text-xs')
-      : html.indexOf('<span class="sr-only">Stade de l&#39;activit')
+    const marker = 'data-qualification-block='
+    const start = mobile ? html.lastIndexOf(marker) : html.indexOf(marker)
     // La cellule desktop se ferme par `</td>`, la carte mobile par `</div>`.
     const end = html.indexOf(mobile ? '</div>' : '</td>', start)
     assert.ok(start !== -1 && end > start, 'the Qualification block must render')
@@ -269,7 +272,7 @@ describe('WA.1 — Panneau rendu : nom complet et qualification (LB2-11)', () =>
     assert.match(html, /Google/, 'discoverySource label')
   })
 
-  test('qualification nulle : le panneau rendu affiche le fallback « — »', async () => {
+  test('qualification nulle : un seul tiret de repli, pas trois lignes vides', async () => {
     const html = await renderPanel([leadFixture({
       activityStage: null,
       mainBlocker: null,
@@ -277,16 +280,28 @@ describe('WA.1 — Panneau rendu : nom complet et qualification (LB2-11)', () =>
     })])
 
     assert.match(html, /Émilie Durand/, 'the row still renders')
-    // Le HTML du panneau contient des tirets cadratins dans ses propres
-    // commentaires de gabarit : compter sur le document entier ne prouve rien.
-    // On isole chaque bloc de qualification.
+    // Trois tirets empilés se lisaient comme un défaut de rendu : la liste
+    // n'affiche qu'un seul tiret, le détail garde les trois libellés.
     for (const [where, mobile] of [['desktop', false], ['mobile', true]] as const) {
       assert.equal(
         (sliceQualification(html, mobile).match(/—/g) ?? []).length,
-        3,
-        `${where}: the three null qualification fields each fall back to the em dash`
+        1,
+        `${where}: an unqualified lead renders one placeholder, not one dash per field`
       )
     }
+  })
+
+  test('qualification partielle : le repli ne remplace que le champ absent', async () => {
+    const html = await renderPanel([leadFixture({ activityStage: null })])
+    const block = sliceQualification(html)
+
+    assert.equal(
+      (block.match(/—/g) ?? []).length,
+      1,
+      'only the missing stage falls back to the em dash'
+    )
+    assert.match(block, /Créer ou terminer mon site/, 'the blocker label still renders')
+    assert.match(block, /Google/, 'the source label still renders')
   })
 
   test('le nom sans lastName ne fuit pas de « null » à l\'écran', async () => {
@@ -334,7 +349,11 @@ describe('WA.1 — Panneau rendu : la ligne et la carte ouvrent le détail', () 
    * reformat et passait si le `.stop` partait sur un ancêtre inerte.
    */
   test('la cellule du menu desktop arrête clic ET clavier', () => {
-    const cell = sliceTagWith(readPanel(), 'td', 'px-6 py-3 text-right')
+    // Le repère est le `data-testid` de la cellule, pas sa classe : la refonte
+    // visuelle a changé le padding (`px-6` → `px-4`), et une assertion sur la
+    // classe casserait au moindre ajustement de style sans qu'aucun
+    // comportement ne bouge.
+    const cell = sliceTagWith(readPanel(), 'td', 'admin-waitlist-row-actions')
 
     if (cell === null) throw new Error('the desktop menu cell must exist')
     assert.match(cell, /@click\.stop/, 'the desktop menu cell must stop click propagation')
@@ -343,7 +362,7 @@ describe('WA.1 — Panneau rendu : la ligne et la carte ouvrent le détail', () 
   })
 
   test('le conteneur du menu mobile arrête clic ET clavier', () => {
-    const wrapper = sliceTagWith(readPanel(), 'div', 'mt-3 flex justify-end')
+    const wrapper = sliceTagWith(readPanel(), 'div', 'admin-waitlist-card-actions')
 
     if (wrapper === null) throw new Error('the mobile menu wrapper must exist')
     assert.match(wrapper, /@click\.stop/, 'the mobile menu wrapper must stop click propagation')
@@ -601,7 +620,7 @@ describe('WA.1 — Panneau rendu : la ligne et la carte ouvrent le détail', () 
       'utf-8'
     )
 
-    assert.match(panelSource, /actionsFor\(lead\)/, 'the row keeps the status menu')
+    assert.match(panelSource, /actionsFor\(row\.lead\)/, 'the row keeps the status menu')
     assert.ok(
       !detailSource.includes('computeActionsForStatus'),
       'UX-DR-WA5: the detail must not offer a second status mutation surface'

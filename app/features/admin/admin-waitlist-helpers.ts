@@ -1,3 +1,9 @@
+import {
+  ACTIVITY_STAGE_LABELS,
+  DISCOVERY_SOURCE_LABELS,
+  MAIN_BLOCKER_LABELS,
+  qualificationLabel
+} from '../waitlist/waitlist-labels'
 import type { AdminWaitlistLead, WaitlistStatus } from './api/admin-waitlist.contract'
 
 export interface AdminWaitlistAction {
@@ -50,6 +56,88 @@ export function computeActionsForStatus(status: WaitlistStatus): AdminWaitlistAc
  */
 export function fullName(lead: Pick<AdminWaitlistLead, 'firstName' | 'lastName'>): string {
   return lead.lastName ? `${lead.firstName} ${lead.lastName}` : lead.firstName
+}
+
+/**
+ * Les trois champs de qualification, prêts à rendre dans la liste.
+ *
+ * POURQUOI CE HELPER EXISTE : les trois colonnes sont nullables, et les rendre
+ * naïvement produisait **trois lignes de tirets empilés** pour une demande non
+ * qualifiée — à l'écran, cela ressemble à un défaut de rendu, pas à une
+ * information absente. `empty` permet à la liste de remplacer les trois lignes
+ * par un seul tiret (le détail continue de lister les trois libellés, là où
+ * l'absence est une information lisible).
+ *
+ * Les libellés viennent de la source partagée avec le formulaire public : une
+ * seconde table de correspondance avait déjà produit deux variantes du domaine
+ * yoga.
+ */
+export interface QualificationSummary {
+  empty: boolean
+  stage: string
+  blocker: string
+  source: string
+}
+
+export function qualificationSummary(
+  lead: Pick<AdminWaitlistLead, 'activityStage' | 'mainBlocker' | 'discoverySource'>
+): QualificationSummary {
+  return {
+    empty: !lead.activityStage && !lead.mainBlocker && !lead.discoverySource,
+    stage: qualificationLabel(ACTIVITY_STAGE_LABELS, lead.activityStage),
+    blocker: qualificationLabel(MAIN_BLOCKER_LABELS, lead.mainBlocker),
+    source: qualificationLabel(DISCOVERY_SOURCE_LABELS, lead.discoverySource)
+  }
+}
+
+/** Une valeur de `<input type="date">` : `yyyy-mm-dd`, sans heure ni fuseau. */
+const DATE_INPUT_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
+
+/**
+ * Bornes du jour **local** désigné par une valeur d'`<input type="date">`.
+ *
+ * `new Date('2026-10-22')` interprète la chaîne en UTC : à l'ouest de
+ * Greenwich, la journée envoyée serait celle de la veille. La date est donc
+ * décomposée à la main, puis reconstruite en heure locale.
+ *
+ * Une date inexistante (`2026-02-31`) est refusée plutôt que roulée au 2 mars
+ * par le constructeur `Date`.
+ */
+function localDayBounds(value: string): { start: Date, end: Date } | null {
+  const match = DATE_INPUT_PATTERN.exec(value)
+  if (!match) return null
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const start = new Date(year, month - 1, day, 0, 0, 0, 0)
+
+  if (
+    start.getFullYear() !== year
+    || start.getMonth() !== month - 1
+    || start.getDate() !== day
+  ) {
+    return null
+  }
+
+  return { start, end: new Date(year, month - 1, day, 23, 59, 59, 999) }
+}
+
+/**
+ * Convertit la plage de dates du panneau en filtres API.
+ *
+ * L'API compare `created_at <= dateTo` : sans borne de fin de journée, choisir
+ * le même jour dans « Du » et « Au » exclurait toutes les demandes reçues après
+ * minuit. Les deux bornes sont donc inclusives.
+ */
+export function buildWaitlistDateRange(
+  from: string,
+  to: string
+): { dateFrom?: string, dateTo?: string } {
+  return {
+    dateFrom: localDayBounds(from)?.start.toISOString(),
+    dateTo: localDayBounds(to)?.end.toISOString()
+  }
 }
 
 /**
