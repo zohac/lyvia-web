@@ -78,7 +78,10 @@ export const RESERVED_PAGE_SLUGS: ReadonlySet<string> = new Set([
   'sitemap-xml',
   'health',
   'profile',
-  'contact'
+  'contact',
+  // CC.2b — mirror of the API entry: the tokenized withdrawal page owns this
+  // path, so a provider page must not be publishable under it.
+  'preferences'
 ])
 
 export function isReservedPageSlug(slug: string): boolean {

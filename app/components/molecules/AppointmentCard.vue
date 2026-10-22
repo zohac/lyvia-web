@@ -79,6 +79,21 @@
             />
             15 min
           </UBadge>
+
+          <!-- Contact consent (read-only, epic CC.1). Same wording rule as the client detail card. -->
+          <UBadge
+            v-for="item in contactConsentBadges"
+            :key="item.channel"
+            :color="item.display.tone"
+            variant="soft"
+            size="sm"
+          >
+            <UIcon
+              :name="CONTACT_CONSENT_CHANNEL_ICON[item.channel]"
+              class="mr-1 h-3 w-3"
+            />
+            {{ item.label }} : {{ item.display.label }}
+          </UBadge>
         </div>
 
         <!-- Actions -->
@@ -137,6 +152,15 @@
 
 <script setup lang="ts">
 import type { DiscoveryAppointmentListItem } from '../../features/appointments/api/appointments.contract'
+import {
+  CONTACT_CONSENT_CHANNEL_ICON,
+  CONTACT_CONSENT_CHANNEL_LABEL,
+  pickContactConsent,
+  resolveContactConsent,
+  type ContactConsentChannel,
+  type ContactConsentDisplay,
+  type ContactConsentPayload
+} from '../../features/consent/contact-consent'
 
 const props = defineProps<{
   appointment: DiscoveryAppointmentListItem
@@ -151,6 +175,34 @@ const emit = defineEmits<{
 }>()
 
 const isUpdating = computed(() => props.updatingId === props.appointment.id)
+
+/**
+ * Read-only contact consent badges. The date is deliberately left out of the
+ * list: the card is scanned, not read, and the client detail card carries it.
+ * (AC 1 amended 2026-10-05, reaffirmed by cc-1b decision 3.)
+ *
+ * The per-channel timestamps are still fed through `pickContactConsent` — the
+ * state a badge shows depends on whether a date exists (« Retiré » vs
+ * « Jamais consenti »), so the list cannot decide on the flag alone either. Only
+ * the rendering of the date is withheld.
+ */
+const contactConsentBadges = computed<
+  Array<{ channel: ContactConsentChannel, label: string, display: ContactConsentDisplay }>
+>(() => {
+  const client = props.appointment.client
+  const payload: ContactConsentPayload = {
+    emailMarketingOptIn: client.emailMarketingOptIn,
+    smsMarketingOptIn: client.smsMarketingOptIn,
+    emailConsentUpdatedAt: client.emailConsentUpdatedAt,
+    smsConsentUpdatedAt: client.smsConsentUpdatedAt
+  }
+
+  return (['email', 'sms'] as const).map(channel => ({
+    channel,
+    label: CONTACT_CONSENT_CHANNEL_LABEL[channel],
+    display: resolveContactConsent(pickContactConsent(payload, channel))
+  }))
+})
 
 const isPastScheduled = computed(() => {
   if (props.appointment.status !== 'scheduled') return false

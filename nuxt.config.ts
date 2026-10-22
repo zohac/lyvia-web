@@ -144,6 +144,24 @@ export default defineNuxtConfig({
     '/reset-password': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
     '/verify-email': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
     '/forgot-password/**': { headers: { 'X-Robots-Tag': 'noindex,follow' } },
+    // CC.2b — the tokenized withdrawal page. `no-store` is mandatory, not
+    // hygiene: the token travels in the query string and the response differs
+    // per visitor, so any cache holding it would serve one woman's withdrawal
+    // link to another. `noindex` keeps a bearer-token URL out of the index.
+    //
+    // `Referrer-Policy: no-referrer` overrides the global
+    // `strict-origin-when-cross-origin`. That global policy only drops the
+    // query string when the request is CROSS-origin; a same-origin request
+    // (an asset, an API call, a same-site link) would still receive the full
+    // URL — query string included — in its `Referer` header. On this page the
+    // query string IS the token, so the header must be `no-referrer`.
+    '/preferences': {
+      headers: {
+        'X-Robots-Tag': 'noindex,follow',
+        'Cache-Control': 'no-store',
+        'Referrer-Policy': 'no-referrer'
+      }
+    },
     // Note: /onboarding/discovery is indexable on white-label (coach booking page).
     // On platform, robots.txt already blocks it. No noindex routeRule needed.
     '/coach/**': {

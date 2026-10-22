@@ -17,6 +17,7 @@ import {
   resolveClarityContext,
   type ClarityProfile
 } from '~/features/clarity/microsoft-clarity-helpers'
+import { isTrackingExemptPath } from '~/features/tracking/tracking-exempt'
 
 type TrackingProfile = ClarityProfile & {
   googleAdsId?: string | null
@@ -68,6 +69,18 @@ function toAdsConfig(p: TrackingProfile | null | undefined): AdsConfig | null {
 
 export async function mountTracking(): Promise<void> {
   const trackingResolvedState = useState<boolean>('tracking-resolved', () => false)
+
+  // Exempt route: no SDK, no `page_location`, no session recording. Both
+  // Google Ads and Clarity send the page's URL to a third party, and
+  // `/preferences` carries a bearer token in its query string. The guard is
+  // BEFORE any mount, so nothing is even injected on such a page.
+  //
+  // The tracking context is still "resolved" — it resolved to "nothing to
+  // mount" — so the cookie banner is not stuck waiting for it.
+  if (isTrackingExemptPath(useRoute().path)) {
+    trackingResolvedState.value = true
+    return
+  }
 
   const data = gatherNuxtData()
 

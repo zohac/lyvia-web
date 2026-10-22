@@ -10,7 +10,9 @@ export type ClientPreferences = {
   emailMarketingOptIn: boolean
   smsMarketingOptIn: boolean
   hasPhone: boolean
-  consentUpdatedAt: string | null
+  /** Per channel (CC.1b). `null` = never modified since the profile was created. */
+  emailConsentUpdatedAt: string | null
+  smsConsentUpdatedAt: string | null
   consentSource: ConsentSource | null
 }
 
