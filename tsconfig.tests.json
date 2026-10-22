@@ -10,7 +10,8 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["app/*"]
+      "~/*": ["app/*"],
+      "#shared/*": ["shared/*"]
     }
   },
   "include": [
@@ -53,5 +54,8 @@
     "app/services/api/contracts/error-response.ts",
     "tests/types/**/*.d.ts",
     "tests/**/*.ts"
+  ],
+  "exclude": [
+    "tests/helpers/fixtures/**"
   ]
 }

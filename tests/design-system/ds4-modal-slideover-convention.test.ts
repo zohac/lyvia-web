@@ -110,6 +110,14 @@ describe('DS4.4 — Convention modal vs slideover (AD-DS6)', () => {
       const content = readFile('components/organisms/AdminNotificationLogsPanel.vue')
       assert.ok(content.includes('<USlideover'), 'Should use USlideover for notification detail')
     })
+
+    test('AdminWaitlistLeadDetail uses USlideover for detail', () => {
+      // Troisième panneau de détail en lecture seule de l'admin : il rejoint le
+      // registre, sinon la convention ne le gouverne pas et le registre devient
+      // périmé pour le prochain.
+      const content = readFile('components/organisms/AdminWaitlistLeadDetail.vue')
+      assert.ok(content.includes('<USlideover'), 'Should use USlideover for waitlist lead detail')
+    })
   })
 
   describe('Exception: marketing landing page popup keeps UModal', () => {

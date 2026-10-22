@@ -1,4 +1,10 @@
-import type { WaitlistStatus } from './api/admin-waitlist.contract'
+import {
+  ACTIVITY_STAGE_LABELS,
+  DISCOVERY_SOURCE_LABELS,
+  MAIN_BLOCKER_LABELS,
+  qualificationLabel
+} from '../waitlist/waitlist-labels'
+import type { AdminWaitlistLead, WaitlistStatus } from './api/admin-waitlist.contract'
 
 export interface AdminWaitlistAction {
   label: string
@@ -34,6 +40,220 @@ export function computeActionsForStatus(status: WaitlistStatus): AdminWaitlistAc
         { label: 'Repasser en attente', nextStatus: 'pending', icon: 'i-lucide-rotate-ccw' }
       ]
   }
+}
+
+/**
+ * Nom affiché d'un lead.
+ *
+ * `lastName` est facultatif depuis LB.1 : on ne concatène que ce qui existe,
+ * sinon les lecteurs d'écran annoncent « Actions pour Émilie null ». Partagé
+ * entre le tableau et la vue de détail — deux copies de cette règle
+ * divergeraient, et c'est exactement le cas que LB2-11 a laissé sans test.
+ *
+ * Le type est dérivé du contrat, pas recopié : un changement de nullabilité
+ * côté API casserait ici, à la compilation, au lieu de produire un `undefined`
+ * silencieux dans le tableau.
+ */
+export function fullName(lead: Pick<AdminWaitlistLead, 'firstName' | 'lastName'>): string {
+  return lead.lastName ? `${lead.firstName} ${lead.lastName}` : lead.firstName
+}
+
+/**
+ * Les trois champs de qualification, prêts à rendre dans la liste.
+ *
+ * POURQUOI CE HELPER EXISTE : les trois colonnes sont nullables, et les rendre
+ * naïvement produisait **trois lignes de tirets empilés** pour une demande non
+ * qualifiée — à l'écran, cela ressemble à un défaut de rendu, pas à une
+ * information absente. `empty` permet à la liste de remplacer les trois lignes
+ * par un seul tiret (le détail continue de lister les trois libellés, là où
+ * l'absence est une information lisible).
+ *
+ * Les libellés viennent de la source partagée avec le formulaire public : une
+ * seconde table de correspondance avait déjà produit deux variantes du domaine
+ * yoga.
+ */
+export interface QualificationSummary {
+  empty: boolean
+  stage: string
+  blocker: string
+  source: string
+}
+
+export function qualificationSummary(
+  lead: Pick<AdminWaitlistLead, 'activityStage' | 'mainBlocker' | 'discoverySource'>
+): QualificationSummary {
+  return {
+    empty: !lead.activityStage && !lead.mainBlocker && !lead.discoverySource,
+    stage: qualificationLabel(ACTIVITY_STAGE_LABELS, lead.activityStage),
+    blocker: qualificationLabel(MAIN_BLOCKER_LABELS, lead.mainBlocker),
+    source: qualificationLabel(DISCOVERY_SOURCE_LABELS, lead.discoverySource)
+  }
+}
+
+/** Une valeur de `<input type="date">` : `yyyy-mm-dd`, sans heure ni fuseau. */
+const DATE_INPUT_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
+
+/**
+ * Bornes du jour **local** désigné par une valeur d'`<input type="date">`.
+ *
+ * `new Date('2026-10-22')` interprète la chaîne en UTC : à l'ouest de
+ * Greenwich, la journée envoyée serait celle de la veille. La date est donc
+ * décomposée à la main, puis reconstruite en heure locale.
+ *
+ * Une date inexistante (`2026-02-31`) est refusée plutôt que roulée au 2 mars
+ * par le constructeur `Date`.
+ */
+function localDayBounds(value: string): { start: Date, end: Date } | null {
+  const match = DATE_INPUT_PATTERN.exec(value)
+  if (!match) return null
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const start = new Date(year, month - 1, day, 0, 0, 0, 0)
+
+  if (
+    start.getFullYear() !== year
+    || start.getMonth() !== month - 1
+    || start.getDate() !== day
+  ) {
+    return null
+  }
+
+  return { start, end: new Date(year, month - 1, day, 23, 59, 59, 999) }
+}
+
+/**
+ * Convertit la plage de dates du panneau en filtres API.
+ *
+ * L'API compare `created_at <= dateTo` : sans borne de fin de journée, choisir
+ * le même jour dans « Du » et « Au » exclurait toutes les demandes reçues après
+ * minuit. Les deux bornes sont donc inclusives.
+ */
+export function buildWaitlistDateRange(
+  from: string,
+  to: string
+): { dateFrom?: string, dateTo?: string } {
+  return {
+    dateFrom: localDayBounds(from)?.start.toISOString(),
+    dateTo: localDayBounds(to)?.end.toISOString()
+  }
+}
+
+/**
+ * Prend la main sur l'autofocus de reka-ui à l'**ouverture** d'un `USlideover`.
+ *
+ * Sans cela, reka-ui autofocuse le premier élément focusable du panneau — le
+ * **bouton fermer** (UX-DR-WA2 veut le titre). On annule donc le défaut, puis
+ * on pose le focus sur le titre.
+ *
+ * Ce helper ne couvre que l'ouverture. La **fermeture** passe par
+ * `restoreFocusToTrigger`, qui répond à un problème différent : voir son
+ * docblock.
+ *
+ * Pur et testable sans DOM : on ne touche pas `document` ici.
+ *
+ * @returns `true` si le focus a été posé, `false` si aucun titre n'était
+ *   disponible — l'appelant peut alors laisser le comportement par défaut.
+ */
+export function focusSlideoverTitle(
+  event: { preventDefault: () => void },
+  heading: { focus: () => void } | null
+): boolean {
+  if (!heading) return false
+  event.preventDefault()
+  heading.focus()
+  return true
+}
+
+/** Cet élément peut-il recevoir le focus là où il est ? */
+function canReceiveFocus(element: HTMLElement): boolean {
+  // `display:none` — par exemple la ligne desktop passée en `hidden` quand la
+  // fenêtre franchit le point de rupture `md` — laisse `isConnected` vrai :
+  // `.focus()` y devient un no-op silencieux et le focus finit sur `body`.
+  return element.isConnected && element.offsetParent !== null
+}
+
+/**
+ * Restitue le focus à la demande qui a ouvert le panneau (AC-2), à la fermeture.
+ *
+ * Le défaut de reka-ui mémorise `document.activeElement` au montage du
+ * `DialogContent`. Or un clic sur la ligne ne la focus pas toujours — mesuré au
+ * gate A-35 : `event.currentTarget` est bien le `<tr>` alors que
+ * `document.activeElement` vaut encore `body`. Le focus partait donc dans le
+ * vide à la fermeture. Le panneau mémorise le(s) déclencheur(s) et on refocuse
+ * nous-mêmes, au moment exact où reka restituerait le sien.
+ *
+ * **Plusieurs candidats, par ordre de préférence.** Une même demande est rendue
+ * deux fois — la ligne du tableau desktop (`hidden md:block`) et la carte mobile
+ * (`md:hidden`). Après un redimensionnement franchissant `md`, celui qui a
+ * déclenché l'ouverture est `display:none` : `isConnected` y reste vrai,
+ * `.focus()` y devient un no-op silencieux et le focus finit sur `body`. Viser
+ * le premier candidat focusable — donc l'autre rendu — est ce qui tient AC-2
+ * (« pas sur le début du document ») sur ce chemin.
+ *
+ * Si **aucun** candidat n'est focusable — la demande a quitté la liste pendant
+ * que le panneau était ouvert — on ne touche à rien et on rend la main à reka,
+ * dont le repli est le début du document. C'est la seule issue restante, et elle
+ * reste explicitement tracée (`deferred-work.md`, WA.1).
+ *
+ * @returns `true` si le focus a été rendu, `false` si le défaut de reka reste
+ *   en place.
+ */
+export function restoreFocusToTrigger(
+  event: { preventDefault: () => void },
+  candidates: ReadonlyArray<HTMLElement | null>
+): boolean {
+  const target = candidates.find(candidate => candidate !== null && canReceiveFocus(candidate))
+  if (!target) return false
+  event.preventDefault()
+  target.focus()
+  return true
+}
+
+/**
+ * Le clic qui termine une sélection par glissement émet quand même `click` :
+ * sans ce garde, l'admin ne peut plus copier un email ou une date hors du
+ * tableau, le panneau s'ouvre par-dessus sa sélection.
+ *
+ * Décision de portée : ce motif n'existe que pour le **glissement**. `Entrée` et
+ * `Espace` ne changent pas la sélection — les appliquer là aussi rendait le
+ * détail inatteignable au clavier dès qu'une sélection traînait ailleurs dans
+ * le document (y compris dans un autre onglet `UTabs` maintenu en vie par
+ * `:unmount-on-hide="false"`), sans aucun retour pour l'admin. La fonction
+ * reçoit donc la sélection et décide : pure, testable dans les deux sens —
+ * c'est ce que la ronde 3 a rendu vérifiable en l'extrayant du panneau, où elle
+ * n'était couverte que par une assertion de source.
+ *
+ * Compromis assumé : surligner ailleurs puis cliquer une ligne sans avoir
+ * désélectionné n'ouvre pas le détail. C'est le comportement standard des zones
+ * activables entières, et le prix de l'option A.
+ */
+export function shouldIgnoreClickForSelection(selection: string): boolean {
+  return selection !== ''
+}
+
+/**
+ * Les deux rendus d'une même demande portent `data-detail-trigger="<id>"` :
+ * la ligne du tableau desktop et la carte mobile. On les mémorise **tous les
+ * deux**, celui qui a reçu l'événement d'abord : après un redimensionnement
+ * franchissant `md`, le rendu déclenché devient `display:none` et `.focus()` y
+ * est un no-op silencieux qui envoie le focus sur `body`. Sans l'autre
+ * candidat, AC-2 (« pas sur le début du document ») ne tient pas.
+ *
+ * **Testable sans DOM réel** : la racine arrive en paramètre plutôt que d'être
+ * lue depuis une ref de composant, donc la fonction s'exécute dans les tests au
+ * lieu d'être seulement relue. Elle interroge bien le DOM via `root` — elle
+ * n'est donc pas pure au sens strict, seul le filtrage/ordonnancement l'est.
+ */
+export function resolveTriggers(
+  root: ParentNode | null | undefined,
+  leadId: string,
+  fired: HTMLElement | null
+): HTMLElement[] {
+  const matches = root?.querySelectorAll<HTMLElement>(`[data-detail-trigger="${leadId}"]`)
+  const all = matches ? Array.from(matches) : []
+  return fired ? [fired, ...all.filter(element => element !== fired)] : all
 }
 
 export function statusBadgeClasses(status: WaitlistStatus): string {

@@ -1,11 +1,13 @@
 import { defineEventHandler, readFormData, sendRedirect } from 'h3'
+import { pickWaitlistValues, waitlistAccessStateForStatus, waitlistErrorStatus, type WaitlistFailureState } from '#shared/utils/waitlist-submission'
 
 import { setForwardedHeaders } from '../utils/forwarded-headers'
 import { waitlistReplayStore } from '../utils/waitlist-replay-store'
 import {
   pickWaitlistFields,
   WAITLIST_ERROR_REDIRECT,
-  waitlistErrorRedirectWithReplay,
+  waitlistStateRedirectWithReplay,
+  waitlistRedirectForState,
   waitlistRedirectFor
 } from '../utils/waitlist-submit'
 
@@ -34,19 +36,19 @@ export default defineEventHandler(async (event) => {
    * à usage unique, que la landing consomme pour pré-remplir le formulaire.
    * Rien n'est mis en URL (hors le jeton opaque) ni dans un cookie.
    */
-  function redirectToError(): Promise<void> {
-    const hasSomethingToRestore = Object.keys(body).length > 0
+  function redirectToError(state: WaitlistFailureState): Promise<void> {
+    const replay = pickWaitlistValues(body, { replay: true })
+    const hasSomethingToRestore = Object.keys(replay).length > 0
     const target = hasSomethingToRestore
-      ? waitlistErrorRedirectWithReplay(waitlistReplayStore.save(body))
-      : WAITLIST_ERROR_REDIRECT
+      ? waitlistStateRedirectWithReplay(state, waitlistReplayStore.save(replay))
+      : waitlistRedirectForState(state)
 
     return sendRedirect(event, target, 303)
   }
 
   try {
-    // `setForwardedHeaders` porte l'IP de la visiteuse, comme le proxy public.
-    // Sans lui, toutes les demandes sans JavaScript partageraient un unique
-    // bucket de rate limit côté API (IP du conteneur Nitro).
+    // Même transport que le proxy public ; l'IP sous reverse proxy (LB2-5)
+    // reste hors périmètre de WA.6.
     const headers = new Headers({ accept: 'application/json' })
     setForwardedHeaders(headers, event)
 
@@ -63,8 +65,8 @@ export default defineEventHandler(async (event) => {
       return sendRedirect(event, waitlistRedirectFor(true), 303)
     }
 
-    return redirectToError()
-  } catch {
-    return redirectToError()
+    return redirectToError('error')
+  } catch (error) {
+    return redirectToError(waitlistAccessStateForStatus(waitlistErrorStatus(error)))
   }
 })

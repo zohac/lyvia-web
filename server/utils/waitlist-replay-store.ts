@@ -6,7 +6,8 @@ import { randomUUID } from 'node:crypto'
  * Sans JS, un 303 fait perdre la saisie. La remettre via l'URL exposerait des
  * données personnelles dans l'historique, les logs et le cache partagé ;
  * la remettre via un cookie heurterait la décision 24 (« aucune persistance
- * navigateur ») et le `s-maxage=60` de la page `/`. Les valeurs restent donc
+ * navigateur »). Les variantes portant `access` ou `r` sont `no-store` depuis
+ * WA.6 ; seule la racine sans état conserve son cache CDN. Les valeurs restent donc
  * côté serveur, derrière un jeton opaque à usage unique et à durée courte.
  *
  * Limite connue : ce store vit dans le processus Nitro. Derrière plusieurs

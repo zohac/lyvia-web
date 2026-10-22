@@ -10,9 +10,9 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "test": "pnpm test:unit",
-    "test:unit": "tsc -p tsconfig.tests.json && node -e \"require('fs').writeFileSync('.tmp/test-dist/package.json', '{\\\\\\\"type\\\\\\\":\\\\\\\"commonjs\\\\\\\"}')\" && node --test .tmp/test-dist/tests/**/*.test.js",
+    "test:unit": "tsc -p tsconfig.tests.json && node -e \"require('fs').writeFileSync('.tmp/test-dist/package.json', '{\\\\\\\"type\\\\\\\":\\\\\\\"commonjs\\\\\\\"}')\" && node --require ./scripts/register-test-alias.cjs --test .tmp/test-dist/tests/**/*.test.js",
     "typecheck": "nuxt typecheck",
-    "contract:check": "node ./scripts/contract-check-openapi-auth.mjs"
+    "contract:check": "node ./scripts/contract-check-openapi-auth.mjs && node ./scripts/contract-check-openapi-waitlist.mjs && node ./scripts/contract-check-openapi-notification-logs.mjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.100",
@@ -30,11 +30,15 @@
   "devDependencies": {
     "@nuxt/eslint": "^1.10.0",
     "@tailwindcss/vite": "^4.2.2",
+    "@vue/compiler-sfc": "^3.5.31",
+    "@vue/server-renderer": "^3.5.31",
     "eslint": "^9.39.1",
     "husky": "^9.1.7",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
-    "vue-tsc": "^3.1.5"
+    "vue": "^3.5.31",
+    "vue-tsc": "^3.1.5",
+    "yaml": "^2.9.1"
   },
   "packageManager": "pnpm@10.23.0",
   "pnpm": {
