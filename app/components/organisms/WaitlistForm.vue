@@ -17,6 +17,7 @@ import {
   toWaitlistOptions
 } from '~/features/waitlist/waitlist-labels'
 import { useLandingAnalytics } from '~/composables/useLandingAnalytics'
+import { pickWaitlistValues, WAITLIST_FAILURE_MESSAGES, waitlistAccessStateForStatus, waitlistFailureStateFromAccess, type WaitlistFailureState } from '#shared/utils/waitlist-submission'
 
 const props = defineProps<{
   mode: 'inline' | 'modal'
@@ -53,8 +54,13 @@ const isSubmitting = ref(false)
 // (`/waitlist-submit` redirige vers `/?access=received#waitlist`).
 const isSubmitted = ref(route.query.access === 'received')
 // État d'erreur du même fallback (`/?access=error#waitlist`). Sans lui, une
-// demande échouée sans JavaScript revient sur un formulaire muet.
-const hasServerError = ref(route.query.access === 'error')
+// demande échouée sans JavaScript revient sur un formulaire muet. La liste
+// des états vit dans le contrat partagé : le composant ne la connaît pas.
+const failureState = ref<WaitlistFailureState | null>(
+  waitlistFailureStateFromAccess(route.query.access)
+)
+const serverErrorMessage = computed(() => failureState.value ? WAITLIST_FAILURE_MESSAGES[failureState.value] : '')
+const honeypot = ref('')
 const confirmationRef = ref<HTMLElement | null>(null)
 const hasAttemptedSubmit = ref(false)
 
@@ -154,7 +160,7 @@ async function handleSubmit() {
     await apiFetch('/public/waitlist', {
       method: 'POST',
       withAuth: false,
-      body: {
+      body: pickWaitlistValues({
         firstName: form.firstName.trim(),
         email: form.email.trim(),
         specialty: form.specialty,
@@ -162,8 +168,9 @@ async function handleSubmit() {
         mainBlocker: form.mainBlocker,
         ...(form.lastName?.trim() ? { lastName: form.lastName.trim() } : {}),
         ...(form.discoverySource ? { discoverySource: form.discoverySource } : {}),
-        ...(form.message?.trim() ? { message: form.message.trim() } : {})
-      }
+        ...(form.message?.trim() ? { message: form.message.trim() } : {}),
+        website: honeypot.value
+      })
     })
 
     trackLanding('access_request_success')
@@ -181,18 +188,8 @@ async function handleSubmit() {
     isSubmitted.value = true
     emit('submitted')
   } catch (err: unknown) {
-    if (err instanceof ApiFetchError && err.apiError.statusCode === 429) {
-      toast.add({
-        title: 'Trop de tentatives. Réessayez plus tard.',
-        color: 'error'
-      })
-    } else {
-      toast.add({
-        title: 'Erreur',
-        description: 'Une erreur est survenue. Réessayez dans un instant.',
-        color: 'error'
-      })
-    }
+    failureState.value = waitlistAccessStateForStatus(err instanceof ApiFetchError ? err.apiError.statusCode : undefined)
+    toast.add({ title: WAITLIST_FAILURE_MESSAGES[failureState.value], color: 'error' })
   } finally {
     isSubmitting.value = false
   }
@@ -241,14 +238,22 @@ async function handleSubmit() {
     class="flex w-full flex-col gap-5"
     @submit.prevent="handleSubmit"
   >
-    <!-- Échec du fallback sans JavaScript (`/?access=error#waitlist`) -->
+    <input
+      v-model="honeypot"
+      type="text"
+      name="website"
+      tabindex="-1"
+      autocomplete="off"
+      aria-hidden="true"
+      class="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0"
+    >
+    <!-- Même explication avec et sans JavaScript ; la saisie reste intacte. -->
     <p
-      v-if="hasServerError"
+      v-if="serverErrorMessage"
       role="alert"
       class="rounded-xl border border-[var(--color-error-300)]/40 bg-[var(--color-error-300)]/10 px-4 py-3 text-sm leading-relaxed text-[var(--color-error-300)]"
     >
-      Votre demande n’a pas pu être envoyée. Merci de vérifier les champs obligatoires
-      puis de réessayer.
+      {{ serverErrorMessage }}
     </p>
 
     <!-- Prénom -->

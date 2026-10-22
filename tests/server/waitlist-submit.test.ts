@@ -5,8 +5,9 @@ import {
   pickWaitlistFields,
   WAITLIST_ERROR_REDIRECT,
   WAITLIST_RECEIVED_REDIRECT,
-  waitlistErrorRedirectWithReplay,
-  waitlistRedirectFor
+  waitlistRedirectFor,
+  waitlistRedirectForState,
+  waitlistStateRedirectWithReplay
 } from '../../server/utils/waitlist-submit'
 import { createWaitlistReplayStore } from '../../server/utils/waitlist-replay-store'
 
@@ -74,6 +75,28 @@ describe('pickWaitlistFields', () => {
 
     assert.deepEqual(body, { firstName: 'Émilie' })
   })
+
+  it('relaye le champ leurre : sans lui, l\'API ne peut pas rejeter le robot', () => {
+    // L'oubli le plus grave : un champ absent de la liste blanche est
+    // supprimé AVANT l'appel API, donc le rejet n'a jamais lieu — sans
+    // produire le moindre signal.
+    const body = pickWaitlistFields(formOf({
+      firstName: 'Émilie',
+      website: '  https://spam.example  '
+    }))
+
+    assert.deepEqual(body, { firstName: 'Émilie', website: 'https://spam.example' })
+  })
+
+  it('garde la première valeur d\'un champ répétée', () => {
+    // `FormData.get()` rend la première occurrence : un formulaire qui
+    // enverrait deux fois le même nom ne doit pas voir la dernière wins.
+    const form = new FormData()
+    form.append('firstName', 'Première')
+    form.append('firstName', 'Seconde')
+
+    assert.deepEqual(pickWaitlistFields(form), { firstName: 'Première' })
+  })
 })
 
 describe('waitlistRedirectFor', () => {
@@ -91,10 +114,27 @@ describe('waitlistRedirectFor', () => {
     assert.match(WAITLIST_RECEIVED_REDIRECT, /access=received/)
     assert.match(WAITLIST_ERROR_REDIRECT, /access=error/)
   })
+})
 
-  it('porte le jeton de restitution dans la cible d\'erreur', () => {
-    const target = waitlistErrorRedirectWithReplay('jeton-abc')
-    assert.match(target, /^\/\?access=error&r=jeton-abc#waitlist$/)
+describe('waitlistRedirectForState', () => {
+  it('nomme les trois états d\'échec sans jeton', () => {
+    assert.equal(waitlistRedirectForState('error'), '/?access=error#waitlist')
+    assert.equal(waitlistRedirectForState('rate-limited'), '/?access=rate-limited#waitlist')
+    assert.equal(waitlistRedirectForState('unavailable'), '/?access=unavailable#waitlist')
+  })
+
+  it('porte le jeton de restitution pour chaque état', () => {
+    for (const state of ['error', 'rate-limited', 'unavailable'] as const) {
+      const target = waitlistStateRedirectWithReplay(state, 'jeton-abc')
+      assert.equal(target, `/?access=${state}&r=jeton-abc#waitlist`)
+    }
+  })
+
+  it('échappe le jeton dans l\'URL', () => {
+    assert.equal(
+      waitlistStateRedirectWithReplay('error', 'a b&c=d'),
+      '/?access=error&r=a%20b%26c%3Dd#waitlist'
+    )
   })
 })
 

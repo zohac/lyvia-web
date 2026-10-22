@@ -7,41 +7,38 @@
  * inaperçue (le chemin JS, lui, continuerait de fonctionner).
  */
 
-/** Liste blanche stricte : rien d'autre n'est relayé à l'API. */
-export const WAITLIST_SUBMIT_FIELDS = [
-  'firstName',
-  'lastName',
-  'email',
-  'specialty',
-  'activityStage',
-  'mainBlocker',
-  'discoverySource',
-  'message'
-] as const
+import {
+  pickWaitlistValue,
+  WAITLIST_SUBMIT_FIELDS,
+  type WaitlistAccessState
+} from '#shared/utils/waitlist-submission'
 
 export const WAITLIST_ERROR_REDIRECT = '/?access=error#waitlist'
 export const WAITLIST_RECEIVED_REDIRECT = '/?access=received#waitlist'
 
-/** Cible d'erreur portant le jeton de restitution des valeurs saisies. */
-export function waitlistErrorRedirectWithReplay(token: string): string {
-  return `/?access=error&r=${encodeURIComponent(token)}#waitlist`
+export function waitlistRedirectForState(state: WaitlistAccessState): string {
+  return `/?access=${state}#waitlist`
+}
+
+export function waitlistStateRedirectWithReplay(state: WaitlistAccessState, token: string): string {
+  return `/?access=${state}&r=${encodeURIComponent(token)}#waitlist`
 }
 
 /**
  * Ne conserve que les champs de la liste blanche, non vides, ébarbés.
- * Un `FormData` vide (cas d'un formulaire soumis sans aucun `name`) produit
- * donc `{}` — et l'API répond 422, ce que la page traduit en état d'erreur.
+ *
+ * Les champs sont lus **un par un** dans le `FormData` : `form.get()` rend
+ * la première valeur d'un nom répétée, et la liste blanche n'est jamais
+ * materialisée au-delà de ce qu'elle autorise. Un `FormData` vide (cas d'un
+ * formulaire soumis sans aucun `name`) produit donc `{}` — et l'API répond
+ * 422, ce que la page traduit en état d'erreur.
  */
 export function pickWaitlistFields(form: FormData): Record<string, string> {
   const body: Record<string, string> = {}
-
   for (const field of WAITLIST_SUBMIT_FIELDS) {
-    const value = form.get(field)
-    if (typeof value === 'string' && value.trim().length > 0) {
-      body[field] = value.trim()
-    }
+    const value = pickWaitlistValue(form.get(field))
+    if (value !== undefined) body[field] = value
   }
-
   return body
 }
 

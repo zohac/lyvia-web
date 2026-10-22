@@ -131,7 +131,7 @@ test('DS4.3: notification logs mobile cards show key info (type, status, channel
   assert.match(mobileSection, /getNotificationStatusBadgeClasses/)
   assert.match(mobileSection, /notif\.channel/)
   assert.match(mobileSection, /formatRecipient/)
-  assert.match(mobileSection, /formatDate/)
+  assert.match(mobileSection, /formatNotificationDate/)
 })
 
 test('DS4.3: notification logs mobile cards have focus-visible outline', () => {
