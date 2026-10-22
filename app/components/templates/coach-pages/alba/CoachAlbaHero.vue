@@ -26,6 +26,7 @@
  *   - la profondeur vient de dégradés CSS de marque, pas d'une photo.
  */
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
+import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
 
 const props = defineProps<CoachHeroProps & {
   /**
@@ -231,7 +232,7 @@ const initials = computed(() => {
                 name="i-lucide-graduation-cap"
                 class="size-3.5 text-[color:var(--color-brand-accent)]"
               />
-              {{ credentials[0].title }}
+              {{ credentials[0].title }}<template v-if="formatCredentialMeta(credentials[0])"> · {{ formatCredentialMeta(credentials[0]) }}</template>
             </span>
             <span
               v-if="city"

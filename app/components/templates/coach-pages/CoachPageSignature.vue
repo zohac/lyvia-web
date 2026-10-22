@@ -22,6 +22,7 @@ import type { ConsultationPricePlan } from '~/features/consultation/api/consulta
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
+import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
 import CoachHeroProfile from '~/components/organisms/CoachHeroProfile.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
 import CoachFreeText from '~/components/organisms/CoachFreeText.vue'
@@ -333,13 +334,18 @@ const heroProps = computed(() => ({
               v-if="coachProfile?.credentials?.length || coachProfile?.city"
               class="mt-4 text-lg text-[var(--color-brand-accent)]"
             >
-              <template v-if="coachProfile?.credentials?.length">
-                {{ coachProfile.credentials[0]?.title }}
+              <template
+                v-for="(cred, i) in coachProfile?.credentials ?? []"
+                :key="i"
+              >
+                <span v-if="i > 0"> · </span>{{ cred.title }}<template v-if="formatCredentialMeta(cred)">
+                  ({{ formatCredentialMeta(cred) }})
+                </template>
               </template>
               <template v-if="coachProfile?.credentials?.length && coachProfile?.city">
-                ·
+                · {{ coachProfile.city }}
               </template>
-              <template v-if="coachProfile?.city">
+              <template v-else-if="coachProfile?.city">
                 {{ coachProfile.city }}
               </template>
             </p>
@@ -347,10 +353,11 @@ const heroProps = computed(() => ({
             <!-- Badges V3: credentials + specialite + localisation + visio -->
             <div class="mt-6 flex flex-wrap gap-3">
               <span
-                v-if="coachProfile?.credentials?.length"
+                v-for="(cred, i) in coachProfile?.credentials ?? []"
+                :key="i"
                 class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]"
               >
-                {{ coachProfile.credentials[0]?.title }}
+                {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
               </span>
               <span class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]">
                 Accompagnement en périménopause et ménopause

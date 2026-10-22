@@ -16,6 +16,7 @@
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { useCoachLink } from '~/composables/useCoachLink'
+import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
 
 const props = defineProps<{
   profile: PublicProviderProfile
@@ -37,7 +38,7 @@ const bioShort = computed(() => {
 
 const mainSpecialty = computed(() => props.profile.specialties?.[0] ?? null)
 
-const credentialChips = computed(() => props.profile.credentials?.slice(0, 3) ?? [])
+const credentialChips = computed(() => props.profile.credentials ?? [])
 </script>
 
 <template>
@@ -108,7 +109,7 @@ const credentialChips = computed(() => props.profile.credentials?.slice(0, 3) ??
               name="i-lucide-badge-check"
               class="size-3.5 text-[color:var(--color-brand-accent)]"
             />
-            {{ cred.title }}
+            {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
           </span>
         </div>
 

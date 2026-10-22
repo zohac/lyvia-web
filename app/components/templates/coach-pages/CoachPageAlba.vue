@@ -39,6 +39,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
+import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachAlbaHeader from '~/components/templates/coach-pages/alba/CoachAlbaHeader.vue'
 import CoachAlbaHero from '~/components/templates/coach-pages/alba/CoachAlbaHero.vue'
@@ -395,7 +396,7 @@ const heroProps = computed(() => ({
                   name="i-lucide-award"
                   class="size-3.5 text-[color:var(--color-brand-accent)]"
                 />
-                {{ cred.title }}
+                {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
               </span>
             </div>
 

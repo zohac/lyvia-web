@@ -13,6 +13,7 @@
  * Signature (via CoachHeroProfile) reste inchangé.
  */
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
+import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
 
 const props = defineProps<CoachHeroProps>()
 
@@ -40,7 +41,12 @@ const subtitle = computed(() => {
 })
 
 // Credential chip (first credential title or null)
-const firstCredential = computed(() => props.credentials[0]?.title ?? null)
+const firstCredential = computed(() => {
+  const cred = props.credentials[0]
+  if (!cred?.title) return null
+  const meta = formatCredentialMeta(cred)
+  return meta ? `${cred.title} · ${meta}` : cred.title
+})
 
 // Initials for photo fallback (sober, not dramatic)
 const initials = computed(() => {

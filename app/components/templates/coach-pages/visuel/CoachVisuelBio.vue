@@ -9,6 +9,7 @@
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
 
 const props = defineProps<{
   coachProfile: PublicProviderProfile | null
@@ -108,7 +109,7 @@ const displayedCredentials = computed(() => {
                 name="i-lucide-award"
                 class="size-3.5 text-[color:var(--color-brand-accent)]"
               />
-              {{ cred.title }}
+              {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
             </span>
           </div>
         </div>
