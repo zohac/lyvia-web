@@ -3,6 +3,7 @@ import {
   COOKIE_CONSENT_NAME,
   type ConsentValue
 } from '../../features/consent/consent-logic'
+import { resolveConsentCoachLabel } from '../../features/consent/coach-label'
 import { fireGoogleAdsConversion } from '../../features/consent/google-ads-runtime'
 import type {
   AvailabilitySlot,
@@ -80,6 +81,20 @@ function updateConsents(value: typeof consents.value) {
 
 const coachName = computed(() => tenant.value?.brand.displayName ?? null)
 const isWhiteLabelTenant = computed(() => tenant.value?.brand.mode === 'custom_domain')
+/**
+ * Clause `{coach}` des libellés de consentement (story cc-3).
+ *
+ * Résolue ici — et non dans `IdentityForm` — pour que la molécule reste testable
+ * et que le nom vienne de la **même source** que le responsable de traitement
+ * déclaré dans `app/pages/legal/confidentialite.vue:48`.
+ */
+const consentCoachLabel = computed(() =>
+  resolveConsentCoachLabel({
+    mode: tenant.value?.brand.mode ?? null,
+    companyName: tenant.value?.legalInfo?.companyName ?? null,
+    displayName: tenant.value?.brand.displayName ?? null
+  })
+)
 const headerLogoSrc = computed(() =>
   isWhiteLabelTenant.value ? '/images/keova-logo-white-label.webp' : '/images/keova-logo.webp'
 )
@@ -677,6 +692,7 @@ async function submitBooking() {
               <IdentityForm
                 v-model="identity"
                 :consents="consents"
+                :coach-label="consentCoachLabel"
                 :errors="formErrors"
                 :disabled="isSubmitting"
                 @update:consents="updateConsents"

@@ -284,6 +284,46 @@
                 </p>
               </div>
             </div>
+
+            <!-- Contact consent (read-only, epic CC.1) -->
+            <div
+              v-if="contactConsentChannels.length > 0"
+              class="py-3 last:pb-0"
+            >
+              <p class="text-xs font-medium uppercase tracking-wider text-[color:var(--color-text-muted)]">
+                Consentement de contact
+              </p>
+              <p class="mt-1 text-sm text-[color:var(--color-text-secondary)]">
+                Réponse donnée par la cliente, canal par canal.
+              </p>
+
+              <div class="mt-3 space-y-1">
+                <div
+                  v-for="item in contactConsentChannels"
+                  :key="item.channel"
+                  class="flex items-center justify-between gap-4 rounded-[var(--radius-md)] p-3"
+                >
+                  <p class="font-medium text-[color:var(--color-brand-primary)]">
+                    {{ item.label }}
+                  </p>
+                  <div class="flex items-center gap-2 text-right">
+                    <span
+                      v-if="item.display.dateLabel"
+                      class="text-xs text-[color:var(--color-brand-muted)]"
+                    >
+                      le {{ item.display.dateLabel }}
+                    </span>
+                    <UBadge
+                      :color="item.display.tone"
+                      variant="soft"
+                      size="sm"
+                    >
+                      {{ item.display.label }}
+                    </UBadge>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </UCard>
 
@@ -392,6 +432,14 @@ import { resendActivation } from '../../../features/clients/services/provider-cl
 import { copyToClipboard } from '../../../utils/clipboard'
 import { validateClientFields } from '../../../utils/validate-client-fields'
 import {
+  CONTACT_CONSENT_CHANNEL_LABEL,
+  pickContactConsent,
+  resolveContactConsent,
+  type ContactConsentChannel,
+  type ContactConsentDisplay,
+  type ContactConsentPayload
+} from '../../../features/consent/contact-consent'
+import {
   formatClientName,
   formatNextAppointment,
   getClientStatusMeta,
@@ -469,6 +517,50 @@ function getNextScheduledAppointmentAt(): string | null {
 
   return next?.scheduledAt ?? null
 }
+
+// ============================================================================
+// Contact consent (read-only, epic CC.1)
+// ============================================================================
+
+/**
+ * Read-only consent. Nothing here writes: the provider space has no consent
+ * command, and this display must not trigger one.
+ *
+ * Each channel carries its own timestamp (CC.1b), so the wording comes from the
+ * shared rule rather than from a local guess on a profile-level date.
+ */
+const contactConsentPayload = computed<ContactConsentPayload | null>(() => {
+  const source = detail.value?.client
+  if (!source) return null
+
+  return {
+    emailMarketingOptIn: source.emailMarketingOptIn,
+    smsMarketingOptIn: source.smsMarketingOptIn,
+    emailConsentUpdatedAt: source.emailConsentUpdatedAt,
+    smsConsentUpdatedAt: source.smsConsentUpdatedAt
+  }
+})
+
+/**
+ * Each channel carries its own state and its own date: CC.1b removed the
+ * profile-level timestamp precisely because one date cannot describe two
+ * channels. « Retiré » now reads with the date she unticked, not with the date
+ * she changed the other one.
+ */
+const contactConsentChannels = computed<Array<{
+  channel: ContactConsentChannel
+  label: string
+  display: ContactConsentDisplay
+}>>(() => {
+  const payload = contactConsentPayload.value
+  if (!payload) return []
+
+  return (['email', 'sms'] as const).map(channel => ({
+    channel,
+    label: CONTACT_CONSENT_CHANNEL_LABEL[channel],
+    display: resolveContactConsent(pickContactConsent(payload, channel))
+  }))
+})
 
 // ============================================================================
 // Edit form (Story 14-2)

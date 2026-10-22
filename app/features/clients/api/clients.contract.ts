@@ -1,3 +1,5 @@
+import type { ContactConsentSource } from '../../consent/contact-consent'
+
 /**
  * Client stage in the journey (source of truth from ClientProfile).
  * 4-stage model validated by PM (2026-01-21).
@@ -29,6 +31,14 @@ export type ProviderClientDetailProfile = {
   lastname: string
   email: string
   phone: string
+  /** Read-only contact consent, sourced from `client_profiles`. */
+  emailMarketingOptIn: boolean
+  smsMarketingOptIn: boolean
+  /** Per channel (CC.1b): each channel's own date, never the other's. */
+  emailConsentUpdatedAt: string | null
+  smsConsentUpdatedAt: string | null
+  /** Provenance of the last write. Kept in the contract, unread by the UI. */
+  consentSource: ContactConsentSource
 }
 
 export type ProviderClientDetailProgram = {
