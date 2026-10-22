@@ -69,9 +69,9 @@ describe('WA.7 — vocabulaire des motifs (C1)', () => {
 describe('WA.7 — lecture des filtres dans l\'URL (C1)', () => {
   test('les filtres connus sont lus', () => {
     const filters = parseNotificationLogFilters({
-      type: 'email',
-      status: 'skipped',
-      reason: 'honeypot_detected'
+      notif_type: 'email',
+      notif_status: 'skipped',
+      notif_reason: 'honeypot_detected'
     })
 
     assert.equal(filters.type, 'email')
@@ -80,18 +80,18 @@ describe('WA.7 — lecture des filtres dans l\'URL (C1)', () => {
   })
 
   test('un motif inconnu est abandonné, pas transmis à l\'API', () => {
-    const filters = parseNotificationLogFilters({ reason: 'DROP TABLE' })
+    const filters = parseNotificationLogFilters({ notif_reason: 'DROP TABLE' })
 
     assert.equal(filters.reason, '')
     assert.equal(notificationLogFilterParams(filters).reason, undefined)
   })
 
   test('un statut inconnu est abandonné', () => {
-    assert.equal(parseNotificationLogFilters({ status: 'nope' }).status, '')
+    assert.equal(parseNotificationLogFilters({ notif_status: 'nope' }).status, '')
   })
 
   test('une date illisible est abandonnée', () => {
-    const filters = parseNotificationLogFilters({ dateFrom: 'pas-une-date' })
+    const filters = parseNotificationLogFilters({ notif_dateFrom: 'pas-une-date' })
 
     assert.equal(filters.dateFrom, '')
     assert.equal(notificationLogFilterParams(filters).dateFrom, undefined)
@@ -101,7 +101,7 @@ describe('WA.7 — lecture des filtres dans l\'URL (C1)', () => {
     // Elle serait appliquée à la requête tout en restant invisible dans le
     // panneau : l'URL et l'écran seraient en désaccord.
     const filters = parseNotificationLogFilters({
-      dateFrom: '2026-10-01T08:30:00.000Z'
+      notif_dateFrom: '2026-10-01T08:30:00.000Z'
     })
 
     assert.equal(filters.dateFrom, '')
@@ -109,13 +109,25 @@ describe('WA.7 — lecture des filtres dans l\'URL (C1)', () => {
   })
 
   test('une date au format datetime-local est conservée', () => {
-    const filters = parseNotificationLogFilters({ dateFrom: '2026-10-01T08:30' })
+    const filters = parseNotificationLogFilters({ notif_dateFrom: '2026-10-01T08:30' })
 
     assert.equal(filters.dateFrom, '2026-10-01T08:30')
   })
 
+  test('un paramètre générique n\'est pas lu comme un filtre du panneau', () => {
+    // Un `status=` ou un `reason=` sans préfixe appartient à un autre panneau
+    // (ou à personne) : il ne doit pas devenir un filtre des notifications.
+    const filters = parseNotificationLogFilters({
+      status: 'skipped',
+      reason: 'honeypot_detected'
+    })
+
+    assert.equal(filters.status, '')
+    assert.equal(filters.reason, '')
+  })
+
   test('un tableau de valeurs ne garde que la première', () => {
-    const filters = parseNotificationLogFilters({ reason: ['honeypot_detected', 'other'] })
+    const filters = parseNotificationLogFilters({ notif_reason: ['honeypot_detected', 'other'] })
 
     assert.equal(filters.reason, 'honeypot_detected')
   })
@@ -128,7 +140,7 @@ describe('WA.7 — écriture des filtres dans l\'URL (C1)', () => {
       { ...emptyNotificationLogFilters(), reason: 'honeypot_detected' }
     )
 
-    assert.equal(query.reason, 'honeypot_detected')
+    assert.equal(query.notif_reason, 'honeypot_detected')
   })
 
   test('les autres paramètres de l\'URL sont conservés', () => {
@@ -144,23 +156,26 @@ describe('WA.7 — écriture des filtres dans l\'URL (C1)', () => {
 
   test('un filtre vidé disparaît de l\'URL', () => {
     const query = buildNotificationLogFilterQuery(
-      { tab: 'notifications', reason: 'honeypot_detected' },
+      { tab: 'notifications', notif_reason: 'honeypot_detected' },
       { ...emptyNotificationLogFilters() }
     )
 
-    assert.equal('reason' in query, false)
+    assert.equal('notif_reason' in query, false)
     assert.equal(query.tab, 'notifications')
   })
 
-  test('les filtres ne se contaminent pas', () => {
+  test('les filtres du panneau ne contaminent pas les paramètres d\'un autre panneau', () => {
+    // `/admin/tools` partage une seule URL entre ses panneaux : un `status=`
+    // générique n'appartient pas aux notifications et ne doit être ni lu ni
+    // effacé par elles.
     const query = buildNotificationLogFilterQuery(
       { type: 'email', status: 'skipped' },
       { ...emptyNotificationLogFilters(), reason: 'retryable' }
     )
 
-    assert.equal(query.type, undefined)
-    assert.equal(query.status, undefined)
-    assert.equal(query.reason, 'retryable')
+    assert.equal(query.type, 'email')
+    assert.equal(query.status, 'skipped')
+    assert.equal(query.notif_reason, 'retryable')
   })
 
   test('deux jeux de filtres identiques sont égaux', () => {

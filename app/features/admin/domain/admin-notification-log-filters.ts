@@ -116,8 +116,30 @@ const EMPTY_FILTERS: NotificationLogFilters = {
   dateTo: ''
 }
 
+/**
+ * Préfixe des paramètres d'URL du panneau.
+ *
+ * `/admin/tools` monte **plusieurs panneaux** (analytique, journal métier,
+ * notifications, liste d'attente) qui partagent **le même espace d'URL** : un
+ * nom générique comme `status` ou `type` y est ambigu, et le filtre de l'un
+ * deviendrait le filtre de l'autre. Le panneau des notifications préfixe donc
+ * ses paramètres — `notif_status`, `notif_type`, `notif_reason`,
+ * `notif_dateFrom`, `notif_dateTo`.
+ *
+ * **Le préfixe ne concerne que l'URL du back-office.** Les paramètres envoyés
+ * à l'API gardent leurs noms de contrat (`?reason=…`) : le contrat HTTP n'est
+ * pas modifié par une collision d'URL, et ne doit pas l'être.
+ */
+const FILTER_QUERY_PREFIX = 'notif_'
+
 /** Paramètres d'URL qui portent un filtre du panneau. */
-const FILTER_QUERY_KEYS = ['type', 'status', 'reason', 'dateFrom', 'dateTo']
+const FILTER_QUERY_KEYS: readonly string[] = [
+  `${FILTER_QUERY_PREFIX}type`,
+  `${FILTER_QUERY_PREFIX}status`,
+  `${FILTER_QUERY_PREFIX}reason`,
+  `${FILTER_QUERY_PREFIX}dateFrom`,
+  `${FILTER_QUERY_PREFIX}dateTo`
+]
 
 /**
  * La première valeur d'un paramètre d'URL, en texte.
@@ -155,16 +177,20 @@ function isDisplayableDate(value: string): boolean {
 /**
  * Lit les filtres dans l'URL.
  *
+ * Seuls les paramètres **préfixés** sont lus : un `?status=` ou un
+ * `?reason=` générique appartient à un autre panneau (ou à personne) et ne
+ * doit pas devenir un filtre des notifications.
+ *
  * Les valeurs inconnues sont **abandonnées** : une URL éditée à la main ne
  * peut pas faire échouer la requête (l'API répondrait `422`), elle est
  * simplement sans effet.
  */
 export function parseNotificationLogFilters(query: LocationQuery): NotificationLogFilters {
-  const type = firstValue(query.type)
-  const status = firstValue(query.status)
-  const reason = firstValue(query.reason)
-  const dateFrom = firstValue(query.dateFrom)
-  const dateTo = firstValue(query.dateTo)
+  const type = firstValue(query[`${FILTER_QUERY_PREFIX}type`])
+  const status = firstValue(query[`${FILTER_QUERY_PREFIX}status`])
+  const reason = firstValue(query[`${FILTER_QUERY_PREFIX}reason`])
+  const dateFrom = firstValue(query[`${FILTER_QUERY_PREFIX}dateFrom`])
+  const dateTo = firstValue(query[`${FILTER_QUERY_PREFIX}dateTo`])
 
   return {
     type: isOneOf(type, NOTIFICATION_LOG_TYPE_VALUES) ? type : '',
@@ -178,6 +204,10 @@ export function parseNotificationLogFilters(query: LocationQuery): NotificationL
 /**
  * Écrit les filtres dans l'URL, **sans toucher aux autres paramètres**
  * (`tab=notifications` doit survivre à un changement de filtre).
+ *
+ * Les paramètres **préfixés** du panneau sont réécrits ; les autres — dont
+ * un `status=` générique qui appartient à un autre panneau — sont laissés
+ * **tels quels**. Le panneau ne revendique plus que son propre espace.
  *
  * Un filtre vide est **retiré** de l'URL plutôt qu'écrit en vide : une URL
  * lisible reste une URL lisible.
@@ -195,11 +225,11 @@ export function buildNotificationLogFilterQuery(
   }
 
   // …et les filtres sont réécrits : une valeur vide disparaît de l'URL.
-  if (filters.type) next.type = filters.type
-  if (filters.status) next.status = filters.status
-  if (filters.reason) next.reason = filters.reason
-  if (filters.dateFrom) next.dateFrom = filters.dateFrom
-  if (filters.dateTo) next.dateTo = filters.dateTo
+  if (filters.type) next[`${FILTER_QUERY_PREFIX}type`] = filters.type
+  if (filters.status) next[`${FILTER_QUERY_PREFIX}status`] = filters.status
+  if (filters.reason) next[`${FILTER_QUERY_PREFIX}reason`] = filters.reason
+  if (filters.dateFrom) next[`${FILTER_QUERY_PREFIX}dateFrom`] = filters.dateFrom
+  if (filters.dateTo) next[`${FILTER_QUERY_PREFIX}dateTo`] = filters.dateTo
 
   return next
 }

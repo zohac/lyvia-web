@@ -228,7 +228,7 @@ describe('WA.7 — panneau des notifications : le motif est lisible (C1)', () =>
   test('les trois groupes de filtres exposent leur état actif (aria-pressed)', async () => {
     // L'état actif ne doit pas être porté par la **seule** couleur : un
     // lecteur d'écran doit pouvoir dire quelle option est sélectionnée.
-    const harness = buildHarness([], { tab: 'notifications', reason: 'honeypot_detected' })
+    const harness = buildHarness([], { tab: 'notifications', notif_reason: 'honeypot_detected' })
 
     const html = await renderSfc(PANEL_PATH, harness.options)
 
@@ -277,7 +277,7 @@ describe('WA.7 — panneau des notifications : le motif est lisible (C1)', () =>
 
 describe('WA.7 — panneau des notifications : le filtre par motif agit (C1)', () => {
   test('le motif de l\'URL part dans la requête API', async () => {
-    const harness = buildHarness([], { tab: 'notifications', reason: 'honeypot_detected' })
+    const harness = buildHarness([], { tab: 'notifications', notif_reason: 'honeypot_detected' })
 
     await renderSfc(PANEL_PATH, harness.options)
 
@@ -288,7 +288,7 @@ describe('WA.7 — panneau des notifications : le filtre par motif agit (C1)', (
   test('le filtre se combine avec le filtre de statut', async () => {
     // C'est la combinaison qui évite qu'un flot de robots repousse les
     // notifications réelles hors de la première page.
-    const harness = buildHarness([], { status: 'skipped', reason: 'honeypot_detected' })
+    const harness = buildHarness([], { notif_status: 'skipped', notif_reason: 'honeypot_detected' })
 
     await renderSfc(PANEL_PATH, harness.options)
 
@@ -311,7 +311,7 @@ describe('WA.7 — panneau des notifications : le filtre par motif agit (C1)', (
 
     assert.equal(harness.replaced.length, 1)
     const query = harness.replaced[0].query
-    assert.equal(query.reason, 'honeypot_detected')
+    assert.equal(query.notif_reason, 'honeypot_detected')
     assert.equal(query.tab, 'notifications')
   })
 })
@@ -323,23 +323,23 @@ describe('WA.7 — panneau des notifications : l\'URL et l\'écran ne divergent 
     // qui advertirait alors un filtre en vigueur.
     const harness = buildHarness([], {
       tab: 'notifications',
-      reason: 'motif_inexistant',
-      dateFrom: '2026-10-01T08:30:00.000Z'
+      notif_reason: 'motif_inexistant',
+      notif_dateFrom: '2026-10-01T08:30:00.000Z'
     })
 
     await renderSfc(PANEL_PATH, harness.options)
 
     assert.equal(harness.replaced.length, 1)
     const query = harness.replaced[0].query
-    assert.equal('reason' in query, false)
-    assert.equal('dateFrom' in query, false)
+    assert.equal('notif_reason' in query, false)
+    assert.equal('notif_dateFrom' in query, false)
     assert.equal(query.tab, 'notifications')
   })
 
   test('une URL valide n\'est pas réécrite', async () => {
     const harness = buildHarness([], {
       tab: 'notifications',
-      reason: 'honeypot_detected'
+      notif_reason: 'honeypot_detected'
     })
 
     await renderSfc(PANEL_PATH, harness.options)
@@ -359,7 +359,7 @@ describe('WA.7 — panneau des notifications : le retour arrière rejoue l\'URL'
     // Navigation vers une autre URL : vue-router **remplace** l'objet `query`.
     harness.route.query = {
       tab: 'notifications',
-      reason: 'honeypot_detected'
+      notif_reason: 'honeypot_detected'
     } as Record<string, string>
 
     harness.triggerWatchers()
