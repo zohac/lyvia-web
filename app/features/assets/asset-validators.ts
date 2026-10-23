@@ -45,9 +45,13 @@ export function formatUploadError(e: unknown, assetType?: UploadAssetType): stri
   }
 
   if (msg.includes('INVALID_MIME')) {
-    return assetType === 'brand_logo'
-      ? 'Format de logo non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
-      : 'Format d\'image non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
+    if (assetType === 'certification_logo') {
+      return 'Format de logo non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide. Le badge doit être exporté en PNG.'
+    }
+    if (assetType === 'brand_logo') {
+      return 'Format de logo non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
+    }
+    return 'Format d\'image non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
   }
   if (msg.includes('TOO_LARGE')) {
     return assetType === 'brand_logo'
@@ -132,6 +136,30 @@ export function validatePageImageDimensions(
   }
   if (width * height > PAGE_IMAGE_MAX_PIXELS) {
     return 'L\'image est trop grande (maximum 10 mégapixels).'
+  }
+  return null
+}
+
+/** Story LAB.2 — certification logo upload constraints. */
+export const CERTIFICATION_LOGO_MAX_BYTES = 2 * 1024 * 1024
+export const CERTIFICATION_LOGO_ALLOWED_MIME_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/webp'
+] as const
+
+export function validateCertificationLogoFile(file: File): string | null {
+  if (file.size > CERTIFICATION_LOGO_MAX_BYTES) {
+    return 'Le logo doit faire moins de 2 Mo.'
+  }
+  if (
+    !(CERTIFICATION_LOGO_ALLOWED_MIME_TYPES as readonly string[]).includes(file.type)
+  ) {
+    // SVG refused explicitly
+    if (file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')) {
+      return 'Le badge doit être exporté en PNG. Les fichiers SVG ne sont pas acceptés.'
+    }
+    return 'Format accepté : PNG, JPEG ou WebP.'
   }
   return null
 }

@@ -39,6 +39,13 @@ const bioShort = computed(() => {
 const mainSpecialty = computed(() => props.profile.specialties?.[0] ?? null)
 
 const credentialChips = computed(() => props.profile.credentials ?? [])
+
+const hydrated = ref(false)
+onMounted(() => {
+  hydrated.value = true
+})
+const certificationsMode = computed(() => props.profile.certificationsDisplayMode ?? 'pills')
+const isCertificationsSlider = computed(() => certificationsMode.value === 'slider' && hydrated.value)
 </script>
 
 <template>
@@ -97,13 +104,20 @@ const credentialChips = computed(() => props.profile.credentials ?? [])
         <!-- Credentials -->
         <div
           v-if="credentialChips.length"
+          v-show="!(isCertificationsSlider)"
           class="mt-5 flex flex-wrap justify-center gap-2"
         >
           <span
-            v-for="cred in credentialChips"
-            :key="cred.title"
-            class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
+            v-for="(cred, i) in credentialChips"
+            :key="i"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
           >
+            <img
+              v-if="cred.logoUrl"
+              :src="cred.logoUrl"
+              :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
+              class="h-4 w-auto max-w-[6rem] object-contain"
+            >
             <UIcon
               v-if="cred.verified"
               name="i-lucide-badge-check"
@@ -112,6 +126,13 @@ const credentialChips = computed(() => props.profile.credentials ?? [])
             {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
           </span>
         </div>
+
+        <ClientOnly>
+          <CoachCertificationsSlider
+            v-if="isCertificationsSlider && credentialChips.length"
+            :credentials="credentialChips"
+          />
+        </ClientOnly>
 
         <!-- Bio courte -->
         <p

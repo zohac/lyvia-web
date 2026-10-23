@@ -16,6 +16,7 @@ export type UploadAssetType
     | 'lead_magnet'
     | 'brand_logo'
     | 'page_image'
+    | 'certification_logo'
 
 /** Response of `POST /provider/assets/upload`. */
 export type UploadAssetResult = {

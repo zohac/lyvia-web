@@ -19,10 +19,13 @@ export {
   formatUploadError,
   validateFileUpload,
   validateBrandLogoFile,
+  validateCertificationLogoFile,
   validatePageImageFile,
   validatePageImageDimensions,
   BRAND_LOGO_MAX_BYTES,
-  BRAND_LOGO_ALLOWED_MIME_TYPES
+  BRAND_LOGO_ALLOWED_MIME_TYPES,
+  CERTIFICATION_LOGO_MAX_BYTES,
+  CERTIFICATION_LOGO_ALLOWED_MIME_TYPES
 } from './asset-validators'
 export {
   PAGE_IMAGE_MAX_BYTES,

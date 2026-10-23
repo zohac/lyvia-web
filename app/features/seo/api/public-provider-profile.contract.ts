@@ -5,6 +5,8 @@ export interface CredentialItem {
   institution?: string
   year?: number
   verified?: boolean
+  logoAssetId?: string
+  logoUrl?: string | null
 }
 
 export interface SocialLinks {
@@ -161,6 +163,7 @@ export interface PublicProviderProfile {
   microsoftClarityId: string | null
   // Coach Page Configuration (YC1.2)
   templateCode: string
+  certificationsDisplayMode: 'pills' | 'slider'
   sectionsConfig: Record<string, boolean>
   sectionTitlesJson?: SectionTitlesJson | null
   pillarsJson: PillarsJson | null

@@ -65,6 +65,9 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
 
   const selectedTemplateId = ref<string | null>(null)
 
+  // LAB.3 — Mode d'affichage des certifications (pastilles par défaut, slider à partir de 5).
+  const certificationsDisplayMode = ref<'pills' | 'slider'>('pills')
+
   const selectedTemplate = computed(() =>
     templates.value.find(t => t.id === selectedTemplateId.value) ?? null
   )
@@ -222,6 +225,8 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
 
     selectedTemplateId.value = acc.coachPageTemplateId
 
+    certificationsDisplayMode.value = acc.certificationsDisplayMode ?? 'pills'
+
     const existingKeys = Object.keys(sectionsConfig)
     for (const key of existingKeys) {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -296,6 +301,13 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     return updateAccount({ freeTextJson: hasCoachFreeTextContent(form) ? form : null })
   }
 
+  // LAB.3 — Persistance du mode d'affichage des certifications (par template/profil actif).
+  async function saveCertificationsDisplayMode(mode: 'pills' | 'slider'): Promise<boolean> {
+    const ok = await updateAccount({ certificationsDisplayMode: mode })
+    if (ok) certificationsDisplayMode.value = mode
+    return ok
+  }
+
   return {
     account: readonly(account),
     loading: readonly(loading),
@@ -320,6 +332,8 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     problemStatementForm,
     fitForm,
     freeTextForm,
+    certificationsDisplayMode: readonly(certificationsDisplayMode),
+    saveCertificationsDisplayMode,
     init,
     isAlwaysOn,
     isSectionOn,

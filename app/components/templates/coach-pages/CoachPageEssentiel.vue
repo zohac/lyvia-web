@@ -178,7 +178,12 @@ watchEffect(() => {
 
 onMounted(() => {
   faqDefaultValue.value = []
+  hydrated.value = true
 })
+
+const hydrated = ref(false)
+const certificationsMode = computed(() => props.coachProfile?.certificationsDisplayMode ?? 'pills')
+const isCertificationsSlider = computed(() => certificationsMode.value === 'slider' && hydrated.value)
 
 // Hero props — Essentiel passes specialties so the eyebrow pill is data-driven
 // (no hardcoded "Praticienne bien-être" label).
@@ -455,13 +460,20 @@ const heroProps = computed(() => ({
             <!-- Credentials chips (all of them, not just first) -->
             <div
               v-if="coachProfile?.credentials?.length"
+              v-show="!(isCertificationsSlider)"
               class="mt-6 flex flex-wrap gap-2"
             >
               <span
                 v-for="cred in coachProfile.credentials"
                 :key="cred.title"
-                class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
               >
+                <img
+                  v-if="cred.logoUrl"
+                  :src="cred.logoUrl"
+                  :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
+                  class="h-4 w-auto max-w-[6rem] object-contain"
+                >
                 <UIcon
                   v-if="cred.verified"
                   name="i-lucide-badge-check"
@@ -470,6 +482,13 @@ const heroProps = computed(() => ({
                 {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
               </span>
             </div>
+
+            <ClientOnly>
+              <CoachCertificationsSlider
+                v-if="isCertificationsSlider && coachProfile?.credentials?.length"
+                :credentials="coachProfile.credentials"
+              />
+            </ClientOnly>
 
             <div class="mt-8 space-y-5 text-base leading-relaxed text-[color:var(--color-brand-secondary)]">
               <p

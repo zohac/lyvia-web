@@ -194,7 +194,12 @@ watchEffect(() => {
 
 onMounted(() => {
   faqDefaultValue.value = []
+  hydrated.value = true
 })
+
+const hydrated = ref(false)
+const certificationsMode = computed(() => props.coachProfile?.certificationsDisplayMode ?? 'pills')
+const isCertificationsSlider = computed(() => certificationsMode.value === 'slider' && hydrated.value)
 
 // --- Props du hero ---
 // Le hero d'Alba n'a pas de champ `heroImageDisabled` : c'est le drapeau du
@@ -385,13 +390,20 @@ const heroProps = computed(() => ({
 
             <div
               v-if="coachProfile?.credentials?.length"
+              v-show="!isCertificationsSlider"
               class="mt-8 flex flex-wrap gap-2.5"
             >
               <span
                 v-for="cred in coachProfile.credentials"
                 :key="cred.title"
-                class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 px-3.5 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary)]"
+                class="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 px-3.5 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary)]"
               >
+                <img
+                  v-if="cred.logoUrl"
+                  :src="cred.logoUrl"
+                  :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
+                  class="h-4 w-auto max-w-[6rem] object-contain"
+                >
                 <UIcon
                   name="i-lucide-award"
                   class="size-3.5 text-[color:var(--color-brand-accent)]"
@@ -399,6 +411,13 @@ const heroProps = computed(() => ({
                 {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
               </span>
             </div>
+
+            <ClientOnly>
+              <CoachCertificationsSlider
+                v-if="isCertificationsSlider && (coachProfile?.credentials?.length ?? 0) > 0"
+                :credentials="coachProfile?.credentials ?? []"
+              />
+            </ClientOnly>
 
             <p
               v-if="coachProfile?.city"

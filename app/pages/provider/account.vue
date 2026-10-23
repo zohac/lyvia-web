@@ -11,7 +11,8 @@ import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/passw
 import {
   uploadAsset,
   formatUploadError,
-  validateFileUpload
+  validateFileUpload,
+  validateCertificationLogoFile
 } from '../../features/assets/use-asset-upload'
 import type { CredentialItem, SocialLinks } from '../../features/account/api/provider-account.contract'
 import { useSupportSession } from '../../features/support-session/state/useSupportSession'
@@ -46,6 +47,36 @@ const specialtyError = ref<string | null>(null)
 
 // ── Credentials form state ──────────────────────────
 const credentialsForm = ref<CredentialItem[]>([])
+const certificationsDisplayMode = ref<'pills' | 'slider'>('pills')
+const certificationsDisplayModeOptions = computed(() => {
+  const count = credentialsForm.value.length
+  const opts: { label: string, value: string, disabled?: boolean }[] = [{ label: 'Pastilles (défaut)', value: 'pills' }]
+  if (count >= 5) {
+    opts.push({ label: 'Slider', value: 'slider' })
+  } else {
+    opts.push({ label: 'Slider (disponible à partir de 5 certifications)', value: 'slider', disabled: true })
+  }
+  return opts
+})
+const savingDisplayMode = ref(false)
+// Reset a stale slider mode when credentials drop below 5.
+watch(credentialsForm, (creds) => {
+  if ((creds?.length ?? 0) < 5 && certificationsDisplayMode.value === 'slider') {
+    certificationsDisplayMode.value = 'pills'
+    void handleDisplayModeChange('pills')
+  }
+}, { deep: true })
+async function handleDisplayModeChange(mode: string) {
+  const m: 'pills' | 'slider' = mode === 'slider' ? 'slider' : 'pills'
+  savingDisplayMode.value = true
+  try {
+    const ok = await updateAccount({ certificationsDisplayMode: m })
+    if (ok) certificationsDisplayMode.value = m
+    else toast.add({ title: 'Erreur lors de l\'enregistrement', color: 'error' })
+  } finally {
+    savingDisplayMode.value = false
+  }
+}
 
 // ── Social links form state ─────────────────────────
 const socialForm = reactive<SocialLinks>({
@@ -157,6 +188,8 @@ function syncFormsFromAccount() {
     ? acc.credentials.map(c => ({ ...c }))
     : []
 
+  certificationsDisplayMode.value = acc.certificationsDisplayMode ?? 'pills'
+
   // Social links
   socialForm.linkedin = acc.socialLinks?.linkedin ?? ''
   socialForm.facebook = acc.socialLinks?.facebook ?? ''
@@ -219,6 +252,58 @@ function addCredential() {
 
 function removeCredential(index: number) {
   credentialsForm.value.splice(index, 1)
+}
+
+// ── Certification logo upload ──────────────────────────
+const logoFileInput = ref<HTMLInputElement | null>(null)
+const pendingLogoIndex = ref<number | null>(null)
+const uploadingLogo = ref(false)
+
+function triggerCredentialLogoUpload(index: number) {
+  if (uploadingLogo.value) return
+  pendingLogoIndex.value = index
+  logoFileInput.value?.click()
+}
+
+async function onCredentialLogoFileChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || pendingLogoIndex.value === null) {
+    input.value = ''
+    return
+  }
+  const idx = pendingLogoIndex.value
+  const validationError = validateCertificationLogoFile(file)
+  if (validationError) {
+    toast.add({ title: validationError, color: 'error' })
+    input.value = ''
+    pendingLogoIndex.value = null
+    return
+  }
+  const targetCred = credentialsForm.value[idx]
+  uploadingLogo.value = true
+  try {
+    const result = await uploadAsset('certification_logo', file)
+    const cred = credentialsForm.value[idx]
+    if (cred && cred === targetCred) {
+      cred.logoAssetId = result.assetId
+      cred.logoUrl = result.url
+    }
+  } catch (e) {
+    toast.add({ title: formatUploadError(e, 'certification_logo'), color: 'error' })
+  } finally {
+    uploadingLogo.value = false
+    input.value = ''
+    pendingLogoIndex.value = null
+  }
+}
+
+function removeCredentialLogo(index: number) {
+  const cred = credentialsForm.value[index]
+  if (cred) {
+    delete cred.logoAssetId
+    delete cred.logoUrl
+  }
 }
 
 // ── Photo upload handlers ───────────────────────────
@@ -669,36 +754,68 @@ async function handlePasswordChange() {
           <div
             v-for="(cred, index) in credentialsForm"
             :key="index"
-            class="flex items-start gap-3"
+            class="space-y-2 rounded-lg border border-[color:var(--color-brand-subtle)] p-3"
           >
-            <div class="grid flex-1 gap-3 sm:grid-cols-3">
-              <UInput
-                v-model="cred.title"
-                placeholder="Titre du diplôme *"
-                :maxlength="200"
-                required
-              />
-              <UInput
-                v-model="cred.institution"
-                placeholder="Établissement"
-                :maxlength="200"
-              />
-              <UInput
-                v-model.number="cred.year"
-                type="number"
-                placeholder="Année"
-                :min="1900"
-                :max="2100"
+            <div class="flex items-start gap-3">
+              <div class="grid flex-1 gap-3 sm:grid-cols-3">
+                <UInput
+                  v-model="cred.title"
+                  placeholder="Titre du diplôme *"
+                  :maxlength="200"
+                  required
+                />
+                <UInput
+                  v-model="cred.institution"
+                  placeholder="Établissement"
+                  :maxlength="200"
+                />
+                <UInput
+                  v-model.number="cred.year"
+                  type="number"
+                  placeholder="Année"
+                  :min="1900"
+                  :max="2100"
+                />
+              </div>
+              <UButton
+                variant="ghost"
+                color="neutral"
+                icon="i-lucide-trash-2"
+                size="sm"
+                :aria-label="'Supprimer le diplôme ' + cred.title"
+                @click="removeCredential(index)"
               />
             </div>
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-lucide-trash-2"
-              size="sm"
-              :aria-label="'Supprimer le diplôme ' + cred.title"
-              @click="removeCredential(index)"
-            />
+            <div class="flex items-center gap-2">
+              <img
+                v-if="cred.logoUrl"
+                :src="cred.logoUrl"
+                :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
+                class="h-6 w-auto max-w-[4rem] object-contain"
+              >
+              <UButton
+                type="button"
+                size="xs"
+                variant="outline"
+                icon="i-lucide-image"
+                :label="cred.logoAssetId ? 'Changer le logo' : 'Ajouter un logo'"
+                :loading="uploadingLogo && pendingLogoIndex === index"
+                @click="triggerCredentialLogoUpload(index)"
+              />
+              <UButton
+                v-if="cred.logoAssetId"
+                type="button"
+                size="xs"
+                variant="ghost"
+                color="neutral"
+                icon="i-lucide-x"
+                label="Retirer le logo"
+                @click="removeCredentialLogo(index)"
+              />
+              <span class="text-xs text-[color:var(--color-brand-muted)]">
+                PNG, JPEG ou WebP — SVG non accepté.
+              </span>
+            </div>
           </div>
 
           <div
@@ -726,6 +843,28 @@ async function handlePasswordChange() {
             />
           </div>
         </form>
+
+        <!-- LAB.3 — Mode d'affichage des certifications -->
+        <div class="mt-6 border-t border-[color:var(--color-brand-subtle)] pt-4">
+          <label class="mb-1 block text-sm font-medium text-[color:var(--color-brand-primary)]">
+            Affichage des certifications
+          </label>
+          <p class="mb-2 text-xs text-[color:var(--color-brand-secondary)]">
+            Pastilles (toutes visibles) par défaut. Le mode « slider » n'est proposé qu'à partir de 5 certifications.
+          </p>
+          <USelect
+            :model-value="certificationsDisplayMode"
+            :items="certificationsDisplayModeOptions"
+            :disabled="savingDisplayMode"
+            @update:model-value="handleDisplayModeChange"
+          />
+          <p
+            v-if="(account?.credentials?.length ?? 0) < 5"
+            class="mt-1 text-xs text-[color:var(--color-brand-muted)]"
+          >
+            Le mode slider est disponible à partir de 5 certifications.
+          </p>
+        </div>
       </div>
 
       <!-- Section 4: Photo de profil -->
@@ -1518,5 +1657,12 @@ async function handlePasswordChange() {
         </form>
       </div>
     </template>
+    <input
+      ref="logoFileInput"
+      type="file"
+      accept="image/png,image/jpeg,image/webp"
+      class="hidden"
+      @change="onCredentialLogoFileChange"
+    >
   </div>
 </template>
