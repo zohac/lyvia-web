@@ -39,7 +39,6 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
-import { selectHeroCredential } from '~/features/coach/domain/featured-credential'
 
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachAlbaHeader from '~/components/templates/coach-pages/alba/CoachAlbaHeader.vue'
@@ -107,17 +106,9 @@ const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMi
 const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
 const sectionTitles = computed(() => props.coachProfile?.sectionTitlesJson ?? {})
 
-// Ligne de tête : mise en avant si elle existe, sinon la première (AC3).
-const heroCredential = computed(() =>
-  selectHeroCredential(props.coachProfile?.credentials)
-)
-
-const credentialLine = computed(() => {
-  const parts: string[] = []
-  if (heroCredential.value?.title) parts.push(heroCredential.value.title)
-  if (props.coachProfile?.city) parts.push(props.coachProfile.city)
-  return parts.join(' · ')
-})
+// La certification est portée par la plaque (hero) et le rail (section) :
+// cette ligne ne garde que la localisation, pour éviter le doublon.
+const credentialLine = computed(() => props.coachProfile?.city ?? '')
 
 const bioParagraphs = computed<string[]>(() => {
   const longBio = props.coachProfile?.longBio

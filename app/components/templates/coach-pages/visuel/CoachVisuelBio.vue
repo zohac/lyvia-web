@@ -8,10 +8,7 @@
  * À droite : titre, qualifications, certifications pilules et texte de présentation.
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
-import {
-  findFeaturedCredential,
-  selectHeroCredential
-} from '~/features/coach/domain/featured-credential'
+import { findFeaturedCredential } from '~/features/coach/domain/featured-credential'
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
 import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
@@ -42,19 +39,11 @@ const featuredCredential = computed(() =>
   findFeaturedCredential(props.coachProfile?.credentials)
 )
 
-// Ligne de tête : mise en avant si elle existe, sinon la première (AC3).
-const heroCredential = computed(() =>
-  selectHeroCredential(props.coachProfile?.credentials)
-)
-
+// La certification est portée par la plaque et le rail : cette ligne ne garde
+// que la modalité, pour éviter le doublon.
 const credentialLine = computed(() => {
   const city = props.coachProfile?.city
-  const parts: string[] = []
-  // La plaque de mise en avant porte déjà l'intitulé : ne pas le répéter.
-  if (!featuredCredential.value && heroCredential.value?.title) parts.push(heroCredential.value.title)
-  if (city) parts.push(`${city} & visio`)
-  else parts.push('100 % en visio')
-  return parts.join(' · ')
+  return city ? `${city} & visio` : '100 % en visio'
 })
 
 const photoSrc = computed(() => {

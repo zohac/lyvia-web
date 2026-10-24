@@ -13,8 +13,9 @@
  *   précèdent/suivent suivent l'ordre de lecture ;
  * - aucun autoplay, aucune boucle ; `prefers-reduced-motion` supprime l'animation.
  *
- * 3 cartes visibles en desktop, 1 + amorce en mobile (la 2e dépasse pour montrer
- * qu'on peut faire défiler).
+ * Gabarit : exactement 3 cartes en desktop, 1 + amorce en mobile. Pas de barre de
+ * défilement visible (elle cassait la ligne de flottaison), et des colonnes de
+ * largeur égale (une base `auto` donnait des cartes de tailles différentes).
  */
 import type { CredentialItem } from '~/features/seo/api/public-provider-profile.contract'
 import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
@@ -56,7 +57,7 @@ function onScroll() {
   <div class="mt-8">
     <ul
       ref="track"
-      class="flex list-none snap-x snap-mandatory gap-3 overflow-x-auto p-0 pb-2"
+      class="flex list-none snap-x snap-mandatory gap-3 overflow-x-auto p-0 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       tabindex="0"
       :aria-label="`Certifications : ${total}`"
       @scroll.passive="onScroll"
@@ -64,43 +65,41 @@ function onScroll() {
       <li
         v-for="cred in ordered"
         :key="cred.title + (cred.year ?? '')"
-        class="flex min-w-[78%] shrink-0 snap-start items-start gap-3 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-3 sm:min-w-[30%]"
+        class="flex w-[78%] shrink-0 snap-start flex-col gap-2 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] p-4 sm:w-[calc((100%-1.5rem)/3)]"
       >
         <img
           v-if="cred.logoUrl"
           :src="cred.logoUrl"
           :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
-          class="h-10 w-auto max-w-[6rem] object-contain"
+          class="h-9 w-auto max-w-[7rem] object-contain"
         >
-        <div class="flex flex-col">
-          <span class="text-sm font-medium text-[color:var(--color-text-primary)]">
-            {{ cred.title }}
-          </span>
-          <span
-            v-if="formatCredentialMeta(cred)"
-            class="text-xs text-[color:var(--color-brand-secondary)]"
-          >
-            {{ formatCredentialMeta(cred) }}
-          </span>
-        </div>
+        <span class="mt-auto text-sm font-medium text-[color:var(--color-text-primary)]">
+          {{ cred.title }}
+        </span>
+        <span
+          v-if="formatCredentialMeta(cred)"
+          class="text-xs text-[color:var(--color-brand-secondary)]"
+        >
+          {{ formatCredentialMeta(cred) }}
+        </span>
       </li>
     </ul>
 
     <div
       v-if="total > 3"
-      class="mt-2 flex items-center justify-between gap-3"
+      class="mt-3 flex items-center justify-between gap-3"
     >
       <p
-        class="text-xs text-[color:var(--color-brand-secondary)]"
+        class="text-xs text-[color:var(--color-brand-muted)]"
         aria-live="polite"
       >
         {{ current }} / {{ total }} certifications
       </p>
-      <div class="flex gap-1">
+      <div class="flex items-center gap-2">
         <UButton
           icon="i-lucide-chevron-left"
           color="neutral"
-          variant="ghost"
+          variant="outline"
           size="xs"
           aria-label="Certifications précédentes"
           @click="scrollByPage(-1)"
@@ -108,7 +107,7 @@ function onScroll() {
         <UButton
           icon="i-lucide-chevron-right"
           color="neutral"
-          variant="ghost"
+          variant="outline"
           size="xs"
           aria-label="Certifications suivantes"
           @click="scrollByPage(1)"

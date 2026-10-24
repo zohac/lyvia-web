@@ -183,6 +183,13 @@ const initials = computed(() => {
             {{ heroDescription || 'Un accompagnement personnalisé en périménopause et ménopause. Alimentation, stress, sommeil, mouvement : une approche complète, à votre rythme.' }}
           </p>
 
+          <!-- Certification mise en avant — la preuve, avant le CTA. -->
+          <CoachFeaturedCredential
+            v-if="featuredCredential"
+            :credential="featuredCredential"
+            class="mt-8"
+          />
+
           <div class="mt-9 flex flex-col gap-5 sm:flex-row sm:items-center">
             <UButton
               :to="ctaTo"
@@ -235,17 +242,10 @@ const initials = computed(() => {
             </span>
           </div>
 
-          <!-- Certification mise en avant — plaque lisible sur fond sombre -->
-          <CoachFeaturedCredential
-            v-if="featuredCredential"
-            :credential="featuredCredential"
-            class="mt-8"
-          />
-
           <!-- Chips — uniquement des données réellement configurées. -->
           <div class="mt-8 flex flex-wrap gap-2">
             <span
-              v-if="heroCredential?.title"
+              v-if="!featuredCredential && heroCredential?.title"
               class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-[color:var(--color-crepuscule-50)]/80 backdrop-blur-sm"
             >
               <UIcon

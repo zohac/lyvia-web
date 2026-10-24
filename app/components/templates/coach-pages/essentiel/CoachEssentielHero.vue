@@ -113,6 +113,13 @@ const effectivePhotoUrl = computed(() => {
             {{ heroDescription || 'Accompagnement personnalisé en périménopause et ménopause.\nAlimentation, stress, sommeil, mouvement. Une approche complète, à votre rythme.' }}
           </p>
 
+          <!-- Certification mise en avant — la preuve, avant le CTA. -->
+          <CoachFeaturedCredential
+            v-if="featuredCredential"
+            :credential="featuredCredential"
+            class="mt-8"
+          />
+
           <!-- CTA row -->
           <div class="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
             <UButton
@@ -163,17 +170,10 @@ const effectivePhotoUrl = computed(() => {
             </span>
           </div>
 
-          <!-- Certification mise en avant -->
-          <CoachFeaturedCredential
-            v-if="featuredCredential"
-            :credential="featuredCredential"
-            class="mt-8"
-          />
-
           <!-- Trust chips row — DS-tokenized pills -->
           <div class="mt-8 flex flex-wrap gap-2">
             <span
-              v-if="firstCredential"
+              v-if="!featuredCredential && firstCredential"
               class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
             >
               <UIcon
