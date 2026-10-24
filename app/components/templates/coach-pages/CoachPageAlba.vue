@@ -39,7 +39,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
-import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
+
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachAlbaHeader from '~/components/templates/coach-pages/alba/CoachAlbaHeader.vue'
 import CoachAlbaHero from '~/components/templates/coach-pages/alba/CoachAlbaHero.vue'
@@ -105,10 +105,17 @@ const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMi
 const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
 const sectionTitles = computed(() => props.coachProfile?.sectionTitlesJson ?? {})
 
+const featuredCredential = computed(() => {
+  const creds = props.coachProfile?.credentials ?? []
+  return creds.find(c => c.featured) ?? null
+})
+
 const credentialLine = computed(() => {
   const creds = props.coachProfile?.credentials ?? []
   const parts: string[] = []
-  if (creds.length && creds[0]?.title) parts.push(creds[0].title)
+  const featured = featuredCredential.value
+  if (featured?.title) parts.push(featured.title)
+  else if (creds.length && creds[0]?.title) parts.push(creds[0].title)
   if (props.coachProfile?.city) parts.push(props.coachProfile.city)
   return parts.join(' · ')
 })
@@ -194,12 +201,7 @@ watchEffect(() => {
 
 onMounted(() => {
   faqDefaultValue.value = []
-  hydrated.value = true
 })
-
-const hydrated = ref(false)
-const certificationsMode = computed(() => props.coachProfile?.certificationsDisplayMode ?? 'pills')
-const isCertificationsSlider = computed(() => certificationsMode.value === 'slider' && hydrated.value)
 
 // --- Props du hero ---
 // Le hero d'Alba n'a pas de champ `heroImageDisabled` : c'est le drapeau du
@@ -388,36 +390,10 @@ const heroProps = computed(() => ({
               </p>
             </div>
 
-            <div
+            <CoachCertificationsCards
               v-if="coachProfile?.credentials?.length"
-              v-show="!isCertificationsSlider"
-              class="mt-8 flex flex-wrap gap-2.5"
-            >
-              <span
-                v-for="cred in coachProfile.credentials"
-                :key="cred.title"
-                class="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 px-3.5 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary)]"
-              >
-                <img
-                  v-if="cred.logoUrl"
-                  :src="cred.logoUrl"
-                  :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
-                  class="h-4 w-auto max-w-[6rem] object-contain"
-                >
-                <UIcon
-                  name="i-lucide-award"
-                  class="size-3.5 text-[color:var(--color-brand-accent)]"
-                />
-                {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
-              </span>
-            </div>
-
-            <ClientOnly>
-              <CoachCertificationsSlider
-                v-if="isCertificationsSlider && (coachProfile?.credentials?.length ?? 0) > 0"
-                :credentials="coachProfile?.credentials ?? []"
-              />
-            </ClientOnly>
+              :credentials="coachProfile.credentials"
+            />
 
             <p
               v-if="coachProfile?.city"

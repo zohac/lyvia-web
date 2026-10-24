@@ -119,12 +119,7 @@ watchEffect(() => {
 
 onMounted(() => {
   faqDefaultValue.value = []
-  hydrated.value = true
 })
-
-const hydrated = ref(false)
-const certificationsMode = computed(() => props.coachProfile?.certificationsDisplayMode ?? 'pills')
-const isCertificationsSlider = computed(() => certificationsMode.value === 'slider' && hydrated.value)
 
 // Pricing & programs (Story 0-26 round terrain — gate par toggle ET contenu).
 // Story 0-28 round terrain — en preview, on affiche le bloc dès que le toggle
@@ -357,27 +352,10 @@ const heroProps = computed(() => ({
 
             <!-- Badges V3: credentials + specialite + localisation + visio -->
             <div class="mt-6 flex flex-wrap gap-3">
-              <template v-if="!isCertificationsSlider">
-                <span
-                  v-for="(cred, i) in coachProfile?.credentials ?? []"
-                  :key="i"
-                  class="inline-flex items-center gap-2 rounded-lg border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]"
-                >
-                  <img
-                    v-if="cred.logoUrl"
-                    :src="cred.logoUrl"
-                    :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
-                    class="h-4 w-auto max-w-[6rem] object-contain"
-                  >
-                  {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
-                </span>
-              </template>
-              <ClientOnly>
-                <CoachCertificationsSlider
-                  v-if="isCertificationsSlider && (coachProfile?.credentials?.length ?? 0) > 0"
-                  :credentials="coachProfile?.credentials ?? []"
-                />
-              </ClientOnly>
+              <CoachCertificationsCards
+                v-if="coachProfile?.credentials?.length"
+                :credentials="coachProfile?.credentials ?? []"
+              />
               <span class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]">
                 Accompagnement en périménopause et ménopause
               </span>

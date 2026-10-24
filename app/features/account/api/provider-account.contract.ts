@@ -20,6 +20,7 @@ export interface CredentialItem {
   verified?: boolean
   logoAssetId?: string
   logoUrl?: string | null
+  featured?: boolean
 }
 
 export interface SocialLinks {

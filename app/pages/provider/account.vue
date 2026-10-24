@@ -47,36 +47,6 @@ const specialtyError = ref<string | null>(null)
 
 // ── Credentials form state ──────────────────────────
 const credentialsForm = ref<CredentialItem[]>([])
-const certificationsDisplayMode = ref<'pills' | 'slider'>('pills')
-const certificationsDisplayModeOptions = computed(() => {
-  const count = credentialsForm.value.length
-  const opts: { label: string, value: string, disabled?: boolean }[] = [{ label: 'Pastilles (défaut)', value: 'pills' }]
-  if (count >= 5) {
-    opts.push({ label: 'Slider', value: 'slider' })
-  } else {
-    opts.push({ label: 'Slider (disponible à partir de 5 certifications)', value: 'slider', disabled: true })
-  }
-  return opts
-})
-const savingDisplayMode = ref(false)
-// Reset a stale slider mode when credentials drop below 5.
-watch(credentialsForm, (creds) => {
-  if ((creds?.length ?? 0) < 5 && certificationsDisplayMode.value === 'slider') {
-    certificationsDisplayMode.value = 'pills'
-    void handleDisplayModeChange('pills')
-  }
-}, { deep: true })
-async function handleDisplayModeChange(mode: string) {
-  const m: 'pills' | 'slider' = mode === 'slider' ? 'slider' : 'pills'
-  savingDisplayMode.value = true
-  try {
-    const ok = await updateAccount({ certificationsDisplayMode: m })
-    if (ok) certificationsDisplayMode.value = m
-    else toast.add({ title: 'Erreur lors de l\'enregistrement', color: 'error' })
-  } finally {
-    savingDisplayMode.value = false
-  }
-}
 
 // ── Social links form state ─────────────────────────
 const socialForm = reactive<SocialLinks>({
@@ -188,8 +158,6 @@ function syncFormsFromAccount() {
     ? acc.credentials.map(c => ({ ...c }))
     : []
 
-  certificationsDisplayMode.value = acc.certificationsDisplayMode ?? 'pills'
-
   // Social links
   socialForm.linkedin = acc.socialLinks?.linkedin ?? ''
   socialForm.facebook = acc.socialLinks?.facebook ?? ''
@@ -252,6 +220,12 @@ function addCredential() {
 
 function removeCredential(index: number) {
   credentialsForm.value.splice(index, 1)
+}
+
+function toggleFeaturedCredential(index: number, value: boolean) {
+  credentialsForm.value.forEach((c, i) => {
+    c.featured = i === index ? value : false
+  })
 }
 
 // ── Certification logo upload ──────────────────────────
@@ -816,6 +790,15 @@ async function handlePasswordChange() {
                 PNG, JPEG ou WebP — SVG non accepté.
               </span>
             </div>
+            <div class="flex items-center gap-2">
+              <USwitch
+                :model-value="cred.featured ?? false"
+                @update:model-value="(v: boolean) => toggleFeaturedCredential(index, v)"
+              />
+              <span class="text-xs text-[color:var(--color-brand-secondary)]">
+                Mettre en avant dans la hero
+              </span>
+            </div>
           </div>
 
           <div
@@ -844,27 +827,7 @@ async function handlePasswordChange() {
           </div>
         </form>
 
-        <!-- LAB.3 — Mode d'affichage des certifications -->
-        <div class="mt-6 border-t border-[color:var(--color-brand-subtle)] pt-4">
-          <label class="mb-1 block text-sm font-medium text-[color:var(--color-brand-primary)]">
-            Affichage des certifications
-          </label>
-          <p class="mb-2 text-xs text-[color:var(--color-brand-secondary)]">
-            Pastilles (toutes visibles) par défaut. Le mode « slider » n'est proposé qu'à partir de 5 certifications.
-          </p>
-          <USelect
-            :model-value="certificationsDisplayMode"
-            :items="certificationsDisplayModeOptions"
-            :disabled="savingDisplayMode"
-            @update:model-value="handleDisplayModeChange"
-          />
-          <p
-            v-if="(account?.credentials?.length ?? 0) < 5"
-            class="mt-1 text-xs text-[color:var(--color-brand-muted)]"
-          >
-            Le mode slider est disponible à partir de 5 certifications.
-          </p>
-        </div>
+        <!-- (Mode d'affichage supprimé — rework épique : carrousel de cartes sous "Qui suis-je") -->
       </div>
 
       <!-- Section 4: Photo de profil -->

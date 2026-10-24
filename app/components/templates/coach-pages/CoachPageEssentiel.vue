@@ -34,7 +34,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
-import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
+
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachEssentielHeader from '~/components/templates/coach-pages/essentiel/CoachEssentielHeader.vue'
 import CoachEssentielHero from '~/components/templates/coach-pages/essentiel/CoachEssentielHero.vue'
@@ -123,11 +123,18 @@ const navLinks = computed(() => {
   return links
 })
 
+const featuredCredential = computed(() => {
+  const creds = props.coachProfile?.credentials ?? []
+  return creds.find(c => c.featured) ?? null
+})
+
 const credentialLine = computed(() => {
   const creds = props.coachProfile?.credentials ?? []
   const city = props.coachProfile?.city
   const parts: string[] = []
-  if (creds.length && creds[0]?.title) parts.push(creds[0].title)
+  const featured = featuredCredential.value
+  if (featured?.title) parts.push(featured.title)
+  else if (creds.length && creds[0]?.title) parts.push(creds[0].title)
   if (city) parts.push(city)
   return parts.join(' · ')
 })
@@ -178,12 +185,7 @@ watchEffect(() => {
 
 onMounted(() => {
   faqDefaultValue.value = []
-  hydrated.value = true
 })
-
-const hydrated = ref(false)
-const certificationsMode = computed(() => props.coachProfile?.certificationsDisplayMode ?? 'pills')
-const isCertificationsSlider = computed(() => certificationsMode.value === 'slider' && hydrated.value)
 
 // Hero props — Essentiel passes specialties so the eyebrow pill is data-driven
 // (no hardcoded "Praticienne bien-être" label).
@@ -450,45 +452,24 @@ const heroProps = computed(() => ({
               {{ sectionTitles.bioTitle || `Votre spécialiste ménopause — ${coachName}` }}
             </h2>
 
-            <p
-              v-if="credentialLine"
-              class="mt-4 text-base text-[color:var(--color-brand-accent)]"
-            >
-              {{ credentialLine }}
-            </p>
-
-            <!-- Credentials chips (all of them, not just first) -->
             <div
-              v-if="coachProfile?.credentials?.length"
-              v-show="!(isCertificationsSlider)"
-              class="mt-6 flex flex-wrap gap-2"
+              v-if="credentialLine"
+              class="mt-4 flex items-center gap-2 text-base text-[color:var(--color-brand-accent)]"
             >
-              <span
-                v-for="cred in coachProfile.credentials"
-                :key="cred.title"
-                class="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
+              <img
+                v-if="featuredCredential?.logoUrl"
+                :src="featuredCredential.logoUrl"
+                :alt="featuredCredential.institution ? featuredCredential.institution + ' — ' + featuredCredential.title : featuredCredential.title"
+                class="h-5 w-auto max-w-[6rem] object-contain"
               >
-                <img
-                  v-if="cred.logoUrl"
-                  :src="cred.logoUrl"
-                  :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
-                  class="h-4 w-auto max-w-[6rem] object-contain"
-                >
-                <UIcon
-                  v-if="cred.verified"
-                  name="i-lucide-badge-check"
-                  class="size-3.5 text-[color:var(--color-brand-accent)]"
-                />
-                {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
-              </span>
+              {{ credentialLine }}
             </div>
 
-            <ClientOnly>
-              <CoachCertificationsSlider
-                v-if="isCertificationsSlider && coachProfile?.credentials?.length"
-                :credentials="coachProfile.credentials"
-              />
-            </ClientOnly>
+            <!-- Certifications cards (all of them) — sous "Qui suis-je" -->
+            <CoachCertificationsCards
+              v-if="coachProfile?.credentials?.length"
+              :credentials="coachProfile.credentials"
+            />
 
             <div class="mt-8 space-y-5 text-base leading-relaxed text-[color:var(--color-brand-secondary)]">
               <p

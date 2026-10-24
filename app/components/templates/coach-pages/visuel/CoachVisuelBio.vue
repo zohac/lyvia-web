@@ -9,7 +9,6 @@
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { useScrollReveal } from '~/composables/useScrollReveal'
-import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
 
 const props = defineProps<{
   coachProfile: PublicProviderProfile | null
@@ -32,11 +31,18 @@ const bioParagraphs = computed<string[]>(() => {
   return FALLBACK_BIO
 })
 
+const featuredCredential = computed(() => {
+  const creds = props.coachProfile?.credentials ?? []
+  return creds.find(c => c.featured) ?? null
+})
+
 const credentialLine = computed(() => {
   const creds = props.coachProfile?.credentials ?? []
   const city = props.coachProfile?.city
   const parts: string[] = []
-  if (creds.length && creds[0]?.title) parts.push(creds[0].title)
+  const featured = featuredCredential.value
+  if (featured?.title) parts.push(featured.title)
+  else if (creds.length && creds[0]?.title) parts.push(creds[0].title)
   if (city) parts.push(`${city} & visio`)
   else parts.push('100 % en visio')
   return parts.join(' · ')
@@ -52,13 +58,6 @@ const photoSrc = computed(() => {
 const displayedCredentials = computed(() => {
   return props.coachProfile?.credentials ?? []
 })
-
-const hydrated = ref(false)
-onMounted(() => {
-  hydrated.value = true
-})
-const certificationsMode = computed(() => props.coachProfile?.certificationsDisplayMode ?? 'pills')
-const isCertificationsSlider = computed(() => certificationsMode.value === 'slider' && hydrated.value)
 </script>
 
 <template>
@@ -106,35 +105,10 @@ const isCertificationsSlider = computed(() => certificationsMode.value === 'slid
           </div>
 
           <!-- Badges certifications & parcours -->
-          <div
-            v-show="!isCertificationsSlider"
-            class="mt-8 flex flex-wrap gap-2.5"
-          >
-            <span
-              v-for="(cred, i) in displayedCredentials"
-              :key="i"
-              class="inline-flex items-center gap-1.5 rounded-lg border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 px-3.5 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary)]"
-            >
-              <img
-                v-if="cred.logoUrl"
-                :src="cred.logoUrl"
-                :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
-                class="h-4 w-auto max-w-[6rem] object-contain"
-              >
-              <UIcon
-                name="i-lucide-award"
-                class="size-3.5 text-[color:var(--color-brand-accent)]"
-              />
-              {{ cred.title }}<template v-if="formatCredentialMeta(cred)"> · {{ formatCredentialMeta(cred) }}</template>
-            </span>
-          </div>
-
-          <ClientOnly>
-            <CoachCertificationsSlider
-              v-if="isCertificationsSlider && displayedCredentials.length"
-              :credentials="displayedCredentials"
-            />
-          </ClientOnly>
+          <CoachCertificationsCards
+            v-if="displayedCredentials.length"
+            :credentials="displayedCredentials"
+          />
         </div>
       </div>
     </div>
