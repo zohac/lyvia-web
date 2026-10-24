@@ -38,7 +38,7 @@ const meta = computed(() => formatCredentialMeta(props.credential))
       />
     </span>
     <span class="flex min-w-0 flex-col">
-      <span class="truncate text-sm font-medium text-[color:var(--color-text-primary)]">
+      <span class="line-clamp-2 text-sm font-medium leading-tight text-[color:var(--color-text-primary)]">
         {{ credential.title }}
       </span>
       <span
