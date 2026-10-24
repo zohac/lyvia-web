@@ -378,6 +378,14 @@ const heroProps = computed(() => ({
               v-if="credentialLine"
               class="mt-2 text-base font-semibold text-[color:var(--color-brand-accent)]"
             >
+              <img
+                v-if="featuredCredential?.logoUrl"
+                :src="featuredCredential.logoUrl"
+                :alt="featuredCredential.institution ? featuredCredential.institution + ' — ' + featuredCredential.title : featuredCredential.title"
+                width="80"
+                height="20"
+                class="mr-2 inline-block h-5 w-auto max-w-[6rem] object-contain align-middle"
+              >
               {{ credentialLine }}
             </p>
 

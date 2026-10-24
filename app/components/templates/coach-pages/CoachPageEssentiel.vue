@@ -460,6 +460,8 @@ const heroProps = computed(() => ({
                 v-if="featuredCredential?.logoUrl"
                 :src="featuredCredential.logoUrl"
                 :alt="featuredCredential.institution ? featuredCredential.institution + ' — ' + featuredCredential.title : featuredCredential.title"
+                width="80"
+                height="20"
                 class="h-5 w-auto max-w-[6rem] object-contain"
               >
               {{ credentialLine }}

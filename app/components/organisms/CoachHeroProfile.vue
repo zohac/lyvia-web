@@ -17,10 +17,11 @@ const heroH1 = computed(() => {
   return `Spécialiste accompagnement ménopause${cityPart}`
 })
 
-// Subtitle line 1: first credential + city (graceful degradation)
+// Subtitle line 1: featured credential (if any) else first credential + city
 const heroSubtitleLine1 = computed(() => {
   const parts: string[] = []
-  const firstCredential = props.credentials[0]
+  const featured = props.credentials.find(c => c.featured)
+  const firstCredential = featured ?? props.credentials[0]
   if (firstCredential) {
     parts.push(firstCredential.title)
   }

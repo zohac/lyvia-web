@@ -333,8 +333,7 @@ export function useCoachPagePreviewProfile(deps: CoachPagePreviewDeps): {
       // non inscrit ici est ignoré SILENCIEUSEMENT (pas d'erreur, pas de
       // champ dans le draft). Sans cette ligne, la saisie locale du bloc
       // n'apparaîtrait jamais dans l'aperçu.
-      freeTextJson: snap.hydrated ? snap.freeText : (acc.freeTextJson ?? null),
-      certificationsDisplayMode: acc.certificationsDisplayMode ?? 'pills'
+      freeTextJson: snap.hydrated ? snap.freeText : (acc.freeTextJson ?? null)
     }
   })
 

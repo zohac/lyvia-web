@@ -82,7 +82,6 @@ export type ProviderAccountResponse = {
   microsoftClarityId: string | null
   // Coach Page Configuration (YC1.2 / YC3.1)
   coachPageTemplateId: string | null
-  certificationsDisplayMode: 'pills' | 'slider'
   sectionsConfig: Record<string, boolean>
   sectionTitlesJson?: SectionTitlesJson | null
   brandColor: string | null
@@ -155,7 +154,6 @@ export type UpdateProviderAccountRequest = {
   microsoftClarityId?: string | null
   // Coach Page Configuration (YC3.1)
   coachPageTemplateId?: string | null
-  certificationsDisplayMode?: 'pills' | 'slider'
   sectionsConfig?: Record<string, boolean>
   sectionTitlesJson?: SectionTitlesJson | null
   brandColor?: string | null

@@ -16,6 +16,8 @@ export interface Credential {
   institution?: string
   year?: number
   verified?: boolean
+  featured?: boolean
+  logoUrl?: string | null
 }
 
 export interface Testimonial {
