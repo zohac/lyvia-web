@@ -92,6 +92,7 @@ const showFreeText = computed(() =>
   show.freeText.value && hasCoachFreeTextContent(props.coachProfile?.freeTextJson)
 )
 const showBio = show.bio
+const showCertifications = show.certifications
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
 const showTestimonials = show.testimonials
@@ -380,11 +381,6 @@ const heroProps = computed(() => ({
               </p>
             </div>
 
-            <CoachCertificationsRail
-              v-if="coachProfile?.credentials?.length"
-              :credentials="coachProfile.credentials"
-            />
-
             <p
               v-if="coachProfile?.city"
               class="mt-6 flex items-center gap-2 text-sm text-[color:var(--color-brand-secondary)]"
@@ -399,6 +395,23 @@ const heroProps = computed(() => ({
             </p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ==================== 4b. CERTIFICATIONS (section autonome, LAB.6) ==================== -->
+    <section
+      v-if="showCertifications"
+      id="certifications"
+      v-bind="reveal()"
+      class="scroll-reveal px-6 py-16 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-5xl">
+        <h2 class="mb-8 font-serif text-3xl leading-tight text-[color:var(--color-crepuscule-950)]">
+          Certifications
+        </h2>
+        <CoachCertificationsRail
+          :credentials="coachProfile?.credentials ?? []"
+        />
       </div>
     </section>
 

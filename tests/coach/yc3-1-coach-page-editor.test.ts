@@ -146,7 +146,16 @@ test('external editor links point to the right screens (story 0-26: only pricing
 
   assert.deepStrictEqual(getCoachPageExternalEditorSection('pricing'), {
     label: 'Modifiable dans Mes tarifs',
-    to: '/provider/scheduling'
+    to: '/provider/scheduling',
+    actionLabel: 'Gérer mes formules'
+  })
+
+  // LAB.6 — la coach peut masquer la section Certifications depuis l'éditeur ;
+  // l'édition des certifications elle-même reste dans Mon compte jusqu'à lab-4.
+  assert.deepStrictEqual(getCoachPageExternalEditorSection('certifications'), {
+    label: 'Modifiable dans Mon compte',
+    to: '/provider/account',
+    actionLabel: 'Gérer mes certifications'
   })
 
   assert.equal(getCoachPageExternalEditorSection('pillars'), null)

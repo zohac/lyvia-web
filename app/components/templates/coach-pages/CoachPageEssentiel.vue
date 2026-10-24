@@ -89,6 +89,7 @@ const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile,
 const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const showBio = show.bio
+const showCertifications = show.certifications
 const showBenefits = show.benefits
 // YB.1.1 — le toggle décide de l'intention, le CONTENU décide de
 // l'existence : sans ce second terme, un bloc allumé mais vide laisserait
@@ -448,12 +449,6 @@ const heroProps = computed(() => ({
               {{ credentialLine }}
             </p>
 
-            <!-- Certifications cards (all of them) — sous "Qui suis-je" -->
-            <CoachCertificationsRail
-              v-if="coachProfile?.credentials?.length"
-              :credentials="coachProfile.credentials"
-            />
-
             <div class="mt-8 space-y-5 text-base leading-relaxed text-[color:var(--color-brand-secondary)]">
               <p
                 v-for="(paragraph, i) in bioParagraphs"
@@ -464,6 +459,23 @@ const heroProps = computed(() => ({
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ==================== 3b. CERTIFICATIONS (section autonome, LAB.6) ==================== -->
+    <section
+      v-if="showCertifications"
+      id="certifications"
+      v-bind="reveal()"
+      class="scroll-reveal px-6 py-16 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-5xl">
+        <h2 class="mb-8 font-serif text-3xl leading-tight text-[color:var(--color-crepuscule-950)]">
+          Certifications
+        </h2>
+        <CoachCertificationsRail
+          :credentials="coachProfile?.credentials ?? []"
+        />
       </div>
     </section>
 

@@ -20,9 +20,25 @@ export const COACH_PAGE_INLINE_EDITOR_SECTIONS = [
 export const COACH_PAGE_NESTED_EDITOR_SECTIONS = ['emotionalSupport'] as const
 
 // Story 0-26: bio + testimonials migrated inline. Branding is a global config card,
-// not a template-driven page section. Only pricing remains external (separate page for plans tarifaires).
+// not a template-driven page section. `pricing` stays external (separate page for
+// plans tarifaires). LAB.6 adds `certifications`: the credentials list still lives in
+// Mon compte, so the editor exposes the switch and a link, until lab-4 moves the form
+// into the coach page itself.
+//
+// `actionLabel` is the CTA of the external card. The page used to hardcode
+// « Gérer mes formules »: without this field the certifications card would carry
+// the pricing wording.
 export const COACH_PAGE_EXTERNAL_EDITOR_SECTIONS = {
-  pricing: { label: 'Modifiable dans Mes tarifs', to: '/provider/scheduling' }
+  pricing: {
+    label: 'Modifiable dans Mes tarifs',
+    to: '/provider/scheduling',
+    actionLabel: 'Gérer mes formules'
+  },
+  certifications: {
+    label: 'Modifiable dans Mon compte',
+    to: '/provider/account',
+    actionLabel: 'Gérer mes certifications'
+  }
 } as const
 
 export function isCoachPageAlwaysOnSection(section: string): boolean {

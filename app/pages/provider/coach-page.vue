@@ -157,6 +157,7 @@ const TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero (en-tête)',
   bio: 'Qui suis-je',
+  certifications: 'Certifications',
   benefits: 'Bénéfices',
   freeText: 'Bloc de texte libre',
   pillars: 'Piliers',
@@ -191,6 +192,7 @@ const DISPLAY_SECTION_ORDER = [
   'benefits',
   'freeText',
   'bio',
+  'certifications',
   'testimonials',
   'pillars',
   'howItWorks',
@@ -2198,7 +2200,7 @@ function externalSection(section: string) {
           v-for="section in orderedEditableSections"
           :key="section"
         >
-          <!-- External sections (only `pricing` after story 0-26) -->
+          <!-- External sections (`pricing` since story 0-26, `certifications` since LAB.6) -->
           <div
             v-if="externalSection(section)"
             class="mb-10 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
@@ -2225,7 +2227,12 @@ function externalSection(section: string) {
               </label>
             </div>
             <template v-if="isSectionOn(section)">
-              <div class="space-y-4 px-6 py-5">
+              <!-- LAB.6 — les titres de section ne concernent que `pricing` : sans ce
+              garde, la card « Certifications » afficherait deux champs de tarifs. -->
+              <div
+                v-if="section === 'pricing'"
+                class="space-y-4 px-6 py-5"
+              >
                 <div class="grid gap-4 sm:grid-cols-2">
                   <FormControl
                     id="pricingEyebrow"
@@ -2265,9 +2272,11 @@ function externalSection(section: string) {
                   size="sm"
                   trailing-icon="i-lucide-arrow-right"
                 >
-                  Gérer mes formules
+                  {{ externalSection(section)?.actionLabel }}
                 </UButton>
+                <!-- LAB.6 — l'enregistrement ne concerne que les titres de `pricing`. -->
                 <UButton
+                  v-if="section === 'pricing'"
                   color="primary"
                   variant="solid"
                   size="sm"

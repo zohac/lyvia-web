@@ -235,3 +235,47 @@ test('SSR snapshot renders the bio section, nav links and pricing when data is p
   assert.ok(html.includes('Deuxieme paragraphe.'))
   assert.ok(html.includes('id="tarifs"'))
 })
+
+test('LAB.6 — certifications : toggle ET contenu, les deux conditions', async () => {
+  // Trois états dans l'ordre où ils cassent :
+  //   1. toggle absent (défaut ON) + ≥ 1 certification → visible
+  //   2. toggle OFF → masquée, même avec du contenu
+  //   3. toggle ON + zéro certification → masquée (section vide = section
+  //      absente, AC5). Sans ce troisième cas, un `CoachCertificationsRail`
+  //      sans garde rendrait une bande « 0 certification » sur la page.
+  const credentials = [{ title: 'DU Naturopathie', institution: 'ISUPNAT', year: 2020 }]
+  const profile = ref(createProfile({ credentials }))
+
+  const scope = effectScope()
+  let showCertifications: ReturnType<typeof useCoachSectionVisibility>['show']['certifications'] | undefined
+  let hasCertifications: ReturnType<typeof useCoachSectionVisibility>['has']['certifications'] | undefined
+
+  scope.run(() => {
+    const visibility = useCoachSectionVisibility(profile)
+    showCertifications = visibility.show.certifications
+    hasCertifications = visibility.has.certifications
+  })
+
+  assert.equal(hasCertifications?.value, true)
+  assert.equal(showCertifications?.value, true)
+
+  profile.value = createProfile({
+    credentials,
+    sectionsConfig: { certifications: false }
+  })
+  await nextTick()
+
+  assert.equal(hasCertifications?.value, true)
+  assert.equal(showCertifications?.value, false)
+
+  profile.value = createProfile({
+    credentials: [],
+    sectionsConfig: { certifications: true }
+  })
+  await nextTick()
+
+  assert.equal(hasCertifications?.value, false)
+  assert.equal(showCertifications?.value, false)
+
+  scope.stop()
+})

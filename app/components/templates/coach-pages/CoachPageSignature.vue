@@ -69,6 +69,7 @@ const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile,
 })
 
 const showBio = show.bio
+const showCertifications = show.certifications
 const showProblemStatement = show.problemStatement
 const showBenefits = show.benefits
 // YB.1.1 — le toggle décide de l'intention, le CONTENU décide de
@@ -329,16 +330,6 @@ const heroProps = computed(() => ({
               {{ sectionTitles.bioTitle || `Votre spécialiste ménopause — ${coachName}` }}
             </h2>
 
-            <!--
-              Certifications — toutes, en cartes, aucune troncature (LAB.3, S3/AC4).
-              L'ancienne liste en ligne a été retirée : elle rendait les mêmes
-              certifications une seconde fois dans la même section.
-            -->
-            <CoachCertificationsRail
-              v-if="coachProfile?.credentials?.length"
-              :credentials="coachProfile?.credentials ?? []"
-            />
-
             <!-- Badges V3: specialite + localisation + visio -->
             <div class="mt-6 flex flex-wrap gap-3">
               <span class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]">
@@ -457,6 +448,23 @@ const heroProps = computed(() => ({
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ==================== 4b. CERTIFICATIONS (section autonome, LAB.6) ==================== -->
+    <section
+      v-if="showCertifications"
+      id="certifications"
+      v-bind="reveal()"
+      class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-20 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-5xl">
+        <h2 class="mb-8 font-serif text-3xl leading-tight text-[var(--color-crepuscule-950)]">
+          Certifications
+        </h2>
+        <CoachCertificationsRail
+          :credentials="coachProfile?.credentials ?? []"
+        />
       </div>
     </section>
 

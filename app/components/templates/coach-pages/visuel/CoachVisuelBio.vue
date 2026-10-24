@@ -10,7 +10,6 @@
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import { findFeaturedCredential } from '~/features/coach/domain/featured-credential'
 import { useScrollReveal } from '~/composables/useScrollReveal'
-import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
 import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 
 const props = defineProps<{
@@ -52,9 +51,6 @@ const photoSrc = computed(() => {
     || props.coachProfile?.imageUrl
     || '/images/templates/visuel/bio-default.webp'
   )
-})
-const displayedCredentials = computed(() => {
-  return props.coachProfile?.credentials ?? []
 })
 </script>
 
@@ -107,12 +103,6 @@ const displayedCredentials = computed(() => {
               {{ para }}
             </p>
           </div>
-
-          <!-- Badges certifications & parcours -->
-          <CoachCertificationsRail
-            v-if="displayedCredentials.length"
-            :credentials="displayedCredentials"
-          />
         </div>
       </div>
     </div>
