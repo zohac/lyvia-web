@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="mt-8">
     <div class="mb-3 flex items-center justify-between gap-3">
-      <p class="text-xs text-[color:var(--color-brand-muted)]">
+      <p class="text-xs text-[color:var(--color-crepuscule-500)]">
         {{ total }} certification{{ total > 1 ? 's' : '' }}
       </p>
       <div

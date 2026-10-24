@@ -42,7 +42,7 @@ defineProps<{
       </span>
       <span
         v-if="formatCredentialMeta(credential)"
-        class="mt-0.5 text-xs text-[color:var(--color-brand-secondary)]"
+        class="mt-0.5 text-xs text-[color:var(--color-crepuscule-500)]"
       >
         {{ formatCredentialMeta(credential) }}
       </span>

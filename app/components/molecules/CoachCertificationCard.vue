@@ -43,7 +43,7 @@ const meta = computed(() => formatCredentialMeta(props.credential))
       </span>
       <span
         v-if="meta"
-        class="truncate text-xs text-[color:var(--color-brand-secondary)]"
+        class="truncate text-xs text-[color:var(--color-crepuscule-500)]"
       >
         {{ meta }}
       </span>
