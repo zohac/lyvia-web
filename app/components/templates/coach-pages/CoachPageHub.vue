@@ -15,7 +15,10 @@
  * car c'est une fiche de redirection, pas une page de contenu.
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
+import { findFeaturedCredential } from '~/features/coach/domain/featured-credential'
 import { useCoachLink } from '~/composables/useCoachLink'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
+import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 
 const props = defineProps<{
   profile: PublicProviderProfile
@@ -38,6 +41,11 @@ const bioShort = computed(() => {
 const mainSpecialty = computed(() => props.profile.specialties?.[0] ?? null)
 
 const credentialChips = computed(() => props.profile.credentials ?? [])
+
+// LAB.3 — mise en avant : première certification marquée, sinon null.
+const featuredCredential = computed(() =>
+  findFeaturedCredential(props.profile.credentials)
+)
 </script>
 
 <template>
@@ -93,8 +101,15 @@ const credentialChips = computed(() => props.profile.credentials ?? [])
           </template>
         </p>
 
-        <!-- Credentials cards -->
-        <CoachCertificationsCards
+        <!-- Certification mise en avant — plaque lisible, en tête -->
+        <CoachFeaturedCredential
+          v-if="featuredCredential"
+          :credential="featuredCredential"
+          class="mt-6"
+        />
+
+        <!-- Certifications — 3 visibles puis rail -->
+        <CoachCertificationsRail
           v-if="credentialChips.length"
           :credentials="credentialChips"
         />

@@ -8,7 +8,13 @@
  * À droite : titre, qualifications, certifications pilules et texte de présentation.
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
+import {
+  findFeaturedCredential,
+  selectHeroCredential
+} from '~/features/coach/domain/featured-credential'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
+import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 
 const props = defineProps<{
   coachProfile: PublicProviderProfile | null
@@ -31,18 +37,21 @@ const bioParagraphs = computed<string[]>(() => {
   return FALLBACK_BIO
 })
 
-const featuredCredential = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
-  return creds.find(c => c.featured) ?? null
-})
+// Logo de mise en avant : rendu UNIQUEMENT si une certification est marquée.
+const featuredCredential = computed(() =>
+  findFeaturedCredential(props.coachProfile?.credentials)
+)
+
+// Ligne de tête : mise en avant si elle existe, sinon la première (AC3).
+const heroCredential = computed(() =>
+  selectHeroCredential(props.coachProfile?.credentials)
+)
 
 const credentialLine = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
   const city = props.coachProfile?.city
   const parts: string[] = []
-  const featured = featuredCredential.value
-  if (featured?.title) parts.push(featured.title)
-  else if (creds.length && creds[0]?.title) parts.push(creds[0].title)
+  // La plaque de mise en avant porte déjà l'intitulé : ne pas le répéter.
+  if (!featuredCredential.value && heroCredential.value?.title) parts.push(heroCredential.value.title)
   if (city) parts.push(`${city} & visio`)
   else parts.push('100 % en visio')
   return parts.join(' · ')
@@ -91,15 +100,13 @@ const displayedCredentials = computed(() => {
             {{ title || coachName }}
           </h2>
 
+          <CoachFeaturedCredential
+            v-if="featuredCredential"
+            :credential="featuredCredential"
+            class="mt-4"
+          />
+
           <p class="mt-2 text-base font-semibold text-[color:var(--color-brand-accent)]">
-            <img
-              v-if="featuredCredential?.logoUrl"
-              :src="featuredCredential.logoUrl"
-              :alt="featuredCredential.institution ? featuredCredential.institution + ' — ' + featuredCredential.title : featuredCredential.title"
-              width="80"
-              height="20"
-              class="mr-2 inline-block h-5 w-auto max-w-[6rem] object-contain align-middle"
-            >
             {{ credentialLine }}
           </p>
 
@@ -113,7 +120,7 @@ const displayedCredentials = computed(() => {
           </div>
 
           <!-- Badges certifications & parcours -->
-          <CoachCertificationsCards
+          <CoachCertificationsRail
             v-if="displayedCredentials.length"
             :credentials="displayedCredentials"
           />

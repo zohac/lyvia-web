@@ -34,6 +34,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
+import { selectHeroCredential } from '~/features/coach/domain/featured-credential'
 
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachEssentielHeader from '~/components/templates/coach-pages/essentiel/CoachEssentielHeader.vue'
@@ -45,6 +46,7 @@ import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
 import CoachPricing from '~/components/organisms/CoachPricing.vue'
 import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -123,19 +125,15 @@ const navLinks = computed(() => {
   return links
 })
 
-const featuredCredential = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
-  return creds.find(c => c.featured) ?? null
-})
+// Ligne de tête : mise en avant si elle existe, sinon la première (AC3).
+const heroCredential = computed(() =>
+  selectHeroCredential(props.coachProfile?.credentials)
+)
 
 const credentialLine = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
-  const city = props.coachProfile?.city
   const parts: string[] = []
-  const featured = featuredCredential.value
-  if (featured?.title) parts.push(featured.title)
-  else if (creds.length && creds[0]?.title) parts.push(creds[0].title)
-  if (city) parts.push(city)
+  if (heroCredential.value?.title) parts.push(heroCredential.value.title)
+  if (props.coachProfile?.city) parts.push(props.coachProfile.city)
   return parts.join(' · ')
 })
 
@@ -452,23 +450,15 @@ const heroProps = computed(() => ({
               {{ sectionTitles.bioTitle || `Votre spécialiste ménopause — ${coachName}` }}
             </h2>
 
-            <div
+            <p
               v-if="credentialLine"
-              class="mt-4 flex items-center gap-2 text-base text-[color:var(--color-brand-accent)]"
+              class="mt-4 text-base text-[color:var(--color-brand-accent)]"
             >
-              <img
-                v-if="featuredCredential?.logoUrl"
-                :src="featuredCredential.logoUrl"
-                :alt="featuredCredential.institution ? featuredCredential.institution + ' — ' + featuredCredential.title : featuredCredential.title"
-                width="80"
-                height="20"
-                class="h-5 w-auto max-w-[6rem] object-contain"
-              >
               {{ credentialLine }}
-            </div>
+            </p>
 
             <!-- Certifications cards (all of them) — sous "Qui suis-je" -->
-            <CoachCertificationsCards
+            <CoachCertificationsRail
               v-if="coachProfile?.credentials?.length"
               :credentials="coachProfile.credentials"
             />

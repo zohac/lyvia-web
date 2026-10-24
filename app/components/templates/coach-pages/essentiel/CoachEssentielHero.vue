@@ -14,6 +14,8 @@
  */
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
 import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
+import { findFeaturedCredential, selectHeroCredential } from '~/features/coach/domain/featured-credential'
+import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 
 const props = defineProps<CoachHeroProps>()
 
@@ -40,9 +42,15 @@ const subtitle = computed(() => {
   return `Spécialiste accompagnement ménopause${cityPart}`
 })
 
-// Credential chip (first credential title or null)
+// Credential chip — LAB.3 : la mise en avant si elle existe, sinon la première.
+// Avant ce correctif, le chip prenait `credentials[0]` alors que la ligne de la
+// section « Qui suis-je » prenait la mise en avant : deux certifications
+// différentes sur la même page.
+/** LAB.3 — certification mise en avant, en plaque lisible. */
+const featuredCredential = computed(() => findFeaturedCredential(props.credentials))
+
 const firstCredential = computed(() => {
-  const cred = props.credentials[0]
+  const cred = selectHeroCredential(props.credentials)
   if (!cred?.title) return null
   const meta = formatCredentialMeta(cred)
   return meta ? `${cred.title} · ${meta}` : cred.title
@@ -154,6 +162,13 @@ const effectivePhotoUrl = computed(() => {
               {{ discoveryDurationMinutes }} min
             </span>
           </div>
+
+          <!-- Certification mise en avant -->
+          <CoachFeaturedCredential
+            v-if="featuredCredential"
+            :credential="featuredCredential"
+            class="mt-8"
+          />
 
           <!-- Trust chips row — DS-tokenized pills -->
           <div class="mt-8 flex flex-wrap gap-2">

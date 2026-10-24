@@ -39,6 +39,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
+import { selectHeroCredential } from '~/features/coach/domain/featured-credential'
 
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachAlbaHeader from '~/components/templates/coach-pages/alba/CoachAlbaHeader.vue'
@@ -50,6 +51,7 @@ import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
 import CoachPricing from '~/components/organisms/CoachPricing.vue'
 import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -105,17 +107,14 @@ const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMi
 const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
 const sectionTitles = computed(() => props.coachProfile?.sectionTitlesJson ?? {})
 
-const featuredCredential = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
-  return creds.find(c => c.featured) ?? null
-})
+// Ligne de tête : mise en avant si elle existe, sinon la première (AC3).
+const heroCredential = computed(() =>
+  selectHeroCredential(props.coachProfile?.credentials)
+)
 
 const credentialLine = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
   const parts: string[] = []
-  const featured = featuredCredential.value
-  if (featured?.title) parts.push(featured.title)
-  else if (creds.length && creds[0]?.title) parts.push(creds[0].title)
+  if (heroCredential.value?.title) parts.push(heroCredential.value.title)
   if (props.coachProfile?.city) parts.push(props.coachProfile.city)
   return parts.join(' · ')
 })
@@ -378,14 +377,6 @@ const heroProps = computed(() => ({
               v-if="credentialLine"
               class="mt-2 text-base font-semibold text-[color:var(--color-brand-accent)]"
             >
-              <img
-                v-if="featuredCredential?.logoUrl"
-                :src="featuredCredential.logoUrl"
-                :alt="featuredCredential.institution ? featuredCredential.institution + ' — ' + featuredCredential.title : featuredCredential.title"
-                width="80"
-                height="20"
-                class="mr-2 inline-block h-5 w-auto max-w-[6rem] object-contain align-middle"
-              >
               {{ credentialLine }}
             </p>
 
@@ -398,7 +389,7 @@ const heroProps = computed(() => ({
               </p>
             </div>
 
-            <CoachCertificationsCards
+            <CoachCertificationsRail
               v-if="coachProfile?.credentials?.length"
               :credentials="coachProfile.credentials"
             />

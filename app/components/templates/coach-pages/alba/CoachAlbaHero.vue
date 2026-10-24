@@ -27,6 +27,8 @@
  */
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
 import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
+import { findFeaturedCredential, selectHeroCredential } from '~/features/coach/domain/featured-credential'
+import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 
 const props = defineProps<CoachHeroProps & {
   /**
@@ -53,6 +55,17 @@ const firstName = computed(() => {
  * humanisée.
  */
 const configuredHeadline = computed(() => props.heroHeadline?.trim() || '')
+
+/**
+ * LAB.3 — certification affichée dans le chip du hero : la mise en avant si
+ * elle existe, sinon la première. Avant ce correctif, le chip prenait
+ * `credentials[0]` alors que la ligne « Qui suis-je » prenait la mise en avant :
+ * la page affichait deux certifications différentes.
+ */
+const heroCredential = computed(() => selectHeroCredential(props.credentials))
+
+/** LAB.3 — certification mise en avant, en plaque lisible sur le fond sombre. */
+const featuredCredential = computed(() => findFeaturedCredential(props.credentials))
 
 /**
  * Pillule d'accroche dérivée de la spécialité — AUCUN libellé codé en dur :
@@ -222,17 +235,24 @@ const initials = computed(() => {
             </span>
           </div>
 
+          <!-- Certification mise en avant — plaque lisible sur fond sombre -->
+          <CoachFeaturedCredential
+            v-if="featuredCredential"
+            :credential="featuredCredential"
+            class="mt-8"
+          />
+
           <!-- Chips — uniquement des données réellement configurées. -->
           <div class="mt-8 flex flex-wrap gap-2">
             <span
-              v-if="credentials[0]?.title"
+              v-if="heroCredential?.title"
               class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs text-[color:var(--color-crepuscule-50)]/80 backdrop-blur-sm"
             >
               <UIcon
                 name="i-lucide-graduation-cap"
                 class="size-3.5 text-[color:var(--color-brand-accent)]"
               />
-              {{ credentials[0].title }}<template v-if="formatCredentialMeta(credentials[0])"> · {{ formatCredentialMeta(credentials[0]) }}</template>
+              {{ heroCredential.title }}<template v-if="formatCredentialMeta(heroCredential)"> · {{ formatCredentialMeta(heroCredential) }}</template>
             </span>
             <span
               v-if="city"

@@ -22,7 +22,6 @@ import type { ConsultationPricePlan } from '~/features/consultation/api/consulta
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
-import { formatCredentialMeta } from '~/features/coach/domain/credential-meta'
 import CoachHeroProfile from '~/components/organisms/CoachHeroProfile.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
 import CoachFreeText from '~/components/organisms/CoachFreeText.vue'
@@ -35,6 +34,7 @@ import CoachInlineCta from '~/components/atoms/CoachInlineCta.vue'
 import CoachLeadCapture from '~/components/organisms/CoachLeadCapture.vue'
 import CoachAnnouncementBar from '~/components/atoms/CoachAnnouncementBar.vue'
 import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
 import { useExitIntent } from '~/composables/useExitIntent'
 
 const props = defineProps<{
@@ -329,33 +329,18 @@ const heroProps = computed(() => ({
               {{ sectionTitles.bioTitle || `Votre spécialiste ménopause — ${coachName}` }}
             </h2>
 
-            <!-- Credentials subtitle (dynamic from profile) -->
-            <p
-              v-if="coachProfile?.credentials?.length || coachProfile?.city"
-              class="mt-4 text-lg text-[var(--color-brand-accent)]"
-            >
-              <template
-                v-for="(cred, i) in coachProfile?.credentials ?? []"
-                :key="i"
-              >
-                <span v-if="i > 0"> · </span>{{ cred.title }}<template v-if="formatCredentialMeta(cred)">
-                  ({{ formatCredentialMeta(cred) }})
-                </template>
-              </template>
-              <template v-if="coachProfile?.credentials?.length && coachProfile?.city">
-                · {{ coachProfile.city }}
-              </template>
-              <template v-else-if="coachProfile?.city">
-                {{ coachProfile.city }}
-              </template>
-            </p>
+            <!--
+              Certifications — toutes, en cartes, aucune troncature (LAB.3, S3/AC4).
+              L'ancienne liste en ligne a été retirée : elle rendait les mêmes
+              certifications une seconde fois dans la même section.
+            -->
+            <CoachCertificationsRail
+              v-if="coachProfile?.credentials?.length"
+              :credentials="coachProfile?.credentials ?? []"
+            />
 
-            <!-- Badges V3: credentials + specialite + localisation + visio -->
+            <!-- Badges V3: specialite + localisation + visio -->
             <div class="mt-6 flex flex-wrap gap-3">
-              <CoachCertificationsCards
-                v-if="coachProfile?.credentials?.length"
-                :credentials="coachProfile?.credentials ?? []"
-              />
               <span class="inline-flex items-center gap-2 rounded-full border border-[var(--color-brand-accent)]/20 bg-[var(--color-brand-accent)]/10 px-4 py-1.5 text-sm text-[var(--color-sunset-300)]">
                 Accompagnement en périménopause et ménopause
               </span>

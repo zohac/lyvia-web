@@ -228,6 +228,17 @@ function toggleFeaturedCredential(index: number, value: boolean) {
   })
 }
 
+/**
+ * LAB.3 — nom accessible de l'interrupteur. Le texte visible est identique sur
+ * chaque ligne (« Mettre en avant sur ma page ») : sans ce libellé, un lecteur
+ * d'écran annonce N interrupteurs sans savoir à quelle certification ils se
+ * rapportent. Il contient le texte visible (WCAG 2.5.3).
+ */
+function featuredSwitchLabel(cred: CredentialItem, index: number) {
+  const title = cred.title?.trim() || `certification ${index + 1}`
+  return `Mettre en avant ${title} sur ma page`
+}
+
 // ── Certification logo upload ──────────────────────────
 const logoFileInput = ref<HTMLInputElement | null>(null)
 const pendingLogoIndex = ref<number | null>(null)
@@ -793,10 +804,11 @@ async function handlePasswordChange() {
             <div class="flex items-center gap-2">
               <USwitch
                 :model-value="cred.featured ?? false"
+                :aria-label="featuredSwitchLabel(cred, index)"
                 @update:model-value="(v: boolean) => toggleFeaturedCredential(index, v)"
               />
               <span class="text-xs text-[color:var(--color-brand-secondary)]">
-                Mettre en avant dans la hero
+                Mettre en avant sur ma page
               </span>
             </div>
           </div>
@@ -826,8 +838,6 @@ async function handlePasswordChange() {
             />
           </div>
         </form>
-
-        <!-- (Mode d'affichage supprimé — rework épique : carrousel de cartes sous "Qui suis-je") -->
       </div>
 
       <!-- Section 4: Photo de profil -->
