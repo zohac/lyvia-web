@@ -29,6 +29,14 @@ describe('LAB.1 — formatCredentialMeta (helper pur)', () => {
     assert.equal(formatCredentialMeta({ title: 'T' }), null)
   })
 
+  test('year === null (LAB.4, nullable) → ignoré, pas "null" affiché', () => {
+    assert.equal(
+      formatCredentialMeta({ title: 'T', institution: 'Menopulse', year: null }),
+      'Menopulse'
+    )
+    assert.equal(formatCredentialMeta({ title: 'T', year: null }), null)
+  })
+
   test('year === 0 est une année valide, pas un absent', () => {
     assert.equal(
       formatCredentialMeta({ title: 'T', institution: 'X', year: 0 }),

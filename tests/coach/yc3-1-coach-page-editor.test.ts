@@ -88,7 +88,8 @@ test('inline editor sections stay aligned with the provider editor forms', () =>
     'educationalContent',
     'problemStatement',
     'bio',
-    'testimonials'
+    'testimonials',
+    'certifications'
   ])
   assert.equal(isCoachPageInlineEditorSection('pillars'), true)
   assert.equal(isCoachPageInlineEditorSection('bio'), true)
@@ -150,13 +151,8 @@ test('external editor links point to the right screens (story 0-26: only pricing
     actionLabel: 'Gérer mes formules'
   })
 
-  // LAB.6 — la coach peut masquer la section Certifications depuis l'éditeur ;
-  // l'édition des certifications elle-même reste dans Mon compte jusqu'à lab-4.
-  assert.deepStrictEqual(getCoachPageExternalEditorSection('certifications'), {
-    label: 'Modifiable dans Mon compte',
-    to: '/provider/account',
-    actionLabel: 'Gérer mes certifications'
-  })
+  // LAB.4 — l'édition des certifications a migré dans Ma page coach : plus de lien externe.
+  assert.equal(getCoachPageExternalEditorSection('certifications'), null)
 
   assert.equal(getCoachPageExternalEditorSection('pillars'), null)
 })

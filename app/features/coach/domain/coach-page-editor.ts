@@ -14,30 +14,28 @@ export const COACH_PAGE_INLINE_EDITOR_SECTIONS = [
   'educationalContent',
   'problemStatement',
   'bio',
-  'testimonials'
+  'testimonials',
+  'certifications'
 ] as const
 
 export const COACH_PAGE_NESTED_EDITOR_SECTIONS = ['emotionalSupport'] as const
 
 // Story 0-26: bio + testimonials migrated inline. Branding is a global config card,
 // not a template-driven page section. `pricing` stays external (separate page for
-// plans tarifaires). LAB.6 adds `certifications`: the credentials list still lives in
-// Mon compte, so the editor exposes the switch and a link, until lab-4 moves the form
-// into the coach page itself.
+// plans tarifaires). LAB.4 (2026-10-24) moved the credentials editor (« Diplômes &
+// certifications ») into the coach page itself, so `certifications` is now an
+// INLINE editor section rendered by `ProviderCredentialsEditor.vue` — it is no
+// longer an external card pointing to /provider/account.
 //
 // `actionLabel` is the CTA of the external card. The page used to hardcode
-// « Gérer mes formules »: without this field the certifications card would carry
-// the pricing wording.
+// « Gérer mes formules »: without this field a future external section would
+// silently carry the pricing wording. `certifications` was the second entry
+// until LAB.4 moved its editor into the page (it is inline since then).
 export const COACH_PAGE_EXTERNAL_EDITOR_SECTIONS = {
   pricing: {
     label: 'Modifiable dans Mes tarifs',
     to: '/provider/scheduling',
     actionLabel: 'Gérer mes formules'
-  },
-  certifications: {
-    label: 'Modifiable dans Mon compte',
-    to: '/provider/account',
-    actionLabel: 'Gérer mes certifications'
   }
 } as const
 

@@ -10,6 +10,9 @@
  *   - Textareas pleine largeur (w-full)
  *   - Rapatriement bio + testimonials inline (suppression du lien "Modifiable
  *     dans Mon compte")
+ *   - LAB.4 — rapatriement de l'éditeur « Diplômes & certifications » dans
+ *     cette page (section inline `certifications`, voir
+ *     `components/organisms/ProviderCredentialsEditor.vue`)
  *   - Migration de la section "Identité affichée dans vos emails" depuis
  *     /provider/account
  *
@@ -35,7 +38,7 @@ import {
   snapshotSectionsConfig,
   applySectionsConfigSnapshot
 } from '~/features/coach/section-config-rollback'
-import type { TestimonialItem } from '~/features/account/api/provider-account.contract'
+import type { TestimonialItem, CredentialItem } from '~/features/account/api/provider-account.contract'
 import {
   uploadAsset,
   formatUploadError,
@@ -55,6 +58,7 @@ import SystemAlert from '~/components/atoms/SystemAlert.vue'
 import IconPicker from '~/components/molecules/IconPicker.vue'
 import CoachPublishChecklistModal from '~/components/molecules/CoachPublishChecklistModal.vue'
 import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
+import ProviderCredentialsEditor from '~/components/organisms/ProviderCredentialsEditor.vue'
 import {
   parseHex,
   getRelativeLuminance,
@@ -157,7 +161,7 @@ const TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero (en-tête)',
   bio: 'Qui suis-je',
-  certifications: 'Certifications',
+  certifications: 'Diplômes & certifications',
   benefits: 'Bénéfices',
   freeText: 'Bloc de texte libre',
   pillars: 'Piliers',
@@ -287,6 +291,10 @@ async function handleSecondaryPhotoUpload() {
 
 // ── Testimonials form state (rapatrié, AC-5) ──
 const testimonialsForm = ref<TestimonialItem[]>([])
+
+// ── Credentials form state (LAB.4 — rapatrié depuis /provider/account) ──
+// Édite `provider_profiles.credentials` via le même store (updateAccount).
+const credentialsForm = ref<CredentialItem[]>([])
 
 // ── Hero section form state (Story 0-37 AC-1, AC-2, Story 0-38) ──
 const heroForm = reactive({
@@ -559,6 +567,9 @@ watch(
     }
     testimonialsForm.value = acc.testimonialsJson?.length
       ? acc.testimonialsJson.map(t => ({ ...t }))
+      : []
+    credentialsForm.value = acc.credentials?.length
+      ? acc.credentials.map(c => ({ ...c }))
       : []
     brandingForm.brandName = acc.brandName ?? ''
     // logoUrl n'est plus une form value : il est piloté par le widget upload
@@ -991,6 +1002,29 @@ async function onSaveTestimonials() {
   })
   toast.add({
     title: ok ? 'Témoignages enregistrés' : 'Erreur d\'enregistrement',
+    color: ok ? 'primary' : 'error'
+  })
+}
+
+// ── Credentials inline editor (LAB.4) ──
+/**
+ * Le formulaire d'origine (`/provider/account`) était un `<form @submit.prevent>`
+ * avec `required` sur le titre : le navigateur bloquait la soumission. Le bouton
+ * d'enregistrement vit désormais dans la carte de `coach-page`, donc hors de tout
+ * formulaire — `required` ne bloque plus rien. On rétablit la garantie ici, et on
+ * remonte enfin le motif d'échec du store (un 422 sur l'année, par exemple, ne
+ * doit pas se réduire à « Erreur d'enregistrement »).
+ */
+async function onSaveCredentials() {
+  if (credentialsForm.value.some(c => !c.title?.trim())) {
+    toast.add({ title: 'Le titre du diplôme est requis', color: 'error' })
+    return
+  }
+  const filtered = credentialsForm.value.filter(c => c.title.trim())
+  const ok = await updateAccount({ credentials: filtered })
+  toast.add({
+    title: ok ? 'Diplômes & certifications enregistrés' : 'Erreur d\'enregistrement',
+    ...(ok ? {} : { description: accountError.value ?? 'Une erreur est survenue' }),
     color: ok ? 'primary' : 'error'
   })
 }
@@ -2200,7 +2234,8 @@ function externalSection(section: string) {
           v-for="section in orderedEditableSections"
           :key="section"
         >
-          <!-- External sections (`pricing` since story 0-26, `certifications` since LAB.6) -->
+          <!-- External sections (`pricing` since story 0-26 — `certifications` a
+            rejoint l'éditeur inline en LAB.4) -->
           <div
             v-if="externalSection(section)"
             class="mb-10 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
@@ -2477,6 +2512,27 @@ function externalSection(section: string) {
                     size="sm"
                     :loading="saving"
                     @click="onSaveBio"
+                  >
+                    Enregistrer
+                  </UButton>
+                </div>
+              </template>
+
+              <!-- ── CREDENTIALS (Diplômes & certifications) — LAB.4 ── -->
+              <template v-if="section === 'certifications'">
+                <div class="space-y-4 px-6 py-5">
+                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                    Vos formations et accréditations professionnelles, affichées sur votre page publique.
+                  </p>
+                  <ProviderCredentialsEditor v-model:credentials="credentialsForm" />
+                </div>
+                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
+                  <UButton
+                    color="primary"
+                    variant="solid"
+                    size="sm"
+                    :loading="saving"
+                    @click="onSaveCredentials"
                   >
                     Enregistrer
                   </UButton>

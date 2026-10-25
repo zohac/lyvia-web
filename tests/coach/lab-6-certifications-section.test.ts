@@ -4,7 +4,7 @@ import * as path from 'node:path'
 import test, { describe } from 'node:test'
 
 import {
-  COACH_PAGE_EXTERNAL_EDITOR_SECTIONS,
+  COACH_PAGE_INLINE_EDITOR_SECTIONS,
   getCoachPageEditableSections,
   getCoachPageExternalEditorSection
 } from '../../app/features/coach/domain/coach-page-editor'
@@ -21,9 +21,11 @@ import {
  *    est exercée dans `yc2-3-essentiel-behavior.test.ts`, seule suite qui
  *    exécute réellement `useCoachSectionVisibility`.
  * 3. **L'éditeur rend un interrupteur** (AC3) : `certifications` doit être une
- *    section EXTERNE connue, sinon la boucle `v-for="section in
+ *    section éditable connue, sinon la boucle `v-for="section in
  *    orderedEditableSections"` de `coach-page.vue` n'émet aucune carte et la
- *    coach ne peut jamais écrire `sectionsConfig.certifications`.
+ *    coach ne peut jamais écrire `sectionsConfig.certifications`. Depuis LAB.4
+ *    c'est un éditeur INLINE (`ProviderCredentialsEditor.vue`) : le test de
+ *    section externe a été remplacé, pas supprimé.
  *
  * Convention A32 : les tests ciblent la source réelle des composants.
  */
@@ -125,16 +127,15 @@ describe('LAB.6 — la section Certifications est autonome dans les 4 templates'
   })
 })
 
-describe('LAB.6 — l\'interrupteur « Certifications » atteint l\'éditeur', () => {
-  test('certifications est une section externe connue, vers Mon compte', () => {
-    assert.deepStrictEqual(getCoachPageExternalEditorSection('certifications'), {
-      label: 'Modifiable dans Mon compte',
-      to: '/provider/account',
-      actionLabel: 'Gérer mes certifications'
-    })
-    assert.equal(
-      COACH_PAGE_EXTERNAL_EDITOR_SECTIONS.certifications.to,
-      '/provider/account'
+describe('LAB.6 — l\'éditeur « Certifications » vit dans la page coach (LAB.4)', () => {
+  test('certifications n\'est plus une section externe (déplacée dans Ma page coach)', () => {
+    assert.equal(getCoachPageExternalEditorSection('certifications'), null)
+  })
+
+  test('certifications est une section inline de l\'éditeur', () => {
+    assert.ok(
+      (COACH_PAGE_INLINE_EDITOR_SECTIONS as readonly string[]).includes('certifications'),
+      'certifications doit être un éditeur inline'
     )
   })
 

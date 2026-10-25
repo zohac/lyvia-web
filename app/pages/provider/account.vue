@@ -11,10 +11,9 @@ import { isPasswordStrong, getPasswordCriteria } from '../../features/auth/passw
 import {
   uploadAsset,
   formatUploadError,
-  validateFileUpload,
-  validateCertificationLogoFile
+  validateFileUpload
 } from '../../features/assets/use-asset-upload'
-import type { CredentialItem, SocialLinks } from '../../features/account/api/provider-account.contract'
+import type { SocialLinks } from '../../features/account/api/provider-account.contract'
 import { useSupportSession } from '../../features/support-session/state/useSupportSession'
 import FormControl from '../../components/molecules/FormControl.vue'
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
@@ -44,9 +43,6 @@ const specialtyError = ref<string | null>(null)
 // Story 0-26 round terrain — `longBio` + `city` + `region` édités inline sur
 // /provider/coach-page (section "Qui suis-je"), retirés de cette page pour
 // éviter la double source de vérité.
-
-// ── Credentials form state ──────────────────────────
-const credentialsForm = ref<CredentialItem[]>([])
 
 // ── Social links form state ─────────────────────────
 const socialForm = reactive<SocialLinks>({
@@ -153,11 +149,6 @@ function syncFormsFromAccount() {
   personalForm.bio = acc.bio ?? ''
   personalForm.specialties = [...(acc.specialties ?? [])]
 
-  // Credentials — preserve verified flag on round-trip (CR1 HIGH fix)
-  credentialsForm.value = acc.credentials?.length
-    ? acc.credentials.map(c => ({ ...c }))
-    : []
-
   // Social links
   socialForm.linkedin = acc.socialLinks?.linkedin ?? ''
   socialForm.facebook = acc.socialLinks?.facebook ?? ''
@@ -210,85 +201,6 @@ function addSpecialty() {
 
 function removeSpecialty(index: number) {
   personalForm.specialties.splice(index, 1)
-}
-
-// ── Credentials handlers ────────────────────────────
-function addCredential() {
-  if (credentialsForm.value.length >= 20) return
-  credentialsForm.value.push({ title: '' })
-}
-
-function removeCredential(index: number) {
-  credentialsForm.value.splice(index, 1)
-}
-
-function toggleFeaturedCredential(index: number, value: boolean) {
-  credentialsForm.value.forEach((c, i) => {
-    c.featured = i === index ? value : false
-  })
-}
-
-/**
- * LAB.3 — nom accessible de l'interrupteur. Le texte visible est identique sur
- * chaque ligne (« Mettre en avant sur ma page ») : sans ce libellé, un lecteur
- * d'écran annonce N interrupteurs sans savoir à quelle certification ils se
- * rapportent. Il contient le texte visible (WCAG 2.5.3).
- */
-function featuredSwitchLabel(cred: CredentialItem, index: number) {
-  const title = cred.title?.trim() || `certification ${index + 1}`
-  return `Mettre en avant ${title} sur ma page`
-}
-
-// ── Certification logo upload ──────────────────────────
-const logoFileInput = ref<HTMLInputElement | null>(null)
-const pendingLogoIndex = ref<number | null>(null)
-const uploadingLogo = ref(false)
-
-function triggerCredentialLogoUpload(index: number) {
-  if (uploadingLogo.value) return
-  pendingLogoIndex.value = index
-  logoFileInput.value?.click()
-}
-
-async function onCredentialLogoFileChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file || pendingLogoIndex.value === null) {
-    input.value = ''
-    return
-  }
-  const idx = pendingLogoIndex.value
-  const validationError = validateCertificationLogoFile(file)
-  if (validationError) {
-    toast.add({ title: validationError, color: 'error' })
-    input.value = ''
-    pendingLogoIndex.value = null
-    return
-  }
-  const targetCred = credentialsForm.value[idx]
-  uploadingLogo.value = true
-  try {
-    const result = await uploadAsset('certification_logo', file)
-    const cred = credentialsForm.value[idx]
-    if (cred && cred === targetCred) {
-      cred.logoAssetId = result.assetId
-      cred.logoUrl = result.url
-    }
-  } catch (e) {
-    toast.add({ title: formatUploadError(e, 'certification_logo'), color: 'error' })
-  } finally {
-    uploadingLogo.value = false
-    input.value = ''
-    pendingLogoIndex.value = null
-  }
-}
-
-function removeCredentialLogo(index: number) {
-  const cred = credentialsForm.value[index]
-  if (cred) {
-    delete cred.logoAssetId
-    delete cred.logoUrl
-  }
 }
 
 // ── Photo upload handlers ───────────────────────────
@@ -371,16 +283,6 @@ async function handlePersonalSubmit() {
 
 // Story 0-26 round terrain — handleProfileSubmit supprimé : longBio + city + region
 // désormais édités via la section "Qui suis-je" de /provider/coach-page.
-
-async function handleCredentialsSubmit() {
-  const filtered = credentialsForm.value.filter(c => c.title.trim())
-  const success = await updateAccount({ credentials: filtered })
-  if (success) {
-    toast.add({ title: 'Informations mises à jour', color: 'primary' })
-  } else {
-    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
-  }
-}
 
 async function handleSocialSubmit() {
   socialError.value = null
@@ -703,133 +605,6 @@ async function handlePasswordChange() {
           </FormControl>
 
           <div class="sm:col-span-2">
-            <UButton
-              type="submit"
-              :loading="saving"
-              :disabled="saving"
-              label="Enregistrer"
-            />
-          </div>
-        </form>
-      </div>
-
-      <!-- Section 3: Diplômes & certifications -->
-      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-        <div class="flex items-start gap-4">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-            <UIcon
-              name="i-lucide-award"
-              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
-            />
-          </div>
-          <div>
-            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
-              Diplômes & certifications
-            </h2>
-            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-              Vos formations et accréditations professionnelles.
-            </p>
-          </div>
-        </div>
-
-        <form
-          class="mt-6 space-y-4"
-          @submit.prevent="handleCredentialsSubmit"
-        >
-          <div
-            v-for="(cred, index) in credentialsForm"
-            :key="index"
-            class="space-y-2 rounded-lg border border-[color:var(--color-brand-subtle)] p-3"
-          >
-            <div class="flex items-start gap-3">
-              <div class="grid flex-1 gap-3 sm:grid-cols-3">
-                <UInput
-                  v-model="cred.title"
-                  placeholder="Titre du diplôme *"
-                  :maxlength="200"
-                  required
-                />
-                <UInput
-                  v-model="cred.institution"
-                  placeholder="Établissement"
-                  :maxlength="200"
-                />
-                <UInput
-                  v-model.number="cred.year"
-                  type="number"
-                  placeholder="Année"
-                  :min="1900"
-                  :max="2100"
-                />
-              </div>
-              <UButton
-                variant="ghost"
-                color="neutral"
-                icon="i-lucide-trash-2"
-                size="sm"
-                :aria-label="'Supprimer le diplôme ' + cred.title"
-                @click="removeCredential(index)"
-              />
-            </div>
-            <div class="flex items-center gap-2">
-              <img
-                v-if="cred.logoUrl"
-                :src="cred.logoUrl"
-                :alt="cred.institution ? cred.institution + ' — ' + cred.title : cred.title"
-                class="h-6 w-auto max-w-[4rem] object-contain"
-              >
-              <UButton
-                type="button"
-                size="xs"
-                variant="outline"
-                icon="i-lucide-image"
-                :label="cred.logoAssetId ? 'Changer le logo' : 'Ajouter un logo'"
-                :loading="uploadingLogo && pendingLogoIndex === index"
-                @click="triggerCredentialLogoUpload(index)"
-              />
-              <UButton
-                v-if="cred.logoAssetId"
-                type="button"
-                size="xs"
-                variant="ghost"
-                color="neutral"
-                icon="i-lucide-x"
-                label="Retirer le logo"
-                @click="removeCredentialLogo(index)"
-              />
-              <span class="text-xs text-[color:var(--color-brand-muted)]">
-                PNG, JPEG ou WebP — SVG non accepté.
-              </span>
-            </div>
-            <div class="flex items-center gap-2">
-              <USwitch
-                :model-value="cred.featured ?? false"
-                :aria-label="featuredSwitchLabel(cred, index)"
-                @update:model-value="(v: boolean) => toggleFeaturedCredential(index, v)"
-              />
-              <span class="text-xs text-[color:var(--color-brand-secondary)]">
-                Mettre en avant sur ma page
-              </span>
-            </div>
-          </div>
-
-          <div
-            v-if="credentialsForm.length === 0"
-            class="py-4 text-center text-sm text-[color:var(--color-brand-muted)]"
-          >
-            Aucun diplôme ajouté.
-          </div>
-
-          <div class="flex items-center gap-3">
-            <UButton
-              v-if="credentialsForm.length < 20"
-              variant="outline"
-              icon="i-lucide-plus"
-              label="Ajouter un diplôme"
-              size="sm"
-              type="button"
-              @click="addCredential"
-            />
             <UButton
               type="submit"
               :loading="saving"
@@ -1630,12 +1405,5 @@ async function handlePasswordChange() {
         </form>
       </div>
     </template>
-    <input
-      ref="logoFileInput"
-      type="file"
-      accept="image/png,image/jpeg,image/webp"
-      class="hidden"
-      @change="onCredentialLogoFileChange"
-    >
   </div>
 </template>
