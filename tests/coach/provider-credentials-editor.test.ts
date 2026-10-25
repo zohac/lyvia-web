@@ -96,7 +96,7 @@ function baseOptions(credentials: Credential[]): RenderSfcOptions {
 /** Rend le composant et capture ce qu'il émet, en laissant le test piloter le VNode. */
 async function renderEditor(
   credentials: Credential[],
-  drive: (tree: { all: Vue.VNode[], inputs: Vue.VNode[], switches: Vue.VNode[], buttons: Vue.VNode[] }) => void | Promise<void>,
+  drive: (tree: { all: Vue.VNode[], inputs: Vue.VNode[], switches: Vue.VNode[], selects: Vue.VNode[], buttons: Vue.VNode[] }) => void | Promise<void>,
   options: Partial<RenderSfcOptions> = {}
 ): Promise<{ emitted: Credential[][] }> {
   const emitted: Credential[][] = []
@@ -111,6 +111,7 @@ async function renderEditor(
       all,
       inputs: ofType(all, UInput),
       switches: ofType(all, USwitch),
+      selects: ofType(all, USelect),
       buttons: ofType(all, UButton)
     })
   }
@@ -150,6 +151,20 @@ describe('LAB.4 — ProviderCredentialsEditor : payload émis', () => {
       }
     )
     assert.equal(emitted[0]![0]!.year, 2021)
+  })
+
+  test('une année hors bornes ne part jamais vers l\'API (422 évité)', async () => {
+    // `@Min(1900)`/`@Max(2100)` rejettent TOUT le tableau : 0, -5 ou 2101
+    // doivent devenir `null` avant l'envoi, pas provoquer un 422 générique.
+    for (const saisie of ['0', '-5', '2101', '  ']) {
+      const { emitted } = await renderEditor(
+        [{ title: 'DU', year: 2020 }],
+        ({ inputs }) => {
+          fire(inputs[2]!, 'onUpdate:modelValue', saisie)
+        }
+      )
+      assert.equal(emitted[0]![0]!.year, null, `saisie ${JSON.stringify(saisie)}`)
+    }
   })
 
   test('le payload porte toujours `year: number | null`, jamais `undefined`', async () => {
@@ -209,6 +224,85 @@ describe('LAB.4 — ProviderCredentialsEditor : payload émis', () => {
     // La seconde ligne ne doit pas hériter du logo.
     assert.equal(emitted[0]![1]!.logoAssetId, undefined)
   })
+
+  test('un logo dont la ligne a changé pendant l\'envoi est refusé et annoncé', async () => {
+    let resolveUpload: ((value: { assetId: string, url: string }) => void) | undefined
+    const pendingUpload = new Promise<{ assetId: string, url: string }>((resolve) => {
+      resolveUpload = resolve
+    })
+    const toasts: Array<{ title: string }> = []
+
+    const { emitted } = await renderEditor(
+      [{ title: 'Première' }, { title: 'Seconde' }],
+      async ({ all, buttons }) => {
+        const logoButton = buttons.find(vnode => (vnode.props ?? {}).icon === 'i-lucide-image')
+        assert.ok(logoButton)
+        fire(logoButton!, 'onClick')
+
+        const fileInput = all.find(vnode => vnode.type === 'input' && (vnode.props ?? {}).type === 'file')
+        assert.ok(fileInput)
+        const upload = fire(fileInput!, 'onChange', {
+          target: { files: [{ name: 'logo.png', type: 'image/png' }], value: '' }
+        })
+
+        // Suppression pendant l'envoi : l'index ne désigne plus la même ligne.
+        const deleteButton = buttons.find(vnode => (vnode.props ?? {}).icon === 'i-lucide-trash-2')
+        assert.ok(deleteButton)
+        fire(deleteButton!, 'onClick')
+
+        resolveUpload?.({ assetId: 'asset-orphelin', url: 'https://cdn.test/orphelin.png' })
+        await upload
+      },
+      {
+        globals: {
+          ...Vue,
+          useToast: () => ({ add: (toast: { title: string }) => toasts.push(toast) })
+        },
+        mocks: {
+          '~/features/assets/use-asset-upload': {
+            uploadAsset: () => pendingUpload,
+            formatUploadError: () => 'upload impossible',
+            validateCertificationLogoFile: () => null
+          }
+        }
+      }
+    )
+
+    assert.equal(
+      emitted.some(payload => payload.some(cred => cred.logoAssetId === 'asset-orphelin')),
+      false,
+      'le logo ne doit jamais être attaché à la mauvaise ligne'
+    )
+    assert.ok(
+      toasts.some(toast => toast.title.includes('Logo non appliqué')),
+      'l\'échec doit être annoncé, plus jeté en silence'
+    )
+  })
+
+  test('la nature choisie est émise, et « Non renseigné » la retire', async () => {
+    const chosen = await renderEditor([{ title: 'DU', kind: 'diploma' }], ({ selects }) => {
+      assert.equal(selects.length, 1, 'une ligne = un select de nature')
+      fire(selects[0]!, 'onUpdate:modelValue', 'certification')
+    })
+    assert.equal(chosen.emitted[0]![0]!.kind, 'certification')
+
+    const cleared = await renderEditor([{ title: 'DU', kind: 'certification' }], ({ selects }) => {
+      fire(selects[0]!, 'onUpdate:modelValue', 'unset')
+    })
+    assert.equal(cleared.emitted[0]![0]!.kind, undefined)
+  })
+
+  test('la ligne non qualifiée affiche « Non renseigné » via une sentinelle, jamais une valeur vide', async () => {
+    await renderEditor([{ title: 'DU' }], ({ selects }) => {
+      // Le VNode conserve la forme écrite (`:model-value`), pas la prop camelCase.
+      const selectProps = selects[0]!.props ?? {}
+      assert.equal(selectProps['model-value'], 'unset')
+      const values = (selectProps.items as Array<{ value: string }>).map(item => item.value)
+      // Reka UI lève sur `SelectItem value=""` : la sentinelle est obligatoire.
+      assert.deepEqual(values, ['unset', 'diploma', 'certification'])
+      assert.equal(values.includes(''), false)
+    })
+  })
 })
 
 describe('LAB.4 — ProviderCredentialsEditor : accessibilité', () => {
@@ -216,9 +310,9 @@ describe('LAB.4 — ProviderCredentialsEditor : accessibilité', () => {
     await renderEditor([{ title: 'DU' }], ({ inputs }) => {
       const labels = inputs.map(vnode => (vnode.props ?? {})['aria-label'])
       assert.deepEqual(labels, [
-        'Titre du diplôme (obligatoire)',
+        'Intitulé (obligatoire)',
         'Établissement',
-        'Année du diplôme (optionnelle)'
+        'Année (optionnelle)'
       ])
     })
   })
@@ -227,7 +321,7 @@ describe('LAB.4 — ProviderCredentialsEditor : accessibilité', () => {
     await renderEditor([{ title: '' }], ({ buttons }) => {
       const deleteButton = buttons.find(vnode => (vnode.props ?? {}).icon === 'i-lucide-trash-2')
       assert.ok(deleteButton)
-      assert.equal((deleteButton!.props ?? {})['aria-label'], 'Supprimer le diplôme 1')
+      assert.equal((deleteButton!.props ?? {})['aria-label'], 'Supprimer l\'entrée 1')
     })
   })
 })

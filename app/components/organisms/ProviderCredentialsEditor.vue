@@ -28,10 +28,16 @@ watch(
   { immediate: true, deep: true }
 )
 
+/**
+ * L'année est nullable côté API, mais `@IsInt`/`@Min(1900)`/`@Max(2100)` y
+ * rejettent tout le tableau : une valeur hors bornes ne doit donc jamais
+ * partir. `Number('  ')` vaut 0 et `Number('-5')` vaut -5, d'où le clamp
+ * explicite plutôt qu'un simple `Number.isNaN`.
+ */
 function sanitizeYear(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null
-  const n = Number(value)
-  return Number.isNaN(n) ? null : n
+  const n = Math.trunc(Number(value))
+  return Number.isFinite(n) && n >= 1900 && n <= 2100 ? n : null
 }
 
 function emitUpdate() {
@@ -165,8 +171,8 @@ function removeCredentialLogo(index: number) {
         <div class="grid flex-1 gap-3 sm:grid-cols-3">
           <UInput
             v-model="cred.title"
-            placeholder="Titre du diplôme *"
-            aria-label="Titre du diplôme (obligatoire)"
+            placeholder="Intitulé *"
+            aria-label="Intitulé (obligatoire)"
             :maxlength="200"
             required
             @update:model-value="emitUpdate"
@@ -182,7 +188,7 @@ function removeCredentialLogo(index: number) {
             :model-value="cred.year ?? undefined"
             type="number"
             placeholder="Année (optionnelle)"
-            aria-label="Année du diplôme (optionnelle)"
+            aria-label="Année (optionnelle)"
             :min="1900"
             :max="2100"
             @update:model-value="(v: string | number | null) => { cred.year = v === '' || v === null ? null : Number(v); emitUpdate() }"
@@ -193,7 +199,7 @@ function removeCredentialLogo(index: number) {
           color="neutral"
           icon="i-lucide-trash-2"
           size="sm"
-          :aria-label="`Supprimer ${cred.title?.trim() || `le diplôme ${index + 1}`}`"
+          :aria-label="`Supprimer ${cred.title?.trim() || `l'entrée ${index + 1}`}`"
           @click="removeCredential(index)"
         />
       </div>
@@ -234,21 +240,31 @@ function removeCredentialLogo(index: number) {
         </span>
       </div>
       <div class="flex flex-wrap items-center gap-3">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <span class="text-xs text-[color:var(--color-brand-secondary)]">
             Nature
           </span>
+          <!--
+            `value: ''` est interdit par Reka UI (il lève « must have a value
+            prop that is not an empty string ») et n'apparaît donc pas dans le
+            DOM : le retour à « non renseigné » passe par la sentinelle
+            `unset`, convertie en `undefined` dans le handler. Sans elle, une
+            fois « Diplôme » choisi, l'AC1 (revenir à non renseigné) était
+            inatteignable.
+          -->
           <USelect
-            :model-value="cred.kind ?? ''"
+            :model-value="cred.kind ?? 'unset'"
             :items="[
+              { label: 'Non renseigné', value: 'unset' },
               { label: 'Diplôme', value: 'diploma' },
               { label: 'Certification ou formation', value: 'certification' }
             ]"
-            placeholder="Non renseigné"
             size="xs"
-            :aria-label="`Nature de ${cred.title?.trim() || `la certification ${index + 1}`}`"
+            :aria-label="`Nature de ${cred.title?.trim() || `l'entrée ${index + 1}`}`"
             @update:model-value="(v: string | null) => {
-              cred.kind = v === '' || v === null ? undefined : (v as 'diploma' | 'certification')
+              cred.kind = v === 'unset' || v === '' || v === null
+                ? undefined
+                : (v as 'diploma' | 'certification')
               emitUpdate()
             }"
           />
@@ -264,20 +280,27 @@ function removeCredentialLogo(index: number) {
           </span>
         </div>
       </div>
+      <p
+        :id="`credential-kind-hint-${index}`"
+        class="text-xs text-[color:var(--color-brand-muted)]"
+      >
+        Sépare vos diplômes de vos certifications sur votre page publique.
+        Laisser « Non renseigné » classe l'entrée dans « Diplômes & autres formations ».
+      </p>
     </div>
 
     <div
       v-if="form.length === 0"
       class="py-4 text-center text-sm text-[color:var(--color-brand-muted)]"
     >
-      Aucun diplôme ajouté.
+      Aucune entrée ajoutée.
     </div>
 
     <UButton
       v-if="form.length < 20"
       variant="outline"
       icon="i-lucide-plus"
-      label="Ajouter un diplôme"
+      label="Ajouter une entrée"
       size="sm"
       type="button"
       @click="addCredential"

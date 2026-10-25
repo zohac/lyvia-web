@@ -67,8 +67,10 @@ describe('LAB.6 — la section Certifications est autonome dans les 4 templates'
       )
       assert.match(
         source,
-        /<h2[^>]*>\s*Certifications\s*<\/h2>/,
-        'la section doit porter un <h2> « Certifications » (AC2, lisible par les AT)'
+        // LAB.5 (revue 2026-10-25) : le titre est devenu neutre, la section
+        // contient désormais des diplômes autant que des certifications.
+        /<h2[^>]*>\s*Parcours &amp; qualifications\s*<\/h2>/,
+        'la section doit porter un <h2> « Parcours & qualifications » (AC2, lisible par les AT)'
       )
 
       // Position : après la bio, avant les témoignages. Deux ancres possibles

@@ -1,14 +1,17 @@
 <script setup lang="ts">
 /**
- * CoachCertificationsRail — liste de réassurance des certifications (LAB.3).
+ * CoachCertificationsGroup — une liste de réassurance (LAB.5).
+ *
+ * Reçoit **un** groupe déjà filtré par `CoachCertificationsRail` (certifications
+ * ou diplômes) et le rend en grille statique ou en rail autonome. Le libellé des
+ * commandes et du compteur dépend du groupe : une liste de diplômes annoncée
+ * « certifications » serait exactement l'affirmation fausse que LAB.5 corrige.
  *
  * Deux régimes distincts :
  *
- * - **≤ 3 certifications** : simple grille statique, aucune commande, aucun
- *   défilement. Un « carrousel » sur deux cartes n'a aucun sens, et la copie de
- *   bouclage y dupliquait une certification à l'écran.
- * - **> 3 certifications** : rail à défilement automatique **pas à pas** (une
- *   carte toutes les 4 s, pas un ticker continu), bouclé sans saut, pausable.
+ * - **≤ 3 entrées** : grille statique, aucune commande, aucun défilement.
+ * - **> 3 entrées** : rail à défilement automatique **pas à pas** (une carte
+ *   toutes les 4 s, pas un ticker continu), bouclé sans saut, pausable.
  *
  * Conditions d'accessibilité tenues dans les deux cas :
  * - toutes les cartes sont dans le DOM ; la copie de bouclage n'existe qu'en
@@ -22,9 +25,33 @@ import type { CredentialItem } from '~/features/seo/api/public-provider-profile.
 import { orderCredentialsForDisplay } from '~/features/coach/domain/featured-credential'
 import CoachCertificationCard from '~/components/molecules/CoachCertificationCard.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   credentials: CredentialItem[]
-}>()
+  /** Groupe rendu : pilote le nom du compteur et des commandes. */
+  credentialKind?: 'certification' | 'diploma'
+}>(), {
+  credentialKind: 'certification'
+})
+
+const labels = computed(() => props.credentialKind === 'diploma'
+  ? {
+      singular: 'diplôme',
+      plural: 'diplômes',
+      count: 'Diplômes',
+      previous: 'Diplômes précédents',
+      next: 'Diplômes suivants',
+      pause: 'Mettre en pause le défilement des diplômes',
+      resume: 'Reprendre le défilement des diplômes'
+    }
+  : {
+      singular: 'certification',
+      plural: 'certifications',
+      count: 'Certifications',
+      previous: 'Certifications précédentes',
+      next: 'Certifications suivantes',
+      pause: 'Mettre en pause le défilement des certifications',
+      resume: 'Reprendre le défilement des certifications'
+    })
 
 const STEP_MS = 4000
 const MANUAL_PAUSE_MS = 6000
@@ -115,10 +142,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="mt-8">
+  <div>
     <div class="mb-3 flex items-center justify-between gap-3">
       <p class="text-xs text-[color:var(--color-crepuscule-500)]">
-        {{ total }} certification{{ total > 1 ? 's' : '' }}
+        {{ total }} {{ labels.singular }}{{ total > 1 ? 's' : '' }}
       </p>
       <div
         v-if="isRail"
@@ -134,7 +161,7 @@ onBeforeUnmount(() => {
           color="neutral"
           variant="outline"
           size="xs"
-          :aria-label="pausedByUser ? 'Reprendre le défilement des certifications' : 'Mettre en pause le défilement des certifications'"
+          :aria-label="pausedByUser ? labels.resume : labels.pause"
           :aria-pressed="pausedByUser"
           @click="togglePlayback"
         />
@@ -143,7 +170,7 @@ onBeforeUnmount(() => {
           color="neutral"
           variant="outline"
           size="xs"
-          aria-label="Certifications précédentes"
+          :aria-label="labels.previous"
           @click="goTo(-1)"
         />
         <UButton
@@ -151,7 +178,7 @@ onBeforeUnmount(() => {
           color="neutral"
           variant="outline"
           size="xs"
-          aria-label="Certifications suivantes"
+          :aria-label="labels.next"
           @click="goTo(1)"
         />
       </div>
@@ -184,7 +211,7 @@ onBeforeUnmount(() => {
         ref="track"
         class="flex list-none gap-3 overflow-x-auto p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         tabindex="0"
-        :aria-label="`Certifications : ${total}`"
+        :aria-label="`${labels.count} : ${total}`"
       >
         <li
           v-for="cred in ordered"

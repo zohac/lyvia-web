@@ -241,7 +241,7 @@ const heroProps = computed(() => ({
     >
       <div class="mx-auto max-w-5xl">
         <h2 class="mb-8 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)]">
-          Certifications
+          Parcours &amp; qualifications
         </h2>
         <CoachCertificationsRail
           :credentials="coachProfile?.credentials ?? []"

@@ -14,7 +14,12 @@
  *   - deux groupes non vides → deux titres de groupe ;
  *   - un seul groupe non vide → pas de titre (évite un en-tête orphelin) ;
  *   - la mise en avant reste première et indépendante du classement (LAB.3),
- *     dans chaque groupe.
+ *     dans chaque groupe ;
+ *   - le groupe qui contient la mise en avant passe en premier, y compris si
+ *     c'est le groupe diplômes : `DESIGN.md:183` exige que l'élément mis en
+ *     avant soit la première entrée de la section (décision de revue du
+ *     2026-10-25). Sans cela, une mise en avant « diplôme » arrivait après
+ *     tout le groupe certifications.
  *
  * Chaque groupe est un rail indépendant (ou une grille statique si ≤ 3 cartes),
  * géré par `CoachCertificationsGroup`. Toutes les cartes restent dans le DOM.
@@ -30,6 +35,7 @@ const props = defineProps<{
 interface Group {
   key: string
   title: string | null
+  credentialKind: 'certification' | 'diploma'
   items: CredentialItem[]
 }
 
@@ -40,27 +46,33 @@ const groups = computed<Group[]>(() => {
 
   const bothNonEmpty = certifications.length > 0 && diplomas.length > 0
 
-  const result: Group[] = []
-  if (certifications.length > 0) {
-    result.push({
-      key: 'certifications',
-      title: bothNonEmpty ? 'Certifications & formations' : null,
-      items: orderCredentialsForDisplay(certifications)
-    })
+  const certificationGroup: Group = {
+    key: 'certifications',
+    title: bothNonEmpty ? 'Certifications & formations' : null,
+    credentialKind: 'certification',
+    items: orderCredentialsForDisplay(certifications)
   }
-  if (diplomas.length > 0) {
-    result.push({
-      key: 'diplomas',
-      title: bothNonEmpty ? 'Diplômes & autres formations' : null,
-      items: orderCredentialsForDisplay(diplomas)
-    })
+  const diplomaGroup: Group = {
+    key: 'diplomas',
+    title: bothNonEmpty ? 'Diplômes & autres formations' : null,
+    credentialKind: 'diploma',
+    items: orderCredentialsForDisplay(diplomas)
   }
-  return result
+
+  // La mise en avant est la première entrée de la section, donc son groupe
+  // passe devant — sinon un diplôme mis en avant arrive après tout le groupe
+  // certifications (AC5 / DESIGN.md:183).
+  const featuredIsDiploma = diplomas.some(c => c.featured)
+  const orderedGroups = featuredIsDiploma
+    ? [diplomaGroup, certificationGroup]
+    : [certificationGroup, diplomaGroup]
+
+  return orderedGroups.filter(group => group.items.length > 0)
 })
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div class="mt-8 space-y-8">
     <section
       v-for="group in groups"
       :key="group.key"
@@ -72,7 +84,10 @@ const groups = computed<Group[]>(() => {
       >
         {{ group.title }}
       </h3>
-      <CoachCertificationsGroup :credentials="group.items" />
+      <CoachCertificationsGroup
+        :credentials="group.items"
+        :credential-kind="group.credentialKind"
+      />
     </section>
   </div>
 </template>
