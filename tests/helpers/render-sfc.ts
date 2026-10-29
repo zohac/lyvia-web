@@ -139,12 +139,19 @@ function resolveRepoFile(specifier: string, fromDir: string): string | null {
 }
 
 function resolveWithExtension(basePath: string): string | null {
+  // Un specifier qui porte déjà son extension (ex. `./Child.vue`) doit être
+  // résolu tel quel, sans lui ré-apposer une extension.
+  if (fs.existsSync(basePath) && fs.statSync(basePath).isFile()) {
+    return basePath
+  }
   const candidates = [
+    `${basePath}.vue`,
     `${basePath}.ts`,
     `${basePath}.js`,
     `${basePath}.mjs`,
     path.join(basePath, 'index.ts'),
-    path.join(basePath, 'index.js')
+    path.join(basePath, 'index.js'),
+    path.join(basePath, 'index.vue')
   ]
   return candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) ?? null
 }
@@ -202,6 +209,16 @@ function createScope(fromDir: string, mocks: Record<string, unknown>, cache: Map
       return nodeRequire(specifier)
     }
     if (hasKey(mocks, resolved)) return mocks[resolved]
+    // Un composant enfant `.vue` est compilé avec le même `compileSfc` que la
+    // racine : c'est le point de l'outillage. Sans cela, l'import serait
+    // traité comme un module TypeScript et échouerait à la lecture.
+    if (resolved.endsWith('.vue')) {
+      const cached = cache.get(resolved)
+      if (cached !== undefined) return cached
+      const component = compileSfc(resolved, mocks, cache)
+      cache.set(resolved, component)
+      return component
+    }
     return loadSourceModule(resolved, mocks, cache)
   }
 
