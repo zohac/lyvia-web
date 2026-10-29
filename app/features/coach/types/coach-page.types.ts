@@ -14,8 +14,10 @@ import type {
 export interface Credential {
   title: string
   institution?: string
-  year?: number
+  year?: number | null
   verified?: boolean
+  featured?: boolean
+  logoUrl?: string | null
 }
 
 export interface Testimonial {

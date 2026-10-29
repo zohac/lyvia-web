@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
+import {
+  findFeaturedCredential,
+  selectHeroCredential
+} from '~/features/coach/domain/featured-credential'
+import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 import { usePublicHeaderState } from '~/features/public/state/public-header.state'
 
 const props = defineProps<CoachHeroProps>()
@@ -17,12 +22,19 @@ const heroH1 = computed(() => {
   return `Spécialiste accompagnement ménopause${cityPart}`
 })
 
-// Subtitle line 1: first credential + city (graceful degradation)
+// Logo de mise en avant — rendu UNIQUEMENT si une certification est marquée.
+const featuredCredential = computed(() =>
+  findFeaturedCredential(props.credentials)
+)
+
+// Subtitle line 1: featured credential (if any) else first credential + city.
+// Quand la plaque de mise en avant est rendue, elle porte déjà l'intitulé : la
+// ligne ne le répète pas.
 const heroSubtitleLine1 = computed(() => {
   const parts: string[] = []
-  const firstCredential = props.credentials[0]
-  if (firstCredential) {
-    parts.push(firstCredential.title)
+  const heroCredential = selectHeroCredential(props.credentials)
+  if (heroCredential && !featuredCredential.value) {
+    parts.push(heroCredential.title)
   }
   if (props.city) {
     parts.push(props.city)
@@ -89,6 +101,13 @@ const effectivePhotoUrl = computed(() => {
             >
               {{ heroSubtitleLine1 }}
             </p>
+
+            <!-- Certification mise en avant — plaque lisible sur fond clair -->
+            <CoachFeaturedCredential
+              v-if="featuredCredential"
+              :credential="featuredCredential"
+              class="mt-5"
+            />
 
             <!-- Subtitle line 2: descriptive text -->
             <p

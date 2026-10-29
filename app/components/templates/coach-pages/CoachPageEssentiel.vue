@@ -34,6 +34,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
+
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachEssentielHeader from '~/components/templates/coach-pages/essentiel/CoachEssentielHeader.vue'
 import CoachEssentielHero from '~/components/templates/coach-pages/essentiel/CoachEssentielHero.vue'
@@ -44,6 +45,7 @@ import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
 import CoachPricing from '~/components/organisms/CoachPricing.vue'
 import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -87,6 +89,7 @@ const { show, isToggleOn } = useCoachSectionVisibility(() => props.coachProfile,
 const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const showBio = show.bio
+const showCertifications = show.certifications
 const showBenefits = show.benefits
 // YB.1.1 — le toggle décide de l'intention, le CONTENU décide de
 // l'existence : sans ce second terme, un bloc allumé mais vide laisserait
@@ -122,14 +125,9 @@ const navLinks = computed(() => {
   return links
 })
 
-const credentialLine = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
-  const city = props.coachProfile?.city
-  const parts: string[] = []
-  if (creds.length && creds[0]?.title) parts.push(creds[0].title)
-  if (city) parts.push(city)
-  return parts.join(' · ')
-})
+// La certification est portée par la plaque (hero) et le rail (section) :
+// cette ligne ne garde que la localisation, pour éviter le doublon.
+const credentialLine = computed(() => props.coachProfile?.city ?? '')
 
 const bioParagraphs = computed<string[]>(() => {
   const longBio = props.coachProfile?.longBio
@@ -451,25 +449,6 @@ const heroProps = computed(() => ({
               {{ credentialLine }}
             </p>
 
-            <!-- Credentials chips (all of them, not just first) -->
-            <div
-              v-if="coachProfile?.credentials?.length"
-              class="mt-6 flex flex-wrap gap-2"
-            >
-              <span
-                v-for="cred in coachProfile.credentials"
-                :key="cred.title"
-                class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
-              >
-                <UIcon
-                  v-if="cred.verified"
-                  name="i-lucide-badge-check"
-                  class="size-3.5 text-[color:var(--color-brand-accent)]"
-                />
-                {{ cred.title }}
-              </span>
-            </div>
-
             <div class="mt-8 space-y-5 text-base leading-relaxed text-[color:var(--color-brand-secondary)]">
               <p
                 v-for="(paragraph, i) in bioParagraphs"
@@ -480,6 +459,23 @@ const heroProps = computed(() => ({
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ==================== 3b. CERTIFICATIONS (section autonome, LAB.6) ==================== -->
+    <section
+      v-if="showCertifications"
+      id="certifications"
+      v-bind="reveal()"
+      class="scroll-reveal px-6 py-16 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-5xl">
+        <h2 class="mb-8 font-serif text-3xl leading-tight text-[color:var(--color-crepuscule-950)]">
+          Parcours &amp; qualifications
+        </h2>
+        <CoachCertificationsRail
+          :credentials="coachProfile?.credentials ?? []"
+        />
       </div>
     </section>
 

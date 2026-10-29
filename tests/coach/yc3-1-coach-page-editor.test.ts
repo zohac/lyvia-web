@@ -88,7 +88,8 @@ test('inline editor sections stay aligned with the provider editor forms', () =>
     'educationalContent',
     'problemStatement',
     'bio',
-    'testimonials'
+    'testimonials',
+    'certifications'
   ])
   assert.equal(isCoachPageInlineEditorSection('pillars'), true)
   assert.equal(isCoachPageInlineEditorSection('bio'), true)
@@ -146,8 +147,12 @@ test('external editor links point to the right screens (story 0-26: only pricing
 
   assert.deepStrictEqual(getCoachPageExternalEditorSection('pricing'), {
     label: 'Modifiable dans Mes tarifs',
-    to: '/provider/scheduling'
+    to: '/provider/scheduling',
+    actionLabel: 'Gérer mes formules'
   })
+
+  // LAB.4 — l'édition des certifications a migré dans Ma page coach : plus de lien externe.
+  assert.equal(getCoachPageExternalEditorSection('certifications'), null)
 
   assert.equal(getCoachPageExternalEditorSection('pillars'), null)
 })

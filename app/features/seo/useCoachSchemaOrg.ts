@@ -32,7 +32,7 @@ export async function useCoachSchemaOrg(slug: string, options?: { whiteLabeldoma
   const bio = ref<string | undefined>(undefined)
   const imageUrl = ref<string | undefined>(undefined)
   const specialties = ref<string[]>([])
-  const credentials = ref<Array<{ title: string, institution?: string, year?: number }>>([])
+  const credentials = ref<Array<{ title: string, institution?: string, year?: number | null }>>([])
   const sameAs = ref<string[]>([])
   const city = ref<string | undefined>(undefined)
   // Story 0-27 — brand logo URL for Person.logo enrichment.

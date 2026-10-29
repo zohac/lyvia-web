@@ -62,7 +62,7 @@ export function mapProfileToSchemaRefs(
     bio: Ref<string | undefined>
     imageUrl: Ref<string | undefined>
     specialties: Ref<string[]>
-    credentials: Ref<Array<{ title: string, institution?: string, year?: number }>>
+    credentials: Ref<Array<{ title: string, institution?: string, year?: number | null }>>
     sameAs: Ref<string[]>
     city: Ref<string | undefined>
     /** Story 0-27 — brand logo URL for Person.logo Schema.org enrichment. */
@@ -139,7 +139,7 @@ export function buildPersonLogo(
  * Convention 5: pure helper testable for composable SEO logic.
  */
 export function buildCredentialSchemaItems(
-  credentials: Array<{ title: string, institution?: string, year?: number }>
+  credentials: Array<{ title: string, institution?: string, year?: number | null }>
 ): Array<Record<string, unknown>> | undefined {
   if (credentials.length === 0) return undefined
   return credentials.map(c => ({

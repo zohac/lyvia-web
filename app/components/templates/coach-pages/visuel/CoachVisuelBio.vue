@@ -8,7 +8,9 @@
  * À droite : titre, qualifications, certifications pilules et texte de présentation.
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
+import { findFeaturedCredential } from '~/features/coach/domain/featured-credential'
 import { useScrollReveal } from '~/composables/useScrollReveal'
+import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 
 const props = defineProps<{
   coachProfile: PublicProviderProfile | null
@@ -31,14 +33,16 @@ const bioParagraphs = computed<string[]>(() => {
   return FALLBACK_BIO
 })
 
+// Logo de mise en avant : rendu UNIQUEMENT si une certification est marquée.
+const featuredCredential = computed(() =>
+  findFeaturedCredential(props.coachProfile?.credentials)
+)
+
+// La certification est portée par la plaque et le rail : cette ligne ne garde
+// que la modalité, pour éviter le doublon.
 const credentialLine = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
   const city = props.coachProfile?.city
-  const parts: string[] = []
-  if (creds.length && creds[0]?.title) parts.push(creds[0].title)
-  if (city) parts.push(`${city} & visio`)
-  else parts.push('100 % en visio')
-  return parts.join(' · ')
+  return city ? `${city} & visio` : '100 % en visio'
 })
 
 const photoSrc = computed(() => {
@@ -47,9 +51,6 @@ const photoSrc = computed(() => {
     || props.coachProfile?.imageUrl
     || '/images/templates/visuel/bio-default.webp'
   )
-})
-const displayedCredentials = computed(() => {
-  return props.coachProfile?.credentials ?? []
 })
 </script>
 
@@ -84,6 +85,12 @@ const displayedCredentials = computed(() => {
             {{ title || coachName }}
           </h2>
 
+          <CoachFeaturedCredential
+            v-if="featuredCredential"
+            :credential="featuredCredential"
+            class="mt-4"
+          />
+
           <p class="mt-2 text-base font-semibold text-[color:var(--color-brand-accent)]">
             {{ credentialLine }}
           </p>
@@ -95,21 +102,6 @@ const displayedCredentials = computed(() => {
             >
               {{ para }}
             </p>
-          </div>
-
-          <!-- Badges certifications & parcours -->
-          <div class="mt-8 flex flex-wrap gap-2.5">
-            <span
-              v-for="(cred, i) in displayedCredentials"
-              :key="i"
-              class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 px-3.5 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary)]"
-            >
-              <UIcon
-                name="i-lucide-award"
-                class="size-3.5 text-[color:var(--color-brand-accent)]"
-              />
-              {{ cred.title }}
-            </span>
           </div>
         </div>
       </div>

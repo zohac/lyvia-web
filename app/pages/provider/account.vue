@@ -13,7 +13,7 @@ import {
   formatUploadError,
   validateFileUpload
 } from '../../features/assets/use-asset-upload'
-import type { CredentialItem, SocialLinks } from '../../features/account/api/provider-account.contract'
+import type { SocialLinks } from '../../features/account/api/provider-account.contract'
 import { useSupportSession } from '../../features/support-session/state/useSupportSession'
 import FormControl from '../../components/molecules/FormControl.vue'
 import SystemAlert from '../../components/atoms/SystemAlert.vue'
@@ -43,9 +43,6 @@ const specialtyError = ref<string | null>(null)
 // Story 0-26 round terrain — `longBio` + `city` + `region` édités inline sur
 // /provider/coach-page (section "Qui suis-je"), retirés de cette page pour
 // éviter la double source de vérité.
-
-// ── Credentials form state ──────────────────────────
-const credentialsForm = ref<CredentialItem[]>([])
 
 // ── Social links form state ─────────────────────────
 const socialForm = reactive<SocialLinks>({
@@ -152,11 +149,6 @@ function syncFormsFromAccount() {
   personalForm.bio = acc.bio ?? ''
   personalForm.specialties = [...(acc.specialties ?? [])]
 
-  // Credentials — preserve verified flag on round-trip (CR1 HIGH fix)
-  credentialsForm.value = acc.credentials?.length
-    ? acc.credentials.map(c => ({ ...c }))
-    : []
-
   // Social links
   socialForm.linkedin = acc.socialLinks?.linkedin ?? ''
   socialForm.facebook = acc.socialLinks?.facebook ?? ''
@@ -209,16 +201,6 @@ function addSpecialty() {
 
 function removeSpecialty(index: number) {
   personalForm.specialties.splice(index, 1)
-}
-
-// ── Credentials handlers ────────────────────────────
-function addCredential() {
-  if (credentialsForm.value.length >= 20) return
-  credentialsForm.value.push({ title: '' })
-}
-
-function removeCredential(index: number) {
-  credentialsForm.value.splice(index, 1)
 }
 
 // ── Photo upload handlers ───────────────────────────
@@ -301,16 +283,6 @@ async function handlePersonalSubmit() {
 
 // Story 0-26 round terrain — handleProfileSubmit supprimé : longBio + city + region
 // désormais édités via la section "Qui suis-je" de /provider/coach-page.
-
-async function handleCredentialsSubmit() {
-  const filtered = credentialsForm.value.filter(c => c.title.trim())
-  const success = await updateAccount({ credentials: filtered })
-  if (success) {
-    toast.add({ title: 'Informations mises à jour', color: 'primary' })
-  } else {
-    toast.add({ title: 'Erreur', description: error.value ?? 'Une erreur est survenue', color: 'error' })
-  }
-}
 
 async function handleSocialSubmit() {
   socialError.value = null
@@ -633,91 +605,6 @@ async function handlePasswordChange() {
           </FormControl>
 
           <div class="sm:col-span-2">
-            <UButton
-              type="submit"
-              :loading="saving"
-              :disabled="saving"
-              label="Enregistrer"
-            />
-          </div>
-        </form>
-      </div>
-
-      <!-- Section 3: Diplômes & certifications -->
-      <div class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] bg-[color:var(--color-surface-card)] p-6 shadow-[var(--shadow-card)]">
-        <div class="flex items-start gap-4">
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-            <UIcon
-              name="i-lucide-award"
-              class="h-6 w-6 text-[color:var(--color-brand-accent)]"
-            />
-          </div>
-          <div>
-            <h2 class="font-serif text-xl font-semibold text-[color:var(--color-brand-primary)]">
-              Diplômes & certifications
-            </h2>
-            <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-              Vos formations et accréditations professionnelles.
-            </p>
-          </div>
-        </div>
-
-        <form
-          class="mt-6 space-y-4"
-          @submit.prevent="handleCredentialsSubmit"
-        >
-          <div
-            v-for="(cred, index) in credentialsForm"
-            :key="index"
-            class="flex items-start gap-3"
-          >
-            <div class="grid flex-1 gap-3 sm:grid-cols-3">
-              <UInput
-                v-model="cred.title"
-                placeholder="Titre du diplôme *"
-                :maxlength="200"
-                required
-              />
-              <UInput
-                v-model="cred.institution"
-                placeholder="Établissement"
-                :maxlength="200"
-              />
-              <UInput
-                v-model.number="cred.year"
-                type="number"
-                placeholder="Année"
-                :min="1900"
-                :max="2100"
-              />
-            </div>
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-lucide-trash-2"
-              size="sm"
-              :aria-label="'Supprimer le diplôme ' + cred.title"
-              @click="removeCredential(index)"
-            />
-          </div>
-
-          <div
-            v-if="credentialsForm.length === 0"
-            class="py-4 text-center text-sm text-[color:var(--color-brand-muted)]"
-          >
-            Aucun diplôme ajouté.
-          </div>
-
-          <div class="flex items-center gap-3">
-            <UButton
-              v-if="credentialsForm.length < 20"
-              variant="outline"
-              icon="i-lucide-plus"
-              label="Ajouter un diplôme"
-              size="sm"
-              type="button"
-              @click="addCredential"
-            />
             <UButton
               type="submit"
               :loading="saving"

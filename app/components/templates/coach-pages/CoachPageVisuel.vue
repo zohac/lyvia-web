@@ -28,6 +28,7 @@ import CoachVisuelHeader from '~/components/templates/coach-pages/visuel/CoachVi
 import CoachVisuelHero from '~/components/templates/coach-pages/visuel/CoachVisuelHero.vue'
 import CoachVisuelProblem from '~/components/templates/coach-pages/visuel/CoachVisuelProblem.vue'
 import CoachVisuelBio from '~/components/templates/coach-pages/visuel/CoachVisuelBio.vue'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
 import CoachVisuelPillars from '~/components/templates/coach-pages/visuel/CoachVisuelPillars.vue'
 import CoachTransformationBenefits from '~/components/organisms/CoachTransformationBenefits.vue'
 import CoachFreeText from '~/components/organisms/CoachFreeText.vue'
@@ -67,6 +68,7 @@ const { reveal, isReady } = useScrollReveal({ disabled: props.previewMode })
 
 const showProblemStatement = show.problemStatement
 const showBio = show.bio
+const showCertifications = show.certifications
 const showPillars = show.pillars
 const showBenefits = show.benefits
 // YB.1.1 — le toggle décide de l'intention, le CONTENU décide de
@@ -229,6 +231,23 @@ const heroProps = computed(() => ({
       :eyebrow="sectionTitles.bioEyebrow"
       :title="sectionTitles.bioTitle"
     />
+
+    <!-- ==================== 4b. CERTIFICATIONS (section autonome, LAB.6) ==================== -->
+    <section
+      v-if="showCertifications"
+      id="certifications"
+      v-bind="reveal()"
+      class="scroll-reveal bg-[color:var(--color-surface-card)] px-6 py-16 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-5xl">
+        <h2 class="mb-8 font-serif text-3xl leading-tight text-[color:var(--color-text-primary)]">
+          Parcours &amp; qualifications
+        </h2>
+        <CoachCertificationsRail
+          :credentials="coachProfile?.credentials ?? []"
+        />
+      </div>
+    </section>
 
     <!-- ==================== 5. TÉMOIGNAGES (optionnel) ==================== -->
     <div

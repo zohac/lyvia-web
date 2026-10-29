@@ -36,6 +36,8 @@ export type CoachConfigurableSection
     | 'bio'
     | 'fit'
     | 'pricing' // Story 0-26 round terrain — toggle pricing doit gater l'affichage public
+    /** LAB.6 — section Certifications autonome. */
+    | 'certifications'
 
 export interface CoachSectionVisibility {
   /** Chaque drapeau `show*` combine toggle actif ET contenu non vide (P-Y3). */
@@ -56,6 +58,8 @@ export interface CoachSectionVisibility {
     miniTestimonial: ComputedRef<boolean>
     testimonials: ComputedRef<boolean>
     fit: ComputedRef<boolean>
+    /** LAB.6 — section Certifications autonome (toggle ET credentials.length > 0). */
+    certifications: ComputedRef<boolean>
   }
   /** Lecture isolée du toggle `sectionsConfig[section]`. Toggle absent → `true`. */
   isToggleOn: (section: CoachConfigurableSection) => boolean
@@ -70,6 +74,8 @@ export interface CoachSectionVisibility {
     faq: ComputedRef<boolean>
     testimonials: ComputedRef<boolean>
     fit: ComputedRef<boolean>
+    /** LAB.6 — présence réelle de ≥ 1 certification. */
+    certifications: ComputedRef<boolean>
   }
 }
 
@@ -167,6 +173,19 @@ export function useCoachSectionVisibility(
   const showFit = computed(() => isToggleOn('fit'))
   const hasFit = computed(() => true)
 
+  // LAB.6 — déclaré AVANT `showCertifications` : le `computed` est paresseux,
+  // donc l'ordre inverse ne cassait rien aujourd'hui, mais toute lecture
+  // synchrone pendant le setup aurait levé un `ReferenceError` (TDZ).
+  const hasCertifications = computed(() => {
+    const c = profile.value?.credentials
+    return !!(c && Array.isArray(c) && c.length > 0)
+  })
+
+  // LAB.6 — section vide = section absente : toggle ET credentials.length > 0.
+  const showCertifications = computed(
+    () => isToggleOn('certifications') && hasCertifications.value
+  )
+
   return {
     show: {
       bio: showBio,
@@ -179,7 +198,8 @@ export function useCoachSectionVisibility(
       faq: showFaq,
       miniTestimonial: showMiniTestimonial,
       testimonials: showTestimonials,
-      fit: showFit
+      fit: showFit,
+      certifications: showCertifications
     },
     isToggleOn,
     has: {
@@ -191,7 +211,8 @@ export function useCoachSectionVisibility(
       problemStatement: hasProblemStatement,
       faq: hasFaq,
       testimonials: hasTestimonials,
-      fit: hasFit
+      fit: hasFit,
+      certifications: hasCertifications
     }
   }
 }

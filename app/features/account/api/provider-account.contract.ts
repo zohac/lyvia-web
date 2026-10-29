@@ -16,8 +16,12 @@ import type {
 export interface CredentialItem {
   title: string
   institution?: string
-  year?: number
+  year?: number | null
   verified?: boolean
+  logoAssetId?: string
+  logoUrl?: string | null
+  featured?: boolean
+  kind?: 'diploma' | 'certification'
 }
 
 export interface SocialLinks {

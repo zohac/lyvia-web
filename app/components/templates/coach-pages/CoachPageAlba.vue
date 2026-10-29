@@ -39,6 +39,7 @@ import type { PublicProgramListItem } from '~/features/programs/api/programs.con
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
 import { useCoachSectionVisibility } from '~/composables/useCoachSectionVisibility'
 import { hasCoachFreeTextContent } from '~/features/coach/domain/coach-page-editor'
+
 import { useScrollReveal } from '~/composables/useScrollReveal'
 import CoachAlbaHeader from '~/components/templates/coach-pages/alba/CoachAlbaHeader.vue'
 import CoachAlbaHero from '~/components/templates/coach-pages/alba/CoachAlbaHero.vue'
@@ -49,6 +50,7 @@ import CoachHowItWorks from '~/components/organisms/CoachHowItWorks.vue'
 import CoachTestimonials from '~/components/organisms/CoachTestimonials.vue'
 import CoachPricing from '~/components/organisms/CoachPricing.vue'
 import StickyCtaMobile from '~/components/molecules/StickyCtaMobile.vue'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
 
 const props = defineProps<{
   tenant: PublicTenantResponse
@@ -90,6 +92,7 @@ const showFreeText = computed(() =>
   show.freeText.value && hasCoachFreeTextContent(props.coachProfile?.freeTextJson)
 )
 const showBio = show.bio
+const showCertifications = show.certifications
 const showPillars = show.pillars
 const showHowItWorks = show.howItWorks
 const showTestimonials = show.testimonials
@@ -104,13 +107,9 @@ const discoveryDuration = computed(() => props.coachProfile?.discoveryDurationMi
 const problemStatement = computed(() => props.coachProfile?.problemStatementJson ?? null)
 const sectionTitles = computed(() => props.coachProfile?.sectionTitlesJson ?? {})
 
-const credentialLine = computed(() => {
-  const creds = props.coachProfile?.credentials ?? []
-  const parts: string[] = []
-  if (creds.length && creds[0]?.title) parts.push(creds[0].title)
-  if (props.coachProfile?.city) parts.push(props.coachProfile.city)
-  return parts.join(' · ')
-})
+// La certification est portée par la plaque (hero) et le rail (section) :
+// cette ligne ne garde que la localisation, pour éviter le doublon.
+const credentialLine = computed(() => props.coachProfile?.city ?? '')
 
 const bioParagraphs = computed<string[]>(() => {
   const longBio = props.coachProfile?.longBio
@@ -382,23 +381,6 @@ const heroProps = computed(() => ({
               </p>
             </div>
 
-            <div
-              v-if="coachProfile?.credentials?.length"
-              class="mt-8 flex flex-wrap gap-2.5"
-            >
-              <span
-                v-for="cred in coachProfile.credentials"
-                :key="cred.title"
-                class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-brand-primary)]/20 bg-[color:var(--color-brand-primary)]/5 px-3.5 py-1.5 text-xs font-semibold text-[color:var(--color-brand-primary)]"
-              >
-                <UIcon
-                  name="i-lucide-award"
-                  class="size-3.5 text-[color:var(--color-brand-accent)]"
-                />
-                {{ cred.title }}
-              </span>
-            </div>
-
             <p
               v-if="coachProfile?.city"
               class="mt-6 flex items-center gap-2 text-sm text-[color:var(--color-brand-secondary)]"
@@ -413,6 +395,23 @@ const heroProps = computed(() => ({
             </p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ==================== 4b. CERTIFICATIONS (section autonome, LAB.6) ==================== -->
+    <section
+      v-if="showCertifications"
+      id="certifications"
+      v-bind="reveal()"
+      class="scroll-reveal px-6 py-16 sm:px-12 lg:px-20"
+    >
+      <div class="mx-auto max-w-5xl">
+        <h2 class="mb-8 font-serif text-3xl leading-tight text-[color:var(--color-crepuscule-950)]">
+          Parcours &amp; qualifications
+        </h2>
+        <CoachCertificationsRail
+          :credentials="coachProfile?.credentials ?? []"
+        />
       </div>
     </section>
 

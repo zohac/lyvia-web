@@ -15,7 +15,10 @@
  * car c'est une fiche de redirection, pas une page de contenu.
  */
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
+import { findFeaturedCredential } from '~/features/coach/domain/featured-credential'
 import { useCoachLink } from '~/composables/useCoachLink'
+import CoachCertificationsRail from '~/components/molecules/CoachCertificationsRail.vue'
+import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 
 const props = defineProps<{
   profile: PublicProviderProfile
@@ -37,7 +40,12 @@ const bioShort = computed(() => {
 
 const mainSpecialty = computed(() => props.profile.specialties?.[0] ?? null)
 
-const credentialChips = computed(() => props.profile.credentials?.slice(0, 3) ?? [])
+const credentialChips = computed(() => props.profile.credentials ?? [])
+
+// LAB.3 — mise en avant : première certification marquée, sinon null.
+const featuredCredential = computed(() =>
+  findFeaturedCredential(props.profile.credentials)
+)
 </script>
 
 <template>
@@ -93,24 +101,18 @@ const credentialChips = computed(() => props.profile.credentials?.slice(0, 3) ??
           </template>
         </p>
 
-        <!-- Credentials -->
-        <div
+        <!-- Certification mise en avant — plaque lisible, en tête -->
+        <CoachFeaturedCredential
+          v-if="featuredCredential"
+          :credential="featuredCredential"
+          class="mt-6"
+        />
+
+        <!-- Certifications — 3 visibles puis rail -->
+        <CoachCertificationsRail
           v-if="credentialChips.length"
-          class="mt-5 flex flex-wrap justify-center gap-2"
-        >
-          <span
-            v-for="cred in credentialChips"
-            :key="cred.title"
-            class="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)] px-3 py-1.5 text-xs text-[color:var(--color-brand-secondary)]"
-          >
-            <UIcon
-              v-if="cred.verified"
-              name="i-lucide-badge-check"
-              class="size-3.5 text-[color:var(--color-brand-accent)]"
-            />
-            {{ cred.title }}
-          </span>
-        </div>
+          :credentials="credentialChips"
+        />
 
         <!-- Bio courte -->
         <p
