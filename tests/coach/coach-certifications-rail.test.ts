@@ -5,13 +5,12 @@ import * as Vue from 'vue'
 import { renderSfc } from '../helpers/render-sfc'
 
 /**
- * LAB.5 — rendu réel du regroupement diplômes / certifications.
+ * LAB.5 (révision PO du 2026-10-29) — une seule ligne de qualifications.
  *
- * Avant ce fichier, aucun test n'exécutait `CoachCertificationsRail` : inverser
- * les deux filtres, échanger les deux titres ou retirer la garde « un seul
- * groupe → pas de titre » laissait la suite verte. Le composant enfant est
- * remplacé par un stub qui expose le groupe et l'ordre reçu, ce qui permet
- * d'asserter le regroupement, l'ordre, et la mise en avant sans navigateur.
+ * Diplômes et certifications cohabitent dans **une** liste, la mise en avant en
+ * tête ; la nature se lit dans l'icône de la carte, pas dans un titre de groupe.
+ * Ce fichier exécute le rail : remettre deux blocs, inverser l'ordre ou perdre
+ * une carte ferait tomber les assertions.
  */
 
 interface Credential {
@@ -20,102 +19,91 @@ interface Credential {
   featured?: boolean
 }
 
-const GroupStub = Vue.defineComponent({
-  name: 'CoachCertificationsGroupStub',
+const CardStub = Vue.defineComponent({
+  name: 'CoachCertificationCardStub',
   props: {
-    credentials: { type: Array, required: true },
-    credentialKind: { type: String, default: 'certification' }
+    credential: { type: Object, required: true },
+    decorative: { type: Boolean, default: false }
   },
-  setup: props => () => Vue.h('div', {
-    'data-kind': props.credentialKind,
-    'data-titles': (props.credentials as Credential[]).map(cred => cred.title).join('|')
+  setup: props => () => Vue.h('span', {
+    'data-title': (props.credential as Credential).title,
+    'data-kind': (props.credential as Credential).kind ?? 'unset',
+    'data-decorative': props.decorative ? 'true' : 'false'
   })
 })
 
+const UButton = Vue.defineComponent({
+  name: 'UButtonStub',
+  setup: (_props, { attrs }) => () => Vue.h('button', attrs)
+})
+
 const mocks = {
-  '~/components/molecules/CoachCertificationsGroup.vue': GroupStub
+  '~/components/molecules/CoachCertificationCard.vue': CardStub
 }
 
 async function renderRail(credentials: Credential[]): Promise<string> {
   return renderSfc('app/components/molecules/CoachCertificationsRail.vue', {
     props: { credentials },
     mocks,
-    globals: { ...Vue }
+    globals: { ...Vue },
+    stubs: { UButton }
   })
 }
 
-function groups(html: string): Array<{ kind: string, titles: string[] }> {
-  return [...html.matchAll(/data-kind="([^"]+)" data-titles="([^"]*)"/g)]
-    .map(match => ({ kind: match[1]!, titles: match[2]!.split('|') }))
+function cards(html: string): Array<{ title: string, kind: string, decorative: string }> {
+  return [...html.matchAll(/data-title="([^"]*)" data-kind="([^"]*)" data-decorative="([^"]*)"/g)]
+    .map(match => ({ title: match[1]!, kind: match[2]!, decorative: match[3]! }))
 }
 
-describe('LAB.5 — CoachCertificationsRail : regroupement public', () => {
-  test('deux groupes non vides → deux titres, certifications d’abord sans mise en avant', async () => {
-    const html = await renderRail([
-      { title: 'Diplôme d’État', kind: 'diploma' },
-      { title: 'Ménopulse', kind: 'certification' }
-    ])
-
-    assert.match(html, />\s*Certifications &amp; formations\s*</)
-    assert.match(html, />\s*Diplômes &amp; autres formations\s*</)
-    assert.ok(
-      html.indexOf('Certifications &amp; formations') < html.indexOf('Diplômes &amp; autres formations'),
-      'sans mise en avant, le groupe certifications reste en tête'
-    )
-
-    assert.deepEqual(groups(html), [
-      { kind: 'certification', titles: ['Ménopulse'] },
-      { kind: 'diploma', titles: ['Diplôme d’État'] }
-    ])
-  })
-
-  test('une entrée sans `kind` est rendue dans le groupe diplômes, jamais dans certifications (AC3)', async () => {
-    const html = await renderRail([
-      { title: 'Entrée historique' },
-      { title: 'Certification', kind: 'certification' }
-    ])
-
-    const rendered = groups(html)
-    const diplomas = rendered.find(group => group.kind === 'diploma')
-    const certifications = rendered.find(group => group.kind === 'certification')
-
-    assert.deepEqual(diplomas?.titles, ['Entrée historique'])
-    assert.deepEqual(certifications?.titles, ['Certification'])
-  })
-
-  test('un seul groupe → aucun titre de groupe (AC4)', async () => {
-    const html = await renderRail([
-      { title: 'Diplôme A', kind: 'diploma' },
-      { title: 'Entrée non qualifiée' }
-    ])
-
-    assert.doesNotMatch(html, /<h3/)
-    assert.deepEqual(groups(html), [
-      { kind: 'diploma', titles: ['Diplôme A', 'Entrée non qualifiée'] }
-    ])
-  })
-
-  test('un diplôme mis en avant remonte son groupe en premier (AC5, DESIGN.md:183)', async () => {
+describe('LAB.5 — CoachCertificationsRail : une seule ligne', () => {
+  test('≤ 3 entrées : une seule liste, aucun titre de groupe, mise en avant en tête', async () => {
     const html = await renderRail([
       { title: 'Certification secondaire', kind: 'certification' },
       { title: 'Diplôme mis en avant', kind: 'diploma', featured: true },
-      { title: 'Certification principale', kind: 'certification', featured: false }
+      { title: 'Entrée non qualifiée' }
     ])
 
-    const rendered = groups(html)
-    assert.equal(rendered[0]?.kind, 'diploma', 'le groupe de la mise en avant passe devant')
-    assert.equal(rendered[0]?.titles[0], 'Diplôme mis en avant', 'la mise en avant est la première entrée')
-    assert.deepEqual(rendered[1]?.titles, ['Certification secondaire', 'Certification principale'])
+    assert.doesNotMatch(html.replace(/<!--[\s\S]*?-->/g, ''), /<h3/)
+    assert.deepEqual(cards(html), [
+      { title: 'Diplôme mis en avant', kind: 'diploma', decorative: 'false' },
+      { title: 'Certification secondaire', kind: 'certification', decorative: 'false' },
+      { title: 'Entrée non qualifiée', kind: 'unset', decorative: 'false' }
+    ])
+    assert.match(html, /3 qualifications/)
+    // Grille statique : aucune commande de rail.
+    assert.doesNotMatch(html, /Qualifications précédentes/)
+    assert.doesNotMatch(html, /Qualifications suivantes/)
   })
 
-  test('la mise en avant reste première dans son propre groupe', async () => {
+  test('> 3 entrées : rail, toutes les cartes dans le DOM + copie de bouclage masquée', async () => {
     const html = await renderRail([
-      { title: 'Certification A', kind: 'certification' },
-      { title: 'Certification B', kind: 'certification', featured: true }
+      { title: 'A', kind: 'certification' },
+      { title: 'B', kind: 'diploma' },
+      { title: 'C' },
+      { title: 'D', kind: 'certification' }
     ])
 
-    assert.deepEqual(groups(html), [
-      { kind: 'certification', titles: ['Certification B', 'Certification A'] }
+    assert.match(html, /4 qualifications/)
+    assert.match(html, /aria-label="Qualifications : 4"/)
+    assert.match(html, /aria-label="Qualifications précédentes"/)
+    assert.match(html, /aria-label="Qualifications suivantes"/)
+
+    const rendered = cards(html)
+    const visible = rendered.filter(card => card.decorative === 'false')
+    const loop = rendered.filter(card => card.decorative === 'true')
+    assert.deepEqual(visible.map(card => card.title), ['A', 'B', 'C', 'D'])
+    assert.deepEqual(loop.map(card => card.title), ['A', 'B', 'C', 'D'])
+  })
+
+  test('la nature reste portée par la carte (pas de regroupement)', async () => {
+    const html = await renderRail([
+      { title: 'Diplôme', kind: 'diploma' },
+      { title: 'Certification', kind: 'certification' },
+      { title: 'Sans nature' }
     ])
+
+    assert.deepEqual(cards(html).map(card => card.kind), ['diploma', 'certification', 'unset'])
+    assert.doesNotMatch(html, /Diplômes &amp; autres formations/)
+    assert.doesNotMatch(html, /Certifications &amp; formations/)
   })
 })

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 /**
- * CoachCertificationCard — une carte de certification (LAB.3).
+ * CoachCertificationCard — une carte de qualification (LAB.3, LAB.5).
  *
  * Logo officiel à gauche quand il existe, icône par défaut sinon (toutes les
- * certifications n'ont pas de logo, et une carte vide se lit comme un bug).
+ * entrées n'ont pas de logo, et une carte vide se lit comme un bug).
+ * L'icône par défaut **distingue la nature** : `award` pour une certification /
+ * formation, `graduation-cap` pour un diplôme ou une entrée non qualifiée
+ * (décision PO du 2026-10-29). Le logo, quand il existe, prend sa place.
  * Textes à droite : intitulé, puis `organisme · année`.
  *
  * Aucun badge « vérifiée » : Keova ne vérifie rien (`SPEC.md:96`).
@@ -18,6 +21,13 @@ const props = defineProps<{
 }>()
 
 const meta = computed(() => formatCredentialMeta(props.credential))
+
+/** Distinction visuelle diplôme / certification, portée par l'icône. */
+const iconName = computed(() =>
+  props.credential.kind === 'certification'
+    ? 'i-lucide-award'
+    : 'i-lucide-graduation-cap'
+)
 </script>
 
 <template>
@@ -33,7 +43,7 @@ const meta = computed(() => formatCredentialMeta(props.credential))
       >
       <UIcon
         v-else
-        name="i-lucide-award"
+        :name="iconName"
         class="size-5 text-[color:var(--color-brand-primary)]"
       />
     </span>

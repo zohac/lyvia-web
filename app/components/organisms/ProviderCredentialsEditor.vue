@@ -284,8 +284,9 @@ function removeCredentialLogo(index: number) {
         :id="`credential-kind-hint-${index}`"
         class="text-xs text-[color:var(--color-brand-muted)]"
       >
-        Sépare vos diplômes de vos certifications sur votre page publique.
-        Laisser « Non renseigné » classe l'entrée dans « Diplômes & autres formations ».
+        Sert à distinguer vos diplômes de vos certifications sur votre page publique
+        (icône diplôme ou certification). Laisser « Non renseigné » affiche l'icône
+        diplôme par défaut.
       </p>
     </div>
 
