@@ -138,17 +138,33 @@ function resolveRepoFile(specifier: string, fromDir: string): string | null {
   return null
 }
 
+/**
+ * Extensions que le harnais sait réellement exécuter. Le court-circuit
+ * « specifier déjà suffixé » ne doit pas élargir la résolution au-delà : un
+ * `import data from './x.json'` résoudrait vers le fichier, serait transpilé
+ * comme du TypeScript et produirait un module vide — sans aucune erreur, ce qui
+ * est exactement le faux vert que ce harnais existe pour empêcher. Une extension
+ * inconnue retombe donc dans la branche « paquet npm », qui échoue bruyamment.
+ */
+const EXECUTABLE_EXTENSIONS = ['.vue', '.ts', '.js', '.mjs']
+
 function resolveWithExtension(basePath: string): string | null {
   // Un specifier qui porte déjà son extension (ex. `./Child.vue`) doit être
   // résolu tel quel, sans lui ré-apposer une extension.
-  if (fs.existsSync(basePath) && fs.statSync(basePath).isFile()) {
+  if (EXECUTABLE_EXTENSIONS.includes(path.extname(basePath))
+    && fs.existsSync(basePath)
+    && fs.statSync(basePath).isFile()) {
     return basePath
   }
+  // `.vue` passe APRÈS `.ts`/`.js`/`.mjs` : Nuxt/Vite met `.vue` en dernier dans
+  // `resolve.extensions`, donc un specifier `./Foo` où `Foo.ts` et `Foo.vue`
+  // coexistent doit résoudre comme dans le bundler. Aucune paire de ce type
+  // n'existe aujourd'hui ; `ambiguous-source` la couvre.
   const candidates = [
-    `${basePath}.vue`,
     `${basePath}.ts`,
     `${basePath}.js`,
     `${basePath}.mjs`,
+    `${basePath}.vue`,
     path.join(basePath, 'index.ts'),
     path.join(basePath, 'index.js'),
     path.join(basePath, 'index.vue')
