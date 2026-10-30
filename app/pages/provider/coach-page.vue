@@ -58,6 +58,10 @@ import SystemAlert from '~/components/atoms/SystemAlert.vue'
 import IconPicker from '~/components/molecules/IconPicker.vue'
 import CoachPublishChecklistModal from '~/components/molecules/CoachPublishChecklistModal.vue'
 import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
+// LAB-R14 — import EXPLICITE : un `<CoachPageTemplateRequiredNotice>` non importé
+// serait une balise inconnue, rendue à zéro, sans qu'aucun gate ne s'en aperçoive
+// (AGENTS.md § 11.6, la classe de défaut de lab-3).
+import CoachPageTemplateRequiredNotice from '~/components/molecules/CoachPageTemplateRequiredNotice.vue'
 import ProviderCredentialsEditor from '~/components/organisms/ProviderCredentialsEditor.vue'
 import {
   parseHex,
@@ -158,10 +162,16 @@ const BRAND_NAME_MAX_LENGTH = 100
 const TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500
 
 // ── Section labels ──
+// LAB-R15 (rétro epic-lab, F15) — le libellé nomme ce que le toggle couvre
+// RÉELLEMENT. Décision PO du 2026-10-30 : `show.certifications` gate la
+// **section liste** (« Parcours & qualifications »), pas la plaque de mise en
+// avant du hero (`CoachFeaturedCredential`), qui a son propre opt-in — la
+// certification marquée « mise en avant » dans l'éditeur. Un libellé
+// « Diplômes & certifications » promettait les deux.
 const SECTION_LABELS: Record<string, string> = {
   hero: 'Hero (en-tête)',
   bio: 'Qui suis-je',
-  certifications: 'Diplômes & certifications',
+  certifications: 'Section Parcours & qualifications',
   benefits: 'Bénéfices',
   freeText: 'Bloc de texte libre',
   pillars: 'Piliers',
@@ -2230,6 +2240,15 @@ function externalSection(section: string) {
         </section>
 
         <!-- ═══════ 3. SECTION EDITORS — ordre aligné sur la page publique ═══════ -->
+        <!--
+          LAB-R14 (rétro epic-lab, F14) — la trappe : sans template sélectionné,
+          `availableSections` vaut `[]` (createCoachPageEditor :73), donc
+          `orderedEditableSections` est vide et l'éditeur se rendait **vide, sans
+          explication**. Une praticienne sans `coach_page_template_id` ne voyait
+          aucune section et n'avait aucun moyen de comprendre pourquoi.
+          L'avis nomme la cause et le geste ; il ne fabrique pas de sections.
+        -->
+        <CoachPageTemplateRequiredNotice v-if="!selectedTemplateId" />
         <template
           v-for="section in orderedEditableSections"
           :key="section"
