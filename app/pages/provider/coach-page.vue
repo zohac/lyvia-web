@@ -62,7 +62,8 @@ import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 // serait une balise inconnue, rendue à zéro, sans qu'aucun gate ne s'en aperçoive
 // (AGENTS.md § 11.6, la classe de défaut de lab-3).
 import CoachPageTemplateRequiredNotice from '~/components/molecules/CoachPageTemplateRequiredNotice.vue'
-import ProviderCredentialsEditor from '~/components/organisms/ProviderCredentialsEditor.vue'
+import CoachPageExternalSectionCard from '~/components/organisms/CoachPageExternalSectionCard.vue'
+import CoachPageCertificationsCard from '~/components/organisms/CoachPageCertificationsCard.vue'
 import {
   parseHex,
   getRelativeLuminance,
@@ -1344,6 +1345,10 @@ function isSectionBodyOpen(section: string): boolean {
 function externalSection(section: string) {
   return getCoachPageExternalEditorSection(section)
 }
+
+function externalSectionTo(section: string): string {
+  return getCoachPageExternalEditorSection(section)?.to ?? ''
+}
 </script>
 
 <template>
@@ -2255,93 +2260,20 @@ function externalSection(section: string) {
         >
           <!-- External sections (`pricing` since story 0-26 — `certifications` a
             rejoint l'éditeur inline en LAB.4) -->
-          <div
+          <!-- TF.1 — carte externe extraite (composant montable). -->
+          <CoachPageExternalSectionCard
             v-if="externalSection(section)"
-            class="mb-10 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
-          >
-            <div
-              class="flex items-center justify-between px-6 py-4"
-              :class="isSectionOn(section) ? 'border-b border-[color:var(--color-border-subtle)]' : ''"
-            >
-              <div>
-                <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
-                  {{ sectionLabel(section) }}
-                </h2>
-                <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-                  {{ externalSection(section)?.label }}
-                </p>
-              </div>
-              <label class="flex items-center gap-3">
-                <span class="text-sm text-[color:var(--color-brand-secondary)]">Visible sur ma page</span>
-                <USwitch
-                  :model-value="isSectionOn(section)"
-                  :aria-label="`${sectionLabel(section)} — visible sur ma page`"
-                  @update:model-value="(v: boolean) => onToggleSection(section, v)"
-                />
-              </label>
-            </div>
-            <template v-if="isSectionOn(section)">
-              <!-- LAB.6 — les titres de section ne concernent que `pricing` : sans ce
-              garde, la card « Certifications » afficherait deux champs de tarifs. -->
-              <div
-                v-if="section === 'pricing'"
-                class="space-y-4 px-6 py-5"
-              >
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="pricingEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : Tarifs"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.pricingEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="Tarifs"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="pricingTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Les formules d'accompagnement"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.pricingTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Les formules d'accompagnement"
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-              </div>
-              <div class="flex items-center justify-between border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                <UButton
-                  :to="externalSection(section)?.to"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  trailing-icon="i-lucide-arrow-right"
-                >
-                  {{ externalSection(section)?.actionLabel }}
-                </UButton>
-                <!-- LAB.6 — l'enregistrement ne concerne que les titres de `pricing`. -->
-                <UButton
-                  v-if="section === 'pricing'"
-                  color="primary"
-                  variant="solid"
-                  size="sm"
-                  :loading="saving"
-                  @click="onSavePricingSectionTitles"
-                >
-                  Enregistrer
-                </UButton>
-              </div>
-            </template>
-          </div>
+            v-model:pricing-eyebrow="sectionTitlesForm.pricingEyebrow"
+            v-model:pricing-title="sectionTitlesForm.pricingTitle"
+            :section="section"
+            :label="externalSection(section)?.label ?? ''"
+            :action-label="externalSection(section)?.actionLabel ?? ''"
+            :to="externalSectionTo(section)"
+            :is-on="isSectionOn(section)"
+            :saving="saving"
+            @toggle="onToggleSection"
+            @save-pricing-titles="onSavePricingSectionTitles"
+          />
 
           <section
             v-if="hasEditor(section)"
@@ -2538,26 +2470,13 @@ function externalSection(section: string) {
               </template>
 
               <!-- ── CREDENTIALS (Diplômes & certifications) — LAB.4 ── -->
-              <template v-if="section === 'certifications'">
-                <div class="space-y-4 px-6 py-5">
-                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                    Vos formations et accréditations professionnelles, affichées sur votre page publique.
-                  </p>
-                  <ProviderCredentialsEditor v-model:credentials="credentialsForm" />
-                </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveCredentials"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
-
+              <CoachPageCertificationsCard
+                v-if="section === 'certifications'"
+                :credentials="credentialsForm"
+                :saving="saving"
+                @update:credentials="credentialsForm = $event"
+                @save="onSaveCredentials"
+              />
               <!-- ── PROBLEM STATEMENT ── -->
               <template v-if="section === 'problemStatement'">
                 <div class="space-y-4 px-6 py-5">

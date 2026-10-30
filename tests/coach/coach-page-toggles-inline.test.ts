@@ -67,8 +67,8 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     // toujours active avec fallback Keova, le switch n'avait pas de sens).
     const switchOccurrences = (source.match(/<USwitch\s/g) ?? []).length
     assert.ok(
-      switchOccurrences >= 2,
-      `Au moins 2 USwitch attendus (header partagé éditeur + external pricing), trouvé : ${switchOccurrences}`
+      switchOccurrences >= 1,
+      `Au moins 1 USwitch attendu (header partagé éditeur), trouvé : ${switchOccurrences}`
     )
   })
 
@@ -111,8 +111,8 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
       /v-if="isSectionBodyOpen\(section\)"|v-if="isSectionOn\(section\)"/g
     ) ?? []
     assert.ok(
-      matches.length >= 2,
-      `Les 2 wrappers de corps attendus (card external + card éditeur inline), trouvé : ${matches.length}`
+      matches.length >= 1,
+      `Le wrapper de corps de la card éditeur inline attendu, trouvé : ${matches.length}`
     )
     // Le helper ne déborde PAS sur les autres sections.
     assert.match(

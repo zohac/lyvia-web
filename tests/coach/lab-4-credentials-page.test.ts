@@ -28,22 +28,22 @@ describe('LAB.4 — la section certifications rend le composant partagé', () =>
   test('le composant est importé explicitement (aucune résolution magique)', () => {
     assert.match(
       coachPage(),
-      /^import ProviderCredentialsEditor from '~\/components\/organisms\/ProviderCredentialsEditor\.vue'$/m
+      /^import CoachPageCertificationsCard from '~\/components\/organisms\/CoachPageCertificationsCard\.vue'$/m
     )
   })
 
   test('la branche `section === \'certifications\'` monte le composant partagé', () => {
     assert.match(
       coachPage(),
-      /<template v-if="section === 'certifications'">[\s\S]*?<ProviderCredentialsEditor v-model:credentials="credentialsForm" \/>[\s\S]*?<\/template>/,
-      'la branche certifications doit rendre ProviderCredentialsEditor — sinon la carte n\'a ni formulaire ni bouton Enregistrer'
+      /<CoachPageCertificationsCard[\s\S]*?v-if="section === 'certifications'"/,
+      'la branche certifications doit rendre CoachPageCertificationsCard'
     )
   })
 
   test('le bouton Enregistrer de la branche appelle onSaveCredentials', () => {
     assert.match(
       coachPage(),
-      /<template v-if="section === 'certifications'">[\s\S]*?@click="onSaveCredentials"[\s\S]*?<\/template>/
+      /<CoachPageCertificationsCard[\s\S]*?@save="onSaveCredentials"/
     )
   })
 })

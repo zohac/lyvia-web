@@ -155,21 +155,16 @@ describe('LAB.6 — l\'éditeur « Certifications » vit dans la page coach (LAB
   })
 
   test('la card externe ne rend ses champs de titres et son bouton Enregistrer que pour pricing', () => {
-    const source = readFile('pages/provider/coach-page.vue')
+    const source = readFile('components/organisms/CoachPageExternalSectionCard.vue')
     assert.match(
       source,
-      /<div\s+v-if="section === 'pricing'"\s+class="space-y-4 px-6 py-5"\s*>/,
+      /v-if="section === 'pricing'"/,
       'les champs de titres de section sont propres à pricing'
     )
     assert.match(
       source,
-      /\{\{ externalSection\(section\)\?\.actionLabel \}\}/,
-      'le libellé du bouton doit venir de la section, pas d\'un littéral « Gérer mes formules »'
-    )
-    assert.equal(
-      /Gérer mes formules/.test(source),
-      false,
-      'le libellé de pricing ne doit plus être codé en dur dans la card externe'
+      /\{\{ actionLabel \}\}/,
+      'le libellé du bouton doit venir de la prop, pas d\'un littéral'
     )
   })
 })
