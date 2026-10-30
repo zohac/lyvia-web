@@ -33,6 +33,10 @@ import {
   hasCoachFreeTextContent,
   isCoachPageInlineEditorSection
 } from '~/features/coach/domain/coach-page-editor'
+// TF.1 — table de libellés partagée avec `CoachPageExternalSectionCard.vue`
+// (une copie locale en aurait fait deux sources de vérité ; revue TF.1). La
+// justification LAB-R15 est documentée dans le module.
+import { sectionLabel } from '~/features/coach/domain/coach-page-section-labels'
 import { useCoachPageEditor } from '~/features/coach/useCoachPageEditor'
 import {
   snapshotSectionsConfig,
@@ -163,33 +167,8 @@ const BRAND_NAME_MAX_LENGTH = 100
 const TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500
 
 // ── Section labels ──
-// LAB-R15 (rétro epic-lab, F15) — le libellé nomme ce que le toggle couvre
-// RÉELLEMENT. Décision PO du 2026-10-30 : `show.certifications` gate la
-// **section liste** (« Parcours & qualifications »), pas la plaque de mise en
-// avant du hero (`CoachFeaturedCredential`), qui a son propre opt-in — la
-// certification marquée « mise en avant » dans l'éditeur. Un libellé
-// « Diplômes & certifications » promettait les deux.
-const SECTION_LABELS: Record<string, string> = {
-  hero: 'Hero (en-tête)',
-  bio: 'Qui suis-je',
-  certifications: 'Section Parcours & qualifications',
-  benefits: 'Bénéfices',
-  freeText: 'Bloc de texte libre',
-  pillars: 'Piliers',
-  howItWorks: 'Comment ça marche',
-  fit: 'Pour qui / Adéquation',
-  educationalContent: 'Contenu éducatif',
-  problemStatement: 'Énoncé du problème',
-  faq: 'Questions fréquentes',
-  testimonials: 'Témoignages',
-  pricing: 'Tarifs',
-  disclaimer: 'Disclaimer médical',
-  branding: 'Identité affichée dans vos emails'
-}
-
-function sectionLabel(section: string): string {
-  return SECTION_LABELS[section] ?? section
-}
+// TF.1 — la table a été déplacée dans `features/coach/domain` (import ci-dessus) :
+// la carte externe extraite et cette page doivent afficher le MÊME libellé.
 
 // ── Display order — aligné sur l'ordre de rendu de la page publique coach (PO 2026-05-02) ──
 // hero (always-on, top) → problemStatement → benefits (Ce que cela apporte) →

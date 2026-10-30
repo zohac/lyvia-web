@@ -156,15 +156,30 @@ describe('LAB.6 — l\'éditeur « Certifications » vit dans la page coach (LAB
 
   test('la card externe ne rend ses champs de titres et son bouton Enregistrer que pour pricing', () => {
     const source = readFile('components/organisms/CoachPageExternalSectionCard.vue')
+    // TF.1 (revue) — l'assertion précédente ne matchait que
+    // `/v-if="section === 'pricing'"/`, satisfaite par le `v-if` du BOUTON :
+    // supprimer tout le bloc des champs laissait le test vert. On épingle donc
+    // les deux champs eux-mêmes, plus le `v-if` qui les porte.
     assert.match(
       source,
-      /v-if="section === 'pricing'"/,
+      /v-if="section === 'pricing'"[\s\S]*?<FormControl\s+id="pricingEyebrow"/,
       'les champs de titres de section sont propres à pricing'
     )
+    assert.match(source, /<FormControl\s+id="pricingTitle"/, 'le second champ de titre doit être rendu')
     assert.match(
       source,
       /\{\{ actionLabel \}\}/,
       'le libellé du bouton doit venir de la prop, pas d\'un littéral'
+    )
+    assert.equal(
+      /Gérer mes formules/.test(source),
+      false,
+      'le libellé de pricing ne doit pas être codé en dur dans la card externe'
+    )
+    assert.match(
+      source,
+      /^import FormControl from '~\/components\/molecules\/FormControl\.vue'$/m,
+      'FormControl est un composant de l’application (Nuxt ne l’enregistre que sous MoleculesFormControl) : l’import explicite est obligatoire, sinon les champs de titres ne se rendent pas'
     )
   })
 })

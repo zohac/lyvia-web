@@ -1,29 +1,20 @@
 <script setup lang="ts">
 /**
  * TF.1 — Carte des sections externes de la page coach, extraite de
- * `coach-page.vue` (bloc l. 2258-2338) à l'identique.
+ * `coach-page.vue` (bloc « External sections » du template).
  *
- * Composant montable : la preuve de câblage (lab-3/lab-5) peut désormais
- * rendre ce composant réellement. La logique d'autosave reste dans la page
- * (`onToggleSection`) ; ce composant ne fait que relayer les événements.
+ * Le MARKUP est déplacé à l'identique (mêmes classes, même ordre, mêmes gardes
+ * `section === 'pricing'`) ; il est désormais piloté par props et par
+ * événements au lieu de lire l'état de la page. La logique d'autosave reste
+ * dans la page (`onToggleSection`) : ce composant ne fait que relayer.
+ *
+ * `FormControl` est un composant de l'APPLICATION, pas un auto-import Nuxt :
+ * il doit être importé explicitement. Nuxt ne l'enregistre que sous
+ * `MoleculesFormControl`, donc l'oublier rendait les deux champs de titres
+ * silencieusement vides (trouvé en revue TF.1, classe de défaut lab-3).
  */
-const SECTION_LABELS: Record<string, string> = {
-  hero: 'Hero (en-tête)',
-  bio: 'Qui suis-je',
-  certifications: 'Section Parcours & qualifications',
-  benefits: 'Bénéfices',
-  freeText: 'Bloc de texte libre',
-  pillars: 'Piliers',
-  howItWorks: 'Comment ça marche',
-  fit: 'Pour qui / Adéquation',
-  educationalContent: 'Contenu éducatif',
-  problemStatement: 'Énoncé du problème',
-  faq: 'Questions fréquentes',
-  testimonials: 'Témoignages',
-  pricing: 'Tarifs',
-  disclaimer: 'Disclaimer médical',
-  branding: 'Identité affichée dans vos emails'
-}
+import FormControl from '~/components/molecules/FormControl.vue'
+import { sectionLabel } from '~/features/coach/domain/coach-page-section-labels'
 
 defineProps<{
   section: string
@@ -42,10 +33,6 @@ const emit = defineEmits<{
   'update:pricingEyebrow': [value: string]
   'update:pricingTitle': [value: string]
 }>()
-
-function sectionLabel(section: string): string {
-  return SECTION_LABELS[section] ?? section
-}
 </script>
 
 <template>

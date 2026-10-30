@@ -33,10 +33,22 @@ describe('LAB.4 — la section certifications rend le composant partagé', () =>
   })
 
   test('la branche `section === \'certifications\'` monte le composant partagé', () => {
+    // TF.1 (revue) — la regex précédente tolérait n'importe quel `v-if` plus
+    // loin dans le fichier. Le `v-if` doit porter sur la balise elle-même.
     assert.match(
       coachPage(),
-      /<CoachPageCertificationsCard[\s\S]*?v-if="section === 'certifications'"/,
-      'la branche certifications doit rendre CoachPageCertificationsCard'
+      /<CoachPageCertificationsCard\s+v-if="section === 'certifications'"/,
+      'la branche certifications doit rendre CoachPageCertificationsCard sous condition'
+    )
+  })
+
+  test('la carte reçoit les credentials et relaie la saisie', () => {
+    const source = coachPage()
+    assert.match(source, /:credentials="credentialsForm"/, 'les credentials doivent descendre vers la carte')
+    assert.match(
+      source,
+      /@update:credentials="credentialsForm = \$event"/,
+      'la saisie de l’éditeur doit remonter dans l’état de la page — sinon onSaveCredentials écrit une liste vide'
     )
   })
 

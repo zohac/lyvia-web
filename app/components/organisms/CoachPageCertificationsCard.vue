@@ -1,4 +1,11 @@
 <script setup lang="ts">
+/**
+ * TF.1 — Carte « Parcours & qualifications » de l'éditeur de page coach,
+ * extraite de `coach-page.vue`. Elle ne fait que relayer : l'état du formulaire
+ * vit dans `ProviderCredentialsEditor` (qui l'émet), et l'enregistrement reste
+ * dans la page (`onSaveCredentials` — filtre des titres vides puis
+ * `updateAccount({ credentials })`).
+ */
 import type { CredentialItem } from '~/features/account/api/provider-account.contract'
 import ProviderCredentialsEditor from '~/components/organisms/ProviderCredentialsEditor.vue'
 
