@@ -60,9 +60,12 @@ function baseProfile(overrides: Partial<PublicProviderProfile> = {}): PublicProv
     howItWorksJson: null,
     educationalContentJson: null,
     problemStatementJson: null,
+    ...overrides,
+    // Après le spread : une surcharge explicite à `undefined` retombe sur le
+    // défaut au lieu d'effacer la valeur (une page non publiée passerait sinon
+    // pour publiée sans que rien ne le signale).
     isPublished: overrides.isPublished ?? true,
-    isTest: overrides.isTest ?? false,
-    ...overrides
+    isTest: overrides.isTest ?? false
   }
 }
 
@@ -70,13 +73,17 @@ export function createCoachProfile(overrides: Partial<PublicProviderProfile> = {
   return baseProfile(overrides)
 }
 
-export function createConsultationPlans(): ConsultationPricePlan[] {
-  return []
+export function createConsultationPlans(overrides: ConsultationPricePlan[] = []): ConsultationPricePlan[] {
+  return overrides
 }
 
-export function createPrograms(): PublicProgramListItem[] {
-  return []
+export function createPrograms(overrides: PublicProgramListItem[] = []): PublicProgramListItem[] {
+  return overrides
 }
+
+export const ONE_CREDENTIAL: CredentialItem[] = [
+  { title: 'DU Naturopathie', institution: 'ISUPNAT' }
+]
 
 export const TWO_CREDENTIALS: CredentialItem[] = [
   { title: 'DU Naturopathie', institution: 'ISUPNAT' },
