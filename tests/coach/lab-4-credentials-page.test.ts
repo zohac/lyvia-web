@@ -4,15 +4,21 @@ import * as path from 'node:path'
 import { describe, test } from 'node:test'
 
 /**
- * LAB.4 — câblage de la page, là où le harness SFC ne peut pas aller.
+ * LAB.4 — GARDE DE CÂBLAGE (pas une preuve de rendu).
  *
- * `coach-page.vue` exige une application Nuxt complète : le harness
- * (`tests/helpers/render-sfc.ts`) ne rend que de petits composants, et
- * aucun test de la suite ne monte cette page. Les assertions ci-dessous
- * portent donc sur la source réelle (Convention A32), mais sur les DEUX
- * points dont l'absence rend l'éditeur injoignable ou l'enregistrement
- * inopérant — c'est exactement la mutation qui laissait la suite verte
- * en revue (`section === 'certification'`, `updateAccount({ credentials: [] })`).
+ * `coach-page.vue` (~3 700 lignes) exige une application Nuxt complète : le
+ * harness (`tests/helpers/render-sfc.ts`) ne rend que de petits composants, et
+ * aucun test de la suite ne monte cette page. Les assertions ci-dessous portent
+ * donc sur la SOURCE RÉELLE de la page (Convention A32) et ne prétendent PAS
+ * prouver un rendu — la preuve de rendu porte sur la carte extraite, cf.
+ * `tf-3-certifications-card.test.ts` (AC-1). Cette garde existe pour que la
+ * mutation `section === 'certification'` (qui laissait la suite verte en revue)
+ * fasse tomber un test : retirer l'import de `CoachPageCertificationsCard` de
+ * la page fait tomber la garde.
+ *
+ * `onSaveCredentials` n'est pas du markup : son filtre des titres vides et son
+ * écriture via le store unique (`updateAccount({ credentials: filtered })`)
+ * sont assertés sur le handler, comme avant.
  */
 
 const appRoot = path.resolve(process.cwd(), 'app')
@@ -24,7 +30,7 @@ function read(relative: string): string {
 const coachPage = () => read('pages/provider/coach-page.vue')
 const accountPage = () => read('pages/provider/account.vue')
 
-describe('LAB.4 — la section certifications rend le composant partagé', () => {
+describe('LAB.4 — GARDE DE CÂBLAGE : la page importe et monte la carte', () => {
   test('le composant est importé explicitement (aucune résolution magique)', () => {
     assert.match(
       coachPage(),
@@ -60,7 +66,7 @@ describe('LAB.4 — la section certifications rend le composant partagé', () =>
   })
 })
 
-describe('LAB.4 — l\'enregistrement écrit par le store unique de la page coach', () => {
+describe('LAB.4 — GARDE DE CÂBLAGE : l’enregistrement et l’absence dans Mon compte', () => {
   test('onSaveCredentials passe la liste au store (aucun second chemin d\'écriture)', () => {
     const source = coachPage()
     const start = source.indexOf('async function onSaveCredentials()')
