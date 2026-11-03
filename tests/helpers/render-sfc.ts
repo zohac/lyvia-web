@@ -66,6 +66,15 @@ import * as Vue from 'vue'
 /** Résolution de paquets npm depuis le répertoire de travail du test. */
 const nodeRequire = createRequire(path.join(process.cwd(), 'noop.js'))
 
+/**
+ * `@vue/compiler-sfc` importé directement ne sait pas charger TypeScript : un
+ * `defineProps<TypeImporté>()` échoue alors avec « TypeScript is required as a
+ * peer dep ». Nuxt/Vite enregistre TypeScript au build ; le harnais doit le
+ * faire aussi, sinon les composants à props typées par import ne sont pas
+ * rendables du tout.
+ */
+sfcCompiler.registerTS(() => nodeRequire('typescript'))
+
 const REPO_ROOT = process.cwd()
 
 /** Stub de composant Nuxt rendu dans le HTML sous `data-sfc-stub="<name>"`. */
@@ -138,13 +147,36 @@ function resolveRepoFile(specifier: string, fromDir: string): string | null {
   return null
 }
 
+/**
+ * Extensions que le harnais sait réellement exécuter. Le court-circuit
+ * « specifier déjà suffixé » ne doit pas élargir la résolution au-delà : un
+ * `import data from './x.json'` résoudrait vers le fichier, serait transpilé
+ * comme du TypeScript et produirait un module vide — sans aucune erreur, ce qui
+ * est exactement le faux vert que ce harnais existe pour empêcher. Une extension
+ * inconnue retombe donc dans la branche « paquet npm », qui échoue bruyamment.
+ */
+const EXECUTABLE_EXTENSIONS = ['.vue', '.ts', '.js', '.mjs']
+
 function resolveWithExtension(basePath: string): string | null {
+  // Un specifier qui porte déjà son extension (ex. `./Child.vue`) doit être
+  // résolu tel quel, sans lui ré-apposer une extension.
+  if (EXECUTABLE_EXTENSIONS.includes(path.extname(basePath))
+    && fs.existsSync(basePath)
+    && fs.statSync(basePath).isFile()) {
+    return basePath
+  }
+  // `.vue` passe APRÈS `.ts`/`.js`/`.mjs` : Nuxt/Vite met `.vue` en dernier dans
+  // `resolve.extensions`, donc un specifier `./Foo` où `Foo.ts` et `Foo.vue`
+  // coexistent doit résoudre comme dans le bundler. Aucune paire de ce type
+  // n'existe aujourd'hui ; `ambiguous-source` la couvre.
   const candidates = [
     `${basePath}.ts`,
     `${basePath}.js`,
     `${basePath}.mjs`,
+    `${basePath}.vue`,
     path.join(basePath, 'index.ts'),
-    path.join(basePath, 'index.js')
+    path.join(basePath, 'index.js'),
+    path.join(basePath, 'index.vue')
   ]
   return candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile()) ?? null
 }
@@ -202,6 +234,16 @@ function createScope(fromDir: string, mocks: Record<string, unknown>, cache: Map
       return nodeRequire(specifier)
     }
     if (hasKey(mocks, resolved)) return mocks[resolved]
+    // Un composant enfant `.vue` est compilé avec le même `compileSfc` que la
+    // racine : c'est le point de l'outillage. Sans cela, l'import serait
+    // traité comme un module TypeScript et échouerait à la lecture.
+    if (resolved.endsWith('.vue')) {
+      const cached = cache.get(resolved)
+      if (cached !== undefined) return cached
+      const component = compileSfc(resolved, mocks, cache)
+      cache.set(resolved, component)
+      return component
+    }
     return loadSourceModule(resolved, mocks, cache)
   }
 
@@ -232,7 +274,14 @@ function compileSfc(filePath: string, mocks: Record<string, unknown>, cache: Map
 
   const script = sfcCompiler.compileScript(descriptor, {
     id,
-    babelParserPlugins: ['typescript']
+    babelParserPlugins: ['typescript'],
+    // Un `defineProps<Type>()` dont le type vient d'un autre fichier exige un
+    // accès disque : sans cette option, `compileScript` lève « No fs option
+    // provided » et le composant ne peut pas être rendu du tout.
+    fs: {
+      fileExists: (file: string) => fs.existsSync(file),
+      readFile: (file: string) => (fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : undefined)
+    }
   })
 
   let renderSource = ''
