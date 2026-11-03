@@ -3,6 +3,11 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import test, { describe } from 'node:test'
 
+import {
+  SIGNATURE_HERO_FALLBACK_HEADLINE
+} from '../../app/features/coach/domain/signature-hero'
+import { buildHeroHeadlineHint } from '../../app/features/coach/domain/hero-headline-hint'
+
 /**
  * YB.1.2 — Template « Alba » (code `visuel-portrait`), hero portrait à gauche.
  *
@@ -94,11 +99,24 @@ describe('YB.1.2 — CoachAlbaHero rend l\'accroche saisie par la coach', () => 
       /:hint="heroHeadlineHint"/,
       'le hint doit être dérivé du template, pas figé dans le markup'
     )
-    const decl = page.match(/const heroHeadlineHint = computed<string>\(\(\) => \{[\s\S]*?\n\}\)/)
-    assert.ok(decl, 'la déclaration de heroHeadlineHint est introuvable')
-    assert.match(decl![0], /Bonjour, je suis/, 'repli Alba/Essentiel absent')
-    assert.match(decl![0], /Retrouvez votre équilibre/, 'repli Visuel absent')
-    assert.match(decl![0], /Spécialiste accompagnement ménopause/, 'repli Signature absent')
+    // Hotfix 25 — les replis par template vivent maintenant dans un helper pur
+    // (`domain/hero-headline-hint.ts`) : on les vérifie par leurs sorties, plus
+    // par la forme de la déclaration dans la page.
+    assert.match(buildHeroHeadlineHint('essentiel'), /Bonjour, je suis/, 'repli Alba/Essentiel absent')
+    assert.match(buildHeroHeadlineHint('visuel'), /Retrouvez votre équilibre/, 'repli Visuel absent')
+    assert.ok(
+      buildHeroHeadlineHint('signature').includes(SIGNATURE_HERO_FALLBACK_HEADLINE),
+      'repli Signature absent'
+    )
+    // Câblage — c'est CE que ce fichier existe pour prouver : la page doit
+    // réellement consommer le helper. Sans cette assertion, ré-inliner une
+    // phrase locale (par exemple en y remettant la ville) laisserait le fichier
+    // vert alors que le back-office décrit un rendu qui n'existe plus.
+    assert.match(
+      page,
+      /const heroHeadlineHint = computed<string>\(\(\)\s*=>\s*buildHeroHeadlineHint\(previewTemplateCode\.value\)\s*\)/,
+      'heroHeadlineHint doit déléguer à buildHeroHeadlineHint(previewTemplateCode.value)'
+    )
   })
 })
 

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { CoachHeroProps } from '~/features/coach/types/coach-page.types'
+import { findFeaturedCredential } from '~/features/coach/domain/featured-credential'
 import {
-  findFeaturedCredential,
-  selectHeroCredential
-} from '~/features/coach/domain/featured-credential'
+  buildSignatureHeroHeadline,
+  buildSignatureHeroSubtitleLine
+} from '~/features/coach/domain/signature-hero'
 import CoachFeaturedCredential from '~/components/molecules/CoachFeaturedCredential.vue'
 import { usePublicHeaderState } from '~/features/public/state/public-header.state'
 
@@ -16,31 +17,22 @@ const heroTopOffsetClass = computed(() => {
 })
 
 // H1: heroHeadline (configurable) → fallback generic (never seoTitle)
-const heroH1 = computed(() => {
-  if (props.heroHeadline) return props.heroHeadline
-  const cityPart = props.city ? ` à ${props.city}` : ''
-  return `Spécialiste accompagnement ménopause${cityPart}`
-})
+// Hotfix-25 : la ville ne participe pas au H1 (dérivation pure testable).
+const heroH1 = computed(() => buildSignatureHeroHeadline(props.heroHeadline))
 
 // Logo de mise en avant — rendu UNIQUEMENT si une certification est marquée.
 const featuredCredential = computed(() =>
   findFeaturedCredential(props.credentials)
 )
 
-// Subtitle line 1: featured credential (if any) else first credential + city.
+// Subtitle line 1: featured credential (if any) else first credential.
 // Quand la plaque de mise en avant est rendue, elle porte déjà l'intitulé : la
 // ligne ne le répète pas.
-const heroSubtitleLine1 = computed(() => {
-  const parts: string[] = []
-  const heroCredential = selectHeroCredential(props.credentials)
-  if (heroCredential && !featuredCredential.value) {
-    parts.push(heroCredential.title)
-  }
-  if (props.city) {
-    parts.push(props.city)
-  }
-  return parts.length > 0 ? parts.join(' · ') : null
-})
+// Hotfix-25 : la ville ne participe plus à cette ligne ; le prop `city` reste
+// déclaré (type partagé par les autres templates) mais n'est pas lu ici.
+const heroSubtitleLine1 = computed(() =>
+  buildSignatureHeroSubtitleLine(props.credentials)
+)
 
 // Initials for photo placeholder
 const initials = computed(() => {
@@ -94,7 +86,7 @@ const effectivePhotoUrl = computed(() => {
               {{ heroH1 }}
             </h1>
 
-            <!-- Subtitle line 1: credentials + city -->
+            <!-- Subtitle line 1: credential title only (never the city — hotfix-25) -->
             <p
               v-if="heroSubtitleLine1"
               class="mt-4 text-lg font-medium text-[var(--color-brand-primary)]"

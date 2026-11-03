@@ -33,6 +33,13 @@ import {
   hasCoachFreeTextContent,
   isCoachPageInlineEditorSection
 } from '~/features/coach/domain/coach-page-editor'
+// TF.1 — table de libellés partagée avec `CoachPageExternalSectionCard.vue`
+// (une copie locale en aurait fait deux sources de vérité ; revue TF.1). La
+// justification LAB-R15 est documentée dans le module.
+import { sectionLabel } from '~/features/coach/domain/coach-page-section-labels'
+// Hotfix 25 — l'aide du champ « Accroche » est dérivée du template, et son
+// repli Signature vient de la valeur réellement rendue par le hero.
+import { buildHeroHeadlineHint } from '~/features/coach/domain/hero-headline-hint'
 import { useCoachPageEditor } from '~/features/coach/useCoachPageEditor'
 import {
   snapshotSectionsConfig,
@@ -58,7 +65,12 @@ import SystemAlert from '~/components/atoms/SystemAlert.vue'
 import IconPicker from '~/components/molecules/IconPicker.vue'
 import CoachPublishChecklistModal from '~/components/molecules/CoachPublishChecklistModal.vue'
 import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
-import ProviderCredentialsEditor from '~/components/organisms/ProviderCredentialsEditor.vue'
+// LAB-R14 — import EXPLICITE : un `<CoachPageTemplateRequiredNotice>` non importé
+// serait une balise inconnue, rendue à zéro, sans qu'aucun gate ne s'en aperçoive
+// (AGENTS.md § 11.6, la classe de défaut de lab-3).
+import CoachPageTemplateRequiredNotice from '~/components/molecules/CoachPageTemplateRequiredNotice.vue'
+import CoachPageExternalSectionCard from '~/components/organisms/CoachPageExternalSectionCard.vue'
+import CoachPageCertificationsCard from '~/components/organisms/CoachPageCertificationsCard.vue'
 import {
   parseHex,
   getRelativeLuminance,
@@ -158,27 +170,8 @@ const BRAND_NAME_MAX_LENGTH = 100
 const TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500
 
 // ── Section labels ──
-const SECTION_LABELS: Record<string, string> = {
-  hero: 'Hero (en-tête)',
-  bio: 'Qui suis-je',
-  certifications: 'Diplômes & certifications',
-  benefits: 'Bénéfices',
-  freeText: 'Bloc de texte libre',
-  pillars: 'Piliers',
-  howItWorks: 'Comment ça marche',
-  fit: 'Pour qui / Adéquation',
-  educationalContent: 'Contenu éducatif',
-  problemStatement: 'Énoncé du problème',
-  faq: 'Questions fréquentes',
-  testimonials: 'Témoignages',
-  pricing: 'Tarifs',
-  disclaimer: 'Disclaimer médical',
-  branding: 'Identité affichée dans vos emails'
-}
-
-function sectionLabel(section: string): string {
-  return SECTION_LABELS[section] ?? section
-}
+// TF.1 — la table a été déplacée dans `features/coach/domain` (import ci-dessus) :
+// la carte externe extraite et cette page doivent afficher le MÊME libellé.
 
 // ── Display order — aligné sur l'ordre de rendu de la page publique coach (PO 2026-05-02) ──
 // hero (always-on, top) → problemStatement → benefits (Ce que cela apporte) →
@@ -608,16 +601,11 @@ const isHeroBackgroundTemplate = computed(
 // champ est vide. Une phrase unique décrivait donc un repli FAUX pour Visuel
 // (« Retrouvez votre équilibre… ») et Signature (« Spécialiste accompagnement
 // ménopause… »). On dérive l'aide du template sélectionné.
-const heroHeadlineHint = computed<string>(() => {
-  switch (previewTemplateCode.value) {
-    case 'visuel':
-      return 'Laissez vide : le hero affiche alors « Retrouvez votre équilibre et votre vitalité avec {votre prénom} ».'
-    case 'signature':
-      return 'Laissez vide : le hero affiche alors « Spécialiste accompagnement ménopause », avec votre ville si elle est renseignée.'
-    default:
-      return 'Laissez vide : le hero affiche alors « Bonjour, je suis {votre prénom}. », avec la spécialité en surtitre.'
-  }
-})
+// Hotfix 25 — la dérivation vit dans `domain/hero-headline-hint.ts` : la ville
+// n'est plus annoncée et le repli Signature vient de la constante rendue.
+const heroHeadlineHint = computed<string>(() =>
+  buildHeroHeadlineHint(previewTemplateCode.value)
+)
 //
 // `account` is exposed as `readonly(account)` by createCoachPageEditor for
 // safety (no external mutation), but the preview composable only reads
@@ -1333,6 +1321,10 @@ function isSectionBodyOpen(section: string): boolean {
 
 function externalSection(section: string) {
   return getCoachPageExternalEditorSection(section)
+}
+
+function externalSectionTo(section: string): string {
+  return getCoachPageExternalEditorSection(section)?.to ?? ''
 }
 </script>
 
@@ -2230,99 +2222,35 @@ function externalSection(section: string) {
         </section>
 
         <!-- ═══════ 3. SECTION EDITORS — ordre aligné sur la page publique ═══════ -->
+        <!--
+          LAB-R14 (rétro epic-lab, F14) — la trappe : sans template sélectionné,
+          `availableSections` vaut `[]` (createCoachPageEditor :73), donc
+          `orderedEditableSections` est vide et l'éditeur se rendait **vide, sans
+          explication**. Une praticienne sans `coach_page_template_id` ne voyait
+          aucune section et n'avait aucun moyen de comprendre pourquoi.
+          L'avis nomme la cause et le geste ; il ne fabrique pas de sections.
+        -->
+        <CoachPageTemplateRequiredNotice v-if="!selectedTemplateId" />
         <template
           v-for="section in orderedEditableSections"
           :key="section"
         >
           <!-- External sections (`pricing` since story 0-26 — `certifications` a
             rejoint l'éditeur inline en LAB.4) -->
-          <div
+          <!-- TF.1 — carte externe extraite (composant montable). -->
+          <CoachPageExternalSectionCard
             v-if="externalSection(section)"
-            class="mb-10 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
-          >
-            <div
-              class="flex items-center justify-between px-6 py-4"
-              :class="isSectionOn(section) ? 'border-b border-[color:var(--color-border-subtle)]' : ''"
-            >
-              <div>
-                <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
-                  {{ sectionLabel(section) }}
-                </h2>
-                <p class="mt-1 text-sm text-[color:var(--color-brand-secondary)]">
-                  {{ externalSection(section)?.label }}
-                </p>
-              </div>
-              <label class="flex items-center gap-3">
-                <span class="text-sm text-[color:var(--color-brand-secondary)]">Visible sur ma page</span>
-                <USwitch
-                  :model-value="isSectionOn(section)"
-                  :aria-label="`${sectionLabel(section)} — visible sur ma page`"
-                  @update:model-value="(v: boolean) => onToggleSection(section, v)"
-                />
-              </label>
-            </div>
-            <template v-if="isSectionOn(section)">
-              <!-- LAB.6 — les titres de section ne concernent que `pricing` : sans ce
-              garde, la card « Certifications » afficherait deux champs de tarifs. -->
-              <div
-                v-if="section === 'pricing'"
-                class="space-y-4 px-6 py-5"
-              >
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="pricingEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : Tarifs"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.pricingEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="Tarifs"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="pricingTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Les formules d'accompagnement"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.pricingTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Les formules d'accompagnement"
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-              </div>
-              <div class="flex items-center justify-between border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                <UButton
-                  :to="externalSection(section)?.to"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  trailing-icon="i-lucide-arrow-right"
-                >
-                  {{ externalSection(section)?.actionLabel }}
-                </UButton>
-                <!-- LAB.6 — l'enregistrement ne concerne que les titres de `pricing`. -->
-                <UButton
-                  v-if="section === 'pricing'"
-                  color="primary"
-                  variant="solid"
-                  size="sm"
-                  :loading="saving"
-                  @click="onSavePricingSectionTitles"
-                >
-                  Enregistrer
-                </UButton>
-              </div>
-            </template>
-          </div>
+            v-model:pricing-eyebrow="sectionTitlesForm.pricingEyebrow"
+            v-model:pricing-title="sectionTitlesForm.pricingTitle"
+            :section="section"
+            :label="externalSection(section)?.label ?? ''"
+            :action-label="externalSection(section)?.actionLabel ?? ''"
+            :to="externalSectionTo(section)"
+            :is-on="isSectionOn(section)"
+            :saving="saving"
+            @toggle="onToggleSection"
+            @save-pricing-titles="onSavePricingSectionTitles"
+          />
 
           <section
             v-if="hasEditor(section)"
@@ -2519,26 +2447,13 @@ function externalSection(section: string) {
               </template>
 
               <!-- ── CREDENTIALS (Diplômes & certifications) — LAB.4 ── -->
-              <template v-if="section === 'certifications'">
-                <div class="space-y-4 px-6 py-5">
-                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                    Vos formations et accréditations professionnelles, affichées sur votre page publique.
-                  </p>
-                  <ProviderCredentialsEditor v-model:credentials="credentialsForm" />
-                </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveCredentials"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
-
+              <CoachPageCertificationsCard
+                v-if="section === 'certifications'"
+                :credentials="credentialsForm"
+                :saving="saving"
+                @update:credentials="credentialsForm = $event"
+                @save="onSaveCredentials"
+              />
               <!-- ── PROBLEM STATEMENT ── -->
               <template v-if="section === 'problemStatement'">
                 <div class="space-y-4 px-6 py-5">

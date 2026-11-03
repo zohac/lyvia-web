@@ -67,8 +67,8 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     // toujours active avec fallback Keova, le switch n'avait pas de sens).
     const switchOccurrences = (source.match(/<USwitch\s/g) ?? []).length
     assert.ok(
-      switchOccurrences >= 2,
-      `Au moins 2 USwitch attendus (header partagé éditeur + external pricing), trouvé : ${switchOccurrences}`
+      switchOccurrences >= 1,
+      `Au moins 1 USwitch attendu (header partagé éditeur), trouvé : ${switchOccurrences}`
     )
   })
 
@@ -104,15 +104,18 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     // la bascule est verrouillée tant que le contenu est vide, donc il faut
     // que le formulaire reste déplié pour pouvoir l'écrire. Pour toutes les
     // autres sections, `isSectionBodyOpen` === `isSectionOn`.
-    // Les DEUX wrappers de corps de la page :
-    //   - la card « external » (pricing), inchangée : isSectionOn(section) ;
+    // TF.1 — la card « external » (pricing) a été extraite dans
+    // `CoachPageExternalSectionCard.vue` : son wrapper de corps
+    // (`v-if="isOn"`) et son interrupteur ne sont plus dans cette page. Leur
+    // couverture a suivi le composant (tests/coach/coach-page-section-cards.test.ts,
+    // rendu réel). Il ne reste donc ici que la card éditeur inline :
     //   - la card éditeur inline, YB.1.1 : isSectionBodyOpen(section).
     const matches = source.match(
       /v-if="isSectionBodyOpen\(section\)"|v-if="isSectionOn\(section\)"/g
     ) ?? []
     assert.ok(
-      matches.length >= 2,
-      `Les 2 wrappers de corps attendus (card external + card éditeur inline), trouvé : ${matches.length}`
+      matches.length >= 1,
+      `Le wrapper de corps de la card éditeur inline attendu, trouvé : ${matches.length}`
     )
     // Le helper ne déborde PAS sur les autres sections.
     assert.match(
