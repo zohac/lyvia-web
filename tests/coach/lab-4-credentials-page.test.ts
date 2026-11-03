@@ -30,6 +30,23 @@ function read(relative: string): string {
 const coachPage = () => read('pages/provider/coach-page.vue')
 const accountPage = () => read('pages/provider/account.vue')
 
+/**
+ * La balise d'ouverture de la carte, et elle seule.
+ *
+ * TF.3 (revue) — une regex `[\s\S]*?` non bornée laissait un `@save` posé sur
+ * n'importe quel élément APRÈS la carte satisfaire la garde : mesuré, déplacer
+ * `@save="onSaveCredentials"` sur le `<template>` qui suit la carte laissait
+ * 9/9 tests verts. Toutes les liaisons sont donc lues dans ce bloc.
+ */
+function cardTag(): string {
+  const source = coachPage()
+  const start = source.indexOf('<CoachPageCertificationsCard')
+  assert.ok(start >= 0, 'la carte `CoachPageCertificationsCard` n’est pas montée par la page')
+  const end = source.indexOf('/>', start)
+  assert.ok(end > start, 'balise d’ouverture de la carte introuvable')
+  return source.slice(start, end)
+}
+
 describe('LAB.4 — GARDE DE CÂBLAGE : la page importe et monte la carte', () => {
   test('le composant est importé explicitement (aucune résolution magique)', () => {
     assert.match(
@@ -49,19 +66,23 @@ describe('LAB.4 — GARDE DE CÂBLAGE : la page importe et monte la carte', () =
   })
 
   test('la carte reçoit les credentials et relaie la saisie', () => {
-    const source = coachPage()
-    assert.match(source, /:credentials="credentialsForm"/, 'les credentials doivent descendre vers la carte')
+    const tag = cardTag()
+    assert.match(tag, /:credentials="credentialsForm"/, 'les credentials doivent descendre vers la carte')
     assert.match(
-      source,
+      tag,
       /@update:credentials="credentialsForm = \$event"/,
       'la saisie de l’éditeur doit remonter dans l’état de la page — sinon onSaveCredentials écrit une liste vide'
     )
+    // `saving` est une prop REQUISE de la carte : non liée, elle vaut `undefined`
+    // et l'état de chargement disparaît sans qu'aucun test ne tombe (revue TF.3).
+    assert.match(tag, /:saving="saving"/, 'l’état d’enregistrement doit descendre vers la carte')
   })
 
   test('le bouton Enregistrer de la branche appelle onSaveCredentials', () => {
     assert.match(
-      coachPage(),
-      /<CoachPageCertificationsCard[\s\S]*?@save="onSaveCredentials"/
+      cardTag(),
+      /@save="onSaveCredentials"/,
+      'la carte doit relier son bouton Enregistrer au handler de la page'
     )
   })
 })
@@ -73,6 +94,14 @@ describe('LAB.4 — GARDE DE CÂBLAGE : l’enregistrement et l’absence dans M
     assert.ok(start >= 0, 'onSaveCredentials introuvable')
     const handler = source.slice(start, source.indexOf('\n}', start))
     assert.match(handler, /updateAccount\(\{ credentials: filtered \}\)/)
+    // TF.3 (revue) — `filtered` doit être dérivé du FORMULAIRE, pas de la copie
+    // serveur : écrire `account.value?.credentials` laissait 21/21 tests verts
+    // tout en perdant les modifications de la praticienne (toast de succès).
+    assert.match(
+      handler,
+      /const filtered = credentialsForm\.value\.filter\(c => c\.title\.trim\(\)\)/,
+      'la liste enregistrée doit venir de credentialsForm, la liste éditée'
+    )
     // LAB.4 P3 — un titre vide ne doit plus être avalé en silence (`required`
     // est inerte hors formulaire depuis le déplacement).
     assert.match(handler, /!c\.title\?\.trim\(\)/)

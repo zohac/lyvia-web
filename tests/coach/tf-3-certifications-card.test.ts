@@ -2,6 +2,7 @@ import * as assert from 'node:assert/strict'
 import { describe, test } from 'node:test'
 import * as Vue from 'vue'
 
+import type { CredentialItem } from '../../app/features/account/api/provider-account.contract'
 import { renderSfc } from '../helpers/render-sfc'
 
 /**
@@ -52,16 +53,6 @@ const UIcon = Vue.defineComponent({
   setup: () => () => Vue.h('i')
 })
 
-interface Credential {
-  title: string
-  institution?: string
-  year?: number | null
-  logoAssetId?: string
-  logoUrl?: string | null
-  featured?: boolean
-  kind?: 'diploma' | 'certification'
-}
-
 function collect(vnode: Vue.VNode | Vue.VNode[] | null | undefined, out: Vue.VNode[] = []): Vue.VNode[] {
   if (!vnode) return out
   if (Array.isArray(vnode)) {
@@ -100,16 +91,17 @@ interface Emitted {
 }
 
 async function renderCard(
-  credentials: Credential[],
-  drive?: (tree: { all: Vue.VNode[]; buttons: Vue.VNode[] }) => void | Promise<void>
-): Promise<{ html: string; events: Emitted[] }> {
+  credentials: CredentialItem[],
+  drive?: (tree: { all: Vue.VNode[], buttons: Vue.VNode[] }) => void | Promise<void>,
+  saving = false
+): Promise<{ html: string, events: Emitted[] }> {
   const events: Emitted[] = []
   const listeners: Record<string, (...args: unknown[]) => void> = {}
   listeners.onSave = () => events.push({ name: 'save', args: [] })
   listeners['onUpdate:credentials'] = (value: unknown) => events.push({ name: 'update:credentials', args: [value] })
 
   const html = await renderSfc('app/components/organisms/CoachPageCertificationsCard.vue', {
-    props: { credentials, saving: false, ...listeners },
+    props: { credentials, saving, ...listeners },
     globals: {
       ...Vue,
       useToast: () => ({ add: () => {} })
@@ -132,7 +124,7 @@ function saveButton(tree: { buttons: Vue.VNode[] }): Vue.VNode {
 
 describe('TF.3 — CoachPageCertificationsCard : rendu réel de l’éditeur', () => {
   test('rend le texte de section, l’éditeur réel (un champ par entrée) et le bouton Enregistrer', async () => {
-    const credentials: Credential[] = [
+    const credentials: CredentialItem[] = [
       { title: 'DU Naturopathie', institution: 'ISUPNAT' },
       { title: 'Certification Ménopulse', institution: 'Ménopulse' }
     ]
@@ -145,6 +137,15 @@ describe('TF.3 — CoachPageCertificationsCard : rendu réel de l’éditeur', (
     assert.equal(titleFieldCount, 2, `2 champs titre attendus (trouvé ${titleFieldCount})`)
   })
 
+  test('rend l’état vide et le bouton d’ajout de l’éditeur partagé (identité)', async () => {
+    // Ces deux libellés n'existent que dans `ProviderCredentialsEditor` : les asserter
+    // épingle l'identité du composant partagé, là où un simple comptage de champs
+    // serait satisfait par une copie inline des trois champs.
+    const { html } = await renderCard([])
+    assert.match(html, /Aucune entrée ajoutée/)
+    assert.match(html, /Ajouter une entrée/)
+  })
+
   test('le bouton Enregistrer émet save', async () => {
     const { events } = await renderCard([], (tree) => {
       fire(saveButton(tree), 'onClick')
@@ -152,8 +153,16 @@ describe('TF.3 — CoachPageCertificationsCard : rendu réel de l’éditeur', (
     assert.deepEqual(events, [{ name: 'save', args: [] }])
   })
 
-  test('modifier une entrée émet update:credentials avec la liste complète (pas d’état propre)', async () => {
-    const credentials: Credential[] = [
+  test('le bouton Enregistrer reflète l’état saving (loading)', async () => {
+    // `saving` est une prop REQUISE de la carte : sans cette assertion, débrancher
+    // `:loading="saving"` (double soumission au clic) laissait la suite verte.
+    await renderCard([], (tree) => {
+      assert.equal((saveButton(tree).props ?? {}).loading, true, 'le bouton doit passer en loading pendant l’enregistrement')
+    }, true)
+  })
+
+  test('modifier une entrée relaie update:credentials avec la liste complète', async () => {
+    const credentials: CredentialItem[] = [
       { title: 'DU Naturopathie', institution: 'ISUPNAT' },
       { title: 'Certification Ménopulse', institution: 'Ménopulse' }
     ]
@@ -167,6 +176,9 @@ describe('TF.3 — CoachPageCertificationsCard : rendu réel de l’éditeur', (
       fire(inputs[0]!, 'onUpdate:modelValue', 'DU Naturopathie modifié')
     })
 
+    // Ce test prouve un RELAIS (une émission, la liste complète), pas la statelessness
+    // de la carte : les props ne sont jamais re-rendues après le montage, donc une
+    // carte qui recopierait `credentials` dans un état local passerait aussi.
     assert.equal(events.length, 1, 'une seule émission attendue')
     assert.equal(events[0]!.name, 'update:credentials')
     assert.deepEqual(events[0]!.args[0], next.map(c => ({ ...c, year: null })))
