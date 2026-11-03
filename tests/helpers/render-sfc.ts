@@ -66,6 +66,15 @@ import * as Vue from 'vue'
 /** Résolution de paquets npm depuis le répertoire de travail du test. */
 const nodeRequire = createRequire(path.join(process.cwd(), 'noop.js'))
 
+/**
+ * `@vue/compiler-sfc` importé directement ne sait pas charger TypeScript : un
+ * `defineProps<TypeImporté>()` échoue alors avec « TypeScript is required as a
+ * peer dep ». Nuxt/Vite enregistre TypeScript au build ; le harnais doit le
+ * faire aussi, sinon les composants à props typées par import ne sont pas
+ * rendables du tout.
+ */
+sfcCompiler.registerTS(() => nodeRequire('typescript'))
+
 const REPO_ROOT = process.cwd()
 
 /** Stub de composant Nuxt rendu dans le HTML sous `data-sfc-stub="<name>"`. */
@@ -265,7 +274,14 @@ function compileSfc(filePath: string, mocks: Record<string, unknown>, cache: Map
 
   const script = sfcCompiler.compileScript(descriptor, {
     id,
-    babelParserPlugins: ['typescript']
+    babelParserPlugins: ['typescript'],
+    // Un `defineProps<Type>()` dont le type vient d'un autre fichier exige un
+    // accès disque : sans cette option, `compileScript` lève « No fs option
+    // provided » et le composant ne peut pas être rendu du tout.
+    fs: {
+      fileExists: (file: string) => fs.existsSync(file),
+      readFile: (file: string) => (fs.existsSync(file) ? fs.readFileSync(file, 'utf-8') : undefined)
+    }
   })
 
   let renderSource = ''
