@@ -11,6 +11,7 @@ import {
   buildSignatureHeroSubtitleLine,
   SIGNATURE_HERO_FALLBACK_HEADLINE
 } from '../../app/features/coach/domain/signature-hero'
+import { buildHeroHeadlineHint } from '../../app/features/coach/domain/hero-headline-hint'
 import { renderSfc } from '../helpers/render-sfc'
 import {
   createCoachProfile,
@@ -280,6 +281,31 @@ describe('hotfix-25 — rendu du hero Signature sans ville', () => {
 })
 
 // ---------------------------------------------------------------------------
+// Aide de l'éditeur — elle ne doit pas promettre un rendu que le hero ne fait pas
+// ---------------------------------------------------------------------------
+
+describe('hotfix-25 — l’aide du champ « Accroche » décrit le hero réel', () => {
+  test('signature : repli annoncé = constante rendue, et aucune promesse de ville', () => {
+    const hint = buildHeroHeadlineHint('signature')
+
+    // Égalité construite depuis la constante : re-typer le littéral dans
+    // l'aide casse le lien et ce test le voit.
+    assert.equal(
+      hint,
+      `Laissez vide : le hero affiche alors « ${SIGNATURE_HERO_FALLBACK_HEADLINE} ».`
+    )
+    assert.ok(!/ville/i.test(hint), `l'aide ne doit plus parler de la ville : ${hint}`)
+    assert.ok(!hint.includes(CITY), `l'aide ne doit pas annoncer une localisation : ${hint}`)
+  })
+
+  test('les autres templates gardent leur propre repli', () => {
+    assert.ok(buildHeroHeadlineHint('visuel').includes('Retrouvez votre équilibre'))
+    assert.ok(buildHeroHeadlineHint('essentiel').includes('Bonjour, je suis {votre prénom}.'))
+    assert.ok(buildHeroHeadlineHint(null).includes('Bonjour, je suis {votre prénom}.'))
+  })
+})
+
+// ---------------------------------------------------------------------------
 // AC-3 — la ville reste où elle doit rester (badge bio + footer)
 // ---------------------------------------------------------------------------
 
@@ -315,11 +341,15 @@ describe('hotfix-25 — la ville reste dans le badge bio et le footer (AC-3)', (
       globals: {
         ...Vue,
         useRoute: () => ({ params: { slug: 'sophie-jouan' } }),
+        // Clé EXACTE : le footer dérive sa clé de `route.params.slug`
+        // (`PublicFooter.vue:36-40`). Un stub qui répondrait à tout préfixe
+        // `public-provider-profile` laisserait passer une dérivation fausse
+        // (clé sans slug) et le test resterait vert.
         useNuxtData: (key: string) => ({
           data: Vue.ref(
-            key.startsWith('public-provider-profile')
+            key === 'public-provider-profile:sophie-jouan'
               ? { city: CITY, region: REGION, displayName: 'Sophie Jouan' }
-              : { brand: { displayName: 'Sophie Jouan' } }
+              : null
           )
         })
       }
@@ -342,15 +372,26 @@ describe('hotfix-25 — la ville reste dans le badge bio et le footer (AC-3)', (
 
 /**
  * Garde de périmètre : `CoachHeroProfile` ne doit rester monté que par
- * `CoachPageSignature`. Si un autre template l'adopte, la règle « pas de ville
- * dans la hero » s'y appliquera aussi — c'est une décision produit, pas un
- * effet de bord acceptable.
+ * `CoachPageSignature`. Si un autre template ou une page l'adopte, la règle
+ * « pas de ville dans la hero » s'y appliquera aussi — c'est une décision
+ * produit, pas un effet de bord acceptable.
+ *
+ * Le scan couvre tout `app/components/templates/**` **et** `app/pages/**`, et
+ * accepte les deux écritures du composant (`<CoachHeroProfile>` et
+ * `<coach-hero-profile>`) : une garde bornée à un dossier et à une seule
+ * casse laisserait grossir le rayon d'action sans changer le compte.
  */
 function templatesMountingSignatureHero(): number {
-  const root = path.resolve(process.cwd(), 'app/components/templates/coach-pages')
-  const files = walkVueFiles(root)
+  const roots = [
+    path.resolve(process.cwd(), 'app/components/templates'),
+    path.resolve(process.cwd(), 'app/pages')
+  ]
+  const mountPattern = /<(?:CoachHeroProfile|coach-hero-profile)\b/
 
-  return files.filter(file => /<CoachHeroProfile\b/.test(fs.readFileSync(file, 'utf-8'))).length
+  return roots
+    .flatMap(root => walkVueFiles(root))
+    .filter(file => mountPattern.test(fs.readFileSync(file, 'utf-8')))
+    .length
 }
 
 function walkVueFiles(dir: string): string[] {

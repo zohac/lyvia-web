@@ -37,6 +37,9 @@ import {
 // (une copie locale en aurait fait deux sources de vérité ; revue TF.1). La
 // justification LAB-R15 est documentée dans le module.
 import { sectionLabel } from '~/features/coach/domain/coach-page-section-labels'
+// Hotfix 25 — l'aide du champ « Accroche » est dérivée du template, et son
+// repli Signature vient de la valeur réellement rendue par le hero.
+import { buildHeroHeadlineHint } from '~/features/coach/domain/hero-headline-hint'
 import { useCoachPageEditor } from '~/features/coach/useCoachPageEditor'
 import {
   snapshotSectionsConfig,
@@ -598,16 +601,11 @@ const isHeroBackgroundTemplate = computed(
 // champ est vide. Une phrase unique décrivait donc un repli FAUX pour Visuel
 // (« Retrouvez votre équilibre… ») et Signature (« Spécialiste accompagnement
 // ménopause… »). On dérive l'aide du template sélectionné.
-const heroHeadlineHint = computed<string>(() => {
-  switch (previewTemplateCode.value) {
-    case 'visuel':
-      return 'Laissez vide : le hero affiche alors « Retrouvez votre équilibre et votre vitalité avec {votre prénom} ».'
-    case 'signature':
-      return 'Laissez vide : le hero affiche alors « Spécialiste accompagnement ménopause », avec votre ville si elle est renseignée.'
-    default:
-      return 'Laissez vide : le hero affiche alors « Bonjour, je suis {votre prénom}. », avec la spécialité en surtitre.'
-  }
-})
+// Hotfix 25 — la dérivation vit dans `domain/hero-headline-hint.ts` : la ville
+// n'est plus annoncée et le repli Signature vient de la constante rendue.
+const heroHeadlineHint = computed<string>(() =>
+  buildHeroHeadlineHint(previewTemplateCode.value)
+)
 //
 // `account` is exposed as `readonly(account)` by createCoachPageEditor for
 // safety (no external mutation), but the preview composable only reads
