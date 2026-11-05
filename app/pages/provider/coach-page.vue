@@ -72,6 +72,8 @@ import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 import CoachPageTemplateRequiredNotice from '~/components/molecules/CoachPageTemplateRequiredNotice.vue'
 import CoachPageExternalSectionCard from '~/components/organisms/CoachPageExternalSectionCard.vue'
 import CoachPageCertificationsCard from '~/components/organisms/CoachPageCertificationsCard.vue'
+import CoachPageBioEditor from '~/components/organisms/CoachPageBioEditor.vue'
+import CoachPageProblemStatementEditor from '~/components/organisms/CoachPageProblemStatementEditor.vue'
 import CoachPageSectionCard from '~/components/organisms/CoachPageSectionCard.vue'
 import {
   parseHex,
@@ -154,7 +156,6 @@ const {
 
 onMounted(() => init())
 
-const PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH = 500
 // YB.1.1 — plafonds alignés sur `FreeTextJsonDto` côté API
 // (10 paragraphes × 2 000 caractères, titre ≤ 200). Le même plafond de 10 est
 // déjà appliqué à l'éditeur des paragraphes éducatifs.
@@ -165,7 +166,6 @@ const TESTIMONIALS_MAX = 10
 // "Qui suis-je" édite `longBio` (5000 chars max — DTO `@MaxLength(5000)`),
 // pas le champ `bio` (500 chars, tagline hero). Le rendu public CoachPageSignature
 // / CoachPageEssentiel priorise `longBio` pour cette section.
-const LONG_BIO_MAX_LENGTH = 5000
 const BRAND_NAME_MAX_LENGTH = 100
 // Story 0-27 — `logoUrl` n'est plus saisi en URL libre, il est uploadé via le widget
 // (POST /provider/assets/upload type=brand_logo). La constante d'URL est supprimée.
@@ -230,59 +230,13 @@ const bioForm = reactive({
   city: '',
   region: ''
 })
-const bioCharCount = computed(() => bioForm.longBio?.length ?? 0)
 
-// ── Photo secondaire (round terrain 2026-05-01) — rapatriée depuis Mon compte ──
+// ── Photo secondaire (round terrain 2026-05-01) ──
 // Photo affichée dans la section "Qui suis-je" de la page publique coach.
-// L'API `GET /provider/account` n'expose pas (encore) `secondaryPhotoUrl` → la preview
-// reste vide au load, elle se remplit après upload réussi (comportement pré-existant
-// hérité de Mon compte ; un futur ticket pourra ajouter le champ au contract).
-const secondaryPhotoFile = ref<File | null>(null)
+// CPD.2 — l'upload et l'aperçu local vivent dans `CoachPageBioEditor` ; cette
+// ref ne sert plus qu'au panneau d'aperçu live, alimentée par `photo-selected`
+// (sélection) et `photo-uploaded` (URL définitive).
 const secondaryPhotoPreview = ref<string | null>(null)
-const secondaryPhotoUploading = ref(false)
-const secondaryPhotoError = ref<string | null>(null)
-const secondaryFileInputRef = ref<HTMLInputElement | null>(null)
-
-// uploadAsset / formatUploadError / validateFileUpload extracted to
-// ~/features/assets/use-asset-upload (Story 0-27 — DRY A25)
-
-function triggerSecondaryFileInput() {
-  secondaryFileInputRef.value?.click()
-}
-
-function onSecondaryFileSelected(event: Event) {
-  secondaryPhotoError.value = null
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const err = validateFileUpload(file, 2 * 1024 * 1024, ['image/jpeg', 'image/png', 'image/webp'])
-  if (err) {
-    secondaryPhotoError.value = err
-    return
-  }
-
-  secondaryPhotoFile.value = file
-  secondaryPhotoPreview.value = URL.createObjectURL(file)
-}
-
-async function handleSecondaryPhotoUpload() {
-  if (!secondaryPhotoFile.value) return
-  secondaryPhotoUploading.value = true
-  secondaryPhotoError.value = null
-
-  try {
-    const result = await uploadAsset('secondary_photo', secondaryPhotoFile.value)
-    secondaryPhotoPreview.value = result.url
-    secondaryPhotoFile.value = null
-    toast.add({ title: 'Photo secondaire enregistrée', color: 'primary' })
-  } catch (e: unknown) {
-    secondaryPhotoError.value = formatUploadError(e)
-    toast.add({ title: 'Erreur', description: secondaryPhotoError.value, color: 'error' })
-  } finally {
-    secondaryPhotoUploading.value = false
-  }
-}
 
 // ── Testimonials form state (rapatrié, AC-5) ──
 const testimonialsForm = ref<TestimonialItem[]>([])
@@ -392,72 +346,29 @@ async function handleHeroPhotoEnableDefault() {
 }
 
 // ── Photo d'arrière-plan Énoncé du problème ──
-const problemStatementPhotoFile = ref<File | null>(null)
+// CPD.2 — upload et suppression vivent dans `CoachPageProblemStatementEditor`.
+// `photoBusy` / `photoError` sont passés à la carte ; `photoPreview` alimente le
+// panneau d'aperçu live.
 const problemStatementPhotoPreview = ref<string | null>(null)
 const problemStatementPhotoUploading = ref(false)
 const problemStatementPhotoError = ref<string | null>(null)
-const problemStatementFileInputRef = ref<HTMLInputElement | null>(null)
 
-function triggerProblemStatementFileInput() {
-  problemStatementFileInputRef.value?.click()
+/**
+ * CPD.2 — l'aperçu local n'est une URL durable que s'il vient du serveur
+ * (`https:`). Un object URL `blob:` est révoqué au démontage de la carte : le
+ * repasser à une carte remontée afficherait une image cassée. On ne transmet
+ * donc que l'URL persistée, et la carte gère son propre aperçu de sélection.
+ */
+function persistedPhotoUrl(preview: string | null, serverUrl: string | null | undefined): string | null {
+  return preview && !preview.startsWith('blob:') ? preview : serverUrl ?? null
 }
 
-function onProblemStatementFileSelected(event: Event) {
-  problemStatementPhotoError.value = null
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const err = validateFileUpload(file, 5 * 1024 * 1024, ['image/jpeg', 'image/png', 'image/webp'])
-  if (err) {
-    problemStatementPhotoError.value = err
-    return
-  }
-
-  problemStatementPhotoFile.value = file
-  problemStatementPhotoPreview.value = URL.createObjectURL(file)
-}
-
-async function handleProblemStatementPhotoUpload() {
-  if (!problemStatementPhotoFile.value) return
-  problemStatementPhotoUploading.value = true
-  problemStatementPhotoError.value = null
-
-  try {
-    const result = await uploadAsset('problem_statement_photo', problemStatementPhotoFile.value)
-    problemStatementPhotoPreview.value = result.url
-    problemStatementPhotoFile.value = null
-    await fetchAccount()
-    toast.add({ title: 'Photo d\'arrière-plan enregistrée', color: 'primary' })
-  } catch (e: unknown) {
-    problemStatementPhotoError.value = formatUploadError(e)
-    toast.add({ title: 'Erreur', description: problemStatementPhotoError.value, color: 'error' })
-  } finally {
-    problemStatementPhotoUploading.value = false
-  }
-}
-
-async function handleProblemStatementPhotoDelete() {
-  problemStatementPhotoUploading.value = true
-  problemStatementPhotoError.value = null
-
-  try {
-    const ok = await updateAccount({ problemStatementPhotoUrl: null })
-    if (ok) {
-      problemStatementPhotoPreview.value = null
-      problemStatementPhotoFile.value = null
-      await fetchAccount()
-      toast.add({ title: 'Photo d\'arrière-plan supprimée', color: 'primary' })
-    } else {
-      toast.add({ title: 'Erreur lors de la suppression de la photo', color: 'error' })
-    }
-  } catch (e: unknown) {
-    problemStatementPhotoError.value = formatUploadError(e)
-    toast.add({ title: 'Erreur', description: problemStatementPhotoError.value, color: 'error' })
-  } finally {
-    problemStatementPhotoUploading.value = false
-  }
-}
+const secondaryPhotoForEditor = computed(() =>
+  persistedPhotoUrl(secondaryPhotoPreview.value, account.value?.secondaryPhotoUrl)
+)
+const problemStatementPhotoForEditor = computed(() =>
+  persistedPhotoUrl(problemStatementPhotoPreview.value, account.value?.problemStatementPhotoUrl)
+)
 
 // ── Palette form state (Story 0-37 AC-5, AC-6) ──
 const paletteForm = reactive({
@@ -974,6 +885,29 @@ async function onSaveBio() {
   })
 }
 
+// CPD.2 — la carte porte l'upload ; l'URL est persistée côté serveur par
+// `uploadAsset`. La page ne relaie que l'aperçu et le toast, et surtout elle ne
+// rappelle PAS `fetchAccount()` : le `watch` sur `account.value` réinitialise
+// `bioForm` / `sectionTitlesForm` et effacerait une saisie non enregistrée.
+async function onSecondaryPhotoUploaded(url: string) {
+  secondaryPhotoPreview.value = url
+  toast.add({ title: 'Photo secondaire enregistrée', color: 'primary' })
+}
+
+function onSecondaryPhotoSelected(previewUrl: string) {
+  secondaryPhotoPreview.value = previewUrl
+}
+
+function onSecondaryPhotoError(message: string) {
+  toast.add({ title: 'Erreur', description: message, color: 'error' })
+}
+
+function onProblemParagraphUpdate(payload: { index: number, value: string }) {
+  if (problemStatementForm.value?.paragraphs) {
+    problemStatementForm.value.paragraphs[payload.index] = payload.value
+  }
+}
+
 // ── Testimonials inline editor (AC-5) ──
 function addTestimonial() {
   if (testimonialsForm.value.length >= TESTIMONIALS_MAX) return
@@ -1028,6 +962,40 @@ async function onSaveProblemStatementSection() {
     title: ok ? 'Énoncé du problème enregistré' : 'Erreur d\'enregistrement',
     color: ok ? 'primary' : 'error'
   })
+}
+
+// CPD.2 — la carte porte l'upload/suppression ; l'URL est persistée par
+// `uploadAsset` et la suppression par le PATCH `problemStatementPhotoUrl: null`.
+async function onProblemStatementPhotoUploaded(url: string) {
+  // Pas de `fetchAccount()` : le `watch` sur `account.value` réinitialise les
+  // formulaires et effacerait une saisie non enregistrée. La carte reçoit
+  // `problemStatementPhotoPreview`, qui survit au repli de la section.
+  problemStatementPhotoPreview.value = url
+  toast.add({ title: 'Photo d\'arrière-plan enregistrée', color: 'primary' })
+}
+
+function onProblemStatementPhotoSelected(previewUrl: string) {
+  problemStatementPhotoPreview.value = previewUrl
+}
+
+async function onProblemStatementPhotoRemoved() {
+  problemStatementPhotoUploading.value = true
+  problemStatementPhotoError.value = null
+  const ok = await updateAccount({ problemStatementPhotoUrl: null })
+  if (ok) {
+    problemStatementPhotoPreview.value = null
+    toast.add({ title: 'Photo d\'arrière-plan supprimée', color: 'primary' })
+  } else {
+    // `updateAccount` ne lève pas : le motif est dans `accountError`.
+    problemStatementPhotoError.value = accountError.value ?? 'Erreur lors de la suppression de la photo'
+    toast.add({ title: 'Erreur lors de la suppression de la photo', color: 'error' })
+  }
+  problemStatementPhotoUploading.value = false
+}
+
+function onProblemStatementPhotoError(message: string) {
+  problemStatementPhotoError.value = message
+  toast.add({ title: 'Erreur', description: message, color: 'error' })
 }
 
 async function onSaveBenefitsSection() {
@@ -1369,29 +1337,17 @@ function externalSectionTo(section: string): string {
 
 <template>
   <div>
-    <!-- Hidden file inputs — placés au niveau page (pas dans le v-for des éditeurs)
-      pour que les template refs soient de simples HTMLInputElement
-      et non un array, sinon `.click()` est silencieusement ignoré par Vue 3. -->
-    <input
-      ref="secondaryFileInputRef"
-      type="file"
-      accept="image/jpeg,image/png,image/webp"
-      class="hidden"
-      @change="onSecondaryFileSelected"
-    >
+    <!-- Hidden file input du hero — reste au niveau page (pas dans le v-for des
+      éditeurs) pour que sa template ref soit un simple HTMLInputElement et non un
+      array, sinon `.click()` est silencieusement ignoré par Vue 3. Les entrées
+      fichier des cartes bio / énoncé vivent désormais DANS leur composant, où la
+      ref appartient à l'instance de la carte et n'est donc pas dans le v-for. -->
     <input
       ref="heroFileInputRef"
       type="file"
       accept="image/jpeg,image/png,image/webp"
       class="hidden"
       @change="onHeroFileSelected"
-    >
-    <input
-      ref="problemStatementFileInputRef"
-      type="file"
-      accept="image/jpeg,image/png,image/webp"
-      class="hidden"
-      @change="onProblemStatementFileSelected"
     >
 
     <AtomsDsPageHeader>
@@ -2304,149 +2260,22 @@ function externalSectionTo(section: string): string {
             @toggle="onToggleSection"
             @save="onSaveSection(section)"
           >
-            <!-- ── BIO (Qui suis-je) — inline editor (Story 0-26 AC-4) ── -->
-            <template v-if="section === 'bio'">
-              <div class="space-y-4 px-6 py-5">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="bioEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : Qui suis-je"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.bioEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="Qui suis-je"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="bioTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Votre spécialiste ménopause — {Nom}"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.bioTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Votre spécialiste ménopause — ..."
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-
-                <!-- Photo secondaire — rapatriée depuis Mon compte (round terrain 2026-05-01).
-                  Photo affichée à côté du texte dans la section "Qui suis-je" de la page publique. -->
-                <div>
-                  <p class="mb-2 text-sm font-medium text-[color:var(--color-text-primary)]">
-                    Photo (affichée dans la section "Qui suis-je" de votre page publique)
-                  </p>
-                  <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
-                    JPEG, PNG ou WebP, max 2 Mo.
-                  </p>
-                  <div class="flex items-center gap-6">
-                    <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-                      <img
-                        v-if="secondaryPhotoPreview || account?.secondaryPhotoUrl"
-                        :src="(secondaryPhotoPreview || account?.secondaryPhotoUrl)!"
-                        alt="Photo Qui suis-je"
-                        class="h-full w-full object-cover"
-                      >
-                      <UIcon
-                        v-else
-                        name="i-lucide-image"
-                        class="h-10 w-10 text-[color:var(--color-brand-muted)]"
-                      />
-                    </div>
-                    <div class="flex flex-col items-start gap-2">
-                      <UButton
-                        variant="outline"
-                        icon="i-lucide-upload"
-                        label="Modifier la photo"
-                        size="sm"
-                        type="button"
-                        @click="triggerSecondaryFileInput"
-                      />
-                      <UButton
-                        v-if="secondaryPhotoFile"
-                        :loading="secondaryPhotoUploading"
-                        :disabled="secondaryPhotoUploading"
-                        label="Enregistrer la photo"
-                        size="sm"
-                        @click="handleSecondaryPhotoUpload"
-                      />
-                      <p
-                        v-if="secondaryPhotoError"
-                        class="text-sm text-[color:var(--color-error)]"
-                      >
-                        {{ secondaryPhotoError }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <FormControl
-                  id="longBio"
-                  label="Bio détaillée"
-                  hint="Présentez-vous en détail à vos clientes. Plusieurs paragraphes acceptés."
-                >
-                  <template #default="{ inputAttrs }">
-                    <UTextarea
-                      v-model="bioForm.longBio"
-                      v-bind="inputAttrs"
-                      class="w-full"
-                      placeholder="Mon parcours, mes méthodes, ma philosophie..."
-                      :maxlength="LONG_BIO_MAX_LENGTH"
-                      :rows="8"
-                      size="sm"
-                    />
-                  </template>
-                  <template #label-aside>
-                    <span
-                      class="text-xs"
-                      :class="bioCharCount > LONG_BIO_MAX_LENGTH - 200 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-                    >
-                      {{ bioCharCount }}/{{ LONG_BIO_MAX_LENGTH }}
-                    </span>
-                  </template>
-                </FormControl>
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="city"
-                    label="Ville"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="bioForm.city"
-                        v-bind="inputAttrs"
-                        class="w-full"
-                        placeholder="Paris"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-
-                  <FormControl
-                    id="region"
-                    label="Région"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="bioForm.region"
-                        v-bind="inputAttrs"
-                        class="w-full"
-                        placeholder="Île-de-France"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-              </div>
-            </template>
+            <!-- ── BIO (Qui suis-je) — CPD.2 ── -->
+            <CoachPageBioEditor
+              v-if="section === 'bio'"
+              :bio-form="bioForm"
+              :bio-eyebrow="sectionTitlesForm.bioEyebrow"
+              :bio-title="sectionTitlesForm.bioTitle"
+              :secondary-photo-url="secondaryPhotoForEditor"
+              @update:long-bio="bioForm.longBio = $event"
+              @update:city="bioForm.city = $event"
+              @update:region="bioForm.region = $event"
+              @update:bio-eyebrow="sectionTitlesForm.bioEyebrow = $event"
+              @update:bio-title="sectionTitlesForm.bioTitle = $event"
+              @photo-selected="onSecondaryPhotoSelected"
+              @photo-uploaded="onSecondaryPhotoUploaded"
+              @photo-error="onSecondaryPhotoError"
+            />
 
             <!-- ── CREDENTIALS (Diplômes & certifications) — LAB.4 ── -->
             <CoachPageCertificationsCard
@@ -2456,157 +2285,26 @@ function externalSectionTo(section: string): string {
               @update:credentials="credentialsForm = $event"
               @save="onSaveCredentials"
             />
-            <!-- ── PROBLEM STATEMENT ── -->
-            <template v-if="section === 'problemStatement'">
-              <div class="space-y-4 px-6 py-5">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="problemStatementEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : Comprendre"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.problemStatementEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="Comprendre"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="problemStatementTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Ce que vous traversez n'est pas une fatalité"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.problemStatementTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Ce que vous traversez n'est pas une fatalité"
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-
-                <div class="space-y-3">
-                  <UTextarea
-                    :model-value="problemStatementForm?.blockquote ?? ''"
-                    class="w-full"
-                    placeholder="Citation principale (max 2000 caractères)"
-                    :maxlength="2000"
-                    :rows="4"
-                    size="sm"
-                    @update:model-value="setProblemStatementBlockquote"
-                  />
-                </div>
-
-                <h3 class="mb-3 mt-6 text-sm font-semibold text-[color:var(--color-text-primary)]">
-                  Paragraphes explicatifs (optionnel)
-                </h3>
-                <div class="space-y-4">
-                  <div
-                    v-for="(_, idx) in (problemStatementForm?.paragraphs ?? [])"
-                    :key="idx"
-                    class="relative"
-                  >
-                    <button
-                      type="button"
-                      class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                      @click="removeProblemParagraph(idx)"
-                    >
-                      <UIcon
-                        name="i-lucide-x"
-                        class="size-4"
-                      />
-                    </button>
-                    <UTextarea
-                      v-model="problemStatementForm!.paragraphs[idx]"
-                      class="w-full"
-                      :placeholder="`Paragraphe ${idx + 1} (max ${PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH} caractères)`"
-                      :maxlength="PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH"
-                      :rows="4"
-                      size="sm"
-                    />
-                  </div>
-                </div>
-                <UButton
-                  class="mt-4"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-plus"
-                  :disabled="(problemStatementForm?.paragraphs?.length ?? 0) >= 10"
-                  @click="addProblemParagraph"
-                >
-                  Ajouter un paragraphe
-                </UButton>
-
-                <!-- Photo de fond de la section (Option B) -->
-                <div class="mt-8 border-t border-[color:var(--color-border-subtle)] pt-6">
-                  <p class="mb-1 text-sm font-medium text-[color:var(--color-text-primary)]">
-                    Image d'arrière-plan de la section (template Visuel / Luna)
-                  </p>
-                  <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
-                    JPEG, PNG ou WebP, max 5 Mo. Recommandé : 1920×1080 (paysage ambiance sombre).
-                  </p>
-                  <div class="flex items-center gap-6">
-                    <div class="flex h-20 w-32 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-                      <img
-                        v-if="problemStatementPhotoPreview || account?.problemStatementPhotoUrl"
-                        :src="(problemStatementPhotoPreview || account?.problemStatementPhotoUrl)!"
-                        alt="Image d'arrière-plan du problème"
-                        class="h-full w-full object-cover"
-                      >
-                      <UIcon
-                        v-else
-                        name="i-lucide-image"
-                        class="h-8 w-8 text-[color:var(--color-brand-muted)]"
-                      />
-                    </div>
-                    <div class="flex flex-col items-start gap-2">
-                      <div class="flex flex-wrap gap-2">
-                        <UButton
-                          variant="outline"
-                          icon="i-lucide-upload"
-                          :label="problemStatementPhotoPreview || account?.problemStatementPhotoUrl ? 'Modifier l\'image' : 'Ajouter une image'"
-                          size="sm"
-                          type="button"
-                          @click="triggerProblemStatementFileInput"
-                        />
-                        <UButton
-                          v-if="problemStatementPhotoPreview || account?.problemStatementPhotoUrl"
-                          variant="ghost"
-                          color="error"
-                          icon="i-lucide-trash-2"
-                          label="Supprimer l'image"
-                          size="sm"
-                          type="button"
-                          :loading="problemStatementPhotoUploading"
-                          :disabled="problemStatementPhotoUploading"
-                          @click="handleProblemStatementPhotoDelete"
-                        />
-                      </div>
-                      <UButton
-                        v-if="problemStatementPhotoFile"
-                        :loading="problemStatementPhotoUploading"
-                        :disabled="problemStatementPhotoUploading"
-                        label="Enregistrer l'image"
-                        size="sm"
-                        @click="handleProblemStatementPhotoUpload"
-                      />
-                      <p
-                        v-if="problemStatementPhotoError"
-                        class="text-sm text-[color:var(--color-error)]"
-                      >
-                        {{ problemStatementPhotoError }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
+            <!-- ── PROBLEM STATEMENT — CPD.2 ── -->
+            <CoachPageProblemStatementEditor
+              v-if="section === 'problemStatement'"
+              :problem-statement-form="problemStatementForm"
+              :problem-statement-eyebrow="sectionTitlesForm.problemStatementEyebrow"
+              :problem-statement-title="sectionTitlesForm.problemStatementTitle"
+              :photo-url="problemStatementPhotoForEditor"
+              :photo-busy="problemStatementPhotoUploading"
+              :photo-error="problemStatementPhotoError"
+              @update:problem-statement-eyebrow="sectionTitlesForm.problemStatementEyebrow = $event"
+              @update:problem-statement-title="sectionTitlesForm.problemStatementTitle = $event"
+              @update:blockquote="setProblemStatementBlockquote($event)"
+              @update:paragraph="onProblemParagraphUpdate($event)"
+              @add-paragraph="addProblemParagraph"
+              @remove-paragraph="removeProblemParagraph($event)"
+              @photo-selected="onProblemStatementPhotoSelected"
+              @photo-uploaded="onProblemStatementPhotoUploaded"
+              @photo-removed="onProblemStatementPhotoRemoved"
+              @photo-error="onProblemStatementPhotoError"
+            />
 
             <!-- ── BENEFITS ── -->
             <template v-if="section === 'benefits'">

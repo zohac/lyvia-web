@@ -47,6 +47,30 @@ function sectionCardTag(): string {
   return source.slice(start, end)
 }
 
+/**
+ * CPD.2 — la balise d'ouverture d'une carte montée par la page, et elle seule.
+ *
+ * Une regex sur tout le fichier est satisfaite par n'importe quelle autre
+ * occurrence (import, commentaire, autre carte). La garde lit donc les liaisons
+ * dans la balise réellement montée, comme `sectionCardTag()` et `cardTag()`
+ * (tf-3, lab-4).
+ */
+function componentTag(componentName: string): string {
+  const source = readCoachPage()
+  const start = source.indexOf(`<${componentName}`)
+  assert.ok(start >= 0, `la carte \`${componentName}\` n’est pas montée par la page`)
+  const end = source.indexOf('>', start)
+  assert.ok(end > start, `balise d’ouverture de \`${componentName}\` introuvable`)
+  return source.slice(start, end)
+}
+
+function assertBindings(componentName: string, expected: string[]): void {
+  const tag = componentTag(componentName)
+  for (const binding of expected) {
+    assert.ok(tag.includes(binding), `${componentName} doit porter \`${binding}\` dans sa propre balise`)
+  }
+}
+
 describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testimonials inline', () => {
   // ─────────────────────────────────────────────────────────────────────
   // AC-1 — Switches inline dans chaque card éditeur
@@ -203,34 +227,62 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
   // AC-3 — Textareas pleine largeur
   // ─────────────────────────────────────────────────────────────────────
 
-  test('AC-3: tous les <UTextarea> de la page ont la classe w-full', () => {
-    const source = readCoachPage()
+  test('AC-3: tous les <UTextarea> de la page ET des cartes extraites ont la classe w-full', () => {
+    const sources = [
+      readCoachPage(),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageBioEditor.vue'), 'utf-8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageProblemStatementEditor.vue'), 'utf-8')
+    ]
     // Match every <UTextarea ...> opening tag (with attributes spanning multiple lines).
     const textareaPattern = /<UTextarea\b[^>]*?(?:\n[^>]*?)*?>/g
-    const matches = source.match(textareaPattern) ?? []
-    assert.ok(matches.length > 0, 'La page doit contenir au moins un <UTextarea>')
-    for (const tag of matches) {
-      assert.ok(
-        /class="[^"]*\bw-full\b/.test(tag),
-        `Chaque UTextarea doit avoir w-full dans sa class — manquant sur : ${tag.slice(0, 200)}`
-      )
+    let total = 0
+    for (const source of sources) {
+      const matches = source.match(textareaPattern) ?? []
+      total += matches.length
+      for (const tag of matches) {
+        assert.ok(
+          /class="[^"]*\bw-full\b/.test(tag),
+          `Chaque UTextarea doit avoir w-full dans sa class — manquant sur : ${tag.slice(0, 200)}`
+        )
+      }
     }
+    assert.ok(total > 0, 'au moins un <UTextarea> attendu dans le périmètre scanné')
   })
 
   // ─────────────────────────────────────────────────────────────────────
   // AC-4 — Éditeur bio (Qui suis-je) inline
   // ─────────────────────────────────────────────────────────────────────
 
-  test('AC-4: éditeur "Qui suis-je" inline édite `longBio` (5000 chars) + `city` + `region` (rapatriés depuis Mon compte)', () => {
+  test('AC-4: GARDE DE CÂBLAGE — la page monte CoachPageBioEditor avec toutes ses liaisons', () => {
     const source = readCoachPage()
     // Round 2026-05-01 — fix terrain Sophie (962 chars rejetés en 422 sur `bio` qui plafonne à 500) :
     // l'éditeur cible désormais `longBio` (5000 chars). + rapatriement city/region depuis
     // /provider/account section "Profil professionnel" (single source of truth pour identité géo).
-    assert.match(source, /v-model="bioForm\.longBio"/)
-    assert.match(source, /v-model="bioForm\.city"/)
-    assert.match(source, /v-model="bioForm\.region"/)
-    assert.match(source, /LONG_BIO_MAX_LENGTH\s*=\s*5000/)
-    // Handler onSaveBio.
+    // CPD.2 — le markup a quitté la page pour CoachPageBioEditor ; la preuve de RENDU
+    // est `tests/coach/cpd-2-bio-problem-editors.test.ts`, et les liaisons ci-dessous
+    // sont lues dans la BALISE, jamais sur le fichier entier (AC-4).
+    assert.match(source, /^import CoachPageBioEditor from '~\/components\/organisms\/CoachPageBioEditor\.vue'$/m)
+    assertBindings('CoachPageBioEditor', [
+      ':bio-form="bioForm"',
+      ':bio-eyebrow="sectionTitlesForm.bioEyebrow"',
+      ':bio-title="sectionTitlesForm.bioTitle"',
+      ':secondary-photo-url="secondaryPhotoForEditor"',
+      '@update:long-bio="bioForm.longBio = $event"',
+      '@update:city="bioForm.city = $event"',
+      '@update:region="bioForm.region = $event"',
+      '@update:bio-eyebrow="sectionTitlesForm.bioEyebrow = $event"',
+      '@update:bio-title="sectionTitlesForm.bioTitle = $event"',
+      '@photo-selected="onSecondaryPhotoSelected"',
+      '@photo-uploaded="onSecondaryPhotoUploaded"',
+      '@photo-error="onSecondaryPhotoError"'
+    ])
+    // AC-2 amendé le 2026-11-05 : le pied d'enregistrement appartient à
+    // `CoachPageSectionCard`, pas à la carte de corps. Ces deux liaisons étaient
+    // mortes et le resteraient si on les réintroduisait « pour plus tard ».
+    assert.ok(!componentTag('CoachPageBioEditor').includes('@save'), 'la carte de corps ne porte pas @save')
+    assert.ok(!componentTag('CoachPageBioEditor').includes(':saving'), 'la carte de corps ne porte pas :saving')
+
+    // Handler onSaveBio conservé (appelé par le dispatcheur de la carte de section).
     assert.match(source, /async function onSaveBio\(\)/)
     // Appel updateAccount avec longBio + city + region + trim/null fallback.
     // (story 0-26 round terrain — updateAccount désormais exposé par useCoachPageEditor,
@@ -238,6 +290,42 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     assert.match(source, /\bupdateAccount\(\{[\s\S]*?longBio:[\s\S]*?city:[\s\S]*?region:[\s\S]*?\}\)/)
     // Toast succès verbatim (round PO 2026-05-01 : harmonisation "...enregistré(e)(s)" partout).
     assert.match(source, /'Qui suis-je enregistré'/)
+  })
+
+  /**
+   * CPD.2 — AC-6, 5ᵉ mutation : retirer le montage de l'une des deux cartes doit
+   * faire tomber une garde. La carte de l'énoncé n'en avait aucune : supprimer
+   * ses quinze lignes de montage laissait la suite entière verte.
+   */
+  test('AC-4: GARDE DE CÂBLAGE — la page monte CoachPageProblemStatementEditor avec toutes ses liaisons', () => {
+    assert.match(
+      readCoachPage(),
+      /^import CoachPageProblemStatementEditor from '~\/components\/organisms\/CoachPageProblemStatementEditor\.vue'$/m,
+      'la carte doit être importée explicitement (une balise non résolue ne rend rien)'
+    )
+    assertBindings('CoachPageProblemStatementEditor', [
+      ':problem-statement-form="problemStatementForm"',
+      ':problem-statement-eyebrow="sectionTitlesForm.problemStatementEyebrow"',
+      ':problem-statement-title="sectionTitlesForm.problemStatementTitle"',
+      ':photo-url="problemStatementPhotoForEditor"',
+      ':photo-busy="problemStatementPhotoUploading"',
+      ':photo-error="problemStatementPhotoError"',
+      '@update:problem-statement-eyebrow="sectionTitlesForm.problemStatementEyebrow = $event"',
+      '@update:problem-statement-title="sectionTitlesForm.problemStatementTitle = $event"',
+      '@update:blockquote="setProblemStatementBlockquote($event)"',
+      '@update:paragraph="onProblemParagraphUpdate($event)"',
+      '@add-paragraph="addProblemParagraph"',
+      '@remove-paragraph="removeProblemParagraph($event)"',
+      '@photo-selected="onProblemStatementPhotoSelected"',
+      '@photo-uploaded="onProblemStatementPhotoUploaded"',
+      '@photo-removed="onProblemStatementPhotoRemoved"',
+      '@photo-error="onProblemStatementPhotoError"'
+    ])
+    assert.ok(!componentTag('CoachPageProblemStatementEditor').includes('@save'), 'la carte de corps ne porte pas @save')
+    assert.ok(!componentTag('CoachPageProblemStatementEditor').includes(':saving'), 'la carte de corps ne porte pas :saving')
+
+    // La page reçoit bien les modifications et ne les absorbe pas.
+    assert.match(readCoachPage(), /function onProblemParagraphUpdate\(payload: \{ index: number, value: string \}\)/)
   })
 
   // ─────────────────────────────────────────────────────────────────────

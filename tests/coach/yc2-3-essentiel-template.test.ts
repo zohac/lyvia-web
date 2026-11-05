@@ -959,38 +959,46 @@ describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & uplo
     )
   })
 
-  test('8.4: coach-page.vue places problemStatementFileInputRef at root level outside v-for', () => {
+  test('8.4: hidden file inputs — hero stays at page root, les deux autres vivent dans leur carte (CPD.2)', () => {
     const pageContent = readFile(COACH_PAGE_PATH)
 
-    // Check that problemStatementFileInputRef is placed before AtomsDsPageHeader (root level)
+    // L'entrée fichier du hero reste au niveau racine, avant l'en-tête de page.
     const headerIndex = pageContent.indexOf('<AtomsDsPageHeader')
+    const heroInputIndex = pageContent.indexOf('ref="heroFileInputRef"')
     assert.ok(headerIndex > 0, 'Could not find AtomsDsPageHeader in coach-page.vue')
+    assert.ok(heroInputIndex > 0 && heroInputIndex < headerIndex, 'heroFileInputRef doit rester au niveau racine, avant AtomsDsPageHeader')
 
-    const rootSection = pageContent.slice(0, headerIndex)
+    const cardContent = readFile('components/organisms/CoachPageProblemStatementEditor.vue')
     assert.ok(
-      rootSection.includes('ref="problemStatementFileInputRef"'),
-      'problemStatementFileInputRef must be placed before AtomsDsPageHeader at root level'
+      cardContent.includes('ref="problemStatementFileInputRef"'),
+      'problemStatementFileInputRef doit vivre dans CoachPageProblemStatementEditor (CPD.2)'
+    )
+    assert.ok(
+      !pageContent.includes('ref="problemStatementFileInputRef"'),
+      'la page ne doit plus porter problemStatementFileInputRef (déplacé, CPD.2)'
+    )
+    assert.ok(
+      pageContent.includes('<CoachPageProblemStatementEditor'),
+      'la page doit monter la carte qui porte l’entrée fichier déplacée'
     )
 
-    // Check that problemStatementFileInputRef is NOT inside orderedEditableSections v-for
-    const sectionsLoopIndex = pageContent.indexOf('v-for="section in orderedEditableSections"')
-    assert.ok(sectionsLoopIndex > 0, 'Could not find v-for="section in orderedEditableSections" in coach-page.vue')
-    const sectionsLoop = pageContent.slice(sectionsLoopIndex)
-    assert.ok(
-      !sectionsLoop.includes('ref="problemStatementFileInputRef"'),
-      'problemStatementFileInputRef must NOT be inside the orderedEditableSections v-for'
-    )
-
-    // Check that heroFileInputRef and secondaryFileInputRef are unique at root level
+    // Check that heroFileInputRef and secondaryFileInputRef are unique where expected
     assert.equal(
       (pageContent.match(/ref="heroFileInputRef"/g) || []).length,
       1,
       'heroFileInputRef must appear exactly once in coach-page.vue at root level'
     )
+    // CPD.2 — secondaryFileInputRef a quitté la page pour la carte.
     assert.equal(
       (pageContent.match(/ref="secondaryFileInputRef"/g) || []).length,
+      0,
+      'secondaryFileInputRef ne doit plus apparaître dans coach-page.vue (CPD.2)'
+    )
+    const bioCard = readFile('components/organisms/CoachPageBioEditor.vue')
+    assert.equal(
+      (bioCard.match(/ref="secondaryFileInputRef"/g) || []).length,
       1,
-      'secondaryFileInputRef must appear exactly once in coach-page.vue at root level'
+      'secondaryFileInputRef doit vivre dans CoachPageBioEditor (CPD.2)'
     )
   })
 
