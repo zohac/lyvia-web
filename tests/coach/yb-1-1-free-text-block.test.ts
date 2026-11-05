@@ -603,17 +603,15 @@ describe('YB.1.1 — l\u2019éditeur', () => {
       + 'allumé reste désactivable, sinon une coach qui a tout effacé se retrouve '
       + 'avec une bascule ON verrouillée dont elle ne peut plus sortir'
     )
-    assert.match(
-      source,
-      /:disabled="isSectionLocked\(section\)"/,
-      'la bascule partagée doit porter :disabled'
+    assert.ok(
+      source.includes(':locked="isSectionLocked(section)"'),
+      'la bascule partagée doit porter :locked'
     )
-    // `disabled` retire le contrôle de l\u2019ordre de tabulation : la raison doit
-    // donc exister dans le DOM, et pas seulement dans un title.
-    assert.match(
-      source,
-      /data-testid="free-text-lock-reason"/,
-      'la raison du verrou doit être rendue dans le DOM'
+    // La raison est désormais rendue par CoachPageSectionCard (enveloppe extraite) :
+    // la page la transmet via :lock-reason.
+    assert.ok(
+      source.includes(':lock-reason="sectionLockReason(section)"'),
+      'la raison du verrou doit être transmise à la carte'
     )
   })
 

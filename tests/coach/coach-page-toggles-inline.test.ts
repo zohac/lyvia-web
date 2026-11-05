@@ -26,6 +26,27 @@ function readCoachPage(): string {
   return fs.readFileSync(path.join(appRoot, COACH_PAGE_PATH), 'utf-8')
 }
 
+/**
+ * La balise d'ouverture de `CoachPageSectionCard`, et elle seule.
+ *
+ * CPD.1 (revue) — la garde de câblage livrée était faite de regex non bornées
+ * sur tout le fichier, ce que l'AC-3 interdit explicitement. Mesuré : retirer
+ * `@save` de la carte laissait 2379/2379 vertes, et déplacer `@toggle` sur un
+ * autre élément aussi — `/@toggle="onToggleSection"/` est **aussi** satisfaite
+ * par `CoachPageExternalSectionCard`. Pattern `cardTag()` de
+ * `lab-4-credentials-page.test.ts`, introduit pour la même raison en tf-3.
+ */
+function sectionCardTag(): string {
+  const source = readCoachPage()
+  const start = source.indexOf('<CoachPageSectionCard')
+  assert.ok(start >= 0, 'la carte `CoachPageSectionCard` n’est pas montée par la page')
+  // Aucun `>` ne figure dans les valeurs d'attributs de cette balise : la
+  // première occurrence ferme bien l'ouverture.
+  const end = source.indexOf('>', start)
+  assert.ok(end > start, 'balise d’ouverture de la carte introuvable')
+  return source.slice(start, end)
+}
+
 describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testimonials inline', () => {
   // ─────────────────────────────────────────────────────────────────────
   // AC-1 — Switches inline dans chaque card éditeur
@@ -45,31 +66,39 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     )
   })
 
-  test('AC-1: chaque section éditable rend un USwitch lié à isSectionOn(section) avec le label "Visible sur ma page"', () => {
-    const source = readCoachPage()
-    // Round PO 2026-05-01 : le switch est dans un header de card commun (pas dans chaque
-    // <template v-if="section === ...">). Il y a UN header commun par card éditeur :
-    //   <div ...><h2>{{ sectionLabel(section) }}</h2><label><span>Visible sur ma page</span><USwitch ... /></label></div>
-    // On vérifie le pattern global (template + label).
+  /**
+   * CPD.1 — GARDE DE CÂBLAGE (pas une preuve de rendu).
+   *
+   * `coach-page.vue` (~3 500 lignes) exige une application Nuxt complète : le
+   * harnais (`tests/helpers/render-sfc.ts`) ne rend que de petits composants, et
+   * aucun test de la suite ne monte cette page. Les assertions ci-dessous portent
+   * donc sur la SOURCE RÉELLE de la page (Convention A32) et ne prétendent PAS
+   * prouver un rendu — la preuve de rendu porte sur la carte extraite, cf.
+   * `tests/coach/cpd-1-section-card.test.ts`. Toutes les liaisons sont lues dans
+   * la BALISE de la carte, jamais sur le fichier entier.
+   */
+  test('AC-1/AC-3: GARDE DE CÂBLAGE — la page monte CoachPageSectionCard avec ses dix liaisons', () => {
     assert.match(
-      source,
-      /<USwitch\s[\s\S]*?:model-value="isSectionOn\(section\)"[\s\S]*?@update:model-value="\(v: boolean\) => onToggleSection\(section, v\)"/,
-      'Le USwitch dans le header partagé doit être lié à isSectionOn(section) + @update:model-value="onToggleSection(section, v)"'
+      readCoachPage(),
+      /^import CoachPageSectionCard from '~\/components\/organisms\/CoachPageSectionCard\.vue'$/m,
+      'la carte doit être importée explicitement (une balise non résolue ne rend rien)'
     )
-    // Le label "Visible sur ma page" est verbatim (round PO).
-    assert.match(
-      source,
-      />Visible sur ma page</,
-      'Le label "Visible sur ma page" doit accompagner chaque USwitch (round PO 2026-05-01)'
-    )
-    // Le header commun éditeur apparaît bien — la section "Identité de marque"
-    // n'a PLUS de switch depuis le round UX 2026-05-01 (config foundationnelle
-    // toujours active avec fallback Keova, le switch n'avait pas de sens).
-    const switchOccurrences = (source.match(/<USwitch\s/g) ?? []).length
-    assert.ok(
-      switchOccurrences >= 1,
-      `Au moins 1 USwitch attendu (header partagé éditeur), trouvé : ${switchOccurrences}`
-    )
+    const tag = sectionCardTag()
+    const bindings: [string, RegExp][] = [
+      [':section', /:section="section"/],
+      [':label', /:label="sectionLabel\(section\)"/],
+      [':is-on', /:is-on="isSectionOn\(section\)"/],
+      [':locked', /:locked="isSectionLocked\(section\)"/],
+      [':lock-reason', /:lock-reason="sectionLockReason\(section\)"/],
+      [':body-open', /:body-open="isSectionBodyOpen\(section\)"/],
+      [':saving', /:saving="saving"/],
+      [':show-footer', /:show-footer="section !== 'certifications'"/],
+      ['@toggle', /@toggle="onToggleSection"/],
+      ['@save', /@save="onSaveSection\(section\)"/]
+    ]
+    for (const [name, pattern] of bindings) {
+      assert.match(tag, pattern, `la carte doit porter ${name} dans sa propre balise`)
+    }
   })
 
   test('AC-1: sections always-on (hero + disclaimer) NE rendent PAS de switch — indicateur "Toujours visible" + lock icon', () => {
@@ -110,13 +139,11 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     // couverture a suivi le composant (tests/coach/coach-page-section-cards.test.ts,
     // rendu réel). Il ne reste donc ici que la card éditeur inline :
     //   - la card éditeur inline, YB.1.1 : isSectionBodyOpen(section).
-    const matches = source.match(
-      /v-if="isSectionBodyOpen\(section\)"|v-if="isSectionOn\(section\)"/g
-    ) ?? []
-    assert.ok(
-      matches.length >= 1,
-      `Le wrapper de corps de la card éditeur inline attendu, trouvé : ${matches.length}`
-    )
+    //
+    // CPD.1 — la liaison `:body-open` est assertée DANS la balise de la carte par
+    // la garde de câblage ci-dessus, et le comportement (corps rendu / masqué)
+    // par `tests/coach/cpd-1-section-card.test.ts`, qui rend la carte avec un
+    // contenu de slot réel. Il ne reste donc ici que les helpers de la page.
     // Le helper ne déborde PAS sur les autres sections.
     assert.match(
       source,

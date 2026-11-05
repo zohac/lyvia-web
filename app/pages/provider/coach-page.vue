@@ -31,7 +31,8 @@ import {
   getCoachPageExternalEditorSection,
   getCoachPageTemplateSaveErrorToast,
   hasCoachFreeTextContent,
-  isCoachPageInlineEditorSection
+  isCoachPageInlineEditorSection,
+  type COACH_PAGE_INLINE_EDITOR_SECTIONS
 } from '~/features/coach/domain/coach-page-editor'
 // TF.1 — table de libellés partagée avec `CoachPageExternalSectionCard.vue`
 // (une copie locale en aurait fait deux sources de vérité ; revue TF.1). La
@@ -71,6 +72,7 @@ import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 import CoachPageTemplateRequiredNotice from '~/components/molecules/CoachPageTemplateRequiredNotice.vue'
 import CoachPageExternalSectionCard from '~/components/organisms/CoachPageExternalSectionCard.vue'
 import CoachPageCertificationsCard from '~/components/organisms/CoachPageCertificationsCard.vue'
+import CoachPageSectionCard from '~/components/organisms/CoachPageSectionCard.vue'
 import {
   parseHex,
   getRelativeLuminance,
@@ -1122,6 +1124,43 @@ async function onSaveFaqSection() {
     title: ok ? 'Questions fréquentes enregistrées' : 'Erreur d\'enregistrement',
     color: ok ? 'primary' : 'error'
   })
+}
+
+// CPD.1 — dispatcheur nommé : associe chaque section éditable à son handler
+// existant, sans en changer un seul (garde de câblage).
+//
+// `certifications` est exclue : elle porte son propre pied
+// (`CoachPageCertificationsCard`), donc la carte est montée avec
+// `show-footer="false"` et n'émet jamais `save`.
+type SavableInlineSection = Exclude<
+  (typeof COACH_PAGE_INLINE_EDITOR_SECTIONS)[number],
+  'certifications'
+>
+
+// Le `Record` est typé par l'union des sections éditables, pas par `string` :
+// une section ajoutée au registre sans entrée ici ne compile plus, au lieu de
+// rendre un bouton « Enregistrer » qui n'enregistre rien en silence (revue
+// cpd-1 : renommer une clé laissait 59/59 tests verts).
+const SECTION_SAVE_HANDLERS: Record<SavableInlineSection, () => void | Promise<void>> = {
+  bio: onSaveBio,
+  problemStatement: onSaveProblemStatementSection,
+  benefits: onSaveBenefitsSection,
+  freeText: onSaveFreeTextSection,
+  pillars: onSavePillarsSection,
+  howItWorks: onSaveHowItWorksSection,
+  fit: onSaveFitSection,
+  educationalContent: onSaveEducationalContentSection,
+  testimonials: onSaveTestimonials,
+  faq: onSaveFaqSection
+}
+
+function isSavableInlineSection(section: string): section is SavableInlineSection {
+  return section !== 'certifications' && isCoachPageInlineEditorSection(section)
+}
+
+function onSaveSection(section: string): void {
+  if (!isSavableInlineSection(section)) return
+  void SECTION_SAVE_HANDLERS[section]()
 }
 
 async function onSavePricingSectionTitles() {
@@ -2252,1072 +2291,698 @@ function externalSectionTo(section: string): string {
             @save-pricing-titles="onSavePricingSectionTitles"
           />
 
-          <section
+          <CoachPageSectionCard
             v-if="hasEditor(section)"
-            :id="section === 'pillars' ? 'section-pillars' : `section-${section}`"
-            class="mb-10 rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
+            :section="section"
+            :label="sectionLabel(section)"
+            :is-on="isSectionOn(section)"
+            :locked="isSectionLocked(section)"
+            :lock-reason="sectionLockReason(section)"
+            :body-open="isSectionBodyOpen(section)"
+            :saving="saving"
+            :show-footer="section !== 'certifications'"
+            @toggle="onToggleSection"
+            @save="onSaveSection(section)"
           >
-            <!-- ── HEADER (titre + switch labelisé) — commun à tous les éditeurs ──
-            border-b uniquement quand le contenu est visible (sinon trait orphelin sous une carte collapsée). -->
-            <div
-              class="flex items-center justify-between px-6 py-4"
-              :class="isSectionBodyOpen(section) ? 'border-b border-[color:var(--color-border-subtle)]' : ''"
-            >
-              <h2 class="text-lg font-semibold text-[color:var(--color-text-primary)]">
-                {{ sectionLabel(section) }}
-              </h2>
-              <label class="flex items-center gap-3">
-                <span class="text-sm text-[color:var(--color-brand-secondary)]">Visible sur ma page</span>
-                <USwitch
-                  :model-value="isSectionOn(section)"
-                  :disabled="isSectionLocked(section)"
-                  :aria-label="`${sectionLabel(section)} — visible sur ma page`"
-                  @update:model-value="(v: boolean) => onToggleSection(section, v)"
-                />
-              </label>
-            </div>
+            <!-- ── BIO (Qui suis-je) — inline editor (Story 0-26 AC-4) ── -->
+            <template v-if="section === 'bio'">
+              <div class="space-y-4 px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="bioEyebrow"
+                    label="Surtitre de la section"
+                    hint="Défaut : Qui suis-je"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.bioEyebrow"
+                        v-bind="inputAttrs"
+                        placeholder="Qui suis-je"
+                        :maxlength="100"
+                      />
+                    </template>
+                  </FormControl>
+                  <FormControl
+                    id="bioTitle"
+                    label="Titre principal de la section"
+                    hint="Défaut : Votre spécialiste ménopause — {Nom}"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.bioTitle"
+                        v-bind="inputAttrs"
+                        placeholder="Votre spécialiste ménopause — ..."
+                        :maxlength="200"
+                      />
+                    </template>
+                  </FormControl>
+                </div>
 
-            <!-- YB.1.1 — raison affichée d'un contrôle désactivé : `disabled`
-                 retire l'interrupteur de l'ordre de tabulation, la raison est
-                 donc lue par un lecteur d'écran (et visible sans souris). -->
-            <p
-              v-if="sectionLockReason(section)"
-              data-testid="free-text-lock-reason"
-              class="border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] px-6 py-3 text-sm text-[color:var(--color-brand-secondary)]"
-              role="note"
-            >
-              {{ sectionLockReason(section) }}
-            </p>
-
-            <!-- ── CONTENU (collapsed si off) + FOOTER (bouton Enregistrer) ── -->
-            <template v-if="isSectionBodyOpen(section)">
-              <!-- ── BIO (Qui suis-je) — inline editor (Story 0-26 AC-4) ── -->
-              <template v-if="section === 'bio'">
-                <div class="space-y-4 px-6 py-5">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <FormControl
-                      id="bioEyebrow"
-                      label="Surtitre de la section"
-                      hint="Défaut : Qui suis-je"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.bioEyebrow"
-                          v-bind="inputAttrs"
-                          placeholder="Qui suis-je"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-                    <FormControl
-                      id="bioTitle"
-                      label="Titre principal de la section"
-                      hint="Défaut : Votre spécialiste ménopause — {Nom}"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.bioTitle"
-                          v-bind="inputAttrs"
-                          placeholder="Votre spécialiste ménopause — ..."
-                          :maxlength="200"
-                        />
-                      </template>
-                    </FormControl>
-                  </div>
-
-                  <!-- Photo secondaire — rapatriée depuis Mon compte (round terrain 2026-05-01).
+                <!-- Photo secondaire — rapatriée depuis Mon compte (round terrain 2026-05-01).
                   Photo affichée à côté du texte dans la section "Qui suis-je" de la page publique. -->
-                  <div>
-                    <p class="mb-2 text-sm font-medium text-[color:var(--color-text-primary)]">
-                      Photo (affichée dans la section "Qui suis-je" de votre page publique)
-                    </p>
-                    <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
-                      JPEG, PNG ou WebP, max 2 Mo.
-                    </p>
-                    <div class="flex items-center gap-6">
-                      <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-                        <img
-                          v-if="secondaryPhotoPreview || account?.secondaryPhotoUrl"
-                          :src="(secondaryPhotoPreview || account?.secondaryPhotoUrl)!"
-                          alt="Photo Qui suis-je"
-                          class="h-full w-full object-cover"
-                        >
-                        <UIcon
-                          v-else
-                          name="i-lucide-image"
-                          class="h-10 w-10 text-[color:var(--color-brand-muted)]"
-                        />
-                      </div>
-                      <div class="flex flex-col items-start gap-2">
+                <div>
+                  <p class="mb-2 text-sm font-medium text-[color:var(--color-text-primary)]">
+                    Photo (affichée dans la section "Qui suis-je" de votre page publique)
+                  </p>
+                  <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
+                    JPEG, PNG ou WebP, max 2 Mo.
+                  </p>
+                  <div class="flex items-center gap-6">
+                    <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+                      <img
+                        v-if="secondaryPhotoPreview || account?.secondaryPhotoUrl"
+                        :src="(secondaryPhotoPreview || account?.secondaryPhotoUrl)!"
+                        alt="Photo Qui suis-je"
+                        class="h-full w-full object-cover"
+                      >
+                      <UIcon
+                        v-else
+                        name="i-lucide-image"
+                        class="h-10 w-10 text-[color:var(--color-brand-muted)]"
+                      />
+                    </div>
+                    <div class="flex flex-col items-start gap-2">
+                      <UButton
+                        variant="outline"
+                        icon="i-lucide-upload"
+                        label="Modifier la photo"
+                        size="sm"
+                        type="button"
+                        @click="triggerSecondaryFileInput"
+                      />
+                      <UButton
+                        v-if="secondaryPhotoFile"
+                        :loading="secondaryPhotoUploading"
+                        :disabled="secondaryPhotoUploading"
+                        label="Enregistrer la photo"
+                        size="sm"
+                        @click="handleSecondaryPhotoUpload"
+                      />
+                      <p
+                        v-if="secondaryPhotoError"
+                        class="text-sm text-[color:var(--color-error)]"
+                      >
+                        {{ secondaryPhotoError }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <FormControl
+                  id="longBio"
+                  label="Bio détaillée"
+                  hint="Présentez-vous en détail à vos clientes. Plusieurs paragraphes acceptés."
+                >
+                  <template #default="{ inputAttrs }">
+                    <UTextarea
+                      v-model="bioForm.longBio"
+                      v-bind="inputAttrs"
+                      class="w-full"
+                      placeholder="Mon parcours, mes méthodes, ma philosophie..."
+                      :maxlength="LONG_BIO_MAX_LENGTH"
+                      :rows="8"
+                      size="sm"
+                    />
+                  </template>
+                  <template #label-aside>
+                    <span
+                      class="text-xs"
+                      :class="bioCharCount > LONG_BIO_MAX_LENGTH - 200 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
+                    >
+                      {{ bioCharCount }}/{{ LONG_BIO_MAX_LENGTH }}
+                    </span>
+                  </template>
+                </FormControl>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="city"
+                    label="Ville"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="bioForm.city"
+                        v-bind="inputAttrs"
+                        class="w-full"
+                        placeholder="Paris"
+                        :maxlength="100"
+                      />
+                    </template>
+                  </FormControl>
+
+                  <FormControl
+                    id="region"
+                    label="Région"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="bioForm.region"
+                        v-bind="inputAttrs"
+                        class="w-full"
+                        placeholder="Île-de-France"
+                        :maxlength="100"
+                      />
+                    </template>
+                  </FormControl>
+                </div>
+              </div>
+            </template>
+
+            <!-- ── CREDENTIALS (Diplômes & certifications) — LAB.4 ── -->
+            <CoachPageCertificationsCard
+              v-if="section === 'certifications'"
+              :credentials="credentialsForm"
+              :saving="saving"
+              @update:credentials="credentialsForm = $event"
+              @save="onSaveCredentials"
+            />
+            <!-- ── PROBLEM STATEMENT ── -->
+            <template v-if="section === 'problemStatement'">
+              <div class="space-y-4 px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="problemStatementEyebrow"
+                    label="Surtitre de la section"
+                    hint="Défaut : Comprendre"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.problemStatementEyebrow"
+                        v-bind="inputAttrs"
+                        placeholder="Comprendre"
+                        :maxlength="100"
+                      />
+                    </template>
+                  </FormControl>
+                  <FormControl
+                    id="problemStatementTitle"
+                    label="Titre principal de la section"
+                    hint="Défaut : Ce que vous traversez n'est pas une fatalité"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.problemStatementTitle"
+                        v-bind="inputAttrs"
+                        placeholder="Ce que vous traversez n'est pas une fatalité"
+                        :maxlength="200"
+                      />
+                    </template>
+                  </FormControl>
+                </div>
+
+                <div class="space-y-3">
+                  <UTextarea
+                    :model-value="problemStatementForm?.blockquote ?? ''"
+                    class="w-full"
+                    placeholder="Citation principale (max 2000 caractères)"
+                    :maxlength="2000"
+                    :rows="4"
+                    size="sm"
+                    @update:model-value="setProblemStatementBlockquote"
+                  />
+                </div>
+
+                <h3 class="mb-3 mt-6 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                  Paragraphes explicatifs (optionnel)
+                </h3>
+                <div class="space-y-4">
+                  <div
+                    v-for="(_, idx) in (problemStatementForm?.paragraphs ?? [])"
+                    :key="idx"
+                    class="relative"
+                  >
+                    <button
+                      type="button"
+                      class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
+                      @click="removeProblemParagraph(idx)"
+                    >
+                      <UIcon
+                        name="i-lucide-x"
+                        class="size-4"
+                      />
+                    </button>
+                    <UTextarea
+                      v-model="problemStatementForm!.paragraphs[idx]"
+                      class="w-full"
+                      :placeholder="`Paragraphe ${idx + 1} (max ${PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH} caractères)`"
+                      :maxlength="PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH"
+                      :rows="4"
+                      size="sm"
+                    />
+                  </div>
+                </div>
+                <UButton
+                  class="mt-4"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-plus"
+                  :disabled="(problemStatementForm?.paragraphs?.length ?? 0) >= 10"
+                  @click="addProblemParagraph"
+                >
+                  Ajouter un paragraphe
+                </UButton>
+
+                <!-- Photo de fond de la section (Option B) -->
+                <div class="mt-8 border-t border-[color:var(--color-border-subtle)] pt-6">
+                  <p class="mb-1 text-sm font-medium text-[color:var(--color-text-primary)]">
+                    Image d'arrière-plan de la section (template Visuel / Luna)
+                  </p>
+                  <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
+                    JPEG, PNG ou WebP, max 5 Mo. Recommandé : 1920×1080 (paysage ambiance sombre).
+                  </p>
+                  <div class="flex items-center gap-6">
+                    <div class="flex h-20 w-32 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
+                      <img
+                        v-if="problemStatementPhotoPreview || account?.problemStatementPhotoUrl"
+                        :src="(problemStatementPhotoPreview || account?.problemStatementPhotoUrl)!"
+                        alt="Image d'arrière-plan du problème"
+                        class="h-full w-full object-cover"
+                      >
+                      <UIcon
+                        v-else
+                        name="i-lucide-image"
+                        class="h-8 w-8 text-[color:var(--color-brand-muted)]"
+                      />
+                    </div>
+                    <div class="flex flex-col items-start gap-2">
+                      <div class="flex flex-wrap gap-2">
                         <UButton
                           variant="outline"
                           icon="i-lucide-upload"
-                          label="Modifier la photo"
+                          :label="problemStatementPhotoPreview || account?.problemStatementPhotoUrl ? 'Modifier l\'image' : 'Ajouter une image'"
                           size="sm"
                           type="button"
-                          @click="triggerSecondaryFileInput"
+                          @click="triggerProblemStatementFileInput"
                         />
                         <UButton
-                          v-if="secondaryPhotoFile"
-                          :loading="secondaryPhotoUploading"
-                          :disabled="secondaryPhotoUploading"
-                          label="Enregistrer la photo"
-                          size="sm"
-                          @click="handleSecondaryPhotoUpload"
-                        />
-                        <p
-                          v-if="secondaryPhotoError"
-                          class="text-sm text-[color:var(--color-error)]"
-                        >
-                          {{ secondaryPhotoError }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <FormControl
-                    id="longBio"
-                    label="Bio détaillée"
-                    hint="Présentez-vous en détail à vos clientes. Plusieurs paragraphes acceptés."
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UTextarea
-                        v-model="bioForm.longBio"
-                        v-bind="inputAttrs"
-                        class="w-full"
-                        placeholder="Mon parcours, mes méthodes, ma philosophie..."
-                        :maxlength="LONG_BIO_MAX_LENGTH"
-                        :rows="8"
-                        size="sm"
-                      />
-                    </template>
-                    <template #label-aside>
-                      <span
-                        class="text-xs"
-                        :class="bioCharCount > LONG_BIO_MAX_LENGTH - 200 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-                      >
-                        {{ bioCharCount }}/{{ LONG_BIO_MAX_LENGTH }}
-                      </span>
-                    </template>
-                  </FormControl>
-
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <FormControl
-                      id="city"
-                      label="Ville"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="bioForm.city"
-                          v-bind="inputAttrs"
-                          class="w-full"
-                          placeholder="Paris"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-
-                    <FormControl
-                      id="region"
-                      label="Région"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="bioForm.region"
-                          v-bind="inputAttrs"
-                          class="w-full"
-                          placeholder="Île-de-France"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-                  </div>
-                </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveBio"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
-
-              <!-- ── CREDENTIALS (Diplômes & certifications) — LAB.4 ── -->
-              <CoachPageCertificationsCard
-                v-if="section === 'certifications'"
-                :credentials="credentialsForm"
-                :saving="saving"
-                @update:credentials="credentialsForm = $event"
-                @save="onSaveCredentials"
-              />
-              <!-- ── PROBLEM STATEMENT ── -->
-              <template v-if="section === 'problemStatement'">
-                <div class="space-y-4 px-6 py-5">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <FormControl
-                      id="problemStatementEyebrow"
-                      label="Surtitre de la section"
-                      hint="Défaut : Comprendre"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.problemStatementEyebrow"
-                          v-bind="inputAttrs"
-                          placeholder="Comprendre"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-                    <FormControl
-                      id="problemStatementTitle"
-                      label="Titre principal de la section"
-                      hint="Défaut : Ce que vous traversez n'est pas une fatalité"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.problemStatementTitle"
-                          v-bind="inputAttrs"
-                          placeholder="Ce que vous traversez n'est pas une fatalité"
-                          :maxlength="200"
-                        />
-                      </template>
-                    </FormControl>
-                  </div>
-
-                  <div class="space-y-3">
-                    <UTextarea
-                      :model-value="problemStatementForm?.blockquote ?? ''"
-                      class="w-full"
-                      placeholder="Citation principale (max 2000 caractères)"
-                      :maxlength="2000"
-                      :rows="4"
-                      size="sm"
-                      @update:model-value="setProblemStatementBlockquote"
-                    />
-                  </div>
-
-                  <h3 class="mb-3 mt-6 text-sm font-semibold text-[color:var(--color-text-primary)]">
-                    Paragraphes explicatifs (optionnel)
-                  </h3>
-                  <div class="space-y-4">
-                    <div
-                      v-for="(_, idx) in (problemStatementForm?.paragraphs ?? [])"
-                      :key="idx"
-                      class="relative"
-                    >
-                      <button
-                        type="button"
-                        class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                        @click="removeProblemParagraph(idx)"
-                      >
-                        <UIcon
-                          name="i-lucide-x"
-                          class="size-4"
-                        />
-                      </button>
-                      <UTextarea
-                        v-model="problemStatementForm!.paragraphs[idx]"
-                        class="w-full"
-                        :placeholder="`Paragraphe ${idx + 1} (max ${PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH} caractères)`"
-                        :maxlength="PROBLEM_STATEMENT_PARAGRAPH_MAX_LENGTH"
-                        :rows="4"
-                        size="sm"
-                      />
-                    </div>
-                  </div>
-                  <UButton
-                    class="mt-4"
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-plus"
-                    :disabled="(problemStatementForm?.paragraphs?.length ?? 0) >= 10"
-                    @click="addProblemParagraph"
-                  >
-                    Ajouter un paragraphe
-                  </UButton>
-
-                  <!-- Photo de fond de la section (Option B) -->
-                  <div class="mt-8 border-t border-[color:var(--color-border-subtle)] pt-6">
-                    <p class="mb-1 text-sm font-medium text-[color:var(--color-text-primary)]">
-                      Image d'arrière-plan de la section (template Visuel / Luna)
-                    </p>
-                    <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
-                      JPEG, PNG ou WebP, max 5 Mo. Recommandé : 1920×1080 (paysage ambiance sombre).
-                    </p>
-                    <div class="flex items-center gap-6">
-                      <div class="flex h-20 w-32 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-                        <img
                           v-if="problemStatementPhotoPreview || account?.problemStatementPhotoUrl"
-                          :src="(problemStatementPhotoPreview || account?.problemStatementPhotoUrl)!"
-                          alt="Image d'arrière-plan du problème"
-                          class="h-full w-full object-cover"
-                        >
-                        <UIcon
-                          v-else
-                          name="i-lucide-image"
-                          class="h-8 w-8 text-[color:var(--color-brand-muted)]"
-                        />
-                      </div>
-                      <div class="flex flex-col items-start gap-2">
-                        <div class="flex flex-wrap gap-2">
-                          <UButton
-                            variant="outline"
-                            icon="i-lucide-upload"
-                            :label="problemStatementPhotoPreview || account?.problemStatementPhotoUrl ? 'Modifier l\'image' : 'Ajouter une image'"
-                            size="sm"
-                            type="button"
-                            @click="triggerProblemStatementFileInput"
-                          />
-                          <UButton
-                            v-if="problemStatementPhotoPreview || account?.problemStatementPhotoUrl"
-                            variant="ghost"
-                            color="error"
-                            icon="i-lucide-trash-2"
-                            label="Supprimer l'image"
-                            size="sm"
-                            type="button"
-                            :loading="problemStatementPhotoUploading"
-                            :disabled="problemStatementPhotoUploading"
-                            @click="handleProblemStatementPhotoDelete"
-                          />
-                        </div>
-                        <UButton
-                          v-if="problemStatementPhotoFile"
+                          variant="ghost"
+                          color="error"
+                          icon="i-lucide-trash-2"
+                          label="Supprimer l'image"
+                          size="sm"
+                          type="button"
                           :loading="problemStatementPhotoUploading"
                           :disabled="problemStatementPhotoUploading"
-                          label="Enregistrer l'image"
-                          size="sm"
-                          @click="handleProblemStatementPhotoUpload"
+                          @click="handleProblemStatementPhotoDelete"
                         />
-                        <p
-                          v-if="problemStatementPhotoError"
-                          class="text-sm text-[color:var(--color-error)]"
-                        >
-                          {{ problemStatementPhotoError }}
-                        </p>
                       </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveProblemStatementSection"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
-
-              <!-- ── BENEFITS ── -->
-              <template v-if="section === 'benefits'">
-                <div class="space-y-4 px-6 py-5">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <FormControl
-                      id="benefitsEyebrow"
-                      label="Surtitre de la section"
-                      hint="Défaut : Ce que l'accompagnement apporte"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.benefitsEyebrow"
-                          v-bind="inputAttrs"
-                          placeholder="Ce que l'accompagnement apporte"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-                    <FormControl
-                      id="benefitsTitle"
-                      label="Titre principal de la section"
-                      hint="Défaut : Un parcours adapté"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.benefitsTitle"
-                          v-bind="inputAttrs"
-                          placeholder="Un parcours adapté"
-                          :maxlength="200"
-                        />
-                      </template>
-                    </FormControl>
-                  </div>
-
-                  <div class="mb-4 space-y-3">
-                    <UInput
-                      :model-value="benefitsForm?.visionIntro ?? ''"
-                      placeholder="Introduction vision (optionnel)"
-                      size="sm"
-                      @update:model-value="setBenefitsVisionIntro"
-                    />
-                    <UTextarea
-                      :model-value="benefitsForm?.visionText ?? ''"
-                      class="w-full"
-                      placeholder="Texte vision (optionnel)"
-                      :rows="3"
-                      size="sm"
-                      @update:model-value="setBenefitsVisionText"
-                    />
-                  </div>
-                  <div class="space-y-4">
-                    <div
-                      v-for="(item, idx) in (benefitsForm?.items ?? [])"
-                      :key="idx"
-                      class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                    >
-                      <button
-                        type="button"
-                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                        @click="removeBenefit(idx)"
+                      <UButton
+                        v-if="problemStatementPhotoFile"
+                        :loading="problemStatementPhotoUploading"
+                        :disabled="problemStatementPhotoUploading"
+                        label="Enregistrer l'image"
+                        size="sm"
+                        @click="handleProblemStatementPhotoUpload"
+                      />
+                      <p
+                        v-if="problemStatementPhotoError"
+                        class="text-sm text-[color:var(--color-error)]"
                       >
-                        <UIcon
-                          name="i-lucide-x"
-                          class="size-4"
-                        />
-                      </button>
-                      <div class="space-y-3">
-                        <UInput
-                          v-model="item.title"
-                          placeholder="Titre du bénéfice"
-                          size="sm"
-                        />
-                        <UTextarea
-                          v-model="item.description"
-                          class="w-full"
-                          placeholder="Description (max 300 caractères)"
-                          :maxlength="300"
-                          :rows="3"
-                          size="sm"
-                        />
-                        <div>
-                          <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
-                            Icône (par défaut : Éclat)
-                          </label>
-                          <IconPicker
-                            :model-value="item.icon"
-                            label="Icône du bénéfice"
-                            @update:model-value="(v: string) => { item.icon = v || undefined }"
-                          />
-                        </div>
-                      </div>
+                        {{ problemStatementPhotoError }}
+                      </p>
                     </div>
                   </div>
-                  <UButton
-                    class="mt-4"
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-plus"
-                    :disabled="(benefitsForm?.items?.length ?? 0) >= 10"
-                    @click="addBenefit"
-                  >
-                    Ajouter un bénéfice
-                  </UButton>
                 </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveBenefitsSection"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
+              </div>
+            </template>
 
-              <!-- ── FREE TEXT (Bloc de texte libre) — YB.1.1 ── -->
-              <template v-if="section === 'freeText'">
-                <div class="space-y-4 px-6 py-5">
-                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                    Un texte libre qui s'affiche entre vos bénéfices et la section
-                    « Qui suis-je ». Le titre est facultatif ; les paragraphes
-                    s'affichent tels que vous les saisissez.
-                  </p>
-
+            <!-- ── BENEFITS ── -->
+            <template v-if="section === 'benefits'">
+              <div class="space-y-4 px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
                   <FormControl
-                    id="freeTextTitle"
-                    label="Titre du bloc (facultatif)"
-                    :hint="`Facultatif — ${FREE_TEXT_TITLE_MAX_LENGTH} caractères maximum`"
+                    id="benefitsEyebrow"
+                    label="Surtitre de la section"
+                    hint="Défaut : Ce que l'accompagnement apporte"
                   >
                     <template #default="{ inputAttrs }">
                       <UInput
-                        :model-value="freeTextForm?.title ?? ''"
+                        v-model="sectionTitlesForm.benefitsEyebrow"
                         v-bind="inputAttrs"
-                        placeholder="Comment je travaille avec vous"
-                        :maxlength="FREE_TEXT_TITLE_MAX_LENGTH"
-                        @update:model-value="(val: string) => setFreeTextTitle(val)"
+                        placeholder="Ce que l'accompagnement apporte"
+                        :maxlength="100"
                       />
                     </template>
                   </FormControl>
-
                   <FormControl
-                    id="freeTextParagraph"
-                    label="Paragraphes"
-                    :hint="`Jusqu'à ${FREE_TEXT_PARAGRAPH_MAX} paragraphes de ${FREE_TEXT_PARAGRAPH_MAX_LENGTH} caractères`"
+                    id="benefitsTitle"
+                    label="Titre principal de la section"
+                    hint="Défaut : Un parcours adapté"
                   >
                     <template #default="{ inputAttrs }">
-                      <div class="space-y-3">
-                        <div
-                          v-for="(_, idx) in (freeTextForm?.paragraphs ?? [])"
-                          :key="idx"
-                          class="relative"
-                        >
-                          <button
-                            type="button"
-                            class="absolute -right-1 -top-1 z-10 text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-error)]"
-                            :aria-label="`Supprimer le paragraphe ${idx + 1}`"
-                            @click="removeFreeTextParagraph(idx)"
-                          >
-                            <UIcon
-                              name="i-lucide-x"
-                              class="size-4"
-                            />
-                          </button>
-                          <!-- YB.1.1 — CR round 2 : le premier textarea porte l'id
-                               et l'aria-describedby du FormControl ; sans cela le
-                               label « Paragraphes » et le hint pointaient dans le vide. -->
-                          <UTextarea
-                            :model-value="freeTextForm!.paragraphs[idx]"
-                            v-bind="idx === 0 ? inputAttrs : {}"
-                            class="w-full"
-                            :placeholder="`Paragraphe ${idx + 1} (max ${FREE_TEXT_PARAGRAPH_MAX_LENGTH} caractères)`"
-                            :maxlength="FREE_TEXT_PARAGRAPH_MAX_LENGTH"
-                            :rows="4"
-                            size="sm"
-                            @update:model-value="(val: string) => { if (freeTextForm) freeTextForm.paragraphs[idx] = val }"
-                          />
-                        </div>
-                      </div>
+                      <UInput
+                        v-model="sectionTitlesForm.benefitsTitle"
+                        v-bind="inputAttrs"
+                        placeholder="Un parcours adapté"
+                        :maxlength="200"
+                      />
                     </template>
                   </FormControl>
-
-                  <UButton
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-plus"
-                    :disabled="(freeTextForm?.paragraphs?.length ?? 0) >= FREE_TEXT_PARAGRAPH_MAX"
-                    @click="addFreeTextParagraph"
-                  >
-                    Ajouter un paragraphe
-                  </UButton>
-
-                  <!-- Raison affichée d'un contrôle borné — `disabled` retire le
-                       bouton de l'ordre de tabulation, la raison reste lue. -->
-                  <p
-                    v-if="(freeTextForm?.paragraphs?.length ?? 0) >= FREE_TEXT_PARAGRAPH_MAX"
-                    data-testid="free-text-paragraph-limit-reason"
-                    class="text-sm text-[color:var(--color-brand-secondary)]"
-                    role="note"
-                  >
-                    Vous avez atteint le maximum de {{ FREE_TEXT_PARAGRAPH_MAX }} paragraphes.
-                  </p>
                 </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
+
+                <div class="mb-4 space-y-3">
+                  <UInput
+                    :model-value="benefitsForm?.visionIntro ?? ''"
+                    placeholder="Introduction vision (optionnel)"
                     size="sm"
-                    :loading="saving"
-                    @click="onSaveFreeTextSection"
-                  >
-                    Enregistrer
-                  </UButton>
+                    @update:model-value="setBenefitsVisionIntro"
+                  />
+                  <UTextarea
+                    :model-value="benefitsForm?.visionText ?? ''"
+                    class="w-full"
+                    placeholder="Texte vision (optionnel)"
+                    :rows="3"
+                    size="sm"
+                    @update:model-value="setBenefitsVisionText"
+                  />
                 </div>
-              </template>
-
-              <!-- ── PILLARS ── -->
-              <template v-if="section === 'pillars'">
-                <div class="space-y-4 px-6 py-5">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <FormControl
-                      id="pillarsEyebrow"
-                      label="Surtitre de la section"
-                      hint="Défaut : L'approche"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.pillarsEyebrow"
-                          v-bind="inputAttrs"
-                          placeholder="L'approche"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-                    <FormControl
-                      id="pillarsTitle"
-                      label="Titre principal de la section"
-                      hint="Défaut : Les piliers de l'accompagnement"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.pillarsTitle"
-                          v-bind="inputAttrs"
-                          placeholder="Les piliers de l'accompagnement"
-                          :maxlength="200"
-                        />
-                      </template>
-                    </FormControl>
-                  </div>
-
-                  <div class="space-y-4">
-                    <div
-                      v-for="(pillar, idx) in (pillarsForm?.items ?? [])"
-                      :key="idx"
-                      class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                    >
-                      <button
-                        type="button"
-                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                        @click="removePillar(idx)"
-                      >
-                        <UIcon
-                          name="i-lucide-x"
-                          class="size-4"
-                        />
-                      </button>
-                      <div class="space-y-3">
-                        <UInput
-                          v-model="pillar.title"
-                          placeholder="Titre du pilier"
-                          size="sm"
-                        />
-                        <UTextarea
-                          v-model="pillar.description"
-                          class="w-full"
-                          placeholder="Description (max 500 caractères)"
-                          :maxlength="500"
-                          :rows="3"
-                          size="sm"
-                        />
-                        <div>
-                          <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
-                            Icône (optionnel)
-                          </label>
-                          <IconPicker
-                            :model-value="pillar.icon"
-                            label="Icône du pilier"
-                            @update:model-value="(v: string) => { pillar.icon = v || undefined }"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <UButton
-                    class="mt-4"
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-plus"
-                    :disabled="(pillarsForm?.items?.length ?? 0) >= 10"
-                    @click="addPillar"
-                  >
-                    Ajouter un pilier
-                  </UButton>
-
-                  <!-- F1: Emotional Support sub-section (Signature template only) -->
+                <div class="space-y-4">
                   <div
-                    v-if="hasEmotionalSupportSection"
-                    class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                  >
-                    <h3 class="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
-                      Soutien émotionnel (optionnel)
-                    </h3>
-                    <div class="space-y-3">
-                      <UInput
-                        :model-value="pillarsForm?.emotionalSupport?.title ?? ''"
-                        placeholder="Titre (ex: Un espace d'écoute bienveillant)"
-                        size="sm"
-                        @update:model-value="(v: string) => {
-                          if (!pillarsForm) {
-                            pillarsForm = { items: [] }
-                          }
-                          if (!pillarsForm.emotionalSupport) {
-                            pillarsForm.emotionalSupport = { title: '', description: '' }
-                          }
-                          pillarsForm.emotionalSupport.title = v
-                        }"
-                      />
-                      <UTextarea
-                        :model-value="pillarsForm?.emotionalSupport?.description ?? ''"
-                        class="w-full"
-                        placeholder="Description (max 1000 caractères)"
-                        :maxlength="1000"
-                        :rows="3"
-                        size="sm"
-                        @update:model-value="(v: string) => {
-                          if (!pillarsForm) {
-                            pillarsForm = { items: [] }
-                          }
-                          if (!pillarsForm.emotionalSupport) {
-                            pillarsForm.emotionalSupport = { title: '', description: '' }
-                          }
-                          pillarsForm.emotionalSupport.description = v
-                        }"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSavePillarsSection"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
-
-              <!-- ── HOW IT WORKS ── -->
-              <template v-if="section === 'howItWorks'">
-                <div class="space-y-4 px-6 py-5">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <FormControl
-                      id="howItWorksEyebrow"
-                      label="Surtitre de la section"
-                      hint="Défaut : Le parcours"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.howItWorksEyebrow"
-                          v-bind="inputAttrs"
-                          placeholder="Le parcours"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-                    <FormControl
-                      id="howItWorksTitle"
-                      label="Titre principal de la section"
-                      hint="Défaut : Comment se déroule l'accompagnement"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.howItWorksTitle"
-                          v-bind="inputAttrs"
-                          placeholder="Comment se déroule l'accompagnement"
-                          :maxlength="200"
-                        />
-                      </template>
-                    </FormControl>
-                  </div>
-
-                  <div class="space-y-4">
-                    <div
-                      v-for="(step, idx) in howItWorksForm"
-                      :key="idx"
-                      class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                    >
-                      <button
-                        type="button"
-                        class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                        @click="removeStep(idx)"
-                      >
-                        <UIcon
-                          name="i-lucide-x"
-                          class="size-4"
-                        />
-                      </button>
-                      <div class="mb-2 text-xs font-bold text-[color:var(--color-brand-primary)]">
-                        Étape {{ step.number }}
-                      </div>
-                      <div class="space-y-3">
-                        <UInput
-                          v-model="step.title"
-                          placeholder="Titre de l'étape"
-                          size="sm"
-                        />
-                        <UTextarea
-                          v-model="step.description"
-                          class="w-full"
-                          placeholder="Description (max 500 caractères)"
-                          :maxlength="500"
-                          :rows="3"
-                          size="sm"
-                        />
-                        <div>
-                          <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
-                            Icône de l'étape
-                          </label>
-                          <IconPicker
-                            :model-value="step.icon"
-                            label="Icône de l'étape"
-                            @update:model-value="(v: string) => { step.icon = v || undefined }"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <UButton
-                    class="mt-4"
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-plus"
-                    :disabled="howItWorksForm.length >= 6"
-                    @click="addStep"
-                  >
-                    Ajouter une étape
-                  </UButton>
-                </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveHowItWorksSection"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
-
-              <!-- ── FIT / POUR QUI ── -->
-              <template v-if="section === 'fit'">
-                <div class="px-6 py-5">
-                  <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label
-                        for="fitEyebrow"
-                        class="mb-1 block text-xs font-medium text-[color:var(--color-text-muted)]"
-                      >Surtitre</label>
-                      <UInput
-                        id="fitEyebrow"
-                        :model-value="fitForm?.eyebrow ?? ''"
-                        placeholder="Adéquation"
-                        @update:model-value="(val: string) => { initFitFormIfNull(); fitForm!.eyebrow = val }"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        for="fitTitle"
-                        class="mb-1 block text-xs font-medium text-[color:var(--color-text-muted)]"
-                      >Titre de section</label>
-                      <UInput
-                        id="fitTitle"
-                        :model-value="fitForm?.title ?? ''"
-                        placeholder="Cet accompagnement est-il fait pour vous ?"
-                        @update:model-value="(val: string) => { initFitFormIfNull(); fitForm!.title = val }"
-                      />
-                    </div>
-                  </div>
-
-                  <p class="mb-3 text-xs text-[color:var(--color-text-muted)]">
-                    Définissez les critères d'adéquation pour vos clientes (pour qui c'est fait / pour qui ce n'est pas adapté).
-                  </p>
-
-                  <div class="space-y-3">
-                    <div
-                      v-for="(item, idx) in (fitForm?.items ?? [])"
-                      :key="idx"
-                      class="flex items-start gap-2 rounded-lg border border-[color:var(--color-border-subtle)] p-3"
-                    >
-                      <div class="w-40 shrink-0">
-                        <select
-                          v-model="item.type"
-                          class="w-full rounded border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] px-2 py-1 text-xs font-medium text-[color:var(--color-text-primary)]"
-                        >
-                          <option value="for">
-                            Pour vous si
-                          </option>
-                          <option value="not_for">
-                            Ce n'est pas adapté si
-                          </option>
-                        </select>
-                      </div>
-                      <div class="flex-1">
-                        <UInput
-                          v-model="item.text"
-                          placeholder="Décrivez un critère..."
-                          size="sm"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        class="mt-1 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                        title="Supprimer"
-                        @click="removeFitItem(idx)"
-                      >
-                        <UIcon
-                          name="i-lucide-trash-2"
-                          class="size-4"
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div class="mt-4 flex gap-2">
-                    <UButton
-                      size="xs"
-                      variant="soft"
-                      icon="i-lucide-check"
-                      color="primary"
-                      @click="addFitItem('for')"
-                    >
-                      Ajouter un critère « Pour vous »
-                    </UButton>
-                    <UButton
-                      size="xs"
-                      variant="soft"
-                      icon="i-lucide-x"
-                      color="neutral"
-                      @click="addFitItem('not_for')"
-                    >
-                      Ajouter un critère « Pas adapté »
-                    </UButton>
-                  </div>
-                </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveFitSection"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
-
-              <!-- ── EDUCATIONAL CONTENT ── -->
-              <template v-if="section === 'educationalContent'">
-                <div class="px-6 py-5">
-                  <div class="space-y-4">
-                    <div
-                      v-for="(_, idx) in (educationalContentForm?.paragraphs ?? [])"
-                      :key="idx"
-                      class="relative"
-                    >
-                      <button
-                        type="button"
-                        class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                        @click="removeEducationalParagraph(idx)"
-                      >
-                        <UIcon
-                          name="i-lucide-x"
-                          class="size-4"
-                        />
-                      </button>
-                      <UTextarea
-                        v-model="educationalContentForm!.paragraphs[idx]"
-                        class="w-full"
-                        :placeholder="`Paragraphe ${idx + 1} (max 2000 caractères)`"
-                        :maxlength="2000"
-                        :rows="4"
-                        size="sm"
-                      />
-                    </div>
-                  </div>
-                  <UButton
-                    class="mt-4"
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-plus"
-                    :disabled="(educationalContentForm?.paragraphs?.length ?? 0) >= 10"
-                    @click="addEducationalParagraph"
-                  >
-                    Ajouter un paragraphe
-                  </UButton>
-
-                  <!-- Insight box -->
-                  <div class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4">
-                    <h3 class="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
-                      Encadré insight (optionnel)
-                    </h3>
-                    <div class="space-y-3">
-                      <UInput
-                        :model-value="educationalContentForm?.insightBox?.title ?? ''"
-                        placeholder="Titre de l'encadré"
-                        size="sm"
-                        @update:model-value="setEducationalInsightTitle"
-                      />
-                      <UTextarea
-                        :model-value="educationalContentForm?.insightBox?.content ?? ''"
-                        class="w-full"
-                        placeholder="Contenu de l'encadré"
-                        :rows="3"
-                        size="sm"
-                        @update:model-value="setEducationalInsightContent"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveEducationalContentSection"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
-
-              <!-- ── TESTIMONIALS — inline editor (Story 0-26 AC-5) ── -->
-              <template v-if="section === 'testimonials'">
-                <div class="space-y-4 px-6 py-5">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <FormControl
-                      id="testimonialsEyebrow"
-                      label="Surtitre de la section"
-                      hint="Défaut : Témoignages"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.testimonialsEyebrow"
-                          v-bind="inputAttrs"
-                          placeholder="Témoignages"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-                    <FormControl
-                      id="testimonialsTitle"
-                      label="Titre principal de la section"
-                      hint="Défaut : Ce qu'elles en disent"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.testimonialsTitle"
-                          v-bind="inputAttrs"
-                          placeholder="Ce qu'elles en disent"
-                          :maxlength="200"
-                        />
-                      </template>
-                    </FormControl>
-                  </div>
-
-                  <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                    Les retours de vos clientes (max {{ TESTIMONIALS_MAX }}).
-                  </p>
-                  <div
-                    v-for="(t, idx) in testimonialsForm"
+                    v-for="(item, idx) in (benefitsForm?.items ?? [])"
                     :key="idx"
                     class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
                   >
                     <button
                       type="button"
                       class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                      aria-label="Supprimer ce témoignage"
-                      @click="removeTestimonial(idx)"
+                      @click="removeBenefit(idx)"
+                    >
+                      <UIcon
+                        name="i-lucide-x"
+                        class="size-4"
+                      />
+                    </button>
+                    <div class="space-y-3">
+                      <UInput
+                        v-model="item.title"
+                        placeholder="Titre du bénéfice"
+                        size="sm"
+                      />
+                      <UTextarea
+                        v-model="item.description"
+                        class="w-full"
+                        placeholder="Description (max 300 caractères)"
+                        :maxlength="300"
+                        :rows="3"
+                        size="sm"
+                      />
+                      <div>
+                        <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
+                          Icône (par défaut : Éclat)
+                        </label>
+                        <IconPicker
+                          :model-value="item.icon"
+                          label="Icône du bénéfice"
+                          @update:model-value="(v: string) => { item.icon = v || undefined }"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <UButton
+                  class="mt-4"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-plus"
+                  :disabled="(benefitsForm?.items?.length ?? 0) >= 10"
+                  @click="addBenefit"
+                >
+                  Ajouter un bénéfice
+                </UButton>
+              </div>
+            </template>
+
+            <!-- ── FREE TEXT (Bloc de texte libre) — YB.1.1 ── -->
+            <template v-if="section === 'freeText'">
+              <div class="space-y-4 px-6 py-5">
+                <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                  Un texte libre qui s'affiche entre vos bénéfices et la section
+                  « Qui suis-je ». Le titre est facultatif ; les paragraphes
+                  s'affichent tels que vous les saisissez.
+                </p>
+
+                <FormControl
+                  id="freeTextTitle"
+                  label="Titre du bloc (facultatif)"
+                  :hint="`Facultatif — ${FREE_TEXT_TITLE_MAX_LENGTH} caractères maximum`"
+                >
+                  <template #default="{ inputAttrs }">
+                    <UInput
+                      :model-value="freeTextForm?.title ?? ''"
+                      v-bind="inputAttrs"
+                      placeholder="Comment je travaille avec vous"
+                      :maxlength="FREE_TEXT_TITLE_MAX_LENGTH"
+                      @update:model-value="(val: string) => setFreeTextTitle(val)"
+                    />
+                  </template>
+                </FormControl>
+
+                <FormControl
+                  id="freeTextParagraph"
+                  label="Paragraphes"
+                  :hint="`Jusqu'à ${FREE_TEXT_PARAGRAPH_MAX} paragraphes de ${FREE_TEXT_PARAGRAPH_MAX_LENGTH} caractères`"
+                >
+                  <template #default="{ inputAttrs }">
+                    <div class="space-y-3">
+                      <div
+                        v-for="(_, idx) in (freeTextForm?.paragraphs ?? [])"
+                        :key="idx"
+                        class="relative"
+                      >
+                        <button
+                          type="button"
+                          class="absolute -right-1 -top-1 z-10 text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-error)]"
+                          :aria-label="`Supprimer le paragraphe ${idx + 1}`"
+                          @click="removeFreeTextParagraph(idx)"
+                        >
+                          <UIcon
+                            name="i-lucide-x"
+                            class="size-4"
+                          />
+                        </button>
+                        <!-- YB.1.1 — CR round 2 : le premier textarea porte l'id
+                               et l'aria-describedby du FormControl ; sans cela le
+                               label « Paragraphes » et le hint pointaient dans le vide. -->
+                        <UTextarea
+                          :model-value="freeTextForm!.paragraphs[idx]"
+                          v-bind="idx === 0 ? inputAttrs : {}"
+                          class="w-full"
+                          :placeholder="`Paragraphe ${idx + 1} (max ${FREE_TEXT_PARAGRAPH_MAX_LENGTH} caractères)`"
+                          :maxlength="FREE_TEXT_PARAGRAPH_MAX_LENGTH"
+                          :rows="4"
+                          size="sm"
+                          @update:model-value="(val: string) => { if (freeTextForm) freeTextForm.paragraphs[idx] = val }"
+                        />
+                      </div>
+                    </div>
+                  </template>
+                </FormControl>
+
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-plus"
+                  :disabled="(freeTextForm?.paragraphs?.length ?? 0) >= FREE_TEXT_PARAGRAPH_MAX"
+                  @click="addFreeTextParagraph"
+                >
+                  Ajouter un paragraphe
+                </UButton>
+
+                <!-- Raison affichée d'un contrôle borné — `disabled` retire le
+                       bouton de l'ordre de tabulation, la raison reste lue. -->
+                <p
+                  v-if="(freeTextForm?.paragraphs?.length ?? 0) >= FREE_TEXT_PARAGRAPH_MAX"
+                  data-testid="free-text-paragraph-limit-reason"
+                  class="text-sm text-[color:var(--color-brand-secondary)]"
+                  role="note"
+                >
+                  Vous avez atteint le maximum de {{ FREE_TEXT_PARAGRAPH_MAX }} paragraphes.
+                </p>
+              </div>
+            </template>
+
+            <!-- ── PILLARS ── -->
+            <template v-if="section === 'pillars'">
+              <div class="space-y-4 px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="pillarsEyebrow"
+                    label="Surtitre de la section"
+                    hint="Défaut : L'approche"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.pillarsEyebrow"
+                        v-bind="inputAttrs"
+                        placeholder="L'approche"
+                        :maxlength="100"
+                      />
+                    </template>
+                  </FormControl>
+                  <FormControl
+                    id="pillarsTitle"
+                    label="Titre principal de la section"
+                    hint="Défaut : Les piliers de l'accompagnement"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.pillarsTitle"
+                        v-bind="inputAttrs"
+                        placeholder="Les piliers de l'accompagnement"
+                        :maxlength="200"
+                      />
+                    </template>
+                  </FormControl>
+                </div>
+
+                <div class="space-y-4">
+                  <div
+                    v-for="(pillar, idx) in (pillarsForm?.items ?? [])"
+                    :key="idx"
+                    class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
+                  >
+                    <button
+                      type="button"
+                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
+                      @click="removePillar(idx)"
+                    >
+                      <UIcon
+                        name="i-lucide-x"
+                        class="size-4"
+                      />
+                    </button>
+                    <div class="space-y-3">
+                      <UInput
+                        v-model="pillar.title"
+                        placeholder="Titre du pilier"
+                        size="sm"
+                      />
+                      <UTextarea
+                        v-model="pillar.description"
+                        class="w-full"
+                        placeholder="Description (max 500 caractères)"
+                        :maxlength="500"
+                        :rows="3"
+                        size="sm"
+                      />
+                      <div>
+                        <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
+                          Icône (optionnel)
+                        </label>
+                        <IconPicker
+                          :model-value="pillar.icon"
+                          label="Icône du pilier"
+                          @update:model-value="(v: string) => { pillar.icon = v || undefined }"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <UButton
+                  class="mt-4"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-plus"
+                  :disabled="(pillarsForm?.items?.length ?? 0) >= 10"
+                  @click="addPillar"
+                >
+                  Ajouter un pilier
+                </UButton>
+
+                <!-- F1: Emotional Support sub-section (Signature template only) -->
+                <div
+                  v-if="hasEmotionalSupportSection"
+                  class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
+                >
+                  <h3 class="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                    Soutien émotionnel (optionnel)
+                  </h3>
+                  <div class="space-y-3">
+                    <UInput
+                      :model-value="pillarsForm?.emotionalSupport?.title ?? ''"
+                      placeholder="Titre (ex: Un espace d'écoute bienveillant)"
+                      size="sm"
+                      @update:model-value="(v: string) => {
+                        if (!pillarsForm) {
+                          pillarsForm = { items: [] }
+                        }
+                        if (!pillarsForm.emotionalSupport) {
+                          pillarsForm.emotionalSupport = { title: '', description: '' }
+                        }
+                        pillarsForm.emotionalSupport.title = v
+                      }"
+                    />
+                    <UTextarea
+                      :model-value="pillarsForm?.emotionalSupport?.description ?? ''"
+                      class="w-full"
+                      placeholder="Description (max 1000 caractères)"
+                      :maxlength="1000"
+                      :rows="3"
+                      size="sm"
+                      @update:model-value="(v: string) => {
+                        if (!pillarsForm) {
+                          pillarsForm = { items: [] }
+                        }
+                        if (!pillarsForm.emotionalSupport) {
+                          pillarsForm.emotionalSupport = { title: '', description: '' }
+                        }
+                        pillarsForm.emotionalSupport.description = v
+                      }"
+                    />
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- ── HOW IT WORKS ── -->
+            <template v-if="section === 'howItWorks'">
+              <div class="space-y-4 px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="howItWorksEyebrow"
+                    label="Surtitre de la section"
+                    hint="Défaut : Le parcours"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.howItWorksEyebrow"
+                        v-bind="inputAttrs"
+                        placeholder="Le parcours"
+                        :maxlength="100"
+                      />
+                    </template>
+                  </FormControl>
+                  <FormControl
+                    id="howItWorksTitle"
+                    label="Titre principal de la section"
+                    hint="Défaut : Comment se déroule l'accompagnement"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.howItWorksTitle"
+                        v-bind="inputAttrs"
+                        placeholder="Comment se déroule l'accompagnement"
+                        :maxlength="200"
+                      />
+                    </template>
+                  </FormControl>
+                </div>
+
+                <div class="space-y-4">
+                  <div
+                    v-for="(step, idx) in howItWorksForm"
+                    :key="idx"
+                    class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
+                  >
+                    <button
+                      type="button"
+                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
+                      @click="removeStep(idx)"
                     >
                       <UIcon
                         name="i-lucide-x"
@@ -3325,176 +2990,413 @@ function externalSectionTo(section: string): string {
                       />
                     </button>
                     <div class="mb-2 text-xs font-bold text-[color:var(--color-brand-primary)]">
-                      Témoignage {{ idx + 1 }}
+                      Étape {{ step.number }}
                     </div>
-                    <div class="grid gap-3 sm:grid-cols-2">
-                      <div class="sm:col-span-2">
-                        <UTextarea
-                          v-model="t.quote"
-                          class="w-full"
-                          placeholder="Citation du témoignage *"
-                          :minlength="10"
-                          :maxlength="500"
-                          :rows="3"
-                          size="sm"
+                    <div class="space-y-3">
+                      <UInput
+                        v-model="step.title"
+                        placeholder="Titre de l'étape"
+                        size="sm"
+                      />
+                      <UTextarea
+                        v-model="step.description"
+                        class="w-full"
+                        placeholder="Description (max 500 caractères)"
+                        :maxlength="500"
+                        :rows="3"
+                        size="sm"
+                      />
+                      <div>
+                        <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
+                          Icône de l'étape
+                        </label>
+                        <IconPicker
+                          :model-value="step.icon"
+                          label="Icône de l'étape"
+                          @update:model-value="(v: string) => { step.icon = v || undefined }"
                         />
                       </div>
-                      <UInput
-                        v-model="t.firstName"
-                        placeholder="Prénom *"
-                        :minlength="2"
-                        :maxlength="50"
-                        size="sm"
-                      />
-                      <UInput
-                        v-model.number="t.age"
-                        type="number"
-                        placeholder="Âge"
-                        :min="18"
-                        :max="120"
-                        size="sm"
-                      />
-                      <UInput
-                        v-model="t.location"
-                        placeholder="Localisation"
-                        :maxlength="100"
-                        size="sm"
-                      />
-                      <USelectMenu
-                        v-model="t.rating"
-                        :items="[1, 2, 3, 4, 5]"
-                        placeholder="Note (1-5)"
-                        size="sm"
-                      />
-                      <UInput
-                        v-model="t.result"
-                        placeholder="Résultat après X mois..."
-                        :maxlength="200"
-                        size="sm"
-                        class="sm:col-span-2"
-                      />
                     </div>
                   </div>
-                  <div
-                    v-if="testimonialsForm.length === 0"
-                    class="py-4 text-center text-sm text-[color:var(--color-brand-muted)]"
-                  >
-                    Aucun témoignage ajouté.
-                  </div>
-                  <UButton
-                    v-if="testimonialsForm.length < TESTIMONIALS_MAX"
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-plus"
-                    @click="addTestimonial"
-                  >
-                    Ajouter un témoignage
-                  </UButton>
                 </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveTestimonials"
-                  >
-                    Enregistrer
-                  </UButton>
-                </div>
-              </template>
+                <UButton
+                  class="mt-4"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-plus"
+                  :disabled="howItWorksForm.length >= 6"
+                  @click="addStep"
+                >
+                  Ajouter une étape
+                </UButton>
+              </div>
+            </template>
 
-              <!-- ── FAQ ── -->
-              <template v-if="section === 'faq'">
-                <div class="space-y-4 px-6 py-5">
-                  <div class="grid gap-4 sm:grid-cols-2">
-                    <FormControl
-                      id="faqEyebrow"
-                      label="Surtitre de la section"
-                      hint="Défaut : Questions fréquentes"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.faqEyebrow"
-                          v-bind="inputAttrs"
-                          placeholder="Questions fréquentes"
-                          :maxlength="100"
-                        />
-                      </template>
-                    </FormControl>
-                    <FormControl
-                      id="faqTitle"
-                      label="Titre principal de la section"
-                      hint="Défaut : Questions fréquentes sur l'accompagnement"
-                    >
-                      <template #default="{ inputAttrs }">
-                        <UInput
-                          v-model="sectionTitlesForm.faqTitle"
-                          v-bind="inputAttrs"
-                          placeholder="Questions fréquentes sur l'accompagnement"
-                          :maxlength="200"
-                        />
-                      </template>
-                    </FormControl>
+            <!-- ── FIT / POUR QUI ── -->
+            <template v-if="section === 'fit'">
+              <div class="px-6 py-5">
+                <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label
+                      for="fitEyebrow"
+                      class="mb-1 block text-xs font-medium text-[color:var(--color-text-muted)]"
+                    >Surtitre</label>
+                    <UInput
+                      id="fitEyebrow"
+                      :model-value="fitForm?.eyebrow ?? ''"
+                      placeholder="Adéquation"
+                      @update:model-value="(val: string) => { initFitFormIfNull(); fitForm!.eyebrow = val }"
+                    />
                   </div>
+                  <div>
+                    <label
+                      for="fitTitle"
+                      class="mb-1 block text-xs font-medium text-[color:var(--color-text-muted)]"
+                    >Titre de section</label>
+                    <UInput
+                      id="fitTitle"
+                      :model-value="fitForm?.title ?? ''"
+                      placeholder="Cet accompagnement est-il fait pour vous ?"
+                      @update:model-value="(val: string) => { initFitFormIfNull(); fitForm!.title = val }"
+                    />
+                  </div>
+                </div>
 
+                <p class="mb-3 text-xs text-[color:var(--color-text-muted)]">
+                  Définissez les critères d'adéquation pour vos clientes (pour qui c'est fait / pour qui ce n'est pas adapté).
+                </p>
+
+                <div class="space-y-3">
                   <div
-                    v-for="(item, idx) in faqForm"
+                    v-for="(item, idx) in (fitForm?.items ?? [])"
                     :key="idx"
-                    class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
+                    class="flex items-start gap-2 rounded-lg border border-[color:var(--color-border-subtle)] p-3"
+                  >
+                    <div class="w-40 shrink-0">
+                      <select
+                        v-model="item.type"
+                        class="w-full rounded border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] px-2 py-1 text-xs font-medium text-[color:var(--color-text-primary)]"
+                      >
+                        <option value="for">
+                          Pour vous si
+                        </option>
+                        <option value="not_for">
+                          Ce n'est pas adapté si
+                        </option>
+                      </select>
+                    </div>
+                    <div class="flex-1">
+                      <UInput
+                        v-model="item.text"
+                        placeholder="Décrivez un critère..."
+                        size="sm"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      class="mt-1 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
+                      title="Supprimer"
+                      @click="removeFitItem(idx)"
+                    >
+                      <UIcon
+                        name="i-lucide-trash-2"
+                        class="size-4"
+                      />
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mt-4 flex gap-2">
+                  <UButton
+                    size="xs"
+                    variant="soft"
+                    icon="i-lucide-check"
+                    color="primary"
+                    @click="addFitItem('for')"
+                  >
+                    Ajouter un critère « Pour vous »
+                  </UButton>
+                  <UButton
+                    size="xs"
+                    variant="soft"
+                    icon="i-lucide-x"
+                    color="neutral"
+                    @click="addFitItem('not_for')"
+                  >
+                    Ajouter un critère « Pas adapté »
+                  </UButton>
+                </div>
+              </div>
+            </template>
+
+            <!-- ── EDUCATIONAL CONTENT ── -->
+            <template v-if="section === 'educationalContent'">
+              <div class="px-6 py-5">
+                <div class="space-y-4">
+                  <div
+                    v-for="(_, idx) in (educationalContentForm?.paragraphs ?? [])"
+                    :key="idx"
+                    class="relative"
                   >
                     <button
                       type="button"
-                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                      @click="removeFaq(idx)"
+                      class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
+                      @click="removeEducationalParagraph(idx)"
                     >
                       <UIcon
                         name="i-lucide-x"
                         class="size-4"
                       />
                     </button>
-                    <div class="space-y-3">
+                    <UTextarea
+                      v-model="educationalContentForm!.paragraphs[idx]"
+                      class="w-full"
+                      :placeholder="`Paragraphe ${idx + 1} (max 2000 caractères)`"
+                      :maxlength="2000"
+                      :rows="4"
+                      size="sm"
+                    />
+                  </div>
+                </div>
+                <UButton
+                  class="mt-4"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-plus"
+                  :disabled="(educationalContentForm?.paragraphs?.length ?? 0) >= 10"
+                  @click="addEducationalParagraph"
+                >
+                  Ajouter un paragraphe
+                </UButton>
+
+                <!-- Insight box -->
+                <div class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4">
+                  <h3 class="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
+                    Encadré insight (optionnel)
+                  </h3>
+                  <div class="space-y-3">
+                    <UInput
+                      :model-value="educationalContentForm?.insightBox?.title ?? ''"
+                      placeholder="Titre de l'encadré"
+                      size="sm"
+                      @update:model-value="setEducationalInsightTitle"
+                    />
+                    <UTextarea
+                      :model-value="educationalContentForm?.insightBox?.content ?? ''"
+                      class="w-full"
+                      placeholder="Contenu de l'encadré"
+                      :rows="3"
+                      size="sm"
+                      @update:model-value="setEducationalInsightContent"
+                    />
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- ── TESTIMONIALS — inline editor (Story 0-26 AC-5) ── -->
+            <template v-if="section === 'testimonials'">
+              <div class="space-y-4 px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="testimonialsEyebrow"
+                    label="Surtitre de la section"
+                    hint="Défaut : Témoignages"
+                  >
+                    <template #default="{ inputAttrs }">
                       <UInput
-                        v-model="item.label"
-                        placeholder="Question"
-                        size="sm"
+                        v-model="sectionTitlesForm.testimonialsEyebrow"
+                        v-bind="inputAttrs"
+                        placeholder="Témoignages"
+                        :maxlength="100"
                       />
+                    </template>
+                  </FormControl>
+                  <FormControl
+                    id="testimonialsTitle"
+                    label="Titre principal de la section"
+                    hint="Défaut : Ce qu'elles en disent"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.testimonialsTitle"
+                        v-bind="inputAttrs"
+                        placeholder="Ce qu'elles en disent"
+                        :maxlength="200"
+                      />
+                    </template>
+                  </FormControl>
+                </div>
+
+                <p class="text-sm text-[color:var(--color-brand-secondary)]">
+                  Les retours de vos clientes (max {{ TESTIMONIALS_MAX }}).
+                </p>
+                <div
+                  v-for="(t, idx) in testimonialsForm"
+                  :key="idx"
+                  class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
+                >
+                  <button
+                    type="button"
+                    class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
+                    aria-label="Supprimer ce témoignage"
+                    @click="removeTestimonial(idx)"
+                  >
+                    <UIcon
+                      name="i-lucide-x"
+                      class="size-4"
+                    />
+                  </button>
+                  <div class="mb-2 text-xs font-bold text-[color:var(--color-brand-primary)]">
+                    Témoignage {{ idx + 1 }}
+                  </div>
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
                       <UTextarea
-                        v-model="item.content"
+                        v-model="t.quote"
                         class="w-full"
-                        placeholder="Réponse (max 2000 caractères)"
-                        :maxlength="2000"
-                        :rows="4"
+                        placeholder="Citation du témoignage *"
+                        :minlength="10"
+                        :maxlength="500"
+                        :rows="3"
                         size="sm"
                       />
                     </div>
+                    <UInput
+                      v-model="t.firstName"
+                      placeholder="Prénom *"
+                      :minlength="2"
+                      :maxlength="50"
+                      size="sm"
+                    />
+                    <UInput
+                      v-model.number="t.age"
+                      type="number"
+                      placeholder="Âge"
+                      :min="18"
+                      :max="120"
+                      size="sm"
+                    />
+                    <UInput
+                      v-model="t.location"
+                      placeholder="Localisation"
+                      :maxlength="100"
+                      size="sm"
+                    />
+                    <USelectMenu
+                      v-model="t.rating"
+                      :items="[1, 2, 3, 4, 5]"
+                      placeholder="Note (1-5)"
+                      size="sm"
+                    />
+                    <UInput
+                      v-model="t.result"
+                      placeholder="Résultat après X mois..."
+                      :maxlength="200"
+                      size="sm"
+                      class="sm:col-span-2"
+                    />
                   </div>
-                  <UButton
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-plus"
-                    :disabled="faqForm.length >= 20"
-                    @click="addFaq"
-                  >
-                    Ajouter une question
-                  </UButton>
                 </div>
-                <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                  <UButton
-                    color="primary"
-                    variant="solid"
-                    size="sm"
-                    :loading="saving"
-                    @click="onSaveFaqSection"
-                  >
-                    Enregistrer
-                  </UButton>
+                <div
+                  v-if="testimonialsForm.length === 0"
+                  class="py-4 text-center text-sm text-[color:var(--color-brand-muted)]"
+                >
+                  Aucun témoignage ajouté.
                 </div>
-              </template>
+                <UButton
+                  v-if="testimonialsForm.length < TESTIMONIALS_MAX"
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-plus"
+                  @click="addTestimonial"
+                >
+                  Ajouter un témoignage
+                </UButton>
+              </div>
             </template>
-          </section>
+
+            <!-- ── FAQ ── -->
+            <template v-if="section === 'faq'">
+              <div class="space-y-4 px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <FormControl
+                    id="faqEyebrow"
+                    label="Surtitre de la section"
+                    hint="Défaut : Questions fréquentes"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.faqEyebrow"
+                        v-bind="inputAttrs"
+                        placeholder="Questions fréquentes"
+                        :maxlength="100"
+                      />
+                    </template>
+                  </FormControl>
+                  <FormControl
+                    id="faqTitle"
+                    label="Titre principal de la section"
+                    hint="Défaut : Questions fréquentes sur l'accompagnement"
+                  >
+                    <template #default="{ inputAttrs }">
+                      <UInput
+                        v-model="sectionTitlesForm.faqTitle"
+                        v-bind="inputAttrs"
+                        placeholder="Questions fréquentes sur l'accompagnement"
+                        :maxlength="200"
+                      />
+                    </template>
+                  </FormControl>
+                </div>
+
+                <div
+                  v-for="(item, idx) in faqForm"
+                  :key="idx"
+                  class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
+                >
+                  <button
+                    type="button"
+                    class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
+                    @click="removeFaq(idx)"
+                  >
+                    <UIcon
+                      name="i-lucide-x"
+                      class="size-4"
+                    />
+                  </button>
+                  <div class="space-y-3">
+                    <UInput
+                      v-model="item.label"
+                      placeholder="Question"
+                      size="sm"
+                    />
+                    <UTextarea
+                      v-model="item.content"
+                      class="w-full"
+                      placeholder="Réponse (max 2000 caractères)"
+                      :maxlength="2000"
+                      :rows="4"
+                      size="sm"
+                    />
+                  </div>
+                </div>
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  size="sm"
+                  icon="i-lucide-plus"
+                  :disabled="faqForm.length >= 20"
+                  @click="addFaq"
+                >
+                  Ajouter une question
+                </UButton>
+              </div>
+            </template>
+          </CoachPageSectionCard>
         </template>
 
         <!-- Always-on footer (disclaimer) — placé après tous les éditeurs (PO order) -->
