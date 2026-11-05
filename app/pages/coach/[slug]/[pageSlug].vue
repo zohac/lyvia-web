@@ -197,8 +197,7 @@ setPublicHeader({
 <template>
   <div
     v-if="page"
-    class="w-full max-w-4xl mx-auto pt-32 pb-8 sm:pt-40 sm:pb-12 px-4 sm:px-6"
-    :data-dock-clearance="DOCK_CLEARANCE_CLASSES"
+    :class="['w-full max-w-4xl mx-auto px-4 sm:px-6', DOCK_CLEARANCE_CLASSES]"
   >
     <header class="mb-8 sm:mb-12 text-center sm:text-left">
       <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-text-primary tracking-tight">
