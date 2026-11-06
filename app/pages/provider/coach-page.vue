@@ -63,7 +63,6 @@ import CoachPagePreviewPanel from '~/components/organisms/CoachPagePreviewPanel.
 import { useCoachLink } from '~/composables/useCoachLink'
 import FormControl from '~/components/molecules/FormControl.vue'
 import SystemAlert from '~/components/atoms/SystemAlert.vue'
-import IconPicker from '~/components/molecules/IconPicker.vue'
 import CoachPublishChecklistModal from '~/components/molecules/CoachPublishChecklistModal.vue'
 import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 // LAB-R14 — import EXPLICITE : un `<CoachPageTemplateRequiredNotice>` non importé
@@ -74,6 +73,9 @@ import CoachPageExternalSectionCard from '~/components/organisms/CoachPageExtern
 import CoachPageCertificationsCard from '~/components/organisms/CoachPageCertificationsCard.vue'
 import CoachPageBioEditor from '~/components/organisms/CoachPageBioEditor.vue'
 import CoachPageProblemStatementEditor from '~/components/organisms/CoachPageProblemStatementEditor.vue'
+import CoachPageBenefitsEditor from '~/components/organisms/CoachPageBenefitsEditor.vue'
+import CoachPagePillarsEditor from '~/components/organisms/CoachPagePillarsEditor.vue'
+import CoachPageHowItWorksEditor from '~/components/organisms/CoachPageHowItWorksEditor.vue'
 import CoachPageSectionCard from '~/components/organisms/CoachPageSectionCard.vue'
 import {
   parseHex,
@@ -1240,6 +1242,48 @@ function cancelLogoSelection() {
   if (logoFileInputRef.value) logoFileInputRef.value.value = ''
 }
 
+// ── CPD.3 — relais des émissions des éditeurs de listes ──
+function onBenefitItemUpdate(payload: { index: number, field: string, value: unknown }) {
+  if (!benefitsForm.value) benefitsForm.value = { items: [] }
+  const items = benefitsForm.value.items ?? (benefitsForm.value.items = [])
+  const item = items[payload.index]
+  if (!item) return
+  if (payload.field === 'title') item.title = payload.value as string
+  else if (payload.field === 'description') item.description = payload.value as string
+  else if (payload.field === 'icon') item.icon = payload.value as string | undefined
+}
+
+function onPillarItemUpdate(payload: { index: number, field: string, value: unknown }) {
+  if (!pillarsForm.value) pillarsForm.value = { items: [] }
+  const items = pillarsForm.value.items ?? (pillarsForm.value.items = [])
+  const item = items[payload.index]
+  if (!item) return
+  if (payload.field === 'title') item.title = payload.value as string
+  else if (payload.field === 'description') item.description = payload.value as string
+  else if (payload.field === 'icon') item.icon = payload.value as string | undefined
+}
+
+function setPillarsEmotionalSupportTitle(value: string) {
+  if (!pillarsForm.value) pillarsForm.value = { items: [] }
+  if (!pillarsForm.value.emotionalSupport) pillarsForm.value.emotionalSupport = { title: '', description: '' }
+  pillarsForm.value.emotionalSupport.title = value
+}
+
+function setPillarsEmotionalSupportDescription(value: string) {
+  if (!pillarsForm.value) pillarsForm.value = { items: [] }
+  if (!pillarsForm.value.emotionalSupport) pillarsForm.value.emotionalSupport = { title: '', description: '' }
+  pillarsForm.value.emotionalSupport.description = value
+}
+
+function onHowItWorksItemUpdate(payload: { index: number, field: string, value: unknown }) {
+  const items = howItWorksForm.value
+  const item = items[payload.index]
+  if (!item) return
+  if (payload.field === 'title') item.title = payload.value as string
+  else if (payload.field === 'description') item.description = payload.value as string
+  else if (payload.field === 'icon') item.icon = payload.value as string | undefined
+}
+
 // ── Pillars ──
 function addPillar() {
   if (!pillarsForm.value) {
@@ -2256,7 +2300,7 @@ function externalSectionTo(section: string): string {
             :lock-reason="sectionLockReason(section)"
             :body-open="isSectionBodyOpen(section)"
             :saving="saving"
-            :show-footer="section !== 'certifications'"
+            :show-footer="!['certifications', 'benefits', 'pillars', 'howItWorks'].includes(section)"
             @toggle="onToggleSection"
             @save="onSaveSection(section)"
           >
@@ -2306,112 +2350,24 @@ function externalSectionTo(section: string): string {
               @photo-error="onProblemStatementPhotoError"
             />
 
-            <!-- ── BENEFITS ── -->
-            <template v-if="section === 'benefits'">
-              <div class="space-y-4 px-6 py-5">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="benefitsEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : Ce que l'accompagnement apporte"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.benefitsEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="Ce que l'accompagnement apporte"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="benefitsTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Un parcours adapté"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.benefitsTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Un parcours adapté"
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-
-                <div class="mb-4 space-y-3">
-                  <UInput
-                    :model-value="benefitsForm?.visionIntro ?? ''"
-                    placeholder="Introduction vision (optionnel)"
-                    size="sm"
-                    @update:model-value="setBenefitsVisionIntro"
-                  />
-                  <UTextarea
-                    :model-value="benefitsForm?.visionText ?? ''"
-                    class="w-full"
-                    placeholder="Texte vision (optionnel)"
-                    :rows="3"
-                    size="sm"
-                    @update:model-value="setBenefitsVisionText"
-                  />
-                </div>
-                <div class="space-y-4">
-                  <div
-                    v-for="(item, idx) in (benefitsForm?.items ?? [])"
-                    :key="idx"
-                    class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                  >
-                    <button
-                      type="button"
-                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                      @click="removeBenefit(idx)"
-                    >
-                      <UIcon
-                        name="i-lucide-x"
-                        class="size-4"
-                      />
-                    </button>
-                    <div class="space-y-3">
-                      <UInput
-                        v-model="item.title"
-                        placeholder="Titre du bénéfice"
-                        size="sm"
-                      />
-                      <UTextarea
-                        v-model="item.description"
-                        class="w-full"
-                        placeholder="Description (max 300 caractères)"
-                        :maxlength="300"
-                        :rows="3"
-                        size="sm"
-                      />
-                      <div>
-                        <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
-                          Icône (par défaut : Éclat)
-                        </label>
-                        <IconPicker
-                          :model-value="item.icon"
-                          label="Icône du bénéfice"
-                          @update:model-value="(v: string) => { item.icon = v || undefined }"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <UButton
-                  class="mt-4"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-plus"
-                  :disabled="(benefitsForm?.items?.length ?? 0) >= 10"
-                  @click="addBenefit"
-                >
-                  Ajouter un bénéfice
-                </UButton>
-              </div>
-            </template>
+            <!-- ── BENEFITS — CPD.3 ── -->
+            <CoachPageBenefitsEditor
+              v-if="section === 'benefits'"
+              :items="benefitsForm?.items ?? []"
+              :vision-intro="benefitsForm?.visionIntro ?? null"
+              :vision-text="benefitsForm?.visionText ?? null"
+              :benefits-eyebrow="sectionTitlesForm.benefitsEyebrow"
+              :benefits-title="sectionTitlesForm.benefitsTitle"
+              :saving="saving"
+              @update:item="onBenefitItemUpdate($event)"
+              @add="addBenefit()"
+              @remove="removeBenefit($event)"
+              @update:vision-intro="setBenefitsVisionIntro($event)"
+              @update:vision-text="setBenefitsVisionText($event)"
+              @update:benefits-eyebrow="sectionTitlesForm.benefitsEyebrow = $event"
+              @update:benefits-title="sectionTitlesForm.benefitsTitle = $event"
+              @save="onSaveSection('benefits')"
+            />
 
             <!-- ── FREE TEXT (Bloc de texte libre) — YB.1.1 ── -->
             <template v-if="section === 'freeText'">
@@ -2503,233 +2459,39 @@ function externalSectionTo(section: string): string {
               </div>
             </template>
 
-            <!-- ── PILLARS ── -->
-            <template v-if="section === 'pillars'">
-              <div class="space-y-4 px-6 py-5">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="pillarsEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : L'approche"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.pillarsEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="L'approche"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="pillarsTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Les piliers de l'accompagnement"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.pillarsTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Les piliers de l'accompagnement"
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
+            <!-- ── PILLARS — CPD.3 ── -->
+            <CoachPagePillarsEditor
+              v-if="section === 'pillars'"
+              :items="pillarsForm?.items ?? []"
+              :emotional-support="pillarsForm?.emotionalSupport ?? null"
+              :show-emotional-support="hasEmotionalSupportSection"
+              :pillars-eyebrow="sectionTitlesForm.pillarsEyebrow"
+              :pillars-title="sectionTitlesForm.pillarsTitle"
+              :saving="saving"
+              @update:item="onPillarItemUpdate($event)"
+              @add="addPillar()"
+              @remove="removePillar($event)"
+              @update:emotional-support-title="setPillarsEmotionalSupportTitle($event)"
+              @update:emotional-support-description="setPillarsEmotionalSupportDescription($event)"
+              @update:pillars-eyebrow="sectionTitlesForm.pillarsEyebrow = $event"
+              @update:pillars-title="sectionTitlesForm.pillarsTitle = $event"
+              @save="onSaveSection('pillars')"
+            />
 
-                <div class="space-y-4">
-                  <div
-                    v-for="(pillar, idx) in (pillarsForm?.items ?? [])"
-                    :key="idx"
-                    class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                  >
-                    <button
-                      type="button"
-                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                      @click="removePillar(idx)"
-                    >
-                      <UIcon
-                        name="i-lucide-x"
-                        class="size-4"
-                      />
-                    </button>
-                    <div class="space-y-3">
-                      <UInput
-                        v-model="pillar.title"
-                        placeholder="Titre du pilier"
-                        size="sm"
-                      />
-                      <UTextarea
-                        v-model="pillar.description"
-                        class="w-full"
-                        placeholder="Description (max 500 caractères)"
-                        :maxlength="500"
-                        :rows="3"
-                        size="sm"
-                      />
-                      <div>
-                        <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
-                          Icône (optionnel)
-                        </label>
-                        <IconPicker
-                          :model-value="pillar.icon"
-                          label="Icône du pilier"
-                          @update:model-value="(v: string) => { pillar.icon = v || undefined }"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <UButton
-                  class="mt-4"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-plus"
-                  :disabled="(pillarsForm?.items?.length ?? 0) >= 10"
-                  @click="addPillar"
-                >
-                  Ajouter un pilier
-                </UButton>
-
-                <!-- F1: Emotional Support sub-section (Signature template only) -->
-                <div
-                  v-if="hasEmotionalSupportSection"
-                  class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                >
-                  <h3 class="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
-                    Soutien émotionnel (optionnel)
-                  </h3>
-                  <div class="space-y-3">
-                    <UInput
-                      :model-value="pillarsForm?.emotionalSupport?.title ?? ''"
-                      placeholder="Titre (ex: Un espace d'écoute bienveillant)"
-                      size="sm"
-                      @update:model-value="(v: string) => {
-                        if (!pillarsForm) {
-                          pillarsForm = { items: [] }
-                        }
-                        if (!pillarsForm.emotionalSupport) {
-                          pillarsForm.emotionalSupport = { title: '', description: '' }
-                        }
-                        pillarsForm.emotionalSupport.title = v
-                      }"
-                    />
-                    <UTextarea
-                      :model-value="pillarsForm?.emotionalSupport?.description ?? ''"
-                      class="w-full"
-                      placeholder="Description (max 1000 caractères)"
-                      :maxlength="1000"
-                      :rows="3"
-                      size="sm"
-                      @update:model-value="(v: string) => {
-                        if (!pillarsForm) {
-                          pillarsForm = { items: [] }
-                        }
-                        if (!pillarsForm.emotionalSupport) {
-                          pillarsForm.emotionalSupport = { title: '', description: '' }
-                        }
-                        pillarsForm.emotionalSupport.description = v
-                      }"
-                    />
-                  </div>
-                </div>
-              </div>
-            </template>
-
-            <!-- ── HOW IT WORKS ── -->
-            <template v-if="section === 'howItWorks'">
-              <div class="space-y-4 px-6 py-5">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="howItWorksEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : Le parcours"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.howItWorksEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="Le parcours"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="howItWorksTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Comment se déroule l'accompagnement"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.howItWorksTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Comment se déroule l'accompagnement"
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-
-                <div class="space-y-4">
-                  <div
-                    v-for="(step, idx) in howItWorksForm"
-                    :key="idx"
-                    class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                  >
-                    <button
-                      type="button"
-                      class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                      @click="removeStep(idx)"
-                    >
-                      <UIcon
-                        name="i-lucide-x"
-                        class="size-4"
-                      />
-                    </button>
-                    <div class="mb-2 text-xs font-bold text-[color:var(--color-brand-primary)]">
-                      Étape {{ step.number }}
-                    </div>
-                    <div class="space-y-3">
-                      <UInput
-                        v-model="step.title"
-                        placeholder="Titre de l'étape"
-                        size="sm"
-                      />
-                      <UTextarea
-                        v-model="step.description"
-                        class="w-full"
-                        placeholder="Description (max 500 caractères)"
-                        :maxlength="500"
-                        :rows="3"
-                        size="sm"
-                      />
-                      <div>
-                        <label class="mb-1 block text-xs text-[color:var(--color-brand-secondary)]">
-                          Icône de l'étape
-                        </label>
-                        <IconPicker
-                          :model-value="step.icon"
-                          label="Icône de l'étape"
-                          @update:model-value="(v: string) => { step.icon = v || undefined }"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <UButton
-                  class="mt-4"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-plus"
-                  :disabled="howItWorksForm.length >= 6"
-                  @click="addStep"
-                >
-                  Ajouter une étape
-                </UButton>
-              </div>
-            </template>
+            <!-- ── HOW IT WORKS — CPD.3 ── -->
+            <CoachPageHowItWorksEditor
+              v-if="section === 'howItWorks'"
+              :items="howItWorksForm"
+              :how-it-works-eyebrow="sectionTitlesForm.howItWorksEyebrow"
+              :how-it-works-title="sectionTitlesForm.howItWorksTitle"
+              :saving="saving"
+              @update:item="onHowItWorksItemUpdate($event)"
+              @add="addStep()"
+              @remove="removeStep($event)"
+              @update:how-it-works-eyebrow="sectionTitlesForm.howItWorksEyebrow = $event"
+              @update:how-it-works-title="sectionTitlesForm.howItWorksTitle = $event"
+              @save="onSaveSection('howItWorks')"
+            />
 
             <!-- ── FIT / POUR QUI ── -->
             <template v-if="section === 'fit'">

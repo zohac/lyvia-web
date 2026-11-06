@@ -116,7 +116,7 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
       [':lock-reason', /:lock-reason="sectionLockReason\(section\)"/],
       [':body-open', /:body-open="isSectionBodyOpen\(section\)"/],
       [':saving', /:saving="saving"/],
-      [':show-footer', /:show-footer="section !== 'certifications'"/],
+      [':show-footer', /:show-footer="!\['certifications', 'benefits', 'pillars', 'howItWorks'\]\.includes\(section\)"/],
       ['@toggle', /@toggle="onToggleSection"/],
       ['@save', /@save="onSaveSection\(section\)"/]
     ]
