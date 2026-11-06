@@ -55,12 +55,36 @@ function sectionCardTag(): string {
  * dans la balise réellement montée, comme `sectionCardTag()` et `cardTag()`
  * (tf-3, lab-4).
  */
+/**
+ * CPD.4 (revue) — le fichier **sans ses commentaires HTML**. Une balise montée
+ * dans un commentaire satisfaisait la garde de câblage : mesuré, envelopper le
+ * montage dans `<!-- -->` laissait 20/20 verts.
+ */
+function readCoachPageMarkup(): string {
+  return readCoachPage().replace(/<!--[\s\S]*?-->/g, '')
+}
+
 function componentTag(componentName: string): string {
-  const source = readCoachPage()
+  const source = readCoachPageMarkup()
   const start = source.indexOf(`<${componentName}`)
   assert.ok(start >= 0, `la carte \`${componentName}\` n’est pas montée par la page`)
   const end = source.indexOf('>', start)
   assert.ok(end > start, `balise d’ouverture de \`${componentName}\` introuvable`)
+  return source.slice(start, end)
+}
+
+/**
+ * CPD.4 (revue) — le bloc `<template v-if="section === '<section>'">` de la
+ * page. La garde précédente ne contraignait pas l'emplacement : monter la FAQ
+ * sous `section !== 'faq'` laissait 498/498 verts.
+ */
+function sectionBlock(section: string): string {
+  const source = readCoachPageMarkup()
+  const marker = `<template v-if="section === '${section}'">`
+  const start = source.indexOf(marker)
+  assert.ok(start >= 0, `bloc de la section « ${section} » introuvable dans la page`)
+  const end = source.indexOf('</template>', start)
+  assert.ok(end > start, `fin du bloc de la section « ${section} » introuvable`)
   return source.slice(start, end)
 }
 
@@ -234,7 +258,9 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageProblemStatementEditor.vue'), 'utf-8'),
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageBenefitsEditor.vue'), 'utf-8'),
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPagePillarsEditor.vue'), 'utf-8'),
-      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageHowItWorksEditor.vue'), 'utf-8')
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageHowItWorksEditor.vue'), 'utf-8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageTestimonialsEditor.vue'), 'utf-8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageFaqEditor.vue'), 'utf-8')
     ]
     // Match every <UTextarea ...> opening tag (with attributes spanning multiple lines).
     const textareaPattern = /<UTextarea\b[^>]*?(?:\n[^>]*?)*?>/g
@@ -399,19 +425,59 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
   })
 
   // ─────────────────────────────────────────────────────────────────────
-  // AC-5 — Éditeur testimonials inline
+  // CPD.4 — GARDE DE CÂBLAGE — les deux éditeurs sociaux sont montés
   // ─────────────────────────────────────────────────────────────────────
 
-  test('AC-5: éditeur testimonials inline (testimonialsForm + add/remove + onSaveTestimonials)', () => {
-    const source = readCoachPage()
-    assert.match(source, /testimonialsForm\s*=\s*ref<TestimonialItem\[\]>/)
-    assert.match(source, /function addTestimonial\(\)/)
-    assert.match(source, /function removeTestimonial\(/)
-    assert.match(source, /async function onSaveTestimonials\(\)/)
-    // Persist via updateAccount (exposé directement par useCoachPageEditor — story 0-26 round terrain).
-    assert.match(source, /\bupdateAccount\(\{[\s\S]*?testimonialsJson:\s*filtered[\s\S]*?\}\)/)
-    // Limite max alignée sur la constante TESTIMONIALS_MAX (10 — pattern existant /provider/account).
-    assert.match(source, /TESTIMONIALS_MAX\s*=\s*10/)
+  test('AC-4: GARDE DE CÂBLAGE — la page monte CoachPageTestimonialsEditor et CoachPageFaqEditor avec toutes leurs liaisons', () => {
+    for (const [card, section] of [['CoachPageTestimonialsEditor', 'testimonials'], ['CoachPageFaqEditor', 'faq']] as const) {
+      assert.match(
+        readCoachPage(),
+        new RegExp(`^import ${card} from '~\\/components\\/organisms\\/${card}\\.vue'$`, 'm'),
+        `${card} doit être importé explicitement (une balise non résolue ne rend rien)`
+      )
+      assert.ok(!componentTag(card).includes('@save'), `${card} ne porte pas @save (le pied est celui de la carte de section)`)
+      assert.ok(!componentTag(card).includes(':saving'), `${card} ne porte pas :saving`)
+      // CPD.4 (revue) — montage RÉEL : la balise doit vivre dans sa section, sans
+      // condition propre. `v-if="false"` sur la carte et `section !== 'faq'` sur
+      // le bloc laissaient la suite verte avant ces deux assertions.
+      assert.ok(sectionBlock(section).includes(`<${card}`), `${card} doit être monté dans la section « ${section} »`)
+      assert.ok(!componentTag(card).includes('v-if'), `${card} ne doit pas être conditionné dans sa propre balise`)
+    }
+
+    assertBindings('CoachPageTestimonialsEditor', [
+      ':items="testimonialsForm"',
+      ':testimonials-eyebrow="sectionTitlesForm.testimonialsEyebrow"',
+      ':testimonials-title="sectionTitlesForm.testimonialsTitle"',
+      '@update:item="onTestimonialItemUpdate($event)"',
+      '@add="addTestimonial()"',
+      '@remove="removeTestimonial($event)"',
+      '@update:testimonials-eyebrow="sectionTitlesForm.testimonialsEyebrow = $event"',
+      '@update:testimonials-title="sectionTitlesForm.testimonialsTitle = $event"'
+    ])
+
+    assertBindings('CoachPageFaqEditor', [
+      ':items="faqForm"',
+      ':faq-eyebrow="sectionTitlesForm.faqEyebrow"',
+      ':faq-title="sectionTitlesForm.faqTitle"',
+      '@update:item="onFaqItemUpdate($event)"',
+      '@add="addFaq()"',
+      '@remove="removeFaq($event)"',
+      '@update:faq-eyebrow="sectionTitlesForm.faqEyebrow = $event"',
+      '@update:faq-title="sectionTitlesForm.faqTitle = $event"'
+    ])
+
+    assert.match(readCoachPage(), /function addTestimonial\(\)/)
+    assert.match(readCoachPage(), /function removeTestimonial\(/)
+    assert.match(readCoachPage(), /function addFaq\(\)/)
+    assert.match(readCoachPage(), /function removeFaq\(/)
+    assert.match(readCoachPage(), /async function onSaveTestimonials\(\)/)
+    assert.match(readCoachPage(), /async function onSaveFaqSection\(\)/)
+    // Le dispatcheur d'enregistrement doit pointer chaque section vers SON
+    // handler : échanger les deux entrées laissait 498/498 verts (revue CPD.4).
+    assert.match(readCoachPage(), /testimonials: onSaveTestimonials,/)
+    assert.match(readCoachPage(), /faq: onSaveFaqSection/)
+    // Plafond importé de la source unique, plus de copie locale dans la page.
+    assert.match(readCoachPage(), /import \{ TESTIMONIALS_MAX \} from '~\/features\/coach\/domain\/social-editor-limits'/)
   })
 
   // ─────────────────────────────────────────────────────────────────────

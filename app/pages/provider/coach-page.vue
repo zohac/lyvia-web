@@ -41,6 +41,16 @@ import {
   applyListItemPatch,
   type ListItemPatch
 } from '~/features/coach/domain/list-item-patch'
+// CPD.4 — plafond des témoignages partagé avec la carte (une copie locale par
+// côté faisait deux sources de vérité, la constante de la carte n'étant épinglée
+// par aucun test ; revue CPD.4).
+import { TESTIMONIALS_MAX } from '~/features/coach/domain/social-editor-limits'
+import {
+  applyFaqPatchAt,
+  applyTestimonialPatchAt,
+  type FaqPatch,
+  type TestimonialPatch
+} from '~/features/coach/domain/social-item-patch'
 // TF.1 — table de libellés partagée avec `CoachPageExternalSectionCard.vue`
 // (une copie locale en aurait fait deux sources de vérité ; revue TF.1). La
 // justification LAB-R15 est documentée dans le module.
@@ -83,6 +93,8 @@ import CoachPageProblemStatementEditor from '~/components/organisms/CoachPagePro
 import CoachPageBenefitsEditor from '~/components/organisms/CoachPageBenefitsEditor.vue'
 import CoachPagePillarsEditor from '~/components/organisms/CoachPagePillarsEditor.vue'
 import CoachPageHowItWorksEditor from '~/components/organisms/CoachPageHowItWorksEditor.vue'
+import CoachPageTestimonialsEditor from '~/components/organisms/CoachPageTestimonialsEditor.vue'
+import CoachPageFaqEditor from '~/components/organisms/CoachPageFaqEditor.vue'
 import CoachPageSectionCard from '~/components/organisms/CoachPageSectionCard.vue'
 import {
   parseHex,
@@ -171,7 +183,6 @@ onMounted(() => init())
 const FREE_TEXT_PARAGRAPH_MAX = 10
 const FREE_TEXT_PARAGRAPH_MAX_LENGTH = 2000
 const FREE_TEXT_TITLE_MAX_LENGTH = 200
-const TESTIMONIALS_MAX = 10
 // "Qui suis-je" édite `longBio` (5000 chars max — DTO `@MaxLength(5000)`),
 // pas le champ `bio` (500 chars, tagline hero). Le rendu public CoachPageSignature
 // / CoachPageEssentiel priorise `longBio` pour cette section.
@@ -1306,6 +1317,19 @@ function addFaq() {
 
 function removeFaq(index: number) {
   faqForm.value.splice(index, 1)
+}
+
+// ── CPD.4 — relais des émissions des éditeurs sociaux ──
+// Le contrat typé (`TestimonialPatch` / `FaqPatch`) et l'application du patch
+// vivent dans `social-item-patch.ts` : le cast `Record<string, unknown>` de la
+// première version laissait une faute de frappe sur `field` compiler et
+// disparaître en silence (revue CPD.4).
+function onTestimonialItemUpdate(patch: TestimonialPatch) {
+  applyTestimonialPatchAt(testimonialsForm.value, patch)
+}
+
+function onFaqItemUpdate(patch: FaqPatch) {
+  applyFaqPatchAt(faqForm.value, patch)
 }
 
 // ── How it works ──
@@ -2653,205 +2677,32 @@ function externalSectionTo(section: string): string {
               </div>
             </template>
 
-            <!-- ── TESTIMONIALS — inline editor (Story 0-26 AC-5) ── -->
+            <!-- ── TESTIMONIALS — extrait CPD.4 ── -->
             <template v-if="section === 'testimonials'">
-              <div class="space-y-4 px-6 py-5">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="testimonialsEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : Témoignages"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.testimonialsEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="Témoignages"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="testimonialsTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Ce qu'elles en disent"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.testimonialsTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Ce qu'elles en disent"
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-
-                <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                  Les retours de vos clientes (max {{ TESTIMONIALS_MAX }}).
-                </p>
-                <div
-                  v-for="(t, idx) in testimonialsForm"
-                  :key="idx"
-                  class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                >
-                  <button
-                    type="button"
-                    class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                    aria-label="Supprimer ce témoignage"
-                    @click="removeTestimonial(idx)"
-                  >
-                    <UIcon
-                      name="i-lucide-x"
-                      class="size-4"
-                    />
-                  </button>
-                  <div class="mb-2 text-xs font-bold text-[color:var(--color-brand-primary)]">
-                    Témoignage {{ idx + 1 }}
-                  </div>
-                  <div class="grid gap-3 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
-                      <UTextarea
-                        v-model="t.quote"
-                        class="w-full"
-                        placeholder="Citation du témoignage *"
-                        :minlength="10"
-                        :maxlength="500"
-                        :rows="3"
-                        size="sm"
-                      />
-                    </div>
-                    <UInput
-                      v-model="t.firstName"
-                      placeholder="Prénom *"
-                      :minlength="2"
-                      :maxlength="50"
-                      size="sm"
-                    />
-                    <UInput
-                      v-model.number="t.age"
-                      type="number"
-                      placeholder="Âge"
-                      :min="18"
-                      :max="120"
-                      size="sm"
-                    />
-                    <UInput
-                      v-model="t.location"
-                      placeholder="Localisation"
-                      :maxlength="100"
-                      size="sm"
-                    />
-                    <USelectMenu
-                      v-model="t.rating"
-                      :items="[1, 2, 3, 4, 5]"
-                      placeholder="Note (1-5)"
-                      size="sm"
-                    />
-                    <UInput
-                      v-model="t.result"
-                      placeholder="Résultat après X mois..."
-                      :maxlength="200"
-                      size="sm"
-                      class="sm:col-span-2"
-                    />
-                  </div>
-                </div>
-                <div
-                  v-if="testimonialsForm.length === 0"
-                  class="py-4 text-center text-sm text-[color:var(--color-brand-muted)]"
-                >
-                  Aucun témoignage ajouté.
-                </div>
-                <UButton
-                  v-if="testimonialsForm.length < TESTIMONIALS_MAX"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-plus"
-                  @click="addTestimonial"
-                >
-                  Ajouter un témoignage
-                </UButton>
-              </div>
+              <CoachPageTestimonialsEditor
+                :items="testimonialsForm"
+                :testimonials-eyebrow="sectionTitlesForm.testimonialsEyebrow"
+                :testimonials-title="sectionTitlesForm.testimonialsTitle"
+                @update:item="onTestimonialItemUpdate($event)"
+                @add="addTestimonial()"
+                @remove="removeTestimonial($event)"
+                @update:testimonials-eyebrow="sectionTitlesForm.testimonialsEyebrow = $event"
+                @update:testimonials-title="sectionTitlesForm.testimonialsTitle = $event"
+              />
             </template>
 
-            <!-- ── FAQ ── -->
+            <!-- ── FAQ — extrait CPD.4 ── -->
             <template v-if="section === 'faq'">
-              <div class="space-y-4 px-6 py-5">
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="faqEyebrow"
-                    label="Surtitre de la section"
-                    hint="Défaut : Questions fréquentes"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.faqEyebrow"
-                        v-bind="inputAttrs"
-                        placeholder="Questions fréquentes"
-                        :maxlength="100"
-                      />
-                    </template>
-                  </FormControl>
-                  <FormControl
-                    id="faqTitle"
-                    label="Titre principal de la section"
-                    hint="Défaut : Questions fréquentes sur l'accompagnement"
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="sectionTitlesForm.faqTitle"
-                        v-bind="inputAttrs"
-                        placeholder="Questions fréquentes sur l'accompagnement"
-                        :maxlength="200"
-                      />
-                    </template>
-                  </FormControl>
-                </div>
-
-                <div
-                  v-for="(item, idx) in faqForm"
-                  :key="idx"
-                  class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
-                >
-                  <button
-                    type="button"
-                    class="absolute right-2 top-2 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                    @click="removeFaq(idx)"
-                  >
-                    <UIcon
-                      name="i-lucide-x"
-                      class="size-4"
-                    />
-                  </button>
-                  <div class="space-y-3">
-                    <UInput
-                      v-model="item.label"
-                      placeholder="Question"
-                      size="sm"
-                    />
-                    <UTextarea
-                      v-model="item.content"
-                      class="w-full"
-                      placeholder="Réponse (max 2000 caractères)"
-                      :maxlength="2000"
-                      :rows="4"
-                      size="sm"
-                    />
-                  </div>
-                </div>
-                <UButton
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-plus"
-                  :disabled="faqForm.length >= 20"
-                  @click="addFaq"
-                >
-                  Ajouter une question
-                </UButton>
-              </div>
+              <CoachPageFaqEditor
+                :items="faqForm"
+                :faq-eyebrow="sectionTitlesForm.faqEyebrow"
+                :faq-title="sectionTitlesForm.faqTitle"
+                @update:item="onFaqItemUpdate($event)"
+                @add="addFaq()"
+                @remove="removeFaq($event)"
+                @update:faq-eyebrow="sectionTitlesForm.faqEyebrow = $event"
+                @update:faq-title="sectionTitlesForm.faqTitle = $event"
+              />
             </template>
           </CoachPageSectionCard>
         </template>
