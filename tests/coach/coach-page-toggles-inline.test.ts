@@ -116,7 +116,7 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
       [':lock-reason', /:lock-reason="sectionLockReason\(section\)"/],
       [':body-open', /:body-open="isSectionBodyOpen\(section\)"/],
       [':saving', /:saving="saving"/],
-      [':show-footer', /:show-footer="!\['certifications', 'benefits', 'pillars', 'howItWorks'\]\.includes\(section\)"/],
+      [':show-footer', /:show-footer="section !== 'certifications'"/],
       ['@toggle', /@toggle="onToggleSection"/],
       ['@save', /@save="onSaveSection\(section\)"/]
     ]
@@ -231,7 +231,10 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     const sources = [
       readCoachPage(),
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageBioEditor.vue'), 'utf-8'),
-      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageProblemStatementEditor.vue'), 'utf-8')
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageProblemStatementEditor.vue'), 'utf-8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageBenefitsEditor.vue'), 'utf-8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPagePillarsEditor.vue'), 'utf-8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageHowItWorksEditor.vue'), 'utf-8')
     ]
     // Match every <UTextarea ...> opening tag (with attributes spanning multiple lines).
     const textareaPattern = /<UTextarea\b[^>]*?(?:\n[^>]*?)*?>/g
@@ -326,6 +329,73 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
 
     // La page reçoit bien les modifications et ne les absorbe pas.
     assert.match(readCoachPage(), /function onProblemParagraphUpdate\(payload: \{ index: number, value: string \}\)/)
+  })
+
+  /**
+   * CPD.3 — GARDE DE CÂBLAGE (pas une preuve de rendu).
+   *
+   * La preuve de rendu des trois éditeurs est `tests/coach/cpd-3-list-editors.test.ts` ;
+   * ces assertions prouvent qu'ils sont réellement MONTÉS et reliés. Supprimer
+   * un montage doit faire tomber la suite — c'était la mutation qui restait
+   * verte avant la revue (cinq mutations d'AC-5 ne tuaient rien).
+   */
+  test('AC-4: GARDE DE CÂBLAGE — la page monte les trois éditeurs de listes avec toutes leurs liaisons', () => {
+    for (const card of ['CoachPageBenefitsEditor', 'CoachPagePillarsEditor', 'CoachPageHowItWorksEditor']) {
+      assert.match(
+        readCoachPage(),
+        new RegExp(`^import ${card} from '~\\/components\\/organisms\\/${card}\\.vue'$`, 'm'),
+        `${card} doit être importé explicitement (une balise non résolue ne rend rien)`
+      )
+      assert.ok(!componentTag(card).includes('@save'), `${card} ne porte pas @save (le pied est celui de la carte de section)`)
+      assert.ok(!componentTag(card).includes(':saving'), `${card} ne porte pas :saving`)
+    }
+
+    assertBindings('CoachPageBenefitsEditor', [
+      ':items="benefitsForm?.items ?? []"',
+      ':vision-intro="benefitsForm?.visionIntro ?? null"',
+      ':vision-text="benefitsForm?.visionText ?? null"',
+      ':benefits-eyebrow="sectionTitlesForm.benefitsEyebrow"',
+      ':benefits-title="sectionTitlesForm.benefitsTitle"',
+      '@update:item="onBenefitItemUpdate($event)"',
+      '@add="addBenefit()"',
+      '@remove="removeBenefit($event)"',
+      '@update:vision-intro="setBenefitsVisionIntro($event)"',
+      '@update:vision-text="setBenefitsVisionText($event)"',
+      '@update:benefits-eyebrow="sectionTitlesForm.benefitsEyebrow = $event"',
+      '@update:benefits-title="sectionTitlesForm.benefitsTitle = $event"'
+    ])
+
+    assertBindings('CoachPagePillarsEditor', [
+      ':items="pillarsForm?.items ?? []"',
+      ':emotional-support="pillarsForm?.emotionalSupport ?? null"',
+      ':show-emotional-support="hasEmotionalSupportSection"',
+      ':pillars-eyebrow="sectionTitlesForm.pillarsEyebrow"',
+      ':pillars-title="sectionTitlesForm.pillarsTitle"',
+      '@update:item="onPillarItemUpdate($event)"',
+      '@add="addPillar()"',
+      '@remove="removePillar($event)"',
+      '@update:emotional-support-title="setPillarsEmotionalSupportTitle($event)"',
+      '@update:emotional-support-description="setPillarsEmotionalSupportDescription($event)"',
+      '@update:pillars-eyebrow="sectionTitlesForm.pillarsEyebrow = $event"',
+      '@update:pillars-title="sectionTitlesForm.pillarsTitle = $event"'
+    ])
+
+    assertBindings('CoachPageHowItWorksEditor', [
+      ':items="howItWorksForm"',
+      ':how-it-works-eyebrow="sectionTitlesForm.howItWorksEyebrow"',
+      ':how-it-works-title="sectionTitlesForm.howItWorksTitle"',
+      '@update:item="onHowItWorksItemUpdate($event)"',
+      '@add="addStep()"',
+      '@remove="removeStep($event)"',
+      '@update:how-it-works-eyebrow="sectionTitlesForm.howItWorksEyebrow = $event"',
+      '@update:how-it-works-title="sectionTitlesForm.howItWorksTitle = $event"'
+    ])
+
+    // Le pied d'enregistrement de ces trois sections reste celui de la carte de
+    // section : `onSaveSection(section)` dispatche déjà vers les trois handlers.
+    assert.match(readCoachPage(), /benefits: onSaveBenefitsSection/)
+    assert.match(readCoachPage(), /pillars: onSavePillarsSection/)
+    assert.match(readCoachPage(), /howItWorks: onSaveHowItWorksSection/)
   })
 
   // ─────────────────────────────────────────────────────────────────────

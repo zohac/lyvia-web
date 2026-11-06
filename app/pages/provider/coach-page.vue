@@ -34,6 +34,13 @@ import {
   isCoachPageInlineEditorSection,
   type COACH_PAGE_INLINE_EDITOR_SECTIONS
 } from '~/features/coach/domain/coach-page-editor'
+// CPD.3 — contrat partagé des trois éditeurs de listes (bénéfices, piliers,
+// déroulé) : le `switch` exhaustif remplace trois `else if` qui avalaient une
+// faute de frappe sur `field`.
+import {
+  applyListItemPatch,
+  type ListItemPatch
+} from '~/features/coach/domain/list-item-patch'
 // TF.1 — table de libellés partagée avec `CoachPageExternalSectionCard.vue`
 // (une copie locale en aurait fait deux sources de vérité ; revue TF.1). La
 // justification LAB-R15 est documentée dans le module.
@@ -1243,24 +1250,29 @@ function cancelLogoSelection() {
 }
 
 // ── CPD.3 — relais des émissions des éditeurs de listes ──
-function onBenefitItemUpdate(payload: { index: number, field: string, value: unknown }) {
+// Les trois cartes émettent le même contrat (`ListItemPatch`) et la même règle
+// l'applique : le `switch` exhaustif de `applyListItemPatch` rend une faute de
+// frappe sur `field` impossible à compiler (elle était silencieuse avant).
+function onBenefitItemUpdate(patch: ListItemPatch) {
   if (!benefitsForm.value) benefitsForm.value = { items: [] }
   const items = benefitsForm.value.items ?? (benefitsForm.value.items = [])
-  const item = items[payload.index]
+  const item = items[patch.index]
   if (!item) return
-  if (payload.field === 'title') item.title = payload.value as string
-  else if (payload.field === 'description') item.description = payload.value as string
-  else if (payload.field === 'icon') item.icon = payload.value as string | undefined
+  applyListItemPatch(item, patch)
 }
 
-function onPillarItemUpdate(payload: { index: number, field: string, value: unknown }) {
+function onPillarItemUpdate(patch: ListItemPatch) {
   if (!pillarsForm.value) pillarsForm.value = { items: [] }
   const items = pillarsForm.value.items ?? (pillarsForm.value.items = [])
-  const item = items[payload.index]
+  const item = items[patch.index]
   if (!item) return
-  if (payload.field === 'title') item.title = payload.value as string
-  else if (payload.field === 'description') item.description = payload.value as string
-  else if (payload.field === 'icon') item.icon = payload.value as string | undefined
+  applyListItemPatch(item, patch)
+}
+
+function onHowItWorksItemUpdate(patch: ListItemPatch) {
+  const item = howItWorksForm.value[patch.index]
+  if (!item) return
+  applyListItemPatch(item, patch)
 }
 
 function setPillarsEmotionalSupportTitle(value: string) {
@@ -1273,15 +1285,6 @@ function setPillarsEmotionalSupportDescription(value: string) {
   if (!pillarsForm.value) pillarsForm.value = { items: [] }
   if (!pillarsForm.value.emotionalSupport) pillarsForm.value.emotionalSupport = { title: '', description: '' }
   pillarsForm.value.emotionalSupport.description = value
-}
-
-function onHowItWorksItemUpdate(payload: { index: number, field: string, value: unknown }) {
-  const items = howItWorksForm.value
-  const item = items[payload.index]
-  if (!item) return
-  if (payload.field === 'title') item.title = payload.value as string
-  else if (payload.field === 'description') item.description = payload.value as string
-  else if (payload.field === 'icon') item.icon = payload.value as string | undefined
 }
 
 // ── Pillars ──
@@ -2300,7 +2303,7 @@ function externalSectionTo(section: string): string {
             :lock-reason="sectionLockReason(section)"
             :body-open="isSectionBodyOpen(section)"
             :saving="saving"
-            :show-footer="!['certifications', 'benefits', 'pillars', 'howItWorks'].includes(section)"
+            :show-footer="section !== 'certifications'"
             @toggle="onToggleSection"
             @save="onSaveSection(section)"
           >
@@ -2358,7 +2361,6 @@ function externalSectionTo(section: string): string {
               :vision-text="benefitsForm?.visionText ?? null"
               :benefits-eyebrow="sectionTitlesForm.benefitsEyebrow"
               :benefits-title="sectionTitlesForm.benefitsTitle"
-              :saving="saving"
               @update:item="onBenefitItemUpdate($event)"
               @add="addBenefit()"
               @remove="removeBenefit($event)"
@@ -2366,7 +2368,6 @@ function externalSectionTo(section: string): string {
               @update:vision-text="setBenefitsVisionText($event)"
               @update:benefits-eyebrow="sectionTitlesForm.benefitsEyebrow = $event"
               @update:benefits-title="sectionTitlesForm.benefitsTitle = $event"
-              @save="onSaveSection('benefits')"
             />
 
             <!-- ── FREE TEXT (Bloc de texte libre) — YB.1.1 ── -->
@@ -2467,7 +2468,6 @@ function externalSectionTo(section: string): string {
               :show-emotional-support="hasEmotionalSupportSection"
               :pillars-eyebrow="sectionTitlesForm.pillarsEyebrow"
               :pillars-title="sectionTitlesForm.pillarsTitle"
-              :saving="saving"
               @update:item="onPillarItemUpdate($event)"
               @add="addPillar()"
               @remove="removePillar($event)"
@@ -2475,7 +2475,6 @@ function externalSectionTo(section: string): string {
               @update:emotional-support-description="setPillarsEmotionalSupportDescription($event)"
               @update:pillars-eyebrow="sectionTitlesForm.pillarsEyebrow = $event"
               @update:pillars-title="sectionTitlesForm.pillarsTitle = $event"
-              @save="onSaveSection('pillars')"
             />
 
             <!-- ── HOW IT WORKS — CPD.3 ── -->
@@ -2484,13 +2483,11 @@ function externalSectionTo(section: string): string {
               :items="howItWorksForm"
               :how-it-works-eyebrow="sectionTitlesForm.howItWorksEyebrow"
               :how-it-works-title="sectionTitlesForm.howItWorksTitle"
-              :saving="saving"
               @update:item="onHowItWorksItemUpdate($event)"
               @add="addStep()"
               @remove="removeStep($event)"
               @update:how-it-works-eyebrow="sectionTitlesForm.howItWorksEyebrow = $event"
               @update:how-it-works-title="sectionTitlesForm.howItWorksTitle = $event"
-              @save="onSaveSection('howItWorks')"
             />
 
             <!-- ── FIT / POUR QUI ── -->

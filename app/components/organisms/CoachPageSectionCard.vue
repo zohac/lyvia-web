@@ -22,6 +22,9 @@
  *
  * `certifications` porte son propre pied (`CoachPageCertificationsCard`, tf-3) :
  * la page passe `show-footer=false`, deux pieds produiraient deux boutons.
+ * C'est la seule exception : CPD.2 (bio, énoncé) et CPD.3 (bénéfices, piliers,
+ * déroulé) ont été ramenés à cette règle — une carte de corps n'ajoute ni pied
+ * ni `save`.
  */
 withDefaults(
   defineProps<{

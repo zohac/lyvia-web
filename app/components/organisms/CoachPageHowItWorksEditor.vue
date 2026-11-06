@@ -1,53 +1,38 @@
 <script setup lang="ts">
 /**
  * CPD.3 — Éditeur « Déroulé » (liste d'étapes à icônes, plafond 6), extrait
- * de `coach-page.vue`.
+ * de `coach-page.vue`. Le plafond est celui du markup d'origine (le bouton est
+ * désactivé à 6 étapes) ; il est inchangé.
+ *
+ * Le pied « Enregistrer » n'est PAS ici : il appartient à
+ * `CoachPageSectionCard` (arbitrage CPD.2 du 2026-11-05, appliqué à CPD.3).
  */
-import { computed } from 'vue'
+import type { HowItWorksStep } from '~/features/seo/api/public-provider-profile.contract'
+import type { ListItemPatch } from '~/features/coach/domain/list-item-patch'
 
-import IconPicker from '~/components/molecules/IconPicker.vue'
 import FormControl from '~/components/molecules/FormControl.vue'
+import IconPicker from '~/components/molecules/IconPicker.vue'
 
-interface StepItem {
-  number?: string | null
-  title?: string | null
-  description?: string | null
-  icon?: string | null
-}
-
-const props = withDefaults(
+withDefaults(
   defineProps<{
-    items?: StepItem[] | null
-    howItWorksForm?: StepItem[] | null
-    form?: StepItem[] | null
-    steps?: StepItem[] | null
+    items?: HowItWorksStep[]
     howItWorksEyebrow?: string | null
     howItWorksTitle?: string | null
-    saving?: boolean
   }>(),
   {
-    items: null,
-    howItWorksForm: null,
-    form: null,
-    steps: null,
-    howItWorksEyebrow: null,
-    howItWorksTitle: null,
-    saving: false
+    items: () => [],
+    howItWorksEyebrow: '',
+    howItWorksTitle: ''
   }
 )
 
 const emit = defineEmits<{
-  'update:item': [{ index: number, field: 'title' | 'description' | 'icon' | 'number', value: string | undefined }]
+  'update:item': [patch: ListItemPatch]
   'add': []
   'remove': [index: number]
   'update:how-it-works-eyebrow': [value: string]
   'update:how-it-works-title': [value: string]
-  'save': []
 }>()
-
-const resolvedItems = computed(() => props.items ?? props.howItWorksForm ?? props.form ?? props.steps ?? [])
-const eyebrowValue = computed(() => props.howItWorksEyebrow ?? '')
-const titleValue = computed(() => props.howItWorksTitle ?? '')
 </script>
 
 <template>
@@ -60,7 +45,7 @@ const titleValue = computed(() => props.howItWorksTitle ?? '')
       >
         <template #default="{ inputAttrs }">
           <UInput
-            :model-value="eyebrowValue"
+            :model-value="howItWorksEyebrow ?? ''"
             v-bind="inputAttrs"
             placeholder="Le parcours"
             :maxlength="100"
@@ -75,7 +60,7 @@ const titleValue = computed(() => props.howItWorksTitle ?? '')
       >
         <template #default="{ inputAttrs }">
           <UInput
-            :model-value="titleValue"
+            :model-value="howItWorksTitle ?? ''"
             v-bind="inputAttrs"
             placeholder="Comment se déroule l'accompagnement"
             :maxlength="200"
@@ -87,7 +72,7 @@ const titleValue = computed(() => props.howItWorksTitle ?? '')
 
     <div class="space-y-4">
       <div
-        v-for="(step, idx) in (resolvedItems ?? [])"
+        v-for="(step, idx) in items"
         :key="idx"
         class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
       >
@@ -102,17 +87,17 @@ const titleValue = computed(() => props.howItWorksTitle ?? '')
           />
         </button>
         <div class="mb-2 text-xs font-bold text-[color:var(--color-brand-primary)]">
-          Étape {{ step?.number ?? (idx + 1) }}
+          Étape {{ step.number }}
         </div>
         <div class="space-y-3">
           <UInput
-            :model-value="step?.title ?? ''"
+            :model-value="step.title"
             placeholder="Titre de l'étape"
             size="sm"
             @update:model-value="emit('update:item', { index: idx, field: 'title', value: $event as string })"
           />
           <UTextarea
-            :model-value="step?.description ?? ''"
+            :model-value="step.description"
             class="w-full"
             placeholder="Description (max 500 caractères)"
             :maxlength="500"
@@ -125,7 +110,7 @@ const titleValue = computed(() => props.howItWorksTitle ?? '')
               Icône de l'étape
             </label>
             <IconPicker
-              :model-value="step?.icon ?? null"
+              :model-value="step.icon ?? null"
               label="Icône de l'étape"
               @update:model-value="(v: string) => emit('update:item', { index: idx, field: 'icon', value: v || undefined })"
             />
@@ -139,21 +124,10 @@ const titleValue = computed(() => props.howItWorksTitle ?? '')
       variant="outline"
       size="sm"
       icon="i-lucide-plus"
-      :disabled="(resolvedItems?.length ?? 0) >= 6"
+      :disabled="items.length >= 6"
       @click="emit('add')"
     >
       Ajouter une étape
-    </UButton>
-  </div>
-  <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-    <UButton
-      color="primary"
-      variant="solid"
-      size="sm"
-      :loading="saving"
-      @click="emit('save')"
-    >
-      Enregistrer
     </UButton>
   </div>
 </template>

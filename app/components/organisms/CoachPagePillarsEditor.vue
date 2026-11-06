@@ -1,68 +1,46 @@
 <script setup lang="ts">
 /**
  * CPD.3 — Éditeur « Piliers » (liste à icônes + soutien émotionnel), extrait
- * de `coach-page.vue`. Le soutien émotionnel n'est rendu que si
- * `showEmotionalSupport` est vrai (prop explicite, pas de lecture globalisée).
+ * de `coach-page.vue`.
+ *
+ * Le soutien émotionnel n'est rendu que si `showEmotionalSupport` est vrai
+ * (prop explicite, pas de lecture globalisée) : la carte reste testable seule.
+ *
+ * Le pied « Enregistrer » n'est PAS ici : il appartient à
+ * `CoachPageSectionCard` (arbitrage CPD.2 du 2026-11-05, appliqué à CPD.3).
  */
-import { computed } from 'vue'
+import type { EmotionalSupport, PillarItem } from '~/features/seo/api/public-provider-profile.contract'
+import type { ListItemPatch } from '~/features/coach/domain/list-item-patch'
 
-import IconPicker from '~/components/molecules/IconPicker.vue'
 import FormControl from '~/components/molecules/FormControl.vue'
+import IconPicker from '~/components/molecules/IconPicker.vue'
 
-interface PillarItem {
-  title?: string | null
-  description?: string | null
-  icon?: string | null
-}
-
-interface EmotionalSupport {
-  title?: string | null
-  description?: string | null
-}
-
-interface PillarsForm {
-  items?: PillarItem[] | null
-  emotionalSupport?: EmotionalSupport | null
-}
-
-const props = withDefaults(
+withDefaults(
   defineProps<{
-    items?: PillarItem[] | null
-    pillarsForm?: PillarsForm | null
-    form?: PillarsForm | null
+    items?: PillarItem[]
     emotionalSupport?: EmotionalSupport | null
     showEmotionalSupport?: boolean
     pillarsEyebrow?: string | null
     pillarsTitle?: string | null
-    saving?: boolean
   }>(),
   {
-    items: null,
-    pillarsForm: null,
-    form: null,
+    items: () => [],
     emotionalSupport: null,
     showEmotionalSupport: false,
-    pillarsEyebrow: null,
-    pillarsTitle: null,
-    saving: false
+    pillarsEyebrow: '',
+    pillarsTitle: ''
   }
 )
 
 const emit = defineEmits<{
-  'update:item': [{ index: number, field: 'title' | 'description' | 'icon', value: string | undefined }]
+  'update:item': [patch: ListItemPatch]
   'add': []
   'remove': [index: number]
   'update:emotional-support-title': [value: string]
   'update:emotional-support-description': [value: string]
   'update:pillars-eyebrow': [value: string]
   'update:pillars-title': [value: string]
-  'save': []
 }>()
-
-const resolvedItems = computed(() => props.items ?? props.pillarsForm?.items ?? props.form?.items ?? [])
-const resolvedEmotionalSupport = computed(() => props.emotionalSupport ?? props.pillarsForm?.emotionalSupport ?? props.form?.emotionalSupport ?? null)
-const eyebrowValue = computed(() => props.pillarsEyebrow ?? '')
-const titleValue = computed(() => props.pillarsTitle ?? '')
 </script>
 
 <template>
@@ -75,7 +53,7 @@ const titleValue = computed(() => props.pillarsTitle ?? '')
       >
         <template #default="{ inputAttrs }">
           <UInput
-            :model-value="eyebrowValue"
+            :model-value="pillarsEyebrow ?? ''"
             v-bind="inputAttrs"
             placeholder="L'approche"
             :maxlength="100"
@@ -90,7 +68,7 @@ const titleValue = computed(() => props.pillarsTitle ?? '')
       >
         <template #default="{ inputAttrs }">
           <UInput
-            :model-value="titleValue"
+            :model-value="pillarsTitle ?? ''"
             v-bind="inputAttrs"
             placeholder="Les piliers de l'accompagnement"
             :maxlength="200"
@@ -102,7 +80,7 @@ const titleValue = computed(() => props.pillarsTitle ?? '')
 
     <div class="space-y-4">
       <div
-        v-for="(pillar, idx) in (resolvedItems ?? [])"
+        v-for="(pillar, idx) in items"
         :key="idx"
         class="relative rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4"
       >
@@ -118,13 +96,13 @@ const titleValue = computed(() => props.pillarsTitle ?? '')
         </button>
         <div class="space-y-3">
           <UInput
-            :model-value="pillar?.title ?? ''"
+            :model-value="pillar.title"
             placeholder="Titre du pilier"
             size="sm"
             @update:model-value="emit('update:item', { index: idx, field: 'title', value: $event as string })"
           />
           <UTextarea
-            :model-value="pillar?.description ?? ''"
+            :model-value="pillar.description"
             class="w-full"
             placeholder="Description (max 500 caractères)"
             :maxlength="500"
@@ -137,7 +115,7 @@ const titleValue = computed(() => props.pillarsTitle ?? '')
               Icône (optionnel)
             </label>
             <IconPicker
-              :model-value="pillar?.icon ?? null"
+              :model-value="pillar.icon ?? null"
               label="Icône du pilier"
               @update:model-value="(v: string) => emit('update:item', { index: idx, field: 'icon', value: v || undefined })"
             />
@@ -151,7 +129,7 @@ const titleValue = computed(() => props.pillarsTitle ?? '')
       variant="outline"
       size="sm"
       icon="i-lucide-plus"
-      :disabled="(resolvedItems?.length ?? 0) >= 10"
+      :disabled="items.length >= 10"
       @click="emit('add')"
     >
       Ajouter un pilier
@@ -167,13 +145,13 @@ const titleValue = computed(() => props.pillarsTitle ?? '')
       </h3>
       <div class="space-y-3">
         <UInput
-          :model-value="resolvedEmotionalSupport?.title ?? ''"
+          :model-value="emotionalSupport?.title ?? ''"
           placeholder="Titre (ex: Un espace d'écoute bienveillant)"
           size="sm"
           @update:model-value="emit('update:emotional-support-title', $event as string)"
         />
         <UTextarea
-          :model-value="resolvedEmotionalSupport?.description ?? ''"
+          :model-value="emotionalSupport?.description ?? ''"
           class="w-full"
           placeholder="Description (max 1000 caractères)"
           :maxlength="1000"
@@ -183,16 +161,5 @@ const titleValue = computed(() => props.pillarsTitle ?? '')
         />
       </div>
     </div>
-  </div>
-  <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-    <UButton
-      color="primary"
-      variant="solid"
-      size="sm"
-      :loading="saving"
-      @click="emit('save')"
-    >
-      Enregistrer
-    </UButton>
   </div>
 </template>
