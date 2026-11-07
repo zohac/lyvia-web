@@ -260,7 +260,12 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPagePillarsEditor.vue'), 'utf-8'),
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageHowItWorksEditor.vue'), 'utf-8'),
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageTestimonialsEditor.vue'), 'utf-8'),
-      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageFaqEditor.vue'), 'utf-8')
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageFaqEditor.vue'), 'utf-8'),
+      // CPD.5 — les textareas de ces deux cartes vivaient dans la page (donc dans
+      // `sources`) avant l'extraction : sans ces deux lignes, la couverture de
+      // l'AC-3 était perdue par le déplacement.
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageFreeTextEditor.vue'), 'utf-8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageEducationalContentEditor.vue'), 'utf-8')
     ]
     // Match every <UTextarea ...> opening tag (with attributes spanning multiple lines).
     const textareaPattern = /<UTextarea\b[^>]*?(?:\n[^>]*?)*?>/g
@@ -478,6 +483,73 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     assert.match(readCoachPage(), /faq: onSaveFaqSection/)
     // Plafond importé de la source unique, plus de copie locale dans la page.
     assert.match(readCoachPage(), /import \{ TESTIMONIALS_MAX \} from '~\/features\/coach\/domain\/social-editor-limits'/)
+  })
+
+  // ─────────────────────────────────────────────────────────────────────
+  // CPD.5 — GARDE DE CÂBLAGE — les trois éditeurs de contenu sont montés
+  // ─────────────────────────────────────────────────────────────────────
+
+  /**
+   * CPD.5 — GARDE DE CÂBLAGE (pas une preuve de rendu).
+   *
+   * La preuve de rendu et d'émission est `tests/coach/cpd-5-content-editors.test.ts` ;
+   * ces assertions prouvent que les trois cartes sont réellement MONTÉES,
+   * chacune dans sa section, avec toutes leurs liaisons. Avant cette garde,
+   * supprimer les trois montages laissait la suite entière verte (mesuré en
+   * revue).
+   */
+  test('AC-5: GARDE DE CÂBLAGE — la page monte les trois éditeurs de contenu avec toutes leurs liaisons', () => {
+    for (const [card, section] of [
+      ['CoachPageFreeTextEditor', 'freeText'],
+      ['CoachPageFitEditor', 'fit'],
+      ['CoachPageEducationalContentEditor', 'educationalContent']
+    ] as const) {
+      assert.match(
+        readCoachPage(),
+        new RegExp(`^import ${card} from '~\\/components\\/organisms\\/${card}\\.vue'$`, 'm'),
+        `${card} doit être importé explicitement (une balise non résolue ne rend rien)`
+      )
+      assert.ok(!componentTag(card).includes('@save'), `${card} ne porte pas @save (le pied est celui de la carte de section)`)
+      assert.ok(!componentTag(card).includes(':saving'), `${card} ne porte pas :saving`)
+      assert.ok(sectionBlock(section).includes(`<${card}`), `${card} doit être monté dans la section « ${section} »`)
+      assert.ok(!componentTag(card).includes('v-if'), `${card} ne doit pas être conditionné dans sa propre balise`)
+    }
+
+    assertBindings('CoachPageFreeTextEditor', [
+      ':free-text-form="freeTextForm"',
+      '@update:title="setFreeTextTitle($event)"',
+      '@update:paragraph="setFreeTextParagraph($event.index, $event.value)"',
+      '@add-paragraph="addFreeTextParagraph()"',
+      '@remove-paragraph="removeFreeTextParagraph($event)"'
+    ])
+
+    assertBindings('CoachPageFitEditor', [
+      ':fit-form="fitForm"',
+      '@update:fit-field="setFitField"',
+      '@update:item="applyFitItem"',
+      '@add="addFitItem($event)"',
+      '@remove="removeFitItem($event)"'
+    ])
+
+    assertBindings('CoachPageEducationalContentEditor', [
+      ':educational-content-form="educationalContentForm"',
+      '@update:paragraph="setEducationalParagraph($event.index, $event.value)"',
+      '@add-paragraph="addEducationalParagraph()"',
+      '@remove-paragraph="removeEducationalParagraph($event)"',
+      '@update:insight="setEducationalInsight"'
+    ])
+
+    // AC-2 : `initFitFormIfNull()` est sorti du template (un seul point d'appel,
+    // dans le store) — le laisser dans une liaison reproduisait le défaut.
+    assert.ok(
+      !readCoachPageMarkup().includes('initFitFormIfNull'),
+      'aucune liaison ne doit appeler `initFitFormIfNull` : le store crée le formulaire (ensureFitForm)'
+    )
+
+    // Dispatcheur d'enregistrement : chaque section pointe vers SON handler.
+    assert.match(readCoachPage(), /fit: onSaveFitSection,/)
+    assert.match(readCoachPage(), /educationalContent: onSaveEducationalContentSection/)
+    assert.match(readCoachPage(), /freeText: onSaveFreeTextSection/)
   })
 
   // ─────────────────────────────────────────────────────────────────────

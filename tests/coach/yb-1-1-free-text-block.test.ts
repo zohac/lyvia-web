@@ -4,6 +4,14 @@ import * as path from 'node:path'
 import test, { describe } from 'node:test'
 
 import {
+  UInput,
+  UTextarea,
+  byButtonIcon,
+  byId,
+  propValue,
+  renderCard
+} from '../helpers/sfc-vnode-harness'
+import {
   COACH_PAGE_INLINE_EDITOR_SECTIONS,
   getCoachPageConfigurableSections,
   getCoachPageEditableSections,
@@ -34,11 +42,13 @@ import type {
  * `provider_profiles.sections_config` — sont vérifiées côté API, en base :
  * `coach-page-templates-seed.db.spec.ts`).
  *
- * AD-10 : le coureur du dépôt est `tsc -p tsconfig.tests.json && node --test`,
- * il ne compile AUCUN composant monofichier. Ce qui exige de RENDRE la page
- * ou l'éditeur est une revue humaine, désignée comme telle. Ce fichier couvre
- * la part machine-vérifiable : la présence des inscriptions, l'aller-retour des
- * deux contrats, le contrat du composant (garde de vide, pas de HTML).
+ * CPD.5 — la preuve de l'éditeur n'est plus une lecture de source : le harnais
+ * `tests/helpers/render-sfc.ts` monte un composant monofichier depuis `0-42`,
+ * donc les garanties du formulaire (titre ≤ 200, un textarea borné par
+ * paragraphe, câblage `FormControl` → premier textarea, plafond de 10 avec sa
+ * raison) sont désormais assertées sur le RENDU de
+ * `CoachPageFreeTextEditor.vue`. Le verrou et le corps déplié restent des
+ * prédicats de page (voir plus bas) : ils appartiennent à l'enveloppe.
  */
 
 const appRoot = path.resolve(process.cwd(), 'app')
@@ -59,6 +69,8 @@ function readApiSource(relativePath: string): string | null {
 const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
 const COACH_PAGE_VISIBILITY_PATH = 'composables/useCoachSectionVisibility.ts'
 const FREE_TEXT_COMPONENT_PATH = 'components/organisms/CoachFreeText.vue'
+/** Chemin résolu depuis la racine du dépôt — `renderCard` attend celui-ci. */
+const FREE_TEXT_EDITOR_SFC = 'app/components/organisms/CoachPageFreeTextEditor.vue'
 
 const TEMPLATES = [
   'components/templates/coach-pages/CoachPageSignature.vue',
@@ -624,50 +636,47 @@ describe('YB.1.1 — l\u2019éditeur', () => {
     )
   })
 
-  test('formulaire : titre optionnel, un textarea par paragraphe, ajout borné', () => {
-    const source = readFile(COACH_PAGE_PATH)
+  test('formulaire (RENDU) : titre borné à 200, un textarea borné par paragraphe, ajout borné avec sa raison', async () => {
+    const { all: twoRows } = await renderCard(FREE_TEXT_EDITOR_SFC, {
+      freeTextForm: { title: 'Comment je travaille', paragraphs: ['Premier', 'Second'] }
+    })
 
-    assert.match(source, /section === 'freeText'/)
-    assert.match(
-      source,
-      /FREE_TEXT_TITLE_MAX_LENGTH\s*=\s*200/,
-      'titre ≤ 200 caractères (aligné sur FreeTextJsonDto)'
+    const title = byId(twoRows, UInput, 'freeTextTitle')
+    assert.equal(propValue(title, 'modelValue'), 'Comment je travaille', 'le titre est rendu')
+    assert.equal(propValue(title, 'maxlength'), 200, 'titre ≤ 200 caractères (aligné sur FreeTextJsonDto)')
+
+    const paragraphs = twoRows.filter(
+      v => v.type === UTextarea && String((v.props ?? {}).placeholder ?? '').startsWith('Paragraphe ')
     )
+    assert.equal(paragraphs.length, 2, 'un textarea par paragraphe')
+    for (const paragraph of paragraphs) {
+      assert.equal(propValue(paragraph, 'maxlength'), 2000, 'chaque paragraphe est borné à 2000')
+      assert.match(String((paragraph.props ?? {}).class ?? ''), /\bw-full\b/, 'le textarea du bloc est pleine largeur')
+    }
+
+    // CR round 2 : le PREMIER textarea porte l'id et l'aria-describedby du
+    // FormControl — sans cela le label « Paragraphes » et son hint pointent
+    // dans le vide. Asserté sur le rendu, plus sur une regex de source.
+    assert.equal(propValue(paragraphs[0] as (typeof paragraphs)[number], 'id'), 'freeTextParagraph')
     assert.match(
-      source,
-      /FREE_TEXT_PARAGRAPH_MAX\s*=\s*10/,
-      '10 paragraphes maximum (aligné sur FreeTextJsonDto et sur le plafond déjà appliqué à l\u2019éditeur)'
+      String(propValue(paragraphs[0] as (typeof paragraphs)[number], 'aria-describedby') ?? ''),
+      /freeTextParagraph-hint/
     )
-    assert.match(source, /FREE_TEXT_PARAGRAPH_MAX_LENGTH\s*=\s*2000/)
-    assert.match(
-      source,
-      /v-for="\(_, idx\) in \(freeTextForm\?\.paragraphs \?\? \[\]\)"/,
-      'un textarea par paragraphe'
+    assert.equal(propValue(paragraphs[1] as (typeof paragraphs)[number], 'id'), undefined, 'un seul élément porte l’id')
+
+    const ten = await renderCard(FREE_TEXT_EDITOR_SFC, {
+      freeTextForm: { paragraphs: Array.from({ length: 10 }, (_, i) => `Paragraphe ${i + 1}`) }
+    })
+    assert.equal(byButtonIcon(ten.all, 'i-lucide-plus').props?.disabled, true, 'l’ajout est borné à 10 (aligné sur FreeTextJsonDto)')
+    assert.ok(
+      ten.html.includes('Vous avez atteint le maximum de 10 paragraphes.'),
+      'un contrôle borné affiche sa raison verbatim — `disabled` le sort de la tabulation'
     )
-    // Convention du dépôt : tout UTextarea porte w-full.
-    assert.match(
-      source,
-      /<UTextarea\s+:model-value="freeTextForm!\.paragraphs\[idx\]"[\s\S]{0,200}?class="w-full"/,
-      'le textarea du bloc doit être pleine largeur'
-    )
-    // CR round 2 : le FormControl « Paragraphes » doit câbler `inputAttrs`
-    // (id + aria-describedby) sur le premier textarea — sinon son `<label for>`
-    // et son hint ne pointent sur aucun élément.
-    assert.match(
-      source,
-      /id="freeTextParagraph"[\s\S]{0,600}?<template #default="\{ inputAttrs \}">[\s\S]{0,2000}?v-bind="idx === 0 \? inputAttrs : \{\}"/,
-      'le label et le hint du bloc doivent être associés au premier textarea'
-    )
-    assert.match(
-      source,
-      /:disabled="\(freeTextForm\?\.paragraphs\?\.length \?\? 0\) >= FREE_TEXT_PARAGRAPH_MAX"/,
-      'l\u2019ajout est borné'
-    )
-    assert.match(
-      source,
-      /data-testid="free-text-paragraph-limit-reason"/,
-      'un contrôle borné affiche sa raison — `disabled` le sort de la tabulation'
-    )
+
+    const nine = await renderCard(FREE_TEXT_EDITOR_SFC, {
+      freeTextForm: { paragraphs: Array.from({ length: 9 }, (_, i) => `Paragraphe ${i + 1}`) }
+    })
+    assert.notEqual(byButtonIcon(nine.all, 'i-lucide-plus').props?.disabled, true, 'sous le plafond, l’ajout reste actif')
   })
 
   test('l\u2019aperçu reflète la saisie NON enregistrée (liste d\u2019autorisation exhaustive)', () => {

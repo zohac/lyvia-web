@@ -95,6 +95,9 @@ import CoachPagePillarsEditor from '~/components/organisms/CoachPagePillarsEdito
 import CoachPageHowItWorksEditor from '~/components/organisms/CoachPageHowItWorksEditor.vue'
 import CoachPageTestimonialsEditor from '~/components/organisms/CoachPageTestimonialsEditor.vue'
 import CoachPageFaqEditor from '~/components/organisms/CoachPageFaqEditor.vue'
+import CoachPageFitEditor from '~/components/organisms/CoachPageFitEditor.vue'
+import CoachPageEducationalContentEditor from '~/components/organisms/CoachPageEducationalContentEditor.vue'
+import CoachPageFreeTextEditor from '~/components/organisms/CoachPageFreeTextEditor.vue'
 import CoachPageSectionCard from '~/components/organisms/CoachPageSectionCard.vue'
 import {
   parseHex,
@@ -163,26 +166,28 @@ const {
   addBenefit,
   removeBenefit,
   addEducationalParagraph,
+  setEducationalParagraph,
   removeEducationalParagraph,
-  setEducationalInsightTitle,
-  setEducationalInsightContent,
+  setEducationalInsight,
   setProblemStatementBlockquote,
   addProblemParagraph,
   removeProblemParagraph,
   setFreeTextTitle,
+  setFreeTextParagraph,
   addFreeTextParagraph,
   removeFreeTextParagraph,
+  setFitField,
+  addFitItem,
+  removeFitItem,
+  applyFitItem,
   saveFreeText
 } = editor
 
 onMounted(() => init())
 
 // YB.1.1 — plafonds alignés sur `FreeTextJsonDto` côté API
-// (10 paragraphes × 2 000 caractères, titre ≤ 200). Le même plafond de 10 est
-// déjà appliqué à l'éditeur des paragraphes éducatifs.
-const FREE_TEXT_PARAGRAPH_MAX = 10
-const FREE_TEXT_PARAGRAPH_MAX_LENGTH = 2000
-const FREE_TEXT_TITLE_MAX_LENGTH = 200
+// (10 paragraphes × 2 000 caractères, titre ≤ 200). Les constantes vivent
+// désormais dans `CoachPageFreeTextEditor.vue` (extraction CPD.5).
 // "Qui suis-je" édite `longBio` (5000 chars max — DTO `@MaxLength(5000)`),
 // pas le champ `bio` (500 chars, tagline hero). Le rendu public CoachPageSignature
 // / CoachPageEssentiel priorise `longBio` pour cette section.
@@ -1049,26 +1054,6 @@ async function onSaveHowItWorksSection() {
     title: ok ? 'Comment ça marche enregistré' : 'Erreur d\'enregistrement',
     color: ok ? 'primary' : 'error'
   })
-}
-
-function initFitFormIfNull() {
-  if (!fitForm.value) {
-    fitForm.value = {
-      eyebrow: 'Adéquation',
-      title: 'Cet accompagnement est-il fait pour vous ?',
-      items: []
-    }
-  }
-}
-
-function addFitItem(type: 'for' | 'not_for') {
-  initFitFormIfNull()
-  fitForm.value!.items.push({ type, text: '' })
-}
-
-function removeFitItem(index: number) {
-  if (!fitForm.value?.items) return
-  fitForm.value.items.splice(index, 1)
 }
 
 async function onSaveFitSection() {
@@ -2394,94 +2379,15 @@ function externalSectionTo(section: string): string {
               @update:benefits-title="sectionTitlesForm.benefitsTitle = $event"
             />
 
-            <!-- ── FREE TEXT (Bloc de texte libre) — YB.1.1 ── -->
+            <!-- ── FREE TEXT (Bloc de texte libre) — CPD.5 ── -->
             <template v-if="section === 'freeText'">
-              <div class="space-y-4 px-6 py-5">
-                <p class="text-sm text-[color:var(--color-brand-secondary)]">
-                  Un texte libre qui s'affiche entre vos bénéfices et la section
-                  « Qui suis-je ». Le titre est facultatif ; les paragraphes
-                  s'affichent tels que vous les saisissez.
-                </p>
-
-                <FormControl
-                  id="freeTextTitle"
-                  label="Titre du bloc (facultatif)"
-                  :hint="`Facultatif — ${FREE_TEXT_TITLE_MAX_LENGTH} caractères maximum`"
-                >
-                  <template #default="{ inputAttrs }">
-                    <UInput
-                      :model-value="freeTextForm?.title ?? ''"
-                      v-bind="inputAttrs"
-                      placeholder="Comment je travaille avec vous"
-                      :maxlength="FREE_TEXT_TITLE_MAX_LENGTH"
-                      @update:model-value="(val: string) => setFreeTextTitle(val)"
-                    />
-                  </template>
-                </FormControl>
-
-                <FormControl
-                  id="freeTextParagraph"
-                  label="Paragraphes"
-                  :hint="`Jusqu'à ${FREE_TEXT_PARAGRAPH_MAX} paragraphes de ${FREE_TEXT_PARAGRAPH_MAX_LENGTH} caractères`"
-                >
-                  <template #default="{ inputAttrs }">
-                    <div class="space-y-3">
-                      <div
-                        v-for="(_, idx) in (freeTextForm?.paragraphs ?? [])"
-                        :key="idx"
-                        class="relative"
-                      >
-                        <button
-                          type="button"
-                          class="absolute -right-1 -top-1 z-10 text-[color:var(--color-brand-muted)] hover:text-[color:var(--color-error)]"
-                          :aria-label="`Supprimer le paragraphe ${idx + 1}`"
-                          @click="removeFreeTextParagraph(idx)"
-                        >
-                          <UIcon
-                            name="i-lucide-x"
-                            class="size-4"
-                          />
-                        </button>
-                        <!-- YB.1.1 — CR round 2 : le premier textarea porte l'id
-                               et l'aria-describedby du FormControl ; sans cela le
-                               label « Paragraphes » et le hint pointaient dans le vide. -->
-                        <UTextarea
-                          :model-value="freeTextForm!.paragraphs[idx]"
-                          v-bind="idx === 0 ? inputAttrs : {}"
-                          class="w-full"
-                          :placeholder="`Paragraphe ${idx + 1} (max ${FREE_TEXT_PARAGRAPH_MAX_LENGTH} caractères)`"
-                          :maxlength="FREE_TEXT_PARAGRAPH_MAX_LENGTH"
-                          :rows="4"
-                          size="sm"
-                          @update:model-value="(val: string) => { if (freeTextForm) freeTextForm.paragraphs[idx] = val }"
-                        />
-                      </div>
-                    </div>
-                  </template>
-                </FormControl>
-
-                <UButton
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-plus"
-                  :disabled="(freeTextForm?.paragraphs?.length ?? 0) >= FREE_TEXT_PARAGRAPH_MAX"
-                  @click="addFreeTextParagraph"
-                >
-                  Ajouter un paragraphe
-                </UButton>
-
-                <!-- Raison affichée d'un contrôle borné — `disabled` retire le
-                       bouton de l'ordre de tabulation, la raison reste lue. -->
-                <p
-                  v-if="(freeTextForm?.paragraphs?.length ?? 0) >= FREE_TEXT_PARAGRAPH_MAX"
-                  data-testid="free-text-paragraph-limit-reason"
-                  class="text-sm text-[color:var(--color-brand-secondary)]"
-                  role="note"
-                >
-                  Vous avez atteint le maximum de {{ FREE_TEXT_PARAGRAPH_MAX }} paragraphes.
-                </p>
-              </div>
+              <CoachPageFreeTextEditor
+                :free-text-form="freeTextForm"
+                @update:title="setFreeTextTitle($event)"
+                @update:paragraph="setFreeTextParagraph($event.index, $event.value)"
+                @add-paragraph="addFreeTextParagraph()"
+                @remove-paragraph="removeFreeTextParagraph($event)"
+              />
             </template>
 
             <!-- ── PILLARS — CPD.3 ── -->
@@ -2514,167 +2420,26 @@ function externalSectionTo(section: string): string {
               @update:how-it-works-title="sectionTitlesForm.howItWorksTitle = $event"
             />
 
-            <!-- ── FIT / POUR QUI ── -->
+            <!-- ── FIT / POUR QUI — CPD.5 ── -->
             <template v-if="section === 'fit'">
-              <div class="px-6 py-5">
-                <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label
-                      for="fitEyebrow"
-                      class="mb-1 block text-xs font-medium text-[color:var(--color-text-muted)]"
-                    >Surtitre</label>
-                    <UInput
-                      id="fitEyebrow"
-                      :model-value="fitForm?.eyebrow ?? ''"
-                      placeholder="Adéquation"
-                      @update:model-value="(val: string) => { initFitFormIfNull(); fitForm!.eyebrow = val }"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      for="fitTitle"
-                      class="mb-1 block text-xs font-medium text-[color:var(--color-text-muted)]"
-                    >Titre de section</label>
-                    <UInput
-                      id="fitTitle"
-                      :model-value="fitForm?.title ?? ''"
-                      placeholder="Cet accompagnement est-il fait pour vous ?"
-                      @update:model-value="(val: string) => { initFitFormIfNull(); fitForm!.title = val }"
-                    />
-                  </div>
-                </div>
-
-                <p class="mb-3 text-xs text-[color:var(--color-text-muted)]">
-                  Définissez les critères d'adéquation pour vos clientes (pour qui c'est fait / pour qui ce n'est pas adapté).
-                </p>
-
-                <div class="space-y-3">
-                  <div
-                    v-for="(item, idx) in (fitForm?.items ?? [])"
-                    :key="idx"
-                    class="flex items-start gap-2 rounded-lg border border-[color:var(--color-border-subtle)] p-3"
-                  >
-                    <div class="w-40 shrink-0">
-                      <select
-                        v-model="item.type"
-                        class="w-full rounded border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-elevated)] px-2 py-1 text-xs font-medium text-[color:var(--color-text-primary)]"
-                      >
-                        <option value="for">
-                          Pour vous si
-                        </option>
-                        <option value="not_for">
-                          Ce n'est pas adapté si
-                        </option>
-                      </select>
-                    </div>
-                    <div class="flex-1">
-                      <UInput
-                        v-model="item.text"
-                        placeholder="Décrivez un critère..."
-                        size="sm"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      class="mt-1 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                      title="Supprimer"
-                      @click="removeFitItem(idx)"
-                    >
-                      <UIcon
-                        name="i-lucide-trash-2"
-                        class="size-4"
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                <div class="mt-4 flex gap-2">
-                  <UButton
-                    size="xs"
-                    variant="soft"
-                    icon="i-lucide-check"
-                    color="primary"
-                    @click="addFitItem('for')"
-                  >
-                    Ajouter un critère « Pour vous »
-                  </UButton>
-                  <UButton
-                    size="xs"
-                    variant="soft"
-                    icon="i-lucide-x"
-                    color="neutral"
-                    @click="addFitItem('not_for')"
-                  >
-                    Ajouter un critère « Pas adapté »
-                  </UButton>
-                </div>
-              </div>
+              <CoachPageFitEditor
+                :fit-form="fitForm"
+                @update:fit-field="setFitField"
+                @update:item="applyFitItem"
+                @add="addFitItem($event)"
+                @remove="removeFitItem($event)"
+              />
             </template>
 
-            <!-- ── EDUCATIONAL CONTENT ── -->
+            <!-- ── EDUCATIONAL CONTENT — CPD.5 ── -->
             <template v-if="section === 'educationalContent'">
-              <div class="px-6 py-5">
-                <div class="space-y-4">
-                  <div
-                    v-for="(_, idx) in (educationalContentForm?.paragraphs ?? [])"
-                    :key="idx"
-                    class="relative"
-                  >
-                    <button
-                      type="button"
-                      class="absolute -right-1 -top-1 z-10 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-error)]"
-                      @click="removeEducationalParagraph(idx)"
-                    >
-                      <UIcon
-                        name="i-lucide-x"
-                        class="size-4"
-                      />
-                    </button>
-                    <UTextarea
-                      v-model="educationalContentForm!.paragraphs[idx]"
-                      class="w-full"
-                      :placeholder="`Paragraphe ${idx + 1} (max 2000 caractères)`"
-                      :maxlength="2000"
-                      :rows="4"
-                      size="sm"
-                    />
-                  </div>
-                </div>
-                <UButton
-                  class="mt-4"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  icon="i-lucide-plus"
-                  :disabled="(educationalContentForm?.paragraphs?.length ?? 0) >= 10"
-                  @click="addEducationalParagraph"
-                >
-                  Ajouter un paragraphe
-                </UButton>
-
-                <!-- Insight box -->
-                <div class="mt-6 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4">
-                  <h3 class="mb-3 text-sm font-semibold text-[color:var(--color-text-primary)]">
-                    Encadré insight (optionnel)
-                  </h3>
-                  <div class="space-y-3">
-                    <UInput
-                      :model-value="educationalContentForm?.insightBox?.title ?? ''"
-                      placeholder="Titre de l'encadré"
-                      size="sm"
-                      @update:model-value="setEducationalInsightTitle"
-                    />
-                    <UTextarea
-                      :model-value="educationalContentForm?.insightBox?.content ?? ''"
-                      class="w-full"
-                      placeholder="Contenu de l'encadré"
-                      :rows="3"
-                      size="sm"
-                      @update:model-value="setEducationalInsightContent"
-                    />
-                  </div>
-                </div>
-              </div>
+              <CoachPageEducationalContentEditor
+                :educational-content-form="educationalContentForm"
+                @update:paragraph="setEducationalParagraph($event.index, $event.value)"
+                @add-paragraph="addEducationalParagraph()"
+                @remove-paragraph="removeEducationalParagraph($event)"
+                @update:insight="setEducationalInsight"
+              />
             </template>
 
             <!-- ── TESTIMONIALS — extrait CPD.4 ── -->

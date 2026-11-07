@@ -7,6 +7,13 @@ import {
   isCoachPageAlwaysOnSection,
   supportsEmotionalSupportSection
 } from './domain/coach-page-editor'
+import {
+  applyFitItemPatch,
+  applyInsightPatch,
+  type FitFieldPatch,
+  type FitItemPatch,
+  type InsightPatch
+} from './domain/content-item-patch'
 import type { CoachPageTemplate } from './api/coach-page-template.contract'
 import type {
   ProviderAccountResponse,
@@ -17,6 +24,7 @@ import type {
   HowItWorksStep,
   EducationalContentJson,
   ProblemStatementJson,
+  FitItem,
   FitJson,
   FreeTextJson
 } from '../account/api/provider-account.contract'
@@ -128,6 +136,10 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     ensureEducationalContentForm().paragraphs.push('')
   }
 
+  function setEducationalParagraph(index: number, value: string) {
+    ensureEducationalContentForm().paragraphs[index] = value
+  }
+
   function removeEducationalParagraph(index: number) {
     educationalContentForm.value?.paragraphs.splice(index, 1)
   }
@@ -146,6 +158,20 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
       form.insightBox = { title: '', content: '' }
     }
     form.insightBox.content = value
+  }
+
+  /**
+   * CPD.5 — l'encadré reçoit un patch typé (`update:insight`) : le `switch` de
+   * `applyInsightPatch` remplace le `if / else if` qui avalait une faute de
+   * frappe sur `field`. L'encadré naît avant application, comme pour les deux
+   * setters unitaires.
+   */
+  function setEducationalInsight(patch: InsightPatch) {
+    const form = ensureEducationalContentForm()
+    if (!form.insightBox) {
+      form.insightBox = { title: '', content: '' }
+    }
+    applyInsightPatch(form.insightBox, patch)
   }
 
   function ensureProblemStatementForm(): ProblemStatementJson {
@@ -187,12 +213,56 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     ensureFreeTextForm().title = value || undefined
   }
 
+  function setFreeTextParagraph(index: number, value: string) {
+    ensureFreeTextForm().paragraphs[index] = value
+  }
+
   function addFreeTextParagraph() {
     ensureFreeTextForm().paragraphs.push('')
   }
 
   function removeFreeTextParagraph(index: number) {
     freeTextForm.value?.paragraphs.splice(index, 1)
+  }
+
+  /**
+   * CPD.5 — « Pour qui » (fit).
+   *
+   * `initFitFormIfNull()` vivait dans `coach-page.vue` et était rappelé depuis
+   * le template, à chaque frappe, avant d'écrire : le seul moyen de le couvrir
+   * par un test était de le sortir de là. Il devient `ensureFitForm`, au même
+   * endroit que les quatre autres formulaires lazy du store, et la page ne
+   * porte plus qu'une liaison (`@update:fit-field="setFitField"`).
+   */
+  function ensureFitForm(): FitJson {
+    if (!fitForm.value) {
+      fitForm.value = {
+        eyebrow: 'Adéquation',
+        title: 'Cet accompagnement est-il fait pour vous ?',
+        items: []
+      }
+    }
+    return fitForm.value
+  }
+
+  function setFitField(patch: FitFieldPatch) {
+    const form = ensureFitForm()
+    form[patch.field] = patch.value
+  }
+
+  function addFitItem(type: FitItem['type']) {
+    ensureFitForm().items.push({ type, text: '' })
+  }
+
+  function removeFitItem(index: number) {
+    fitForm.value?.items.splice(index, 1)
+  }
+
+  /** L'index vient du rendu : hors bornes, rien n'est appliqué (no-op silencieux assumé). */
+  function applyFitItem(patch: FitItemPatch) {
+    const item = ensureFitForm().items[patch.index]
+    if (!item) return
+    applyFitItemPatch(item, patch)
   }
 
   async function init() {
@@ -338,15 +408,22 @@ export function createCoachPageEditor(deps: CreateCoachPageEditorDependencies) {
     addBenefit,
     removeBenefit,
     addEducationalParagraph,
+    setEducationalParagraph,
     removeEducationalParagraph,
     setEducationalInsightTitle,
     setEducationalInsightContent,
+    setEducationalInsight,
     setProblemStatementBlockquote,
     addProblemParagraph,
     removeProblemParagraph,
     setFreeTextTitle,
+    setFreeTextParagraph,
     addFreeTextParagraph,
     removeFreeTextParagraph,
+    setFitField,
+    addFitItem,
+    removeFitItem,
+    applyFitItem,
     publishCoachPage,
     unpublishCoachPage
   }
