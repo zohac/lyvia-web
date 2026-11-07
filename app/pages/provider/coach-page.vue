@@ -57,7 +57,6 @@ import {
 import { sectionLabel } from '~/features/coach/domain/coach-page-section-labels'
 // Hotfix 25 — l'aide du champ « Accroche » est dérivée du template, et son
 // repli Signature vient de la valeur réellement rendue par le hero.
-import { buildHeroHeadlineHint } from '~/features/coach/domain/hero-headline-hint'
 import { useCoachPageEditor } from '~/features/coach/useCoachPageEditor'
 import {
   snapshotSectionsConfig,
@@ -65,7 +64,6 @@ import {
 } from '~/features/coach/section-config-rollback'
 import type { TestimonialItem, CredentialItem } from '~/features/account/api/provider-account.contract'
 import {
-  uploadAsset,
   formatUploadError,
   validateFileUpload
 } from '~/features/assets/use-asset-upload'
@@ -77,7 +75,6 @@ import type { ConsultationPricePlan } from '~/features/consultation/api/consulta
 import type { ProgramResponse, PublicProgramListItem } from '~/features/programs/api/programs.contract'
 import CoachPagePreviewPanel from '~/components/organisms/CoachPagePreviewPanel.vue'
 import { useCoachLink } from '~/composables/useCoachLink'
-import FormControl from '~/components/molecules/FormControl.vue'
 import CoachPublishChecklistModal from '~/components/molecules/CoachPublishChecklistModal.vue'
 import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 // LAB-R14 — import EXPLICITE : un `<CoachPageTemplateRequiredNotice>` non importé
@@ -88,6 +85,7 @@ import CoachPageExternalSectionCard from '~/components/organisms/CoachPageExtern
 import CoachPageCertificationsCard from '~/components/organisms/CoachPageCertificationsCard.vue'
 import CoachPageBioEditor from '~/components/organisms/CoachPageBioEditor.vue'
 import CoachPageProblemStatementEditor from '~/components/organisms/CoachPageProblemStatementEditor.vue'
+import CoachPageHeroEditor from '~/components/organisms/CoachPageHeroEditor.vue'
 import CoachPageBenefitsEditor from '~/components/organisms/CoachPageBenefitsEditor.vue'
 import CoachPagePillarsEditor from '~/components/organisms/CoachPagePillarsEditor.vue'
 import CoachPageHowItWorksEditor from '~/components/organisms/CoachPageHowItWorksEditor.vue'
@@ -271,9 +269,6 @@ const heroForm = reactive({
   heroDescription: '',
   urgencyText: ''
 })
-const heroHeadlineCharCount = computed(() => heroForm.heroHeadline?.length ?? 0)
-const heroDescriptionCharCount = computed(() => heroForm.heroDescription?.length ?? 0)
-const urgencyCharCount = computed(() => heroForm.urgencyText?.length ?? 0)
 
 // ── Photo Hero / Fond (Story 0-38) ──
 const heroPhotoFile = ref<File | null>(null)
@@ -281,10 +276,6 @@ const heroPhotoPreview = ref<string | null>(null)
 const heroPhotoUploading = ref(false)
 const heroPhotoError = ref<string | null>(null)
 const heroFileInputRef = ref<HTMLInputElement | null>(null)
-
-function triggerHeroFileInput() {
-  heroFileInputRef.value?.click()
-}
 
 function onHeroFileSelected(event: Event) {
   heroPhotoError.value = null
@@ -302,23 +293,10 @@ function onHeroFileSelected(event: Event) {
   heroPhotoPreview.value = URL.createObjectURL(file)
 }
 
-async function handleHeroPhotoUpload() {
-  if (!heroPhotoFile.value) return
-  heroPhotoUploading.value = true
-  heroPhotoError.value = null
-
-  try {
-    const result = await uploadAsset('profile_photo', heroPhotoFile.value)
-    heroPhotoPreview.value = result.url
-    heroPhotoFile.value = null
-    await fetchAccount()
-    toast.add({ title: 'Photo d\'en-tête enregistrée', color: 'primary' })
-  } catch (e: unknown) {
-    heroPhotoError.value = formatUploadError(e)
-    toast.add({ title: 'Erreur', description: heroPhotoError.value, color: 'error' })
-  } finally {
-    heroPhotoUploading.value = false
-  }
+async function onHeroPhotoUploadedFromCard(url: string) {
+  heroPhotoPreview.value = url
+  await fetchAccount()
+  toast.add({ title: 'Photo d\'en-tête enregistrée', color: 'primary' })
 }
 
 async function handleHeroPhotoDisable() {
@@ -499,9 +477,6 @@ const isHeroBackgroundTemplate = computed(
 // ménopause… »). On dérive l'aide du template sélectionné.
 // Hotfix 25 — la dérivation vit dans `domain/hero-headline-hint.ts` : la ville
 // n'est plus annoncée et le repli Signature vient de la constante rendue.
-const heroHeadlineHint = computed<string>(() =>
-  buildHeroHeadlineHint(previewTemplateCode.value)
-)
 //
 // `account` is exposed as `readonly(account)` by createCoachPageEditor for
 // safety (no external mutation), but the preview composable only reads
@@ -1689,216 +1664,26 @@ function externalSectionTo(section: string): string {
           </div>
 
           <div class="space-y-4 px-6 py-5">
-            <!-- Photo de fond / Portrait Hero (Story 0-38) -->
-            <div>
-              <p class="mb-2 text-sm font-medium text-[color:var(--color-text-primary)]">
-                Photo d'en-tête (fond du Hero en template Visuel, portrait en Signature)
-              </p>
-              <p class="mb-3 text-xs text-[color:var(--color-brand-secondary)]">
-                JPEG, PNG ou WebP, max 2 Mo. Le template Alba n'utilise pas ce champ :
-                son hero affiche votre portrait, à gauche du titre.
-              </p>
-              <div class="flex items-center gap-6">
-                <div class="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-[color:var(--color-surface-highlight)]">
-                  <!--
-                    YB.1.2 — Alba. Les deux premières branches décrivent le
-                    champ « Photo d'en-tête », dont la sémantique est celle d'un
-                    FOND de hero : c'est le fond que Visuel étale en strate, et
-                    que le hero d'Alba n'a pas (AD-6 : hero plat, ni strate, ni
-                    image de fond, et `hero_image_disabled` n'y est pas lu).
-                    Alba saute donc la chaîne et tombe sur son PORTRAIT, plus
-                    bas. Sans cette garde, l'aperçu de l'éditeur annonçait à la
-                    coach un « fond sombre » ou une image d'ambiance que son
-                    hero n'affiche jamais — l'aperçu mentirait sur la page.
-                  -->
-                  <div
-                    v-if="isHeroBackgroundTemplate && account?.heroImageDisabled"
-                    class="flex h-full w-full flex-col items-center justify-center p-2 text-center text-[10px] font-medium text-[color:var(--color-brand-muted)]"
-                  >
-                    <UIcon
-                      name="i-lucide-eye-off"
-                      class="mb-1 h-5 w-5"
-                    />
-                    {{ previewTemplateCode === 'visuel' ? 'Fond sombre' : 'Sans photo' }}
-                  </div>
-                  <img
-                    v-else-if="isHeroBackgroundTemplate && (heroPhotoPreview || account?.heroImageUrl)"
-                    :src="(heroPhotoPreview || account?.heroImageUrl)!"
-                    alt="Photo Hero"
-                    class="h-full w-full object-cover"
-                  >
-                  <img
-                    v-else-if="previewTemplateCode === 'visuel'"
-                    src="/images/templates/visuel/hero-default.webp"
-                    alt="Photo Hero par défaut"
-                    class="h-full w-full object-cover opacity-75"
-                  >
-                  <!-- Alba : portrait de la coach, c'est-à-dire ce que rend
-                       réellement `CoachAlbaHero` — pas une image de fond. -->
-                  <img
-                    v-else-if="account?.imageUrl"
-                    :src="account.imageUrl"
-                    alt="Photo de profil"
-                    class="h-full w-full object-cover"
-                  >
-                  <UIcon
-                    v-else
-                    name="i-lucide-image"
-                    class="h-10 w-10 text-[color:var(--color-brand-muted)]"
-                  />
-                </div>
-                <div
-                  v-if="isHeroBackgroundTemplate"
-                  class="flex flex-col items-start gap-2"
-                >
-                  <div class="flex flex-wrap gap-2">
-                    <UButton
-                      variant="outline"
-                      icon="i-lucide-upload"
-                      :label="heroPhotoPreview || account?.heroImageUrl ? 'Modifier la photo' : 'Ajouter une photo'"
-                      size="sm"
-                      type="button"
-                      @click="triggerHeroFileInput"
-                    />
-                    <UButton
-                      v-if="!account?.heroImageDisabled"
-                      variant="ghost"
-                      color="error"
-                      icon="i-lucide-trash-2"
-                      label="Retirer l'image"
-                      size="sm"
-                      type="button"
-                      :loading="heroPhotoUploading"
-                      :disabled="heroPhotoUploading"
-                      @click="handleHeroPhotoDisable"
-                    />
-                    <UButton
-                      v-else
-                      variant="ghost"
-                      icon="i-lucide-rotate-ccw"
-                      label="Rétablir l'image par défaut"
-                      size="sm"
-                      type="button"
-                      :loading="heroPhotoUploading"
-                      :disabled="heroPhotoUploading"
-                      @click="handleHeroPhotoEnableDefault"
-                    />
-                  </div>
-                  <UButton
-                    v-if="heroPhotoFile"
-                    :loading="heroPhotoUploading"
-                    :disabled="heroPhotoUploading"
-                    label="Enregistrer la photo"
-                    size="sm"
-                    @click="handleHeroPhotoUpload"
-                  />
-                  <p
-                    v-if="heroPhotoError"
-                    class="text-sm text-[color:var(--color-error)]"
-                  >
-                    {{ heroPhotoError }}
-                  </p>
-                </div>
-                <!-- Revue YB.1.2 — sur Alba, ce bloc de contrôles pilote un
-                     fond de hero (upload/retrait/rétablissement) que sa page
-                     ne rend pas. Le portrait se modifie depuis Mon compte. -->
-                <p
-                  v-else
-                  class="text-xs text-[color:var(--color-brand-secondary)]"
-                >
-                  Le template Alba affiche votre portrait : modifiez-le depuis
-                  <NuxtLink
-                    to="/provider/account"
-                    class="font-medium text-[color:var(--color-brand-primary)] underline-offset-4 hover:underline"
-                  >Mon compte → Photo de profil</NuxtLink>.
-                </p>
-              </div>
-            </div>
-
-            <FormControl
-              id="heroHeadline"
-              label="Accroche / Sous-titre principal"
-              :hint="heroHeadlineHint"
-            >
-              <template #default="{ inputAttrs }">
-                <UInput
-                  v-model="heroForm.heroHeadline"
-                  v-bind="inputAttrs"
-                  class="w-full"
-                  placeholder="Ex: Spécialiste accompagnement ménopause à Paris"
-                  :maxlength="200"
-                />
-              </template>
-              <template #label-aside>
-                <span
-                  class="text-xs"
-                  :class="heroHeadlineCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-                >
-                  {{ heroHeadlineCharCount }}/200
-                </span>
-              </template>
-            </FormControl>
-
-            <FormControl
-              id="heroDescription"
-              label="Description détaillée du Hero"
-              hint="Paragraphe de présentation sous le titre (supporte les sauts de ligne). Laissez vide pour le texte par défaut."
-            >
-              <template #default="{ inputAttrs }">
-                <UTextarea
-                  v-model="heroForm.heroDescription"
-                  v-bind="inputAttrs"
-                  class="w-full"
-                  placeholder="Accompagnement personnalisé en périménopause et ménopause..."
-                  :maxlength="1000"
-                  :rows="4"
-                />
-              </template>
-              <template #label-aside>
-                <span
-                  class="text-xs"
-                  :class="heroDescriptionCharCount > 900 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-                >
-                  {{ heroDescriptionCharCount }}/1000
-                </span>
-              </template>
-            </FormControl>
-
-            <FormControl
-              id="urgencyText"
-              label="Message de réassurance sous le bouton CTA"
-              hint="Ex: Prochaines disponibilités la semaine prochaine"
-            >
-              <template #default="{ inputAttrs }">
-                <UInput
-                  v-model="heroForm.urgencyText"
-                  v-bind="inputAttrs"
-                  class="w-full"
-                  placeholder="Ex: Prochaines disponibilités : semaine du 21 avril"
-                  :maxlength="200"
-                />
-              </template>
-              <template #label-aside>
-                <span
-                  class="text-xs"
-                  :class="urgencyCharCount > 180 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-                >
-                  {{ urgencyCharCount }}/200
-                </span>
-              </template>
-            </FormControl>
-          </div>
-
-          <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-            <UButton
-              color="primary"
-              variant="solid"
-              size="sm"
-              :loading="saving"
-              @click="onSaveHero"
-            >
-              Enregistrer
-            </UButton>
+            <CoachPageHeroEditor
+              :headline="heroForm.heroHeadline"
+              :description="heroForm.heroDescription"
+              :urgency="heroForm.urgencyText"
+              :hero-is-background="isHeroBackgroundTemplate"
+              :photo-url="account?.heroImageUrl ?? null"
+              :photo-busy="heroPhotoUploading"
+              :photo-error="heroPhotoError"
+              :photo-disabled="account?.heroImageDisabled ?? false"
+              :saving="saving"
+              @update:headline="heroForm.heroHeadline = $event"
+              @update:description="heroForm.heroDescription = $event"
+              @update:urgency="heroForm.urgencyText = $event"
+              @photo-selected="heroPhotoPreview = $event"
+              @photo-uploaded="onHeroPhotoUploadedFromCard"
+              @photo-error="heroPhotoError = $event"
+              @photo-disable="handleHeroPhotoDisable"
+              @photo-enable-default="handleHeroPhotoEnableDefault"
+              @save="onSaveHero"
+            />
           </div>
         </section>
 

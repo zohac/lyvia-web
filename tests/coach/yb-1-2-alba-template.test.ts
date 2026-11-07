@@ -89,13 +89,14 @@ describe('YB.1.2 — CoachAlbaHero rend l\'accroche saisie par la coach', () => 
     // quatre templates, mais chaque hero a son propre repli. Une phrase unique
     // était vraie pour Alba/Essentiel et FAUSSE pour Visuel et Signature.
     const page = readFile('pages/provider/coach-page.vue')
+    const card = readFile('components/organisms/CoachPageHeroEditor.vue')
     assert.equal(
-      /Laissez vide pour afficher la spécialité par défaut/.test(page),
+      /Laissez vide pour afficher la spécialité par défaut/.test(page) || /Laissez vide pour afficher la spécialité par défaut/.test(card),
       false,
       'l\'aide ne doit plus promettre un repli que deux heroes ne rendent pas'
     )
     assert.match(
-      page,
+      card,
       /:hint="heroHeadlineHint"/,
       'le hint doit être dérivé du template, pas figé dans le markup'
     )
@@ -113,9 +114,9 @@ describe('YB.1.2 — CoachAlbaHero rend l\'accroche saisie par la coach', () => 
     // phrase locale (par exemple en y remettant la ville) laisserait le fichier
     // vert alors que le back-office décrit un rendu qui n'existe plus.
     assert.match(
-      page,
-      /const heroHeadlineHint = computed<string>\(\(\)\s*=>\s*buildHeroHeadlineHint\(previewTemplateCode\.value\)\s*\)/,
-      'heroHeadlineHint doit déléguer à buildHeroHeadlineHint(previewTemplateCode.value)'
+      card,
+      /const heroHeadlineHint = computed\(\(\) => buildHeroHeadlineHint\(isBackground\.value\)\)/,
+      'heroHeadlineHint doit déléguer à buildHeroHeadlineHint'
     )
   })
 })

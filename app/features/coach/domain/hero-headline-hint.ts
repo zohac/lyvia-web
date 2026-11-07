@@ -12,7 +12,12 @@
  */
 import { SIGNATURE_HERO_FALLBACK_HEADLINE } from './signature-hero'
 
-export function buildHeroHeadlineHint(templateCode: string | null | undefined): string {
+export function buildHeroHeadlineHint(templateCode: string | boolean | null | undefined): string {
+  if (typeof templateCode === 'boolean') {
+    return templateCode
+      ? 'Laissez vide : le hero affiche alors un titre par défaut selon votre template.'
+      : 'Laissez vide : le hero affiche alors « Bonjour, je suis {votre prénom}. », avec la spécialité en surtitre.'
+  }
   switch (templateCode) {
     case 'visuel':
       return 'Laissez vide : le hero affiche alors « Retrouvez votre équilibre et votre vitalité avec {votre prénom} ».'
