@@ -24,11 +24,16 @@ import test, { describe } from 'node:test'
 
 const appRoot = path.resolve(process.cwd(), 'app')
 const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+const BRANDING_CARD_PATH = 'components/organisms/CoachPageBrandingCard.vue'
 const ACCOUNT_PAGE_PATH = 'pages/provider/account.vue'
 const CONTRACT_PATH = 'features/account/api/provider-account.contract.ts'
 
 function readCoachPage(): string {
   return fs.readFileSync(path.join(appRoot, COACH_PAGE_PATH), 'utf-8')
+}
+
+function readBrandingCard(): string {
+  return fs.readFileSync(path.join(appRoot, BRANDING_CARD_PATH), 'utf-8')
 }
 
 function readAccountPage(): string {
@@ -51,41 +56,34 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
   })
 
   test('AC-2 (0-27): coach-page renders the brand identity section with brandName + upload widget', () => {
-    const source = readCoachPage()
-    assert.match(source, /Identité de marque/)
-    assert.match(
-      source,
-      /Logo et nom affichés dans le header de votre page publique et dans tous les emails envoyés à vos clientes\./
-    )
-    // brandName field with maxLength 100 + character counter wired to the form (unchanged from 0-26).
-    assert.match(source, /v-model="brandingForm\.brandName"/)
-    assert.match(source, /id="brandName"/)
-    assert.match(source, /BRAND_NAME_MAX_LENGTH\s*=\s*100/)
+    const page = readCoachPage()
+    const card = readBrandingCard()
+    assert.match(page, /Identité de marque/)
+    // brandName field with maxLength 100 + character counter moved to the card.
+    assert.match(card, /id="brandName"/)
+    assert.match(card, /BRAND_NAME_MAX_LENGTH\s*=\s*100/)
 
     // 0-27 — the URL input is REPLACED by a file upload widget targeting `brand_logo`.
     // No more <UInput v-model="brandingForm.logoUrl" type="url">.
+    // The moved markup lives in the card now; the page no longer carries these.
     assert.ok(
-      !/v-model="brandingForm\.logoUrl"/.test(source),
+      !/v-model="brandingForm\.logoUrl"/.test(page),
       '0-27: brandingForm.logoUrl URL input must be removed (replaced by upload widget)'
-    )
-    assert.ok(
-      !/LOGO_URL_MAX_LENGTH/.test(source),
-      '0-27: LOGO_URL_MAX_LENGTH constant must be removed (URL input gone)'
     )
     // The upload widget must accept image MIMEs and target `brand_logo`.
     assert.match(
-      source,
+      card,
       /accept="image\/png,image\/jpeg,image\/webp"/,
       '0-27: file input must restrict accept to PNG/JPEG/WebP (SVG excluded)'
     )
     assert.match(
-      source,
+      card,
       /uploadAsset\(\s*'brand_logo'\s*,/,
       '0-27: the upload handler must POST type=brand_logo to /provider/assets/upload'
     )
     // The empty-state CTA copy is verbatim per AC-5.
     assert.match(
-      source,
+      card,
       /Téléverser un logo/,
       '0-27 AC-5 verbatim: empty-state CTA must read "Téléverser un logo"'
     )
@@ -105,40 +103,36 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
   })
 
   test('AC-3 (0-27): logo preview tiles read from logoPreviewSrc and status pill reflects hasBrandLogo', () => {
-    const source = readCoachPage()
+    const page = readCoachPage()
+    const card = readBrandingCard()
     // The 2 preview tiles must render the composite preview src
     // (local file URL during selection, then CDN URL after upload).
-    assert.match(source, /:src="logoPreviewSrc"/)
-    // The legacy URL-error copy ("Impossible de charger l'image. Vérifiez l'URL.")
-    // is gone since the upload pipeline rejects bad files server-side.
-    assert.ok(
-      !source.includes('Impossible de charger l\'image. Vérifiez l\'URL.'),
-      '0-27: URL-error copy must be removed (no more URL input)'
-    )
+    assert.match(card, /:src="logoPreviewSrc"/)
     // Info box copy adapted for upload flow.
     assert.ok(
-      source.includes('Renseignez votre nom de marque et téléversez votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut.'),
+      card.includes('Renseignez votre nom de marque et téléversez votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut.'),
       '0-27: info copy must mention "téléverser" instead of "URL de votre logo"'
     )
     // Status pill — uses hasBrandLogo (server-side fact) instead of brandingForm.logoUrl.
-    assert.match(source, /hasBrandLogo/)
-    assert.match(source, /'Personnalisée'\s*:\s*'Keova par défaut'/)
+    assert.match(page, /hasBrandLogo/)
+    assert.match(page, /'Personnalisée'\s*:\s*'Keova par défaut'/)
   })
 
   test('AC-5 (0-27): widget exposes Remplacer / Supprimer when a logo is persisted', () => {
-    const source = readCoachPage()
+    const page = readCoachPage()
+    const card = readBrandingCard()
     // Replace + Delete buttons surface on the persisted-state branch
-    assert.match(source, />\s*Remplacer\s*</, '0-27 AC-5 verbatim: "Remplacer" button')
-    assert.match(source, />\s*Supprimer\s*</, '0-27 AC-5 verbatim: "Supprimer" button')
+    assert.match(card, />\s*Remplacer\s*</, '0-27 AC-5 verbatim: "Remplacer" button')
+    assert.match(card, />\s*Supprimer\s*</, '0-27 AC-5 verbatim: "Supprimer" button')
     // Delete handler must call updateAccount with logoUrl: null (verbatim AC-5)
     assert.match(
-      source,
+      page,
       /updateAccount\(\{\s*logoUrl:\s*null\s*\}\)/,
-      '0-27 AC-5: handleLogoDelete must PATCH /provider/account with { logoUrl: null }'
+      '0-27 AC-5: delete must PATCH /provider/account with { logoUrl: null }'
     )
     // Toasts verbatim per AC-5
-    assert.match(source, /title:\s*'Logo téléversé'/, '0-27 AC-5 verbatim toast: "Logo téléversé"')
-    assert.match(source, /title:\s*'Logo supprimé'/, '0-27 AC-5 verbatim toast: "Logo supprimé"')
+    assert.match(page, /title:\s*'Logo téléversé'/, '0-27 AC-5 verbatim toast: "Logo téléversé"')
+    assert.match(page, /title:\s*'Logo supprimé'/, '0-27 AC-5 verbatim toast: "Logo supprimé"')
   })
 
   test('AC-4 (0-26 + 0-27 refactor): handleBrandingSubmit saves brandName only (logo is upload-driven)', () => {
@@ -186,8 +180,7 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
     // premium, eux, restent bien à l'intérieur.
     const sectionIdx = source.lastIndexOf('<section', gateIdx)
     assert.ok(sectionIdx >= 0 && sectionIdx < gateIdx, 'le <section> branding doit envelopper le gate')
-    assert.match(block, /@click="handleBrandingSubmit"/)
-    assert.match(block, />\s*Enregistrer\s*</)
+    assert.match(block, /@save="handleBrandingSubmit"/)
   })
 
   test('AC-2 (18.3b): la section branding est gatée par white_label_branding', () => {

@@ -67,8 +67,7 @@ import type { TestimonialItem, CredentialItem } from '~/features/account/api/pro
 import {
   uploadAsset,
   formatUploadError,
-  validateFileUpload,
-  validateBrandLogoFile
+  validateFileUpload
 } from '~/features/assets/use-asset-upload'
 import { useCoachPagePreviewProfile } from '~/features/coach/useCoachPagePreviewProfile'
 import { useCoachPagePreviewState } from '~/features/coach/useCoachPagePreviewState'
@@ -79,7 +78,6 @@ import type { ProgramResponse, PublicProgramListItem } from '~/features/programs
 import CoachPagePreviewPanel from '~/components/organisms/CoachPagePreviewPanel.vue'
 import { useCoachLink } from '~/composables/useCoachLink'
 import FormControl from '~/components/molecules/FormControl.vue'
-import SystemAlert from '~/components/atoms/SystemAlert.vue'
 import CoachPublishChecklistModal from '~/components/molecules/CoachPublishChecklistModal.vue'
 import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 // LAB-R14 — import EXPLICITE : un `<CoachPageTemplateRequiredNotice>` non importé
@@ -98,12 +96,10 @@ import CoachPageFaqEditor from '~/components/organisms/CoachPageFaqEditor.vue'
 import CoachPageFitEditor from '~/components/organisms/CoachPageFitEditor.vue'
 import CoachPageEducationalContentEditor from '~/components/organisms/CoachPageEducationalContentEditor.vue'
 import CoachPageFreeTextEditor from '~/components/organisms/CoachPageFreeTextEditor.vue'
+import CoachPageBrandingCard from '~/components/organisms/CoachPageBrandingCard.vue'
+import CoachPagePaletteEditor from '~/components/organisms/CoachPagePaletteEditor.vue'
 import CoachPageSectionCard from '~/components/organisms/CoachPageSectionCard.vue'
-import {
-  parseHex,
-  getRelativeLuminance,
-  getContrastRatio
-} from '#shared/utils/brand-color-helpers'
+
 // Story 18.3b — imports EXPLICITES : `app/features/**` n'est pas auto-importé,
 // et `FeatureGate` suit le pattern maison `FormControl`/`SystemAlert`.
 import FeatureGate from '~/components/molecules/FeatureGate.vue'
@@ -191,7 +187,6 @@ onMounted(() => init())
 // "Qui suis-je" édite `longBio` (5000 chars max — DTO `@MaxLength(5000)`),
 // pas le champ `bio` (500 chars, tagline hero). Le rendu public CoachPageSignature
 // / CoachPageEssentiel priorise `longBio` pour cette section.
-const BRAND_NAME_MAX_LENGTH = 100
 // Story 0-27 — `logoUrl` n'est plus saisi en URL libre, il est uploadé via le widget
 // (POST /provider/assets/upload type=brand_logo). La constante d'URL est supprimée.
 const TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500
@@ -400,32 +395,6 @@ const paletteForm = reactive({
   brandColor: '#5B4B6E',
   brandAccentColor: '#D4956A'
 })
-const primaryContrastWarning = computed(() => {
-  const hex = paletteForm.brandColor?.trim()
-  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return null
-  const rgb = parseHex(hex)
-  if (!rgb) return null
-  const bgL = getRelativeLuminance(255, 255, 255)
-  const fgL = getRelativeLuminance(rgb.r, rgb.g, rgb.b)
-  const ratio = getContrastRatio(fgL, bgL)
-  if (ratio < 3.0) {
-    return 'Attention : cette couleur est très claire sur fond blanc (contraste faible).'
-  }
-  return null
-})
-const accentContrastWarning = computed(() => {
-  const hex = paletteForm.brandAccentColor?.trim()
-  if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return null
-  const rgb = parseHex(hex)
-  if (!rgb) return null
-  const bgL = getRelativeLuminance(255, 255, 255)
-  const fgL = getRelativeLuminance(rgb.r, rgb.g, rgb.b)
-  const ratio = getContrastRatio(fgL, bgL)
-  if (ratio < 2.5) {
-    return 'Attention : cette couleur d\'accent est très claire (lisibilité réduite).'
-  }
-  return null
-})
 
 // ── Section Titles form state (Story 0-37 AC-4) ──
 const sectionTitlesForm = reactive({
@@ -456,24 +425,11 @@ const brandingForm = reactive({
   brandName: ''
 })
 const brandingError = ref<string | null>(null)
-const brandNameCharCount = computed(() => brandingForm.brandName?.length ?? 0)
 
-// Logo upload widget state (Story 0-27 — Convention 6 magic bytes côté backend,
-// validation client = taille + MIME type seulement, le backend rejette les SVG
-// et les magic bytes spoofed via UploadAssetUseCase.validateMimeType).
-const logoFile = ref<File | null>(null)
-const logoLocalPreview = ref<string | null>(null)
-const logoFileInputRef = ref<HTMLInputElement | null>(null)
-const logoUploading = ref(false)
-const logoUploadError = ref<string | null>(null)
 const logoDeleting = ref(false)
 
 // Source serveur (URL CDN persistée). Source unique de vérité = `account.value.logoUrl`.
 const logoServerUrl = computed(() => account.value?.logoUrl ?? null)
-// Preview composite : fichier local sélectionné en priorité, sinon URL serveur.
-const logoPreviewSrc = computed(
-  () => logoLocalPreview.value ?? logoServerUrl.value ?? ''
-)
 // Pour la status pill et l'info box "Keova par défaut".
 const hasBrandLogo = computed(() => Boolean(logoServerUrl.value))
 
@@ -1164,64 +1120,16 @@ async function handleBrandingSubmit() {
   }
 }
 
-// ── Brand logo upload (Story 0-27 AC-5) ──
-function triggerLogoFileInput() {
-  logoFileInputRef.value?.click()
+// CPD.6 — relais des émissions de la carte d'identité de marque. La mécanique
+// d'upload vit dans la carte ; la page ne fait que rafraîchir le store et
+// persister la suppression.
+async function onLogoUploaded() {
+  await fetchAccount()
+  toast.add({ title: 'Logo téléversé', color: 'primary' })
 }
 
-function onLogoFileSelected(event: Event) {
-  logoUploadError.value = null
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
-
-  const err = validateBrandLogoFile(file)
-  if (err) {
-    logoUploadError.value = err
-    target.value = ''
-    return
-  }
-
-  logoFile.value = file
-  // Revoke previous local preview URL to avoid memory leak
-  if (logoLocalPreview.value && logoLocalPreview.value.startsWith('blob:')) {
-    URL.revokeObjectURL(logoLocalPreview.value)
-  }
-  logoLocalPreview.value = URL.createObjectURL(file)
-}
-
-async function handleLogoUpload() {
-  if (!logoFile.value) return
-  logoUploading.value = true
-  logoUploadError.value = null
-  try {
-    await uploadAsset('brand_logo', logoFile.value)
-    // Backend a persisté provider_profiles.logo_url — on rafraîchit le store account
-    // pour exposer la nouvelle URL CDN à `logoServerUrl` + au reste de la page.
-    await fetchAccount()
-    // Cleanup local preview (URL CDN officielle prend le relais via account.value.logoUrl)
-    if (logoLocalPreview.value && logoLocalPreview.value.startsWith('blob:')) {
-      URL.revokeObjectURL(logoLocalPreview.value)
-    }
-    logoLocalPreview.value = null
-    logoFile.value = null
-    if (logoFileInputRef.value) logoFileInputRef.value.value = ''
-    toast.add({ title: 'Logo téléversé', color: 'primary' })
-  } catch (e: unknown) {
-    logoUploadError.value = formatUploadError(e, 'brand_logo')
-    toast.add({
-      title: 'Erreur',
-      description: logoUploadError.value,
-      color: 'error'
-    })
-  } finally {
-    logoUploading.value = false
-  }
-}
-
-async function handleLogoDelete() {
+async function onLogoRemoved() {
   logoDeleting.value = true
-  logoUploadError.value = null
   const ok = await updateAccount({ logoUrl: null })
   logoDeleting.value = false
   if (ok) {
@@ -1235,15 +1143,7 @@ async function handleLogoDelete() {
   }
 }
 
-function cancelLogoSelection() {
-  if (logoLocalPreview.value && logoLocalPreview.value.startsWith('blob:')) {
-    URL.revokeObjectURL(logoLocalPreview.value)
-  }
-  logoLocalPreview.value = null
-  logoFile.value = null
-  logoUploadError.value = null
-  if (logoFileInputRef.value) logoFileInputRef.value.value = ''
-}
+// ── CPD.6 — onLogoUploaded / onLogoRemoved sont définis plus haut (relais). ──
 
 // ── CPD.3 — relais des émissions des éditeurs de listes ──
 // Les trois cartes émettent le même contrat (`ListItemPatch`) et la même règle
@@ -1702,233 +1602,16 @@ function externalSectionTo(section: string): string {
             </div>
 
             <FeatureGate feature="white_label_branding">
-              <!-- Live preview tiles : header public + email -->
-              <div class="grid grid-cols-1 gap-3 border-b border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-4 sm:grid-cols-2">
-                <div class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-card)] p-4 shadow-sm ring-1 ring-[color:var(--color-border-subtle)]">
-                  <p class="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-[color:var(--color-brand-muted)]">
-                    <UIcon
-                      name="i-lucide-globe"
-                      class="size-3"
-                    />
-                    Header de votre page publique
-                  </p>
-                  <div class="flex h-10 items-center gap-3 rounded-md bg-[color:var(--color-surface-page)] px-3">
-                    <img
-                      v-if="logoPreviewSrc"
-                      :src="logoPreviewSrc"
-                      alt="Logo header"
-                      class="h-6 w-auto max-w-[100px] object-contain"
-                    >
-                    <UIcon
-                      v-else
-                      name="i-lucide-image"
-                      class="size-5 text-[color:var(--color-brand-muted)]"
-                    />
-                    <span class="text-sm font-semibold text-[color:var(--color-text-primary)]">
-                      {{ brandingForm.brandName?.trim() || 'Keova' }}
-                    </span>
-                  </div>
-                </div>
-
-                <div class="rounded-[var(--radius-md)] bg-[color:var(--color-surface-card)] p-4 shadow-sm ring-1 ring-[color:var(--color-border-subtle)]">
-                  <p class="mb-2 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-[color:var(--color-brand-muted)]">
-                    <UIcon
-                      name="i-lucide-mail"
-                      class="size-3"
-                    />
-                    En-tête email
-                  </p>
-                  <div class="flex h-10 items-center justify-center rounded-md bg-[color:var(--color-surface-highlight)] px-3">
-                    <img
-                      v-if="logoPreviewSrc"
-                      :src="logoPreviewSrc"
-                      alt="Logo email"
-                      class="max-h-7 w-auto max-w-[180px] object-contain"
-                    >
-                    <span
-                      v-else
-                      class="text-sm font-semibold text-[color:var(--color-text-primary)]"
-                    >
-                      {{ brandingForm.brandName?.trim() || 'Keova' }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Formulaire en grid 2 colonnes -->
-              <div class="px-6 py-5">
-                <SystemAlert
-                  v-if="brandingError"
-                  class="mb-4"
-                  variant="error"
-                  :description="brandingError"
-                />
-                <SystemAlert
-                  v-else-if="!brandingForm.brandName?.trim() && !hasBrandLogo"
-                  class="mb-4"
-                  variant="info"
-                  description="Renseignez votre nom de marque et téléversez votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut."
-                />
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <FormControl
-                    id="brandName"
-                    label="Nom de marque"
-                    hint="Affiché dans le header de votre page publique et le pied de page de vos emails."
-                  >
-                    <template #default="{ inputAttrs }">
-                      <UInput
-                        v-model="brandingForm.brandName"
-                        v-bind="inputAttrs"
-                        class="w-full"
-                        placeholder="Ex: Sophie Jouan — Coach"
-                        :maxlength="BRAND_NAME_MAX_LENGTH"
-                      />
-                    </template>
-                    <template #label-aside>
-                      <span
-                        class="text-xs"
-                        :class="brandNameCharCount > BRAND_NAME_MAX_LENGTH - 10 ? 'text-[color:var(--color-warning)]' : 'text-[color:var(--color-brand-muted)]'"
-                      >
-                        {{ brandNameCharCount }}/{{ BRAND_NAME_MAX_LENGTH }}
-                      </span>
-                    </template>
-                  </FormControl>
-
-                  <!-- ── Logo upload widget (Story 0-27) ──
-                  Pattern aligné sur secondary_photo (account.vue) — input file
-                  caché + bouton + preview + actions Remplacer/Supprimer.
-                -->
-                  <div class="space-y-2">
-                    <label
-                      for="brand-logo-upload"
-                      class="block text-sm font-medium text-[color:var(--color-text-primary)]"
-                    >Logo</label>
-                    <p class="text-xs text-[color:var(--color-brand-secondary)]">
-                      PNG transparent recommandé, max 1 Mo. Redimensionné automatiquement à 480×160 (ratio préservé).
-                    </p>
-
-                    <input
-                      id="brand-logo-upload"
-                      ref="logoFileInputRef"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      class="hidden"
-                      data-testid="brand-logo-file-input"
-                      @change="onLogoFileSelected"
-                    >
-
-                    <!-- État : preview locale (fichier sélectionné, pas encore uploadé) -->
-                    <div
-                      v-if="logoFile && logoLocalPreview"
-                      class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-3"
-                    >
-                      <div class="flex items-center gap-3">
-                        <img
-                          :src="logoLocalPreview"
-                          alt="Aperçu logo"
-                          class="h-10 w-auto max-w-[120px] object-contain"
-                          data-testid="brand-logo-local-preview"
-                        >
-                        <span class="text-xs text-[color:var(--color-brand-muted)]">
-                          {{ logoFile.name }}
-                        </span>
-                      </div>
-                      <div class="flex flex-wrap gap-2">
-                        <UButton
-                          :loading="logoUploading"
-                          :disabled="logoUploading"
-                          color="primary"
-                          variant="solid"
-                          size="sm"
-                          icon="i-lucide-cloud-upload"
-                          @click="handleLogoUpload"
-                        >
-                          {{ logoUploading ? 'Téléversement…' : 'Téléverser' }}
-                        </UButton>
-                        <UButton
-                          variant="ghost"
-                          size="sm"
-                          :disabled="logoUploading"
-                          @click="cancelLogoSelection"
-                        >
-                          Annuler
-                        </UButton>
-                      </div>
-                    </div>
-
-                    <!-- État : logo persisté en DB (pas de fichier en attente) -->
-                    <div
-                      v-else-if="hasBrandLogo"
-                      class="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-page)] p-3"
-                    >
-                      <img
-                        :src="logoServerUrl ?? ''"
-                        alt="Logo actuel"
-                        class="h-10 w-auto max-w-[120px] object-contain"
-                        data-testid="brand-logo-current-preview"
-                      >
-                      <div class="flex flex-wrap gap-2">
-                        <UButton
-                          variant="outline"
-                          size="sm"
-                          icon="i-lucide-upload"
-                          type="button"
-                          @click="triggerLogoFileInput"
-                        >
-                          Remplacer
-                        </UButton>
-                        <UButton
-                          variant="ghost"
-                          size="sm"
-                          color="error"
-                          icon="i-lucide-trash-2"
-                          :loading="logoDeleting"
-                          :disabled="logoDeleting"
-                          @click="handleLogoDelete"
-                        >
-                          Supprimer
-                        </UButton>
-                      </div>
-                    </div>
-
-                    <!-- État : aucun logo (call-to-upload) -->
-                    <UButton
-                      v-else
-                      variant="outline"
-                      size="sm"
-                      icon="i-lucide-upload"
-                      type="button"
-                      data-testid="brand-logo-upload-cta"
-                      @click="triggerLogoFileInput"
-                    >
-                      Téléverser un logo
-                    </UButton>
-
-                    <p
-                      v-if="logoUploadError"
-                      class="text-sm text-[color:var(--color-error)]"
-                      data-testid="brand-logo-error"
-                    >
-                      {{ logoUploadError }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Footer Save (Nom de marque uniquement — le logo est upload-driven) -->
-              <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-                <UButton
-                  color="primary"
-                  variant="solid"
-                  size="sm"
-                  :loading="saving"
-                  :disabled="saving"
-                  @click="handleBrandingSubmit"
-                >
-                  Enregistrer
-                </UButton>
-              </div>
+              <CoachPageBrandingCard
+                :brand-name="brandingForm.brandName"
+                :logo-server-url="logoServerUrl"
+                :saving="saving"
+                :logo-deleting="logoDeleting"
+                @update:brand-name="brandingForm.brandName = $event"
+                @save="handleBrandingSubmit"
+                @logo-uploaded="onLogoUploaded"
+                @logo-removed="onLogoRemoved"
+              />
             </FeatureGate>
           </section>
         </div>
@@ -1959,72 +1642,14 @@ function externalSectionTo(section: string): string {
             </div>
           </div>
 
-          <div class="space-y-4 px-6 py-5">
-            <div class="grid gap-6 sm:grid-cols-2">
-              <div>
-                <FormControl
-                  id="brandColor"
-                  label="Couleur principale (Titres, navigation, accents)"
-                  :hint="primaryContrastWarning || 'Format hexadécimal (ex: #5B4B6E)'"
-                  :error="primaryContrastWarning ? undefined : undefined"
-                >
-                  <template #default="{ inputAttrs }">
-                    <div class="flex items-center gap-3">
-                      <input
-                        v-model="paletteForm.brandColor"
-                        type="color"
-                        class="size-10 cursor-pointer rounded-lg border border-[color:var(--color-border-subtle)] p-0.5"
-                      >
-                      <UInput
-                        v-model="paletteForm.brandColor"
-                        v-bind="inputAttrs"
-                        class="flex-1"
-                        placeholder="#5B4B6E"
-                        :maxlength="7"
-                      />
-                    </div>
-                  </template>
-                </FormControl>
-              </div>
-
-              <div>
-                <FormControl
-                  id="brandAccentColor"
-                  label="Couleur d'accent (Boutons d'action, puces, badges)"
-                  :hint="accentContrastWarning || 'Format hexadécimal (ex: #D4956A)'"
-                >
-                  <template #default="{ inputAttrs }">
-                    <div class="flex items-center gap-3">
-                      <input
-                        v-model="paletteForm.brandAccentColor"
-                        type="color"
-                        class="size-10 cursor-pointer rounded-lg border border-[color:var(--color-border-subtle)] p-0.5"
-                      >
-                      <UInput
-                        v-model="paletteForm.brandAccentColor"
-                        v-bind="inputAttrs"
-                        class="flex-1"
-                        placeholder="#D4956A"
-                        :maxlength="7"
-                      />
-                    </div>
-                  </template>
-                </FormControl>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex justify-end border-t border-[color:var(--color-border-subtle)] px-6 py-4">
-            <UButton
-              color="primary"
-              variant="solid"
-              size="sm"
-              :loading="saving"
-              @click="onSavePalette"
-            >
-              Enregistrer
-            </UButton>
-          </div>
+          <CoachPagePaletteEditor
+            :brand-color="paletteForm.brandColor"
+            :brand-accent-color="paletteForm.brandAccentColor"
+            :saving="saving"
+            @update:brand-color="paletteForm.brandColor = $event"
+            @update:brand-accent-color="paletteForm.brandAccentColor = $event"
+            @save="onSavePalette"
+          />
         </section>
 
         <!-- ═══════ 3. SECTIONS DE LA PAGE PUBLIQUE ═══════

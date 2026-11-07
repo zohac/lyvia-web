@@ -151,25 +151,21 @@ describe('18.3b AC #1/#3 — la section « Identité de marque » est enveloppé
     )
   })
 
-  test('REGRESSION: les champs premium restent DANS le gate (rien de focusable hors gate)', () => {
+  test('REGRESSION: la carte d\'identité de marque reste DANS le gate (rien de focusable hors gate)', () => {
     const source = readCoachPage()
     const gateOpenIdx = source.indexOf('<FeatureGate feature="white_label_branding">')
     const gateCloseIdx = source.indexOf('</FeatureGate>', gateOpenIdx)
     const gated = source.slice(gateOpenIdx, gateCloseIdx)
 
-    for (const marker of [
-      'v-model="brandingForm.brandName"',
-      'id="brandName"',
-      'data-testid="brand-logo-upload-cta"',
-      '@click="handleBrandingSubmit"'
-    ]) {
-      assert.ok(gated.includes(marker), `${marker} doit rester à l'intérieur du FeatureGate`)
-      assert.equal(
-        source.indexOf(marker),
-        gateOpenIdx + gated.indexOf(marker),
-        `${marker} ne doit exister QU'À L'INTÉRIEUR du FeatureGate`
-      )
-    }
+    // CPD.6 — les champs premium vivent désormais dans la carte montée sous le
+    // gate : la carte elle-même est le seul marqueur à l'intérieur du gate.
+    const marker = '<CoachPageBrandingCard'
+    assert.ok(gated.includes(marker), `${marker} doit rester à l'intérieur du FeatureGate`)
+    assert.equal(
+      source.indexOf(marker),
+      gateOpenIdx + gated.indexOf(marker),
+      `${marker} ne doit exister QU'À L'INTÉRIEUR du FeatureGate`
+    )
   })
 
   test('AC #1: les autres sections de l\'éditeur restent hors du gate', () => {
