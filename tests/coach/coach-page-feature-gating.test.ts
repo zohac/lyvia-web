@@ -159,12 +159,25 @@ describe('18.3b AC #1/#3 — la section « Identité de marque » est enveloppé
 
     // CPD.6 — les champs premium vivent désormais dans la carte montée sous le
     // gate : la carte elle-même est le seul marqueur à l'intérieur du gate.
+    //
+    // Revue CPD.6 — comparer seulement `indexOf` laissait passer un SECOND
+    // montage hors du gate (mesuré : 0 échec). La garde exige donc l'unicité et
+    // l'absence de toute occurrence après la fermeture du gate.
     const marker = '<CoachPageBrandingCard'
     assert.ok(gated.includes(marker), `${marker} doit rester à l'intérieur du FeatureGate`)
+    assert.equal(
+      source.split(marker).length - 1,
+      1,
+      `${marker} ne doit être monté qu'UNE fois dans toute la page`
+    )
     assert.equal(
       source.indexOf(marker),
       gateOpenIdx + gated.indexOf(marker),
       `${marker} ne doit exister QU'À L'INTÉRIEUR du FeatureGate`
+    )
+    assert.ok(
+      source.indexOf(marker, gateCloseIdx) === -1,
+      `${marker} ne doit pas être monté après la fermeture du FeatureGate`
     )
   })
 
@@ -321,11 +334,22 @@ describe('18.3b Task 4 — audit ghost vars CSS (Convention DS1, étendue DS2)',
       .map(file => fs.readFileSync(path.join(cssRoot, file), 'utf8'))
       .join('\n')
 
+    // CPD.6 — l'extraction a déplacé ~500 lignes hors de la page : l'audit doit
+    // suivre le markup, sinon les tokens des deux nouveaux organisms ne sont
+    // plus vérifiés (même lacune que le `w-full` de cpd-5).
+    const auditedSources = [
+      readCoachPage(),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageBrandingCard.vue'), 'utf8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPagePaletteEditor.vue'), 'utf8')
+    ]
+
     const used = [
       ...new Set(
-        [...readCoachPage().matchAll(/var\((--[a-z0-9-]+)\)/g)].map(
-          match => match[1] as string
-        )
+        auditedSources.flatMap(source => (
+          [...source.matchAll(/var\((--[a-z0-9-]+)\)/g)].map(
+            match => match[1] as string
+          )
+        ))
       )
     ]
 

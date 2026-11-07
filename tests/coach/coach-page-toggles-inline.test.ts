@@ -588,3 +588,67 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     )
   })
 })
+
+describe('CPD.6 — GARDE DE CÂBLAGE des deux cartes de personnalisation', () => {
+  /**
+   * La preuve de RENDU vit dans `cpd-6-branding-palette.test.ts`. Ces assertions
+   * prouvent qu'elles sont réellement MONTÉES et reliées. Mesuré avant la revue :
+   * retirer `@update:brand-name`, supprimer le montage de `CoachPagePaletteEditor`
+   * ou retirer `@logo-uploaded` / `@logo-removed` laissait 525/525 vertes.
+   */
+  test('AC-3: GARDE DE CÂBLAGE — la page monte CoachPageBrandingCard avec toutes ses liaisons', () => {
+    assert.match(
+      readCoachPage(),
+      /^import CoachPageBrandingCard from '~\/components\/organisms\/CoachPageBrandingCard\.vue'$/m,
+      'la carte doit être importée explicitement (une balise non résolue ne rend rien)'
+    )
+
+    assertBindings('CoachPageBrandingCard', [
+      ':brand-name="brandingForm.brandName"',
+      ':logo-server-url="logoServerUrl"',
+      ':saving="saving"',
+      ':logo-deleting="logoDeleting"',
+      '@update:brand-name="brandingForm.brandName = $event"',
+      '@save="handleBrandingSubmit"',
+      '@logo-uploaded="onLogoUploaded"',
+      '@logo-removed="onLogoRemoved"'
+    ])
+
+    // Le relais d'upload consomme le payload : sans lui, l'URL émise est jetée
+    // et le widget retombe sur son état vide pendant le rafraîchissement.
+    assert.match(
+      readCoachPage(),
+      /async function onLogoUploaded\(payload: \{ url: string, assetId: string \}\)/,
+      'onLogoUploaded doit consommer le payload de la carte'
+    )
+  })
+
+  test('AC-3: GARDE DE CÂBLAGE — la page monte CoachPagePaletteEditor dans #section-palette', () => {
+    assert.match(
+      readCoachPage(),
+      /^import CoachPagePaletteEditor from '~\/components\/organisms\/CoachPagePaletteEditor\.vue'$/m,
+      'l’éditeur doit être importé explicitement (une balise non résolue ne rend rien)'
+    )
+
+    assertBindings('CoachPagePaletteEditor', [
+      ':brand-color="paletteForm.brandColor"',
+      ':brand-accent-color="paletteForm.brandAccentColor"',
+      ':saving="saving"',
+      '@update:brand-color="paletteForm.brandColor = $event"',
+      '@update:brand-accent-color="paletteForm.brandAccentColor = $event"',
+      '@save="onSavePalette"'
+    ])
+
+    // Le montage doit vivre DANS la section « Couleurs de marque » : un éditeur
+    // monté ailleurs disparaîtrait du seul endroit où la coach le cherche.
+    const source = readCoachPageMarkup()
+    const sectionStart = source.indexOf('id="section-palette"')
+    assert.ok(sectionStart >= 0, 'la section #section-palette doit exister')
+    const mountIdx = source.indexOf('<CoachPagePaletteEditor')
+    assert.ok(mountIdx > sectionStart, 'l’éditeur doit être monté dans #section-palette')
+    assert.ok(
+      source.indexOf('</section>', sectionStart) > mountIdx,
+      'l’éditeur doit rester à l’intérieur de la section'
+    )
+  })
+})

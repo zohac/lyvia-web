@@ -95,13 +95,6 @@ const accentContrastWarning = computed(() => {
             </div>
           </template>
         </FormControl>
-        <p
-          v-if="primaryContrastWarning"
-          class="mt-2 text-sm text-[color:var(--color-warning)]"
-          data-testid="primary-contrast-warning"
-        >
-          {{ primaryContrastWarning }}
-        </p>
       </div>
 
       <div>
@@ -129,13 +122,6 @@ const accentContrastWarning = computed(() => {
             </div>
           </template>
         </FormControl>
-        <p
-          v-if="accentContrastWarning"
-          class="mt-2 text-sm text-[color:var(--color-warning)]"
-          data-testid="accent-contrast-warning"
-        >
-          {{ accentContrastWarning }}
-        </p>
       </div>
     </div>
   </div>

@@ -40,9 +40,11 @@ const props = withDefaults(
 const emit = defineEmits<{
   'update:brand-name': [value: string]
   'save': []
-  'logo-uploaded': [payload: { url: string, assetId: string | null }]
+  'logo-uploaded': [payload: { url: string, assetId: string }]
   'logo-removed': []
 }>()
+
+const toast = useToast()
 
 const BRAND_NAME_MAX_LENGTH = 100
 
@@ -97,9 +99,14 @@ async function handleLogoUpload() {
     logoLocalPreview.value = null
     logoFile.value = null
     if (logoFileInputRef.value) logoFileInputRef.value.value = ''
-    emit('logo-uploaded', { url: result.url, assetId: result.assetId ?? null })
+    emit('logo-uploaded', { url: result.url, assetId: result.assetId })
   } catch (e: unknown) {
     logoUploadError.value = formatUploadError(e, 'brand_logo')
+    toast.add({
+      title: 'Erreur',
+      description: logoUploadError.value,
+      color: 'error'
+    })
   } finally {
     logoUploading.value = false
   }

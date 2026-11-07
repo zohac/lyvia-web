@@ -101,7 +101,7 @@ import CoachPagePaletteEditor from '~/components/organisms/CoachPagePaletteEdito
 import CoachPageSectionCard from '~/components/organisms/CoachPageSectionCard.vue'
 
 // Story 18.3b — imports EXPLICITES : `app/features/**` n'est pas auto-importé,
-// et `FeatureGate` suit le pattern maison `FormControl`/`SystemAlert`.
+// et `FeatureGate` suit le pattern maison `FormControl`.
 import FeatureGate from '~/components/molecules/FeatureGate.vue'
 import { useFeatureGate } from '~/features/plans/useFeatureGate'
 import { FEATURE_COACH_PAGE_PREMIUM_TEMPLATES } from '~/features/plans/domain/feature-codes'
@@ -424,12 +424,14 @@ const sectionTitlesForm = reactive({
 const brandingForm = reactive({
   brandName: ''
 })
-const brandingError = ref<string | null>(null)
 
 const logoDeleting = ref(false)
+const uploadedLogoUrl = ref<string | null>(null)
 
-// Source serveur (URL CDN persistée). Source unique de vérité = `account.value.logoUrl`.
-const logoServerUrl = computed(() => account.value?.logoUrl ?? null)
+// Source serveur (URL CDN persistée). Source unique de vérité = `account.value.logoUrl`,
+// avec priorité à l'URL renvoyée par l'upload tant que le rafraîchissement n'a pas abouti
+// (sinon un échec réseau ferait disparaître un logo pourtant bien persisté).
+const logoServerUrl = computed(() => uploadedLogoUrl.value ?? account.value?.logoUrl ?? null)
 // Pour la status pill et l'info box "Keova par défaut".
 const hasBrandLogo = computed(() => Boolean(logoServerUrl.value))
 
@@ -1105,7 +1107,6 @@ async function onSavePricingSectionTitles() {
 // ── Branding inline editor — migré depuis /provider/account, refondu par Story 0-27 ──
 // Le formulaire ne sauvegarde plus que `brandName` (le `logoUrl` est upload-driven).
 async function handleBrandingSubmit() {
-  brandingError.value = null
   const ok = await updateAccount({
     brandName: brandingForm.brandName.trim() || null
   })
@@ -1122,13 +1123,19 @@ async function handleBrandingSubmit() {
 
 // CPD.6 — relais des émissions de la carte d'identité de marque. La mécanique
 // d'upload vit dans la carte ; la page ne fait que rafraîchir le store et
-// persister la suppression.
-async function onLogoUploaded() {
+// persister la suppression. L'URL émise prend la main immédiatement : sans elle,
+// le widget retomberait sur l'état vide pendant l'aller-retour réseau, et un
+// échec de `fetchAccount` (qui avale son erreur) laisserait un logo persisté
+// invisible.
+async function onLogoUploaded(payload: { url: string, assetId: string }) {
+  uploadedLogoUrl.value = payload.url
   await fetchAccount()
+  if (!accountError.value) uploadedLogoUrl.value = null
   toast.add({ title: 'Logo téléversé', color: 'primary' })
 }
 
 async function onLogoRemoved() {
+  uploadedLogoUrl.value = null
   logoDeleting.value = true
   const ok = await updateAccount({ logoUrl: null })
   logoDeleting.value = false
@@ -1142,8 +1149,6 @@ async function onLogoRemoved() {
     })
   }
 }
-
-// ── CPD.6 — onLogoUploaded / onLogoRemoved sont définis plus haut (relais). ──
 
 // ── CPD.3 — relais des émissions des éditeurs de listes ──
 // Les trois cartes émettent le même contrat (`ListItemPatch`) et la même règle

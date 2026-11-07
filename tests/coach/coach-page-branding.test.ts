@@ -57,35 +57,20 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
 
   test('AC-2 (0-27): coach-page renders the brand identity section with brandName + upload widget', () => {
     const page = readCoachPage()
-    const card = readBrandingCard()
     assert.match(page, /Identité de marque/)
-    // brandName field with maxLength 100 + character counter moved to the card.
-    assert.match(card, /id="brandName"/)
-    assert.match(card, /BRAND_NAME_MAX_LENGTH\s*=\s*100/)
+    assert.match(
+      page,
+      /Logo et nom affichés dans le header de votre page publique et dans tous les emails envoyés à vos clientes\./,
+      'le sous-titre de la section reste porté par la page, hors du gate'
+    )
 
-    // 0-27 — the URL input is REPLACED by a file upload widget targeting `brand_logo`.
-    // No more <UInput v-model="brandingForm.logoUrl" type="url">.
-    // The moved markup lives in the card now; the page no longer carries these.
+    // CPD.6 — le markup du branding (champ, compteur, input file, CTA, widget
+    // trois états) est désormais prouvé par RENDU dans
+    // `cpd-6-branding-palette.test.ts` (AC-2/AC-3). Ce fichier ne garde que la
+    // frontière du gate et le câblage de page.
     assert.ok(
       !/v-model="brandingForm\.logoUrl"/.test(page),
       '0-27: brandingForm.logoUrl URL input must be removed (replaced by upload widget)'
-    )
-    // The upload widget must accept image MIMEs and target `brand_logo`.
-    assert.match(
-      card,
-      /accept="image\/png,image\/jpeg,image\/webp"/,
-      '0-27: file input must restrict accept to PNG/JPEG/WebP (SVG excluded)'
-    )
-    assert.match(
-      card,
-      /uploadAsset\(\s*'brand_logo'\s*,/,
-      '0-27: the upload handler must POST type=brand_logo to /provider/assets/upload'
-    )
-    // The empty-state CTA copy is verbatim per AC-5.
-    assert.match(
-      card,
-      /Téléverser un logo/,
-      '0-27 AC-5 verbatim: empty-state CTA must read "Téléverser un logo"'
     )
   })
 
@@ -97,34 +82,26 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
     // `account.value.logoUrl` via the `logoServerUrl` computed.
     assert.match(
       source,
-      /logoServerUrl\s*=\s*computed\(\s*\(\)\s*=>\s*account\.value\?\.logoUrl/,
-      '0-27: logoServerUrl must be a computed reading account.value.logoUrl'
+      /logoServerUrl\s*=\s*computed\(\s*\(\)\s*=>\s*uploadedLogoUrl\.value\s*\?\?\s*account\.value\?\.logoUrl/,
+      '0-27/CPD.6: logoServerUrl must prefer the freshly uploaded URL then account.value.logoUrl'
     )
   })
 
-  test('AC-3 (0-27): logo preview tiles read from logoPreviewSrc and status pill reflects hasBrandLogo', () => {
+  test('AC-3 (0-27): le statut de la section reflète hasBrandLogo', () => {
     const page = readCoachPage()
-    const card = readBrandingCard()
-    // The 2 preview tiles must render the composite preview src
-    // (local file URL during selection, then CDN URL after upload).
-    assert.match(card, /:src="logoPreviewSrc"/)
-    // Info box copy adapted for upload flow.
-    assert.ok(
-      card.includes('Renseignez votre nom de marque et téléversez votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut.'),
-      '0-27: info copy must mention "téléverser" instead of "URL de votre logo"'
-    )
-    // Status pill — uses hasBrandLogo (server-side fact) instead of brandingForm.logoUrl.
+    // CPD.6 — les deux aperçus et la priorité de `logoPreviewSrc` sont prouvés
+    // par rendu (`cpd-6-branding-palette.test.ts`) ; il reste ici la pastille,
+    // qui vit dans la page, hors du gate.
     assert.match(page, /hasBrandLogo/)
     assert.match(page, /'Personnalisée'\s*:\s*'Keova par défaut'/)
   })
 
-  test('AC-5 (0-27): widget exposes Remplacer / Supprimer when a logo is persisted', () => {
+  test('AC-5 (0-27): la suppression persiste logoUrl: null', () => {
     const page = readCoachPage()
     const card = readBrandingCard()
-    // Replace + Delete buttons surface on the persisted-state branch
-    assert.match(card, />\s*Remplacer\s*</, '0-27 AC-5 verbatim: "Remplacer" button')
-    assert.match(card, />\s*Supprimer\s*</, '0-27 AC-5 verbatim: "Supprimer" button')
-    // Delete handler must call updateAccount with logoUrl: null (verbatim AC-5)
+    // CPD.6 — « Remplacer » / « Supprimer » sont prouvés par rendu dans
+    // `cpd-6-branding-palette.test.ts`. Ici on garde la persistance de page.
+    assert.match(card, /emit\('logo-removed'\)/, 'la carte émet logo-removed')
     assert.match(
       page,
       /updateAccount\(\{\s*logoUrl:\s*null\s*\}\)/,
