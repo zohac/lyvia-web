@@ -9,10 +9,18 @@
  *      et d'éventuels templates premium. Un wrap de section bloquerait aussi
  *      le Standard.
  *
- * Convention A32 : les assertions portent sur `app/pages/provider/coach-page.vue`
- * réellement rendu, jamais sur une copie. Le COMPORTEMENT du gating (règle
- * `code !== 'essentiel'`, politique par statut) est couvert unitairement par
- * `tests/plans/template-lock.test.ts` — ce fichier verrouille le CÂBLAGE.
+ * Convention A32 : les assertions portent sur le code réellement rendu, jamais
+ * sur une copie.
+ *
+ * CPD.10 — l'éditeur a été déplacé de `app/pages/provider/coach-page.vue`
+ * (désormais simple point de montage) vers `CoachPageEditorShell.vue`, et le
+ * sélecteur de template dans son propre composant. Les gardes suivent le
+ * markup : le shell pour le gating de la marque et l'orchestration, le
+ * sélecteur pour le verrouillage carte par carte.
+ *
+ * Le COMPORTEMENT du gating (règle `code !== 'essentiel'`, politique par
+ * statut) est couvert unitairement par `tests/plans/template-lock.test.ts` —
+ * ce fichier verrouille le CÂBLAGE.
  */
 import * as assert from 'node:assert/strict'
 import * as fs from 'node:fs'
@@ -20,10 +28,15 @@ import * as path from 'node:path'
 import test, { describe } from 'node:test'
 
 const appRoot = path.resolve(process.cwd(), 'app')
-const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
+const TEMPLATE_SELECTOR_PATH = 'components/organisms/CoachPageTemplateSelector.vue'
 
 function readCoachPage(): string {
   return fs.readFileSync(path.join(appRoot, COACH_PAGE_PATH), 'utf8')
+}
+
+function readTemplateSelector(): string {
+  return fs.readFileSync(path.join(appRoot, TEMPLATE_SELECTOR_PATH), 'utf8')
 }
 
 /**
@@ -35,6 +48,13 @@ function readCoachPage(): string {
  */
 function readCoachPageCode(): string {
   return readCoachPage()
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '')
+}
+
+function readTemplateSelectorCode(): string {
+  return readTemplateSelector()
     .replace(/<!--[\s\S]*?-->/g, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/^\s*\/\/.*$/gm, '')
@@ -205,10 +225,12 @@ describe('18.3b AC #1/#3 — la section « Identité de marque » est enveloppé
 describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () => {
   test('REGRESSION: le verrou est calculé UNE fois par carte via le helper pur', () => {
     // Checklist DRY intra-story : pas de recalcul dans le template.
-    const source = readCoachPage()
-    assert.match(source, /const templateCards = computed\(/)
-    assert.match(source, /locked: isTemplateLocked\(tmpl, hasPremiumTemplates\.value\)/)
-    assert.match(source, /v-for="tmpl in templateCards"/)
+    // CPD.10 — le calcul (une fois) reste dans la coquille, qui décore chaque
+    // carte ; le sélecteur ne fait que rendre la liste déjà décorée.
+    const shell = readCoachPage()
+    assert.match(shell, /const templateCards = computed\(/)
+    assert.match(shell, /locked: isTemplateLocked\(tmpl, hasPremiumTemplates\.value\)/)
+    assert.match(readTemplateSelector(), /v-for="tmpl in templates"/)
   })
 
   test('REGRESSION: l\'accès premium passe par resolvePremiumTemplatesAccess (unknown = non verrouillé)', () => {
@@ -221,9 +243,9 @@ describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () 
   })
 
   test('REGRESSION: la carte verrouillée est désactivée et grisée', () => {
-    const source = readCoachPage()
-    assert.match(source, /:disabled="saving \|\| tmpl\.locked"/)
-    assert.match(source, /tmpl\.locked \? 'cursor-not-allowed opacity-60' : ''/)
+    const source = readTemplateSelector()
+    assert.match(source, /:disabled="saving \|\| isLocked\(tmpl\)"/)
+    assert.match(source, /isLocked\(tmpl\) \? 'cursor-not-allowed opacity-60' : ''/)
   })
 
   test('REGRESSION: onSelectTemplate porte une garde early-return (le clic ne part jamais en API)', () => {
@@ -262,8 +284,8 @@ describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () 
   })
 
   test('REGRESSION: la pastille affiche « Premium » via la constante, avec icône lock', () => {
-    const source = readCoachPage()
-    assert.match(source, /v-if="tmpl\.locked"/)
+    const source = readTemplateSelector()
+    assert.match(source, /v-if="isLocked\(tmpl\)"/)
     assert.match(source, /\{\{ PREMIUM_TEMPLATE_BADGE_LABEL \}\}/)
     assert.match(source, /data-testid="coach-template-premium-badge"/)
 
@@ -272,7 +294,7 @@ describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () 
     assert.match(badgeBlock, /name="i-lucide-lock"/)
 
     // Aucun littéral « Premium » ne doit doubler la constante.
-    assert.doesNotMatch(readCoachPageCode(), />\s*Premium\s*</)
+    assert.doesNotMatch(readTemplateSelectorCode(), />\s*Premium\s*</)
   })
 
   test('REGRESSION CR: la carte verrouillée est annoncée aux technologies d\'assistance', () => {
@@ -280,8 +302,9 @@ describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () 
     // « Premium » n'était annoncée nulle part, alors que la user story promet
     // « clearly locked WITH an upgrade prompt ». Le nom accessible RÉUTILISE la
     // copy 18.2 (A31) au lieu de la recopier.
-    const source = readCoachPage()
-    assert.match(source, /:aria-label="tmpl\.locked/)
+    // CPD.10 — la carte a changé de fichier : la garde suit la carte.
+    const source = readTemplateSelector()
+    assert.match(source, /:aria-label="isLocked\(tmpl\)/)
     assert.match(source, /featureGateLockTitle\(FEATURE_COACH_PAGE_PREMIUM_TEMPLATES\)/)
     assert.match(
       source,
@@ -292,10 +315,10 @@ describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () 
   test('REGRESSION CR: une carte verrouillée ne propose PAS d\'affordance de survol', () => {
     // `:disabled` ne coupe pas `:hover` : la carte s'illuminait en accent sous
     // le curseur tout en affichant `cursor-not-allowed`.
-    const source = readCoachPage()
+    const source = readTemplateSelector()
     assert.match(
       source,
-      /tmpl\.id !== selectedTemplateId && !tmpl\.locked\s*\n?\s*\? 'hover:border-\[color:var\(--color-brand-accent\)\]'/
+      /tmpl\.id !== selectedTemplateId && !isLocked\(tmpl\)\s*\n?\s*\? 'hover:border-\[color:var\(--color-brand-accent\)\]'/
     )
   })
 
@@ -303,7 +326,7 @@ describe('18.3b AC #2 — verrouillage par carte du sélecteur de template', () 
     // Un template verrouillé n'est jamais le template sélectionné, donc les
     // deux ne coexistent pas — mais les positions restent séparées pour que la
     // lecture du code ne laisse aucun doute.
-    const source = readCoachPage()
+    const source = readTemplateSelector()
     const badgeIdx = source.indexOf('data-testid="coach-template-premium-badge"')
     const badgeBlock = source.slice(Math.max(0, badgeIdx - 400), badgeIdx)
     assert.match(badgeBlock, /absolute right-2 top-2/)
@@ -337,8 +360,14 @@ describe('18.3b Task 4 — audit ghost vars CSS (Convention DS1, étendue DS2)',
     // CPD.6 — l'extraction a déplacé ~500 lignes hors de la page : l'audit doit
     // suivre le markup, sinon les tokens des deux nouveaux organisms ne sont
     // plus vérifiés (même lacune que le `w-full` de cpd-5).
+    // CPD.10 — même suivi : la coquille, l'en-tête et le sélecteur portent
+    // désormais l'essentiel du markup de l'éditeur. Les oublier rendait l'audit
+    // muet sur ~1 500 lignes (mesuré : une var fantôme injectée dans la coquille
+    // laissait le test vert).
     const auditedSources = [
       readCoachPage(),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageHeader.vue'), 'utf8'),
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageTemplateSelector.vue'), 'utf8'),
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageBrandingCard.vue'), 'utf8'),
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPagePaletteEditor.vue'), 'utf8'),
       // CPD.7 — même suivi : le markup du hero a quitté la page.

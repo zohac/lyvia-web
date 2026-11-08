@@ -66,7 +66,8 @@ function readApiSource(relativePath: string): string | null {
   return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : null
 }
 
-const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+// CPD.10 — la composition a quitté la page pour la coquille.
+const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
 const COACH_PAGE_VISIBILITY_PATH = 'composables/useCoachSectionVisibility.ts'
 const FREE_TEXT_COMPONENT_PATH = 'components/organisms/CoachFreeText.vue'
 /** Chemin résolu depuis la racine du dépôt — `renderCard` attend celui-ci. */

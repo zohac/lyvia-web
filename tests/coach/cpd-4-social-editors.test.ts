@@ -363,7 +363,8 @@ describe('CPD.4 — contrat partagé et plafonds uniques', () => {
       )
     }
 
-    const page = fs.readFileSync(path.resolve(process.cwd(), 'app/pages/provider/coach-page.vue'), 'utf-8')
+    // CPD.10 — le montage des cartes vit désormais dans la coquille.
+    const page = fs.readFileSync(path.resolve(process.cwd(), 'app/components/organisms/CoachPageEditorShell.vue'), 'utf-8')
     assert.match(page, /import \{ TESTIMONIALS_MAX \} from '~\/features\/coach\/domain\/social-editor-limits'/)
     assert.ok(!/const TESTIMONIALS_MAX =/.test(page), 'la page ne redéclare pas le plafond')
   })

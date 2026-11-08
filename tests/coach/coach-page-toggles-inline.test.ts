@@ -17,12 +17,14 @@ import { TOGGLE_AUTOSAVE_DEBOUNCE_MS } from '../../app/features/coach/useCoachSe
  *  - AC-7: COACH_PAGE_EXTERNAL_EDITOR_SECTIONS contient seulement pricing
  *  - AC-9: tests comportementaux ≥ 6 (A47)
  *
- * Convention A32: tests target the real `app/pages/provider/coach-page.vue`
+ * Convention A32: tests target the real editor — CPD.10 a déplacé la
+ * composition de `app/pages/provider/coach-page.vue` vers
+ * `app/components/organisms/CoachPageEditorShell.vue`
  * source — toute régression sur les patterns critiques fait tomber un test.
  */
 
 const appRoot = path.resolve(process.cwd(), 'app')
-const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
 const COACH_SECTIONS_PATH = 'features/coach/useCoachSections.ts'
 
 function readCoachPage(): string {

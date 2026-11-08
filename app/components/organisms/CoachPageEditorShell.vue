@@ -453,9 +453,18 @@ const {
   publicPrograms: previewPublicPrograms,
   previewTemplateCode,
   isHeroBackgroundTemplate,
-  previewOpen: previewOpenState
+  previewOpen
 } = preview
-const previewOpen = previewOpenState
+
+// `preview` : le bouton « Aperçu » de l'en-tête est un lien externe (nouvel
+// onglet) ; il émet aussi `preview`, qui rouvre l'aperçu intégré de la page
+// courante. Un seul consommateur, nommé — un `() => {}` en ligne aurait fait de
+// l'émission une affordance morte (revue CPD.10).
+function onHeaderPreview() {
+  if (typeof window === 'undefined') return
+  if (window.matchMedia('(min-width: 1280px)').matches) reopenDesktopPreview()
+  else openMobilePreview()
+}
 
 // heroHeadlineHint reste calculé ici (CPD.7).
 const heroHeadlineHint = computed<string>(() =>
@@ -970,7 +979,7 @@ function removeStep(index: number) {
       :publishing="publishing"
       :preview-link="previewCoachPageLink"
       :public-link="publicCoachPageLink"
-      @preview="() => {}"
+      @preview="onHeaderPreview"
       @publish="handleOpenPublish"
       @unpublish="confirmUnpublishModalOpen = true"
     />

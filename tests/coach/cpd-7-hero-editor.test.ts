@@ -585,7 +585,8 @@ describe('CPD.7 — AC-5 : l’aperçu live n’est pas cassé (contrat de la ca
   })
 
   test('la carte est montée par la page, une seule fois, avec un import explicite', () => {
-    const page = fs.readFileSync('app/pages/provider/coach-page.vue', 'utf8')
+    // CPD.10 — le montage du hero vit dans la coquille, plus dans la page.
+    const page = fs.readFileSync('app/components/organisms/CoachPageEditorShell.vue', 'utf8')
 
     assert.match(
       page,

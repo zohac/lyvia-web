@@ -13,7 +13,9 @@ import test, { describe } from 'node:test'
  */
 
 const appRoot = path.resolve(process.cwd(), 'app')
-const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+// CPD.10 — la composition (aperçu + modales) vit dans la coquille, la page
+// n'est plus qu'un point de montage.
+const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
 const PREVIEW_PANEL_PATH = 'components/organisms/CoachPagePreviewPanel.vue'
 
 function read(p: string): string {

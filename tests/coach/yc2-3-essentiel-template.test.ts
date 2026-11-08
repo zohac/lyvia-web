@@ -907,7 +907,8 @@ describe('YC2.3 review — hero CTA uses primary solid (design refonte)', () => 
 describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & upload image Énoncé du problème (AC-12)', () => {
   const SIGNATURE_HERO_PATH = 'components/organisms/CoachHeroProfile.vue'
   const SIGNATURE_PATH = 'components/templates/coach-pages/CoachPageSignature.vue'
-  const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+  // CPD.10 — l'éditeur vit désormais dans la coquille.
+  const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
 
   test('8.1: CoachEssentielHero respects heroImageDisabled and shows initials fallback even if profilePhotoUrl exists', () => {
     const content = readFile(ESSENTIEL_HERO_PATH)

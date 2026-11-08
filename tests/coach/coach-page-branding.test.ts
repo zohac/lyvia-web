@@ -17,13 +17,18 @@ import test, { describe } from 'node:test'
  *              The logo is upload-driven (instant POST) + delete-driven (PATCH
  *              with `logoUrl: null`).
  *
- * Convention A32: tests target the real `app/pages/provider/coach-page.vue`.
+ * Convention A32: tests target the real editor.
+ *
+ * CPD.10 — l'éditeur a quitté `app/pages/provider/coach-page.vue` (13 lignes,
+ * simple composition) pour `app/components/organisms/CoachPageEditorShell.vue`.
+ * La garde suit le markup : elle lit la coquille, pas la page vidée.
+ *
  * Convention A35: browser check via MCP Chrome DevTools complements these
  * structural tests.
  */
 
 const appRoot = path.resolve(process.cwd(), 'app')
-const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
 const BRANDING_CARD_PATH = 'components/organisms/CoachPageBrandingCard.vue'
 const ACCOUNT_PAGE_PATH = 'pages/provider/account.vue'
 const CONTRACT_PATH = 'features/account/api/provider-account.contract.ts'
