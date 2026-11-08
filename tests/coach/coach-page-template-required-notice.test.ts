@@ -23,7 +23,7 @@ import * as Vue from 'vue'
 import { renderSfc } from '../helpers/render-sfc'
 
 const NOTICE_PATH = 'app/components/molecules/CoachPageTemplateRequiredNotice.vue'
-const PAGE_PATH = 'app/pages/provider/coach-page.vue'
+const PAGE_PATH = 'app/components/organisms/CoachPageEditorShell.vue'
 const SECTION_LABELS_PATH = 'app/features/coach/domain/coach-page-section-labels.ts'
 
 const UIcon = Vue.defineComponent({

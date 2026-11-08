@@ -4,6 +4,14 @@ import * as path from 'node:path'
 import test, { describe } from 'node:test'
 
 import {
+  UInput,
+  UTextarea,
+  byButtonIcon,
+  byId,
+  propValue,
+  renderCard
+} from '../helpers/sfc-vnode-harness'
+import {
   COACH_PAGE_INLINE_EDITOR_SECTIONS,
   getCoachPageConfigurableSections,
   getCoachPageEditableSections,
@@ -34,11 +42,13 @@ import type {
  * `provider_profiles.sections_config` — sont vérifiées côté API, en base :
  * `coach-page-templates-seed.db.spec.ts`).
  *
- * AD-10 : le coureur du dépôt est `tsc -p tsconfig.tests.json && node --test`,
- * il ne compile AUCUN composant monofichier. Ce qui exige de RENDRE la page
- * ou l'éditeur est une revue humaine, désignée comme telle. Ce fichier couvre
- * la part machine-vérifiable : la présence des inscriptions, l'aller-retour des
- * deux contrats, le contrat du composant (garde de vide, pas de HTML).
+ * CPD.5 — la preuve de l'éditeur n'est plus une lecture de source : le harnais
+ * `tests/helpers/render-sfc.ts` monte un composant monofichier depuis `0-42`,
+ * donc les garanties du formulaire (titre ≤ 200, un textarea borné par
+ * paragraphe, câblage `FormControl` → premier textarea, plafond de 10 avec sa
+ * raison) sont désormais assertées sur le RENDU de
+ * `CoachPageFreeTextEditor.vue`. Le verrou et le corps déplié restent des
+ * prédicats de page (voir plus bas) : ils appartiennent à l'enveloppe.
  */
 
 const appRoot = path.resolve(process.cwd(), 'app')
@@ -56,9 +66,12 @@ function readApiSource(relativePath: string): string | null {
   return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : null
 }
 
-const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+// CPD.10 — la composition a quitté la page pour la coquille.
+const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
 const COACH_PAGE_VISIBILITY_PATH = 'composables/useCoachSectionVisibility.ts'
 const FREE_TEXT_COMPONENT_PATH = 'components/organisms/CoachFreeText.vue'
+/** Chemin résolu depuis la racine du dépôt — `renderCard` attend celui-ci. */
+const FREE_TEXT_EDITOR_SFC = 'app/components/organisms/CoachPageFreeTextEditor.vue'
 
 const TEMPLATES = [
   'components/templates/coach-pages/CoachPageSignature.vue',
@@ -99,9 +112,9 @@ describe('YB.1.1 — les cinq emplacements d\u2019inscription (AD-7)', () => {
 
   // N° 3 : la liste ordonnée d'affichage de l'éditeur.
   test('n° 3 — DISPLAY_SECTION_ORDER place freeText entre benefits et bio', () => {
-    const source = readFile(COACH_PAGE_PATH)
+    const source = readFile('features/coach/useCoachSections.ts')
     const orderMatch = source.match(
-      /const DISPLAY_SECTION_ORDER = \[([\s\S]*?)\] as const/
+      /export const DISPLAY_SECTION_ORDER = \[([\s\S]*?)\] as const/
     )
     assert.ok(orderMatch, 'DISPLAY_SECTION_ORDER doit être déclaré')
     const order = Array.from((orderMatch![1] ?? '').matchAll(/'([^']+)'/g)).map(m => m[1])
@@ -591,85 +604,82 @@ describe('YB.1.1 — l\u2019éditeur', () => {
   test('la bascule est DÉSACTIVÉE tant que le contenu est vide, avec sa raison affichée', () => {
     const source = readFile(COACH_PAGE_PATH)
 
+    // CPD.8 — le prédicat a quitté la page pour useCoachSections. La règle
+    // elle-même est exécutée dans `tests/coach/cpd-8-use-coach-sections.test.ts`
+    // (« un bloc eteint MAIS rempli reste deverrouillable »). Ici, garde de
+    // câblage bornée à la DESTRUCTURATION : `/isSectionLocked/` seul était
+    // satisfait par le commentaire et laissait retirer la consommation.
     assert.match(
       source,
-      /const hasFreeTextContent = computed\(\(\) => hasCoachFreeTextContent\(freeTextForm\.value\)\)/,
-      'l\u2019éditeur doit appeler le prédicat PARTAGÉ, pas recopier la règle (CR round 2)'
+      /^\s+isSectionLocked,$/m,
+      'la page destructure isSectionLocked depuis useCoachSections'
     )
-    assert.match(
-      source,
-      /function isSectionLocked\(section: string\): boolean \{\s*return isFreeTextSection\(section\)\s*&& !isSectionOn\(section\)\s*&& !hasFreeTextContent\.value\s*\}/,
-      'le verrou ne doit interdire QUE l\'ACTIVATION d\'un bloc vide : un bloc déjà '
-      + 'allumé reste désactivable, sinon une coach qui a tout effacé se retrouve '
-      + 'avec une bascule ON verrouillée dont elle ne peut plus sortir'
+    assert.ok(!source.includes('function isSectionLocked'), 'plus de définition locale de isSectionLocked')
+    assert.ok(
+      source.includes(':locked="isSectionLocked(section)"'),
+      'la bascule partagée doit porter :locked'
     )
-    assert.match(
-      source,
-      /:disabled="isSectionLocked\(section\)"/,
-      'la bascule partagée doit porter :disabled'
-    )
-    // `disabled` retire le contrôle de l\u2019ordre de tabulation : la raison doit
-    // donc exister dans le DOM, et pas seulement dans un title.
-    assert.match(
-      source,
-      /data-testid="free-text-lock-reason"/,
-      'la raison du verrou doit être rendue dans le DOM'
+    // La raison est désormais rendue par CoachPageSectionCard (enveloppe extraite) :
+    // la page la transmet via :lock-reason.
+    assert.ok(
+      source.includes(':lock-reason="sectionLockReason(section)"'),
+      'la raison du verrou doit être transmise à la carte'
     )
   })
 
   test('le corps du bloc reste déplié même éteint (sinon il est impossible d\u2019écrire)', () => {
     const source = readFile(COACH_PAGE_PATH)
+    // CPD.8 — le prédicat vit désormais dans useCoachSections ; sa sémantique
+    // est exécutée dans `cpd-8-use-coach-sections.test.ts`. La garde porte sur
+    // la destructuration réelle, pas sur une occurrence de mot.
     assert.match(
       source,
-      /function isSectionBodyOpen\(section: string\): boolean \{\s*return isSectionOn\(section\) \|\| isFreeTextSection\(section\)\s*\}/,
-      'le formulaire doit rester atteignable : un interrupteur verrouillé est un cul-de-sac'
+      /^\s+isSectionBodyOpen,$/m,
+      'la page destructure isSectionBodyOpen depuis useCoachSections'
     )
   })
 
-  test('formulaire : titre optionnel, un textarea par paragraphe, ajout borné', () => {
-    const source = readFile(COACH_PAGE_PATH)
+  test('formulaire (RENDU) : titre borné à 200, un textarea borné par paragraphe, ajout borné avec sa raison', async () => {
+    const { all: twoRows } = await renderCard(FREE_TEXT_EDITOR_SFC, {
+      freeTextForm: { title: 'Comment je travaille', paragraphs: ['Premier', 'Second'] }
+    })
 
-    assert.match(source, /section === 'freeText'/)
-    assert.match(
-      source,
-      /FREE_TEXT_TITLE_MAX_LENGTH\s*=\s*200/,
-      'titre ≤ 200 caractères (aligné sur FreeTextJsonDto)'
+    const title = byId(twoRows, UInput, 'freeTextTitle')
+    assert.equal(propValue(title, 'modelValue'), 'Comment je travaille', 'le titre est rendu')
+    assert.equal(propValue(title, 'maxlength'), 200, 'titre ≤ 200 caractères (aligné sur FreeTextJsonDto)')
+
+    const paragraphs = twoRows.filter(
+      v => v.type === UTextarea && String((v.props ?? {}).placeholder ?? '').startsWith('Paragraphe ')
     )
+    assert.equal(paragraphs.length, 2, 'un textarea par paragraphe')
+    for (const paragraph of paragraphs) {
+      assert.equal(propValue(paragraph, 'maxlength'), 2000, 'chaque paragraphe est borné à 2000')
+      assert.match(String((paragraph.props ?? {}).class ?? ''), /\bw-full\b/, 'le textarea du bloc est pleine largeur')
+    }
+
+    // CR round 2 : le PREMIER textarea porte l'id et l'aria-describedby du
+    // FormControl — sans cela le label « Paragraphes » et son hint pointent
+    // dans le vide. Asserté sur le rendu, plus sur une regex de source.
+    assert.equal(propValue(paragraphs[0] as (typeof paragraphs)[number], 'id'), 'freeTextParagraph')
     assert.match(
-      source,
-      /FREE_TEXT_PARAGRAPH_MAX\s*=\s*10/,
-      '10 paragraphes maximum (aligné sur FreeTextJsonDto et sur le plafond déjà appliqué à l\u2019éditeur)'
+      String(propValue(paragraphs[0] as (typeof paragraphs)[number], 'aria-describedby') ?? ''),
+      /freeTextParagraph-hint/
     )
-    assert.match(source, /FREE_TEXT_PARAGRAPH_MAX_LENGTH\s*=\s*2000/)
-    assert.match(
-      source,
-      /v-for="\(_, idx\) in \(freeTextForm\?\.paragraphs \?\? \[\]\)"/,
-      'un textarea par paragraphe'
+    assert.equal(propValue(paragraphs[1] as (typeof paragraphs)[number], 'id'), undefined, 'un seul élément porte l’id')
+
+    const ten = await renderCard(FREE_TEXT_EDITOR_SFC, {
+      freeTextForm: { paragraphs: Array.from({ length: 10 }, (_, i) => `Paragraphe ${i + 1}`) }
+    })
+    assert.equal(byButtonIcon(ten.all, 'i-lucide-plus').props?.disabled, true, 'l’ajout est borné à 10 (aligné sur FreeTextJsonDto)')
+    assert.ok(
+      ten.html.includes('Vous avez atteint le maximum de 10 paragraphes.'),
+      'un contrôle borné affiche sa raison verbatim — `disabled` le sort de la tabulation'
     )
-    // Convention du dépôt : tout UTextarea porte w-full.
-    assert.match(
-      source,
-      /<UTextarea\s+:model-value="freeTextForm!\.paragraphs\[idx\]"[\s\S]{0,200}?class="w-full"/,
-      'le textarea du bloc doit être pleine largeur'
-    )
-    // CR round 2 : le FormControl « Paragraphes » doit câbler `inputAttrs`
-    // (id + aria-describedby) sur le premier textarea — sinon son `<label for>`
-    // et son hint ne pointent sur aucun élément.
-    assert.match(
-      source,
-      /id="freeTextParagraph"[\s\S]{0,600}?<template #default="\{ inputAttrs \}">[\s\S]{0,2000}?v-bind="idx === 0 \? inputAttrs : \{\}"/,
-      'le label et le hint du bloc doivent être associés au premier textarea'
-    )
-    assert.match(
-      source,
-      /:disabled="\(freeTextForm\?\.paragraphs\?\.length \?\? 0\) >= FREE_TEXT_PARAGRAPH_MAX"/,
-      'l\u2019ajout est borné'
-    )
-    assert.match(
-      source,
-      /data-testid="free-text-paragraph-limit-reason"/,
-      'un contrôle borné affiche sa raison — `disabled` le sort de la tabulation'
-    )
+
+    const nine = await renderCard(FREE_TEXT_EDITOR_SFC, {
+      freeTextForm: { paragraphs: Array.from({ length: 9 }, (_, i) => `Paragraphe ${i + 1}`) }
+    })
+    assert.notEqual(byButtonIcon(nine.all, 'i-lucide-plus').props?.disabled, true, 'sous le plafond, l’ajout reste actif')
   })
 
   test('l\u2019aperçu reflète la saisie NON enregistrée (liste d\u2019autorisation exhaustive)', () => {

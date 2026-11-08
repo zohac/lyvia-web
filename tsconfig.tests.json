@@ -19,6 +19,8 @@
     "app/features/availability/api/availability.contract.ts",
     "app/features/appointments/api/**/*.ts",
     "app/features/appointments/domain/**/*.ts",
+    "app/features/account/api/provider-account.contract.ts",
+    "app/features/coach/domain/**/*.ts",
     "app/features/consultation/domain/**/*.ts",
     "app/features/consent/**/*.ts",
     "app/features/preferences/consent-page.ts",

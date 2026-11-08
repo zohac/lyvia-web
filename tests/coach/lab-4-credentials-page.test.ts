@@ -27,7 +27,8 @@ function read(relative: string): string {
   return fs.readFileSync(path.join(appRoot, relative), 'utf-8')
 }
 
-const coachPage = () => read('pages/provider/coach-page.vue')
+// CPD.10 — l'éditeur (et donc le montage des cartes) vit dans la coquille.
+const coachPage = () => read('components/organisms/CoachPageEditorShell.vue')
 const accountPage = () => read('pages/provider/account.vue')
 
 /**

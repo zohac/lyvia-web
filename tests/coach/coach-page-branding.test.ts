@@ -17,18 +17,28 @@ import test, { describe } from 'node:test'
  *              The logo is upload-driven (instant POST) + delete-driven (PATCH
  *              with `logoUrl: null`).
  *
- * Convention A32: tests target the real `app/pages/provider/coach-page.vue`.
+ * Convention A32: tests target the real editor.
+ *
+ * CPD.10 — l'éditeur a quitté `app/pages/provider/coach-page.vue` (13 lignes,
+ * simple composition) pour `app/components/organisms/CoachPageEditorShell.vue`.
+ * La garde suit le markup : elle lit la coquille, pas la page vidée.
+ *
  * Convention A35: browser check via MCP Chrome DevTools complements these
  * structural tests.
  */
 
 const appRoot = path.resolve(process.cwd(), 'app')
-const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
+const BRANDING_CARD_PATH = 'components/organisms/CoachPageBrandingCard.vue'
 const ACCOUNT_PAGE_PATH = 'pages/provider/account.vue'
 const CONTRACT_PATH = 'features/account/api/provider-account.contract.ts'
 
 function readCoachPage(): string {
   return fs.readFileSync(path.join(appRoot, COACH_PAGE_PATH), 'utf-8')
+}
+
+function readBrandingCard(): string {
+  return fs.readFileSync(path.join(appRoot, BRANDING_CARD_PATH), 'utf-8')
 }
 
 function readAccountPage(): string {
@@ -51,43 +61,21 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
   })
 
   test('AC-2 (0-27): coach-page renders the brand identity section with brandName + upload widget', () => {
-    const source = readCoachPage()
-    assert.match(source, /Identité de marque/)
+    const page = readCoachPage()
+    assert.match(page, /Identité de marque/)
     assert.match(
-      source,
-      /Logo et nom affichés dans le header de votre page publique et dans tous les emails envoyés à vos clientes\./
+      page,
+      /Logo et nom affichés dans le header de votre page publique et dans tous les emails envoyés à vos clientes\./,
+      'le sous-titre de la section reste porté par la page, hors du gate'
     )
-    // brandName field with maxLength 100 + character counter wired to the form (unchanged from 0-26).
-    assert.match(source, /v-model="brandingForm\.brandName"/)
-    assert.match(source, /id="brandName"/)
-    assert.match(source, /BRAND_NAME_MAX_LENGTH\s*=\s*100/)
 
-    // 0-27 — the URL input is REPLACED by a file upload widget targeting `brand_logo`.
-    // No more <UInput v-model="brandingForm.logoUrl" type="url">.
+    // CPD.6 — le markup du branding (champ, compteur, input file, CTA, widget
+    // trois états) est désormais prouvé par RENDU dans
+    // `cpd-6-branding-palette.test.ts` (AC-2/AC-3). Ce fichier ne garde que la
+    // frontière du gate et le câblage de page.
     assert.ok(
-      !/v-model="brandingForm\.logoUrl"/.test(source),
+      !/v-model="brandingForm\.logoUrl"/.test(page),
       '0-27: brandingForm.logoUrl URL input must be removed (replaced by upload widget)'
-    )
-    assert.ok(
-      !/LOGO_URL_MAX_LENGTH/.test(source),
-      '0-27: LOGO_URL_MAX_LENGTH constant must be removed (URL input gone)'
-    )
-    // The upload widget must accept image MIMEs and target `brand_logo`.
-    assert.match(
-      source,
-      /accept="image\/png,image\/jpeg,image\/webp"/,
-      '0-27: file input must restrict accept to PNG/JPEG/WebP (SVG excluded)'
-    )
-    assert.match(
-      source,
-      /uploadAsset\(\s*'brand_logo'\s*,/,
-      '0-27: the upload handler must POST type=brand_logo to /provider/assets/upload'
-    )
-    // The empty-state CTA copy is verbatim per AC-5.
-    assert.match(
-      source,
-      /Téléverser un logo/,
-      '0-27 AC-5 verbatim: empty-state CTA must read "Téléverser un logo"'
     )
   })
 
@@ -99,46 +87,34 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
     // `account.value.logoUrl` via the `logoServerUrl` computed.
     assert.match(
       source,
-      /logoServerUrl\s*=\s*computed\(\s*\(\)\s*=>\s*account\.value\?\.logoUrl/,
-      '0-27: logoServerUrl must be a computed reading account.value.logoUrl'
+      /logoServerUrl\s*=\s*computed\(\s*\(\)\s*=>\s*uploadedLogoUrl\.value\s*\?\?\s*account\.value\?\.logoUrl/,
+      '0-27/CPD.6: logoServerUrl must prefer the freshly uploaded URL then account.value.logoUrl'
     )
   })
 
-  test('AC-3 (0-27): logo preview tiles read from logoPreviewSrc and status pill reflects hasBrandLogo', () => {
-    const source = readCoachPage()
-    // The 2 preview tiles must render the composite preview src
-    // (local file URL during selection, then CDN URL after upload).
-    assert.match(source, /:src="logoPreviewSrc"/)
-    // The legacy URL-error copy ("Impossible de charger l'image. Vérifiez l'URL.")
-    // is gone since the upload pipeline rejects bad files server-side.
-    assert.ok(
-      !source.includes('Impossible de charger l\'image. Vérifiez l\'URL.'),
-      '0-27: URL-error copy must be removed (no more URL input)'
-    )
-    // Info box copy adapted for upload flow.
-    assert.ok(
-      source.includes('Renseignez votre nom de marque et téléversez votre logo pour personnaliser votre identité. Sinon, le nom et le logo Keova sont utilisés par défaut.'),
-      '0-27: info copy must mention "téléverser" instead of "URL de votre logo"'
-    )
-    // Status pill — uses hasBrandLogo (server-side fact) instead of brandingForm.logoUrl.
-    assert.match(source, /hasBrandLogo/)
-    assert.match(source, /'Personnalisée'\s*:\s*'Keova par défaut'/)
+  test('AC-3 (0-27): le statut de la section reflète hasBrandLogo', () => {
+    const page = readCoachPage()
+    // CPD.6 — les deux aperçus et la priorité de `logoPreviewSrc` sont prouvés
+    // par rendu (`cpd-6-branding-palette.test.ts`) ; il reste ici la pastille,
+    // qui vit dans la page, hors du gate.
+    assert.match(page, /hasBrandLogo/)
+    assert.match(page, /'Personnalisée'\s*:\s*'Keova par défaut'/)
   })
 
-  test('AC-5 (0-27): widget exposes Remplacer / Supprimer when a logo is persisted', () => {
-    const source = readCoachPage()
-    // Replace + Delete buttons surface on the persisted-state branch
-    assert.match(source, />\s*Remplacer\s*</, '0-27 AC-5 verbatim: "Remplacer" button')
-    assert.match(source, />\s*Supprimer\s*</, '0-27 AC-5 verbatim: "Supprimer" button')
-    // Delete handler must call updateAccount with logoUrl: null (verbatim AC-5)
+  test('AC-5 (0-27): la suppression persiste logoUrl: null', () => {
+    const page = readCoachPage()
+    const card = readBrandingCard()
+    // CPD.6 — « Remplacer » / « Supprimer » sont prouvés par rendu dans
+    // `cpd-6-branding-palette.test.ts`. Ici on garde la persistance de page.
+    assert.match(card, /emit\('logo-removed'\)/, 'la carte émet logo-removed')
     assert.match(
-      source,
+      page,
       /updateAccount\(\{\s*logoUrl:\s*null\s*\}\)/,
-      '0-27 AC-5: handleLogoDelete must PATCH /provider/account with { logoUrl: null }'
+      '0-27 AC-5: delete must PATCH /provider/account with { logoUrl: null }'
     )
     // Toasts verbatim per AC-5
-    assert.match(source, /title:\s*'Logo téléversé'/, '0-27 AC-5 verbatim toast: "Logo téléversé"')
-    assert.match(source, /title:\s*'Logo supprimé'/, '0-27 AC-5 verbatim toast: "Logo supprimé"')
+    assert.match(page, /title:\s*'Logo téléversé'/, '0-27 AC-5 verbatim toast: "Logo téléversé"')
+    assert.match(page, /title:\s*'Logo supprimé'/, '0-27 AC-5 verbatim toast: "Logo supprimé"')
   })
 
   test('AC-4 (0-26 + 0-27 refactor): handleBrandingSubmit saves brandName only (logo is upload-driven)', () => {
@@ -186,8 +162,7 @@ describe('0-27 — /provider/coach-page brand identity section (brandName + bran
     // premium, eux, restent bien à l'intérieur.
     const sectionIdx = source.lastIndexOf('<section', gateIdx)
     assert.ok(sectionIdx >= 0 && sectionIdx < gateIdx, 'le <section> branding doit envelopper le gate')
-    assert.match(block, /@click="handleBrandingSubmit"/)
-    assert.match(block, />\s*Enregistrer\s*</)
+    assert.match(block, /@save="handleBrandingSubmit"/)
   })
 
   test('AC-2 (18.3b): la section branding est gatée par white_label_branding', () => {

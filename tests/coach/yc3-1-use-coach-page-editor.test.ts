@@ -309,3 +309,79 @@ test('useCoachPageEditor: saveTemplate resyncs selected template and derived sec
   assert.equal(editor.hasEmotionalSupportSection.value, true)
   assert.ok(editor.editableSections.value.includes('problemStatement'))
 })
+
+/**
+ * CPD.5 — le seul point d'appel qui crée le formulaire « fit » est ici.
+ *
+ * `initFitFormIfNull()` vivait dans `coach-page.vue` et était rappelé depuis le
+ * template à chaque frappe : aucune assertion ne pouvait l'atteindre. Le chemin
+ * est désormais exécuté, y compris depuis l'état `fitForm = null` que la carte
+ * ne peut pas distinguer.
+ */
+test('CPD.5: setFitField crée le formulaire « fit » avant d’appliquer, depuis fitForm = null', () => {
+  const { editor } = createEditorHarness({ account: makeAccount({ fitJson: null }) })
+  assert.equal(editor.fitForm.value, null)
+
+  editor.setFitField({ field: 'eyebrow', value: 'Adéquation saisie' })
+
+  assert.deepStrictEqual(editor.fitForm.value, {
+    eyebrow: 'Adéquation saisie',
+    title: 'Cet accompagnement est-il fait pour vous ?',
+    items: []
+  })
+
+  editor.setFitField({ field: 'title', value: 'Titre saisi' })
+  assert.equal(editor.fitForm.value?.title, 'Titre saisi')
+  assert.equal(editor.fitForm.value?.eyebrow, 'Adéquation saisie', 'les deux champs restent indépendants')
+})
+
+test('CPD.5: applyFitItem applique un patch typé et ignore un index hors bornes', async () => {
+  const { editor } = createEditorHarness({
+    account: makeAccount({
+      fitJson: { eyebrow: 'E', title: 'T', items: [{ type: 'for', text: 'Initial' }] }
+    })
+  })
+  await editor.init()
+
+  editor.applyFitItem({ index: 0, field: 'type', value: 'not_for' })
+  editor.applyFitItem({ index: 0, field: 'text', value: 'Modifié' })
+
+  assert.deepStrictEqual(editor.fitForm.value?.items, [{ type: 'not_for', text: 'Modifié' }])
+
+  // L'index vient du rendu : hors bornes, rien n'est appliqué et rien ne lève.
+  editor.applyFitItem({ index: 7, field: 'text', value: 'Hors bornes' })
+  assert.deepStrictEqual(editor.fitForm.value?.items, [{ type: 'not_for', text: 'Modifié' }])
+})
+
+test('CPD.5: addFitItem sur un profil vide crée le formulaire et pousse le type demandé', () => {
+  const { editor } = createEditorHarness({ account: makeAccount({ fitJson: null }) })
+
+  editor.addFitItem('not_for')
+  assert.deepStrictEqual(editor.fitForm.value?.items, [{ type: 'not_for', text: '' }])
+  assert.equal(editor.fitForm.value?.eyebrow, 'Adéquation', 'le formulaire naît avec ses surtitres par défaut')
+
+  editor.addFitItem('for')
+  assert.deepStrictEqual(editor.fitForm.value?.items?.map(item => item.type), ['not_for', 'for'])
+
+  editor.removeFitItem(0)
+  assert.deepStrictEqual(editor.fitForm.value?.items, [{ type: 'for', text: '' }])
+})
+
+test('CPD.5: setEducationalInsight, setFreeTextParagraph et setEducationalParagraph créent le formulaire', () => {
+  const { editor } = createEditorHarness({
+    account: makeAccount({ educationalContentJson: null, freeTextJson: null })
+  })
+
+  editor.setEducationalInsight({ field: 'title', value: 'Titre insight' })
+  editor.setEducationalInsight({ field: 'content', value: 'Contenu insight' })
+  assert.deepStrictEqual(editor.educationalContentForm.value, {
+    paragraphs: [],
+    insightBox: { title: 'Titre insight', content: 'Contenu insight' }
+  })
+
+  editor.setEducationalParagraph(0, 'Paragraphe pédagogique')
+  assert.equal(editor.educationalContentForm.value?.paragraphs[0], 'Paragraphe pédagogique')
+
+  editor.setFreeTextParagraph(0, 'Premier paragraphe libre')
+  assert.deepStrictEqual(editor.freeTextForm.value, { paragraphs: ['Premier paragraphe libre'] })
+})

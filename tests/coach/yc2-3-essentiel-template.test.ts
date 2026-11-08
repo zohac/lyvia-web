@@ -907,7 +907,8 @@ describe('YC2.3 review — hero CTA uses primary solid (design refonte)', () => 
 describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & upload image Énoncé du problème (AC-12)', () => {
   const SIGNATURE_HERO_PATH = 'components/organisms/CoachHeroProfile.vue'
   const SIGNATURE_PATH = 'components/templates/coach-pages/CoachPageSignature.vue'
-  const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+  // CPD.10 — l'éditeur vit désormais dans la coquille.
+  const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
 
   test('8.1: CoachEssentielHero respects heroImageDisabled and shows initials fallback even if profilePhotoUrl exists', () => {
     const content = readFile(ESSENTIEL_HERO_PATH)
@@ -959,46 +960,66 @@ describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & uplo
     )
   })
 
-  test('8.4: coach-page.vue places problemStatementFileInputRef at root level outside v-for', () => {
+  test('8.4: hidden file inputs — chaque entrée fichier vit dans sa carte (CPD.2/CPD.7)', () => {
     const pageContent = readFile(COACH_PAGE_PATH)
+    const heroCard = readFile('components/organisms/CoachPageHeroEditor.vue')
+    const problemCard = readFile('components/organisms/CoachPageProblemStatementEditor.vue')
+    const bioCard = readFile('components/organisms/CoachPageBioEditor.vue')
 
-    // Check that problemStatementFileInputRef is placed before AtomsDsPageHeader (root level)
-    const headerIndex = pageContent.indexOf('<AtomsDsPageHeader')
-    assert.ok(headerIndex > 0, 'Could not find AtomsDsPageHeader in coach-page.vue')
-
-    const rootSection = pageContent.slice(0, headerIndex)
-    assert.ok(
-      rootSection.includes('ref="problemStatementFileInputRef"'),
-      'problemStatementFileInputRef must be placed before AtomsDsPageHeader at root level'
-    )
-
-    // Check that problemStatementFileInputRef is NOT inside orderedEditableSections v-for
-    const sectionsLoopIndex = pageContent.indexOf('v-for="section in orderedEditableSections"')
-    assert.ok(sectionsLoopIndex > 0, 'Could not find v-for="section in orderedEditableSections" in coach-page.vue')
-    const sectionsLoop = pageContent.slice(sectionsLoopIndex)
-    assert.ok(
-      !sectionsLoop.includes('ref="problemStatementFileInputRef"'),
-      'problemStatementFileInputRef must NOT be inside the orderedEditableSections v-for'
-    )
-
-    // Check that heroFileInputRef and secondaryFileInputRef are unique at root level
+    // CPD.7 — l'entrée fichier du hero a rejoint sa carte. La garde précédente
+    // exigeait l'inverse (au niveau page) ; elle est retournée, pas supprimée.
     assert.equal(
       (pageContent.match(/ref="heroFileInputRef"/g) || []).length,
-      1,
-      'heroFileInputRef must appear exactly once in coach-page.vue at root level'
+      0,
+      'heroFileInputRef ne doit plus vivre dans coach-page.vue (CPD.7)'
     )
     assert.equal(
-      (pageContent.match(/ref="secondaryFileInputRef"/g) || []).length,
+      (heroCard.match(/ref="heroFileInputRef"/g) || []).length,
       1,
-      'secondaryFileInputRef must appear exactly once in coach-page.vue at root level'
+      'heroFileInputRef doit vivre dans CoachPageHeroEditor (CPD.7)'
+    )
+    assert.ok(
+      pageContent.includes('<CoachPageHeroEditor'),
+      'la page doit monter la carte qui porte l’entrée fichier déplacée'
+    )
+
+    assert.ok(
+      problemCard.includes('ref="problemStatementFileInputRef"'),
+      'problemStatementFileInputRef doit vivre dans CoachPageProblemStatementEditor (CPD.2)'
+    )
+    assert.ok(
+      !pageContent.includes('ref="problemStatementFileInputRef"'),
+      'la page ne doit plus porter problemStatementFileInputRef (déplacé, CPD.2)'
+    )
+    assert.ok(
+      pageContent.includes('<CoachPageProblemStatementEditor'),
+      'la page doit monter la carte qui porte l’entrée fichier déplacée'
+    )
+
+    // CPD.2 — secondaryFileInputRef a quitté la page pour la carte.
+    assert.equal(
+      (pageContent.match(/ref="secondaryFileInputRef"/g) || []).length,
+      0,
+      'secondaryFileInputRef ne doit plus apparaître dans coach-page.vue (CPD.2)'
+    )
+    assert.equal(
+      (bioCard.match(/ref="secondaryFileInputRef"/g) || []).length,
+      1,
+      'secondaryFileInputRef doit vivre dans CoachPageBioEditor (CPD.2)'
     )
   })
 
-  test('8.5: coach-page.vue adapts hero disabled thumbnail label based on previewTemplateCode', () => {
-    const pageContent = readFile(COACH_PAGE_PATH)
+  test('8.5: CoachPageHeroEditor adapts the disabled thumbnail label to the selected template', () => {
+    const cardContent = readFile('components/organisms/CoachPageHeroEditor.vue')
     assert.ok(
+      cardContent.includes('isVisuel.value ? \'Fond sombre\' : \'Sans photo\''),
+      'la carte doit afficher « Fond sombre » pour Visuel et « Sans photo » pour les autres'
+    )
+    const pageContent = readFile(COACH_PAGE_PATH)
+    assert.equal(
       pageContent.includes('previewTemplateCode === \'visuel\' ? \'Fond sombre\' : \'Sans photo\''),
-      'coach-page.vue must display \'Fond sombre\' only for visuel template and \'Sans photo\' for Essentiel/Signature'
+      false,
+      'le libellé dépendant du template a quitté la page avec le markup (CPD.7)'
     )
   })
 })

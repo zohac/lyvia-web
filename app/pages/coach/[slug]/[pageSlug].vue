@@ -15,6 +15,7 @@ import { usePublicPagesMenu } from '~/composables/usePublicPagesMenu'
 import { usePublicTenant } from '~/composables/usePublicTenant'
 import { setPublicHeader } from '~/features/public/state/public-header.state'
 import PageBlockRenderer, { type ContentBlock } from '~/components/molecules/PageBlockRenderer.vue'
+import { DOCK_CLEARANCE_CLASSES } from '~/features/pages/domain/dock-clearance'
 
 definePageMeta({
   layout: 'public',
@@ -196,7 +197,7 @@ setPublicHeader({
 <template>
   <div
     v-if="page"
-    class="w-full max-w-4xl mx-auto py-8 sm:py-12 px-4 sm:px-6"
+    :class="['w-full max-w-4xl mx-auto px-4 sm:px-6', DOCK_CLEARANCE_CLASSES]"
   >
     <header class="mb-8 sm:mb-12 text-center sm:text-left">
       <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-semibold text-text-primary tracking-tight">

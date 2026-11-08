@@ -21,7 +21,8 @@ import { renderSfc } from '../helpers/render-sfc'
  * composant se rendait vide avec toute la suite verte (trouvé en revue).
  */
 
-const PAGE_PATH = 'app/pages/provider/coach-page.vue'
+// CPD.10 — les cartes sont montées par la coquille, plus par la page.
+const PAGE_PATH = 'app/components/organisms/CoachPageEditorShell.vue'
 
 const UButton = Vue.defineComponent({
   name: 'UButtonStub',

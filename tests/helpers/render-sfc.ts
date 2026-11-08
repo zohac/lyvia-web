@@ -86,6 +86,14 @@ export interface RenderSfcOptions {
   /** Props passées au composant racine rendu. */
   props?: Record<string, unknown>
   /**
+   * Slots passés au composant racine. Sans cette option, un composant dont le
+   * corps vit dans son slot par défaut ne peut pas être rendu : « le corps est
+   * rendu » et « le corps est masqué » restent alors invérifiables, seules les
+   * props et les enfants statiques de l'enveloppe sont observables
+   * (revue cpd-1 : retirer `<slot />` laissait 8/8 tests verts).
+   */
+  slots?: Record<string, () => Vue.VNode[]>
+  /**
    * Composants Nuxt enregistrés globalement (auto-imports). Un stub qui rend ses
    * slots suffit pour la plupart des assertions ; `data-sfc-stub` permet de
    * retrouver l'emplacement du composant dans le HTML.
@@ -374,7 +382,7 @@ export async function renderSfc(sfcPath: string, options: RenderSfcOptions = {})
     const component = compileSfc(absolutePath, mocks, cache)
     let rendered: Vue.VNode | undefined
     const app = Vue.createSSRApp(Vue.defineComponent({
-      render: () => (rendered = Vue.h(component, options.props ?? {}))
+      render: () => (rendered = Vue.h(component, options.props ?? {}, options.slots))
     }))
     for (const [name, stub] of Object.entries(options.stubs ?? {})) {
       app.component(name, stub as Vue.Component)

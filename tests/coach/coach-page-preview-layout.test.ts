@@ -13,7 +13,9 @@ import test, { describe } from 'node:test'
  */
 
 const appRoot = path.resolve(process.cwd(), 'app')
-const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+// CPD.10 — la composition (aperçu + modales) vit dans la coquille, la page
+// n'est plus qu'un point de montage.
+const COACH_PAGE_PATH = 'components/organisms/CoachPageEditorShell.vue'
 const PREVIEW_PANEL_PATH = 'components/organisms/CoachPagePreviewPanel.vue'
 
 function read(p: string): string {
@@ -30,13 +32,13 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
     )
     assert.match(
       source,
-      /import\s+\{\s*useCoachPagePreviewProfile\s*\}\s+from\s+'~\/features\/coach\/useCoachPagePreviewProfile'/,
-      'coach-page must import useCoachPagePreviewProfile'
+      /import\s+\{\s*useCoachPreview\s*\}\s+from\s+'~\/features\/coach\/useCoachPreview'/,
+      'coach-page must import useCoachPreview'
     )
     assert.match(
       source,
-      /import\s+\{\s*useCoachPagePreviewState\s*\}\s+from\s+'~\/features\/coach\/useCoachPagePreviewState'/,
-      'coach-page must import useCoachPagePreviewState (localStorage open + device)'
+      /import\s+\{\s*useCoachPublish\s*\}\s+from\s+'~\/features\/coach\/useCoachPublish'/,
+      'coach-page must import useCoachPublish'
     )
   })
 
@@ -101,11 +103,12 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
       /<USlideover[\s\S]*?v-model:open="previewMobileOpen"[\s\S]*?side="right"/,
       'coach-page must render a USlideover with v-model:open="previewMobileOpen" side="right"'
     )
-    // The slideover state must be a separate ref (not the persisted one) — never auto-open mobile.
+    // The slideover state is the composable's mobileOpen, aliased to
+    // previewMobileOpen so the template keeps working (CPD.9).
     assert.match(
       source,
-      /const\s+previewMobileOpen\s*=\s*ref\(false\)/,
-      'mobile slideover open state must default to false (no auto-open on mount)'
+      /mobileOpen:\s*previewMobileOpen/,
+      'mobile slideover open state must be aliased from the preview composable (default false)'
     )
   })
 
@@ -221,41 +224,68 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
   //
   // BOTH branches must carry the condition: inverting `!==`, or dropping it from
   // one branch only, would pass every other check in this file.
+  // CPD.7 — le markup a quitté la page pour `CoachPageHeroEditor.vue` : la
+  // garde lit désormais la carte (le contrat est rendu par
+  // `cpd-7-hero-editor.test.ts`), et la page doit encore dériver le signal.
   test('YB.1.2 — the hero-BACKGROUND thumbnail branches are skipped for Alba', () => {
     const source = read(COACH_PAGE_PATH)
+    const card = read('components/organisms/CoachPageHeroEditor.vue')
 
-    // The signal itself, derived from the selected template.
+    // CPD.9 — le signal est dérivé par `useCoachPreview` (source unique) et la
+    // page le DESTRUCTURE : la page n'en garde plus un second computed, sinon
+    // deux dérivations de la même règle Alba/visuel coexistent (revue CPD.9).
+    const previewComposable = read('features/coach/useCoachPreview.ts')
     assert.match(
-      source,
-      /const isHeroBackgroundTemplate = computed\(\s*\(\) => previewTemplateCode\.value !== ALBA_TEMPLATE_CODE\s*\)/,
-      'coach-page must declare isHeroBackgroundTemplate off the Alba template code'
+      previewComposable,
+      /const isHeroBackgroundTemplate = computed<boolean>\(\s*\(\) => previewTemplateCode\.value !== ALBA_TEMPLATE_CODE\s*\)/,
+      'the preview composable must derive isHeroBackgroundTemplate off the Alba template code'
     )
     assert.match(
-      source,
-      /import\s*\{[\s\S]{0,200}?ALBA_TEMPLATE_CODE[\s\S]{0,200}?\}\s*from\s*'~\/features\/plans\/domain\/template-lock'/,
+      previewComposable,
+      /import\s*\{\s*ALBA_TEMPLATE_CODE\s*\}\s*from\s*'(?:~\/features|\.\.\/\.\.\/features)\/plans\/domain\/template-lock'/,
       'ALBA_TEMPLATE_CODE must be imported, not inlined as a string literal'
     )
-
-    // Branch 1 — the "Fond sombre" marker (`hero_image_disabled`).
     assert.match(
       source,
-      /v-if="isHeroBackgroundTemplate && account\?\.heroImageDisabled"/,
-      'the "Fond sombre" marker must be skipped for Alba — it reads a flag Alba ignores'
+      /^\s+isHeroBackgroundTemplate,$/m,
+      'coach-page must destructure the signal from the preview composable'
+    )
+    assert.equal(
+      /const isHeroBackgroundTemplate = computed/.test(source),
+      false,
+      'coach-page must NOT keep a second derivation of the hero-background signal'
+    )
+    assert.match(
+      source,
+      /:hero-is-background="isHeroBackgroundTemplate"/,
+      'the page must hand the signal to the card (the card does not know the registry)'
+    )
+
+    // Branch 1 — the disabled marker (`hero_image_disabled`).
+    assert.match(
+      card,
+      /v-if="isBackground && photoDisabledValue"/,
+      'the disabled marker must be skipped for Alba — it reads a flag Alba ignores'
     )
 
     // Branch 2 — the hero photo itself.
     assert.match(
-      source,
-      /v-else-if="isHeroBackgroundTemplate && \(heroPhotoPreview \|\| account\?\.heroImageUrl\)"/,
+      card,
+      /v-else-if="isBackground && displayedPhotoUrl"/,
       'the hero-image branch must be skipped for Alba — Alba renders the portrait'
     )
 
     // And the fall-through Alba takes: the portrait, while the Visuel default
     // stays Visuel-only.
     assert.match(
-      source,
-      /v-else-if="previewTemplateCode === 'visuel'"[\s\S]{0,200}?hero-default\.webp/,
+      card,
+      /v-else-if="isVisuel"[\s\S]{0,200}?hero-default\.webp/,
       'the Visuel default background must remain gated on the visuel template alone'
+    )
+    assert.match(
+      card,
+      /v-else-if="profilePhotoUrl"[\s\S]{0,200}?Photo de profil/,
+      'Alba must fall through to the coach portrait, not a background'
     )
 
     // Revue YB.1.2 — le BLOC DE CONTRÔLES (upload / retrait / rétablissement)
@@ -263,8 +293,8 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
     // même titre que la vignette. Sans cette garde, un bouton « Modifier la
     // photo » écrit une image de fond que la page d'Alba ne rend jamais.
     assert.match(
-      source,
-      /v-if="isHeroBackgroundTemplate"\s+class="flex flex-col items-start gap-2"/,
+      card,
+      /v-if="isBackground"\s+class="flex flex-col items-start gap-2"/,
       'the hero-photo control block must be skipped for Alba (it edits the background)'
     )
   })
