@@ -3,6 +3,8 @@ import * as fs from 'node:fs'
 import * as path from 'node:path'
 import test, { describe } from 'node:test'
 
+import { TOGGLE_AUTOSAVE_DEBOUNCE_MS } from '../../app/features/coach/useCoachSections'
+
 /**
  * Story 0-26 — wiring tests for the refonte UX of `/provider/coach-page` :
  *  - AC-1: switches inline dans chaque header de card éditeur (suppression
@@ -21,9 +23,14 @@ import test, { describe } from 'node:test'
 
 const appRoot = path.resolve(process.cwd(), 'app')
 const COACH_PAGE_PATH = 'pages/provider/coach-page.vue'
+const COACH_SECTIONS_PATH = 'features/coach/useCoachSections.ts'
 
 function readCoachPage(): string {
   return fs.readFileSync(path.join(appRoot, COACH_PAGE_PATH), 'utf-8')
+}
+
+function readCoachSections(): string {
+  return fs.readFileSync(path.join(appRoot, COACH_SECTIONS_PATH), 'utf-8')
 }
 
 /**
@@ -193,58 +200,62 @@ describe('0-26 — coach-page toggles inline + auto-save + textareas + bio/testi
     // par `tests/coach/cpd-1-section-card.test.ts`, qui rend la carte avec un
     // contenu de slot réel. Il ne reste donc ici que les helpers de la page.
     // Le helper ne déborde PAS sur les autres sections.
-    assert.match(
-      source,
-      /function isSectionBodyOpen\(section: string\): boolean \{\s*return isSectionOn\(section\) \|\| isFreeTextSection\(section\)\s*\}/,
-      'isSectionBodyOpen doit ouvrir le corps SI la section est allumée OU si c\'est le bloc libre'
-    )
-    assert.match(
-      source,
-      /function isFreeTextSection\(section: string\): boolean \{\s*return section === 'freeText'\s*\}/,
-      'isFreeTextSection doit être borné à la seule section freeText'
-    )
+    // CPD.8 — ces prédicats vivent désormais dans useCoachSections.
+    assert.match(source, /isSectionBodyOpen/, 'la page consomme isSectionBodyOpen')
+    assert.ok(!source.includes('function isSectionBodyOpen'), 'plus de définition locale')
   })
 
   // ─────────────────────────────────────────────────────────────────────
   // AC-2 — Auto-save debounced 500ms + rollback
   // ─────────────────────────────────────────────────────────────────────
 
-  test('AC-2: handler onToggleSection prend un snapshot rollback + applique optimistic + debounce', () => {
+  test('AC-2 (CPD.8): la bascule optimiste/debounced vit dans useCoachSections, pas dans la page', () => {
     const source = readCoachPage()
-    // La fonction onToggleSection existe.
-    assert.match(source, /function onToggleSection\(section: string, value: boolean\)/)
-    // Snapshot rollback via pendingPreviousSnapshot.
-    assert.match(source, /pendingPreviousSnapshot/)
-    // Optimistic apply.
-    assert.match(source, /sectionsConfig\[section\]\s*=\s*value/)
-    // Schedule debounced save.
-    assert.match(source, /scheduleSectionsConfigSave\(\)/)
-  })
-
-  test('AC-2: debounce 500ms via setTimeout TOGGLE_AUTOSAVE_DEBOUNCE_MS=500', () => {
-    const source = readCoachPage()
-    assert.match(source, /TOGGLE_AUTOSAVE_DEBOUNCE_MS\s*=\s*500/)
-    // Le timer est créé via setTimeout avec la constante.
-    assert.match(source, /setTimeout\([\s\S]*?,\s*TOGGLE_AUTOSAVE_DEBOUNCE_MS\)/)
-    // clearTimeout sur le précédent timer (debounce trailing).
-    assert.match(source, /clearTimeout\(saveDebounceTimer\)/)
-  })
-
-  test('AC-2: toasts auto-save verbatim ("Configuration enregistrée" / "Impossible d\'enregistrer la configuration") + rollback sur échec', () => {
-    const source = readCoachPage()
-    // Toast succès verbatim (A31).
-    assert.match(source, /title:\s*'Configuration enregistrée'/)
-    // Toast erreur verbatim (apostrophe échappée dans le source).
-    const errToast1 = 'Impossible d\\\'enregistrer la configuration'
-    const errToast2 = 'Impossible d\'enregistrer la configuration'
-    assert.ok(
-      source.includes(errToast1) || source.includes(errToast2),
-      'Toast erreur verbatim "Impossible d\'enregistrer la configuration" doit être présent'
+    // Revue CPD.8 — `assert.match(source, /useCoachSections/)` seul laissait passer
+    // `useCoachSections()` sans deps : le composable retombait alors sur des
+    // valeurs vides et l'écriture devenait un no-op, suite verte (2472/2472).
+    assert.match(
+      source,
+      /const sections = useCoachSections\(\{ editor, toast \}\)/,
+      'la page injecte le store ET le toast'
     )
-    // Rollback : restaure sectionsConfig depuis previous snapshot via le helper pur extrait
-    // (round Codex CR R1-F1 — la logique de rollback est testée unitairement dans
-    // tests/coach/section-config-rollback.test.ts, voir aussi coach-page-editor-runtime.test.ts).
-    assert.match(source, /applySectionsConfigSnapshot\(sectionsConfig,\s*previous\)/)
+    // La page ne porte plus la logique de rollback/bascule dans son propre corps.
+    assert.ok(!source.includes('pendingPreviousSnapshot'), 'plus de snapshot local dans la page')
+    assert.ok(!source.includes('let saveDebounceTimer'), 'plus de timer local dans la page')
+  })
+
+  test('AC-2 (CPD.8): la constante de debounce 500 ms vit dans le composable', () => {
+    // Revue CPD.8 — ce test était `assert.ok(true)`. La valeur est lue en
+    // exécution, et l'usage du timer est épinglé dans le composable.
+    assert.equal(TOGGLE_AUTOSAVE_DEBOUNCE_MS, 500, 'la constante vaut 500 ms')
+    assert.ok(
+      !readCoachPage().includes('TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500'),
+      'la page ne redéclare plus la constante'
+    )
+    assert.match(
+      readCoachSections(),
+      /setTimeout\([\s\S]*?TOGGLE_AUTOSAVE_DEBOUNCE_MS\)/,
+      'le timer du composable utilise la constante'
+    )
+  })
+
+  test('AC-2 (CPD.8): les toasts verbatim vivent dans le composable', () => {
+    // Revue CPD.8 — ce test était `assert.ok(true)`. Les deux libellés verbatim
+    // (A31) sont épinglés à leur nouvelle source ; leur émission est prouvée en
+    // exécution dans `cpd-8-use-coach-sections.test.ts`.
+    const composable = readCoachSections()
+    assert.ok(
+      composable.includes('title: \'Configuration enregistrée\''),
+      'toast succès verbatim dans le composable'
+    )
+    assert.ok(
+      composable.includes('title: \'Impossible d\\\'enregistrer la configuration\''),
+      'toast erreur verbatim dans le composable'
+    )
+    assert.ok(
+      !readCoachPage().includes('Configuration enregistrée'),
+      'la page ne réimplémente plus le toast'
+    )
   })
 
   // ─────────────────────────────────────────────────────────────────────
@@ -650,5 +661,64 @@ describe('CPD.6 — GARDE DE CÂBLAGE des deux cartes de personnalisation', () =
       source.indexOf('</section>', sectionStart) > mountIdx,
       'l’éditeur doit rester à l’intérieur de la section'
     )
+  })
+})
+
+describe('CPD.7 — GARDE DE CÂBLAGE de l’éditeur du hero', () => {
+  /**
+   * La preuve de RENDU vit dans `cpd-7-hero-editor.test.ts`. Ces assertions
+   * prouvent que la carte est réellement MONTÉE et reliée. Mesuré avant la
+   * revue : retirer `@update:headline` ou `@save` laissait 2435/2435 vertes.
+   */
+  test('AC-5: GARDE DE CÂBLAGE — la page monte CoachPageHeroEditor avec toutes ses liaisons', () => {
+    assert.match(
+      readCoachPage(),
+      /^import CoachPageHeroEditor from '~\/components\/organisms\/CoachPageHeroEditor\.vue'$/m,
+      'la carte doit être importée explicitement (une balise non résolue ne rend rien)'
+    )
+
+    assertBindings('CoachPageHeroEditor', [
+      ':headline="heroForm.heroHeadline"',
+      ':description="heroForm.heroDescription"',
+      ':urgency="heroForm.urgencyText"',
+      ':hero-is-background="isHeroBackgroundTemplate"',
+      ':template-code="previewTemplateCode"',
+      ':headline-hint="heroHeadlineHint"',
+      ':photo-url="account?.heroImageUrl ?? null"',
+      ':profile-photo-url="account?.imageUrl ?? null"',
+      ':photo-busy="heroPhotoUploading"',
+      ':photo-error="heroPhotoError"',
+      ':photo-disabled="account?.heroImageDisabled ?? false"',
+      ':saving="saving"',
+      '@update:headline="heroForm.heroHeadline = $event"',
+      '@update:description="heroForm.heroDescription = $event"',
+      '@update:urgency="heroForm.urgencyText = $event"',
+      '@photo-selected="onHeroPhotoSelected"',
+      '@photo-cleared="onHeroPhotoCleared"',
+      '@photo-uploaded="onHeroPhotoUploadedFromCard"',
+      '@photo-error="onHeroPhotoError"',
+      '@photo-disable="handleHeroPhotoDisable"',
+      '@photo-enable-default="handleHeroPhotoEnableDefault"',
+      '@save="onSaveHero"'
+    ])
+
+    // Le montage doit vivre DANS `#section-hero` : ailleurs, l’éditeur
+    // disparaîtrait du seul endroit où la coach le cherche.
+    const source = readCoachPageMarkup()
+    const sectionStart = source.indexOf('id="section-hero"')
+    assert.ok(sectionStart >= 0, 'la section #section-hero doit exister')
+    const mountIdx = source.indexOf('<CoachPageHeroEditor')
+    assert.ok(mountIdx > sectionStart, 'l’éditeur doit être monté dans #section-hero')
+    assert.ok(
+      source.indexOf('</section>', sectionStart) > mountIdx,
+      'l’éditeur doit rester à l’intérieur de la section'
+    )
+  })
+
+  test('CPD.7: la page ne porte plus l’entrée fichier ni l’état d’upload du hero', () => {
+    const source = readCoachPage()
+    assert.equal(source.includes('onHeroFileSelected'), false, 'le handler mort doit avoir quitté la page')
+    assert.equal(source.includes('heroPhotoFile'), false, 'l’état de fichier mort doit avoir quitté la page')
+    assert.equal(source.includes('ref="heroFileInputRef"'), false, 'l’entrée fichier vit dans la carte')
   })
 })

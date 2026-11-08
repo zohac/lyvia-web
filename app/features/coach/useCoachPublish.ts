@@ -2,12 +2,6 @@ import { ref } from 'vue'
 import type { Ref } from 'vue'
 import type { ProviderAccountResponse } from '~/features/account/api/provider-account.contract'
 
-// Nuxt auto-imported helper; may be undefined in unit tests (node runtime).
-const nuxtNavigateTo: ((to: string) => unknown) | undefined
-  = (typeof (globalThis as { navigateTo?: unknown }).navigateTo === 'function')
-    ? (globalThis as unknown as { navigateTo: (to: string) => unknown }).navigateTo
-    : undefined
-
 /**
  * CPD.9 — Cycle de publication (publier / dépublier) de la page coach, extrait
  * de `coach-page.vue`.
@@ -30,6 +24,14 @@ export interface CoachPublishDeps {
   } | null
   /** Toast adapter (Nuxt useToast). */
   toast?: { add: (options: unknown) => void } | null
+  /**
+   * Navigation adapter (Nuxt `navigateTo`). Injecté, jamais lu depuis un global :
+   * `navigateTo` est un export auto-importé de `#app`, il n'existe pas sur
+   * `globalThis`, et le lire ainsi rendait le lien « Offre active » de la
+   * checklist silencieusement mort (revue CPD.9). Le patron existe déjà dans
+   * `useSupportSession` (port de navigation injecté).
+   */
+  navigateTo?: ((to: string) => unknown) | null
 }
 
 export interface CoachPublish {
@@ -47,14 +49,18 @@ export function createCoachPublish(deps: CoachPublishDeps): CoachPublish {
   const account = deps.account as { value: ProviderAccountResponse | null }
   const editor = deps.editor ?? null
   const toast = deps.toast ?? { add: () => {} }
+  const navigate = deps.navigateTo ?? null
 
   const checklistModalOpen = ref(false)
   const confirmUnpublishModalOpen = ref(false)
   const publishing = ref(false)
   const publishError = ref<string | null>(null)
 
-  // Idempotency guard for unpublish: a second call (in-flight or after a
-  // successful run) must not write again nor emit a second toast.
+  // L'idempotence de `unpublish` vaut pour UNE dépublication : deux appels
+  // consécutifs (double clic, retry) ne produisent qu'une écriture et un toast.
+  // `unpublishDone` est réarmé dès qu'une publication réussit, sinon une
+  // praticienne qui republie ne pouvait plus jamais dépublier dans la même
+  // session (revue CPD.9 : la modale restait ouverte et ne répondait plus).
   let unpublishDone = false
   let unpublishInFlight = false
 
@@ -75,6 +81,7 @@ export function createCoachPublish(deps: CoachPublishDeps): CoachPublish {
     try {
       const result = await editor?.publishCoachPage?.()
       if (result?.ok) {
+        unpublishDone = false
         checklistModalOpen.value = false
         toast.add({
           title: 'Page mise en ligne',
@@ -137,9 +144,7 @@ export function createCoachPublish(deps: CoachPublishDeps): CoachPublish {
       return
     }
     if (sectionId === 'offers') {
-      if (typeof nuxtNavigateTo === 'function') {
-        nuxtNavigateTo('/provider/tarifs')
-      }
+      if (navigate) navigate('/provider/tarifs')
       checklistModalOpen.value = false
       return
     }

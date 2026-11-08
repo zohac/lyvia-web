@@ -340,7 +340,9 @@ describe('18.3b Task 4 — audit ghost vars CSS (Convention DS1, étendue DS2)',
     const auditedSources = [
       readCoachPage(),
       fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageBrandingCard.vue'), 'utf8'),
-      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPagePaletteEditor.vue'), 'utf8')
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPagePaletteEditor.vue'), 'utf8'),
+      // CPD.7 — même suivi : le markup du hero a quitté la page.
+      fs.readFileSync(path.join(appRoot, 'components/organisms/CoachPageHeroEditor.vue'), 'utf8')
     ]
 
     const used = [

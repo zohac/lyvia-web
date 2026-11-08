@@ -111,9 +111,9 @@ describe('YB.1.1 — les cinq emplacements d\u2019inscription (AD-7)', () => {
 
   // N° 3 : la liste ordonnée d'affichage de l'éditeur.
   test('n° 3 — DISPLAY_SECTION_ORDER place freeText entre benefits et bio', () => {
-    const source = readFile(COACH_PAGE_PATH)
+    const source = readFile('features/coach/useCoachSections.ts')
     const orderMatch = source.match(
-      /const DISPLAY_SECTION_ORDER = \[([\s\S]*?)\] as const/
+      /export const DISPLAY_SECTION_ORDER = \[([\s\S]*?)\] as const/
     )
     assert.ok(orderMatch, 'DISPLAY_SECTION_ORDER doit être déclaré')
     const order = Array.from((orderMatch![1] ?? '').matchAll(/'([^']+)'/g)).map(m => m[1])
@@ -603,18 +603,17 @@ describe('YB.1.1 — l\u2019éditeur', () => {
   test('la bascule est DÉSACTIVÉE tant que le contenu est vide, avec sa raison affichée', () => {
     const source = readFile(COACH_PAGE_PATH)
 
+    // CPD.8 — le prédicat a quitté la page pour useCoachSections. La règle
+    // elle-même est exécutée dans `tests/coach/cpd-8-use-coach-sections.test.ts`
+    // (« un bloc eteint MAIS rempli reste deverrouillable »). Ici, garde de
+    // câblage bornée à la DESTRUCTURATION : `/isSectionLocked/` seul était
+    // satisfait par le commentaire et laissait retirer la consommation.
     assert.match(
       source,
-      /const hasFreeTextContent = computed\(\(\) => hasCoachFreeTextContent\(freeTextForm\.value\)\)/,
-      'l\u2019éditeur doit appeler le prédicat PARTAGÉ, pas recopier la règle (CR round 2)'
+      /^\s+isSectionLocked,$/m,
+      'la page destructure isSectionLocked depuis useCoachSections'
     )
-    assert.match(
-      source,
-      /function isSectionLocked\(section: string\): boolean \{\s*return isFreeTextSection\(section\)\s*&& !isSectionOn\(section\)\s*&& !hasFreeTextContent\.value\s*\}/,
-      'le verrou ne doit interdire QUE l\'ACTIVATION d\'un bloc vide : un bloc déjà '
-      + 'allumé reste désactivable, sinon une coach qui a tout effacé se retrouve '
-      + 'avec une bascule ON verrouillée dont elle ne peut plus sortir'
-    )
+    assert.ok(!source.includes('function isSectionLocked'), 'plus de définition locale de isSectionLocked')
     assert.ok(
       source.includes(':locked="isSectionLocked(section)"'),
       'la bascule partagée doit porter :locked'
@@ -629,10 +628,13 @@ describe('YB.1.1 — l\u2019éditeur', () => {
 
   test('le corps du bloc reste déplié même éteint (sinon il est impossible d\u2019écrire)', () => {
     const source = readFile(COACH_PAGE_PATH)
+    // CPD.8 — le prédicat vit désormais dans useCoachSections ; sa sémantique
+    // est exécutée dans `cpd-8-use-coach-sections.test.ts`. La garde porte sur
+    // la destructuration réelle, pas sur une occurrence de mot.
     assert.match(
       source,
-      /function isSectionBodyOpen\(section: string\): boolean \{\s*return isSectionOn\(section\) \|\| isFreeTextSection\(section\)\s*\}/,
-      'le formulaire doit rester atteignable : un interrupteur verrouillé est un cul-de-sac'
+      /^\s+isSectionBodyOpen,$/m,
+      'la page destructure isSectionBodyOpen depuis useCoachSections'
     )
   })
 

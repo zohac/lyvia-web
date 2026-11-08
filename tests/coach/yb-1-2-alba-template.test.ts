@@ -97,8 +97,8 @@ describe('YB.1.2 — CoachAlbaHero rend l\'accroche saisie par la coach', () => 
     )
     assert.match(
       card,
-      /:hint="heroHeadlineHint"/,
-      'le hint doit être dérivé du template, pas figé dans le markup'
+      /:hint="headlineHint"/,
+      'le hint doit être reçu du template, pas figé dans le markup'
     )
     // Hotfix 25 — les replis par template vivent maintenant dans un helper pur
     // (`domain/hero-headline-hint.ts`) : on les vérifie par leurs sorties, plus
@@ -110,13 +110,20 @@ describe('YB.1.2 — CoachAlbaHero rend l\'accroche saisie par la coach', () => 
       'repli Signature absent'
     )
     // Câblage — c'est CE que ce fichier existe pour prouver : la page doit
-    // réellement consommer le helper. Sans cette assertion, ré-inliner une
-    // phrase locale (par exemple en y remettant la ville) laisserait le fichier
-    // vert alors que le back-office décrit un rendu qui n'existe plus.
+    // réellement consommer le helper et transmettre le texte. Sans cette
+    // assertion, ré-inliner une phrase locale (par exemple en y remettant la
+    // ville) laisserait le fichier vert alors que le back-office décrit un
+    // rendu qui n'existe plus. CPD.7 — un booléen ne distinguerait plus Visuel
+    // de Signature : le test exige la dérivation depuis `previewTemplateCode`.
     assert.match(
-      card,
-      /const heroHeadlineHint = computed\(\(\) => buildHeroHeadlineHint\(isBackground\.value\)\)/,
-      'heroHeadlineHint doit déléguer à buildHeroHeadlineHint'
+      page,
+      /const heroHeadlineHint = computed<string>\(\(\)\s*=>\s*buildHeroHeadlineHint\(previewTemplateCode\.value\)\s*\)/,
+      'heroHeadlineHint doit déléguer à buildHeroHeadlineHint(previewTemplateCode.value)'
+    )
+    assert.match(
+      page,
+      /:headline-hint="heroHeadlineHint"/,
+      'la page doit transmettre le texte calculé à la carte'
     )
   })
 })

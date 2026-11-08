@@ -959,18 +959,31 @@ describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & uplo
     )
   })
 
-  test.skip('8.4: hidden file inputs — hero stays at page root, les deux autres vivent dans leur carte (CPD.2)', () => {
+  test('8.4: hidden file inputs — chaque entrée fichier vit dans sa carte (CPD.2/CPD.7)', () => {
     const pageContent = readFile(COACH_PAGE_PATH)
+    const heroCard = readFile('components/organisms/CoachPageHeroEditor.vue')
+    const problemCard = readFile('components/organisms/CoachPageProblemStatementEditor.vue')
+    const bioCard = readFile('components/organisms/CoachPageBioEditor.vue')
 
-    // L'entrée fichier du hero reste au niveau racine, avant l'en-tête de page.
-    const headerIndex = pageContent.indexOf('<AtomsDsPageHeader')
-    const heroInputIndex = pageContent.indexOf('ref="heroFileInputRef"')
-    assert.ok(headerIndex > 0, 'Could not find AtomsDsPageHeader in coach-page.vue')
-    assert.ok(heroInputIndex > 0 && heroInputIndex < headerIndex, 'heroFileInputRef doit rester au niveau racine, avant AtomsDsPageHeader')
-
-    const cardContent = readFile('components/organisms/CoachPageProblemStatementEditor.vue')
+    // CPD.7 — l'entrée fichier du hero a rejoint sa carte. La garde précédente
+    // exigeait l'inverse (au niveau page) ; elle est retournée, pas supprimée.
+    assert.equal(
+      (pageContent.match(/ref="heroFileInputRef"/g) || []).length,
+      0,
+      'heroFileInputRef ne doit plus vivre dans coach-page.vue (CPD.7)'
+    )
+    assert.equal(
+      (heroCard.match(/ref="heroFileInputRef"/g) || []).length,
+      1,
+      'heroFileInputRef doit vivre dans CoachPageHeroEditor (CPD.7)'
+    )
     assert.ok(
-      cardContent.includes('ref="problemStatementFileInputRef"'),
+      pageContent.includes('<CoachPageHeroEditor'),
+      'la page doit monter la carte qui porte l’entrée fichier déplacée'
+    )
+
+    assert.ok(
+      problemCard.includes('ref="problemStatementFileInputRef"'),
       'problemStatementFileInputRef doit vivre dans CoachPageProblemStatementEditor (CPD.2)'
     )
     assert.ok(
@@ -982,19 +995,12 @@ describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & uplo
       'la page doit monter la carte qui porte l’entrée fichier déplacée'
     )
 
-    // Check that heroFileInputRef and secondaryFileInputRef are unique where expected
-    assert.equal(
-      (pageContent.match(/ref="heroFileInputRef"/g) || []).length,
-      1,
-      'heroFileInputRef must appear exactly once in coach-page.vue at root level'
-    )
     // CPD.2 — secondaryFileInputRef a quitté la page pour la carte.
     assert.equal(
       (pageContent.match(/ref="secondaryFileInputRef"/g) || []).length,
       0,
       'secondaryFileInputRef ne doit plus apparaître dans coach-page.vue (CPD.2)'
     )
-    const bioCard = readFile('components/organisms/CoachPageBioEditor.vue')
     assert.equal(
       (bioCard.match(/ref="secondaryFileInputRef"/g) || []).length,
       1,
@@ -1002,11 +1008,17 @@ describe('Task 8 — Retours terrain coach Essentiel : retrait image Hero & uplo
     )
   })
 
-  test.skip('8.5: coach-page.vue adapts hero disabled thumbnail label based on previewTemplateCode', () => {
-    const pageContent = readFile(COACH_PAGE_PATH)
+  test('8.5: CoachPageHeroEditor adapts the disabled thumbnail label to the selected template', () => {
+    const cardContent = readFile('components/organisms/CoachPageHeroEditor.vue')
     assert.ok(
+      cardContent.includes('isVisuel.value ? \'Fond sombre\' : \'Sans photo\''),
+      'la carte doit afficher « Fond sombre » pour Visuel et « Sans photo » pour les autres'
+    )
+    const pageContent = readFile(COACH_PAGE_PATH)
+    assert.equal(
       pageContent.includes('previewTemplateCode === \'visuel\' ? \'Fond sombre\' : \'Sans photo\''),
-      'coach-page.vue must display \'Fond sombre\' only for visuel template and \'Sans photo\' for Essentiel/Signature'
+      false,
+      'le libellé dépendant du template a quitté la page avec le markup (CPD.7)'
     )
   })
 })

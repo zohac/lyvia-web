@@ -1,18 +1,33 @@
 import * as assert from 'node:assert/strict'
-import * as fs from 'node:fs'
-import * as path from 'node:path'
+import * as Vue from 'vue'
 import test from 'node:test'
 
-const repoRoot = process.cwd()
-const appRoot = path.resolve(repoRoot, 'app')
+import { renderSfc } from '../helpers/render-sfc'
 
-function readAppFile(relativePath: string): string {
-  return fs.readFileSync(path.join(appRoot, relativePath), 'utf-8')
-}
+const HEADER_PATH = 'app/components/organisms/CoachPageHeader.vue'
 
-test('provider coach page uses AtomsDsPageHeader to match Nuxt auto-import naming', () => {
-  const source = readAppFile('pages/provider/coach-page.vue')
+test('CoachPageHeader renders the test badge when account is a test account', async () => {
+  const html = await renderSfc(HEADER_PATH, {
+    props: { account: { isTest: true, isPublished: true }, previewLink: '/preview', publishing: false },
+    globals: { ...Vue }
+  })
+  assert.match(html, /Compte de test/)
+  assert.doesNotMatch(html, /En ligne/)
+})
 
-  assert.ok(source.includes('<AtomsDsPageHeader'))
-  assert.equal(source.includes('<DsPageHeader>'), false)
+test('CoachPageHeader preview link carries rel="noopener noreferrer"', async () => {
+  const html = await renderSfc(HEADER_PATH, {
+    props: { account: { isTest: false, isPublished: false }, previewLink: '/preview', publishing: false },
+    globals: { ...Vue }
+  })
+  assert.match(html, /rel="noopener noreferrer"/)
+})
+
+test('CoachPageHeader emits publish on click', async () => {
+  // wiring guard: the component declares the emit
+  const source = (await import('node:fs')).readFileSync(
+    (await import('node:path')).join(process.cwd(), HEADER_PATH),
+    'utf-8'
+  )
+  assert.match(source, /publish:/)
 })

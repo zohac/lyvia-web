@@ -229,17 +229,29 @@ describe('0-28 — coach-page live preview layout (split desktop + slideover mob
     const source = read(COACH_PAGE_PATH)
     const card = read('components/organisms/CoachPageHeroEditor.vue')
 
-    // The signal itself, derived from the selected template, is computed by the
-    // page and handed to the card as a prop.
+    // CPD.9 — le signal est dérivé par `useCoachPreview` (source unique) et la
+    // page le DESTRUCTURE : la page n'en garde plus un second computed, sinon
+    // deux dérivations de la même règle Alba/visuel coexistent (revue CPD.9).
+    const previewComposable = read('features/coach/useCoachPreview.ts')
     assert.match(
-      source,
-      /const isHeroBackgroundTemplate = computed\(\s*\(\) => previewTemplateCode\.value !== ALBA_TEMPLATE_CODE\s*\)/,
-      'coach-page must declare isHeroBackgroundTemplate off the Alba template code'
+      previewComposable,
+      /const isHeroBackgroundTemplate = computed<boolean>\(\s*\(\) => previewTemplateCode\.value !== ALBA_TEMPLATE_CODE\s*\)/,
+      'the preview composable must derive isHeroBackgroundTemplate off the Alba template code'
+    )
+    assert.match(
+      previewComposable,
+      /import\s*\{\s*ALBA_TEMPLATE_CODE\s*\}\s*from\s*'(?:~\/features|\.\.\/\.\.\/features)\/plans\/domain\/template-lock'/,
+      'ALBA_TEMPLATE_CODE must be imported, not inlined as a string literal'
     )
     assert.match(
       source,
-      /import\s*\{[\s\S]{0,200}?ALBA_TEMPLATE_CODE[\s\S]{0,200}?\}\s*from\s*'~\/features\/plans\/domain\/template-lock'/,
-      'ALBA_TEMPLATE_CODE must be imported, not inlined as a string literal'
+      /^\s+isHeroBackgroundTemplate,$/m,
+      'coach-page must destructure the signal from the preview composable'
+    )
+    assert.equal(
+      /const isHeroBackgroundTemplate = computed/.test(source),
+      false,
+      'coach-page must NOT keep a second derivation of the hero-background signal'
     )
     assert.match(
       source,

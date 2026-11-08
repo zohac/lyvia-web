@@ -9,15 +9,15 @@
  * promettre un rendu que le hero ne produit pas — elle est construite depuis
  * `SIGNATURE_HERO_FALLBACK_HEADLINE`, la valeur réellement rendue, pour que
  * les deux ne puissent plus diverger.
+ *
+ * CPD.7 : le calcul reste dans la page, qui seule connaît le template
+ * sélectionné. La carte extraite reçoit le texte déjà calculé, jamais un
+ * booléen : un booléen ne distingue pas Visuel de Signature et rendrait les
+ * branches ci-dessous inatteignables.
  */
 import { SIGNATURE_HERO_FALLBACK_HEADLINE } from './signature-hero'
 
-export function buildHeroHeadlineHint(templateCode: string | boolean | null | undefined): string {
-  if (typeof templateCode === 'boolean') {
-    return templateCode
-      ? 'Laissez vide : le hero affiche alors un titre par défaut selon votre template.'
-      : 'Laissez vide : le hero affiche alors « Bonjour, je suis {votre prénom}. », avec la spécialité en surtitre.'
-  }
+export function buildHeroHeadlineHint(templateCode: string | null | undefined): string {
   switch (templateCode) {
     case 'visuel':
       return 'Laissez vide : le hero affiche alors « Retrouvez votre équilibre et votre vitalité avec {votre prénom} ».'

@@ -1,4 +1,4 @@
-import { computed, onMounted, ref } from 'vue'
+import { computed, getCurrentInstance, onMounted, ref } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 
 import { useCoachPagePreviewProfile } from './useCoachPagePreviewProfile'
@@ -9,22 +9,14 @@ import type { ProgramResponse, PublicProgramListItem } from '~/features/programs
 import type { PublicProviderProfile } from '~/features/seo/api/public-provider-profile.contract'
 import type { PublicTenantResponse } from '~/features/onboarding/api/onboarding.contract'
 import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
-import type { ProviderAccountResponse } from '~/features/account/api/provider-account.contract'
-// Loaded lazily (dynamic import) so the module stays compilable by the
-// node-based test runner (tsc) which cannot resolve Nuxt-only globals
-// pulled in transitively by these services.
 import { ALBA_TEMPLATE_CODE } from '../../features/plans/domain/template-lock'
 
 /**
- * CPD.9 — Aperçu live de la page coach, extrait de `coach-page.vue`.
+ * CPD.9 — mapping `ProgramResponse` → `PublicProgramListItem` (pur, testé seul).
  *
- * Regroupe l'état de l'aperçu (device, ouverture mobile/desktop), les liens
- * publics (white-label via `useCoachLink`), les plans/programmes affichés dans
- * l'aperçu et le profil/tenant dérivés via `useCoachPagePreviewProfile` /
- * `useCoachPagePreviewState` (conservés en l'état).
- *
- * Le composable n'écrit rien : il ne fait que lire les plans et programmes
- * existants (onMounted) et dériver des computed.
+ * Les deux champs nullable du contrat public (`installmentCount`,
+ * `monthlyPriceCents`) sont normalisés en `null` : une réponse API qui les omet
+ * ne doit pas produire `undefined` dans l'objet rendu à l'aperçu.
  */
 export function toPublicProgram(p: ProgramResponse): PublicProgramListItem {
   return {
@@ -35,8 +27,8 @@ export function toPublicProgram(p: ProgramResponse): PublicProgramListItem {
     validityMonths: p.validityMonths,
     priceCents: p.priceCents,
     allowInstallments: p.allowInstallments,
-    installmentCount: p.installmentCount,
-    monthlyPriceCents: p.monthlyPriceCents,
+    installmentCount: p.installmentCount ?? null,
+    monthlyPriceCents: p.monthlyPriceCents ?? null,
     discoveryGate: p.discoveryGate,
     sessionDurationMinutes: p.sessionDurationMinutes
   }
@@ -47,9 +39,9 @@ export interface CoachPreviewDeps extends Partial<CoachPagePreviewDeps> {
   templates?: Ref<{ id: string, code?: string | null }[]> | { value: { id: string, code?: string | null }[] }
   /** Id du template sélectionné. */
   selectedTemplateId?: Ref<string | null> | { value: string | null }
-  /** Injecteur pour les plans de consultation (tests). */
+  /** Injecteur pour les plans de consultation (tests / SSR). */
   loadConsultationPlans?: () => Promise<ConsultationPricePlan[]>
-  /** Injecteur pour les programmes (tests). */
+  /** Injecteur pour les programmes (tests / SSR). */
   loadPrograms?: () => Promise<ProgramResponse[]>
 }
 
@@ -70,64 +62,82 @@ export interface CoachPreview {
   publicPrograms: Ref<PublicProgramListItem[]>
   previewTemplateCode: ComputedRef<string | null>
   isHeroBackgroundTemplate: ComputedRef<boolean>
+  /** Charge (une fois) les plans de consultation et les programmes actifs. */
+  loadPreviewData: () => Promise<void>
 }
 
-export function createCoachPreview(deps: CoachPreviewDeps = {}): CoachPreview {
-  const accountRef = (deps.account ?? ref(null)) as Ref<ProviderAccountResponse | null>
+/**
+ * CPD.9 — dépendances requises. Elles ne sont pas facultatives : un câblage
+ * oublié produisait sinon un aperçu plausible mais faux, suite verte (la leçon
+ * de `cpd-8`, où `useCoachSections` LÈVE sur dépendance manquante). Seules les
+ * dépendances réellement optionnelles de `CoachPagePreviewDeps` restent
+ * facultatives ici.
+ */
+const REQUIRED_DEPS = [
+  'account',
+  'bioForm',
+  'testimonialsForm',
+  'brandingForm',
+  'sectionsConfig',
+  'pillarsForm',
+  'faqForm',
+  'benefitsForm',
+  'howItWorksForm',
+  'educationalContentForm',
+  'problemStatementForm'
+] as const satisfies readonly (keyof CoachPagePreviewDeps)[]
 
-  // Defaults for missing form deps (kept optional so the composable stays mountable).
-  const bioForm = deps.bioForm ?? { longBio: '', city: '', region: '' }
-  const testimonialsForm = (deps.testimonialsForm ?? ref([])) as Ref<unknown[]>
-  const brandingForm = deps.brandingForm ?? { brandName: '' }
-  const sectionsConfig = (deps.sectionsConfig ?? {}) as Record<string, boolean>
-  const pillarsForm = (deps.pillarsForm ?? ref(null)) as Ref<unknown>
-  const faqForm = (deps.faqForm ?? ref([])) as Ref<unknown[]>
-  const benefitsForm = (deps.benefitsForm ?? ref(null)) as Ref<unknown>
-  const howItWorksForm = (deps.howItWorksForm ?? ref([])) as Ref<unknown[]>
-  const educationalContentForm = (deps.educationalContentForm ?? ref(null)) as Ref<unknown>
-  const problemStatementForm = (deps.problemStatementForm ?? ref(null)) as Ref<unknown>
-  const fitForm = (deps.fitForm ?? ref(null)) as Ref<unknown>
-  const freeTextForm = (deps.freeTextForm ?? ref(null)) as Ref<unknown>
-  const templateCodeRef = (deps.templateCode ?? ref(null)) as Ref<string | null | undefined>
-  const heroForm = deps.heroForm
-  const paletteForm = deps.paletteForm
-  const sectionTitlesForm = deps.sectionTitlesForm
-
-  const previewProfileDeps: CoachPagePreviewDeps = {
-    account: accountRef as CoachPagePreviewDeps['account'],
-    bioForm: bioForm as CoachPagePreviewDeps['bioForm'],
-    heroForm,
-    paletteForm,
-    sectionTitlesForm,
-    testimonialsForm: testimonialsForm as CoachPagePreviewDeps['testimonialsForm'],
-    brandingForm: brandingForm as CoachPagePreviewDeps['brandingForm'],
-    sectionsConfig,
-    pillarsForm: pillarsForm as CoachPagePreviewDeps['pillarsForm'],
-    faqForm: faqForm as CoachPagePreviewDeps['faqForm'],
-    benefitsForm: benefitsForm as CoachPagePreviewDeps['benefitsForm'],
-    howItWorksForm: howItWorksForm as CoachPagePreviewDeps['howItWorksForm'],
-    educationalContentForm: educationalContentForm as CoachPagePreviewDeps['educationalContentForm'],
-    problemStatementForm: problemStatementForm as CoachPagePreviewDeps['problemStatementForm'],
-    fitForm: fitForm as CoachPagePreviewDeps['fitForm'],
-    freeTextForm: freeTextForm as CoachPagePreviewDeps['freeTextForm'],
-    templateCode: templateCodeRef as CoachPagePreviewDeps['templateCode'],
-    secondaryPhotoPreview: deps.secondaryPhotoPreview,
-    heroPhotoPreview: deps.heroPhotoPreview,
-    problemStatementPhotoPreview: deps.problemStatementPhotoPreview
+function requiredDep<K extends typeof REQUIRED_DEPS[number]>(
+  deps: CoachPreviewDeps,
+  key: K
+): NonNullable<CoachPagePreviewDeps[K]> {
+  const value = deps[key]
+  if (value === undefined || value === null) {
+    throw new Error(`useCoachPreview: missing required dependency "${key}"`)
   }
+  return value as NonNullable<CoachPagePreviewDeps[K]>
+}
 
-  const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile(previewProfileDeps)
+/**
+ * Refuse de construire l'aperçu sur des dépendances manquantes : un câblage
+ * oublié doit casser bruyamment, pas produire un aperçu vide plausible.
+ */
+function assertRequiredDeps(deps: CoachPreviewDeps): void {
+  const missing = REQUIRED_DEPS.filter((key) => {
+    const value = deps[key]
+    return value === undefined || value === null
+  })
+  if (missing.length > 0) {
+    throw new Error(`useCoachPreview: missing required dependencies: ${missing.join(', ')}`)
+  }
+}
 
-  const previewState = useCoachPagePreviewState()
-  const { isOpen: previewOpenState, device: previewDevice, toggleOpen, setDevice: setPreviewDevice } = previewState
-  const previewOpen = previewOpenState
-
-  const mobileOpen = ref(false)
+/**
+ * CPD.9 — Aperçu live de la page coach, extrait de `coach-page.vue`.
+ *
+ * Regroupe l'état de l'aperçu (device, ouverture mobile/desktop), les liens
+ * publics (white-label via `useCoachLink`), les plans/programmes affichés dans
+ * l'aperçu et le profil/tenant dérivés via `useCoachPagePreviewProfile` /
+ * `useCoachPagePreviewState` (conservés en l'état).
+ *
+ * Le composable n'écrit rien : il ne fait que lire les plans et programmes
+ * existants (`loadPreviewData`) et dériver des computed.
+ */
+export function createCoachPreview(deps: CoachPreviewDeps = {}): CoachPreview {
+  assertRequiredDeps(deps)
+  const accountRef = requiredDep(deps, 'account')
 
   const templatesRef = (deps.templates ?? ref([])) as { value: { id: string, code?: string | null }[] }
   const selectedTemplateIdRef = (deps.selectedTemplateId ?? ref(null)) as { value: string | null }
 
+  /**
+   * Code du template sélectionné. Source UNIQUE : soit la dépendance explicite
+   * `templateCode` (appelant qui la détient déjà), soit la résolution
+   * `selectedTemplateId` → `templates`. CPD.9 garde la seconde, sinon la page
+   * et le composable dérivaient deux fois la même règle.
+   */
   const previewTemplateCode = computed<string | null>(() => {
+    if (deps.templateCode) return deps.templateCode.value ?? null
     const id = selectedTemplateIdRef.value
     if (!id) return null
     const match = templatesRef.value.find(t => t.id === id)
@@ -138,17 +148,51 @@ export function createCoachPreview(deps: CoachPreviewDeps = {}): CoachPreview {
     () => previewTemplateCode.value !== ALBA_TEMPLATE_CODE
   )
 
+  const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
+    account: accountRef,
+    bioForm: requiredDep(deps, 'bioForm'),
+    heroForm: deps.heroForm,
+    paletteForm: deps.paletteForm,
+    sectionTitlesForm: deps.sectionTitlesForm,
+    testimonialsForm: requiredDep(deps, 'testimonialsForm'),
+    brandingForm: requiredDep(deps, 'brandingForm'),
+    sectionsConfig: requiredDep(deps, 'sectionsConfig'),
+    pillarsForm: requiredDep(deps, 'pillarsForm'),
+    faqForm: requiredDep(deps, 'faqForm'),
+    benefitsForm: requiredDep(deps, 'benefitsForm'),
+    howItWorksForm: requiredDep(deps, 'howItWorksForm'),
+    educationalContentForm: requiredDep(deps, 'educationalContentForm'),
+    problemStatementForm: requiredDep(deps, 'problemStatementForm'),
+    fitForm: deps.fitForm,
+    freeTextForm: deps.freeTextForm,
+    templateCode: computed(() => previewTemplateCode.value),
+    secondaryPhotoPreview: deps.secondaryPhotoPreview,
+    heroPhotoPreview: deps.heroPhotoPreview,
+    problemStatementPhotoPreview: deps.problemStatementPhotoPreview
+  })
+
+  const previewState = useCoachPagePreviewState()
+  const { isOpen: previewOpenState, device: previewDevice, toggleOpen, setDevice: setPreviewDevice } = previewState
+  const previewOpen = previewOpenState
+
+  const mobileOpen = ref(false)
+
   function openMobile(): void {
     mobileOpen.value = true
   }
   function closeMobile(): void {
     mobileOpen.value = false
   }
+  /**
+   * Fermer/rouvrir l'aperçu desktop a une SÉMANTIQUE, pas une bascule : le nom
+   * d'une fonction doit dire ce qu'elle fait (AC-2). `toggleOpen()` reste
+   * l'unique écriture, mais conditionnée à l'état courant.
+   */
   function reopenDesktop(): void {
-    toggleOpen()
+    if (!previewOpen.value) toggleOpen()
   }
   function closeDesktop(): void {
-    toggleOpen()
+    if (previewOpen.value) toggleOpen()
   }
   function setDevice(next: 'desktop' | 'mobile'): void {
     setPreviewDevice(next)
@@ -169,27 +213,31 @@ export function createCoachPreview(deps: CoachPreviewDeps = {}): CoachPreview {
   const consultationPlans = ref<ConsultationPricePlan[]>([])
   const publicPrograms = ref<PublicProgramListItem[]>([])
 
-  const loadConsultationPlans = deps.loadConsultationPlans
-    ?? (async () => [])
-  const loadPrograms = deps.loadPrograms
-    ?? (async () => [])
+  const loadConsultationPlans = deps.loadConsultationPlans ?? (async () => [])
+  const loadPrograms = deps.loadPrograms ?? (async () => [])
 
-  onMounted(async () => {
-    try {
-      const plans = await loadConsultationPlans()
-      consultationPlans.value = plans
-    } catch {
-      consultationPlans.value = []
-    }
-    try {
-      const programs = await loadPrograms()
-      publicPrograms.value = programs
-        .filter(p => p.status === 'active')
-        .map(toPublicProgram)
-    } catch {
-      publicPrograms.value = []
-    }
-  })
+  /**
+   * Charge plans et programmes EN PARALLÈLE (l'extraction avait sérialisé deux
+   * lectures indépendantes). Appelable hors composant : c'est ce qui rend la
+   * lecture observable par un test, `onMounted` ne s'exécutant qu'avec une
+   * instance de composant.
+   */
+  async function loadPreviewData(): Promise<void> {
+    const [plans, programs] = await Promise.all([
+      loadConsultationPlans().catch(() => [] as ConsultationPricePlan[]),
+      loadPrograms().catch(() => [] as ProgramResponse[])
+    ])
+    consultationPlans.value = plans
+    publicPrograms.value = programs
+      .filter(p => p.status === 'active')
+      .map(toPublicProgram)
+  }
+
+  if (getCurrentInstance()) {
+    onMounted(() => {
+      void loadPreviewData()
+    })
+  }
 
   return {
     device: computed(() => previewDevice.value) as ComputedRef<'desktop' | 'mobile'>,
@@ -207,10 +255,11 @@ export function createCoachPreview(deps: CoachPreviewDeps = {}): CoachPreview {
     publicPrograms,
     previewTemplateCode,
     isHeroBackgroundTemplate,
-    previewOpen
+    previewOpen,
+    loadPreviewData
   }
 }
 
-export function useCoachPreview(deps?: CoachPreviewDeps): CoachPreview {
-  return createCoachPreview(deps ?? {})
+export function useCoachPreview(deps: CoachPreviewDeps): CoachPreview {
+  return createCoachPreview(deps)
 }
