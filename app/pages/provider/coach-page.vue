@@ -28,9 +28,7 @@
  *     "Sauvegarder") + toasts succès "...enregistré(e)(s)" cohérents
  */
 import {
-  getCoachPageExternalEditorSection,
   getCoachPageTemplateSaveErrorToast,
-  hasCoachFreeTextContent,
   isCoachPageInlineEditorSection,
   type COACH_PAGE_INLINE_EDITOR_SECTIONS
 } from '~/features/coach/domain/coach-page-editor'
@@ -55,26 +53,20 @@ import {
 // (une copie locale en aurait fait deux sources de vérité ; revue TF.1). La
 // justification LAB-R15 est documentée dans le module.
 import { sectionLabel } from '~/features/coach/domain/coach-page-section-labels'
+import { useCoachSections, DISPLAY_SECTION_ORDER } from '~/features/coach/useCoachSections'
 // Hotfix 25 — l'aide du champ « Accroche » est dérivée du template, et son
-// repli Signature vient de la valeur réellement rendue par le hero.
+// repli Signature vient de la valeur réellement rendue par le hero. CPD.7 — le
+// calcul reste ici (la carte reçoit le texte, pas le code du template).
+import { buildHeroHeadlineHint } from '~/features/coach/domain/hero-headline-hint'
 import { useCoachPageEditor } from '~/features/coach/useCoachPageEditor'
-import {
-  snapshotSectionsConfig,
-  applySectionsConfigSnapshot
-} from '~/features/coach/section-config-rollback'
 import type { TestimonialItem, CredentialItem } from '~/features/account/api/provider-account.contract'
-import {
-  formatUploadError,
-  validateFileUpload
-} from '~/features/assets/use-asset-upload'
-import { useCoachPagePreviewProfile } from '~/features/coach/useCoachPagePreviewProfile'
-import { useCoachPagePreviewState } from '~/features/coach/useCoachPagePreviewState'
+import { formatUploadError } from '~/features/assets/use-asset-upload'
+import { useCoachPreview } from '~/features/coach/useCoachPreview'
+import { useCoachPublish } from '~/features/coach/useCoachPublish'
 import { listMyConsultationPricePlans } from '~/features/pricing/services/provider-consultation-pricing.service'
 import { listMyPrograms } from '~/features/programs/services/provider-programs.service'
-import type { ConsultationPricePlan } from '~/features/consultation/api/consultation.contract'
-import type { ProgramResponse, PublicProgramListItem } from '~/features/programs/api/programs.contract'
+
 import CoachPagePreviewPanel from '~/components/organisms/CoachPagePreviewPanel.vue'
-import { useCoachLink } from '~/composables/useCoachLink'
 import CoachPublishChecklistModal from '~/components/molecules/CoachPublishChecklistModal.vue'
 import ConfirmActionModal from '~/components/molecules/ConfirmActionModal.vue'
 // LAB-R14 — import EXPLICITE : un `<CoachPageTemplateRequiredNotice>` non importé
@@ -138,8 +130,6 @@ const {
   templates,
   templatesLoading,
   selectedTemplateId,
-  configurableSections,
-  editableSections,
   hasEmotionalSupportSection,
   sectionsConfig,
   pillarsForm,
@@ -151,10 +141,7 @@ const {
   fitForm,
   freeTextForm,
   init,
-  isAlwaysOn,
-  isSectionOn,
   saveTemplate,
-  saveSectionsConfig,
   setBenefitsVisionIntro,
   setBenefitsVisionText,
   addBenefit,
@@ -177,7 +164,29 @@ const {
   saveFreeText
 } = editor
 
+// CPD.8 — état des sections (ordre, titres, prédicats, bascule optimiste
+// debouncée) extrait dans un composable testable.
+const sections = useCoachSections({ editor, toast })
+const {
+  orderedEditableSections,
+  orderedAlwaysOnSections,
+  sectionTitles: sectionTitlesForm,
+  hasEditor,
+  isSectionOn,
+  isSectionLocked,
+  sectionLockReason,
+  isSectionBodyOpen,
+  externalSection,
+  externalSectionTo,
+  onToggleSection,
+  flushPendingToggle
+} = sections
+
 onMounted(() => init())
+
+onBeforeUnmount(() => {
+  flushPendingToggle()
+})
 
 // YB.1.1 — plafonds alignés sur `FreeTextJsonDto` côté API
 // (10 paragraphes × 2 000 caractères, titre ≤ 200). Les constantes vivent
@@ -187,57 +196,16 @@ onMounted(() => init())
 // / CoachPageEssentiel priorise `longBio` pour cette section.
 // Story 0-27 — `logoUrl` n'est plus saisi en URL libre, il est uploadé via le widget
 // (POST /provider/assets/upload type=brand_logo). La constante d'URL est supprimée.
-const TOGGLE_AUTOSAVE_DEBOUNCE_MS = 500
+// CPD.8 — la bascule debouncée (constante 500 ms, snapshot, toasts) vit dans
+// `useCoachSections` : rien de tout cela ne reste dans cette page.
 
 // ── Section labels ──
 // TF.1 — la table a été déplacée dans `features/coach/domain` (import ci-dessus) :
 // la carte externe extraite et cette page doivent afficher le MÊME libellé.
 
-// ── Display order — aligné sur l'ordre de rendu de la page publique coach (PO 2026-05-02) ──
-// hero (always-on, top) → problemStatement → benefits (Ce que cela apporte) →
-// freeText (Bloc de texte libre) → bio (Qui suis-je) → testimonials → pillars
-// (L'accompagnement) → howItWorks (Le parcours) → pricing → educationalContent
-// (Comprendre) → faq → disclaimer (always-on, bottom).
-//
-// YB.1.1 — `freeText` est POSITIONNÉ entre `benefits` et `bio` : l'ordre de
-// rendu de la page est FIGÉ par template, la coach n'ordonne pas. C'est
-// l'inscription n° 3 des cinq exigées par AD-7. Une section inconnue est
-// ajoutée en FIN de liste — d'où l'importance de l'entrée explicite ici.
-const DISPLAY_SECTION_ORDER = [
-  'hero',
-  'problemStatement',
-  'benefits',
-  'freeText',
-  'bio',
-  'certifications',
-  'testimonials',
-  'pillars',
-  'howItWorks',
-  'fit',
-  'pricing',
-  'educationalContent',
-  'faq',
-  'disclaimer'
-] as const
-
-function sortByDisplayOrder(sections: readonly string[]): string[] {
-  const ordered: string[] = []
-  for (const s of DISPLAY_SECTION_ORDER) {
-    if (sections.includes(s)) ordered.push(s)
-  }
-  // Append any unknown sections at the end (defensive — future templates)
-  for (const s of sections) {
-    if (!ordered.includes(s)) ordered.push(s)
-  }
-  return ordered
-}
-
-const orderedAlwaysOnSections = computed(() =>
-  sortByDisplayOrder(configurableSections.value.filter(isAlwaysOn))
-)
-const orderedEditableSections = computed(() =>
-  sortByDisplayOrder(editableSections.value)
-)
+// DISPLAY_SECTION_ORDER / sortByDisplayOrder / ordered* vivent désormais dans
+// useCoachSections (CPD.8). L'alias local reste disponible pour le template
+// (v-if sur `disclaimer`).
 
 // ── "Qui suis-je" form state (rapatrié depuis /provider/account) ──
 // Édite `provider_profiles.long_bio` (= 5000 chars), pas le `bio` court (500 chars).
@@ -271,30 +239,31 @@ const heroForm = reactive({
 })
 
 // ── Photo Hero / Fond (Story 0-38) ──
-const heroPhotoFile = ref<File | null>(null)
+// CPD.7 — l'upload et l'aperçu local vivent dans `CoachPageHeroEditor` ; cette
+// ref ne sert plus qu'au panneau d'aperçu live, alimentée par `photo-selected`
+// (sélection), `photo-uploaded` (URL définitive) et `photo-cleared` (annulation).
 const heroPhotoPreview = ref<string | null>(null)
 const heroPhotoUploading = ref(false)
 const heroPhotoError = ref<string | null>(null)
-const heroFileInputRef = ref<HTMLInputElement | null>(null)
 
-function onHeroFileSelected(event: Event) {
+function onHeroPhotoSelected(previewUrl: string) {
+  heroPhotoPreview.value = previewUrl
   heroPhotoError.value = null
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file) return
+}
 
-  const err = validateFileUpload(file, 2 * 1024 * 1024, ['image/jpeg', 'image/png', 'image/webp'])
-  if (err) {
-    heroPhotoError.value = err
-    return
-  }
+function onHeroPhotoCleared() {
+  heroPhotoPreview.value = null
+  heroPhotoError.value = null
+}
 
-  heroPhotoFile.value = file
-  heroPhotoPreview.value = URL.createObjectURL(file)
+function onHeroPhotoError(message: string) {
+  heroPhotoError.value = message
+  toast.add({ title: 'Erreur', description: message, color: 'error' })
 }
 
 async function onHeroPhotoUploadedFromCard(url: string) {
   heroPhotoPreview.value = url
+  heroPhotoError.value = null
   await fetchAccount()
   toast.add({ title: 'Photo d\'en-tête enregistrée', color: 'primary' })
 }
@@ -307,7 +276,6 @@ async function handleHeroPhotoDisable() {
     const ok = await updateAccount({ heroImageUrl: null, heroImageDisabled: true })
     if (ok) {
       heroPhotoPreview.value = null
-      heroPhotoFile.value = null
       await fetchAccount()
       toast.add({ title: 'Image d\'en-tête retirée', color: 'primary' })
     } else {
@@ -329,7 +297,6 @@ async function handleHeroPhotoEnableDefault() {
     const ok = await updateAccount({ heroImageUrl: null, heroImageDisabled: false })
     if (ok) {
       heroPhotoPreview.value = null
-      heroPhotoFile.value = null
       await fetchAccount()
       toast.add({ title: 'Image par défaut rétablie', color: 'primary' })
     } else {
@@ -374,26 +341,7 @@ const paletteForm = reactive({
   brandAccentColor: '#D4956A'
 })
 
-// ── Section Titles form state (Story 0-37 AC-4) ──
-const sectionTitlesForm = reactive({
-  bioEyebrow: '',
-  bioTitle: '',
-  benefitsEyebrow: '',
-  benefitsTitle: '',
-  problemStatement: '',
-  problemStatementEyebrow: '',
-  problemStatementTitle: '',
-  pillarsEyebrow: '',
-  pillarsTitle: '',
-  howItWorksEyebrow: '',
-  howItWorksTitle: '',
-  testimonialsEyebrow: '',
-  testimonialsTitle: '',
-  pricingEyebrow: '',
-  pricingTitle: '',
-  faqEyebrow: '',
-  faqTitle: ''
-})
+// sectionTitlesForm est désormais fourni par useCoachSections (CPD.8) sous le nom sectionTitles.
 
 // ── Email branding form state (migré depuis 0-20c, refondu par 0-27) ──
 // `brandName` reste un champ texte libre. `logoUrl` n'est plus saisi en URL —
@@ -445,16 +393,9 @@ watch(
   { immediate: true, deep: false }
 )
 
-// ── Live preview (Story 0-28) ──
-// `useCoachPagePreviewProfile` projects the merged server+form state into
-// the `PublicProviderProfile` + `PublicTenantResponse` shape consumed by
-// CoachPage* templates. Free-text fields are debounced 250ms; toggles +
-// brandName + logoUrl flow through instantly.
-//
+// ── Live preview (Story 0-28, extrait CPD.9) ──
 // `previewTemplateCode` resolves the currently selected template's code
-// (`signature`, `essentiel`, future variants) by mapping `selectedTemplateId`
-// (UUID) against the loaded `templates` list. Reactive — a click on a
-// template card switches the preview to the matching `<component :is>`.
+// (kept here so it can feed both the hero hint and the preview composable).
 const previewTemplateCode = computed<string | null>(() => {
   const id = selectedTemplateId.value
   if (!id) return null
@@ -462,31 +403,15 @@ const previewTemplateCode = computed<string | null>(() => {
   return match?.code ?? null
 })
 
-// YB.1.2 — le champ « Photo d'en-tête » alimente un FOND de hero, pas le
-// portrait. Alba n'a ni fond ni strate (AD-6) et son hero ne lit pas
-// `hero_image_disabled` : lui appliquer la sémantique « fond » de ce champ
-// afficherait dans l'éditeur un marqueur que sa page ne rend pas.
+// YB.1.2 — le champ « Photo d'en-tête » alimente un FOND de hero.
 const isHeroBackgroundTemplate = computed(
   () => previewTemplateCode.value !== ALBA_TEMPLATE_CODE
 )
 
-// Revue YB.1.2 — le champ « Accroche » est rendu par le MÊME `FormControl`
-// pour les quatre templates, mais chaque hero a son propre repli quand le
-// champ est vide. Une phrase unique décrivait donc un repli FAUX pour Visuel
-// (« Retrouvez votre équilibre… ») et Signature (« Spécialiste accompagnement
-// ménopause… »). On dérive l'aide du template sélectionné.
-// Hotfix 25 — la dérivation vit dans `domain/hero-headline-hint.ts` : la ville
-// n'est plus annoncée et le repli Signature vient de la constante rendue.
-//
-// `account` is exposed as `readonly(account)` by createCoachPageEditor for
-// safety (no external mutation), but the preview composable only reads
-// `.value` — we cast through `unknown` to feed it the non-readonly Ref
-// shape it declares.
-type ProviderAccountRef = import('vue').Ref<
-  import('~/features/account/api/provider-account.contract').ProviderAccountResponse | null
->
-const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
-  account: account as unknown as ProviderAccountRef,
+const preview = useCoachPreview({
+  account: account as unknown as import('vue').Ref<
+    import('~/features/account/api/provider-account.contract').ProviderAccountResponse | null
+  >,
   bioForm,
   heroForm,
   paletteForm,
@@ -515,183 +440,65 @@ const { draftCoachProfile, draftTenant } = useCoachPagePreviewProfile({
   fitForm: fitForm as unknown as import('vue').Ref<
     import('~/features/seo/api/public-provider-profile.contract').FitJson | null
   >,
-  // YB.1.1 — la saisie non enregistrée doit se refléter dans l'aperçu sans
-  // publication implicite. Sans cette ligne, la LISTE D'AUTORISATION EXHAUSTIVE
-  // de `useCoachPagePreviewProfile` ignorerait le champ en silence.
   freeTextForm: freeTextForm as unknown as import('vue').Ref<
     import('~/features/seo/api/public-provider-profile.contract').FreeTextJson | null
   >,
-  templateCode: previewTemplateCode,
-  // Story 0-28 CR-3 & Story 0-38 — propage les photos en cours d'upload (object
-  // URL local) ou tout juste persistées (URL S3 retournée par l'upload). Sans
-  // ça la preview gardait l'ancienne URL même après sélection de fichier.
+  templateCode: previewTemplateCode as unknown as import('vue').Ref<string | null | undefined>,
   secondaryPhotoPreview,
   heroPhotoPreview,
-  problemStatementPhotoPreview
+  problemStatementPhotoPreview,
+  templates: templates as unknown as import('vue').Ref<{ id: string, code?: string | null }[]>,
+  selectedTemplateId,
+  loadConsultationPlans: async () => {
+    const r = await listMyConsultationPricePlans()
+    return r.plans
+  },
+  loadPrograms: async () => {
+    const r = await listMyPrograms()
+    return r.programs
+  }
 })
+const {
+  device: previewDevice,
+  mobileOpen: previewMobileOpen,
+  openMobile: openMobilePreview,
+  closeMobile: closeMobilePreview,
+  reopenDesktop: reopenDesktopPreview,
+  closeDesktop: closeDesktopPreview,
+  setDevice: setPreviewDevice,
+  publicLink: publicCoachPageLink,
+  previewLink: previewCoachPageLink,
+  draftProfile: draftCoachProfile,
+  draftTenant: draftTenant,
+  consultationPlans: previewConsultationPlans,
+  publicPrograms: previewPublicPrograms,
+  previewOpen: previewOpenState
+} = preview
+const previewOpen = previewOpenState
 
-// Story 0-28 round terrain — la preview affiche les vrais tarifs (price plans
-// + programmes actifs) du provider. On utilise les endpoints `/me/...` côté
-// provider, sans dépendre du `providerId` (UUID) qui n'est pas exposé par
-// `ProviderAccountResponse`. Les erreurs sont swallowed → le bloc Tarifs
-// retombe sur la card « Appel découverte gratuit » (déjà gérée).
-const previewConsultationPlans = ref<ConsultationPricePlan[]>([])
-const previewPublicPrograms = ref<PublicProgramListItem[]>([])
+// heroHeadlineHint reste calculé ici (CPD.7).
+const heroHeadlineHint = computed<string>(() =>
+  buildHeroHeadlineHint(previewTemplateCode.value)
+)
 
-function toPublicProgram(p: ProgramResponse): PublicProgramListItem {
-  return {
-    id: p.id,
-    name: p.name,
-    description: p.description,
-    totalSessions: p.totalSessions,
-    validityMonths: p.validityMonths,
-    priceCents: p.priceCents,
-    allowInstallments: p.allowInstallments,
-    installmentCount: p.installmentCount,
-    monthlyPriceCents: p.monthlyPriceCents,
-    discoveryGate: p.discoveryGate,
-    sessionDurationMinutes: p.sessionDurationMinutes
-  }
-}
-
-onMounted(async () => {
-  await Promise.all([
-    listMyConsultationPricePlans()
-      .then((r) => { previewConsultationPlans.value = r.plans })
-      .catch(() => { previewConsultationPlans.value = [] }),
-    listMyPrograms()
-      .then((r) => {
-        previewPublicPrograms.value = r.programs
-          .filter(p => p.status === 'active')
-          .map(toPublicProgram)
-      })
-      .catch(() => { previewPublicPrograms.value = [] })
-  ])
+// ── Publication (CPD.9) ──
+const publish = useCoachPublish({
+  account: account as unknown as import('vue').Ref<
+    import('~/features/account/api/provider-account.contract').ProviderAccountResponse | null
+  >,
+  editor,
+  toast: toast as unknown as { add: (options: unknown) => void }
 })
-
-// `useCoachPagePreviewState` persists open + device choice in localStorage.
-// SSR-safe (defaults at first paint, hydrated onMounted).
-const previewState = useCoachPagePreviewState()
-const { isOpen: previewOpen, device: previewDevice } = previewState
-
-// Mobile slideover is independent from the persisted desktop `previewOpen`
-// state — Sophie opens it explicitly via the FAB, never auto-opened on
-// mount (would obscure the editor on a narrow viewport).
-const previewMobileOpen = ref(false)
-
-function openMobilePreview(): void {
-  previewMobileOpen.value = true
-}
-
-function closeMobilePreview(): void {
-  previewMobileOpen.value = false
-}
-
-function reopenDesktopPreview(): void {
-  previewState.toggleOpen()
-}
-
-function closeDesktopPreview(): void {
-  previewState.toggleOpen()
-}
-
-function setPreviewDevice(next: 'desktop' | 'mobile'): void {
-  previewState.setDevice(next)
-}
-
-const publicCoachPageLink = computed(() => {
-  if (!account.value?.slug) return null
-  return useCoachLink({
-    slug: account.value.slug,
-    domain: account.value.customDomain
-  })
-})
-
-const previewCoachPageLink = computed(() => {
-  if (!account.value?.slug) return null
-  return `/coach/${account.value.slug}?preview=true`
-})
-
-const checklistModalOpen = ref(false)
-const confirmUnpublishModalOpen = ref(false)
-const publishing = ref(false)
-const publishError = ref<string | null>(null)
-
-async function handleOpenPublish() {
-  if (account.value?.isTest) return
-  if (!account.value?.publishChecklist?.isReady) {
-    checklistModalOpen.value = true
-    return
-  }
-  await executePublish()
-}
-
-async function executePublish() {
-  publishing.value = true
-  publishError.value = null
-  try {
-    const result = await editor.publishCoachPage?.()
-    if (result?.ok) {
-      checklistModalOpen.value = false
-      toast.add({
-        title: 'Page mise en ligne',
-        description: 'Votre page coach est maintenant accessible publiquement.',
-        color: 'success'
-      })
-    } else {
-      publishError.value = 'Impossible de publier votre page coach.'
-      checklistModalOpen.value = true
-    }
-  } catch {
-    publishError.value = 'Une erreur inattendue est survenue.'
-    checklistModalOpen.value = true
-  } finally {
-    publishing.value = false
-  }
-}
-
-async function handleUnpublish() {
-  publishing.value = true
-  try {
-    const result = await editor.unpublishCoachPage?.()
-    if (result?.ok) {
-      confirmUnpublishModalOpen.value = false
-      toast.add({
-        title: 'Page dépubliée',
-        description: 'Votre page coach est désormais en brouillon.',
-        color: 'neutral'
-      })
-    } else {
-      toast.add({
-        title: 'Erreur',
-        description: 'Impossible de dépublier votre page coach.',
-        color: 'error'
-      })
-    }
-  } catch {
-    toast.add({
-      title: 'Erreur',
-      description: 'Une erreur inattendue est survenue.',
-      color: 'error'
-    })
-  } finally {
-    publishing.value = false
-  }
-}
-
-function handleNavigateToSection(sectionId: string) {
-  if (sectionId === 'template') {
-    const el = document.getElementById('section-template')
-    el?.scrollIntoView({ behavior: 'smooth' })
-    return
-  }
-  if (sectionId === 'offers') {
-    navigateTo('/provider/tarifs')
-    return
-  }
-  const el = document.getElementById(`section-${sectionId}`)
-  el?.scrollIntoView({ behavior: 'smooth' })
-}
+const {
+  checklistModalOpen,
+  confirmUnpublishModalOpen,
+  publishing,
+  publishError,
+  openPublish: handleOpenPublish,
+  executePublish,
+  unpublish: handleUnpublish,
+  navigateTo: handleNavigateToSection
+} = publish
 
 // ── Feature gating (Story 18.3b) ──
 // `useFeatureGate` porte son PROPRE `GET /provider/account`, session-cached et
@@ -763,46 +570,7 @@ async function onSelectTemplate(templateId: string) {
   }
 }
 
-// ── Auto-save toggle (AC-2) ──
-// Snapshot of the last server-confirmed sectionsConfig (for rollback).
-// `account.value.sectionsConfig` est la source de vérité — capturée via le helper pur
-// `snapshotSectionsConfig` (testable, cf. section-config-rollback.spec.ts).
-let saveDebounceTimer: ReturnType<typeof setTimeout> | null = null
-let pendingPreviousSnapshot: Record<string, boolean> | null = null
-
-function onToggleSection(section: string, value: boolean) {
-  if (isAlwaysOn(section)) return
-  // Snapshot once per debounce window — first toggle within the window captures the rollback state
-  if (pendingPreviousSnapshot === null) {
-    pendingPreviousSnapshot = snapshotSectionsConfig(account.value?.sectionsConfig)
-  }
-  // Optimistic apply
-  sectionsConfig[section] = value
-  scheduleSectionsConfigSave()
-}
-
-function scheduleSectionsConfigSave() {
-  if (saveDebounceTimer) clearTimeout(saveDebounceTimer)
-  saveDebounceTimer = setTimeout(() => {
-    saveDebounceTimer = null
-    void flushSectionsConfigSave()
-  }, TOGGLE_AUTOSAVE_DEBOUNCE_MS)
-}
-
-async function flushSectionsConfigSave() {
-  const previous = pendingPreviousSnapshot
-  pendingPreviousSnapshot = null
-  const ok = await saveSectionsConfig()
-  if (ok) {
-    toast.add({ title: 'Configuration enregistrée', color: 'primary' })
-  } else {
-    // Rollback to last server-confirmed state via pure helper.
-    if (previous) {
-      applySectionsConfigSnapshot(sectionsConfig, previous)
-    }
-    toast.add({ title: 'Impossible d\'enregistrer la configuration', color: 'error' })
-  }
-}
+// Auto-save toggle (AC-2) vit désormais dans useCoachSections (CPD.8).
 
 // ── Hero inline editor (Story 0-37 AC-1, AC-2) ──
 async function onSaveHero() {
@@ -1210,82 +978,11 @@ function removeStep(index: number) {
   })
 }
 
-// ── Section has editable form? ──
-function hasEditor(section: string): boolean {
-  return isCoachPageInlineEditorSection(section)
-}
-
-// ── YB.1.1 — Bloc de texte libre : bascule verrouillée tant que le contenu est vide ──
-//
-// La bascule est PRÉSENTE MAIS DÉSACTIVÉE, avec sa raison affichée, tant que la
-// coach n'a rien écrit : un contrôle qui disparaît est introuvable, un contrôle
-// désactivé et expliqué est découvrable (AD-7).
-//
-// Corollaire d'édition : le FORMULAIRE reste atteignable même section éteinte.
-// Sans cela, la coach ne pourrait jamais remplir le bloc — la seule action
-// disponible serait un interrupteur verrouillé. C'est le seul cas où le corps
-// de la card n'est pas replié par le toggle.
-const FREE_TEXT_LOCK_REASON
-  = 'Écrivez d’abord un titre ou un paragraphe pour pouvoir activer cette section.'
-
-// YB.1.1 — CR round 2 : le prédicat est PARTAGÉ (même règle que le composant et
-// les 3 templates). La copie locale, sans le garde `?? []`, faisait planter la
-// page sur un `freeTextJson: []` accepté par l'API (`@ValidateNested` n'invalide
-// aucun élément d'un tableau).
-const hasFreeTextContent = computed(() => hasCoachFreeTextContent(freeTextForm.value))
-
-function isFreeTextSection(section: string): boolean {
-  return section === 'freeText'
-}
-
-/**
- * Le verrou n'interdit QUE l'ACTIVATION d'un bloc vide.
- *
- * Il faut `!isSectionOn(section)` : un bloc déjà allumé reste toujours
- * désactivable, même une fois le contenu effacé. Sans ce terme, une coach qui
- * avait écrit, allumé, puis tout effacé se retrouvait avec une bascule
- * affichée ON et verrouillée, et une raison (« écrivez d'abord… ») qui
- * l'interdisait de l'éteindre — un état dont on ne sort plus.
- */
-function isSectionLocked(section: string): boolean {
-  return isFreeTextSection(section)
-    && !isSectionOn(section)
-    && !hasFreeTextContent.value
-}
-
-function sectionLockReason(section: string): string | null {
-  return isSectionLocked(section) ? FREE_TEXT_LOCK_REASON : null
-}
-
-/** Le corps du bloc libre reste déplié même éteint : c'est là qu'on l'écrit. */
-function isSectionBodyOpen(section: string): boolean {
-  return isSectionOn(section) || isFreeTextSection(section)
-}
-
-function externalSection(section: string) {
-  return getCoachPageExternalEditorSection(section)
-}
-
-function externalSectionTo(section: string): string {
-  return getCoachPageExternalEditorSection(section)?.to ?? ''
-}
+// hasEditor / isSectionLocked / ... vivent désormais dans useCoachSections (CPD.8).
 </script>
 
 <template>
   <div>
-    <!-- Hidden file input du hero — reste au niveau page (pas dans le v-for des
-      éditeurs) pour que sa template ref soit un simple HTMLInputElement et non un
-      array, sinon `.click()` est silencieusement ignoré par Vue 3. Les entrées
-      fichier des cartes bio / énoncé vivent désormais DANS leur composant, où la
-      ref appartient à l'instance de la carte et n'est donc pas dans le v-for. -->
-    <input
-      ref="heroFileInputRef"
-      type="file"
-      accept="image/jpeg,image/png,image/webp"
-      class="hidden"
-      @change="onHeroFileSelected"
-    >
-
     <AtomsDsPageHeader>
       <div class="flex flex-wrap items-center gap-3">
         <span>Ma page coach</span>
@@ -1663,28 +1360,30 @@ function externalSectionTo(section: string): string {
             </span>
           </div>
 
-          <div class="space-y-4 px-6 py-5">
-            <CoachPageHeroEditor
-              :headline="heroForm.heroHeadline"
-              :description="heroForm.heroDescription"
-              :urgency="heroForm.urgencyText"
-              :hero-is-background="isHeroBackgroundTemplate"
-              :photo-url="account?.heroImageUrl ?? null"
-              :photo-busy="heroPhotoUploading"
-              :photo-error="heroPhotoError"
-              :photo-disabled="account?.heroImageDisabled ?? false"
-              :saving="saving"
-              @update:headline="heroForm.heroHeadline = $event"
-              @update:description="heroForm.heroDescription = $event"
-              @update:urgency="heroForm.urgencyText = $event"
-              @photo-selected="heroPhotoPreview = $event"
-              @photo-uploaded="onHeroPhotoUploadedFromCard"
-              @photo-error="heroPhotoError = $event"
-              @photo-disable="handleHeroPhotoDisable"
-              @photo-enable-default="handleHeroPhotoEnableDefault"
-              @save="onSaveHero"
-            />
-          </div>
+          <CoachPageHeroEditor
+            :headline="heroForm.heroHeadline"
+            :description="heroForm.heroDescription"
+            :urgency="heroForm.urgencyText"
+            :hero-is-background="isHeroBackgroundTemplate"
+            :template-code="previewTemplateCode"
+            :headline-hint="heroHeadlineHint"
+            :photo-url="account?.heroImageUrl ?? null"
+            :profile-photo-url="account?.imageUrl ?? null"
+            :photo-busy="heroPhotoUploading"
+            :photo-error="heroPhotoError"
+            :photo-disabled="account?.heroImageDisabled ?? false"
+            :saving="saving"
+            @update:headline="heroForm.heroHeadline = $event"
+            @update:description="heroForm.heroDescription = $event"
+            @update:urgency="heroForm.urgencyText = $event"
+            @photo-selected="onHeroPhotoSelected"
+            @photo-cleared="onHeroPhotoCleared"
+            @photo-uploaded="onHeroPhotoUploadedFromCard"
+            @photo-error="onHeroPhotoError"
+            @photo-disable="handleHeroPhotoDisable"
+            @photo-enable-default="handleHeroPhotoEnableDefault"
+            @save="onSaveHero"
+          />
         </section>
 
         <!-- ═══════ 3. SECTION EDITORS — ordre aligné sur la page publique ═══════ -->
