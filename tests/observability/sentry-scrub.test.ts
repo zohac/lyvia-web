@@ -101,11 +101,14 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
   return out
 }
 
-test('scrub: health fields used by the product are deleted (fit, problem statement, notes)', () => {
+test('scrub: family-1 inventory keys are deleted (fit, problem statement, notes, address)', () => {
   // Inventory measured in app/ (grep, 2026-11-09): the fit answers and the
-  // provider's problem statement are free text the policy forbids, and the
-  // session notes carry health content too. None of them is an email/phone
-  // pattern and none is named `message`/`content`, so only family 1 catches them.
+  // provider's problem statement are free text the policy forbids, the session
+  // notes carry health content too, and `address`/`adresse` are identity. None
+  // of them is an email/phone pattern and none is named `message`/`content`,
+  // so only family 1 catches them. Every key of the family-1 inventory that the
+  // product uses must appear here: a list entry with no pin is a rule that can
+  // be deleted without a single test falling.
   const scrubbed = scrubEvent({
     extra: {
       fitJson: { audience: 'femmes en ménopause', painPoints: ['bouffées de chaleur'] },
@@ -121,6 +124,7 @@ test('scrub: health fields used by the product are deleted (fit, problem stateme
       pauseReason: 'Symptômes trop intenses pour continuer',
       reasonText: 'Annulé, douleurs importantes',
       address: '12 rue des Lilas',
+      adresse: '12 rue des Lilas',
       city: 'Nantes'
     }
   }) as Record<string, unknown>
@@ -131,7 +135,7 @@ test('scrub: health fields used by the product are deleted (fit, problem stateme
     'problemStatementJson', 'problemStatement', 'problem_statement',
     'symptoms', 'symptom',
     'notes', 'pauseReason', 'reasonText',
-    'address'
+    'address', 'adresse'
   ]
   for (const key of forbidden) {
     assert.equal(Object.prototype.hasOwnProperty.call(extra, key), false, `${key} not deleted`)
