@@ -18,6 +18,19 @@ test('ignoreErrors: a typical application exception is not ignored', () => {
   assert.equal(isIgnoredError('TypeError: Cannot read properties of undefined (reading "foo")'), false)
 })
 
+test('ignoreErrors: no application exception class is masked', () => {
+  const applicationErrors = [
+    'TypeError: Cannot read properties of undefined (reading "fitJson")',
+    'ReferenceError: useAuthState is not defined',
+    'RangeError: Maximum call stack size exceeded',
+    'Error: Failed to load the provider page',
+    'Error: 500 Internal Server Error'
+  ]
+  for (const message of applicationErrors) {
+    assert.equal(isIgnoredError(message), false, `application exception masked: ${message}`)
+  }
+})
+
 test('ignoreErrors: known browser noise is ignored', () => {
   assert.equal(isIgnoredError('ResizeObserver loop limit exceeded'), true)
   assert.equal(isIgnoredError('Failed to fetch'), true)

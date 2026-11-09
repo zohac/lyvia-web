@@ -4,19 +4,20 @@
  * This module has NO dependency on the Sentry SDK: it operates on plain objects
  * so that the scrub can be exercised (and mutated) by unit tests without
  * initialising Sentry. The SDK is only an adapter that calls these helpers.
+ *
+ * Three families, per AC-2:
+ *   1. non-ambiguous keys (`email`, `firstName`, …) — the value is deleted;
+ *   2. patterned values (email, phone) — redacted wherever they appear, even
+ *      under an innocent field name;
+ *   3. ambiguous keys (`message`, `content`) — redacted, never deleted, and
+ *      only inside data scopes. The event title lives at the root `message`
+ *      and must survive.
  */
 
 export const REDACTED_MARKER = '[REDACTED]'
 
-// The five canonical values shared with obs-2 (see pii-scrub-policy.md).
-// They are redacted wherever they appear, in addition to the generic rules.
-const CANONICAL_PII_VALUES: readonly string[] = [
-  'marie.dupont@example.test',
-  'Marie Dupont',
-  '+33 6 12 34 56 78',
-  'c0ffee-token-de-retrait-0123456789abcdef',
-  'Bouffées de chaleur nocturnes depuis trois semaines'
-]
+const MAX_DEPTH_MARKER = '[MAX_DEPTH]'
+const MAX_DEPTH = 8
 
 // Family 1 — non-ambiguous keys: the whole value is removed.
 const NON_AMBIGUOUS_KEYS = new Set([
@@ -32,13 +33,19 @@ const NON_AMBIGUOUS_KEYS = new Set([
 // Family 3 — ambiguous keys: redacted (never deleted), only inside data scopes.
 const AMBIGUOUS_KEYS = new Set(['message', 'content'])
 
-// Roots whose children are treated as "data scope" for family 3.
+// Roots whose children are treated as a "data scope" for family 3.
 const DATA_SCOPE_ROOTS = new Set(['data', 'extra', 'contexts', 'context'])
 
 const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
-const PHONE_RE = /\+?\d[\d\s().-]{7,}\d/g
+const PHONE_CANDIDATE_RE = /\+?\d[\d\s().-]{7,}\d/g
+const ISO_DATE_PREFIX_RE = /^\d{4}-\d{2}-\d{2}/
+// Bearer-bearing query/fragment parameters carried inside free text.
+const SECRET_QUERY_RE = /([?&#](?:token|access|code|key|secret|password|r)=)[^&#\s]+/gi
 
 const URL_KEYS = new Set(['url', 'transaction', 'culprit'])
+
+// Request fields that must never reach Sentry (AC-4).
+const FORBIDDEN_REQUEST_FIELDS = ['data', 'headers', 'cookies', 'query_string', 'env'] as const
 
 export type ScrubTarget = Record<string, unknown>
 
@@ -60,35 +67,41 @@ export function scrubUrl(raw: unknown): unknown {
   return (raw.split('?')[0] ?? '').split('#')[0] || '/'
 }
 
-function containsCanonicalPii(value: string): boolean {
-  return CANONICAL_PII_VALUES.some(needle => value.includes(needle))
+/**
+ * Redact phone-like runs. A 9–15 digit run is a phone; dates, versions,
+ * error codes and epoch timestamps are diagnostic context and must survive.
+ */
+function redactPhones(value: string): string {
+  return value.replace(PHONE_CANDIDATE_RE, (candidate) => {
+    if (ISO_DATE_PREFIX_RE.test(candidate)) return candidate
+    const digits = candidate.replace(/\D/g, '')
+    const hasPlus = candidate.trimStart().startsWith('+')
+    const hasSeparator = /[\s().-]/.test(candidate)
+    const minDigits = hasPlus || hasSeparator ? 9 : 10
+    const maxDigits = hasPlus || hasSeparator ? 15 : 11
+    if (digits.length < minDigits || digits.length > maxDigits) return candidate
+    return REDACTED_MARKER
+  })
 }
 
 function scrubString(value: string): string {
-  if (containsCanonicalPii(value)) return REDACTED_MARKER
-  let out = value
-  if (EMAIL_RE.test(out)) {
-    EMAIL_RE.lastIndex = 0
-    out = out.replace(EMAIL_RE, REDACTED_MARKER)
-  } else {
-    EMAIL_RE.lastIndex = 0
-  }
-  // Reset regex state.
-  EMAIL_RE.lastIndex = 0
-  if (PHONE_RE.test(out)) {
-    PHONE_RE.lastIndex = 0
-    out = out.replace(PHONE_RE, REDACTED_MARKER)
-  }
-  PHONE_RE.lastIndex = 0
-  return out
+  const withoutEmails = value.replace(EMAIL_RE, REDACTED_MARKER)
+  const withoutSecrets = withoutEmails.replace(SECRET_QUERY_RE, `$1${REDACTED_MARKER}`)
+  return redactPhones(withoutSecrets)
 }
 
-function scrubValue(value: unknown, inDataScope: boolean): unknown {
+function scrubUrlValue(value: unknown, inDataScope: boolean, depth: number): unknown {
+  if (typeof value === 'string') return scrubUrl(value)
+  return scrubValue(value, inDataScope, depth + 1)
+}
+
+function scrubValue(value: unknown, inDataScope: boolean, depth: number): unknown {
   if (value === null || value === undefined) return value
   if (typeof value === 'string') return scrubString(value)
   if (typeof value !== 'object') return value
+  if (depth >= MAX_DEPTH) return MAX_DEPTH_MARKER
   if (Array.isArray(value)) {
-    return value.map(item => scrubValue(item, inDataScope))
+    return value.map(item => scrubValue(item, inDataScope, depth + 1))
   }
   if (!isPlainObject(value)) return value
 
@@ -106,18 +119,11 @@ function scrubValue(value: unknown, inDataScope: boolean): unknown {
       continue
     }
     const childInDataScope = inDataScope || DATA_SCOPE_ROOTS.has(lower)
-    // URL scrub for url/transaction/culprit keys.
     if (URL_KEYS.has(lower)) {
-      result[key] = scrubUrl(value[key])
-      // Still scrub nested PII if the value is an object/array.
-      if (typeof result[key] === 'string') {
-        // done
-      } else {
-        result[key] = scrubValue(result[key], childInDataScope)
-      }
+      result[key] = scrubUrlValue(value[key], childInDataScope, depth)
       continue
     }
-    result[key] = scrubValue(value[key], childInDataScope)
+    result[key] = scrubValue(value[key], childInDataScope, depth + 1)
   }
   return result
 }
@@ -125,15 +131,16 @@ function scrubValue(value: unknown, inDataScope: boolean): unknown {
 export function scrubEvent<T = unknown>(event: T): T {
   if (event === null || event === undefined) return event
   if (typeof event !== 'object' || Array.isArray(event)) return event as T
-  // Work on a shallow clone to avoid mutating the caller's reference root.
+  // Work on a clone: the scrub must not mutate the caller's event root.
   const clone = { ...(event as Record<string, unknown>) }
-  const scrubbed = scrubValue(clone, false) as Record<string, unknown>
-  // Request must never carry a body, headers or cookies.
+  const scrubbed = scrubValue(clone, false, 0) as Record<string, unknown>
+
+  // Request must never carry a body, headers, cookies or a raw query string.
   if (isPlainObject(scrubbed.request)) {
     const req = scrubbed.request as Record<string, unknown>
-    Reflect.deleteProperty(req, 'data')
-    Reflect.deleteProperty(req, 'headers')
-    Reflect.deleteProperty(req, 'cookies')
+    for (const field of FORBIDDEN_REQUEST_FIELDS) {
+      Reflect.deleteProperty(req, field)
+    }
     if (typeof req.url === 'string') req.url = scrubUrl(req.url) as string
   }
   if (typeof scrubbed.transaction === 'string') {
@@ -144,11 +151,12 @@ export function scrubEvent<T = unknown>(event: T): T {
   }
   // Never attach an identity.
   Reflect.deleteProperty(scrubbed, 'user')
-  // Apply breadcrumb filtering/reduction so the pure scrub covers breadcrumbs too.
+
+  // The pure scrub covers breadcrumbs too, so an event built elsewhere is safe.
   if (Array.isArray(scrubbed.breadcrumbs)) {
     scrubbed.breadcrumbs = scrubbed.breadcrumbs
-      .map((bc) => scrubBreadcrumb(bc))
-      .filter((bc) => bc !== null)
+      .map(breadcrumb => scrubBreadcrumb(breadcrumb))
+      .filter(breadcrumb => breadcrumb !== null)
   }
   return scrubbed as T
 }
@@ -157,29 +165,25 @@ export function scrubBreadcrumb(breadcrumb: unknown): unknown {
   if (!isPlainObject(breadcrumb)) return breadcrumb
   const bc = { ...breadcrumb } as Record<string, unknown>
   const category = typeof bc.category === 'string' ? bc.category : ''
-  const level = typeof bc.level === 'string' ? bc.level : ''
 
-  // Drop console breadcrumbs except filtered errors.
-  if (category === 'console') {
-    if (level !== 'error') return null
-  }
+  // Drop console breadcrumbs except errors (AC-4).
+  if (category === 'console' && bc.level !== 'error') return null
 
   // Reduce fetch/xhr/navigation to method + pathname + status.
   if (category === 'fetch' || category === 'xhr' || category === 'navigation') {
-    const data = isPlainObject(bc.data) ? { ...bc.data } : {}
-    const method = data.method ?? bc.method
-    const url = scrubUrl(data.to ?? data.from ?? data.url ?? data.href ?? bc.url ?? bc.to)
-    const status = data.status ?? data.statusCode ?? bc.status
+    const data = isPlainObject(bc.data) ? bc.data : {}
     const reduced: Record<string, unknown> = {}
+    const method = data.method ?? bc.method
     if (method !== undefined) reduced.method = method
-    reduced.url = url
+    reduced.url = scrubUrl(data.to ?? data.from ?? data.url ?? data.href ?? bc.url ?? bc.to)
+    // The SDK emits `status_code` for fetch/xhr breadcrumbs (v11).
+    const status = data.status_code ?? data.status ?? data.statusCode ?? bc.status
     if (status !== undefined) reduced.status = status
     bc.data = reduced
-    // Remove any free-form message/body fields.
-    delete bc.message
-    // Still scrub PII in whatever remains.
-    return scrubValue(bc, false)
+    // A free-form message may carry a token or a form value.
+    Reflect.deleteProperty(bc, 'message')
+    return scrubValue(bc, false, 0)
   }
 
-  return scrubValue(bc, false)
+  return scrubValue(bc, false, 0)
 }

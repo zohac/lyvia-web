@@ -8,12 +8,20 @@ import {
   scrubUrl
 } from '../../app/features/observability/sentry-scrub'
 
+// The five canonical values of pii-scrub-policy.md § « Preuve attendue ».
 const EMAIL = 'marie.dupont@example.test'
 const NAME = 'Marie Dupont'
 const PHONE = '+33 6 12 34 56 78'
 const TOKEN = 'c0ffee-token-de-retrait-0123456789abcdef'
 const SYMPTOM = 'Bouffées de chaleur nocturnes depuis trois semaines'
 
+/**
+ * An event shaped like the ones the SDK builds, with the five canonical values
+ * placed where a real payload carries them: identity under form keys, tokens in
+ * the URL and in the token key, health text under a symptom field and in a
+ * free-text data scope. No literal-value matching is used by the scrub, so this
+ * fixture only passes when the three families actually work.
+ */
 function makeEvent(): Record<string, unknown> {
   return {
     message: 'Internal Server Error',
@@ -21,6 +29,7 @@ function makeEvent(): Record<string, unknown> {
     request: {
       url: 'https://sophiejouan.fr/preferences?token=' + TOKEN + '#frag',
       method: 'GET',
+      query_string: 'token=' + TOKEN,
       data: {
         email: EMAIL,
         firstName: 'Marie',
@@ -29,9 +38,10 @@ function makeEvent(): Record<string, unknown> {
         token: TOKEN,
         password: 'secret',
         symptoms: SYMPTOM,
-        contact: 'Marie Dupont via marie.dupont@example.test',
+        contact: 'Écrire à ' + EMAIL,
         value: PHONE,
-        message: 'user typed: ' + SYMPTOM,
+        libelle: 'Rappeler au ' + PHONE,
+        message: 'saisie: ' + SYMPTOM,
         content: 'note: ' + NAME
       },
       headers: { cookie: 'session=abc', authorization: 'Bearer xyz' },
@@ -40,13 +50,13 @@ function makeEvent(): Record<string, unknown> {
     transaction: '/reset-password?token=' + TOKEN,
     culprit: 'https://keova.fr/verify-email?token=' + TOKEN,
     extra: {
-      note: SYMPTOM,
-      message: 'extra message ' + NAME,
-      content: 'extra content ' + TOKEN,
-      nested: { email: EMAIL, phone: PHONE, symptom: SYMPTOM }
+      message: 'extra ' + NAME,
+      content: 'extra ' + TOKEN,
+      symptoms: SYMPTOM,
+      nested: { email: EMAIL, phone: PHONE }
     },
     contexts: {
-      form: { message: 'form ' + SYMPTOM, content: 'form ' + NAME, contact: EMAIL }
+      form: { message: 'form ' + SYMPTOM, content: 'form ' + NAME, emergencyContact: EMAIL }
     },
     tags: { tenant: 'sophiejouan.fr', email: EMAIL },
     breadcrumbs: [
@@ -58,12 +68,18 @@ function makeEvent(): Record<string, unknown> {
       {
         category: 'console',
         level: 'error',
-        message: 'boom ' + TOKEN
+        message: 'failed to load /preferences?token=' + TOKEN
       },
       {
+        // Shape emitted by @sentry/browser@11 for fetch breadcrumbs.
         category: 'fetch',
         level: 'info',
-        data: { method: 'POST', url: '/preferences?token=' + TOKEN, status: 200, body: { email: EMAIL } }
+        data: { method: 'POST', url: '/preferences?token=' + TOKEN, status_code: 200, body: { email: EMAIL } }
+      },
+      {
+        category: 'xhr',
+        level: 'error',
+        data: { method: 'GET', url: 'https://x.test/reset-password?token=' + TOKEN, status_code: 500 }
       },
       {
         category: 'navigation',
@@ -85,8 +101,8 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 test('scrub: the 5 canonical values are absent at any depth', () => {
   const scrubbed = scrubEvent(makeEvent()) as Record<string, unknown>
   const joined = collectStrings(scrubbed).join('\n')
-  for (const v of [EMAIL, NAME, PHONE, TOKEN, SYMPTOM]) {
-    assert.equal(joined.includes(v), false, `canonical value leaked: ${v}`)
+  for (const value of [EMAIL, NAME, PHONE, TOKEN, SYMPTOM]) {
+    assert.equal(joined.includes(value), false, `canonical value leaked: ${value}`)
   }
 })
 
@@ -95,32 +111,35 @@ test('scrub: event title (message) survives', () => {
   assert.equal(scrubbed.message, 'Internal Server Error')
 })
 
-test('scrub: ambiguous keys are redacted, not deleted, in data scopes', () => {
+test('scrub: ambiguous keys are redacted, not deleted, only in data scopes', () => {
   const scrubbed = scrubEvent(makeEvent()) as Record<string, unknown>
   const extra = scrubbed.extra as Record<string, unknown>
   assert.equal(extra.message, REDACTED_MARKER)
   assert.equal(extra.content, REDACTED_MARKER)
-  const contexts = scrubbed.contexts as Record<string, unknown>
-  const form = contexts.form as Record<string, unknown>
+  const form = (scrubbed.contexts as Record<string, unknown>).form as Record<string, unknown>
   assert.equal(form.message, REDACTED_MARKER)
   assert.equal(form.content, REDACTED_MARKER)
+  // The event title is not a data scope: the key is kept untouched.
+  assert.equal(Object.prototype.hasOwnProperty.call(scrubbed, 'message'), true)
 })
 
-test('scrub: non-ambiguous keys are deleted', () => {
-  const scrubbed = scrubEvent({ extra: { nested: { email: 'a@b.test', firstName: 'Marie', lastName: 'Dupont', phone: '+33 6 1 2 3 4 5 6 7', token: 'tok', password: 'pw', symptoms: 'sym' } } }) as Record<string, unknown>
-  const extra = scrubbed.extra as Record<string, unknown>
-  const nested = extra.nested as Record<string, unknown>
-  for (const k of ['email', 'firstName', 'lastName', 'phone', 'token', 'password', 'symptoms']) {
-    assert.equal(Object.prototype.hasOwnProperty.call(nested, k), false, `${k} not deleted`)
+test('scrub: non-ambiguous keys are deleted at any depth', () => {
+  const scrubbed = scrubEvent({
+    extra: { nested: { email: 'a@b.test', firstName: 'Marie', lastName: 'Dupont', phone: '+33 6 1 2 3 4 5 6 7', token: 'tok', password: 'pw', symptoms: 'sym' } }
+  }) as Record<string, unknown>
+  const nested = (scrubbed.extra as Record<string, unknown>).nested as Record<string, unknown>
+  for (const key of ['email', 'firstName', 'lastName', 'phone', 'token', 'password', 'symptoms']) {
+    assert.equal(Object.prototype.hasOwnProperty.call(nested, key), false, `${key} not deleted`)
   }
 })
 
-test('scrub: request carries no body, headers or cookies', () => {
+test('scrub: request carries no body, headers, cookies nor query string', () => {
   const scrubbed = scrubEvent(makeEvent()) as Record<string, unknown>
-  const req = scrubbed.request as Record<string, unknown>
-  assert.equal(req.data, undefined)
-  assert.equal(req.headers, undefined)
-  assert.equal(req.cookies, undefined)
+  const request = scrubbed.request as Record<string, unknown>
+  assert.equal(request.data, undefined)
+  assert.equal(request.headers, undefined)
+  assert.equal(request.cookies, undefined)
+  assert.equal(request.query_string, undefined)
 })
 
 test('scrub: no user identity attached', () => {
@@ -135,8 +154,8 @@ test('scrub: url/transaction/culprit reduced to pathname for the 4 token routes'
     { url: 'https://x.test/verify-email?token=abc', expected: '/verify-email' },
     { url: 'https://x.test/?access=error&r=abc', expected: '/' }
   ]
-  for (const c of cases) {
-    assert.equal(scrubUrl(c.url), c.expected)
+  for (const testCase of cases) {
+    assert.equal(scrubUrl(testCase.url), testCase.expected)
   }
   const scrubbed = scrubEvent({
     request: { url: 'https://x.test/preferences?token=' + TOKEN },
@@ -148,53 +167,88 @@ test('scrub: url/transaction/culprit reduced to pathname for the 4 token routes'
   assert.equal(scrubbed.culprit, '/verify-email')
 })
 
-test('scrub: breadcrumbs console filtered, fetch/xhr reduced', () => {
+test('scrub: console breadcrumbs filtered, fetch/xhr reduced to method + pathname + status', () => {
   const scrubbed = scrubEvent(makeEvent()) as Record<string, unknown>
-  const bcs = scrubbed.breadcrumbs as Array<Record<string, unknown>>
-  // console log dropped
-  assert.equal(bcs.some(b => b.category === 'console' && b.level === 'log'), false)
-  // console error kept
-  assert.equal(bcs.some(b => b.category === 'console' && b.level === 'error'), true)
-  const fetchBc = bcs.find(b => b.category === 'fetch') as Record<string, unknown>
-  assert.ok(fetchBc)
-  const data = fetchBc.data as Record<string, unknown>
-  assert.equal(data.method, 'POST')
-  assert.equal(data.url, '/preferences')
-  assert.equal(data.status, 200)
-  assert.equal(data.body, undefined)
+  const breadcrumbs = scrubbed.breadcrumbs as Array<Record<string, unknown>>
+  assert.equal(breadcrumbs.some(b => b.category === 'console' && b.level === 'log'), false)
+  assert.equal(breadcrumbs.some(b => b.category === 'console' && b.level === 'error'), true)
+
+  const fetchBreadcrumb = breadcrumbs.find(b => b.category === 'fetch') as Record<string, unknown>
+  const fetchData = fetchBreadcrumb.data as Record<string, unknown>
+  assert.equal(fetchData.method, 'POST')
+  assert.equal(fetchData.url, '/preferences')
+  assert.equal(fetchData.status, 200)
+  assert.equal(fetchData.body, undefined)
+
+  const xhrBreadcrumb = breadcrumbs.find(b => b.category === 'xhr') as Record<string, unknown>
+  const xhrData = xhrBreadcrumb.data as Record<string, unknown>
+  assert.equal(xhrData.status, 500, 'the SDK emits status_code: the status must survive the reduction')
+  assert.equal(xhrData.url, '/reset-password')
 })
 
 test('scrub: navigation breadcrumbs carry pathname only', () => {
   const scrubbed = scrubEvent(makeEvent()) as Record<string, unknown>
-  const bcs = scrubbed.breadcrumbs as Array<Record<string, unknown>>
-  const nav = bcs.find(b => b.category === 'navigation') as Record<string, unknown>
-  assert.ok(nav)
-  // scrubbed url in data
-  const data = nav.data as Record<string, unknown>
-  assert.equal(typeof data.url, 'string')
+  const breadcrumbs = scrubbed.breadcrumbs as Array<Record<string, unknown>>
+  const navigation = breadcrumbs.find(b => b.category === 'navigation') as Record<string, unknown>
+  const data = navigation.data as Record<string, unknown>
+  assert.equal(data.url, '/b')
+  assert.equal(collectStrings(data).join('\n').includes(TOKEN), false)
 })
 
-test('scrub: value-pattern redacts email/phone under innocent field names', () => {
-  const scrubbed = scrubEvent({ extra: { contact: 'marie.dupont@example.test', value: '+33 6 12 34 56 78', libelle: 'call +33 6 12 34 56 78 now' } }) as Record<string, unknown>
+test('scrub: value-pattern family redacts emails and phones under innocent field names', () => {
+  const scrubbed = scrubEvent({
+    extra: {
+      contact: 'someone.else@example.org',
+      value: '06 98 76 54 32',
+      libelle: 'Rappeler au +1 (555) 010-9999'
+    }
+  }) as Record<string, unknown>
   const extra = scrubbed.extra as Record<string, unknown>
-  assert.notEqual(extra.contact, 'marie.dupont@example.test')
-  assert.notEqual(extra.value, '+33 6 12 34 56 78')
-  assert.notEqual(extra.libelle, 'call +33 6 12 34 56 78 now')
+  assert.equal(extra.contact, REDACTED_MARKER)
+  assert.equal(extra.value, REDACTED_MARKER)
+  assert.equal(extra.libelle, 'Rappeler au ' + REDACTED_MARKER)
 })
 
-test('scrub: beforeSend-style throw is handled by caller (scrubEvent does not throw)', () => {
-  // scrubEvent must not throw on weird input
-  assert.doesNotThrow(() => scrubEvent({ a: { b: [1, 2, { c: null }] } }))
+test('scrub: dates, versions, error codes and epoch ids are not redacted as phones', () => {
+  const scrubbed = scrubEvent({
+    extra: {
+      date: '2026-11-09',
+      timestamp: '2026-11-09T10:00:00.000Z',
+      browserVersion: 'Chrome/131.0.0.0',
+      errorCode: '123456789',
+      epoch: '1699900000000'
+    }
+  }) as Record<string, unknown>
+  const extra = scrubbed.extra as Record<string, unknown>
+  assert.equal(extra.date, '2026-11-09')
+  assert.equal(extra.timestamp, '2026-11-09T10:00:00.000Z')
+  assert.equal(extra.browserVersion, 'Chrome/131.0.0.0')
+  assert.equal(extra.errorCode, '123456789')
+  assert.equal(extra.epoch, '1699900000000')
+})
+
+test('scrub: a token carried in free text is redacted, not only under a url key', () => {
+  const scrubbed = scrubEvent({
+    message: 'GET /preferences?token=' + TOKEN + ' failed',
+    tags: { route: '/reset-password#token=' + TOKEN }
+  }) as Record<string, unknown>
+  const joined = collectStrings(scrubbed).join('\n')
+  assert.equal(joined.includes(TOKEN), false)
+  assert.equal((scrubbed.message as string).includes('/preferences?token=' + REDACTED_MARKER), true)
 })
 
 test('scrub: beforeBreadcrumb drops info console, keeps error', () => {
-  const dropped = scrubBreadcrumb({ category: 'console', level: 'info', message: 'hi' })
-  assert.equal(dropped, null)
+  assert.equal(scrubBreadcrumb({ category: 'console', level: 'info', message: 'hi' }), null)
+  assert.equal(scrubBreadcrumb({ category: 'console', level: 'debug', message: 'hi' }), null)
   const kept = scrubBreadcrumb({ category: 'console', level: 'error', message: 'boom' }) as Record<string, unknown>
   assert.ok(kept)
 })
 
-test('scrub: ignoreErrors mutation guard is separate (list does not contain catch-all)', () => {
-  // This test is a placeholder for the mount-level list; checked in mount file review.
-  assert.ok(true)
+test('scrub: circular and over-deep data does not throw', () => {
+  const circular: Record<string, unknown> = { label: 'root' }
+  circular.self = circular
+  assert.doesNotThrow(() => scrubEvent(circular))
+  let deep: Record<string, unknown> = { leaf: 'end' }
+  for (let index = 0; index < 40; index += 1) deep = { child: deep }
+  assert.doesNotThrow(() => scrubEvent(deep))
 })

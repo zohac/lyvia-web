@@ -21,11 +21,15 @@ test('tenant tag: missing host → unknown', () => {
   assert.equal(resolveTenantTag(''), UNKNOWN_TENANT)
 })
 
-test('tenant tag: malformed / forged host → unknown', () => {
+test('tenant tag: malformed host → unknown', () => {
   assert.equal(resolveTenantTag('not a host'), UNKNOWN_TENANT)
   assert.equal(resolveTenantTag('sophie-jouan'), UNKNOWN_TENANT)
   assert.equal(resolveTenantTag('javascript:alert(1)'), UNKNOWN_TENANT)
-  assert.equal(resolveTenantTag('evil.example.com.attacker.test'), 'evil.example.com.attacker.test') // valid format, value carried
+  assert.equal(resolveTenantTag('[::1]'), UNKNOWN_TENANT)
+})
+
+test('tenant tag: a syntactically valid host is carried (format validation only, per D3)', () => {
+  assert.equal(resolveTenantTag('evil.example.com.attacker.test'), 'evil.example.com.attacker.test')
 })
 
 test('tenant tag: lowercases', () => {

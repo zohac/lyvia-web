@@ -102,7 +102,12 @@ export default defineNuxtConfig({
       platformDomain: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN || 'keova.fr',
       // B2B platform domain (e.g., 'keova.app'). When set, enables tri-modal
       // domain context: B2C (platformDomain) / B2B (this) / white-label.
-      platformDomainB2B: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN_B2B || ''
+      platformDomainB2B: process.env.NUXT_PUBLIC_PLATFORM_DOMAIN_B2B || '',
+      // Browser Sentry DSN. Declared here on purpose: Nuxt only overrides
+      // runtimeConfig keys that exist, and Vite replaces `process.env` with an
+      // empty object in the client bundle — an undeclared key would leave the
+      // SDK disabled without any visible symptom.
+      sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || ''
     }
   },
 

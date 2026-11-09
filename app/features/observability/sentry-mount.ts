@@ -1,64 +1,74 @@
-import * as Sentry from '@sentry/browser'
+/**
+ * Sentry browser SDK adapter.
+ *
+ * Initialisation happens exactly once per session, client-side only: the
+ * plugin lazy-imports this module after mount, so the SDK never lands in the
+ * landing's critical entry chunk and no Nitro/SSR code is instrumented.
+ *
+ * Everything the privacy contract depends on lives in `sentry-options.ts`
+ * (pure, testable without the SDK). This file only resolves the DSN, the
+ * tenant and the environment, then hands the options to the SDK.
+ */
 
-import { IGNORE_ERRORS } from './sentry-ignore-errors'
-import { scrubBreadcrumb, scrubEvent, scrubUrl } from './sentry-scrub'
+import * as Sentry from '@sentry/vue'
+
+import { buildSentryOptions } from './sentry-options'
 import { resolveTenantTag } from './sentry-tenant-tag'
 
-let initialized = false
+declare const process: { env: Record<string, string | undefined> }
 
-function readDsn(): string | undefined {
+let initialized = false
+let initializationFailed = false
+let missingDsnWarned = false
+
+/**
+ * The DSN is declared in `runtimeConfig.public` (nuxt.config.ts). Reading
+ * `process.env` here would not work: Vite replaces `process.env` with an empty
+ * object in the browser bundle, so the deployment variable never reaches it.
+ */
+function readDsn(): string {
   try {
-    const rc = useRuntimeConfig()
-    const value = (rc?.public as Record<string, unknown> | undefined)?.sentryDsn
-    return typeof value === 'string' && value !== '' ? value : process.env.NUXT_PUBLIC_SENTRY_DSN
+    const runtimeConfig = useRuntimeConfig()
+    const value = (runtimeConfig?.public as Record<string, unknown> | undefined)?.sentryDsn
+    return typeof value === 'string' ? value.trim() : ''
   } catch {
-    return process.env.NUXT_PUBLIC_SENTRY_DSN
+    return ''
   }
 }
 
-export function mountSentry(): void {
-  if (initialized) return
+function readEnvironment(): string {
+  return process.env.NODE_ENV === 'production' ? 'production' : 'development'
+}
+
+export function mountSentry(app?: unknown): void {
+  if (initialized || initializationFailed) return
   if (typeof window === 'undefined') return
-  initialized = true
 
-  const tenant = resolveTenantTag(window.location.hostname)
   const dsn = readDsn()
-
-  Sentry.init({
-    dsn,
-    sendDefaultPii: false,
-    replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: 0,
-    tracesSampleRate: 0,
-    ignoreErrors: IGNORE_ERRORS,
-    initialScope: { tags: { tenant } },
-    beforeSend(event: any) {
-      try {
-        const scrubbed = scrubEvent(event) as any
-        if (scrubbed?.request) {
-          delete scrubbed.request.data
-          delete scrubbed.request.headers
-          delete scrubbed.request.cookies
-          if (typeof scrubbed.request.url === 'string') {
-            scrubbed.request.url = scrubUrl(scrubbed.request.url)
-          }
-        }
-        if (typeof scrubbed?.transaction === 'string') {
-          scrubbed.transaction = scrubUrl(scrubbed.transaction)
-        }
-        if (typeof scrubbed?.culprit === 'string') {
-          scrubbed.culprit = scrubUrl(scrubbed.culprit)
-        }
-        // Never attach an identity.
-        delete scrubbed.user
-        return scrubbed
-      } catch {
-        // An exception inside beforeSend drops the event without breaking the app.
-        return null
-      }
-    },
-    beforeBreadcrumb(breadcrumb: any) {
-      return scrubBreadcrumb(breadcrumb) as any
+  if (dsn === '') {
+    // A dead channel must be visible, not silent.
+    if (!missingDsnWarned) {
+      missingDsnWarned = true
+      console.warn('[observability] NUXT_PUBLIC_SENTRY_DSN is not configured: browser errors are not collected.')
     }
-  } as any)
+    return
+  }
+
+  const options = buildSentryOptions({
+    dsn,
+    tenant: resolveTenantTag(window.location.hostname),
+    environment: readEnvironment(),
+    integrations: app ? [Sentry.vueIntegration({ app: app as never })] : []
+  })
+
+  try {
+    // The builder's option names are typed against `SentryClientOptions`, so a
+    // mistyped option fails here; only the SDK's callback signatures differ.
+    Sentry.init(options as unknown as Parameters<typeof Sentry.init>[0])
+    initialized = true
+  } catch {
+    // A broken SDK must never break the page, and must not retry on every page.
+    initializationFailed = true
+    console.warn('[observability] Sentry initialisation failed: browser errors are not collected.')
+  }
 }

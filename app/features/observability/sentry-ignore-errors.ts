@@ -3,7 +3,10 @@
  *
  * Kept in a pure module so that the list (and the matching logic) can be
  * unit-tested without initialising the SDK. Each entry corresponds to an
- * identified browser noise source; none of them masks an application exception.
+ * identified browser noise source. None of them can match an application
+ * exception (a `TypeError`, a `ReferenceError`, a thrown `Error`): they are
+ * platform notifications and transport-level cancellations whose stack starts
+ * in the browser or in an extension, not in app code.
  */
 
 export const IGNORE_ERRORS: Array<string | RegExp> = [
