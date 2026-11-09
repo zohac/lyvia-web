@@ -8,7 +8,8 @@ import test from 'node:test'
 import {
   buildCspReportEndpoint,
   buildCspReportOnlyPolicy,
-  CSP_ARBITRATION_REGISTRY
+  CSP_ARBITRATION_REGISTRY,
+  CSP_BEASTIES_ONLOAD_HASH
 } from '../../shared/utils/csp-report-endpoint'
 
 // Les sources de `script-src`, tokenisees (cf. CR 0-14 : un `includes` sur la
@@ -313,14 +314,34 @@ test('AC-4: script-src ne contient pas unsafe-eval', () => {
   assert.ok(!sources.some(s => s.includes('unsafe-eval')))
 })
 
-test('AC-4: unsafe-hashes et son hash beasties restent presents sur script-src', () => {
-  const sources = scriptSources()
-  assert.ok(sources.includes('\'unsafe-hashes\''))
-  assert.ok(sources.includes('\'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM=\''))
-})
-
 test('AC-4: unsafe-inline reste present sur script-src', () => {
   assert.ok(scriptSources().includes('\'unsafe-inline\''))
+})
+
+// CSP3 §6.7.3.2 « Does a source list allow all inline behavior for type ? » :
+// des qu'une expression correspond a la grammaire nonce-source ou hash-source,
+// l'algorithme rend « Does Not Allow ». `'unsafe-inline'` devient donc INERTE.
+// Le HTML servi contient un script inline executable par page (le bootstrap
+// `window.__NUXT__`) : avec un hash dans la liste, il est rapporte a chaque vue
+// de page — le bruit qu'obs-4 supprime, multiplie par le trafic. Le hash de
+// beasties vit dans `CSP_BEASTIES_ONLOAD_HASH` (docblock de
+// `buildCspReportOnlyPolicy`), pas dans l'en-tete : c'est l'outil du JOUR DU
+// DURCISSEMENT, quand `'unsafe-inline'` sera retire.
+test('AC-4: tant qu\'unsafe-inline est present, script-src ne porte aucun hash-source', () => {
+  const sources = scriptSources()
+  assert.ok(sources.includes('\'unsafe-inline\''), 'le test ne vaut que si unsafe-inline est present')
+
+  const neutralizing = sources.filter(s => /^'(sha256|sha384|sha512|nonce)-/.test(s))
+  assert.deepEqual(
+    neutralizing,
+    [],
+    'un hash-source ou un nonce-source neutralise unsafe-inline (CSP3 §6.7.3.2)'
+  )
+  assert.deepEqual(
+    sources.filter(s => s === '\'unsafe-hashes\''),
+    [],
+    '\'unsafe-hashes\' n\'a de sens qu\'avec le hash du jour du durcissement'
+  )
 })
 
 test('AC-4: script-src ne gagne aucun joker non documente', () => {
@@ -332,11 +353,13 @@ test('AC-4: script-src ne gagne aucun joker non documente', () => {
   assert.deepEqual(wildcards, ['https://*.clarity.ms'])
 })
 
-// Le hash est documente comme celui de `this.rel='stylesheet'`, pose par
-// beasties. L'asserter contre sa propre valeur litterale ne prouve rien : un
-// bump de beasties qui change la bascule laisse le test vert et le hash mort.
-// On derive donc le digest du handler REELLEMENT emis, avec la config du plugin.
-test('AC-4: le hash beasties correspond au handler reellement emis', async () => {
+// Le hash n'est PAS dans la politique (test ci-dessus), mais il reste documente
+// pour le jour du durcissement : `CSP_BEASTIES_ONLOAD_HASH`, dans
+// `shared/utils/csp-report-endpoint.ts`. Il doit rester JUSTE le jour ou on s'en
+// servira — un bump de beasties qui change la bascule ne doit pas laisser un hash
+// mort derriere lui. On derive donc le digest du handler REELLEMENT emis, avec
+// la config exacte du plugin, et on le compare a la constante documentee.
+test('AC-4: le hash documente pour le durcissement est celui que beasties emet', async () => {
   const mod = await import('beasties') as unknown as {
     default: new (options: Record<string, unknown>) => {
       process: (html: string) => Promise<string>
@@ -361,12 +384,73 @@ test('AC-4: le hash beasties correspond au handler reellement emis', async () =>
     if (!handler) throw new Error('beasties doit emettre un handler onload de bascule')
 
     const digest = createHash('sha256').update(handler).digest('base64')
-    assert.ok(
-      scriptSources().includes(`'sha256-${digest}'`),
-      `la politique doit couvrir le handler reellement emis (${handler})`
+    assert.equal(
+      CSP_BEASTIES_ONLOAD_HASH,
+      `'sha256-${digest}'`,
+      `CSP_BEASTIES_ONLOAD_HASH ne couvre plus le handler reellement emis (${handler})`
     )
+    // Et il n'est pas dans la politique : le documenter n'est pas l'emettre.
+    assert.ok(!scriptSources().includes(CSP_BEASTIES_ONLOAD_HASH))
   } finally {
     fs.rmSync(dir, { recursive: true, force: true })
+  }
+})
+
+// --- OBS.4 AC-4 : la politique emise ne change pas, hormis l'origine ajoutee --
+//
+// Snapshot de la politique REELLEMENT emise avant obs-4 (commit 90c74c1), mot
+// pour mot — et donc de ce que la production sert encore : releve du 2026-11-09
+// sur https://keova.app et https://sophiejouan.fr, en-tete
+// `content-security-policy-report-only` identique au source, **sans
+// `'unsafe-hashes'` ni `sha256-`**.
+//
+// C'est le garde-fou que la story n'avait pas : une story d'hygiene CSP peut
+// AJOUTER une origine constatee, pas modifier discretement une directive. Toute
+// autre difference — un mot-cle en plus, un ordre change, une directive ajoutee
+// ou retiree — fait tomber ce test.
+const BASELINE_POLICY = [
+  'default-src \'self\'',
+  'script-src \'self\' \'unsafe-inline\' https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://*.clarity.ms https://clarity.ms',
+  'style-src \'self\' \'unsafe-inline\'',
+  'img-src \'self\' data: https:',
+  'font-src \'self\' data:',
+  'connect-src \'self\' https:',
+  'frame-src \'self\' https://www.youtube-nocookie.com https://www.youtube.com',
+  'base-uri \'self\'',
+  'form-action \'self\'',
+  'frame-ancestors \'none\'',
+  'report-uri https://o456.ingest.sentry.io/api/789/security/?sentry_key=abc123def'
+].join('; ')
+
+function directives(policy: string): Map<string, string[]> {
+  const map = new Map<string, string[]>()
+  for (const directive of policy.split('; ')) {
+    const [name, ...sources] = directive.split(' ')
+    map.set(name, sources)
+  }
+  return map
+}
+
+test('AC-4: la seule difference avec la politique d\'avant obs-4 est l\'origine Cloudflare', () => {
+  const endpoint = 'https://o456.ingest.sentry.io/api/789/security/?sentry_key=abc123def'
+  const before = directives(BASELINE_POLICY)
+  const after = directives(buildCspReportOnlyPolicy(endpoint))
+
+  // Memes directives, dans le meme ordre : en ajouter, en retirer ou en
+  // deplacer une est un changement de politique.
+  assert.deepEqual([...after.keys()], [...before.keys()])
+
+  for (const [name, beforeSources] of before) {
+    const afterSources = after.get(name) ?? []
+    if (name === 'script-src') {
+      assert.deepEqual(
+        afterSources,
+        [...beforeSources, 'https://static.cloudflareinsights.com'],
+        'script-src ne doit porter QUE l\'ajout de l\'origine Cloudflare'
+      )
+    } else {
+      assert.deepEqual(afterSources, beforeSources, `la directive ${name} ne doit pas changer`)
+    }
   }
 })
 

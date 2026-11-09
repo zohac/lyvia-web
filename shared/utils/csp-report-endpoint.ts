@@ -119,22 +119,34 @@ const THIRD_PARTY_SCRIPT_ORIGINS = [
  * `unsafe-inline` de `script-src` — l'etape classique de tout enforcement —
  * eteindrait silencieusement le chargement du CSS non critique sur toutes les
  * pages (le `<noscript>` ne s'active pas, JS etant actif). La sortie est
- * `'unsafe-hashes' 'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM='`
- * (hash de `this.rel='stylesheet'`), pas un simple retrait. Un test dedie
- * verrouille ce contrat.
+ * `'unsafe-hashes'` + `CSP_BEASTIES_ONLOAD_HASH` (ci-dessous), a poser **le jour
+ * du durcissement** et pas avant : voir la section suivante.
  *
- * ## ⚠️ Un hash-source n'est jamais neutre (CSP3 §6.7.3.2)
+ * ## ⚠️ Pourquoi le hash beasties n'est PAS dans `script-src` aujourd'hui
  *
- * Des qu'un `sha256-...` figure dans `script-src`, l'algorithme « Does a source
- * list allow all inline behavior » rend « Does Not Allow » : **`'unsafe-inline'`
- * est alors ignore pour cette directive**, quelle que soit sa presence dans la
- * liste. Les deux figurent ci-dessous, mais seul le hash agit — tout script
- * inline dont le corps ne correspond pas exactement a ce hash est signale.
- * En Report-Only il est rapporte sans etre bloque : les scripts inline emis par
- * Nuxt (`window.__NUXT__`) et tout snippet tiers non hashe deviennent donc du
- * signal. C'est le prix du hash, pas un effet de bord neutre : le retirer tant
- * que `'unsafe-inline'` est present est une sortie legitime, hasher les scripts
- * inline restants en est une autre.
+ * Obs-4 a d'abord ajoute `'unsafe-hashes' 'sha256-F1nox…'` a la politique
+ * emise. C'etait une erreur, mesuree puis corrigee : la politique de production
+ * d'avant obs-4 (keova.app et sophiejouan.fr, releve du 2026-11-09) ne portait
+ * NI `'unsafe-hashes'` NI de hash, et l'histoire du depot le confirme — le
+ * docblock ci-dessus decrivait une sortie **future**, pas la politique courante.
+ *
+ * La raison est mecanique (CSP3 §6.7.3.2, « Does a source list allow all inline
+ * behavior for type ? ») : des qu'une expression correspond a la grammaire
+ * `nonce-source` ou `hash-source`, l'algorithme rend « Does Not Allow » —
+ * **`'unsafe-inline'` devient inerte pour cette directive**, quelle que soit sa
+ * presence dans la liste. Or le HTML servi contient un script inline executable
+ * par page (le bootstrap `window.__NUXT__`). Avec le hash, ce script devient une
+ * violation rapportee **a chaque vue de page** : un bruit d'un autre ordre que
+ * celui qu'obs-4 supprime, et le quota partage avec les alertes 5xx de l'API
+ * (NFR5) part en fumee.
+ *
+ * L'invariant est donc : **tant que `'unsafe-inline'` est present sur
+ * `script-src`, aucun `nonce-source` ni `hash-source` n'y figure.** Le hash de
+ * beasties reste documente ici (`CSP_BEASTIES_ONLOAD_HASH`) pour le jour ou
+ * `'unsafe-inline'` tombera : ce jour-la, il faudra les deux (le hash couvre
+ * l'event handler, que `sha256` seul ne couvre pas sans `'unsafe-hashes'`).
+ * Deux tests verrouillent cet invariant et le fait que le hash documente est
+ * toujours celui que beasties emet reellement.
  *
  * `data:` sur `img-src` couvre les placeholders
  * encodes ; `https:` couvre les images servies depuis S3 et les avatars coachs.
@@ -156,7 +168,10 @@ const THIRD_PARTY_SCRIPT_ORIGINS = [
 export function buildCspReportOnlyPolicy(reportEndpoint: string): string {
   return [
     'default-src \'self\'',
-    `script-src 'self' 'unsafe-inline' 'unsafe-hashes' 'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM=' ${THIRD_PARTY_SCRIPT_ORIGINS.join(' ')}`,
+    // Pas de `'unsafe-hashes'` ni de hash ici — voir le docblock ci-dessus. Les
+    // ajouter aujourd'hui rendrait `'unsafe-inline'` inerte (CSP3 §6.7.3.2) et
+    // rapporterait le bootstrap inline de Nuxt a chaque vue de page.
+    `script-src 'self' 'unsafe-inline' ${THIRD_PARTY_SCRIPT_ORIGINS.join(' ')}`,
     'style-src \'self\' \'unsafe-inline\'',
     'img-src \'self\' data: https:',
     'font-src \'self\' data:',
@@ -168,6 +183,23 @@ export function buildCspReportOnlyPolicy(reportEndpoint: string): string {
     `report-uri ${reportEndpoint}`
   ].join('; ')
 }
+
+/**
+ * Hash du handler `onload="this.rel='stylesheet'"` que beasties pose sur chaque
+ * feuille asynchronisee (`server/plugins/critical-css.ts`, `preload: 'swap'`).
+ *
+ * **Il ne figure PAS dans la politique emise, et ne doit pas y figurer tant que
+ * `'unsafe-inline'` y est.** Un hash-source dans `script-src` fait rendre
+ * « Does Not Allow » a l'algorithme CSP3 §6.7.3.2 : `'unsafe-inline'` devient
+ * inerte, et le script inline bootstrap de Nuxt (`window.__NUXT__`) est rapporte
+ * a chaque vue de page. C'est l'outil du jour du durcissement — celui ou
+ * `'unsafe-inline'` sera retire —, pas celui d'aujourd'hui.
+ *
+ * Il est exporte pour rester **verifiable** : un test compare cette valeur au
+ * `sha256` du handler que beasties emet reellement, pour qu'une montee de
+ * version de beasties ne laisse pas un hash mort le jour ou on en aura besoin.
+ */
+export const CSP_BEASTIES_ONLOAD_HASH = '\'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM=\''
 
 /**
  * Registre machine-readable des violations CSP arbitrees et toujours en force.
