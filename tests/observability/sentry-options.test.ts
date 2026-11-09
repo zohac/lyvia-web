@@ -109,3 +109,17 @@ test('options: an ambiguous data key is redacted, not deleted', () => {
   const scrubbed = options.beforeSend({ extra: { message: 'secret form text' } })
   assert.equal((scrubbed?.extra as Record<string, unknown>).message, REDACTED_MARKER)
 })
+
+test('options: release is forwarded to the SDK (obs-3)', () => {
+  const options = buildSentryOptions({
+    dsn: 'https://k@x.test/1',
+    tenant: 'keova.fr',
+    release: 'abc123def456'
+  })
+  assert.equal(options.release, 'abc123def456')
+})
+
+test('options: release is undefined when not provided', () => {
+  const options = buildSentryOptions({ dsn: 'https://k@x.test/1', tenant: 'keova.fr' })
+  assert.equal(options.release, undefined)
+})

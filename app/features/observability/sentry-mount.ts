@@ -40,6 +40,25 @@ function readEnvironment(): string {
   return process.env.NODE_ENV === 'production' ? 'production' : 'development'
 }
 
+/**
+ * La release est résolue côté serveur (plugin Nitro, obs-3) à partir de
+ * `CONTAINER_VERSION` → `SOURCE_VERSION` → `unknown`, puis injectée dans
+ * `runtimeConfig.public.release`. Le navigateur ne fait que la lire : il n'a
+ * pas accès à `process.env`. Une valeur vide (release non injectée) est
+ * traitée comme `unknown` pour ne jamais envoyer une chaîne vide au SDK.
+ */
+function readRelease(): string {
+  try {
+    const runtimeConfig = useRuntimeConfig()
+    const value = (runtimeConfig?.public as Record<string, unknown> | undefined)?.release
+    if (typeof value !== 'string') return 'unknown'
+    const trimmed = value.trim()
+    return trimmed === '' ? 'unknown' : trimmed
+  } catch {
+    return 'unknown'
+  }
+}
+
 export function mountSentry(app?: unknown): void {
   if (initialized || initializationFailed) return
   if (typeof window === 'undefined') return
@@ -56,6 +75,7 @@ export function mountSentry(app?: unknown): void {
 
   const options = buildSentryOptions({
     dsn,
+    release: readRelease(),
     tenant: resolveTenantTag(window.location.hostname),
     environment: readEnvironment(),
     integrations: app ? [Sentry.vueIntegration({ app: app as never })] : []

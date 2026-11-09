@@ -60,6 +60,7 @@
     "app/features/clarity/microsoft-clarity-helpers.ts",
     "app/features/observability/sentry-scrub.ts",
     "app/features/observability/sentry-options.ts",
+    "app/features/observability/resolve-release.ts",
     "app/features/observability/sentry-tenant-tag.ts",
     "app/features/observability/sentry-ignore-errors.ts",
     "app/features/clarity/microsoft-clarity-runtime.ts",

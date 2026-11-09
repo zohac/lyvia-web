@@ -16,6 +16,11 @@ export type SentryBreadcrumbLike = Record<string, unknown>
 
 export interface SentryClientOptions {
   dsn?: string
+  /**
+   * SHA du déploiement porté par l'événement (obs-3). Jamais une version
+   * sémantique, jamais une date : `unknown` en repli explicite.
+   */
+  release?: string
   environment: string
   /** Never let the SDK attach cookies, headers or an IP. */
   sendDefaultPii: false
@@ -33,6 +38,8 @@ export interface SentryClientOptions {
 
 export interface BuildSentryOptionsInput {
   dsn?: string
+  /** SHA du déploiement (obs-3) — transmis tel quel au SDK. */
+  release?: string
   /** Domain resolved from `location.hostname`, already format-validated. */
   tenant: string
   /** Deployment environment; defaults to `production`. */
@@ -44,6 +51,7 @@ export interface BuildSentryOptionsInput {
 export function buildSentryOptions(input: BuildSentryOptionsInput): SentryClientOptions {
   return {
     dsn: input.dsn,
+    release: input.release,
     environment: input.environment ?? 'production',
     sendDefaultPii: false,
     replaysSessionSampleRate: 0,
