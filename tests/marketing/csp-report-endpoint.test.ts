@@ -1,7 +1,11 @@
 import * as assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { buildCspReportEndpoint, buildCspReportOnlyPolicy } from '../../shared/utils/csp-report-endpoint'
+import {
+  buildCspReportEndpoint,
+  buildCspReportOnlyPolicy,
+  CSP_ARBITRATION_REGISTRY
+} from '../../shared/utils/csp-report-endpoint'
 
 // ============================================================================
 // Story 0-14 AC-6 — endpoint de reporting CSP derive du DSN Sentry
@@ -211,4 +215,97 @@ test('les tiers sont autorises sur script-src uniquement, pas sur frame-src', ()
   // iframe injectee par gtag doit remonter en rapport, pas etre pre-autorisee
   // sur simple presomption.
   assert.doesNotMatch(frameSrc, /googletagmanager|doubleclick|clarity/)
+})
+
+// --- OBS.4 AC-1 : allowlist Cloudflare Insights, hote exact -------------------
+
+test('AC-1: script-src autorise l\'hote exact static.cloudflareinsights.com', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+
+  assert.ok(scriptSrc.includes('https://static.cloudflareinsights.com'))
+})
+
+test('AC-1: l\'entree Cloudflare est l\'hote exact, pas un joker', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+
+  const sources = scriptSrc.replace('script-src ', '').split(' ')
+  assert.ok(sources.includes('https://static.cloudflareinsights.com'))
+  assert.ok(!sources.includes('https://*.cloudflareinsights.com'))
+})
+
+// --- OBS.4 AC-2 : registre d'arbitrations -----------------------------------
+
+test('AC-2: le registre contient unsafe-eval', () => {
+  assert.ok(CSP_ARBITRATION_REGISTRY.some(entry => entry.motif === 'unsafe-eval'))
+})
+
+test('AC-2: unsafe-eval n\'apparait pas dans le registre sous forme resolue', () => {
+  // cloudflareinsights a ete corrigee, pas arbitree : elle ne doit pas y figurer.
+  assert.equal(
+    CSP_ARBITRATION_REGISTRY.some(entry => String(entry.motif).includes('cloudflareinsights')),
+    false
+  )
+  assert.equal(
+    CSP_ARBITRATION_REGISTRY.some(entry => JSON.stringify(entry).includes('cloudflareinsights')),
+    false
+  )
+})
+
+test('AC-2: la resolution d\'unsafe-eval n\'implique pas de l\'ajouter a script-src', () => {
+  const entry = CSP_ARBITRATION_REGISTRY.find(e => e.motif === 'unsafe-eval')
+  if (!entry) throw new Error('entree unsafe-eval absente du registre')
+
+  assert.equal(entry.addsToScriptSrc, false)
+  assert.equal(entry.addToScriptSrc, false)
+  assert.equal(entry.addedToScriptSrc, false)
+  assert.equal(entry.allowlisted, false)
+  assert.match(entry.resolution, /not added to script-src|not allowed/i)
+})
+
+test('AC-2: le registre porte la date et l\'issue Sentry', () => {
+  const entry = CSP_ARBITRATION_REGISTRY.find(e => e.motif === 'unsafe-eval')
+  if (!entry) throw new Error('entree unsafe-eval absente du registre')
+
+  assert.equal(entry.date, '2026-11-09')
+  assert.equal(entry.sentryIssue, 'KEOVA-WEB-5')
+})
+
+// --- OBS.4 AC-4 : Report-Only, tolerances inchangees -------------------------
+
+test('AC-4: script-src ne contient pas unsafe-eval', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+
+  const sources = scriptSrc.replace('script-src ', '').split(' ')
+  assert.ok(!sources.includes('\'unsafe-eval\''))
+  assert.ok(!scriptSrc.includes('unsafe-eval'))
+})
+
+test('AC-4: unsafe-hashes et son hash beasties restent presents sur script-src', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+
+  assert.ok(scriptSrc.includes('\'unsafe-hashes\''))
+  assert.ok(scriptSrc.includes('\'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM=\''))
+})
+
+test('AC-4: unsafe-inline reste present sur script-src', () => {
+  const policy = buildCspReportOnlyPolicy('https://e')
+  const scriptSrc = policy.split('; ').find(d => d.startsWith('script-src '))
+  if (!scriptSrc) throw new Error('directive script-src absente de la politique')
+
+  assert.ok(scriptSrc.includes('\'unsafe-inline\''))
+})
+
+// --- OBS.4 AC-6 : DSN malforme => null, build ne casse pas -------------------
+
+test('AC-6: DSN malforme => null (comportement conserve)', () => {
+  assert.equal(buildCspReportEndpoint('pas-un-dsn'), null)
+  assert.equal(buildCspReportEndpoint('https://o123.ingest.sentry.io/456'), null)
 })

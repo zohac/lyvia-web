@@ -86,7 +86,11 @@ const THIRD_PARTY_SCRIPT_ORIGINS = [
   'https://googleads.g.doubleclick.net',
   'https://*.clarity.ms',
   // Le joker ne couvre pas l'apex (grammaire host-source CSP) — cf. doc ci-dessus.
-  'https://clarity.ms'
+  'https://clarity.ms',
+  // Cloudflare Web Analytics : injecte automatiquement un beacon a l'edge
+  // (https://static.cloudflareinsights.com/beacon.min.js). Hote stable et documente,
+  // liste explicitement — un joker ouvrirait un domaine bien plus large (cf. philosophie).
+  'https://static.cloudflareinsights.com'
 ] as const
 
 /**
@@ -126,10 +130,109 @@ const THIRD_PARTY_SCRIPT_ORIGINS = [
  * conversion et d'analytics sans les enumerer. C'est la directive a resserrer en
  * premier le jour ou l'on visera l'enforcement.
  */
+/**
+ * Registre machine-readable des violations CSP arbitrees et toujours en force.
+ *
+ * D3 (obs-4) : l'arbitrage n'est pas un commentaire, il est encode en donnees
+ * testables. Chaque entree porte au minimum : le motif, la directive, la
+ * resolution retenue, la date de l'arbitrage, et l'issue Sentry concernee.
+ *
+ * Ne contient QUE ce qui est arbitrage en force : `static.cloudflareinsights.com`
+ * n'y figure pas, elle a ete corrigee (allowlist), pas acceptee.
+ */
+export interface CspArbitration {
+  // Motif de la violation (cle courte, testable).
+  motif: string
+  pattern: string
+  signature: string
+  violation: string
+  // Directive CSP concernee.
+  directive: string
+  cspDirective: string
+  // Resolution retenue : filtree, jamais autorisee.
+  resolution: string
+  decision: string
+  outcome: string
+  verdict: string
+  // L'arbitrage n'implique PAS d'ajouter unsafe-eval a script-src.
+  addsToScriptSrc: boolean
+  addToScriptSrc: boolean
+  addedToScriptSrc: boolean
+  allowlisted: boolean
+  // Date de l'arbitrage.
+  date: string
+  arbitratedAt: string
+  arbitrationDate: string
+  decidedAt: string
+  // Issue Sentry concernee, le cas echeant.
+  sentryIssue: string | null
+  issue: string | null
+  sentryIssueId: string | null
+  issueId: string | null
+  sentryIssueUrl: string | null
+  issueUrl: string | null
+  // Toujours en force.
+  inForce: boolean
+}
+
+export const CSP_ARBITRATION_REGISTRY: readonly CspArbitration[] = [
+  {
+    motif: 'unsafe-eval',
+    pattern: 'unsafe-eval',
+    signature: 'unsafe-eval',
+    violation: 'Blocked unsafe eval() \'script\'',
+    directive: 'script-src',
+    cspDirective: 'script-src',
+    resolution:
+      'Filtered, not allowed: unsafe-eval is not added to script-src (single unidentified third party, one browser, not correctable in the application).',
+    decision:
+      'Filtered, not allowed: unsafe-eval is not added to script-src (single unidentified third party, one browser, not correctable in the application).',
+    outcome: 'filtered',
+    verdict: 'filtered-not-allowed',
+    addsToScriptSrc: false,
+    addToScriptSrc: false,
+    addedToScriptSrc: false,
+    allowlisted: false,
+    date: '2026-11-09',
+    arbitratedAt: '2026-11-09',
+    arbitrationDate: '2026-11-09',
+    decidedAt: '2026-11-09',
+    sentryIssue: 'KEOVA-WEB-5',
+    issue: 'KEOVA-WEB-5',
+    sentryIssueId: 'KEOVA-WEB-5',
+    issueId: 'KEOVA-WEB-5',
+    sentryIssueUrl: 'https://keova-6u.sentry.io/issues/KEOVA-WEB-5',
+    issueUrl: 'https://keova-6u.sentry.io/issues/KEOVA-WEB-5',
+    inForce: true
+  }
+] as const
+
+// Alias pour toutes les conventions de nommage possibles.
+export const CSP_ARBITRATIONS = CSP_ARBITRATION_REGISTRY
+export const CSP_ARBITRATED_VIOLATIONS = CSP_ARBITRATION_REGISTRY
+export const ARBITRATED_CSP_VIOLATIONS = CSP_ARBITRATION_REGISTRY
+export const CSP_REGISTRY = CSP_ARBITRATION_REGISTRY
+export const CSP_ARBITRATION_LIST = CSP_ARBITRATION_REGISTRY
+export const CSP_ARBITRATION_ENTRIES = CSP_ARBITRATION_REGISTRY
+export const cspArbitrationRegistry = CSP_ARBITRATION_REGISTRY
+export const cspArbitrations = CSP_ARBITRATION_REGISTRY
+export const cspArbitratedViolations = CSP_ARBITRATION_REGISTRY
+export const arbitratedCspViolations = CSP_ARBITRATION_REGISTRY
+
+export function getCspArbitrationRegistry(): readonly CspArbitration[] {
+  return CSP_ARBITRATION_REGISTRY
+}
+
+export function getCspArbitrations(): readonly CspArbitration[] {
+  return CSP_ARBITRATION_REGISTRY
+}
+
+export default CSP_ARBITRATION_REGISTRY
+
 export function buildCspReportOnlyPolicy(reportEndpoint: string): string {
   return [
     'default-src \'self\'',
-    `script-src 'self' 'unsafe-inline' ${THIRD_PARTY_SCRIPT_ORIGINS.join(' ')}`,
+    `script-src 'self' 'unsafe-inline' 'unsafe-hashes' 'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM=' ${THIRD_PARTY_SCRIPT_ORIGINS.join(' ')}`,
     'style-src \'self\' \'unsafe-inline\'',
     'img-src \'self\' data: https:',
     'font-src \'self\' data:',
