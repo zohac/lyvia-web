@@ -38,6 +38,30 @@ Copier `.env.example` vers `.env` et configurer les variables.
 | `NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Clé publique Stripe pour Stripe.js/Elements | `pk_test_xxx` |
 | `NUXT_PUBLIC_SENTRY_DSN` | DSN Sentry pour le tracking d'erreurs (optionnel) | `https://xxx@sentry.io/xxx` |
 
+### Release Sentry (obs-3)
+
+La `release` portée par les événements navigateur est le **SHA du déploiement**.
+Elle n'est jamais saisie à la main : le plugin Nitro
+`server/plugins/observability-release.ts` la résout **une fois par processus**
+au démarrage, dans cet ordre :
+
+| Source | Moment | Remarque |
+|--------|--------|----------|
+| `CONTAINER_VERSION` | runtime | fournie par Scalingo au conteneur |
+| `SOURCE_VERSION` | build | fournie par Scalingo au build |
+| `unknown` | repli | valeur explicite, journalisée (`warn`) — jamais une version inventée |
+
+La valeur résolue est injectée dans `runtimeConfig.public.release` à chaque
+requête (SSR **et** shells SPA des espaces `ssr: false`), donc sérialisée dans
+`window.__NUXT__`, puis lue par le SDK au montage. `NUXT_PUBLIC_RELEASE` est une
+clé réservée : la définir à la main est écrasé au profit de la valeur du
+déploiement.
+
+Si `keova-web` affiche des événements en release `unknown`, c'est que
+`CONTAINER_VERSION`/`SOURCE_VERSION` n'ont pas atteint le conteneur web : un
+`warn` `[observability] Sentry release fallback` est alors émis au démarrage
+(une seule fois par processus).
+
 ### Variables serveur (Nitro uniquement)
 
 | Variable | Description | Exemple |

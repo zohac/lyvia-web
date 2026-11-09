@@ -108,11 +108,16 @@ export default defineNuxtConfig({
       // empty object in the client bundle — an undeclared key would leave the
       // SDK disabled without any visible symptom.
       sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || '',
-      // SHA du déploiement (obs-3). La valeur est résolue côté serveur par le
-      // plugin Nitro `server/plugins/sentry-release.ts` (CONTAINER_VERSION →
-      // SOURCE_VERSION → unknown) puis injectée ici ; le navigateur ne lit que
-      // la valeur déjà résolue. Déclarée pour que Nuxt sérialise la clé vers
-      // le client (une clé non déclarée ne traverserait jamais).
+      // SHA du déploiement (obs-3). Clé RÉSERVÉE : la valeur est résolue côté
+      // serveur, une fois par processus, par le plugin Nitro
+      // `server/plugins/observability-release.ts` (CONTAINER_VERSION →
+      // SOURCE_VERSION → unknown), puis injectée à chaque requête dans la
+      // config runtime publique — y compris pour les shells SPA des espaces
+      // `ssr: false`, qui n'exécutent aucun plugin d'application. Le navigateur
+      // ne lit que la valeur déjà résolue. Déclarée pour que Nuxt sérialise la
+      // clé vers le client (une clé non déclarée ne traverserait jamais).
+      // `NUXT_PUBLIC_RELEASE` est écrasée par le plugin, volontairement : la
+      // release suit le déploiement, sans recopie manuelle.
       release: ''
     }
   },

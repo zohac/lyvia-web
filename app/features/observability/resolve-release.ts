@@ -2,16 +2,23 @@
  * Résolveur pur de la `release` Sentry côté web.
  *
  * Miroir de `repositories/lyvia-api/src/core/observability/resolve-release.ts`
- * (obs-3, AC-1/AC-5) : même ordre, même garde de forme. La seule différence
- * est le troisième niveau de la chaîne : le web n'a **pas** de champ `version`
- * dans son `package.json` (mesuré : absent), le repli y est donc la valeur
- * explicite `unknown`, jamais une version inventée, jamais une chaîne vide.
+ * (obs-3, AC-1/AC-5) : même ordre, même garde de forme. La seule différence de
+ * *résolution* est le troisième niveau de la chaîne : le web n'a **pas** de champ
+ * `version` dans son `package.json` (mesuré : absent), le repli y est donc la
+ * valeur explicite `unknown`, jamais une version inventée, jamais une chaîne
+ * vide. Le fichier ajoute aussi `warnOnUnresolvedRelease` (l'API la garde dans
+ * `sentry-init.ts`) pour que l'adaptateur web n'ait qu'un module à importer.
  *
- * Le résolveur est **pur** :
+ * Le résolveur `resolveRelease` est **pur** :
  *  - il ne lit jamais `process.env` lui-même (l'environnement est un paramètre) ;
- *  - il n'écrit rien sur la console (le `warn` de repli est émis par l'appelant
- *    à partir de `reason` / `rejected`) ;
+ *  - il n'écrit rien sur la console ;
  *  - il ne fait aucune I/O.
+ *
+ * L'émetteur de log (`warnOnUnresolvedRelease`), exporté par commodité, est la
+ * seule fonction de ce fichier qui touche la console ; il est appelé par
+ * l'adaptateur (plugin Nitro, une fois par démarrage de process) à partir de
+ * `reason` / `rejected`. C'est ce qui permet de satisfaire AC-1 qui exige à la
+ * fois une fonction pure et un log explicite de repli.
  *
  * Ordre EXACT (spec obs-3, AC-1) et ne doit pas être modifié :
  *   1. `CONTAINER_VERSION` (runtime, Scalingo)
@@ -44,10 +51,24 @@ export interface ResolvedRelease {
 const SEMVER_SHAPE = /^v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.+-]+)?$/
 const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}(?:[T ].*)?$/
 
+/** The explicit web fallback: never an invented version, never an empty string. */
+export const UNKNOWN_RELEASE = 'unknown'
+
 function rejectedShape(value: string): RejectedReleaseValue['shape'] | null {
   if (SEMVER_SHAPE.test(value)) return 'semver'
   if (DATE_SHAPE.test(value)) return 'date'
   return null
+}
+
+/**
+ * `true` when `value` can be a deployment SHA: any shape except the two that a
+ * git SHA can never take. Exported so the browser boundary
+ * (`release-transport.ts`) applies the same guard to the serialized value it
+ * receives — AC-5 must hold where the tag is actually set, not only where it is
+ * resolved.
+ */
+export function isDeploymentShaShaped(value: string): boolean {
+  return rejectedShape(value) === null
 }
 
 export function resolveRelease(
@@ -65,7 +86,7 @@ export function resolveRelease(
     return { release: source, reason: 'source-version', rejected }
   }
 
-  return { release: 'unknown', reason: 'fallback', rejected }
+  return { release: UNKNOWN_RELEASE, reason: 'fallback', rejected }
 }
 
 function readCandidate(

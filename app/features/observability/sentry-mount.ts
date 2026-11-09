@@ -13,6 +13,8 @@
 import * as Sentry from '@sentry/vue'
 
 import { buildSentryOptions } from './sentry-options'
+import { BROWSER_RELEASE_FALLBACK_WARNING, normaliseBrowserRelease } from './release-transport'
+import { UNKNOWN_RELEASE } from './resolve-release'
 import { resolveTenantTag } from './sentry-tenant-tag'
 
 declare const process: { env: Record<string, string | undefined> }
@@ -20,6 +22,7 @@ declare const process: { env: Record<string, string | undefined> }
 let initialized = false
 let initializationFailed = false
 let missingDsnWarned = false
+let missingReleaseWarned = false
 
 /**
  * The DSN is declared in `runtimeConfig.public` (nuxt.config.ts). Reading
@@ -41,22 +44,29 @@ function readEnvironment(): string {
 }
 
 /**
- * La release est résolue côté serveur (plugin Nitro, obs-3) à partir de
+ * La release est résolue côté serveur (plugin Nitro
+ * `server/plugins/observability-release.ts`, obs-3) à partir de
  * `CONTAINER_VERSION` → `SOURCE_VERSION` → `unknown`, puis injectée dans
  * `runtimeConfig.public.release`. Le navigateur ne fait que la lire : il n'a
- * pas accès à `process.env`. Une valeur vide (release non injectée) est
- * traitée comme `unknown` pour ne jamais envoyer une chaîne vide au SDK.
+ * pas accès à `process.env`. La normalisation (`normaliseBrowserRelease`)
+ * garantit que le SDK ne reçoit jamais une chaîne vide ni une forme qui ne peut
+ * pas être un SHA ; le repli est signalé une fois par session (D3).
  */
 function readRelease(): string {
+  let raw: unknown
   try {
     const runtimeConfig = useRuntimeConfig()
-    const value = (runtimeConfig?.public as Record<string, unknown> | undefined)?.release
-    if (typeof value !== 'string') return 'unknown'
-    const trimmed = value.trim()
-    return trimmed === '' ? 'unknown' : trimmed
+    raw = (runtimeConfig?.public as Record<string, unknown> | undefined)?.release
   } catch {
-    return 'unknown'
+    raw = undefined
   }
+
+  const release = normaliseBrowserRelease(raw)
+  if (release === UNKNOWN_RELEASE && !missingReleaseWarned) {
+    missingReleaseWarned = true
+    console.warn(BROWSER_RELEASE_FALLBACK_WARNING)
+  }
+  return release
 }
 
 export function mountSentry(app?: unknown): void {

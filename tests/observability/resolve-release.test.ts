@@ -75,8 +75,39 @@ test('resolveRelease: a non-SHA-shaped value that is not semver/date passes thro
   assert.deepEqual(result.rejected, [])
 })
 
+test('resolveRelease: a full 40-character SHA passes through', () => {
+  const sha = '0123456789abcdef0123456789abcdef01234567'
+  const result = resolveRelease({ CONTAINER_VERSION: sha })
+  assert.equal(result.release, sha)
+  assert.equal(result.reason, 'container-version')
+  assert.deepEqual(result.rejected, [])
+})
+
+test('resolveRelease: surrounding whitespace is trimmed from an accepted value', () => {
+  const result = resolveRelease({ CONTAINER_VERSION: '  abc123def  ' })
+  assert.equal(result.release, 'abc123def')
+  assert.equal(result.reason, 'container-version')
+})
+
+test('resolveRelease: a semantic version with build metadata is rejected', () => {
+  const result = resolveRelease({ CONTAINER_VERSION: '1.2.3+build.5', SOURCE_VERSION: 'source-sha' })
+  assert.equal(result.release, 'source-sha')
+  assert.equal(result.rejected[0].shape, 'semver')
+})
+
+test('resolveRelease: both rejected values are reported in source order', () => {
+  const result = resolveRelease({ CONTAINER_VERSION: '1.2.3', SOURCE_VERSION: '2026-11-09' })
+  assert.equal(result.release, 'unknown')
+  assert.equal(result.reason, 'fallback')
+  assert.equal(result.rejected.length, 2)
+  assert.equal(result.rejected[0].variable, 'CONTAINER_VERSION')
+  assert.equal(result.rejected[0].shape, 'semver')
+  assert.equal(result.rejected[1].variable, 'SOURCE_VERSION')
+  assert.equal(result.rejected[1].shape, 'date')
+})
+
 test('resolveRelease: undefined env is handled', () => {
-  const result = resolveRelease(undefined as unknown as Record<string, string | undefined>)
+  const result = resolveRelease(undefined)
   assert.equal(result.release, 'unknown')
   assert.equal(result.reason, 'fallback')
 })
@@ -119,6 +150,36 @@ test('resolveRelease: does not read process.env', () => {
 test('formatReleaseFallbackWarning: null when nothing to report', () => {
   const resolved: ResolvedRelease = { release: 'abc', reason: 'container-version', rejected: [] }
   assert.equal(formatReleaseFallbackWarning(resolved), null)
+})
+
+test('warnOnUnresolvedRelease: stays silent on a clean resolution', () => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+  try {
+    warnOnUnresolvedRelease(resolveRelease({ CONTAINER_VERSION: 'abc123def' }))
+  } finally {
+    console.warn = originalWarn
+  }
+  assert.equal(calls.length, 0)
+})
+
+test('warnOnUnresolvedRelease: one warn when a value is rejected but the next source resolves', () => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+  try {
+    warnOnUnresolvedRelease(resolveRelease({ CONTAINER_VERSION: '1.2.3', SOURCE_VERSION: 'source-sha' }))
+  } finally {
+    console.warn = originalWarn
+  }
+  // Exactly one line: the rejected value alone (there is no fallback to report).
+  assert.equal(calls.length, 1)
+  assert.match(String(calls[0][0]), /ignoring CONTAINER_VERSION="1.2.3" \(semver/)
 })
 
 test('warnOnUnresolvedRelease: emits the fallback warn naming the variables and the value', () => {
