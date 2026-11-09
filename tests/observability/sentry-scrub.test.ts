@@ -53,6 +53,9 @@ function makeEvent(): Record<string, unknown> {
       message: 'extra ' + NAME,
       content: 'extra ' + TOKEN,
       symptoms: SYMPTOM,
+      fitJson: { answer: SYMPTOM },
+      problemStatementJson: { blocks: [{ text: SYMPTOM }] },
+      notes: SYMPTOM,
       nested: { email: EMAIL, phone: PHONE }
     },
     contexts: {
@@ -97,6 +100,47 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
   else if (value && typeof value === 'object') Object.values(value as Record<string, unknown>).forEach(v => collectStrings(v, out))
   return out
 }
+
+test('scrub: health fields used by the product are deleted (fit, problem statement, notes)', () => {
+  // Inventory measured in app/ (grep, 2026-11-09): the fit answers and the
+  // provider's problem statement are free text the policy forbids, and the
+  // session notes carry health content too. None of them is an email/phone
+  // pattern and none is named `message`/`content`, so only family 1 catches them.
+  const scrubbed = scrubEvent({
+    extra: {
+      fitJson: { audience: 'femmes en ménopause', painPoints: ['bouffées de chaleur'] },
+      fitForm: { audience: 'femmes en ménopause' },
+      fit_json: { audience: 'femmes en ménopause' },
+      fit: { audience: 'femmes en ménopause' },
+      problemStatementJson: { blocks: [{ text: 'Elle se réveille la nuit' }] },
+      problemStatement: 'Elle se réveille la nuit',
+      problem_statement: 'Elle se réveille la nuit',
+      symptoms: 'Bouffées de chaleur nocturnes',
+      symptom: 'Bouffées de chaleur nocturnes',
+      notes: 'Séance du 3 : insomnie, anxiété',
+      pauseReason: 'Symptômes trop intenses pour continuer',
+      reasonText: 'Annulé, douleurs importantes',
+      address: '12 rue des Lilas',
+      city: 'Nantes'
+    }
+  }) as Record<string, unknown>
+
+  const extra = scrubbed.extra as Record<string, unknown>
+  const forbidden = [
+    'fitJson', 'fitForm', 'fit_json', 'fit',
+    'problemStatementJson', 'problemStatement', 'problem_statement',
+    'symptoms', 'symptom',
+    'notes', 'pauseReason', 'reasonText',
+    'address'
+  ]
+  for (const key of forbidden) {
+    assert.equal(Object.prototype.hasOwnProperty.call(extra, key), false, `${key} not deleted`)
+  }
+  // `city` is deliberately kept: it is not identity-direct and it is useful context.
+  assert.equal(extra.city, 'Nantes')
+  // No health text survives anywhere in the event.
+  assert.equal(collectStrings(scrubbed).join('\n').includes('ménopause'), false)
+})
 
 test('scrub: the 5 canonical values are absent at any depth', () => {
   const scrubbed = scrubEvent(makeEvent()) as Record<string, unknown>

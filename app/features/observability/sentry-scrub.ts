@@ -20,14 +20,45 @@ const MAX_DEPTH_MARKER = '[MAX_DEPTH]'
 const MAX_DEPTH = 8
 
 // Family 1 — non-ambiguous keys: the whole value is removed.
+//
+// The inventory is measured on the app, not guessed (2026-11-09):
+//   - health content the policy forbids: `fitJson` / `fitForm` / `fitJson` are
+//     the fit answers (8 field sites), `problemStatementJson` /
+//     `problemStatement` / `problem_statement` the provider's problem statement
+//     (56 sites), `notes` the client / appointment session notes
+//     (`clients.contract.ts`, `calendar.contract.ts`), `pauseReason` and
+//     `reasonText` their free-text variants, `symptom`/`symptoms` the symptom
+//     field the policy names explicitly.
+//   - identity the policy names: `email`, `firstName`, `lastName`, `phone`,
+//     `address` (`onboarding.contract.ts`, provider account).
+// Matching is exact on the lowercased key, so each spelling that exists in the
+// repo is listed: adding one is a one-line change, and a composite key that is
+// not here would silently ship.
 const NON_AMBIGUOUS_KEYS = new Set([
+  // identity
   'email',
   'firstname',
   'lastname',
   'phone',
+  'address',
+  'adresse',
+  // credentials
   'token',
   'password',
-  'symptoms'
+  // health content (§ pii-scrub-policy.md: symptômes, notes de séance,
+  // réponses au fit, énoncé de la problématique)
+  'symptom',
+  'symptoms',
+  'fit',
+  'fitform',
+  'fitjson',
+  'fit_json',
+  'problemstatement',
+  'problemstatementjson',
+  'problem_statement',
+  'notes',
+  'pausereason',
+  'reasontext'
 ])
 
 // Family 3 — ambiguous keys: redacted (never deleted), only inside data scopes.
