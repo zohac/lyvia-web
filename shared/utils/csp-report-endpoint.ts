@@ -48,7 +48,7 @@ export function buildCspReportEndpoint(dsn: string | undefined | null): string |
  * API, ou vivent les alertes 5xx) pour redecouvrir du connu, et le bruit
  * noierait les violations inattendues — la seule information recherchee.
  *
- * Deux niveaux de certitude, volontairement distingues :
+ * Trois niveaux de certitude, volontairement distingues :
  *
  * - **Injection verifiee dans le code** : `www.googletagmanager.com`
  *   (`app/features/consent/google-ads-runtime.ts`, chargement de `gtag/js`) et
@@ -57,6 +57,12 @@ export function buildCspReportEndpoint(dsn: string | undefined | null): string |
  * - **Chargements en cascade de gtag**, comportement documente de Google Ads :
  *   `www.googleadservices.com` et `googleads.g.doubleclick.net` — cette derniere
  *   apparait deja comme URL de conversion dans `consent-logic.ts`.
+ * - **Injection a l'edge, hors du depot** : `static.cloudflareinsights.com`
+ *   (KEOVA-WEB-3, arbitre le 2026-11-09). Cloudflare Web Analytics injecte
+ *   lui-meme `beacon.min.js` dans le HTML servi ; aucune occurrence n'existe
+ *   dans `app/`, `server/` ni `shared/` (verifie le 2026-11-08). C'est la seule
+ *   entree qu'un grep du depot ne peut pas justifier : elle est constatee en
+ *   production, et documentee ici pour que la prochaine lecture sache pourquoi.
  *
  * ⚠️ **Clarity est en joker de sous-domaine, et c'est deliberé.** La whitelist
  * initiale ne portait que `www.clarity.ms`, l'hote que le code appelle
@@ -79,6 +85,10 @@ export function buildCspReportEndpoint(dsn: string | undefined | null): string |
  * Tout le reste reste volontairement hors whitelist et remontera en rapport :
  * c'est desormais un signal exploitable, pas du bruit. La preuve : ce rapport-la
  * est arrive seul, sans etre noye.
+ *
+ * **Source unique.** C'est la seule liste d'origines tierces du depot : une
+ * seconde liste (dans `nuxt.config.ts`, dans un plugin serveur, ou dans un
+ * docblock) divergerait de celle-ci sans qu'aucun test ne le voie.
  */
 const THIRD_PARTY_SCRIPT_ORIGINS = [
   'https://www.googletagmanager.com',
@@ -86,7 +96,11 @@ const THIRD_PARTY_SCRIPT_ORIGINS = [
   'https://googleads.g.doubleclick.net',
   'https://*.clarity.ms',
   // Le joker ne couvre pas l'apex (grammaire host-source CSP) — cf. doc ci-dessus.
-  'https://clarity.ms'
+  'https://clarity.ms',
+  // Cloudflare Web Analytics : injecte automatiquement un beacon a l'edge
+  // (https://static.cloudflareinsights.com/beacon.min.js). Hote stable et documente,
+  // liste explicitement — un joker ouvrirait un domaine bien plus large (cf. philosophie).
+  'https://static.cloudflareinsights.com'
 ] as const
 
 /**
@@ -105,9 +119,34 @@ const THIRD_PARTY_SCRIPT_ORIGINS = [
  * `unsafe-inline` de `script-src` — l'etape classique de tout enforcement —
  * eteindrait silencieusement le chargement du CSS non critique sur toutes les
  * pages (le `<noscript>` ne s'active pas, JS etant actif). La sortie est
- * `'unsafe-hashes' 'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM='`
- * (hash de `this.rel='stylesheet'`), pas un simple retrait. Un test dedie
- * verrouille ce contrat.
+ * `'unsafe-hashes'` + `CSP_BEASTIES_ONLOAD_HASH` (ci-dessous), a poser **le jour
+ * du durcissement** et pas avant : voir la section suivante.
+ *
+ * ## ⚠️ Pourquoi le hash beasties n'est PAS dans `script-src` aujourd'hui
+ *
+ * Obs-4 a d'abord ajoute `'unsafe-hashes' 'sha256-F1nox…'` a la politique
+ * emise. C'etait une erreur, mesuree puis corrigee : la politique de production
+ * d'avant obs-4 (keova.app et sophiejouan.fr, releve du 2026-11-09) ne portait
+ * NI `'unsafe-hashes'` NI de hash, et l'histoire du depot le confirme — le
+ * docblock ci-dessus decrivait une sortie **future**, pas la politique courante.
+ *
+ * La raison est mecanique (CSP3 §6.7.3.2, « Does a source list allow all inline
+ * behavior for type ? ») : des qu'une expression correspond a la grammaire
+ * `nonce-source` ou `hash-source`, l'algorithme rend « Does Not Allow » —
+ * **`'unsafe-inline'` devient inerte pour cette directive**, quelle que soit sa
+ * presence dans la liste. Or le HTML servi contient un script inline executable
+ * par page (le bootstrap `window.__NUXT__`). Avec le hash, ce script devient une
+ * violation rapportee **a chaque vue de page** : un bruit d'un autre ordre que
+ * celui qu'obs-4 supprime, et le quota partage avec les alertes 5xx de l'API
+ * (NFR5) part en fumee.
+ *
+ * L'invariant est donc : **tant que `'unsafe-inline'` est present sur
+ * `script-src`, aucun `nonce-source` ni `hash-source` n'y figure.** Le hash de
+ * beasties reste documente ici (`CSP_BEASTIES_ONLOAD_HASH`) pour le jour ou
+ * `'unsafe-inline'` tombera : ce jour-la, il faudra les deux (le hash couvre
+ * l'event handler, que `sha256` seul ne couvre pas sans `'unsafe-hashes'`).
+ * Deux tests verrouillent cet invariant et le fait que le hash documente est
+ * toujours celui que beasties emet reellement.
  *
  * `data:` sur `img-src` couvre les placeholders
  * encodes ; `https:` couvre les images servies depuis S3 et les avatars coachs.
@@ -129,6 +168,9 @@ const THIRD_PARTY_SCRIPT_ORIGINS = [
 export function buildCspReportOnlyPolicy(reportEndpoint: string): string {
   return [
     'default-src \'self\'',
+    // Pas de `'unsafe-hashes'` ni de hash ici — voir le docblock ci-dessus. Les
+    // ajouter aujourd'hui rendrait `'unsafe-inline'` inerte (CSP3 §6.7.3.2) et
+    // rapporterait le bootstrap inline de Nuxt a chaque vue de page.
     `script-src 'self' 'unsafe-inline' ${THIRD_PARTY_SCRIPT_ORIGINS.join(' ')}`,
     'style-src \'self\' \'unsafe-inline\'',
     'img-src \'self\' data: https:',
@@ -141,3 +183,70 @@ export function buildCspReportOnlyPolicy(reportEndpoint: string): string {
     `report-uri ${reportEndpoint}`
   ].join('; ')
 }
+
+/**
+ * Hash du handler `onload="this.rel='stylesheet'"` que beasties pose sur chaque
+ * feuille asynchronisee (`server/plugins/critical-css.ts`, `preload: 'swap'`).
+ *
+ * **Il ne figure PAS dans la politique emise, et ne doit pas y figurer tant que
+ * `'unsafe-inline'` y est.** Un hash-source dans `script-src` fait rendre
+ * « Does Not Allow » a l'algorithme CSP3 §6.7.3.2 : `'unsafe-inline'` devient
+ * inerte, et le script inline bootstrap de Nuxt (`window.__NUXT__`) est rapporte
+ * a chaque vue de page. C'est l'outil du jour du durcissement — celui ou
+ * `'unsafe-inline'` sera retire —, pas celui d'aujourd'hui.
+ *
+ * Il est exporte pour rester **verifiable** : un test compare cette valeur au
+ * `sha256` du handler que beasties emet reellement, pour qu'une montee de
+ * version de beasties ne laisse pas un hash mort le jour ou on en aura besoin.
+ */
+export const CSP_BEASTIES_ONLOAD_HASH = '\'sha256-F1noxsLOnJhyRSgc0zu5JgzoLjG2BBMaXaSG24k2mRM=\''
+
+/**
+ * Registre machine-readable des violations CSP arbitrees et toujours en force.
+ *
+ * D3 (obs-4) : un arbitrage n'est pas un commentaire. `SPEC.md` (FR7) exige que
+ * le sort d'une violation soit « tranche et encode dans la configuration » ;
+ * un commentaire ne se teste pas, ces donnees si. Le consommateur est
+ * `tests/marketing/csp-report-endpoint.test.ts`, qui verifie trois choses :
+ * chaque entree est complete et en force, `unsafe-eval` y figure, et **aucun
+ * motif arbitre n'apparait dans `script-src`** (un arbitrage « filtre » qui
+ * reapparaitrait dans la politique serait une autorisation deguisee).
+ *
+ * Regle d'entretien : **le registre ne contient que ce qui est encore vrai.**
+ * Une violation corrigee en sort, elle n'y est pas archivee — c'est ce qui
+ * empeche le registre de devenir un cimetiere. `static.cloudflareinsights.com`
+ * n'y figure donc pas : elle a ete corrigee par l'allowlist (AC-1), pas
+ * acceptee.
+ */
+export interface CspArbitration {
+  /** Motif de la violation, tel qu'il se reconnait dans les rapports (cle courte, testable). */
+  motif: string
+  /** Titre de l'issue Sentry, verbatim, pour retrouver l'issue a partir du registre. */
+  violation: string
+  /** Directive CSP concernee. */
+  directive: string
+  /** Resolution retenue. Doit enoncer la decision, pas seulement la decrire. */
+  resolution: string
+  /** Date de l'arbitrage (ISO 8601, jour). */
+  date: string
+  /** Issue Sentry concernee, le cas echeant. */
+  sentryIssue: string | null
+  /** URL publique de cette issue, pour la personne qui devra re-arbitrer. */
+  sentryIssueUrl: string | null
+  /** Toujours en force. Une entree qui n'est plus vraie se supprime, elle ne se desactive pas. */
+  inForce: boolean
+}
+
+export const CSP_ARBITRATION_REGISTRY: readonly CspArbitration[] = [
+  {
+    motif: 'unsafe-eval',
+    violation: 'Blocked unsafe eval() \'script\'',
+    directive: 'script-src',
+    resolution:
+      'Filtre, pas autorise : unsafe-eval n\'est pas ajoute a script-src (tiers non identifiable, un seul navigateur, non corrigeable cote application). Le bruit est ignore dans Sentry (KEOVA-WEB-5, mode forever).',
+    date: '2026-11-09',
+    sentryIssue: 'KEOVA-WEB-5',
+    sentryIssueUrl: 'https://keova-6u.sentry.io/issues/KEOVA-WEB-5',
+    inForce: true
+  }
+] as const
