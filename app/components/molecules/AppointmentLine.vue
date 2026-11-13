@@ -162,29 +162,32 @@
           v-if="lastEmail"
           class="mt-2 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-brand-muted)]"
           data-last-email
+          :data-last-email-status="lastEmail.status"
+          :data-last-email-simulated="lastEmail.simulated ? 'true' : 'false'"
         >
           <UIcon
             name="i-lucide-mail"
             class="h-3.5 w-3.5"
           />
           <span>
-            Dernier email : {{ getNotificationChannelLabel(lastEmail.channel) }} —
-            {{ getNotificationStatusLabel(lastEmail.status) }} —
+            Dernier email : {{ lastEmail.channelLabel }} —
+            {{ getNotificationStatusLabel(lastEmail.status, lastEmail.simulated) }} —
             {{ formatLastEmailDate(lastEmail.createdAt) }}
           </span>
         </div>
 
-        <!-- Reason when nothing went out (em-6) -->
+        <!-- Motive when nothing went out (em-6). The label is the API's. -->
         <div
           v-if="emailReason"
           class="mt-2 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-warning)]"
           data-email-reason
+          :data-email-reason-code="emailReason.code"
         >
           <UIcon
             name="i-lucide-info"
             class="h-3.5 w-3.5"
           />
-          <span>Motif : {{ emailReason }}</span>
+          <span>Motif : {{ emailReason.label }}</span>
         </div>
       </div>
     </div>
@@ -248,7 +251,6 @@ import {
   getAppointmentStatusMeta,
   getAppointmentTypeLabel,
   getCancellationReasonLabel,
-  getNotificationChannelLabel,
   getNotificationStatusLabel
 } from '../../features/clients/domain/clients'
 

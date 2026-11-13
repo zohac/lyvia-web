@@ -121,7 +121,13 @@ export type CancellationReason
     | 'other'
 
 /**
- * Notification channel for appointments.
+ * Notification channel of an appointment.
+ *
+ * The known appointment-level channels, kept for the summary logic below. The
+ * registry carries more (30 kinds, 14 channels measured in the dev DB), so
+ * `NotificationLogItem.channel` stays a `string`: narrowing it to this union made
+ * the type lie about what the API sends. The readable label comes from the API
+ * (`channelLabel`, resolved from `EMAIL_CATALOGUE`) — do not rebuild a map here.
  */
 export type NotificationChannel
   = | 'discovery_confirmation'
@@ -137,13 +143,35 @@ export type NotificationChannel
 export type NotificationLogStatus = 'sent' | 'failed' | 'skipped'
 
 /**
- * Notification log item for an appointment.
+ * Notification log item for an appointment (mirrors `NotificationLogItemDto`).
  */
 export type NotificationLogItem = {
-  channel: NotificationChannel
+  channel: string
+  /**
+   * Readable label of `channel`, served by the API from `EMAIL_CATALOGUE`.
+   * Required: the API always sends it (`NotificationLogItemDto.channelLabel`).
+   */
+  channelLabel: string
   status: NotificationLogStatus
   createdAt: string
-  simulated?: boolean
+  /**
+   * `true` when the gateway resolved without handing the message to a provider
+   * (`MAIL_PROVIDER=console`). `status: 'sent'` + `simulated: true` is not a send.
+   */
+  simulated: boolean
+}
+
+/**
+ * Why an email did not go out, as a closed code plus its French label.
+ *
+ * Both halves come from the API (`EmailReasonDto`). The browser never derives a
+ * motive: it would diverge from `notification_logs` on the first change.
+ */
+export type EmailReasonCode = 'payment_unpaid' | 'send_failed' | 'mail_simulated'
+
+export type EmailReason = {
+  code: EmailReasonCode
+  label: string
 }
 
 /**
@@ -342,10 +370,7 @@ export type AppointmentDisplayItem = {
   cancellationReasonText?: string | null
   notes?: string | null
   notifications?: NotificationLogItem[]
-  emailReason?: string | null
-  reason?: string | null
-  notificationReason?: string | null
-  lastEmailReason?: string | null
+  emailReason?: EmailReason | null
 }
 
 /**
@@ -361,10 +386,7 @@ export type ProviderClientAppointmentItem = {
   cancellationReason: CancellationReason | null
   notes: string | null
   notifications: NotificationLogItem[]
-  emailReason?: string | null
-  reason?: string | null
-  notificationReason?: string | null
-  lastEmailReason?: string | null
+  emailReason: EmailReason | null
 }
 
 /**

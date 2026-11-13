@@ -4,7 +4,7 @@ import type {
   AppointmentStatus,
   AppointmentType,
   CancellationReason,
-  NotificationChannel,
+  EmailReason,
   NotificationLogItem,
   NotificationLogStatus,
   PaymentStatus,
@@ -409,45 +409,39 @@ export function sortPaymentsByDate(
 }
 
 // ============================================================================
-// Notification Status Helpers (H4)
+// Notification Status Helpers (H4, extended by em-6)
 // ============================================================================
 
-const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, string> = {
-  discovery_confirmation: 'Confirmation envoyée',
-  discovery_reminder_j1: 'Rappel J-1 envoyé',
-  consultation_confirmation: 'Confirmation envoyée',
-  consultation_reminder_j1: 'Rappel J-2 envoyé',
-  consultation_reminder_h2: 'Rappel H-2 envoyé',
-  consultation_payment_resend: 'Lien de paiement renvoyé'
-}
-
 /**
- * Returns the human-readable label for a notification channel.
+ * Status of a registry row, in the practitioner's words.
+ *
+ * `simulated` is not decoration: `status = 'sent'` means "the gateway resolved",
+ * and in `MAIL_PROVIDER=console` nothing left the process (SPEC Why §1). Printing
+ * « envoyé » on such a row is the exact lie em-6 exists to remove, so the flag
+ * outranks the status word — `failed` still wins, because a failure is a fact and
+ * a simulated success is not.
  */
-export function getNotificationChannelLabel(channel: NotificationChannel): string {
-  return NOTIFICATION_CHANNEL_LABELS[channel] || channel
-}
-
-export function getNotificationStatusLabel(status: NotificationLogStatus): string {
-  switch (status) {
-    case 'sent':
-      return 'envoyé'
-    case 'failed':
-      return 'échec'
-    case 'skipped':
-      return 'ignoré'
-    default:
-      return status
-  }
+export function getNotificationStatusLabel(
+  status: NotificationLogStatus,
+  simulated: boolean
+): string {
+  if (status === 'failed') return 'échec'
+  if (status === 'skipped') return 'ignoré'
+  return simulated ? 'simulé' : 'envoyé'
 }
 
 export type AppointmentLastEmail = {
-  channel: NotificationChannel
+  channel: string
+  /** Readable label served by the API (`EMAIL_CATALOGUE`), never a raw token. */
+  channelLabel: string
   status: NotificationLogStatus
   createdAt: string
-  simulated?: boolean
+  simulated: boolean
 }
 
+/**
+ * Most recent registry row of an appointment, or null when nothing is recorded.
+ */
 export function getAppointmentLastEmail(
   appointment: { notifications?: NotificationLogItem[] }
 ): AppointmentLastEmail | null {
@@ -456,34 +450,20 @@ export function getAppointmentLastEmail(
   const sorted = [...notifications].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
-  return sorted[0] as AppointmentLastEmail
+  return sorted[0] ?? null
 }
 
-export function getLastAppointmentEmail(
-  appointment: { notifications?: NotificationLogItem[] }
-): AppointmentLastEmail | null {
-  return getAppointmentLastEmail(appointment)
-}
-
-export function getLastEmail(
-  appointment: { notifications?: NotificationLogItem[] }
-): AppointmentLastEmail | null {
-  return getAppointmentLastEmail(appointment)
-}
-
+/**
+ * Motive of the non-send, as served by the API.
+ *
+ * Deliberately a pass-through: no fallback on a sibling field, no client-side
+ * deduction. A motive recomputed here is a second source of truth — the defect
+ * `NotificationLogItem`/`emailReason` exists to prevent.
+ */
 export function getAppointmentEmailReason(
-  appointment: {
-    emailReason?: string | null
-    reason?: string | null
-    notificationReason?: string | null
-    lastEmailReason?: string | null
-  }
-): string | null {
-  return appointment.emailReason
-    ?? appointment.reason
-    ?? appointment.notificationReason
-    ?? appointment.lastEmailReason
-    ?? null
+  appointment: { emailReason?: EmailReason | null }
+): EmailReason | null {
+  return appointment.emailReason ?? null
 }
 
 /**
