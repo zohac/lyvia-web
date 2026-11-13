@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AdminAnalyticsPanel from '../../components/organisms/AdminAnalyticsPanel.vue'
 import AdminBusinessLogsPanel from '../../components/organisms/AdminBusinessLogsPanel.vue'
+import AdminEmailsPanel from '../../components/organisms/AdminEmailsPanel.vue'
 import AdminNotificationLogsPanel from '../../components/organisms/AdminNotificationLogsPanel.vue'
 import {
   ADMIN_TOOL_TABS,
@@ -93,6 +94,12 @@ watch(activeTab, () => {
         <template #notifications>
           <div class="mt-6">
             <AdminNotificationLogsPanel />
+          </div>
+        </template>
+
+        <template #emails>
+          <div class="mt-6">
+            <AdminEmailsPanel />
           </div>
         </template>
 
