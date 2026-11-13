@@ -26,14 +26,14 @@
           <span class="text-sm text-[color:var(--color-brand-muted)]">Types:</span>
           <button
             v-for="eventType in eventTypeOptions"
-            :key="eventType.value"
+            :key="eventType.key"
             :class="[
               'rounded-full border border-[color:var(--color-border-subtle)] px-3 py-1.5 text-xs font-medium transition-colors',
-              selectedEventTypes.includes(eventType.value)
+              selectedFamilies.includes(eventType.key)
                 ? `${eventType.activeClass} border-transparent shadow-sm`
                 : 'bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
-            @click="toggleEventType(eventType.value)"
+            @click="toggleEventType(eventType.key)"
           >
             {{ eventType.label }}
           </button>
@@ -271,6 +271,7 @@ import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import { getEventBadgeColor, getBadgeClasses } from '~/composables/useAdminBadges'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
+import { BUSINESS_LOG_EVENT_FAMILIES } from '~/features/admin/domain/business-log-event-types'
 
 // Types
 type AdminBusinessLogListItem = {
@@ -299,6 +300,10 @@ type AdminBusinessLogDetail = {
 
 // Filters
 const searchQuery = ref('')
+// Famille -> liste de préfixes réels émis par le code (voir grep des
+// écritures dans public.business_logs). Une famille peut couvrir plusieurs
+// préfixes (pluriels : PAYMENTS_*, APPOINTMENTS_*).
+const selectedFamilies = ref<string[]>([])
 const selectedEventTypes = ref<string[]>([])
 const dateFrom = ref('')
 const dateTo = ref('')
@@ -311,19 +316,27 @@ const logDetail = ref<AdminBusinessLogDetail | null>(null)
 const detailPending = ref(false)
 const detailError = ref<Error | null>(null)
 
-// Event type options with colors
-const eventTypeOptions = [
-  { value: 'PAYMENT_', label: 'Paiements', activeClass: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' },
-  { value: 'APPOINTMENT_', label: 'RDV', activeClass: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]' },
-  { value: 'CLIENT_', label: 'Clients', activeClass: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-800)]' },
-  { value: 'PROVIDER_', label: 'Providers', activeClass: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]' },
-  { value: 'STRIPE_', label: 'Stripe', activeClass: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]' },
-  { value: 'AUTH_', label: 'Auth', activeClass: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]' }
-]
+// Active classes per family (styling). Prefixes/labels come from the single
+// source of truth module above.
+const ACTIVE_CLASSES: Record<string, string> = {
+  payment: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]',
+  appointment: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]',
+  client: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-800)]',
+  provider: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]',
+  stripe: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]',
+  auth: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
+}
+
+const eventTypeOptions = BUSINESS_LOG_EVENT_FAMILIES.map(family => ({
+  key: family.key,
+  prefixes: family.prefixes,
+  label: family.label,
+  activeClass: ACTIVE_CLASSES[family.key] ?? ''
+}))
 
 const hasActiveFilters = computed(() => {
   return searchQuery.value.trim() !== ''
-    || selectedEventTypes.value.length > 0
+    || selectedFamilies.value.length > 0
     || dateFrom.value !== ''
     || dateTo.value !== ''
 })
@@ -353,18 +366,26 @@ function debouncedSearch() {
   }, 300)
 }
 
+function recomputeSelectedEventTypes() {
+  selectedEventTypes.value = eventTypeOptions
+    .filter(o => selectedFamilies.value.includes(o.key))
+    .flatMap(o => o.prefixes)
+}
+
 // Event type toggle
-function toggleEventType(prefix: string) {
-  const index = selectedEventTypes.value.indexOf(prefix)
+function toggleEventType(key: string) {
+  const index = selectedFamilies.value.indexOf(key)
   if (index === -1) {
-    selectedEventTypes.value.push(prefix)
+    selectedFamilies.value.push(key)
   } else {
-    selectedEventTypes.value.splice(index, 1)
+    selectedFamilies.value.splice(index, 1)
   }
+  recomputeSelectedEventTypes()
   refresh()
 }
 
 function clearEventTypes() {
+  selectedFamilies.value = []
   selectedEventTypes.value = []
   refresh()
 }
