@@ -2,7 +2,9 @@ import type { ReminderBatch, ReminderStatus } from './api/admin-reminders.contra
 
 const JOB_LABELS: Record<string, string> = {
   discovery_j1: 'Appel découverte · J−1',
-  consultation_j1: 'Consultation · J−1',
+  // em-1 — the consultation reminder now fires 48 h before the session; the job
+  // key keeps its historical `j1` name, the label must not repeat the lie.
+  consultation_j1: 'Consultation · J−2',
   consultation_h2: 'Consultation · H−2',
   free_followup_j1: 'Suivi offert · J−1',
   free_followup_h2: 'Suivi offert · H−2',

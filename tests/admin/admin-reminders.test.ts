@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createAdminRemindersStore } from '../../app/features/admin/admin-reminders-store'
-import { reminderBatchSummary } from '../../app/features/admin/admin-reminders-helpers'
+import { reminderBatchSummary, reminderJobLabel } from '../../app/features/admin/admin-reminders-helpers'
 import type { ReminderBatch, ReminderOverview, ReminderRun } from '../../app/features/admin/api/admin-reminders.contract'
 
 const runResult = (patch: Partial<ReminderRun> = {}): ReminderRun => ({
@@ -134,4 +134,12 @@ test('interrupted partial sends never display a misleading zero-send total', () 
   assert.equal(summary.error, true)
   assert.match(summary.message, /bilan est incomplet/)
   assert.doesNotMatch(summary.message, /0 email/)
+})
+
+// em-1 — the operator screen must announce the delay the runner actually uses.
+// The job key stays `consultation_j1` (historical, never renamed); only the label moves.
+test('consultation reminder job is labelled J−2, discovery stays J−1 (em-1)', () => {
+  assert.equal(reminderJobLabel('consultation_j1'), 'Consultation · J−2')
+  assert.equal(reminderJobLabel('discovery_j1'), 'Appel découverte · J−1')
+  assert.equal(reminderJobLabel('consultation_h2'), 'Consultation · H−2')
 })
