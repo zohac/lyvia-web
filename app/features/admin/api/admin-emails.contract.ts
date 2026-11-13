@@ -16,6 +16,8 @@ export type AdminEmailActivitySend = {
   channel: string
   createdAt: string
   providerMessageId: string | null
+  /** `true` quand la passerelle a simulé l'envoi (mode `console`). */
+  simulated: boolean
 }
 
 export type AdminEmailActivityFailure = {
