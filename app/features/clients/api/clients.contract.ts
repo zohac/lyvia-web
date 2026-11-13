@@ -143,6 +143,7 @@ export type NotificationLogItem = {
   channel: NotificationChannel
   status: NotificationLogStatus
   createdAt: string
+  simulated?: boolean
 }
 
 /**
@@ -341,6 +342,10 @@ export type AppointmentDisplayItem = {
   cancellationReasonText?: string | null
   notes?: string | null
   notifications?: NotificationLogItem[]
+  emailReason?: string | null
+  reason?: string | null
+  notificationReason?: string | null
+  lastEmailReason?: string | null
 }
 
 /**
@@ -356,6 +361,10 @@ export type ProviderClientAppointmentItem = {
   cancellationReason: CancellationReason | null
   notes: string | null
   notifications: NotificationLogItem[]
+  emailReason?: string | null
+  reason?: string | null
+  notificationReason?: string | null
+  lastEmailReason?: string | null
 }
 
 /**

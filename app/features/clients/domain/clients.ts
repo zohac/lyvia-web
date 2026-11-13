@@ -6,6 +6,7 @@ import type {
   CancellationReason,
   NotificationChannel,
   NotificationLogItem,
+  NotificationLogStatus,
   PaymentStatus,
   ProviderClientDetailPayment,
   ProviderClientStage,
@@ -425,6 +426,64 @@ const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, string> = {
  */
 export function getNotificationChannelLabel(channel: NotificationChannel): string {
   return NOTIFICATION_CHANNEL_LABELS[channel] || channel
+}
+
+export function getNotificationStatusLabel(status: NotificationLogStatus): string {
+  switch (status) {
+    case 'sent':
+      return 'envoyé'
+    case 'failed':
+      return 'échec'
+    case 'skipped':
+      return 'ignoré'
+    default:
+      return status
+  }
+}
+
+export type AppointmentLastEmail = {
+  channel: NotificationChannel
+  status: NotificationLogStatus
+  createdAt: string
+  simulated?: boolean
+}
+
+export function getAppointmentLastEmail(
+  appointment: { notifications?: NotificationLogItem[] }
+): AppointmentLastEmail | null {
+  const notifications = appointment.notifications ?? []
+  if (notifications.length === 0) return null
+  const sorted = [...notifications].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+  return sorted[0] as AppointmentLastEmail
+}
+
+export function getLastAppointmentEmail(
+  appointment: { notifications?: NotificationLogItem[] }
+): AppointmentLastEmail | null {
+  return getAppointmentLastEmail(appointment)
+}
+
+export function getLastEmail(
+  appointment: { notifications?: NotificationLogItem[] }
+): AppointmentLastEmail | null {
+  return getAppointmentLastEmail(appointment)
+}
+
+export function getAppointmentEmailReason(
+  appointment: {
+    emailReason?: string | null
+    reason?: string | null
+    notificationReason?: string | null
+    lastEmailReason?: string | null
+  }
+): string | null {
+  return appointment.emailReason
+    ?? appointment.reason
+    ?? appointment.notificationReason
+    ?? appointment.lastEmailReason
+    ?? null
 }
 
 /**
