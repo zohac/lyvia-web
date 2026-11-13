@@ -415,7 +415,7 @@ const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, string> = {
   discovery_confirmation: 'Confirmation envoyée',
   discovery_reminder_j1: 'Rappel J-1 envoyé',
   consultation_confirmation: 'Confirmation envoyée',
-  consultation_reminder_j1: 'Rappel J-1 envoyé',
+  consultation_reminder_j1: 'Rappel J-2 envoyé',
   consultation_reminder_h2: 'Rappel H-2 envoyé',
   consultation_payment_resend: 'Lien de paiement renvoyé'
 }
@@ -445,7 +445,7 @@ export function getAppointmentNotificationSummary(
   if (isDiscovery) {
     if (sentChannels.has('discovery_reminder_j1')) remindersSent.push('J-1')
   } else {
-    if (sentChannels.has('consultation_reminder_j1')) remindersSent.push('J-1')
+    if (sentChannels.has('consultation_reminder_j1')) remindersSent.push('J-2')
     if (sentChannels.has('consultation_reminder_h2')) remindersSent.push('H-2')
   }
 
