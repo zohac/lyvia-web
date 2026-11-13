@@ -271,7 +271,8 @@ import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import { getEventBadgeColor, getBadgeClasses } from '~/composables/useAdminBadges'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
-import { BUSINESS_LOG_EVENT_FAMILIES } from '~/features/admin/domain/business-log-event-types'
+import { BUSINESS_LOG_EVENT_FAMILIES, prefixesForFamilies } from '~/features/admin/domain/business-log-event-types'
+import type { BusinessLogEventFamilyKey } from '~/features/admin/domain/business-log-event-types'
 
 // Types
 type AdminBusinessLogListItem = {
@@ -300,11 +301,10 @@ type AdminBusinessLogDetail = {
 
 // Filters
 const searchQuery = ref('')
-// Famille -> liste de préfixes réels émis par le code (voir grep des
-// écritures dans public.business_logs). Une famille peut couvrir plusieurs
-// préfixes (pluriels : PAYMENTS_*, APPOINTMENTS_*).
-const selectedFamilies = ref<string[]>([])
-const selectedEventTypes = ref<string[]>([])
+// Familles sélectionnées (l'état des chips). La liste des préfixes envoyés à
+// l'API en est DÉRIVÉE (`selectedEventTypes`), jamais maintenue en parallèle :
+// deux listes à synchroniser à la main divergent au premier écrivain de trop.
+const selectedFamilies = ref<BusinessLogEventFamilyKey[]>([])
 const dateFrom = ref('')
 const dateTo = ref('')
 const loadingMore = ref(false)
@@ -316,9 +316,10 @@ const logDetail = ref<AdminBusinessLogDetail | null>(null)
 const detailPending = ref(false)
 const detailError = ref<Error | null>(null)
 
-// Active classes per family (styling). Prefixes/labels come from the single
-// source of truth module above.
-const ACTIVE_CLASSES: Record<string, string> = {
+// Active classes per family (styling only). Prefixes/labels come from the
+// single source of truth module above. Typed on the family key union: a family
+// added there without a class is a compile error, not a silently unstyled chip.
+const ACTIVE_CLASSES: Record<BusinessLogEventFamilyKey, string> = {
   payment: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]',
   appointment: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]',
   client: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-800)]',
@@ -329,10 +330,12 @@ const ACTIVE_CLASSES: Record<string, string> = {
 
 const eventTypeOptions = BUSINESS_LOG_EVENT_FAMILIES.map(family => ({
   key: family.key,
-  prefixes: family.prefixes,
   label: family.label,
-  activeClass: ACTIVE_CLASSES[family.key] ?? ''
+  activeClass: ACTIVE_CLASSES[family.key]
 }))
+
+// Préfixes réellement envoyés : dérivés des familles, jamais stockés.
+const selectedEventTypes = computed(() => prefixesForFamilies(selectedFamilies.value))
 
 const hasActiveFilters = computed(() => {
   return searchQuery.value.trim() !== ''
@@ -366,27 +369,19 @@ function debouncedSearch() {
   }, 300)
 }
 
-function recomputeSelectedEventTypes() {
-  selectedEventTypes.value = eventTypeOptions
-    .filter(o => selectedFamilies.value.includes(o.key))
-    .flatMap(o => o.prefixes)
-}
-
 // Event type toggle
-function toggleEventType(key: string) {
+function toggleEventType(key: BusinessLogEventFamilyKey) {
   const index = selectedFamilies.value.indexOf(key)
   if (index === -1) {
     selectedFamilies.value.push(key)
   } else {
     selectedFamilies.value.splice(index, 1)
   }
-  recomputeSelectedEventTypes()
   refresh()
 }
 
 function clearEventTypes() {
   selectedFamilies.value = []
-  selectedEventTypes.value = []
   refresh()
 }
 
