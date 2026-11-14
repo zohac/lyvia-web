@@ -16,7 +16,7 @@ const consultationWithReminder = {
   status: 'scheduled' as const,
   notifications: [
     {
-      channel: 'consultation_reminder_j1',
+      channel: 'consultation_reminder',
       channelLabel: 'Rappel consultation J-2 (48 h)',
       status: 'sent' as const,
       createdAt: '2026-11-12T09:14:00.000Z',

@@ -484,7 +484,7 @@ export function getAppointmentNotificationSummary(
   if (isDiscovery) {
     if (sentChannels.has('discovery_reminder_j1')) remindersSent.push('J-1')
   } else {
-    if (sentChannels.has('consultation_reminder_j1')) remindersSent.push('J-2')
+    if (sentChannels.has('consultation_reminder')) remindersSent.push('J-2')
     if (sentChannels.has('consultation_reminder_h2')) remindersSent.push('H-2')
   }
 
@@ -497,7 +497,7 @@ export function getAppointmentNotificationSummary(
       allExpectedSent = confirmationSent && sentChannels.has('discovery_reminder_j1')
     } else {
       allExpectedSent = confirmationSent
-        && sentChannels.has('consultation_reminder_j1')
+        && sentChannels.has('consultation_reminder')
         && sentChannels.has('consultation_reminder_h2')
     }
   }

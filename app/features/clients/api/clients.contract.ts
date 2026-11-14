@@ -133,7 +133,7 @@ export type NotificationChannel
   = | 'discovery_confirmation'
     | 'discovery_reminder_j1'
     | 'consultation_confirmation'
-    | 'consultation_reminder_j1'
+    | 'consultation_reminder'
     | 'consultation_reminder_h2'
     | 'consultation_payment_resend'
 
