@@ -9,8 +9,10 @@ import { getAppointmentNotificationSummary } from '../../app/features/clients/do
 // `lyvia-api`); these two labels stay here because they are derived from the
 // channel the summary matches, not from the registry.
 
-// Fixtures are typed (not cast) so a rename in the contract breaks the test at
-// compile time instead of silently building a shape the function no longer reads.
+// Fixtures are plain literals: `NotificationLogItem.channel` is a `string`, so
+// nothing here breaks at compile time on a rename. The compile-time link lives
+// in `clients.ts` (`SUMMARY_CHANNELS` typed against `NotificationChannel`); these
+// tests are the runtime half — they assert the channel the summary actually reads.
 const consultationWithReminder = {
   type: 'consultation' as const,
   status: 'scheduled' as const,
