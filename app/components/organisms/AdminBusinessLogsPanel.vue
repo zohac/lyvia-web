@@ -26,14 +26,16 @@
           <span class="text-sm text-[color:var(--color-brand-muted)]">Types:</span>
           <button
             v-for="eventType in eventTypeOptions"
-            :key="eventType.value"
+            :key="eventType.key"
+            type="button"
+            :aria-pressed="selectedFamilies.includes(eventType.key)"
             :class="[
               'rounded-full border border-[color:var(--color-border-subtle)] px-3 py-1.5 text-xs font-medium transition-colors',
-              selectedEventTypes.includes(eventType.value)
-                ? `${eventType.activeClass} border-transparent shadow-sm`
+              selectedFamilies.includes(eventType.key)
+                ? `${ACTIVE_FAMILY_CLASSES} border-transparent shadow-sm`
                 : 'bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
-            @click="toggleEventType(eventType.value)"
+            @click="toggleEventType(eventType.key)"
           >
             {{ eventType.label }}
           </button>
@@ -271,6 +273,8 @@ import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import { getEventBadgeColor, getBadgeClasses } from '~/composables/useAdminBadges'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
+import { prefixesForFamilies } from '~/features/admin/domain/business-log-event-types'
+import type { BusinessLogEventFamiliesResponse } from '~/features/admin/domain/business-log-event-types'
 
 // Types
 type AdminBusinessLogListItem = {
@@ -299,7 +303,10 @@ type AdminBusinessLogDetail = {
 
 // Filters
 const searchQuery = ref('')
-const selectedEventTypes = ref<string[]>([])
+// Familles sélectionnées (l'état des chips). La liste des préfixes envoyés à
+// l'API en est DÉRIVÉE (`selectedEventTypes`), jamais maintenue en parallèle :
+// deux listes à synchroniser à la main divergent au premier écrivain de trop.
+const selectedFamilies = ref<string[]>([])
 const dateFrom = ref('')
 const dateTo = ref('')
 const loadingMore = ref(false)
@@ -311,19 +318,35 @@ const logDetail = ref<AdminBusinessLogDetail | null>(null)
 const detailPending = ref(false)
 const detailError = ref<Error | null>(null)
 
-// Event type options with colors
-const eventTypeOptions = [
-  { value: 'PAYMENT_', label: 'Paiements', activeClass: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]' },
-  { value: 'APPOINTMENT_', label: 'RDV', activeClass: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]' },
-  { value: 'CLIENT_', label: 'Clients', activeClass: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-800)]' },
-  { value: 'PROVIDER_', label: 'Providers', activeClass: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]' },
-  { value: 'STRIPE_', label: 'Stripe', activeClass: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]' },
-  { value: 'AUTH_', label: 'Auth', activeClass: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]' }
-]
+// Taxonomie servie par l'API : le panneau n'en tient aucune copie. Une famille
+// ajoutée côté serveur apparaît ici sans commit web, et l'ordre des chips est
+// celui que le serveur déclare (par domaine métier).
+const { data: familiesData } = await useAsyncData<BusinessLogEventFamiliesResponse>(
+  'admin-business-log-event-families',
+  () => apiFetch<BusinessLogEventFamiliesResponse>('/admin/logs/event-families')
+)
+
+const families = computed(() => familiesData.value?.families ?? [])
+
+// Une seule teinte active pour toutes les familles (décision em-2b) : à douze
+// chips, quatre teintes produisaient des doublons indiscernables (provider ≡
+// stripe ≡ program, etc.). La teinte unique dit « ce filtre est actif » sans
+// prétendre coder le domaine par la couleur.
+const ACTIVE_FAMILY_CLASSES
+  = 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-800)]'
+
+const eventTypeOptions = computed(() =>
+  families.value.map(family => ({ key: family.key, label: family.label }))
+)
+
+// Préfixes réellement envoyés : dérivés des familles, jamais stockés.
+const selectedEventTypes = computed(() =>
+  prefixesForFamilies(families.value, selectedFamilies.value)
+)
 
 const hasActiveFilters = computed(() => {
   return searchQuery.value.trim() !== ''
-    || selectedEventTypes.value.length > 0
+    || selectedFamilies.value.length > 0
     || dateFrom.value !== ''
     || dateTo.value !== ''
 })
@@ -354,18 +377,18 @@ function debouncedSearch() {
 }
 
 // Event type toggle
-function toggleEventType(prefix: string) {
-  const index = selectedEventTypes.value.indexOf(prefix)
+function toggleEventType(key: string) {
+  const index = selectedFamilies.value.indexOf(key)
   if (index === -1) {
-    selectedEventTypes.value.push(prefix)
+    selectedFamilies.value.push(key)
   } else {
-    selectedEventTypes.value.splice(index, 1)
+    selectedFamilies.value.splice(index, 1)
   }
   refresh()
 }
 
 function clearEventTypes() {
-  selectedEventTypes.value = []
+  selectedFamilies.value = []
   refresh()
 }
 

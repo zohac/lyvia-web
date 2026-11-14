@@ -9,8 +9,11 @@ export type BadgeColor = 'success' | 'error' | 'info' | 'primary' | 'secondary' 
  * Get badge color based on business event type prefix
  */
 export function getEventBadgeColor(eventType: string): BadgeColor {
-  if (eventType.startsWith('PAYMENT_')) return eventType.includes('FAILED') ? 'error' : 'success'
-  if (eventType.startsWith('APPOINTMENT_')) return 'info'
+  // Familles plurielles incluses : `PAYMENTS_*` / `APPOINTMENTS_*` sont écrites
+  // par les notifiers de consultation et sont désormais renvoyées par le filtre
+  // « Paiements » / « RDV » du panneau (story em-2).
+  if (eventType.startsWith('PAYMENT_') || eventType.startsWith('PAYMENTS_')) return eventType.includes('FAILED') ? 'error' : 'success'
+  if (eventType.startsWith('APPOINTMENT_') || eventType.startsWith('APPOINTMENTS_')) return 'info'
   if (eventType.startsWith('CLIENT_')) return 'primary'
   if (eventType.startsWith('PROVIDER_')) return 'secondary'
   if (eventType.startsWith('STRIPE_')) return 'warning'

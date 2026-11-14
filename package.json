@@ -12,7 +12,7 @@
     "test": "pnpm test:unit",
     "test:unit": "tsc -p tsconfig.tests.json && node -e \"require('fs').writeFileSync('.tmp/test-dist/package.json', '{\\\\\\\"type\\\\\\\":\\\\\\\"commonjs\\\\\\\"}')\" && node --require ./scripts/register-test-alias.cjs --test .tmp/test-dist/tests/**/*.test.js",
     "typecheck": "nuxt typecheck",
-    "contract:check": "node ./scripts/contract-check-openapi-auth.mjs && node ./scripts/contract-check-openapi-waitlist.mjs && node ./scripts/contract-check-openapi-notification-logs.mjs"
+    "contract:check": "node ./scripts/contract-check-openapi-auth.mjs && node ./scripts/contract-check-openapi-waitlist.mjs && node ./scripts/contract-check-openapi-notification-logs.mjs && node ./scripts/contract-check-openapi-admin-emails.mjs && node ./scripts/contract-check-openapi-business-log-families.mjs"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.100",
@@ -23,6 +23,7 @@
     "@nuxt/ui": "^4.6.0",
     "@nuxtjs/critters": "^0.9.0",
     "@nuxtjs/seo": "^3.4.0",
+    "@sentry/vue": "11.11.0",
     "beasties": "0.3.5",
     "better-sqlite3": "^12.9.0",
     "nuxt": "^4.4.2"

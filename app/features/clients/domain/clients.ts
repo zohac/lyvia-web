@@ -4,8 +4,10 @@ import type {
   AppointmentStatus,
   AppointmentType,
   CancellationReason,
+  EmailReason,
   NotificationChannel,
   NotificationLogItem,
+  NotificationLogStatus,
   PaymentStatus,
   ProviderClientDetailPayment,
   ProviderClientStage,
@@ -408,24 +410,80 @@ export function sortPaymentsByDate(
 }
 
 // ============================================================================
-// Notification Status Helpers (H4)
+// Notification Status Helpers (H4, extended by em-6)
 // ============================================================================
 
-const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, string> = {
-  discovery_confirmation: 'Confirmation envoyée',
-  discovery_reminder_j1: 'Rappel J-1 envoyé',
-  consultation_confirmation: 'Confirmation envoyée',
-  consultation_reminder_j1: 'Rappel J-1 envoyé',
-  consultation_reminder_h2: 'Rappel H-2 envoyé',
-  consultation_payment_resend: 'Lien de paiement renvoyé'
+/**
+ * Status of a registry row, in the practitioner's words.
+ *
+ * `simulated` is not decoration: `status = 'sent'` means "the gateway resolved",
+ * and in `MAIL_PROVIDER=console` nothing left the process (SPEC Why §1). Printing
+ * « envoyé » on such a row is the exact lie em-6 exists to remove, so the flag
+ * outranks the status word — `failed` still wins, because a failure is a fact and
+ * a simulated success is not.
+ */
+export function getNotificationStatusLabel(
+  status: NotificationLogStatus,
+  simulated: boolean
+): string {
+  if (status === 'failed') return 'échec'
+  if (status === 'skipped') return 'ignoré'
+  return simulated ? 'simulé' : 'envoyé'
+}
+
+export type AppointmentLastEmail = {
+  channel: string
+  /** Readable label served by the API (`EMAIL_CATALOGUE`), never a raw token. */
+  channelLabel: string
+  status: NotificationLogStatus
+  createdAt: string
+  simulated: boolean
 }
 
 /**
- * Returns the human-readable label for a notification channel.
+ * Most recent registry row of an appointment, or null when nothing is recorded.
  */
-export function getNotificationChannelLabel(channel: NotificationChannel): string {
-  return NOTIFICATION_CHANNEL_LABELS[channel] || channel
+export function getAppointmentLastEmail(
+  appointment: { notifications?: NotificationLogItem[] }
+): AppointmentLastEmail | null {
+  const notifications = appointment.notifications ?? []
+  if (notifications.length === 0) return null
+  const sorted = [...notifications].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+  return sorted[0] ?? null
 }
+
+/**
+ * Motive of the non-send, as served by the API.
+ *
+ * Deliberately a pass-through: no fallback on a sibling field, no client-side
+ * deduction. A motive recomputed here is a second source of truth — the defect
+ * `NotificationLogItem`/`emailReason` exists to prevent.
+ */
+export function getAppointmentEmailReason(
+  appointment: { emailReason?: EmailReason | null }
+): EmailReason | null {
+  return appointment.emailReason ?? null
+}
+
+/**
+ * Channels the appointment summary reads, typed against the contract union.
+ *
+ * `NotificationLogItem.channel` is a `string` on purpose — the registry carries
+ * 14 channels, and narrowing it to the 6 appointment-level ones made the type
+ * lie (see `clients.contract.ts`). The union therefore enforces nothing by
+ * itself. These constants are the missing link: renaming a channel in
+ * `NotificationChannel` without renaming it here (or the reverse) fails
+ * `typecheck`, instead of silently reading a channel nobody writes anymore.
+ */
+const SUMMARY_CHANNELS = {
+  discoveryConfirmation: 'discovery_confirmation',
+  discoveryReminder: 'discovery_reminder_j1',
+  consultationConfirmation: 'consultation_confirmation',
+  consultationReminder: 'consultation_reminder',
+  consultationReminderH2: 'consultation_reminder_h2'
+} satisfies Record<string, NotificationChannel>
 
 /**
  * Derives notification summary for an appointment.
@@ -438,15 +496,15 @@ export function getAppointmentNotificationSummary(
   const sentChannels = new Set(notifications.filter(n => n.status === 'sent').map(n => n.channel))
 
   const isDiscovery = appointment.type === 'discovery'
-  const confirmationChannel = isDiscovery ? 'discovery_confirmation' : 'consultation_confirmation'
+  const confirmationChannel = isDiscovery ? SUMMARY_CHANNELS.discoveryConfirmation : SUMMARY_CHANNELS.consultationConfirmation
   const confirmationSent = sentChannels.has(confirmationChannel)
 
   const remindersSent: string[] = []
   if (isDiscovery) {
-    if (sentChannels.has('discovery_reminder_j1')) remindersSent.push('J-1')
+    if (sentChannels.has(SUMMARY_CHANNELS.discoveryReminder)) remindersSent.push('J-1')
   } else {
-    if (sentChannels.has('consultation_reminder_j1')) remindersSent.push('J-1')
-    if (sentChannels.has('consultation_reminder_h2')) remindersSent.push('H-2')
+    if (sentChannels.has(SUMMARY_CHANNELS.consultationReminder)) remindersSent.push('J-2')
+    if (sentChannels.has(SUMMARY_CHANNELS.consultationReminderH2)) remindersSent.push('H-2')
   }
 
   // For scheduled appointments, check if all expected notifications have been sent
@@ -455,11 +513,11 @@ export function getAppointmentNotificationSummary(
   if (appointment.status === 'completed' || appointment.status === 'cancelled') {
     // If appointment is done, all reminders should have been sent (unless cancelled early)
     if (isDiscovery) {
-      allExpectedSent = confirmationSent && sentChannels.has('discovery_reminder_j1')
+      allExpectedSent = confirmationSent && sentChannels.has(SUMMARY_CHANNELS.discoveryReminder)
     } else {
       allExpectedSent = confirmationSent
-        && sentChannels.has('consultation_reminder_j1')
-        && sentChannels.has('consultation_reminder_h2')
+        && sentChannels.has(SUMMARY_CHANNELS.consultationReminder)
+        && sentChannels.has(SUMMARY_CHANNELS.consultationReminderH2)
     }
   }
 

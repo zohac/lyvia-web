@@ -35,7 +35,7 @@ test('DS4.2: admin navigation no longer exposes SEO as visible item', () => {
 })
 
 test('DS4.2: admin tools tabs stay explicit and stable', () => {
-  assert.deepStrictEqual(ADMIN_TOOL_TAB_VALUES, ['analytics', 'logs', 'notifications', 'waitlist'])
+  assert.deepStrictEqual(ADMIN_TOOL_TAB_VALUES, ['analytics', 'logs', 'notifications', 'emails', 'waitlist'])
 })
 
 test('DS4.2: admin tools tab parser accepts valid values', () => {

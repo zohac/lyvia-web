@@ -4,6 +4,7 @@ export const ADMIN_TOOL_TAB_VALUES = [
   'analytics',
   'logs',
   'notifications',
+  'emails',
   'waitlist'
 ] as const
 
@@ -20,6 +21,7 @@ export const ADMIN_TOOL_TABS: AdminToolTabItem[] = [
   { label: 'Analytics', value: 'analytics', icon: 'i-lucide-bar-chart-3', slot: 'analytics' },
   { label: 'Business Logs', value: 'logs', icon: 'i-lucide-scroll-text', slot: 'logs' },
   { label: 'Notifications', value: 'notifications', icon: 'i-lucide-bell', slot: 'notifications' },
+  { label: 'Emails', value: 'emails', icon: 'i-lucide-mail', slot: 'emails' },
   { label: 'Waitlist', value: 'waitlist', icon: 'i-lucide-list', slot: 'waitlist' }
 ]
 

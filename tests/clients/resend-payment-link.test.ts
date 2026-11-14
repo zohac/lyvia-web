@@ -11,7 +11,7 @@ import test from 'node:test'
 
 import { ApiFetchError } from '../../app/services/api/api-error'
 import { mapResendPaymentLinkErrorToMessage } from '../../app/features/clients/api/clients-error'
-import { canResendPaymentLink, getNotificationChannelLabel } from '../../app/features/clients/domain/clients'
+import { canResendPaymentLink } from '../../app/features/clients/domain/clients'
 
 test('canResendPaymentLink: visible for an unpaid scheduled consultation', () => {
   assert.equal(
@@ -127,9 +127,7 @@ test('mapResendPaymentLinkErrorToMessage: falls back for unknown errors (e.g. SE
   )
 })
 
-test('getNotificationChannelLabel: labels a payment-link resend', () => {
-  assert.equal(
-    getNotificationChannelLabel('consultation_payment_resend'),
-    'Lien de paiement renvoyé'
-  )
-})
+// The channel label moved to the API (em-6): `EMAIL_CATALOGUE` labels
+// `consultation_payment_resend` with « Consultation créée manuellement »'s
+// secondary channel, pinned by `notification-channel-label.spec.ts` in
+// `lyvia-api`. A hand-written map here would be the second registry em-3 closed.

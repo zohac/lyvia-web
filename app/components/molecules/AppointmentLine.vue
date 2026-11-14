@@ -156,6 +156,39 @@
             <span>Rappels programmés</span>
           </span>
         </div>
+
+        <!-- Last email per appointment (em-6) -->
+        <div
+          v-if="lastEmail"
+          class="mt-2 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-brand-muted)]"
+          data-last-email
+          :data-last-email-status="lastEmail.status"
+          :data-last-email-simulated="lastEmail.simulated ? 'true' : 'false'"
+        >
+          <UIcon
+            name="i-lucide-mail"
+            class="h-3.5 w-3.5"
+          />
+          <span>
+            Dernier email : {{ lastEmail.channelLabel }} —
+            {{ getNotificationStatusLabel(lastEmail.status, lastEmail.simulated) }} —
+            {{ formatLastEmailDate(lastEmail.createdAt) }}
+          </span>
+        </div>
+
+        <!-- Motive when nothing went out (em-6). The label is the API's. -->
+        <div
+          v-if="emailReason"
+          class="mt-2 flex flex-wrap items-center gap-2 text-xs text-[color:var(--color-warning)]"
+          data-email-reason
+          :data-email-reason-code="emailReason.code"
+        >
+          <UIcon
+            name="i-lucide-info"
+            class="h-3.5 w-3.5"
+          />
+          <span>Motif : {{ emailReason.label }}</span>
+        </div>
       </div>
     </div>
 
@@ -211,11 +244,14 @@ import type { AppointmentDisplayItem } from '../../features/clients/api/clients.
 import {
   canResendPaymentLink,
   formatAppointmentDateTime,
+  getAppointmentEmailReason,
+  getAppointmentLastEmail,
   getAppointmentNotificationSummary,
   getAppointmentPaymentStatusLabel,
   getAppointmentStatusMeta,
   getAppointmentTypeLabel,
-  getCancellationReasonLabel
+  getCancellationReasonLabel,
+  getNotificationStatusLabel
 } from '../../features/clients/domain/clients'
 
 const props = withDefaults(
@@ -272,6 +308,23 @@ const notificationSummary = computed(() => {
   if (!props.appointment.notifications) return null
   return getAppointmentNotificationSummary(props.appointment)
 })
+
+const lastEmail = computed(() => getAppointmentLastEmail(props.appointment))
+
+const emailReason = computed(() => getAppointmentEmailReason(props.appointment))
+
+function formatLastEmailDate(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(iso))
+  } catch {
+    return iso
+  }
+}
 
 const paymentStatusClass = computed(() => {
   if (props.appointment.paymentStatus === 'paid') {
