@@ -27,10 +27,12 @@
           <button
             v-for="eventType in eventTypeOptions"
             :key="eventType.key"
+            type="button"
+            :aria-pressed="selectedFamilies.includes(eventType.key)"
             :class="[
               'rounded-full border border-[color:var(--color-border-subtle)] px-3 py-1.5 text-xs font-medium transition-colors',
               selectedFamilies.includes(eventType.key)
-                ? `${eventType.activeClass} border-transparent shadow-sm`
+                ? `${ACTIVE_FAMILY_CLASSES} border-transparent shadow-sm`
                 : 'bg-[color:var(--color-surface-elevated)] text-[color:var(--color-brand-secondary)] hover:border-[color:var(--color-brand-primary)] hover:text-[color:var(--color-brand-primary)]'
             ]"
             @click="toggleEventType(eventType.key)"
@@ -271,8 +273,8 @@ import type { TableColumn } from '@nuxt/ui'
 import { apiFetch } from '~/services/api/apiFetch'
 import { getEventBadgeColor, getBadgeClasses } from '~/composables/useAdminBadges'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
-import { BUSINESS_LOG_EVENT_FAMILIES, prefixesForFamilies } from '~/features/admin/domain/business-log-event-types'
-import type { BusinessLogEventFamilyKey } from '~/features/admin/domain/business-log-event-types'
+import { prefixesForFamilies } from '~/features/admin/domain/business-log-event-types'
+import type { BusinessLogEventFamiliesResponse } from '~/features/admin/domain/business-log-event-types'
 
 // Types
 type AdminBusinessLogListItem = {
@@ -304,7 +306,7 @@ const searchQuery = ref('')
 // Familles sélectionnées (l'état des chips). La liste des préfixes envoyés à
 // l'API en est DÉRIVÉE (`selectedEventTypes`), jamais maintenue en parallèle :
 // deux listes à synchroniser à la main divergent au premier écrivain de trop.
-const selectedFamilies = ref<BusinessLogEventFamilyKey[]>([])
+const selectedFamilies = ref<string[]>([])
 const dateFrom = ref('')
 const dateTo = ref('')
 const loadingMore = ref(false)
@@ -316,26 +318,31 @@ const logDetail = ref<AdminBusinessLogDetail | null>(null)
 const detailPending = ref(false)
 const detailError = ref<Error | null>(null)
 
-// Active classes per family (styling only). Prefixes/labels come from the
-// single source of truth module above. Typed on the family key union: a family
-// added there without a class is a compile error, not a silently unstyled chip.
-const ACTIVE_CLASSES: Record<BusinessLogEventFamilyKey, string> = {
-  payment: 'bg-[color:var(--color-success-100)] text-[color:var(--color-success-700)]',
-  appointment: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-700)]',
-  client: 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-800)]',
-  provider: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]',
-  stripe: 'bg-[color:var(--color-sunset-100)] text-[color:var(--color-sunset-700)]',
-  auth: 'bg-[color:var(--color-neutral-100)] text-[color:var(--color-neutral-600)]'
-}
+// Taxonomie servie par l'API : le panneau n'en tient aucune copie. Une famille
+// ajoutée côté serveur apparaît ici sans commit web, et l'ordre des chips est
+// celui que le serveur déclare (par domaine métier).
+const { data: familiesData } = await useAsyncData<BusinessLogEventFamiliesResponse>(
+  'admin-business-log-event-families',
+  () => apiFetch<BusinessLogEventFamiliesResponse>('/admin/logs/event-families')
+)
 
-const eventTypeOptions = BUSINESS_LOG_EVENT_FAMILIES.map(family => ({
-  key: family.key,
-  label: family.label,
-  activeClass: ACTIVE_CLASSES[family.key]
-}))
+const families = computed(() => familiesData.value?.families ?? [])
+
+// Une seule teinte active pour toutes les familles (décision em-2b) : à douze
+// chips, quatre teintes produisaient des doublons indiscernables (provider ≡
+// stripe ≡ program, etc.). La teinte unique dit « ce filtre est actif » sans
+// prétendre coder le domaine par la couleur.
+const ACTIVE_FAMILY_CLASSES
+  = 'bg-[color:var(--color-crepuscule-100)] text-[color:var(--color-crepuscule-800)]'
+
+const eventTypeOptions = computed(() =>
+  families.value.map(family => ({ key: family.key, label: family.label }))
+)
 
 // Préfixes réellement envoyés : dérivés des familles, jamais stockés.
-const selectedEventTypes = computed(() => prefixesForFamilies(selectedFamilies.value))
+const selectedEventTypes = computed(() =>
+  prefixesForFamilies(families.value, selectedFamilies.value)
+)
 
 const hasActiveFilters = computed(() => {
   return searchQuery.value.trim() !== ''
@@ -370,7 +377,7 @@ function debouncedSearch() {
 }
 
 // Event type toggle
-function toggleEventType(key: BusinessLogEventFamilyKey) {
+function toggleEventType(key: string) {
   const index = selectedFamilies.value.indexOf(key)
   if (index === -1) {
     selectedFamilies.value.push(key)
