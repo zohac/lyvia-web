@@ -103,6 +103,7 @@
 
       <OrganismsContentSharesSection
         v-if="content"
+        :key="content.id"
         :content-id="content.id"
         :visibility="content.visibility"
       />

@@ -2,12 +2,11 @@ import * as assert from 'node:assert/strict'
 import test from 'node:test'
 
 import {
+  buildShareSelectedPayload,
   filterSelectableClients,
-  isClientAlreadyShared,
   removeSharedClient,
   restoreSharedClient,
   sharedClientIds,
-  buildShareSelectedPayload,
   shareResultMessage
 } from '../../app/features/contents/domain/content-shares'
 import type { ContentShareItem } from '../../app/features/contents/api/contents.contract'
@@ -17,12 +16,17 @@ function share(id: string, sharedAt = '2026-01-01T00:00:00.000Z'): ContentShareI
   return { clientProfileId: id, firstname: 'A', lastname: 'B', sharedAt }
 }
 
-function client(id: string, first = 'X', last = 'Y'): ProviderClientListItem {
+function client(
+  id: string,
+  first = 'X',
+  last = 'Y',
+  email = `${id}@example.com`
+): ProviderClientListItem {
   return {
     clientProfileId: id,
     firstname: first,
     lastname: last,
-    email: `${id}@e.com`,
+    email,
     phone: '',
     stage: 'active',
     onboardingCallDone: true,
@@ -41,18 +45,16 @@ test('sharedClientIds collects ids', () => {
   assert.equal(ids.has('c'), false)
 })
 
-test('isClientAlreadyShared', () => {
-  assert.equal(isClientAlreadyShared([share('a')], 'a'), true)
-  assert.equal(isClientAlreadyShared([share('a')], 'b'), false)
-})
-
 test('removeSharedClient removes', () => {
   const out = removeSharedClient([share('a'), share('b')], 'a')
   assert.deepEqual(out.map(x => x.clientProfileId), ['b'])
 })
 
 test('restoreSharedClient re-adds and sorts by sharedAt desc', () => {
-  const restored = restoreSharedClient([share('b', '2026-02-01T00:00:00.000Z')], share('a', '2026-03-01T00:00:00.000Z'))
+  const restored = restoreSharedClient(
+    [share('b', '2026-02-01T00:00:00.000Z')],
+    share('a', '2026-03-01T00:00:00.000Z')
+  )
   assert.deepEqual(restored.map(x => x.clientProfileId), ['a', 'b'])
 })
 
@@ -63,9 +65,16 @@ test('restoreSharedClient is idempotent', () => {
 
 test('filterSelectableClients excludes shared and filters by name', () => {
   const roster = [client('c1', 'Alice', 'Durand'), client('c2', 'Bob', 'Martin')]
-  const shared = [share('c1')]
-  const out = filterSelectableClients(roster, shared, 'bob')
+  const out = filterSelectableClients(roster, [share('c1')], 'bob')
   assert.deepEqual(out.map(x => x.clientProfileId), ['c2'])
+})
+
+test('filterSelectableClients keeps an email match', () => {
+  // `GET /provider/clients?q=` searches firstname/lastname/email: a name-only
+  // local filter would hide the row the server just matched.
+  const roster = [client('c1', 'Alice', 'Durand', 'marie@exemple.fr'), client('c2', 'Bob', 'Martin')]
+  const out = filterSelectableClients(roster, [], 'marie@exemple.fr')
+  assert.deepEqual(out.map(x => x.clientProfileId), ['c1'])
 })
 
 test('filterSelectableClients with empty query returns all non-shared', () => {
@@ -79,10 +88,8 @@ test('buildShareSelectedPayload dedups and drops empty', () => {
   assert.deepEqual(buildShareSelectedPayload(['a', 'a', '', 'b']), { clientProfileIds: ['a', 'b'] })
 })
 
-test('shareResultMessage honors zero-created rule', () => {
-  assert.equal(shareResultMessage(0, false), 'Aucun nouveau client ajouté.')
-  assert.equal(shareResultMessage(1, false), '1 client ajouté.')
-  assert.equal(shareResultMessage(3, false), '3 clients ajoutés.')
-  assert.equal(shareResultMessage(0, true), 'Aucun nouveau client ajouté.')
-  assert.equal(shareResultMessage(2, true), '2 clients ajoutés.')
+test('shareResultMessage never claims a share that was not created', () => {
+  assert.equal(shareResultMessage(0), 'Aucun nouveau partage créé.')
+  assert.equal(shareResultMessage(1), '1 client ajouté.')
+  assert.equal(shareResultMessage(3), '3 clients ajoutés.')
 })

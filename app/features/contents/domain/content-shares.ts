@@ -11,10 +11,6 @@ export function sharedClientIds(shared: ContentShareItem[]): Set<string> {
   return new Set(shared.map(item => item.clientProfileId))
 }
 
-export function isClientAlreadyShared(shared: ContentShareItem[], clientProfileId: string): boolean {
-  return shared.some(item => item.clientProfileId === clientProfileId)
-}
-
 /**
  * Removes a shared client from the list (immutable).
  */
@@ -44,20 +40,24 @@ export function restoreSharedClient(
 /**
  * Filters the provider roster for the multi-select selector:
  * - drops clients already sharing the content
- * - keeps clients whose name matches the (case-insensitive) query
+ * - keeps clients whose name **or email** matches the query.
+ *
+ * The email is part of the haystack because `GET /provider/clients?q=`
+ * searches `firstname/lastname/email` server-side: a name-only local filter
+ * would hide the very rows the server matched for an email search.
  */
 export function filterSelectableClients(
   roster: ProviderClientListItem[],
   shared: ContentShareItem[],
   query: string
 ): ProviderClientListItem[] {
-  const sharedIds = sharedClientIds(shared)
+  const alreadyShared = sharedClientIds(shared)
   const needle = query.trim().toLowerCase()
 
   return roster.filter((client) => {
-    if (sharedIds.has(client.clientProfileId)) return false
+    if (alreadyShared.has(client.clientProfileId)) return false
     if (needle.length === 0) return true
-    const haystack = `${client.firstname} ${client.lastname}`.toLowerCase()
+    const haystack = `${client.firstname} ${client.lastname} ${client.email}`.toLowerCase()
     return haystack.includes(needle)
   })
 }
@@ -76,15 +76,12 @@ export function buildShareSelectedPayload(
 
 /**
  * Human-readable toast message for a share result, honoring the "0 created"
- * rule: never claim additions when nothing was created.
+ * rule enforced by the API (a re-share, or a share-all where every client
+ * already had access, creates nothing): never claim additions that did not
+ * happen.
  */
-export function shareResultMessage(count: number, all: boolean): string {
-  if (all) {
-    if (count === 0) return 'Aucun nouveau client ajouté.'
-    if (count === 1) return '1 client ajouté.'
-    return `${count} clients ajoutés.`
-  }
-  if (count === 0) return 'Aucun nouveau client ajouté.'
+export function shareResultMessage(count: number): string {
+  if (count === 0) return 'Aucun nouveau partage créé.'
   if (count === 1) return '1 client ajouté.'
   return `${count} clients ajoutés.`
 }

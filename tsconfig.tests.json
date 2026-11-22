@@ -41,6 +41,7 @@
     "app/features/contents/api/**/*.ts",
     "app/features/contents/domain/**/*.ts",
     "app/features/contents/createProviderContents.ts",
+    "app/features/contents/createContentShares.ts",
     "app/features/admin/admin-waitlist-helpers.ts",
     "app/features/admin/admin-waitlist-store.ts",
     "app/features/admin/api/admin-waitlist.contract.ts",

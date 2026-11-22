@@ -68,22 +68,41 @@ if (!contract) {
     const paths = document.paths ?? {}
 
     const requests = await importTsModule('app/features/contents/api/provider-contents.request.ts')
+    const shareRequests = await importTsModule('app/features/contents/api/content-shares.request.ts')
     const options = await importTsModule('app/features/contents/domain/content-options.ts')
 
     // 1. Every call the web emits exists in the contract, with the same verb.
+    //    The OpenAPI path is **derived from the path the builder emits** — a
+    //    hardcoded expectation would assert itself instead of the web code
+    //    (the first version of this check did exactly that, and a renamed
+    //    route still printed "OK").
+    const CONTENT_ID = 'contentIdValue'
+    const CLIENT_ID = 'clientProfileIdValue'
+    const placeholders = { [CONTENT_ID]: '{id}', [CLIENT_ID]: '{clientProfileId}' }
+
+    function toOpenApiPath(callPath) {
+      return callPath
+        .split('/')
+        .map(segment => placeholders[segment] ?? segment)
+        .join('/')
+    }
+
     const calls = [
       requests.buildListContentsCall({}),
-      requests.buildGetContentCall('id'),
+      requests.buildGetContentCall(CONTENT_ID),
       requests.buildCreateContentCall({ title: 't', type: 'article' }),
-      requests.buildUpdateContentCall('id', { title: 't' }),
-      requests.buildPublishContentCall('id'),
-      requests.buildUnpublishContentCall('id'),
-      requests.buildDeleteContentCall('id')
+      requests.buildUpdateContentCall(CONTENT_ID, { title: 't' }),
+      requests.buildPublishContentCall(CONTENT_ID),
+      requests.buildUnpublishContentCall(CONTENT_ID),
+      requests.buildDeleteContentCall(CONTENT_ID),
+      shareRequests.buildListContentSharesCall(CONTENT_ID),
+      shareRequests.buildShareContentCall(CONTENT_ID, { all: true }),
+      shareRequests.buildUnshareContentCall(CONTENT_ID, CLIENT_ID)
     ]
 
     for (const call of calls) {
       const operationId = call.path.replace('/provider/content', '').replace(/^\/?/, '/')
-      const openApiPath = call.path.replace('/id', '/{id}')
+      const openApiPath = toOpenApiPath(call.path)
       const pathItem = paths[openApiPath]
       const verb = call.options.method.toLowerCase()
 
@@ -94,7 +113,50 @@ if (!contract) {
       )
     }
 
-    // 2. The filter vocabularies written on both sides agree.
+    // 2. The sharing body the web sends only carries fields the contract
+    //    accepts, and the response fields the screens read exist in the schema.
+    const shareBodyProperties = Object.keys(
+      document.components?.schemas?.ShareContentDto?.properties ?? {}
+    )
+    for (const body of [
+      shareRequests.buildShareContentCall(CONTENT_ID, { all: true }).options.body,
+      shareRequests.buildShareContentCall(CONTENT_ID, { clientProfileIds: ['client'] }).options.body
+    ]) {
+      for (const field of Object.keys(body)) {
+        assert.ok(
+          shareBodyProperties.includes(field),
+          `Le web envoie \`${field}\` à POST /provider/content/{id}/share, absent de ShareContentDto (${shareBodyProperties.join(', ')})`
+        )
+      }
+    }
+
+    const shareResponseProperties = Object.keys(
+      document.components?.schemas?.ShareContentResponseDto?.properties ?? {}
+    )
+    assert.ok(
+      shareResponseProperties.includes('count'),
+      'ShareContentResponseDto ne déclare pas `count`, que le web affiche dans le toast'
+    )
+
+    const shareItemProperties = Object.keys(
+      document.components?.schemas?.ContentShareItemDto?.properties ?? {}
+    )
+    for (const field of ['clientProfileId', 'firstname', 'lastname', 'sharedAt']) {
+      assert.ok(
+        shareItemProperties.includes(field),
+        `ContentShareItemDto ne déclare pas \`${field}\`, lu par la liste de partages`
+      )
+    }
+
+    const unshareResponseProperties = Object.keys(
+      document.components?.schemas?.UnshareContentResponseDto?.properties ?? {}
+    )
+    assert.ok(
+      unshareResponseProperties.includes('clientProfileId'),
+      'UnshareContentResponseDto ne déclare pas `clientProfileId`'
+    )
+
+    // 3. The filter vocabularies written on both sides agree.
     const listParameters = paths['/provider/content'].get.parameters ?? []
     const enumOf = (name) => {
       const parameter = listParameters.find(entry => entry.name === name)

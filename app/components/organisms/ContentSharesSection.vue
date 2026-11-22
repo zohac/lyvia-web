@@ -4,14 +4,15 @@
     class="bg-[color:var(--color-surface-card)]"
   >
     <template #header>
-      <div class="flex items-center justify-between">
-        <h3 class="text-base font-semibold text-[color:var(--color-text-primary)]">
-          Partage
-        </h3>
-      </div>
+      <h3 class="text-base font-semibold text-[color:var(--color-text-primary)]">
+        Partage
+      </h3>
     </template>
 
-    <div v-if="cs.pending.value" class="space-y-2">
+    <div
+      v-if="cs.pending.value"
+      class="space-y-2"
+    >
       <USkeleton class="h-6 w-1/2" />
       <USkeleton class="h-6 w-2/3" />
     </div>
@@ -37,13 +38,14 @@
               {{ item.firstname }} {{ item.lastname }}
             </p>
             <p class="text-xs text-[color:var(--color-text-muted)]">
-              Partagé le {{ formatDate(item.sharedAt) }}
+              Partagé le {{ formatSharedAt(item.sharedAt) }}
             </p>
           </div>
           <UButton
             variant="ghost"
             color="error"
             size="sm"
+            :aria-label="`Retirer le partage avec ${item.firstname} ${item.lastname}`"
             :loading="cs.removing.value.has(item.clientProfileId)"
             :disabled="cs.removing.value.has(item.clientProfileId)"
             @click="handleRemove(item.clientProfileId)"
@@ -57,7 +59,7 @@
         v-else
         class="text-sm text-[color:var(--color-text-muted)]"
       >
-        Aucun client n'a accès à ce contenu.
+        Aucun partage pour l'instant. Utilisez « Ajouter un client » pour donner accès à ce contenu.
       </p>
 
       <div class="mt-4 flex flex-wrap items-center gap-2">
@@ -78,25 +80,35 @@
           Partager avec tous
         </UButton>
       </div>
+
+      <!--
+        `all: true` is narrower than the picker: the API covers only clients
+        with at least one non-cancelled appointment (story 5.3). The sentence
+        states that scope so the button never promises « toutes vos clientes ».
+      -->
+      <p class="mt-2 text-xs text-[color:var(--color-text-muted)]">
+        « Partager avec tous » couvre les clientes ayant déjà eu un rendez-vous avec vous.
+      </p>
     </template>
 
     <UModal
       v-model:open="cs.selectorOpen.value"
+      title="Ajouter des clientes"
+      description="Choisissez une ou plusieurs clientes à qui donner accès à ce contenu."
     >
-      <template #header>
-        <h4 class="text-base font-semibold text-[color:var(--color-text-primary)]">
-          Ajouter des clientes
-        </h4>
-      </template>
       <template #body>
         <div class="space-y-3">
           <UInput
-            :model-value="cs.selectorQuery.value"
+            v-model="searchQuery"
             placeholder="Rechercher une cliente…"
-            @input="onSearchInput"
+            autocomplete="off"
+            aria-label="Rechercher une cliente"
           />
 
-          <div v-if="cs.rosterPending.value" class="space-y-2">
+          <div
+            v-if="cs.rosterPending.value"
+            class="space-y-2"
+          >
             <USkeleton class="h-6 w-full" />
             <USkeleton class="h-6 w-5/6" />
           </div>
@@ -107,7 +119,11 @@
             @retry="cs.loadRoster(cs.selectorQuery.value)"
           />
 
-          <ul v-else class="max-h-64 space-y-1 overflow-y-auto">
+          <ul
+            v-else
+            aria-label="Clientes disponibles"
+            class="max-h-64 space-y-1 overflow-y-auto"
+          >
             <li
               v-for="client in cs.selectableClients.value"
               :key="client.clientProfileId"
@@ -118,8 +134,13 @@
                   :checked="cs.selected.value.has(client.clientProfileId)"
                   @change="cs.toggleSelected(client.clientProfileId)"
                 >
-                <span class="text-sm text-[color:var(--color-text-primary)]">
-                  {{ client.firstname }} {{ client.lastname }}
+                <span class="min-w-0">
+                  <span class="block text-sm text-[color:var(--color-text-primary)]">
+                    {{ client.firstname }} {{ client.lastname }}
+                  </span>
+                  <span class="block truncate text-xs text-[color:var(--color-text-muted)]">
+                    {{ client.email }}
+                  </span>
                 </span>
               </label>
             </li>
@@ -165,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onUnmounted, watch } from 'vue'
 import type { ContentVisibility } from '../../features/contents/api/contents.contract'
 import {
   listContentShares,
@@ -175,7 +196,8 @@ import {
 import { listProviderClients } from '../../features/clients/services/provider-clients.service'
 import { createContentShares } from '../../features/contents/createContentShares'
 import { shareResultMessage } from '../../features/contents/domain/content-shares'
-import { mapProviderContentMutationErrorToMessage } from '../../features/contents/api/contents-error'
+import { mapContentShareErrorToMessage } from '../../features/contents/api/content-shares-error'
+import { formatDateShort } from '../../composables/useDateFormat'
 import AtomsDsErrorState from '../atoms/DsErrorState.vue'
 
 const props = defineProps<{
@@ -195,62 +217,78 @@ const cs = createContentShares(
   props.contentId
 )
 
-onMounted(() => {
-  if (props.visibility === 'private') {
-    void cs.loadShares()
-  }
+/**
+ * The section lives for the whole edit page, so the decision to load is not a
+ * mount-time one: `public` content mounts with no fetch, and a save that turns
+ * it private must load the list instead of showing it empty. `immediate` covers
+ * the initial mount; the composable ignores a repeated `private` so no second
+ * request is issued.
+ */
+watch(
+  () => props.visibility,
+  visibility => void cs.applyVisibility(visibility),
+  { immediate: true }
+)
+
+onUnmounted(() => cs.dispose())
+
+/**
+ * The selector search writes through this setter, so the debounced request owns
+ * the query while the field still displays what was typed. The declared
+ * `update:modelValue` emit is also what the render test can execute: a
+ * `:model-value` + `@input` pair is merged from `$attrs` and read
+ * `event.target`, which no test can drive.
+ */
+const searchQuery = computed({
+  get: () => cs.selectorQuery.value,
+  set: (value: string) => cs.scheduleRosterSearch(value)
 })
 
-function onSearchInput(event: Event) {
-  const value = (event.target as HTMLInputElement).value
-  cs.scheduleRosterSearch(value)
-}
-
-function formatDate(iso: string): string {
-  try {
-    return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(iso))
-  } catch {
-    return iso
-  }
+function formatSharedAt(iso: string): string {
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime()) ? '—' : formatDateShort(iso)
 }
 
 async function handleRemove(clientProfileId: string) {
+  if (cs.removing.value.has(clientProfileId)) return
   try {
     await cs.remove(clientProfileId)
     toast.add({ title: 'Partage retiré', color: 'success' })
   } catch (err) {
     toast.add({
-      title: mapProviderContentMutationErrorToMessage(err, 'Impossible de retirer le partage.'),
+      title: mapContentShareErrorToMessage(err, 'Impossible de retirer le partage.'),
       color: 'error'
     })
   }
 }
 
 async function handleShareSelected() {
+  if (cs.adding.value) return
   try {
     const count = await cs.shareSelected()
     toast.add({
-      title: shareResultMessage(count, false),
+      title: shareResultMessage(count),
       color: count > 0 ? 'success' : 'neutral'
     })
   } catch (err) {
     toast.add({
-      title: mapProviderContentMutationErrorToMessage(err, 'Impossible de partager.'),
+      title: mapContentShareErrorToMessage(err, 'Impossible de partager.'),
       color: 'error'
     })
   }
 }
 
 async function handleShareAll() {
+  if (cs.sharingAll.value) return
   try {
     const count = await cs.shareAll()
     toast.add({
-      title: shareResultMessage(count, true),
+      title: shareResultMessage(count),
       color: count > 0 ? 'success' : 'neutral'
     })
   } catch (err) {
     toast.add({
-      title: mapProviderContentMutationErrorToMessage(err, 'Impossible de partager avec toutes.'),
+      title: mapContentShareErrorToMessage(err, 'Impossible de partager avec tous.'),
       color: 'error'
     })
   }

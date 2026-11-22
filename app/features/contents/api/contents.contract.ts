@@ -76,7 +76,7 @@ export type ContentIdResponse = {
 }
 
 // ============================================================================
-// Content shares (Story 5.6)
+// Content shares (Story 5.6) — verified against openapi.yaml
 // ============================================================================
 
 export type ContentShareItem = {
@@ -90,11 +90,23 @@ export type ListContentSharesResponse = {
   items: ContentShareItem[]
 }
 
+/**
+ * Body of `POST /provider/content/:id/share`. Send one field or the other:
+ * `all: true` wins when both are present, and `clientProfileIds` is capped at
+ * 200 by the DTO. `all` covers clients with at least one non-cancelled
+ * appointment — deliberately narrower than the provider's roster, hence the
+ * scope sentence under the button.
+ */
 export type ShareContentRequest = {
   clientProfileIds?: string[]
   all?: boolean
 }
 
+/**
+ * `count` is the number of shares **created by this call**: a re-share, or a
+ * share-all where everybody already had access, answers 0 — never phrase that
+ * as an addition.
+ */
 export type ShareContentResponse = {
   count: number
 }
