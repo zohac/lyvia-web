@@ -2,7 +2,7 @@
  * Provider contents contracts (Story 5.5).
  *
  * Source of truth: repositories/lyvia-api/openapi.yaml + backend DTOs
- * (`src/features/content/presentation/dto/**`).
+ * (`src/features/contents/presentation/dto/**`).
  *
  * Backend `ProviderContentsController` (mounted at `/provider/content`) is the
  * authority. This file mirrors the server DTOs so the UI never invents a

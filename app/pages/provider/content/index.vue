@@ -18,41 +18,67 @@
             />
             Actualiser
           </UButton>
-          <NuxtLink to="/provider/content/new">
-            <UButton color="primary">
-              <UIcon
-                name="lucide:plus"
-                class="mr-2 h-4 w-4"
-              />
-              Nouveau contenu
-            </UButton>
-          </NuxtLink>
+          <UButton
+            to="/provider/content/new"
+            color="primary"
+          >
+            <UIcon
+              name="lucide:plus"
+              class="mr-2 h-4 w-4"
+            />
+            Nouveau contenu
+          </UButton>
         </div>
       </template>
     </AtomsDsPageHeader>
 
     <AtomsDsErrorState
-      v-if="errorMessage"
+      v-if="errorMessage && items.length === 0"
       :message="errorMessage"
       @retry="refresh()"
     />
 
     <template v-else>
+      <!-- A transient refresh failure keeps the list the provider was reading;
+           only a failure with nothing on screen takes the whole page. -->
+      <UAlert
+        v-if="errorMessage"
+        color="warning"
+        variant="soft"
+        title="Actualisation impossible"
+        :description="errorMessage"
+        icon="i-lucide-alert-triangle"
+      >
+        <template #actions>
+          <UButton
+            color="warning"
+            variant="soft"
+            size="sm"
+            @click="refresh()"
+          >
+            Réessayer
+          </UButton>
+        </template>
+      </UAlert>
+
       <!-- Filters -->
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <USelect
           v-model="typeFilter"
-          :options="typeOptions"
+          :items="CONTENT_TYPE_FILTER_OPTIONS"
+          aria-label="Filtrer par type"
           class="w-full sm:w-48"
         />
         <USelect
           v-model="statusFilter"
-          :options="statusOptions"
+          :items="CONTENT_STATUS_FILTER_OPTIONS"
+          aria-label="Filtrer par statut"
           class="w-full sm:w-48"
         />
         <UInput
           v-model="searchQuery"
           placeholder="Rechercher par titre..."
+          aria-label="Rechercher par titre"
           icon="i-lucide-search"
           class="w-full sm:w-72"
           autocomplete="off"
@@ -69,12 +95,10 @@
           :key="i"
           class="bg-[color:var(--color-surface-card)]"
         >
-          <div class="flex items-center gap-4">
-            <USkeleton class="h-12 w-12 rounded-lg" />
-            <div class="flex-1 space-y-2">
-              <USkeleton class="h-4 w-1/3" />
-              <USkeleton class="h-3 w-1/2" />
-            </div>
+          <div class="space-y-2">
+            <USkeleton class="h-4 w-1/3" />
+            <USkeleton class="h-3 w-1/2" />
+            <USkeleton class="h-3 w-1/4" />
           </div>
         </UCard>
       </div>
@@ -83,55 +107,71 @@
       <AtomsDsEmptyState
         v-else-if="items.length === 0"
         icon="i-lucide-file-text"
-        title="Aucun contenu"
-        description="Créez votre premier contenu."
-      />
+        :title="emptyTitle"
+        :description="emptyDescription"
+      >
+        <template
+          v-if="hasActiveFilters"
+          #action
+        >
+          <UButton
+            color="neutral"
+            variant="outline"
+            size="sm"
+            @click="resetFilters"
+          >
+            Réinitialiser les filtres
+          </UButton>
+        </template>
+      </AtomsDsEmptyState>
 
       <!-- List -->
       <div
         v-else
         class="space-y-4"
       >
-        <UCard
+        <NuxtLink
           v-for="item in items"
           :key="item.id"
-          class="bg-[color:var(--color-surface-card)] cursor-pointer hover:shadow-md transition-shadow"
-          @click="goTo(item.id)"
+          :to="`/provider/content/${item.id}`"
+          class="block"
         >
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <h3 class="font-semibold text-[color:var(--color-text-primary)] truncate">
-                  {{ item.title }}
-                </h3>
-                <UBadge
-                  :color="getTypeBadge(item.type).color as any"
-                  variant="soft"
-                  size="xs"
-                >
-                  {{ getTypeBadge(item.type).label }}
-                </UBadge>
-                <UBadge
-                  :color="getStatusBadge(item.isPublished).color as any"
-                  variant="soft"
-                  size="xs"
-                >
-                  {{ getStatusBadge(item.isPublished).label }}
-                </UBadge>
-                <UBadge
-                  :color="getVisibilityBadge(item.visibility).color as any"
-                  variant="soft"
-                  size="xs"
-                >
-                  {{ getVisibilityBadge(item.visibility).label }}
-                </UBadge>
+          <UCard class="bg-[color:var(--color-surface-card)] cursor-pointer hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="font-semibold text-[color:var(--color-text-primary)] truncate">
+                    {{ item.title }}
+                  </h3>
+                  <UBadge
+                    :color="getTypeBadge(item.type).color"
+                    variant="soft"
+                    size="xs"
+                  >
+                    {{ getTypeBadge(item.type).label }}
+                  </UBadge>
+                  <UBadge
+                    :color="getStatusBadge(item.isPublished).color"
+                    variant="soft"
+                    size="xs"
+                  >
+                    {{ getStatusBadge(item.isPublished).label }}
+                  </UBadge>
+                  <UBadge
+                    :color="getVisibilityBadge(item.visibility).color"
+                    variant="soft"
+                    size="xs"
+                  >
+                    {{ getVisibilityBadge(item.visibility).label }}
+                  </UBadge>
+                </div>
+                <p class="mt-1 text-xs text-[color:var(--color-text-muted)]">
+                  Modifié le {{ formatDateTime(item.updatedAt) }}
+                </p>
               </div>
-              <p class="mt-1 text-xs text-[color:var(--color-text-muted)]">
-                Modifié le {{ formatDate(item.updatedAt) }}
-              </p>
             </div>
-          </div>
-        </UCard>
+          </UCard>
+        </NuxtLink>
       </div>
 
       <!-- Load more -->
@@ -168,7 +208,8 @@
 <script setup lang="ts">
 import { useProviderContents } from '../../../features/contents/useProviderContents'
 import { getStatusBadge, getVisibilityBadge, getTypeBadge } from '../../../features/contents/domain/contents-badges'
-import { formatDateTime as formatDate } from '~/composables/useDateFormat'
+import { CONTENT_STATUS_FILTER_OPTIONS, CONTENT_TYPE_FILTER_OPTIONS } from '../../../features/contents/domain/content-options'
+import { formatDateTime } from '~/composables/useDateFormat'
 
 definePageMeta({
   layout: 'provider',
@@ -190,20 +231,23 @@ const {
   loadMoreErrorMessage
 } = await useProviderContents()
 
-const typeOptions = [
-  { label: 'Tous les types', value: 'all' },
-  { label: 'Article', value: 'article' },
-  { label: 'Recette', value: 'recette' },
-  { label: 'Actualité', value: 'actualite' }
-]
+const hasActiveFilters = computed(() =>
+  searchQuery.value.trim().length > 0
+  || typeFilter.value !== 'all'
+  || statusFilter.value !== 'all'
+)
 
-const statusOptions = [
-  { label: 'Tous', value: 'all' },
-  { label: 'Brouillon', value: 'draft' },
-  { label: 'Publié', value: 'published' }
-]
+const emptyTitle = computed(() => (hasActiveFilters.value ? 'Aucun résultat' : 'Aucun contenu'))
 
-function goTo(id: string) {
-  navigateTo(`/provider/content/${id}`)
+const emptyDescription = computed(() =>
+  hasActiveFilters.value
+    ? 'Aucun contenu ne correspond à votre recherche.'
+    : 'Créez votre premier contenu.'
+)
+
+function resetFilters() {
+  searchQuery.value = ''
+  typeFilter.value = 'all'
+  statusFilter.value = 'all'
 }
 </script>

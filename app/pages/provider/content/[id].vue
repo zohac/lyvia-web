@@ -38,112 +38,46 @@
           class="space-y-4"
           @submit.prevent="save"
         >
-          <UFormField
-            label="Titre"
-            name="title"
-            :error="errors.title"
-          >
-            <UInput
-              v-model="form.title"
-              autocomplete="off"
-              :max-length="200"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField
-            label="Type"
-            name="type"
-            :error="errors.type"
-          >
-            <USelect
-              v-model="form.type"
-              :options="typeOptions"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField
-            label="Contenu (markdown)"
-            name="body"
-          >
-            <UTextarea
-              v-model="form.body"
-              :rows="10"
-              class="w-full"
-              autocomplete="off"
-            />
-          </UFormField>
-
-          <UFormField
-            label="URL de l'image de couverture"
-            name="coverImageUrl"
-            :error="errors.coverImageUrl"
-          >
-            <UInput
-              v-model="form.coverImageUrl"
-              type="url"
-              autocomplete="url"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField
-            label="Visibilité"
-            name="visibility"
-          >
-            <USelect
-              v-model="form.visibility"
-              :options="visibilityOptions"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UFormField
-            label="Slug"
-            name="slug"
-            :error="errors.slug"
-          >
-            <UInput
-              v-model="form.slug"
-              autocomplete="off"
-              class="w-full"
-            />
-          </UFormField>
-
-          <UAlert
-            v-if="slugError"
-            color="error"
-            variant="soft"
-            :title="slugError"
-            icon="i-lucide-alert-circle"
+          <MoleculesContentsFormFields
+            v-model:title="form.title"
+            v-model:type="form.type"
+            v-model:body="form.body"
+            v-model:cover-image-url="form.coverImageUrl"
+            v-model:visibility="form.visibility"
+            v-model:slug="form.slug"
+            :errors="errors"
+            :disabled="busy"
+            slug-placeholder="Laissez vide pour conserver l’adresse actuelle"
           />
 
-          <div class="flex flex-wrap justify-between gap-3">
-            <div class="flex gap-2">
-              <template v-if="!content.isPublished">
-                <UButton
-                  color="success"
-                  :disabled="!canPublish"
-                  :loading="publishing"
-                  @click="publish"
-                >
-                  Publier
-                </UButton>
-              </template>
-              <template v-else>
-                <UButton
-                  color="warning"
-                  variant="soft"
-                  :loading="unpublishing"
-                  @click="unpublish"
-                >
-                  Dépublier
-                </UButton>
-              </template>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <UButton
+                v-if="!content.isPublished"
+                color="success"
+                type="button"
+                :disabled="!canPublish || busy"
+                :loading="publishing"
+                @click="publish"
+              >
+                Publier
+              </UButton>
+              <UButton
+                v-else
+                color="warning"
+                variant="soft"
+                type="button"
+                :disabled="busy"
+                :loading="unpublishing"
+                @click="unpublish"
+              >
+                Dépublier
+              </UButton>
               <UButton
                 color="error"
                 variant="ghost"
+                type="button"
+                :disabled="busy"
                 @click="isDeleteModalOpen = true"
               >
                 Supprimer
@@ -157,6 +91,13 @@
               Enregistrer
             </UButton>
           </div>
+
+          <p
+            v-if="!content.isPublished && !canPublish"
+            class="text-xs text-[color:var(--color-text-muted)]"
+          >
+            Le titre et le contenu doivent être enregistrés avant de pouvoir publier.
+          </p>
         </form>
       </UCard>
 
@@ -171,12 +112,14 @@
           <div class="flex justify-end gap-3">
             <UButton
               variant="ghost"
+              type="button"
               @click="isDeleteModalOpen = false"
             >
               Annuler
             </UButton>
             <UButton
               color="error"
+              type="button"
               :loading="deleting"
               @click="handleDelete"
             >
@@ -190,10 +133,19 @@
 </template>
 
 <script setup lang="ts">
-import type { ContentItem } from '../../../features/contents/api/contents.contract'
+import type { ContentItem, ContentType, ContentVisibility } from '../../../features/contents/api/contents.contract'
 import { getMyContent, updateContent, publishContent, unpublishContent, deleteContent } from '../../../features/contents/services/provider-contents.service'
-import { validateContentForm, resolveContentServerError, isContentPublishable } from '../../../features/contents/domain/content-form'
+import { mapProviderContentsErrorToMessage } from '../../../features/contents/api/contents-error'
+import {
+  CONTENT_GENERIC_ERROR_MESSAGE,
+  isContentPublishable,
+  resolveContentServerError,
+  validateContentForm,
+  type ContentFormErrors
+} from '../../../features/contents/domain/content-form'
+import { buildUpdateContentPayload } from '../../../features/contents/domain/content-payload'
 import { ApiFetchError } from '../../../services/api/api-error'
+import MoleculesContentsFormFields from '../../../components/molecules/ContentsFormFields.vue'
 
 const route = useRoute()
 const toast = useToast()
@@ -212,50 +164,52 @@ const content = ref<ContentItem | null>(null)
 
 const form = reactive({
   title: '',
-  type: '' as 'article' | 'recette' | 'actualite' | '',
+  type: '' as ContentType | '',
   body: '',
   coverImageUrl: '',
-  visibility: 'public' as 'public' | 'private',
+  visibility: 'public' as ContentVisibility,
   slug: ''
 })
 
 const original = ref<ContentItem | null>(null)
-const errors = ref<Record<string, string>>({})
+const errors = ref<ContentFormErrors>({})
 const saving = ref(false)
 const publishing = ref(false)
 const unpublishing = ref(false)
 const deleting = ref(false)
 const isDeleteModalOpen = ref(false)
-const slugError = ref<string | null>(null)
 
-const typeOptions = [
-  { label: 'Article', value: 'article' },
-  { label: 'Recette', value: 'recette' },
-  { label: 'Actualité', value: 'actualite' }
-]
+const busy = computed(() =>
+  saving.value || publishing.value || unpublishing.value || deleting.value
+)
 
-const visibilityOptions = [
-  { label: 'Public', value: 'public' },
-  { label: 'Privé', value: 'private' }
-]
+/**
+ * The server refuses to publish a row whose stored title or body is empty
+ * (`CONTENT_NOT_PUBLISHABLE`), so the guard must read the persisted content —
+ * not the form, whose unsaved text the server has never seen.
+ */
+const canPublish = computed(() =>
+  isContentPublishable({ title: content.value?.title, body: content.value?.body })
+)
 
-const canPublish = computed(() => isContentPublishable({ title: form.title, body: form.body }))
+function fillForm(data: ContentItem) {
+  content.value = data
+  original.value = { ...data }
+  form.title = data.title ?? ''
+  form.type = data.type ?? ''
+  form.body = data.body ?? ''
+  form.coverImageUrl = data.coverImageUrl ?? ''
+  form.visibility = data.visibility ?? 'public'
+  form.slug = data.slug ?? ''
+}
 
 async function load() {
   loading.value = true
   loadError.value = null
   try {
-    const data = await getMyContent(id.value)
-    content.value = data
-    original.value = { ...data }
-    form.title = data.title ?? ''
-    form.type = data.type ?? ''
-    form.body = data.body ?? ''
-    form.coverImageUrl = data.coverImageUrl ?? ''
-    form.visibility = data.visibility ?? 'public'
-    form.slug = data.slug ?? ''
+    fillForm(await getMyContent(id.value))
   } catch (err) {
-    loadError.value = err instanceof Error ? err.message : 'Impossible de charger le contenu.'
+    loadError.value = mapProviderContentsErrorToMessage(err, 'Impossible de charger le contenu.')
   } finally {
     loading.value = false
   }
@@ -268,61 +222,64 @@ function goBack() {
   navigateTo('/provider/content')
 }
 
+/**
+ * Re-reads the persisted row without touching the form, so publishing or
+ * unpublishing a content never discards edits the provider has not saved.
+ */
+async function refreshServerState() {
+  const data = await getMyContent(id.value)
+  content.value = data
+  original.value = { ...data }
+}
+
 async function save() {
-  slugError.value = null
-  const validationErrors = validateContentForm({
-    title: form.title,
-    type: form.type,
-    slug: form.slug,
-    body: form.body,
-    coverImageUrl: form.coverImageUrl,
-    visibility: form.visibility
-  })
-  errors.value = validationErrors as Record<string, string>
+  const validationErrors = validateContentForm(form)
+  errors.value = validationErrors
   if (Object.keys(validationErrors).length > 0) return
+  if (!original.value) return
+
+  const payload = buildUpdateContentPayload(form, original.value)
+  if (Object.keys(payload).length === 0) {
+    toast.add({ title: 'Aucune modification à enregistrer', color: 'neutral' })
+    return
+  }
 
   saving.value = true
   try {
-    const payload: Record<string, unknown> = {}
-    if (form.title.trim() !== (original.value?.title ?? '')) payload.title = form.title.trim()
-    if (form.type !== (original.value?.type ?? '')) payload.type = form.type
-    if (form.body.trim() !== (original.value?.body ?? '')) payload.body = form.body.trim() === '' ? null : form.body.trim()
-    const cover = form.coverImageUrl.trim()
-    if (cover !== (original.value?.coverImageUrl ?? '')) payload.coverImageUrl = cover === '' ? null : cover
-    if (form.visibility !== (original.value?.visibility ?? '')) payload.visibility = form.visibility
-    if (form.slug.trim() !== (original.value?.slug ?? '')) payload.slug = form.slug.trim()
-
-    await updateContent(id.value, payload as import('../../../features/contents/api/contents.contract').UpdateContentRequest)
+    await updateContent(id.value, payload)
     toast.add({ title: 'Contenu enregistré', color: 'success' })
-    await load()
+    fillForm(await getMyContent(id.value))
   } catch (err) {
-    if (err instanceof ApiFetchError && err.apiError.code === 'SLUG_ALREADY_TAKEN') {
-      slugError.value = resolveContentServerError(err.apiError.code).message
-    } else if (err instanceof ApiFetchError) {
+    if (err instanceof ApiFetchError) {
       const mapped = resolveContentServerError(err.apiError.code)
-      if (mapped.field) errors.value = { [mapped.field]: mapped.message }
-      else {
-        toast.add({ title: mapped.message, color: 'error' })
+      if (mapped.field) {
+        errors.value = { ...errors.value, [mapped.field]: mapped.message }
+        return
       }
-    } else {
-      toast.add({ title: 'Une erreur est survenue.', color: 'error' })
+      toast.add({ title: mapped.message, color: 'error' })
+      return
     }
+    toast.add({ title: CONTENT_GENERIC_ERROR_MESSAGE, color: 'error' })
   } finally {
     saving.value = false
   }
 }
 
 async function publish() {
+  if (busy.value) return
   publishing.value = true
   try {
     await publishContent(id.value)
     toast.add({ title: 'Contenu publié', color: 'success' })
-    await load()
+    await refreshServerState()
   } catch (err) {
     if (err instanceof ApiFetchError && err.apiError.code === 'CONTENT_NOT_PUBLISHABLE') {
       toast.add({ title: resolveContentServerError(err.apiError.code).message, color: 'error' })
     } else {
-      toast.add({ title: 'Impossible de publier.', color: 'error' })
+      toast.add({
+        title: mapProviderContentsErrorToMessage(err, 'Impossible de publier.'),
+        color: 'error'
+      })
     }
   } finally {
     publishing.value = false
@@ -330,27 +287,35 @@ async function publish() {
 }
 
 async function unpublish() {
+  if (busy.value) return
   unpublishing.value = true
   try {
     await unpublishContent(id.value)
     toast.add({ title: 'Contenu dépublié', color: 'success' })
-    await load()
-  } catch {
-    toast.add({ title: 'Impossible de dépublier.', color: 'error' })
+    await refreshServerState()
+  } catch (err) {
+    toast.add({
+      title: mapProviderContentsErrorToMessage(err, 'Impossible de dépublier.'),
+      color: 'error'
+    })
   } finally {
     unpublishing.value = false
   }
 }
 
 async function handleDelete() {
+  if (deleting.value) return
   deleting.value = true
   try {
     await deleteContent(id.value)
     toast.add({ title: 'Contenu supprimé', color: 'success' })
     isDeleteModalOpen.value = false
     navigateTo('/provider/content')
-  } catch {
-    toast.add({ title: 'Impossible de supprimer.', color: 'error' })
+  } catch (err) {
+    toast.add({
+      title: mapProviderContentsErrorToMessage(err, 'Impossible de supprimer.'),
+      color: 'error'
+    })
   } finally {
     deleting.value = false
   }
