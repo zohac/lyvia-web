@@ -66,28 +66,33 @@
         <!-- Cards grid -->
         <div class="grid gap-6 md:grid-cols-2">
           <!-- Ressources card -->
-          <UCard class="bg-[color:var(--color-surface-card)]">
-            <div class="flex items-center gap-4">
-              <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
-                <UIcon
-                  name="lucide:book-open"
-                  class="h-6 w-6 text-crepuscule-600"
-                />
+          <NuxtLink
+            to="/client/content"
+            class="block rounded-[var(--radius-lg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary-dark)]"
+          >
+            <UCard class="bg-[color:var(--color-surface-card)] h-full hover:shadow-md transition-shadow">
+              <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-crepuscule-100">
+                  <UIcon
+                    name="lucide:book-open"
+                    class="h-6 w-6 text-crepuscule-600"
+                  />
+                </div>
+                <div>
+                  <h3 class="font-semibold text-[color:var(--color-text-primary)]">
+                    Ressources
+                  </h3>
+                  <p class="text-sm text-[color:var(--color-text-muted)]">
+                    Voir mes ressources
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 class="font-semibold text-[color:var(--color-text-primary)]">
-                  Ressources
-                </h3>
-                <p class="text-sm text-[color:var(--color-text-muted)]">
-                  Bientôt disponible
-                </p>
-              </div>
-            </div>
 
-            <p class="mt-4 text-sm text-[color:var(--color-text-secondary)]">
-              Vos contenus arrivent bientôt : guides, exercices et recommandations.
-            </p>
-          </UCard>
+              <p class="mt-4 text-sm text-[color:var(--color-text-secondary)]">
+                Consultez les contenus partagés par votre coach.
+              </p>
+            </UCard>
+          </NuxtLink>
 
           <!-- Paiements card -->
           <UCard class="bg-[color:var(--color-surface-card)]">

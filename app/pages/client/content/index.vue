@@ -42,6 +42,7 @@
         />
         <UInput
           v-model="searchQuery"
+          :maxlength="CLIENT_CONTENTS_SEARCH_MAX_LENGTH"
           placeholder="Rechercher par titre..."
           aria-label="Rechercher par titre"
           icon="i-lucide-search"
@@ -54,6 +55,7 @@
       <div
         v-if="pending"
         class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        aria-busy="true"
       >
         <UCard
           v-for="i in 6"
@@ -68,13 +70,32 @@
         </UCard>
       </div>
 
-      <!-- Empty -->
+      <!-- Empty: no content shared at all (AC3) -->
       <AtomsDsEmptyState
-        v-else-if="items.length === 0"
+        v-else-if="items.length === 0 && !hasActiveFilters"
         icon="i-lucide-file-text"
         title="Aucun contenu disponible"
         description="Aucun contenu n'est disponible pour le moment."
       />
+
+      <!-- Empty: the active filter matched nothing -->
+      <AtomsDsEmptyState
+        v-else-if="items.length === 0"
+        icon="i-lucide-search-x"
+        title="Aucun résultat"
+        description="Aucun contenu ne correspond à votre recherche."
+      >
+        <template #action>
+          <UButton
+            color="neutral"
+            variant="outline"
+            size="sm"
+            @click="resetFilters()"
+          >
+            Réinitialiser les filtres
+          </UButton>
+        </template>
+      </AtomsDsEmptyState>
 
       <!-- List -->
       <div
@@ -85,7 +106,7 @@
           v-for="item in items"
           :key="item.id"
           :to="`/client/content/${item.slug}`"
-          class="block"
+          class="block rounded-[var(--radius-lg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-brand-primary-dark)]"
         >
           <UCard class="bg-[color:var(--color-surface-card)] cursor-pointer hover:shadow-md transition-shadow h-full">
             <template #header>
@@ -161,6 +182,7 @@
 
 <script setup lang="ts">
 import { useClientContents } from '../../../features/contents/useClientContents'
+import { CLIENT_CONTENTS_SEARCH_MAX_LENGTH } from '../../../features/contents/createClientContents'
 import { getTypeBadge } from '../../../features/contents/domain/contents-badges'
 import { CONTENT_TYPE_FILTER_OPTIONS } from '../../../features/contents/domain/content-options'
 import { formatDateShort } from '~/composables/useDateFormat'
@@ -178,11 +200,13 @@ const {
   nextCursor,
   searchQuery,
   typeFilter,
+  hasActiveFilters,
   refresh,
   loadMore,
   loadMorePending,
-  loadMoreErrorMessage
-} = await useClientContents()
+  loadMoreErrorMessage,
+  resetFilters
+} = useClientContents()
 
 function formatDate(value: string | null): string {
   if (!value) return ''

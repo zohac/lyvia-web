@@ -30,3 +30,8 @@ test('get client content targets GET /content/:slug', () => {
   assert.equal(call.options.method, 'GET')
   assert.equal(call.options.withAuth, true)
 })
+
+test('get client content encodes the slug instead of letting it reshape the path', () => {
+  const call = buildGetClientContentCall('mon article/2026')
+  assert.equal(call.path, '/content/mon%20article%2F2026')
+})

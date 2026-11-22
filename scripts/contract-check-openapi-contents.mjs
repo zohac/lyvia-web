@@ -69,6 +69,7 @@ if (!contract) {
 
     const requests = await importTsModule('app/features/contents/api/provider-contents.request.ts')
     const shareRequests = await importTsModule('app/features/contents/api/content-shares.request.ts')
+    const clientRequests = await importTsModule('app/features/contents/api/client-contents.request.ts')
     const options = await importTsModule('app/features/contents/domain/content-options.ts')
 
     // 1. Every call the web emits exists in the contract, with the same verb.
@@ -78,7 +79,8 @@ if (!contract) {
     //    route still printed "OK").
     const CONTENT_ID = 'contentIdValue'
     const CLIENT_ID = 'clientProfileIdValue'
-    const placeholders = { [CONTENT_ID]: '{id}', [CLIENT_ID]: '{clientProfileId}' }
+    const SLUG = 'slugValue'
+    const placeholders = { [CONTENT_ID]: '{id}', [CLIENT_ID]: '{clientProfileId}', [SLUG]: '{slug}' }
 
     function toOpenApiPath(callPath) {
       return callPath
@@ -97,7 +99,10 @@ if (!contract) {
       requests.buildDeleteContentCall(CONTENT_ID),
       shareRequests.buildListContentSharesCall(CONTENT_ID),
       shareRequests.buildShareContentCall(CONTENT_ID, { all: true }),
-      shareRequests.buildUnshareContentCall(CONTENT_ID, CLIENT_ID)
+      shareRequests.buildUnshareContentCall(CONTENT_ID, CLIENT_ID),
+      // Story 5.7 — the client reading surface (GET /content, GET /content/{slug}).
+      clientRequests.buildListClientContentsCall({}),
+      clientRequests.buildGetClientContentCall(SLUG)
     ]
 
     for (const call of calls) {
@@ -154,6 +159,67 @@ if (!contract) {
     assert.ok(
       unshareResponseProperties.includes('clientProfileId'),
       'UnshareContentResponseDto ne déclare pas `clientProfileId`'
+    )
+
+    // 2b. Story 5.7 — every field the client list/detail pages read exists in
+    //     the schema they read it from. The pages cannot fail on a renamed
+    //     field (TypeScript only sees `contents.contract.ts`), so the contract
+    //     is the only place the drift is catchable.
+    const clientListItemProperties = Object.keys(
+      document.components?.schemas?.ClientContentListItemResponseDto?.properties ?? {}
+    )
+    for (const field of [
+      'id',
+      'title',
+      'type',
+      'slug',
+      'coverImageUrl',
+      'publishedAt',
+      'providerName',
+      'providerSlug'
+    ]) {
+      assert.ok(
+        clientListItemProperties.includes(field),
+        `ClientContentListItemResponseDto ne déclare pas \`${field}\`, lu par la liste client`
+      )
+    }
+
+    const clientDetailProperties = Object.keys(
+      document.components?.schemas?.ClientContentDetailResponseDto?.properties ?? {}
+    )
+    for (const field of [
+      'id',
+      'title',
+      'type',
+      'slug',
+      'body',
+      'coverImageUrl',
+      'publishedAt',
+      'providerName',
+      'providerSlug'
+    ]) {
+      assert.ok(
+        clientDetailProperties.includes(field),
+        `ClientContentDetailResponseDto ne déclare pas \`${field}\`, lu par la page de lecture client`
+      )
+    }
+
+    const clientListProperties = Object.keys(
+      document.components?.schemas?.ListClientContentsResponseDto?.properties ?? {}
+    )
+    for (const field of ['items', 'nextCursor']) {
+      assert.ok(
+        clientListProperties.includes(field),
+        `ListClientContentsResponseDto ne déclare pas \`${field}\`, lu par la pagination client`
+      )
+    }
+
+    const clientListParameters = paths['/content']?.get?.parameters ?? []
+    const clientTypeEnum = clientListParameters.find(entry => entry.name === 'type')?.schema?.enum ?? []
+    assert.deepEqual(
+      [...options.CONTENT_TYPE_OPTIONS.map(option => option.value)].sort(),
+      [...clientTypeEnum].sort(),
+      'Divergence du vocabulaire `type` entre GET /content (openapi.yaml) et content-options.ts'
     )
 
     // 3. The filter vocabularies written on both sides agree.

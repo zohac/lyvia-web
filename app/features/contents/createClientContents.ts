@@ -1,6 +1,7 @@
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type {
   ClientContentListItem,
+  ContentType,
   ListClientContentsParams,
   ListClientContentsResponse
 } from './api/contents.contract'
@@ -9,7 +10,18 @@ import { mapClientContentsErrorToMessage } from './api/client-contents-error'
 export const CLIENT_CONTENTS_PAGE_LIMIT = 20
 export const CLIENT_CONTENTS_SEARCH_DEBOUNCE_MS = 350
 
-export type ClientContentsTypeFilter = 'article' | 'recette' | 'actualite' | 'all'
+/**
+ * `ListClientContentsQueryDto.q` is `@MaxLength(200)`: a longer query is
+ * rejected with a `VALIDATION_ERROR` the search box cannot explain. The query
+ * is truncated to the contract's bound instead of being sent and refused.
+ */
+export const CLIENT_CONTENTS_SEARCH_MAX_LENGTH = 200
+
+/**
+ * Derived from the contract's `ContentType`, never re-spelled: a new backend
+ * enum value must break this type instead of silently missing from the filter.
+ */
+export type ClientContentsTypeFilter = ContentType | 'all'
 
 export interface CreateClientContentsDependencies {
   list: (params: ListClientContentsParams) => Promise<ListClientContentsResponse>
@@ -33,7 +45,13 @@ export function createClientContents(deps: CreateClientContentsDependencies) {
   let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
   let requestId = 0
-  let activeQueryKey = ''
+  /**
+   * Owner of the in-flight `loadMore`. `loadMore` does not bump `requestId`
+   * (it is not a new query), so a page-1 refresh during a page-2 fetch would
+   * otherwise let the stale call clear the flag of a newer one and allow two
+   * page-2 fetches of the same cursor to be appended.
+   */
+  let loadMoreToken = 0
 
   function clearSearchTimeout() {
     if (!searchTimeout) return
@@ -42,7 +60,7 @@ export function createClientContents(deps: CreateClientContentsDependencies) {
   }
 
   function buildParams(cursor?: string): ListClientContentsParams {
-    const query = searchQuery.value.trim()
+    const query = searchQuery.value.trim().slice(0, CLIENT_CONTENTS_SEARCH_MAX_LENGTH)
     const params: ListClientContentsParams = { limit: CLIENT_CONTENTS_PAGE_LIMIT }
 
     if (query.length > 0) params.q = query
@@ -52,20 +70,20 @@ export function createClientContents(deps: CreateClientContentsDependencies) {
     return params
   }
 
-  function buildQueryKey(params: ListClientContentsParams): string {
-    return JSON.stringify({
-      q: params.q ?? '',
-      type: params.type ?? 'all'
-    })
+  const hasActiveFilters = computed(
+    () => typeFilter.value !== 'all' || searchQuery.value.trim().length > 0
+  )
+
+  function resetFilters(): void {
+    searchQuery.value = ''
+    typeFilter.value = 'all'
   }
 
   async function refresh(): Promise<void> {
     clearSearchTimeout()
     const params = buildParams()
-    const key = buildQueryKey(params)
     requestId += 1
     const id = requestId
-    activeQueryKey = key
 
     pending.value = true
     errorMessage.value = null
@@ -86,7 +104,10 @@ export function createClientContents(deps: CreateClientContentsDependencies) {
   }
 
   async function loadMore(): Promise<void> {
-    if (loadMorePending.value || !nextCursor.value) return
+    // A page-2 fetch needs a page 1 that is neither stale nor in flight: during
+    // a refresh `nextCursor` still points at the previous query's page 2, and
+    // appending it under the new query would mix two result sets.
+    if (loadMorePending.value || pending.value || !nextCursor.value) return
 
     if (searchTimeout) {
       clearSearchTimeout()
@@ -95,26 +116,27 @@ export function createClientContents(deps: CreateClientContentsDependencies) {
     }
 
     const params = buildParams(nextCursor.value)
-    const key = buildQueryKey(params)
     const id = requestId
+    loadMoreToken += 1
+    const token = loadMoreToken
 
     loadMorePending.value = true
     loadMoreErrorMessage.value = null
 
     try {
       const response = await deps.list(params)
-      if (requestId !== id || activeQueryKey !== key) return
+      if (requestId !== id) return
       items.value = [...items.value, ...response.items]
       nextCursor.value = response.nextCursor
     } catch (err) {
-      if (requestId === id && activeQueryKey === key) {
+      if (requestId === id) {
         loadMoreErrorMessage.value = mapClientContentsErrorToMessage(
           err,
           'Impossible de charger plus de contenus.'
         )
       }
     } finally {
-      loadMorePending.value = false
+      if (loadMoreToken === token) loadMorePending.value = false
     }
   }
 
@@ -148,10 +170,12 @@ export function createClientContents(deps: CreateClientContentsDependencies) {
     nextCursor,
     searchQuery,
     typeFilter,
+    hasActiveFilters,
     loadMorePending,
     loadMoreErrorMessage,
     refresh,
     loadMore,
+    resetFilters,
     dispose
   }
 }

@@ -116,7 +116,12 @@ export type UnshareContentResponse = {
 }
 
 // ============================================================================
-// Client contents (Story 5.7) — verified against openapi.yaml
+// Client contents (Story 5.7)
+//
+// Backend `ClientContentsController` (mounted at `/content`) is the authority:
+// `ClientContentListItemResponseDto`, `ClientContentDetailResponseDto` and
+// `ListClientContentsResponseDto` in `openapi.yaml`. This block mirrors them,
+// and `scripts/contract-check-openapi-contents.mjs` fails when the two drift.
 // ============================================================================
 
 export type ClientContentListItem = {

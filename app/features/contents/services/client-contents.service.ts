@@ -1,6 +1,5 @@
 import type {
   ClientContentDetail,
-  ClientContentListItem,
   ListClientContentsParams,
   ListClientContentsResponse
 } from '../api/contents.contract'
@@ -21,6 +20,3 @@ export async function getClientContentBySlug(slug: string): Promise<ClientConten
   const call = buildGetClientContentCall(slug)
   return await apiFetch<ClientContentDetail>(call.path, call.options)
 }
-
-// Re-export types used by pages/tests
-export type { ClientContentDetail, ClientContentListItem }

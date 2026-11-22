@@ -1,6 +1,4 @@
 import type {
-  ClientContentDetail,
-  ClientContentListItem,
   ListClientContentsParams
 } from './contents.contract'
 
@@ -43,6 +41,3 @@ export function buildGetClientContentCall(slug: string): GetClientContentCall {
     options: { method: 'GET', withAuth: true }
   }
 }
-
-// Re-export types for convenience
-export type { ClientContentDetail, ClientContentListItem }

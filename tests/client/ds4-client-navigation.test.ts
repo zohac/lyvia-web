@@ -77,8 +77,16 @@ test('DS4.1: routeRules preserve legacy client account routes with redirects', (
   assert.ok(
     configSource.includes('\'/client/settings\': { redirect: { to: \'/client/account?tab=preferences\', statusCode: 301 } }')
   )
+})
+
+test('DS4.1 + 5.7: /client/content is no longer redirected to the dashboard', () => {
+  // Story 5.7 (PO arbitration 2026-11-22) replaces DS4.1's redirect with the
+  // real « Ressources » page: the route must resolve to `pages/client/content/`.
+  const configSource = fs.readFileSync(path.resolve(repoRoot, 'nuxt.config.ts'), 'utf-8')
+
   assert.equal(
     configSource.includes('\'/client/content\': { redirect: { to: \'/client/dashboard\', statusCode: 301 } }'),
     false
   )
+  assert.ok(configSource.includes('\'/client/**\': { ssr: false }'), 'the client pages stay client-side rendered')
 })

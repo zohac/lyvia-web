@@ -103,3 +103,24 @@ describe('0-21 — /client/dashboard page wiring (AC-3 banner paiement)', () => 
     )
   })
 })
+
+describe('5.7 — the dashboard « Ressources » card points at the page that now exists', () => {
+  test('the card links to /client/content instead of announcing a future feature', () => {
+    const source = readPage()
+
+    assert.ok(
+      source.includes('to="/client/content"'),
+      'the Ressources card must navigate to the ressources page (Story 5.7)'
+    )
+    assert.equal(
+      source.includes('Bientôt disponible'),
+      false,
+      'the feature ships in 5.7: the landing page must not call it unavailable'
+    )
+    assert.equal(
+      source.includes('Vos contenus arrivent bientôt'),
+      false,
+      'the feature ships in 5.7: the landing page must not call it unavailable'
+    )
+  })
+})

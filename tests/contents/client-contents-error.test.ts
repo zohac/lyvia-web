@@ -44,3 +44,16 @@ test('isClientContentNotFound is true only on 404', () => {
   assert.equal(isClientContentNotFound(other), false)
   assert.equal(isClientContentNotFound(new Error('boom')), false)
 })
+
+test('isClientContentNotFound does not mask a missing client profile as a missing content', () => {
+  const noProfile = new ApiFetchError({ statusCode: 404, code: 'CLIENT_PROFILE_NOT_FOUND', message: 'Client profile not found' })
+  assert.equal(isClientContentNotFound(noProfile), false)
+})
+
+test('mapClientContentsErrorToMessage names the broken account instead of the content', () => {
+  const noProfile = new ApiFetchError({ statusCode: 404, code: 'CLIENT_PROFILE_NOT_FOUND', message: 'Client profile not found' })
+  assert.equal(
+    mapClientContentsErrorToMessage(noProfile),
+    'Votre espace cliente est introuvable. Contactez votre coach.'
+  )
+})

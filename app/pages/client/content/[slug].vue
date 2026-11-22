@@ -12,7 +12,7 @@
 
     <!-- Loading -->
     <div
-      v-if="loading"
+      v-if="pending"
       class="space-y-4"
     >
       <USkeleton class="h-8 w-1/3" />
@@ -47,9 +47,9 @@
 
     <!-- Error -->
     <AtomsDsErrorState
-      v-else-if="loadError"
-      :message="loadError"
-      @retry="load"
+      v-else-if="errorMessage"
+      :message="errorMessage"
+      @retry="retry"
     />
 
     <!-- Content -->
@@ -101,9 +101,8 @@
 </template>
 
 <script setup lang="ts">
-import type { ClientContentDetail } from '../../../features/contents/api/contents.contract'
+import { createClientContent } from '../../../features/contents/createClientContent'
 import { getClientContentBySlug } from '../../../features/contents/services/client-contents.service'
-import { mapClientContentsErrorToMessage, isClientContentNotFound } from '../../../features/contents/api/client-contents-error'
 import { getTypeBadge } from '../../../features/contents/domain/contents-badges'
 import { formatDateShort } from '~/composables/useDateFormat'
 
@@ -115,41 +114,18 @@ definePageMeta({
 
 const route = useRoute()
 
-const loading = ref(true)
-const loadError = ref<string | null>(null)
-const notFound = ref(false)
-const content = ref<ClientContentDetail | null>(null)
+const { pending, notFound, errorMessage, content, load } = createClientContent({
+  load: getClientContentBySlug
+})
 
 const slug = computed(() => String(route.params.slug))
 
-let requestId = 0
-
-async function load() {
-  const currentSlug = slug.value
-  requestId += 1
-  const id = requestId
-  loading.value = true
-  loadError.value = null
-  notFound.value = false
-  content.value = null
-  try {
-    const data = await getClientContentBySlug(currentSlug)
-    if (requestId !== id) return
-    content.value = data
-  } catch (err) {
-    if (requestId !== id) return
-    if (isClientContentNotFound(err)) {
-      notFound.value = true
-    } else {
-      loadError.value = mapClientContentsErrorToMessage(err, 'Impossible de charger le contenu.')
-    }
-  } finally {
-    if (requestId === id) loading.value = false
-  }
+function retry() {
+  void load(slug.value)
 }
 
-onMounted(load)
-watch(slug, load)
+onMounted(retry)
+watch(slug, retry)
 
 function formatDate(value: string | null): string {
   if (!value) return ''
