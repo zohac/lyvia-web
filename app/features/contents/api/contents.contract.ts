@@ -74,3 +74,31 @@ export type UpdateContentResponse = {
 export type ContentIdResponse = {
   contentId: string
 }
+
+// ============================================================================
+// Content shares (Story 5.6)
+// ============================================================================
+
+export type ContentShareItem = {
+  clientProfileId: string
+  firstname: string
+  lastname: string
+  sharedAt: string
+}
+
+export type ListContentSharesResponse = {
+  items: ContentShareItem[]
+}
+
+export type ShareContentRequest = {
+  clientProfileIds?: string[]
+  all?: boolean
+}
+
+export type ShareContentResponse = {
+  count: number
+}
+
+export type UnshareContentResponse = {
+  clientProfileId: string
+}

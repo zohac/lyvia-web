@@ -101,6 +101,12 @@
         </form>
       </UCard>
 
+      <OrganismsContentSharesSection
+        v-if="content"
+        :content-id="content.id"
+        :visibility="content.visibility"
+      />
+
       <UModal
         v-model:open="isDeleteModalOpen"
         title="Supprimer le contenu"
@@ -146,6 +152,7 @@ import {
 import { buildUpdateContentPayload } from '../../../features/contents/domain/content-payload'
 import { ApiFetchError } from '../../../services/api/api-error'
 import MoleculesContentsFormFields from '../../../components/molecules/ContentsFormFields.vue'
+import OrganismsContentSharesSection from '../../../components/organisms/ContentSharesSection.vue'
 
 const route = useRoute()
 const toast = useToast()
