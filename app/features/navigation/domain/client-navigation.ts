@@ -45,6 +45,19 @@ export const CLIENT_NAVIGATION: ClientNavigation = {
           match: 'prefix'
         }
       ]
+    },
+    {
+      key: 'accompagnement',
+      label: 'Accompagnement',
+      defaultOpen: true,
+      items: [
+        {
+          label: 'Ressources',
+          to: '/client/content',
+          icon: 'lucide:book-open',
+          match: 'prefix'
+        }
+      ]
     }
   ]
 }

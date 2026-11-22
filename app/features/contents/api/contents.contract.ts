@@ -114,3 +114,42 @@ export type ShareContentResponse = {
 export type UnshareContentResponse = {
   clientProfileId: string
 }
+
+// ============================================================================
+// Client contents (Story 5.7) — verified against openapi.yaml
+// ============================================================================
+
+export type ClientContentListItem = {
+  id: string
+  title: string
+  type: ContentType
+  slug: string
+  coverImageUrl: string | null
+  publishedAt: string | null
+  providerName: string
+  providerSlug: string | null
+}
+
+export type ClientContentDetail = {
+  id: string
+  title: string
+  type: ContentType
+  slug: string
+  body: string | null
+  coverImageUrl: string | null
+  publishedAt: string | null
+  providerName: string
+  providerSlug: string | null
+}
+
+export type ListClientContentsParams = {
+  type?: ContentType
+  q?: string
+  limit?: number
+  cursor?: string
+}
+
+export type ListClientContentsResponse = {
+  items: ClientContentListItem[]
+  nextCursor: string | null
+}
