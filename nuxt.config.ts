@@ -196,7 +196,6 @@ export default defineNuxtConfig({
     },
     '/client/payments': { redirect: { to: '/client/account?tab=paiements', statusCode: 301 } },
     '/client/settings': { redirect: { to: '/client/account?tab=preferences', statusCode: 301 } },
-    '/client/content': { redirect: { to: '/client/dashboard', statusCode: 301 } },
     '/client/**': { ssr: false },
     '/provider/**': { ssr: false },
     '/admin/analytics': { redirect: { to: '/admin/tools?tab=analytics', statusCode: 301 } },

@@ -1,0 +1,160 @@
+/**
+ * Provider contents contracts (Story 5.5).
+ *
+ * Source of truth: repositories/lyvia-api/openapi.yaml + backend DTOs
+ * (`src/features/contents/presentation/dto/**`).
+ *
+ * Backend `ProviderContentsController` (mounted at `/provider/content`) is the
+ * authority. This file mirrors the server DTOs so the UI never invents a
+ * second representation.
+ */
+
+export type ContentType = 'article' | 'recette' | 'actualite'
+
+export type ContentVisibility = 'public' | 'private'
+
+export type ContentStatusFilter = 'published' | 'draft' | 'all'
+
+export type ContentItem = {
+  id: string
+  providerId: string
+  title: string
+  type: ContentType
+  slug: string
+  body: string | null
+  coverImageUrl: string | null
+  visibility: ContentVisibility
+  isPublished: boolean
+  publishedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type ListContentsParams = {
+  type?: ContentType
+  status?: ContentStatusFilter
+  q?: string
+  limit?: number
+  cursor?: string
+}
+
+export type ListContentsResponse = {
+  items: ContentItem[]
+  nextCursor: string | null
+}
+
+export type CreateContentRequest = {
+  title: string
+  type: ContentType
+  slug?: string
+  body?: string | null
+  coverImageUrl?: string | null
+  visibility?: ContentVisibility
+}
+
+export type CreateContentResponse = {
+  contentId: string
+  slug: string
+}
+
+export type UpdateContentRequest = {
+  title?: string
+  type?: ContentType
+  slug?: string
+  body?: string | null
+  coverImageUrl?: string | null
+  visibility?: ContentVisibility
+}
+
+export type UpdateContentResponse = {
+  contentId: string
+  changedFields: string[]
+}
+
+export type ContentIdResponse = {
+  contentId: string
+}
+
+// ============================================================================
+// Content shares (Story 5.6) — verified against openapi.yaml
+// ============================================================================
+
+export type ContentShareItem = {
+  clientProfileId: string
+  firstname: string
+  lastname: string
+  sharedAt: string
+}
+
+export type ListContentSharesResponse = {
+  items: ContentShareItem[]
+}
+
+/**
+ * Body of `POST /provider/content/:id/share`. Send one field or the other:
+ * `all: true` wins when both are present, and `clientProfileIds` is capped at
+ * 200 by the DTO. `all` covers clients with at least one non-cancelled
+ * appointment — deliberately narrower than the provider's roster, hence the
+ * scope sentence under the button.
+ */
+export type ShareContentRequest = {
+  clientProfileIds?: string[]
+  all?: boolean
+}
+
+/**
+ * `count` is the number of shares **created by this call**: a re-share, or a
+ * share-all where everybody already had access, answers 0 — never phrase that
+ * as an addition.
+ */
+export type ShareContentResponse = {
+  count: number
+}
+
+export type UnshareContentResponse = {
+  clientProfileId: string
+}
+
+// ============================================================================
+// Client contents (Story 5.7)
+//
+// Backend `ClientContentsController` (mounted at `/content`) is the authority:
+// `ClientContentListItemResponseDto`, `ClientContentDetailResponseDto` and
+// `ListClientContentsResponseDto` in `openapi.yaml`. This block mirrors them,
+// and `scripts/contract-check-openapi-contents.mjs` fails when the two drift.
+// ============================================================================
+
+export type ClientContentListItem = {
+  id: string
+  title: string
+  type: ContentType
+  slug: string
+  coverImageUrl: string | null
+  publishedAt: string | null
+  providerName: string
+  providerSlug: string | null
+}
+
+export type ClientContentDetail = {
+  id: string
+  title: string
+  type: ContentType
+  slug: string
+  body: string | null
+  coverImageUrl: string | null
+  publishedAt: string | null
+  providerName: string
+  providerSlug: string | null
+}
+
+export type ListClientContentsParams = {
+  type?: ContentType
+  q?: string
+  limit?: number
+  cursor?: string
+}
+
+export type ListClientContentsResponse = {
+  items: ClientContentListItem[]
+  nextCursor: string | null
+}
