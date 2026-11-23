@@ -6,7 +6,6 @@
 export type ContentBadgeColor = 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
 
 export type ContentStatusBadge = { color: ContentBadgeColor, label: string }
-export type ContentVisibilityBadge = { color: ContentBadgeColor, label: string }
 export type ContentTypeBadge = { color: ContentBadgeColor, label: string }
 
 export function getStatusBadge(isPublished: boolean): ContentStatusBadge {
@@ -21,11 +20,6 @@ export function getDiffusionBadge(audience: string): ContentDiffusionBadge {
   return audience === 'all'
     ? { color: 'info', label: 'Toutes mes clientes' }
     : { color: 'warning', label: 'Clientes choisies' }
-}
-
-export function getVisibilityBadge(visibility: string): ContentVisibilityBadge {
-  // Backwards-compatible alias kept so older callers/tests do not break.
-  return getDiffusionBadge(visibility === 'public' ? 'all' : 'selected')
 }
 
 export function getTypeBadge(type: string): ContentTypeBadge {

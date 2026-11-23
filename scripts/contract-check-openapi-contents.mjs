@@ -253,6 +253,22 @@ if (!contract) {
       'Divergence du vocabulaire `audience` entre CreateContentDto et content-options.ts'
     )
 
+    // The list's Diffusion filter forwards every non-sentinel value verbatim as
+    // `?audience=`. A sentinel such as `audience_all` would be sent as an enum
+    // value the API refuses (422) — that is exactly how the filter broke once.
+    assert.deepEqual(
+      [...enumOf('audience')].sort(),
+      [...audienceEnum].sort(),
+      'Divergence du vocabulaire `audience` entre GET /provider/content et CreateContentDto'
+    )
+    for (const option of options.CONTENT_DIFFUSION_FILTER_OPTIONS) {
+      if (option.value === 'any') continue
+      assert.ok(
+        audienceEnum.includes(option.value),
+        `Le filtre de diffusion envoie « ${option.value} », absent de l'énumération audience de l'API`
+      )
+    }
+
     console.log('contract:check: contents — OK')
   } catch (error) {
     console.error(`contract:check: contents — ${error instanceof Error ? error.message : String(error)}`)

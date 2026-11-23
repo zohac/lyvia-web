@@ -93,15 +93,13 @@ export type ListContentSharesResponse = {
 }
 
 /**
- * Body of `POST /provider/content/:id/share`. Send one field or the other:
- * `all: true` wins when both are present, and `clientProfileIds` is capped at
- * 200 by the DTO. `all` covers clients with at least one non-cancelled
- * appointment — deliberately narrower than the provider's roster, hence the
- * scope sentence under the button.
+ * Body of `POST /provider/content/:id/share`. `clientProfileIds` is capped at
+ * 200 by the DTO. `{ all: true }` is **gone** from `ShareContentDto` (diffusion-2
+ * AC4): addressing everybody is an *audience* (`PATCH … { audience: 'all' }`),
+ * not a share operation, and the API answers 400 if the field is sent.
  */
 export type ShareContentRequest = {
-  clientProfileIds?: string[]
-  all?: boolean
+  clientProfileIds: string[]
 }
 
 /**

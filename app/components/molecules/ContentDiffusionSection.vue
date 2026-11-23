@@ -23,12 +23,10 @@
       </UButton>
     </div>
 
-    <div v-else class="space-y-3">
-      <ContentClientChecklist
-        :content-id="contentId"
-        @shared="onShared"
-        @unshared="onUnshared"
-      />
+    <div
+      v-else
+      class="space-y-3"
+    >
       <UButton
         size="sm"
         variant="ghost"
@@ -39,24 +37,35 @@
       >
         Partager avec toutes mes clientes
       </UButton>
+      <!--
+        The checklist is rendered only once the audience is PERSISTED as
+        `selected`: `POST /provider/content/:id/share` answers 422
+        `CONTENT_NOT_PRIVATE` otherwise, so ticking a box on a content still
+        stored as `all` would fail every time.
+      -->
+      <ContentClientChecklist
+        v-if="canSelect"
+        :content-id="contentId"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ContentAudience } from '../../features/contents/api/contents.contract'
+// AGENTS §11.6: a component Nuxt cannot resolve renders nothing, silently.
 import ContentClientChecklist from './ContentClientChecklist.vue'
 
 defineProps<{
   contentId: string
+  /** Audience as it is in the form (may not be saved yet). */
   audience: ContentAudience
+  /** Audience as the server stores it — the only state a tick is allowed in. */
+  canSelect: boolean
   disabled?: boolean
 }>()
 
 const emit = defineEmits<{
   'update:audience': [value: ContentAudience]
 }>()
-
-function onShared() {}
-function onUnshared() {}
 </script>

@@ -164,11 +164,12 @@
                     {{ getStatusBadge(item.isPublished).label }}
                   </UBadge>
                   <UBadge
-                    :color="getDiffusionBadge(item.audience ?? 'selected').color"
+                    v-if="item.audience"
+                    :color="getDiffusionBadge(item.audience).color"
                     variant="soft"
                     size="xs"
                   >
-                    {{ getDiffusionBadge(item.audience ?? 'selected').label }}
+                    {{ getDiffusionBadge(item.audience).label }}
                   </UBadge>
                 </div>
                 <p class="mt-1 text-xs text-[color:var(--color-text-muted)]">
@@ -242,7 +243,7 @@ const hasActiveFilters = computed(() =>
   searchQuery.value.trim().length > 0
   || typeFilter.value !== 'all'
   || statusFilter.value !== 'all'
-  || audienceFilter.value !== 'all'
+  || audienceFilter.value !== 'any'
 )
 
 const emptyTitle = computed(() => (hasActiveFilters.value ? 'Aucun résultat' : 'Aucun contenu'))
@@ -257,6 +258,6 @@ function resetFilters() {
   searchQuery.value = ''
   typeFilter.value = 'all'
   statusFilter.value = 'all'
-  audienceFilter.value = 'all'
+  audienceFilter.value = 'any'
 }
 </script>

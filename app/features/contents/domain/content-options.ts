@@ -35,10 +35,18 @@ export const CONTENT_AUDIENCE_OPTIONS: ContentSelectOption<ContentAudience>[] = 
   { label: 'Clientes choisies', value: 'selected' }
 ]
 
-export type ContentDiffusionFilter = 'all' | 'audience_all' | 'selected'
+/**
+ * The Diffusion filter of the contents list. Its "no filter" sentinel is `any`,
+ * never `all` — `all` is a *value* of the `audience` enum, and a filter that
+ * sent `audience=all` would ask for the `all` audience instead of asking for
+ * everything. Every non-sentinel value is forwarded verbatim as `?audience=`,
+ * so it must be one of `ContentAudience` (`ListContentsQueryDto` is
+ * `@IsIn(['all','selected'])`).
+ */
+export type ContentDiffusionFilter = 'any' | ContentAudience
 
 export const CONTENT_DIFFUSION_FILTER_OPTIONS: ContentSelectOption<ContentDiffusionFilter>[] = [
-  { label: 'Toutes les diffusions', value: 'all' },
-  { label: 'Toutes mes clientes', value: 'audience_all' },
+  { label: 'Toutes les diffusions', value: 'any' },
+  { label: 'Toutes mes clientes', value: 'all' },
   { label: 'Clientes choisies', value: 'selected' }
 ]

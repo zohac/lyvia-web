@@ -24,7 +24,8 @@ export const CONTENTS_SEARCH_DEBOUNCE_MS = 350
 
 export type ContentsTypeFilter = ContentType | 'all'
 export type ContentsStatusFilter = ContentStatusFilter
-export type ContentsAudienceFilter = ContentAudience | 'all'
+/** `any` is the "no filter" sentinel; the other two are the API's enum values. */
+export type ContentsAudienceFilter = ContentAudience | 'any'
 
 export interface CreateProviderContentsDependencies {
   list: (params: ListContentsParams) => Promise<ListContentsResponse>
@@ -43,7 +44,7 @@ export function createProviderContents(deps: CreateProviderContentsDependencies)
   const searchQuery = ref('')
   const typeFilter = ref<ContentsTypeFilter>('all')
   const statusFilter = ref<ContentsStatusFilter>('all')
-  const audienceFilter = ref<ContentsAudienceFilter>('all')
+  const audienceFilter = ref<ContentsAudienceFilter>('any')
 
   const loadMorePending = ref(false)
   const loadMoreErrorMessage = ref<string | null>(null)
@@ -74,7 +75,7 @@ export function createProviderContents(deps: CreateProviderContentsDependencies)
     if (query.length > 0) params.q = query
     if (typeFilter.value !== 'all') params.type = typeFilter.value
     if (statusFilter.value !== 'all') params.status = statusFilter.value
-    if (audienceFilter.value !== 'all') params.audience = audienceFilter.value
+    if (audienceFilter.value !== 'any') params.audience = audienceFilter.value
     if (cursor) params.cursor = cursor
 
     return params
@@ -85,7 +86,7 @@ export function createProviderContents(deps: CreateProviderContentsDependencies)
       q: params.q ?? '',
       type: params.type ?? 'all',
       status: params.status ?? 'all',
-      audience: params.audience ?? 'all'
+      audience: params.audience ?? 'any'
     })
   }
 
@@ -141,7 +142,9 @@ export function createProviderContents(deps: CreateProviderContentsDependencies)
       items.value = [...items.value, ...response.items]
       nextCursor.value = response.nextCursor
     } catch (err) {
-      if (requestId === id) {
+      // Same guard as the success path: a page-2 failure that belongs to a
+      // previous query must not paint an error on this list.
+      if (requestId === id && activeQueryKey === key) {
         loadMoreErrorMessage.value = mapProviderContentsErrorToMessage(
           err,
           'Impossible de charger plus de contenus.'

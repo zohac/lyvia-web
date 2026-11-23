@@ -134,7 +134,7 @@ function cancel() {
 }
 
 async function submit() {
-  const validationErrors = validateContentForm({ ...form, coverImageUrl: form.coverImageUrl })
+  const validationErrors = validateContentForm(form)
   errors.value = validationErrors
   if (Object.keys(validationErrors).length > 0) return
 

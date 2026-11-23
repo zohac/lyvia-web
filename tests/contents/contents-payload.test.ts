@@ -155,9 +155,21 @@ describe('delegation: the pages use the builders rather than rebuilding a payloa
     assert.match(source, /createContent\(buildCreateContentPayload\(/)
   })
 
-  test('the edit page sends buildUpdateContentPayload(...)', () => {
-    const source = readPage('pages/provider/content/[id].vue')
-    assert.match(source, /buildUpdateContentPayload\(/)
-    assert.match(source, /updateContent\(id\.value, payload\)/)
+  test('the edit page delegates to the editor factory, which owns the builder call', () => {
+    // The page is wiring only (AC9): its load token, its save and its
+    // mutation-versus-re-read split are executed in
+    // `create-provider-content-editor.test.ts`. A page that rebuilt a payload
+    // field by field would pass every other test in this suite — the factory is
+    // the single call site, and it passes `form`/`original` whole, so a new
+    // field cannot be forgotten.
+    const page = readPage('pages/provider/content/[id].vue')
+    assert.match(page, /createProviderContentEditor\(\{/)
+    assert.equal(/buildUpdateContentPayload\(/.test(page), false, 'the page must not build the PATCH itself')
+
+    const factory = fs.readFileSync(
+      path.resolve(process.cwd(), 'app/features/contents/createProviderContentEditor.ts'),
+      'utf-8'
+    )
+    assert.match(factory, /buildUpdateContentPayload\(form, original\.value\)/)
   })
 })

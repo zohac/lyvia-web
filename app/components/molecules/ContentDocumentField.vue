@@ -6,7 +6,7 @@
         variant="soft"
         color="primary"
         type="button"
-        :disabled="disabled || uploading"
+        :disabled="blocked"
         :loading="uploading"
         @click="trigger"
       >
@@ -37,7 +37,7 @@
           variant="ghost"
           color="primary"
           type="button"
-          :disabled="disabled || uploading"
+          :disabled="blocked"
           @click="trigger"
         >
           Remplacer
@@ -47,7 +47,7 @@
           variant="ghost"
           color="error"
           type="button"
-          :disabled="disabled || uploading"
+          :disabled="blocked"
           @click="remove"
         >
           Retirer
@@ -75,6 +75,8 @@ import {
   CONTENT_DOCUMENT_ALLOWED_MIME_TYPES
 } from '../../features/assets/api/asset.contract'
 import {
+  CONTENT_DOCUMENT_INVALID_MIME_MESSAGE,
+  CONTENT_DOCUMENT_TOO_LARGE_MESSAGE,
   formatUploadError,
   uploadAsset,
   validateFileUpload
@@ -93,9 +95,14 @@ const inputRef = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
 const error = ref<string | null>(null)
 
+/** Monotonic token: a late response must not overwrite a newer document. */
+let uploadToken = 0
+
+const blocked = computed(() => props.disabled === true || uploading.value)
 const document = computed(() => props.modelValue)
 
 function trigger() {
+  if (blocked.value) return
   inputRef.value?.click()
 }
 
@@ -105,27 +112,13 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
 }
 
-// Map server error codes to French messages per interfaces.md
-function mapDocumentError(err: unknown): string {
-  const msg = err instanceof Error ? err.message : ''
-  if (msg.includes('CONTENT_DOCUMENT_QUOTA_EXCEEDED')) {
-    return 'Votre espace de documents est plein (500 Mo). Supprimez un document pour en ajouter un nouveau.'
-  }
-  if (msg.includes('TOO_LARGE')) {
-    return 'Le document dépasse 10 Mo.'
-  }
-  if (msg.includes('INVALID_MIME')) {
-    return 'Seuls les PDF sont acceptés.'
-  }
-  return formatUploadError(err)
-}
-
 async function onFileSelected(event: Event) {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   target.value = ''
-  if (!file) return
+  if (!file || blocked.value) return
 
+  const token = ++uploadToken
   error.value = null
   const message = validateFileUpload(
     file,
@@ -133,37 +126,33 @@ async function onFileSelected(event: Event) {
     [...CONTENT_DOCUMENT_ALLOWED_MIME_TYPES]
   )
   if (message) {
-    // Local size/format messages per interfaces.md
-    if (file.size > CONTENT_DOCUMENT_MAX_BYTES) {
-      error.value = 'Le document dépasse 10 Mo.'
-    } else {
-      error.value = 'Seuls les PDF sont acceptés.'
-    }
+    // The local refusal speaks the same words as the server's (interfaces.md §6).
+    error.value = file.size > CONTENT_DOCUMENT_MAX_BYTES
+      ? CONTENT_DOCUMENT_TOO_LARGE_MESSAGE
+      : CONTENT_DOCUMENT_INVALID_MIME_MESSAGE
     return
   }
 
   uploading.value = true
   try {
     const result = await uploadAsset('content_document', file)
+    if (token !== uploadToken) return
     emit('update:modelValue', {
       assetId: result.assetId,
       filename: result.filename ?? file.name,
       sizeBytes: result.sizeBytes ?? file.size
     })
   } catch (e: unknown) {
-    const apiErr = e as { apiError?: { code?: string } }
-    const code = apiErr?.apiError?.code
-    if (code === 'CONTENT_DOCUMENT_QUOTA_EXCEEDED') {
-      error.value = 'Votre espace de documents est plein (500 Mo). Supprimez un document pour en ajouter un nouveau.'
-    } else {
-      error.value = mapDocumentError(e as Error)
-    }
+    if (token !== uploadToken) return
+    // One mapper, reading the API code first (`formatUploadError`).
+    error.value = formatUploadError(e, 'content_document')
   } finally {
-    uploading.value = false
+    if (token === uploadToken) uploading.value = false
   }
 }
 
 function remove() {
+  error.value = null
   emit('update:modelValue', null)
 }
 </script>
