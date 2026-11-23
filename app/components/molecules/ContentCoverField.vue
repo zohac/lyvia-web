@@ -98,6 +98,12 @@ const props = defineProps<{
   /** Server-side verdict on the stored URL (the field itself owns upload errors). */
   error?: string
   disabled?: boolean
+  /**
+   * Upload route override (diffusion-10). An admin session must never call the
+   * provider assets endpoint, so the admin pages inject `/admin/assets/upload`.
+   * Provider callers leave it unset and keep the default route.
+   */
+  uploadEndpoint?: string
 }>()
 
 const emit = defineEmits<{
@@ -170,7 +176,7 @@ async function handleFile(file: File) {
 
   uploading.value = true
   try {
-    const result = await uploadAsset('content_cover', file)
+    const result = await uploadAsset('content_cover', file, props.uploadEndpoint)
     if (token !== uploadToken) return
     if (!result.url) {
       // Never clear a stored cover because the server answered without a URL.

@@ -28,6 +28,7 @@
         placeholder="Choisir un type"
         aria-label="Type de contenu"
         class="w-full"
+        :disabled="typeDisabled"
         @update:model-value="emit('update:type', $event)"
       />
     </UFormField>
@@ -80,9 +81,12 @@ const props = withDefaults(defineProps<{
   errors: ContentFormErrors
   slugPlaceholder?: string
   disabled?: boolean
+  /** Platform articles fix the type to `article` (diffusion-10). */
+  typeDisabled?: boolean
 }>(), {
   slugPlaceholder: 'auto-généré depuis le titre',
-  disabled: false
+  disabled: false,
+  typeDisabled: false
 })
 
 const typeModel = computed(() => (props.type === '' || props.type == null ? undefined : props.type))
