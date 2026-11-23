@@ -44,6 +44,11 @@
           :disabled="saving"
         />
 
+        <MoleculesContentDocumentField
+          v-model="form.document"
+          :disabled="saving"
+        />
+
         <div class="space-y-2">
           <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
             Diffusion
@@ -108,6 +113,7 @@ import { buildCreateContentPayload } from '../../../features/contents/domain/con
 import { ApiFetchError } from '../../../services/api/api-error'
 import MoleculesContentsFormFields from '../../../components/molecules/ContentsFormFields.vue'
 import MoleculesContentCoverField from '../../../components/molecules/ContentCoverField.vue'
+import MoleculesContentDocumentField from '../../../components/molecules/ContentDocumentField.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -122,7 +128,8 @@ const form = reactive({
   body: '',
   coverImageUrl: '',
   audience: 'selected' as ContentAudience,
-  slug: ''
+  slug: '',
+  document: null as { assetId: string, filename: string, sizeBytes: number } | null
 })
 
 const errors = ref<ContentFormErrors>({})

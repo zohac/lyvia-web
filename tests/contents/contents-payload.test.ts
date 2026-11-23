@@ -54,7 +54,8 @@ describe('buildCreateContentPayload', () => {
       audience: 'selected',
       body: 'Un corps',
       slug: 'mon-article',
-      coverImageUrl: 'https://example.com/a.jpg'
+      coverImageUrl: 'https://example.com/a.jpg',
+      documentAssetId: null
     })
   })
 
@@ -68,7 +69,7 @@ describe('buildCreateContentPayload', () => {
       slug: '  '
     })
 
-    assert.deepEqual(payload, { title: 'Titre', type: 'article', audience: 'all' })
+    assert.deepEqual(payload, { title: 'Titre', type: 'article', audience: 'all', documentAssetId: null })
     assert.equal('body' in payload, false)
     assert.equal('slug' in payload, false)
     assert.equal('coverImageUrl' in payload, false)

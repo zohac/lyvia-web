@@ -27,6 +27,8 @@ export interface ContentOriginal {
   body: string | null
   coverImageUrl: string | null
   audience: ContentAudience | null
+  document?: { filename: string, sizeBytes: number } | null
+  documentAssetId?: string | null
 }
 
 function trimmed(value: string | null | undefined): string {
@@ -49,6 +51,17 @@ export function buildCreateContentPayload(input: ContentFormInput): CreateConten
 
   const coverImageUrl = trimmed(input.coverImageUrl)
   if (coverImageUrl.length > 0) payload.coverImageUrl = coverImageUrl
+
+  // `documentAssetId` is always carried (never `undefined`): `null` means "no
+  // document attached". The asset id comes either from the form's `document`
+  // (after an upload) or from an explicit `documentAssetId` field.
+  let documentAssetId: string | null = null
+  if (input.documentAssetId !== undefined) {
+    documentAssetId = input.documentAssetId ?? null
+  } else if (input.document) {
+    documentAssetId = input.document.assetId || null
+  }
+  payload.documentAssetId = documentAssetId
 
   return payload
 }
@@ -88,6 +101,30 @@ export function buildUpdateContentPayload(
   // current address", never a 400 the user cannot act on.
   const slug = trimmed(input.slug)
   if (slug.length > 0 && slug !== trimmed(original.slug)) payload.slug = slug
+
+  // Document attachment: `undefined` means "don't touch" (PATCH semantics),
+  // `null` means "detach". A change is emitted only when it is real, so an
+  // untouched server document (assetId === '') is never re-sent as an empty
+  // string (which the API would reject as a malformed UUID).
+  const originalHasDocument = original.document != null || original.documentAssetId != null
+
+  if (input.documentAssetId !== undefined) {
+    payload.documentAssetId = input.documentAssetId ?? null
+  } else if (input.document !== undefined) {
+    if (input.document == null) {
+      if (originalHasDocument) payload.documentAssetId = null
+    } else {
+      const assetId = (input.document.assetId ?? '').trim()
+      if (assetId.length > 0) {
+        // A freshly uploaded asset (real assetId) is always sent.
+        payload.documentAssetId = assetId
+      } else if (!originalHasDocument) {
+        // No document before, none after with an id: nothing to send.
+      } else {
+        // Existing document, unchanged (assetId === ''): leave it alone.
+      }
+    }
+  }
 
   return payload
 }

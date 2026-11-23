@@ -52,6 +52,7 @@ export type CreateContentRequest = {
   body?: string | null
   coverImageUrl?: string | null
   audience?: ContentAudience
+  documentAssetId?: string | null
 }
 
 export type CreateContentResponse = {
@@ -66,6 +67,7 @@ export type UpdateContentRequest = {
   body?: string | null
   coverImageUrl?: string | null
   audience?: ContentAudience
+  documentAssetId?: string | null
 }
 
 export type UpdateContentResponse = {

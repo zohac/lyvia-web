@@ -269,6 +269,18 @@ if (!contract) {
       )
     }
 
+    // 4. Story diffusion-13 — `documentAssetId` is part of both write DTOs.
+    const createProperties = document.components?.schemas?.CreateContentDto?.properties ?? {}
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(createProperties, 'documentAssetId'),
+      'CreateContentDto ne déclare pas `documentAssetId`, envoyé par le web à la création'
+    )
+    const updateProperties = document.components?.schemas?.UpdateContentDto?.properties ?? {}
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(updateProperties, 'documentAssetId'),
+      'UpdateContentDto ne déclare pas `documentAssetId`, envoyé par le web à la mise à jour'
+    )
+
     console.log('contract:check: contents — OK')
   } catch (error) {
     console.error(`contract:check: contents — ${error instanceof Error ? error.message : String(error)}`)
