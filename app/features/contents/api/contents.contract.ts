@@ -160,3 +160,30 @@ export type ListClientContentsResponse = {
   items: ClientContentListItem[]
   nextCursor: string | null
 }
+
+// ============================================================================
+// Platform contents (Story diffusion-8) — verified against openapi.yaml
+// Backend `ProviderPlatformContentsController` (mounted at /provider/platform-content).
+// ============================================================================
+
+export type PlatformContentItem = {
+  id: string
+  title: string
+  type: ContentType
+  slug: string
+  body: string | null
+  coverImageUrl: string | null
+  isPublished: boolean
+  publishedAt: string | null
+  approved: boolean
+}
+
+export type ListPlatformContentsResponse = {
+  items: PlatformContentItem[]
+  nextCursor: string | null
+}
+
+export type PlatformContentApprovalResponse = {
+  contentId: string
+  approved: boolean
+}
