@@ -74,8 +74,11 @@ function goBack() {
 }
 
 async function confirmDelete() {
-  await handleDelete()
-  isDeleteModalOpen.value = false
+  const deleted = await handleDelete()
+  // The modal warns about an irreversible action: only close it on real success.
+  if (deleted) {
+    isDeleteModalOpen.value = false
+  }
 }
 </script>
 

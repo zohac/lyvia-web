@@ -348,6 +348,22 @@ describe('createAdminContents', () => {
     contents.dispose()
   })
 
+  test('a failed refresh clears the stale list and cursor', async () => {
+    const contents = createAdminContents({ list: async () => response(['a'], 'cursor-2') })
+    await contents.refresh()
+    assert.deepEqual(contents.items.value.map(i => i.id), ['a'])
+    assert.equal(contents.nextCursor.value, 'cursor-2')
+
+    const failing = createAdminContents({
+      list: async () => {
+        throw new Error('boom')
+      }
+    })
+    await failing.refresh()
+    assert.deepEqual(failing.items.value, [])
+    assert.equal(failing.nextCursor.value, null)
+  })
+
   test('the approval counter is displayed as returned, never recalculated', async () => {
     const contents = createAdminContents({ list: async () => response(['a']) })
     await contents.refresh()
@@ -615,7 +631,7 @@ describe('createAdminContentEditor — publish / unpublish / delete', () => {
     const { editor, recorder } = setupEditor()
     await editor.load()
 
-    await editor.handleDelete()
+    assert.equal(await editor.handleDelete(), true)
 
     assert.deepEqual(recorder.deletes, ['content-1'])
     assert.deepEqual(recorder.navigated, ['/admin/content'])
@@ -630,7 +646,7 @@ describe('createAdminContentEditor — publish / unpublish / delete', () => {
     })
     await editor.load()
 
-    await editor.handleDelete()
+    assert.equal(await editor.handleDelete(), false)
 
     assert.deepEqual(recorder.navigated, [])
     assert.equal(recorder.notices[0].color, 'error')

@@ -133,12 +133,18 @@ export function createAdminContentEditor(deps: CreateAdminContentEditorDependenc
     try {
       await refreshServerState(targetId)
     } catch {
-      deps.notify({ title: failureMessage, color: 'warning' })
+      // A navigation may have moved to another article while the re-read was in flight.
+      if (deps.id() === targetId) {
+        deps.notify({ title: failureMessage, color: 'warning' })
+      }
     }
   }
 
   async function save(): Promise<void> {
     if (busy.value) return
+
+    // A previous server-mapped field error must not survive an edit + re-save.
+    errors.value = {}
 
     const validationErrors = validateAdminContentForm(form)
     errors.value = validationErrors
@@ -225,18 +231,20 @@ export function createAdminContentEditor(deps: CreateAdminContentEditorDependenc
     }
   }
 
-  async function handleDelete(): Promise<void> {
-    if (deleting.value) return
+  async function handleDelete(): Promise<boolean> {
+    if (deleting.value) return false
     deleting.value = true
     try {
       await deps.deleteContent(deps.id())
       deps.notify({ title: 'Article supprimé', color: 'success' })
       await deps.navigate?.('/admin/content')
+      return true
     } catch (err) {
       deps.notify({
         title: mapProviderContentsErrorToMessage(err, 'Impossible de supprimer l’article.'),
         color: 'error'
       })
+      return false
     } finally {
       deleting.value = false
     }

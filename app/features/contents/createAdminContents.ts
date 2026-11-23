@@ -72,6 +72,9 @@ export function createAdminContents(deps: CreateAdminContentsDependencies) {
         err,
         'Impossible de charger les articles. Veuillez réessayer.'
       )
+      // A failed refresh must not leave a stale list (or a stale cursor) behind.
+      items.value = []
+      nextCursor.value = null
     } finally {
       if (requestId === id) pending.value = false
     }

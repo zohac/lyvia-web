@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h } from 'vue'
+import { h, onBeforeUnmount } from 'vue'
 import type { TableColumn, TableRow } from '@nuxt/ui'
 import { ADMIN_TABLE_CLASSES } from '~/features/admin/admin-table-classes'
 import { filterPillClasses } from '~/features/admin/admin-filter-pills'
@@ -38,6 +38,8 @@ const statusFilters: Array<{ value: AdminContentStatusFilter, label: string }> =
  * Presentation only: the race guards, filter wiring and cursor pagination live
  * in `createAdminContents`, where the unit tests execute them.
  */
+const contents = createAdminContents({ list: listAdminContents })
+
 const {
   pending,
   errorMessage,
@@ -48,7 +50,7 @@ const {
   loadMoreErrorMessage,
   refresh,
   loadMore
-} = createAdminContents({ list: listAdminContents })
+} = contents
 
 const columns: TableColumn<AdminContentItem>[] = [
   {
@@ -100,6 +102,7 @@ function onRowSelect(_event: Event, row: TableRow<AdminContentItem>) {
 }
 
 onMounted(refresh)
+onBeforeUnmount(() => contents.dispose())
 </script>
 
 <template>
