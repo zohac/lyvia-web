@@ -22,7 +22,26 @@
  * 7. the reading page's 404 state is its own surface, with a way back, and is
  *    not the retryable error surface — mutation: map both to `errorMessage`;
  * 8. the reading page draws the title, the provider, the date and the body,
- *    and falls back on a null body / null date without a dangling separator.
+ *    and falls back on a null body / null date without a dangling separator;
+ * 9. a platform card and a platform article read « Keova », never a
+ *    practitioner — mutation: drop the `source` branch and they read the name
+ *    of whichever provider is left;
+ * 10. the « Document » badge and the « Télécharger le document » button appear
+ *     only when a PDF is attached — mutation: drop the `v-if` and every card
+ *     advertises a document nobody can open;
+ * 11. neither surface puts a storage URL in the DOM — mutation: render
+ *     `document.url` and the assertion fails;
+ * 12. an `http(s)` URL in the body is an `<a target="_blank"
+ *     rel="noopener noreferrer">` carrying « (nouvel onglet) », and the
+ *     sentence punctuation after it stays outside the link — mutation: render
+ *     the body as one text run and there is no anchor at all;
+ * 13. a `javascript:`/`data:` payload or raw markup in the body is escaped
+ *     text, never an element — mutation: render the body with `v-html`;
+ * 14. clicking the download button **executes** the handler: it calls the
+ *     authenticated route with the content slug and hands the blob to the
+ *     saver — mutation: go back to a plain `<a href>` and nothing is fetched;
+ *     drop the `v-if="content.document"` and the handler downloads a document
+ *     that does not exist.
  */
 import * as assert from 'node:assert/strict'
 import * as fs from 'node:fs'
@@ -42,14 +61,21 @@ const READING_PAGE = 'app/pages/client/content/[slug].vue'
 const LIST_COMPOSABLE = '../../../features/contents/useClientContents'
 const READING_FACTORY = '../../../features/contents/createClientContent'
 const READING_SERVICE = '../../../features/contents/services/client-contents.service'
+const READING_SAVER = '../../../features/contents/services/document-download.browser'
 
 type SlotMap = Record<string, (() => Vue.VNode[]) | undefined>
 
 const UButton = {
   name: 'UButton',
-  props: ['to', 'variant', 'color', 'size', 'loading', 'leadingIcon', 'type'],
+  props: ['to', 'variant', 'color', 'size', 'loading', 'leadingIcon', 'type', 'href', 'disabled', 'onClick'],
   setup: (props: Record<string, unknown>, { slots }: { slots: SlotMap }) => () =>
-    Vue.h('button', { 'data-to': props.to ?? undefined }, slots.default?.() ?? [])
+    Vue.h('button', {
+      'data-to': props.to ?? undefined,
+      'data-href': props.href ?? undefined,
+      'data-loading': props.loading === true ? 'true' : undefined,
+      'disabled': props.disabled === true,
+      'onClick': props.onClick
+    }, slots.default?.() ?? [])
 }
 
 const NuxtLink = {
@@ -168,6 +194,23 @@ function item(overrides: Partial<ClientContentListItem> = {}): ClientContentList
   }
 }
 
+function readingContent(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: 'c1',
+    title: 'Respirer pendant la périménopause',
+    type: 'article',
+    slug: 'respirer-pendant-la-perimenopause',
+    body: 'Premier paragraphe.\n\nSecond paragraphe.',
+    coverImageUrl: null,
+    publishedAt: '2026-02-05T10:00:00.000Z',
+    providerName: 'Sophie Jouan',
+    providerSlug: 'sophie-jouan',
+    source: 'provider',
+    document: null,
+    ...overrides
+  }
+}
+
 interface FakeListState {
   pending?: boolean
   errorMessage?: string | null
@@ -218,9 +261,18 @@ interface FakeReaderState {
   content?: Record<string, unknown> | null
 }
 
+/** Records what the download handler did, without touching the DOM. */
+interface DownloadRecorder {
+  fetched: string[]
+  saved: { filename: string, size: number }[]
+  /** When true, the authenticated route rejects, as an expired session would. */
+  fail?: boolean
+}
+
 function renderReading(
   state: FakeReaderState,
-  inspect?: (instance: Vue.ComponentInternalInstance) => void | Promise<void>
+  inspect?: (instance: Vue.ComponentInternalInstance) => void | Promise<void>,
+  downloads?: DownloadRecorder
 ): Promise<string> {
   return renderSfc(READING_PAGE, {
     stubs: STUBS,
@@ -241,7 +293,19 @@ function renderReading(
           load: () => Promise.resolve()
         })
       },
-      [READING_SERVICE]: { getClientContentBySlug: () => Promise.resolve({}) }
+      [READING_SERVICE]: {
+        getClientContentBySlug: () => Promise.resolve({}),
+        getClientContentDocument: (slug: string) => {
+          downloads?.fetched.push(slug)
+          if (downloads?.fail === true) return Promise.reject(new Error('network down'))
+          return Promise.resolve(new Blob(['%PDF-1.4'], { type: 'application/pdf' }))
+        }
+      },
+      [READING_SAVER]: {
+        saveDocumentBlob: (blob: Blob, filename: string) => {
+          downloads?.saved.push({ filename, size: blob.size })
+        }
+      }
     },
     allowEmpty: true,
     inspect
@@ -263,6 +327,22 @@ function walkVNodes(vnode: Vue.VNode | null | undefined, visit: (vnode: Vue.VNod
   walkVNodes(vnode.component?.subTree, visit)
 }
 
+/** The click handler bound to the download control (its own leading icon). */
+function findDownloadHandler(instance: Vue.ComponentInternalInstance): (() => Promise<void>) | null {
+  let handler: (() => Promise<void>) | null = null
+  walkVNodes(instance.subTree, (vnode) => {
+    const props = vnode.props as Record<string, unknown> | null
+    if (!props) return
+    // A component resolved at runtime keeps the attribute name as written, so
+    // the page's vnode carries `leading-icon`, not `leadingIcon`.
+    const icon = props.leadingIcon ?? props['leading-icon']
+    if (icon === 'i-lucide-download' && typeof props.onClick === 'function') {
+      handler = props.onClick as () => Promise<void>
+    }
+  })
+  return handler
+}
+
 describe('5.7 — /client/content renders its four states', () => {
   test('each accessible content is a real link carrying title, type, provider and a formatted date', async () => {
     const html = await renderList({
@@ -282,6 +362,31 @@ describe('5.7 — /client/content renders its four states', () => {
     assert.equal(html.includes('2026-02-05T10:00:00.000Z'), false, 'the raw ISO must be formatted')
     assert.equal(html.includes('2026'), true)
     assert.equal(html.includes('Aucun contenu disponible'), false)
+  })
+
+  test('a platform card is attributed to « Keova », never to a practitioner (AC1, AC7)', async () => {
+    const html = await renderList({
+      items: [item({ source: 'keova', providerName: null, providerSlug: null })]
+    })
+
+    assert.equal(html.includes('Keova'), true)
+    assert.equal(html.includes('Sophie Jouan'), false, 'a platform article has no practitioner')
+  })
+
+  test('a practitioner card carries her name, and « Document » appears only with an attached PDF (AC1)', async () => {
+    const withDocument = await renderList({
+      items: [item({ document: { filename: 'guide.pdf', sizeBytes: 2048 } })]
+    })
+    const withoutDocument = await renderList({ items: [item()] })
+
+    assert.equal(withDocument.includes('Sophie Jouan'), true)
+    assert.equal(withDocument.includes('Document'), true)
+    assert.equal(withoutDocument.includes('Document'), false, 'no document means no badge')
+    assert.equal(
+      withDocument.includes('guide.pdf'),
+      false,
+      'the card only signals a PDF; its detail belongs to the reading page'
+    )
   })
 
   test('an empty catalogue says « Aucun contenu disponible » (AC3)', async () => {
@@ -413,6 +518,108 @@ describe('5.7 — /client/content/:slug renders its four states', () => {
     assert.equal(html.includes('Aucun contenu.'), true)
     assert.equal(html.includes('Par Sophie Jouan'), true)
     assert.equal(html.includes('·'), false, 'no separator without a date')
+  })
+
+  test('a platform content is attributed to Keova, never to a practitioner (AC7)', async () => {
+    const html = await renderReading({
+      content: readingContent({ source: 'keova', providerName: null, providerSlug: null })
+    })
+
+    assert.equal(html.includes('Par Keova'), true)
+    assert.equal(html.includes('Sophie Jouan'), false, 'a platform article has no practitioner')
+  })
+
+  test('the document button exists only with a document, and the DOM carries no storage URL (AC2)', async () => {
+    const withDocument = await renderReading({
+      content: readingContent({ document: { filename: 'guide.pdf', sizeBytes: 2048 } })
+    })
+    const withoutDocument = await renderReading({ content: readingContent() })
+
+    assert.equal(withDocument.includes('Télécharger le document'), true)
+    assert.equal(withoutDocument.includes('Télécharger le document'), false, 'no document, no button')
+    for (const html of [withDocument, withoutDocument]) {
+      assert.equal(/https?:\/\//.test(html), false, 'no storage URL may reach the DOM')
+      assert.equal(html.includes('guide.pdf'), false, 'the stored filename is not rendered as a URL')
+    }
+  })
+
+  test('a URL in the body is a link opened in a new tab, with rel and screen-reader text (AC3)', async () => {
+    const html = await renderReading({
+      content: readingContent({ body: 'Voir https://exemple.fr/article. Puis autre chose.' })
+    })
+
+    assert.equal(html.includes('href="https://exemple.fr/article"'), true)
+    assert.equal(html.includes('target="_blank"'), true)
+    assert.equal(html.includes('rel="noopener noreferrer"'), true)
+    assert.equal(html.includes('(nouvel onglet)'), true)
+    assert.equal(
+      html.includes('href="https://exemple.fr/article."'),
+      false,
+      'the sentence full stop is not part of the URL'
+    )
+  })
+
+  test('a javascript: payload and raw markup in the body stay inert, escaped text (AC4)', async () => {
+    const html = await renderReading({
+      content: readingContent({
+        body: 'javascript:alert(1)\n<script>alert(2)</script>\n<img src=x onerror=alert(3)>\nwww.exemple.fr'
+      })
+    })
+
+    assert.equal(html.includes('href="javascript'), false)
+    assert.equal(html.includes('href="www.exemple.fr'), false)
+    assert.equal(html.includes('<script>'), false, 'the body must never be interpreted as HTML')
+    assert.equal(html.includes('&lt;script&gt;'), true, 'it must be escaped and shown as text')
+    assert.equal(html.includes('<img src=x'), false)
+  })
+
+  test('clicking « Télécharger le document » calls the authenticated route and saves the file (AC2)', async () => {
+    const downloads: DownloadRecorder = { fetched: [], saved: [] }
+    const captured: { handler: (() => Promise<void>) | null } = { handler: null }
+
+    await renderReading(
+      { content: readingContent({ document: { filename: 'guide.pdf', sizeBytes: 2048 } }) },
+      (instance) => {
+        captured.handler = findDownloadHandler(instance)
+      },
+      downloads
+    )
+
+    assert.equal(typeof captured.handler, 'function', 'the control must be clickable')
+    await captured.handler!()
+
+    assert.deepEqual(
+      downloads.fetched,
+      ['respirer-pendant-la-perimenopause'],
+      'the authenticated route is called with the content slug'
+    )
+    assert.equal(downloads.saved.length, 1)
+    assert.equal(downloads.saved[0]!.filename, 'guide.pdf')
+    assert.equal(downloads.saved[0]!.size > 0, true, 'the fetched document is what gets saved')
+  })
+
+  test('a failed download surfaces a retryable message, saves nothing and keeps the page (AC2)', async () => {
+    const downloads: DownloadRecorder = { fetched: [], saved: [], fail: true }
+    const captured: { handler: (() => Promise<void>) | null } = { handler: null }
+    const exposed: { state: Record<string, unknown> | null } = { state: null }
+
+    await renderReading(
+      { content: readingContent({ document: { filename: 'guide.pdf', sizeBytes: 2048 } }) },
+      (instance) => {
+        captured.handler = findDownloadHandler(instance)
+        exposed.state = (instance as unknown as { setupState: Record<string, unknown> }).setupState
+      },
+      downloads
+    )
+
+    await captured.handler!()
+
+    assert.deepEqual(downloads.fetched, ['respirer-pendant-la-perimenopause'])
+    assert.equal(downloads.saved.length, 0, 'a failed fetch must not produce a file')
+    assert.equal(
+      exposed.state!.downloadErrorMessage,
+      'Le téléchargement du document a échoué. Veuillez réessayer.'
+    )
   })
 
   test('the loading state draws skeletons and neither the article nor the not-found copy', async () => {

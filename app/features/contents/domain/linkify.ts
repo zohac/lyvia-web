@@ -12,102 +12,126 @@ export type LinkifySegmentType = 'text' | 'link'
 export interface LinkifySegment {
   /** Discriminant for rendering: `text` runs are emitted verbatim, `link` runs become an `<a>`. */
   type: LinkifySegmentType
-  /** Mirror of `type`, for callers that prefer the `kind` vocabulary. */
-  kind: LinkifySegmentType
   /** The text to render (the URL itself for a link segment). */
   text: string
-  /** Mirror of `text`, for callers that prefer the `value` vocabulary (linkify-it style). */
-  value: string
   /** Present (and equal to `text`) only on link segments. */
   href?: string
-  /** Mirror of `href`, for callers that prefer the `url` vocabulary. */
-  url?: string
 }
 
 /**
- * Whitelist of schemes that may become a link. Anything else — including
- * `javascript:`, `data:`, `vbscript:`, `ftp:` and scheme-less `www.…` — stays
- * text. Compared case-insensitively, so `HTTPS://` is still a link but
- * `JAVASCRIPT:` is not (it is not in the set).
+ * Whitelist of schemes that may become a link. Anything else — `javascript:`,
+ * `data:`, `vbscript:`, `ftp:`, `file:` and every scheme not written here —
+ * stays text. The set is the *only* decision: {@link URL_CANDIDATE} matches
+ * every `scheme://` form, precisely so that this set is the code that decides.
  */
 const ALLOWED_SCHEMES = new Set(['http', 'https'])
 
 /**
- * Matches a run of non-whitespace characters that begins with an `http`/`https`
- * scheme. The scheme is matched case-insensitively; the rest of the URL is kept
- * verbatim. A trailing run of punctuation that is unlikely to be part of the URL
- * is kept (callers can trim if needed) to avoid silently altering the text.
+ * Any `scheme://` run of URL characters, whatever the scheme. Capturing the
+ * scheme (rather than only matching `https?`) is what makes
+ * {@link ALLOWED_SCHEMES} load-bearing: `ftp://`, `file://` and an unknown
+ * `foo://` are matched here and then rejected by name.
+ *
+ * `<`, `>`, `"` and `'` end a candidate: they are markup or quoting, never part
+ * of a URL pasted in a text body.
  */
-const URL_CANDIDATE = /https?:\/\/[^\s<>"']+/gi
+const URL_CANDIDATE = /([a-zA-Z][a-zA-Z0-9+.-]*):\/\/[^\s<>"']+/g
 
-function schemeOf(candidate: string): string | null {
-  const match = /^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//.exec(candidate)
-  return match ? match[1]!.toLowerCase() : null
+/** Closing punctuation a sentence puts after a URL, and its opening pair. */
+const BRACKET_PAIRS: [close: string, open: string][] = [
+  [')', '('],
+  [']', '['],
+  ['}', '{']
+]
+
+function countOf(value: string, char: string): number {
+  let count = 0
+  for (const current of value) {
+    if (current === char) count += 1
+  }
+  return count
 }
 
 /**
- * Splits `input` into text/link segments. Pure: no DOM, no side effects.
+ * Removes one trailing character that belongs to the sentence rather than to
+ * the URL: sentence punctuation, or a closing bracket the URL does not open.
+ * Returns the value unchanged when nothing qualifies.
+ */
+function stripOneSentenceTrailer(value: string): string {
+  const last = value.charAt(value.length - 1)
+  if (last === '') return value
+  if ('.,;:!?'.includes(last)) return value.slice(0, -1)
+  for (const [close, open] of BRACKET_PAIRS) {
+    if (last === close && countOf(value, close) > countOf(value, open)) {
+      return value.slice(0, -1)
+    }
+  }
+  return value
+}
+
+/**
+ * Trims the punctuation a sentence glues to a URL — `Voir https://x.fr/a.`,
+ * `(https://x.fr/a)` — while keeping the characters that are part of it:
+ * `https://fr.wikipedia.org/wiki/Foo_(bar)` keeps its `)`, and a query string
+ * keeps its `&`, `?` and `=`.
+ */
+function trimSentenceTrailers(value: string): string {
+  let trimmed = value
+  for (;;) {
+    const next = stripOneSentenceTrailer(trimmed)
+    if (next === trimmed) return trimmed
+    trimmed = next
+  }
+}
+
+/** `true` when `value` still carries a scheme and a non-empty rest after `//`. */
+function isUsableUrl(value: string): boolean {
+  return /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s<>"']/.test(value)
+}
+
+/**
+ * Splits `input` into text/link segments. Pure: no DOM, no side effects, no
+ * module-level state — the candidate regex is rebuilt on every call so two
+ * renders can never share a `lastIndex`.
  *
  * - `null`/`undefined`/non-string input yields an empty list.
  * - An empty string yields an empty list.
  * - Only candidates whose scheme is in {@link ALLOWED_SCHEMES} become links.
- * - Obfuscated schemes (mixed case, embedded spaces, HTML entities) never match
- *   the candidate regex, so they stay text.
+ * - Obfuscated schemes (mixed case, embedded spaces, HTML entities) either do
+ *   not match the scheme grammar or are rejected by the whitelist, so they stay
+ *   text.
+ * - Trailing sentence punctuation stays text, so `https://x.fr/a.` links to
+ *   `https://x.fr/a` and keeps its full stop.
  */
 export function linkify(input: unknown): LinkifySegment[] {
   if (typeof input !== 'string' || input.length === 0) return []
 
   const segments: LinkifySegment[] = []
-  // Matched URLs are collected below with exec to keep the splitting exact.
   const matches: { index: number, value: string }[] = []
-  URL_CANDIDATE.lastIndex = 0
-  let m: RegExpExecArray | null
-  while ((m = URL_CANDIDATE.exec(input)) !== null) {
-    const candidate = m[0]
-    const scheme = schemeOf(candidate)
-    if (scheme !== null && ALLOWED_SCHEMES.has(scheme)) {
-      matches.push({ index: m.index, value: candidate })
+  const candidatePattern = new RegExp(URL_CANDIDATE.source, URL_CANDIDATE.flags)
+
+  let match: RegExpExecArray | null
+  while ((match = candidatePattern.exec(input)) !== null) {
+    const url = trimSentenceTrailers(match[0])
+    const scheme = match[1]!.toLowerCase()
+    if (ALLOWED_SCHEMES.has(scheme) && isUsableUrl(url)) {
+      matches.push({ index: match.index, value: url })
     }
-    // Guard against zero-length matches (none possible here, but defensive).
-    if (m.index === URL_CANDIDATE.lastIndex) URL_CANDIDATE.lastIndex++
   }
 
   let cursor = 0
-  for (const match of matches) {
-    if (match.index > cursor) {
-      const text = input.slice(cursor, match.index)
-      if (text.length > 0) {
-        segments.push({ type: 'text', kind: 'text', text, value: text })
-      }
+  for (const found of matches) {
+    if (found.index > cursor) {
+      const text = input.slice(cursor, found.index)
+      if (text.length > 0) segments.push({ type: 'text', text })
     }
-    const url = match.value
-    segments.push({
-      type: 'link',
-      kind: 'link',
-      text: url,
-      value: url,
-      href: url,
-      url
-    })
-    cursor = match.index + match.value.length
+    segments.push({ type: 'link', text: found.value, href: found.value })
+    cursor = found.index + found.value.length
   }
   if (cursor < input.length) {
     const text = input.slice(cursor)
-    if (text.length > 0) {
-      segments.push({ type: 'text', kind: 'text', text, value: text })
-    }
+    if (text.length > 0) segments.push({ type: 'text', text })
   }
 
   return segments
 }
-
-// Aliases for callers/tests that prefer a different name for the same pure
-// function. They all share one implementation and one behaviour.
-export const linkifyText = linkify
-export const linkifyBody = linkify
-export const linkifyUrls = linkify
-export const parseLinks = linkify
-export const extractLinks = linkify
-export const renderLinks = linkify
-
-export default linkify

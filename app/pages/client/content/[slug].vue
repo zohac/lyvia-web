@@ -86,12 +86,20 @@
           color="primary"
           variant="soft"
           size="sm"
-          :href="`/api/content/${encodeURIComponent(content.slug)}/document`"
+          :loading="downloading"
           leading-icon="i-lucide-download"
           class="mt-2"
+          @click="downloadDocument"
         >
           Télécharger le document
         </UButton>
+        <p
+          v-if="downloadErrorMessage"
+          role="alert"
+          class="text-sm text-[color:var(--color-text-muted)]"
+        >
+          {{ downloadErrorMessage }}
+        </p>
       </header>
 
       <div
@@ -114,7 +122,9 @@
 <script setup lang="ts">
 import AtomsContentBody from '../../../components/atoms/ContentBody.vue'
 import { createClientContent } from '../../../features/contents/createClientContent'
-import { getClientContentBySlug } from '../../../features/contents/services/client-contents.service'
+import { createClientDocumentDownload } from '../../../features/contents/createClientDocumentDownload'
+import { getClientContentBySlug, getClientContentDocument } from '../../../features/contents/services/client-contents.service'
+import { saveDocumentBlob } from '../../../features/contents/services/document-download.browser'
 import { getTypeBadge } from '../../../features/contents/domain/contents-badges'
 import { formatDateShort } from '~/composables/useDateFormat'
 
@@ -129,6 +139,25 @@ const route = useRoute()
 const { pending, notFound, errorMessage, content, load } = createClientContent({
   load: getClientContentBySlug
 })
+
+const {
+  downloading,
+  errorMessage: downloadErrorMessage,
+  download: downloadDocumentBlob
+} = createClientDocumentDownload({
+  fetchDocument: getClientContentDocument,
+  save: saveDocumentBlob
+})
+
+/**
+ * The document route is authenticated by an in-memory Bearer token, so the
+ * button cannot be a link: it fetches the blob and keeps the reader here.
+ */
+async function downloadDocument(): Promise<void> {
+  const current = content.value
+  if (!current?.document) return
+  await downloadDocumentBlob({ slug: current.slug, filename: current.document.filename })
+}
 
 const slug = computed(() => String(route.params.slug))
 

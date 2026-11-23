@@ -41,3 +41,24 @@ export function buildGetClientContentCall(slug: string): GetClientContentCall {
     options: { method: 'GET', withAuth: true }
   }
 }
+
+/**
+ * `GET /content/:slug/document` streams the attached PDF. It is authenticated
+ * like the reading page (`@RequireAuth()`, `@Roles('CLIENT')`), so it is called
+ * through `apiFetch` with the Bearer header — never as a bare `href`.
+ */
+export interface DownloadClientDocumentCall {
+  path: string
+  options: {
+    method: 'GET'
+    withAuth: true
+    responseType: 'blob'
+  }
+}
+
+export function buildDownloadClientDocumentCall(slug: string): DownloadClientDocumentCall {
+  return {
+    path: `/content/${encodeURIComponent(slug)}/document`,
+    options: { method: 'GET', withAuth: true, responseType: 'blob' }
+  }
+}
