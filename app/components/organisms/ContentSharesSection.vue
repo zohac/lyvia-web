@@ -1,6 +1,6 @@
 <template>
   <UCard
-    v-if="visibility === 'private'"
+    v-if="visibility === 'selected'"
     class="bg-[color:var(--color-surface-card)]"
   >
     <template #header>
@@ -187,7 +187,7 @@
 
 <script setup lang="ts">
 import { computed, onUnmounted, watch } from 'vue'
-import type { ContentVisibility } from '../../features/contents/api/contents.contract'
+import type { ContentAudience } from '../../features/contents/api/contents.contract'
 import {
   listContentShares,
   shareContent,
@@ -202,7 +202,7 @@ import AtomsDsErrorState from '../atoms/DsErrorState.vue'
 
 const props = defineProps<{
   contentId: string
-  visibility: ContentVisibility
+  visibility: ContentAudience
 }>()
 
 const toast = useToast()

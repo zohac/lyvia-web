@@ -1,4 +1,4 @@
-import type { ContentStatusFilter, ContentType, ContentVisibility } from '../api/contents.contract'
+import type { ContentAudience, ContentStatusFilter, ContentType } from '../api/contents.contract'
 
 /**
  * Select vocabularies for the provider content screens.
@@ -30,7 +30,15 @@ export const CONTENT_STATUS_FILTER_OPTIONS: ContentSelectOption<ContentStatusFil
   { label: 'Publié', value: 'published' }
 ]
 
-export const CONTENT_VISIBILITY_OPTIONS: ContentSelectOption<ContentVisibility>[] = [
-  { label: 'Public', value: 'public' },
-  { label: 'Privé', value: 'private' }
+export const CONTENT_AUDIENCE_OPTIONS: ContentSelectOption<ContentAudience>[] = [
+  { label: 'Toutes mes clientes', value: 'all' },
+  { label: 'Clientes choisies', value: 'selected' }
+]
+
+export type ContentDiffusionFilter = 'all' | 'audience_all' | 'selected'
+
+export const CONTENT_DIFFUSION_FILTER_OPTIONS: ContentSelectOption<ContentDiffusionFilter>[] = [
+  { label: 'Toutes les diffusions', value: 'all' },
+  { label: 'Toutes mes clientes', value: 'audience_all' },
+  { label: 'Clientes choisies', value: 'selected' }
 ]

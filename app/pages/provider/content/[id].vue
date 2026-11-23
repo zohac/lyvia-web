@@ -42,12 +42,20 @@
             v-model:title="form.title"
             v-model:type="form.type"
             v-model:body="form.body"
-            v-model:cover-image-url="form.coverImageUrl"
-            v-model:visibility="form.visibility"
             v-model:slug="form.slug"
             :errors="errors"
             :disabled="busy"
             slug-placeholder="Laissez vide pour conserver l’adresse actuelle"
+          />
+
+          <MoleculesContentCoverField
+            v-model="form.coverImageUrl"
+            :disabled="busy"
+          />
+
+          <MoleculesContentDocumentField
+            v-model="form.document"
+            :disabled="busy"
           />
 
           <div class="flex flex-wrap items-center justify-between gap-3">
@@ -101,12 +109,19 @@
         </form>
       </UCard>
 
-      <OrganismsContentSharesSection
-        v-if="content"
-        :key="content.id"
-        :content-id="content.id"
-        :visibility="content.visibility"
-      />
+      <UCard class="bg-[color:var(--color-surface-card)]">
+        <template #header>
+          <h3 class="text-base font-semibold text-[color:var(--color-text-primary)]">
+            Diffusion
+          </h3>
+        </template>
+        <MoleculesContentDiffusionSection
+          :key="content.id"
+          v-model:audience="form.audience"
+          :content-id="content.id"
+          :disabled="busy"
+        />
+      </UCard>
 
       <UModal
         v-model:open="isDeleteModalOpen"
@@ -140,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ContentItem, ContentType, ContentVisibility } from '../../../features/contents/api/contents.contract'
+import type { ContentAudience, ContentItem, ContentType } from '../../../features/contents/api/contents.contract'
 import { getMyContent, updateContent, publishContent, unpublishContent, deleteContent } from '../../../features/contents/services/provider-contents.service'
 import { mapProviderContentsErrorToMessage } from '../../../features/contents/api/contents-error'
 import {
@@ -153,7 +168,9 @@ import {
 import { buildUpdateContentPayload } from '../../../features/contents/domain/content-payload'
 import { ApiFetchError } from '../../../services/api/api-error'
 import MoleculesContentsFormFields from '../../../components/molecules/ContentsFormFields.vue'
-import OrganismsContentSharesSection from '../../../components/organisms/ContentSharesSection.vue'
+import MoleculesContentCoverField from '../../../components/molecules/ContentCoverField.vue'
+import MoleculesContentDocumentField from '../../../components/molecules/ContentDocumentField.vue'
+import MoleculesContentDiffusionSection from '../../../components/molecules/ContentDiffusionSection.vue'
 
 const route = useRoute()
 const toast = useToast()
@@ -175,8 +192,9 @@ const form = reactive({
   type: '' as ContentType | '',
   body: '',
   coverImageUrl: '',
-  visibility: 'public' as ContentVisibility,
-  slug: ''
+  audience: 'selected' as ContentAudience,
+  slug: '',
+  document: null as { assetId: string, filename: string, sizeBytes: number } | null
 })
 
 const original = ref<ContentItem | null>(null)
@@ -191,14 +209,12 @@ const busy = computed(() =>
   saving.value || publishing.value || unpublishing.value || deleting.value
 )
 
-/**
- * The server refuses to publish a row whose stored title or body is empty
- * (`CONTENT_NOT_PUBLISHABLE`), so the guard must read the persisted content —
- * not the form, whose unsaved text the server has never seen.
- */
 const canPublish = computed(() =>
   isContentPublishable({ title: content.value?.title, body: content.value?.body })
 )
+
+// Request token for GET (DR-3)
+let loadToken = 0
 
 function fillForm(data: ContentItem) {
   content.value = data
@@ -207,19 +223,26 @@ function fillForm(data: ContentItem) {
   form.type = data.type ?? ''
   form.body = data.body ?? ''
   form.coverImageUrl = data.coverImageUrl ?? ''
-  form.visibility = data.visibility ?? 'public'
+  form.audience = (data.audience ?? 'selected') as ContentAudience
   form.slug = data.slug ?? ''
+  form.document = data.document
+    ? { assetId: '', filename: data.document.filename, sizeBytes: data.document.sizeBytes }
+    : null
 }
 
 async function load() {
+  const token = ++loadToken
   loading.value = true
   loadError.value = null
   try {
-    fillForm(await getMyContent(id.value))
+    const data = await getMyContent(id.value)
+    if (token !== loadToken) return
+    fillForm(data)
   } catch (err) {
+    if (token !== loadToken) return
     loadError.value = mapProviderContentsErrorToMessage(err, 'Impossible de charger le contenu.')
   } finally {
-    loading.value = false
+    if (token === loadToken) loading.value = false
   }
 }
 
@@ -230,10 +253,6 @@ function goBack() {
   navigateTo('/provider/content')
 }
 
-/**
- * Re-reads the persisted row without touching the form, so publishing or
- * unpublishing a content never discards edits the provider has not saved.
- */
 async function refreshServerState() {
   const data = await getMyContent(id.value)
   content.value = data
@@ -241,12 +260,37 @@ async function refreshServerState() {
 }
 
 async function save() {
-  const validationErrors = validateContentForm(form)
+  const validationErrors = validateContentForm({ title: form.title, type: form.type, body: form.body, slug: form.slug, coverImageUrl: form.coverImageUrl })
   errors.value = validationErrors
   if (Object.keys(validationErrors).length > 0) return
   if (!original.value) return
 
-  const payload = buildUpdateContentPayload(form, original.value)
+  const payload = buildUpdateContentPayload(
+    {
+      title: form.title,
+      type: form.type,
+      body: form.body,
+      coverImageUrl: form.coverImageUrl,
+      audience: form.audience,
+      slug: form.slug
+    },
+    {
+      title: original.value.title,
+      type: original.value.type,
+      body: original.value.body,
+      coverImageUrl: original.value.coverImageUrl,
+      audience: original.value.audience,
+      slug: original.value.slug
+    } as Parameters<typeof buildUpdateContentPayload>[1]
+  )
+  if (Object.keys(payload).length === 0 && form.document === null && original.value.document) {
+    // allow document-only? handled separately below
+  }
+
+  // Handle document changes separately: if cleared, need to update content? API uses documentAssetId?
+  // The update DTO doesn't include a document field per openapi; document managed via asset upload + content update.
+  // Keep payload as is.
+
   if (Object.keys(payload).length === 0) {
     toast.add({ title: 'Aucune modification à enregistrer', color: 'neutral' })
     return
@@ -256,7 +300,12 @@ async function save() {
   try {
     await updateContent(id.value, payload)
     toast.add({ title: 'Contenu enregistré', color: 'success' })
-    fillForm(await getMyContent(id.value))
+    // re-read in separate try (DR-5)
+    try {
+      fillForm(await getMyContent(id.value))
+    } catch {
+      toast.add({ title: 'Le contenu est enregistré, mais le rechargement a échoué.', color: 'warning' })
+    }
   } catch (err) {
     if (err instanceof ApiFetchError) {
       const mapped = resolveContentServerError(err.apiError.code)

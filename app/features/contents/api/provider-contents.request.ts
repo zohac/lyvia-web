@@ -67,6 +67,7 @@ function cleanParams(params: ListContentsParams): ListContentsParams {
   const out: ListContentsParams = {}
   if (params.type) out.type = params.type
   if (params.status) out.status = params.status
+  if (params.audience) out.audience = params.audience
   if (params.q) out.q = params.q
   if (typeof params.limit === 'number') out.limit = params.limit
   if (params.cursor) out.cursor = params.cursor

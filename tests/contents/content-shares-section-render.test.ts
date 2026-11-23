@@ -153,20 +153,20 @@ test('a public content renders no sharing card (AC4)', async () => {
   const visited: string[] = []
   // Rendering nothing is the expected outcome here, not a failed setup: the
   // `visited` assertion below proves setup actually ran.
-  const html = await renderSection({ contentId: 'content-1', visibility: 'public' }, {}, visited, true)
+  const html = await renderSection({ contentId: 'content-1', visibility: 'all' }, {}, visited, true)
 
   assert.equal(html.includes('Partage'), false)
   assert.equal(html.includes('Ajouter un client'), false)
   // The mount-time decision is delegated, not taken here: the composable is the
   // one place that decides to load (a public content must issue no request).
-  assert.deepEqual(visited, ['public'])
+  assert.deepEqual(visited, ['all'])
 })
 
 test('a private content renders the empty state, the actions and the bulk scope', async () => {
   const visited: string[] = []
-  const html = await renderSection({ contentId: 'content-1', visibility: 'private' }, {}, visited)
+  const html = await renderSection({ contentId: 'content-1', visibility: 'selected' }, {}, visited)
 
-  assert.deepEqual(visited, ['private'])
+  assert.deepEqual(visited, ['selected'])
   assert.equal(html.includes('Partage'), true)
   assert.equal(html.includes('Aucun partage pour l&#39;instant') || html.includes('Aucun partage pour l\'instant'), true)
   assert.equal(html.includes('Ajouter un client'), true)
@@ -177,7 +177,7 @@ test('a private content renders the empty state, the actions and the bulk scope'
 
 test('a populated list renders each client, its date and a named remove button', async () => {
   const html = await renderSection(
-    { contentId: 'content-1', visibility: 'private' },
+    { contentId: 'content-1', visibility: 'selected' },
     { shared: [{ clientProfileId: 'c1', firstname: 'Alice', lastname: 'Durand', sharedAt: '2026-01-01T00:00:00.000Z' }] }
   )
 
@@ -191,7 +191,7 @@ test('a populated list renders each client, its date and a named remove button',
 
 test('the load error state renders the message it was given', async () => {
   const html = await renderSection(
-    { contentId: 'content-1', visibility: 'private' },
+    { contentId: 'content-1', visibility: 'selected' },
     { error: 'Impossible de charger les partages.' }
   )
 
@@ -201,7 +201,7 @@ test('the load error state renders the message it was given', async () => {
 
 test('the client selector names its search field, disables autocomplete and shows e-mails', async () => {
   const html = await renderSection(
-    { contentId: 'content-1', visibility: 'private' },
+    { contentId: 'content-1', visibility: 'selected' },
     { selectorOpen: true }
   )
 
@@ -213,7 +213,7 @@ test('the client selector names its search field, disables autocomplete and show
 
 test('the roster error state renders inside the selector', async () => {
   const html = await renderSection(
-    { contentId: 'content-1', visibility: 'private' },
+    { contentId: 'content-1', visibility: 'selected' },
     { selectorOpen: true, rosterError: 'Impossible de charger la liste des clientes.' }
   )
 
@@ -228,7 +228,7 @@ test('the selector search field writes through to the debounced search', async (
   let modelHandler: ((value: string) => void) | undefined
 
   await renderSection(
-    { contentId: 'content-1', visibility: 'private' },
+    { contentId: 'content-1', visibility: 'selected' },
     { selectorOpen: true },
     [],
     false,
@@ -252,12 +252,11 @@ test('the section is imported explicitly and keyed by content id in the edit pag
   // tests and the build stay green — the explicit import is the guard. The
   // harness never unmounts, so the `onUnmounted` wiring is read here too.
   const page = fs.readFileSync(path.resolve(process.cwd(), PAGE), 'utf-8')
-  assert.match(page, /import\s+OrganismsContentSharesSection\s+from\s+'[^']*components\/organisms\/ContentSharesSection\.vue'/)
+  assert.match(page, /import\s+MoleculesContentDiffusionSection\s+from\s+'[^']*components\/molecules\/ContentDiffusionSection\.vue'/)
 
-  const tag = page.match(/<OrganismsContentSharesSection[\s\S]*?\/>/)?.[0] ?? ''
-  assert.ok(tag, 'the page must mount OrganismsContentSharesSection')
+  const tag = page.match(/<MoleculesContentDiffusionSection[\s\S]*?\/>/)?.[0] ?? ''
+  assert.ok(tag, 'the page must mount MoleculesContentDiffusionSection')
   assert.ok(tag.includes(':key="content.id"'), 'a route-parameter change must remount the card')
-  assert.ok(tag.includes(':visibility="content.visibility"'), 'the card must follow the persisted visibility')
 
   const component = fs.readFileSync(path.resolve(process.cwd(), COMP), 'utf-8')
   assert.ok(

@@ -11,7 +11,7 @@
 
 export type ContentType = 'article' | 'recette' | 'actualite'
 
-export type ContentVisibility = 'public' | 'private'
+export type ContentAudience = 'all' | 'selected'
 
 export type ContentStatusFilter = 'published' | 'draft' | 'all'
 
@@ -23,7 +23,8 @@ export type ContentItem = {
   slug: string
   body: string | null
   coverImageUrl: string | null
-  visibility: ContentVisibility
+  audience: ContentAudience | null
+  document: { filename: string, sizeBytes: number } | null
   isPublished: boolean
   publishedAt: string | null
   createdAt: string
@@ -33,6 +34,7 @@ export type ContentItem = {
 export type ListContentsParams = {
   type?: ContentType
   status?: ContentStatusFilter
+  audience?: ContentAudience
   q?: string
   limit?: number
   cursor?: string
@@ -49,7 +51,7 @@ export type CreateContentRequest = {
   slug?: string
   body?: string | null
   coverImageUrl?: string | null
-  visibility?: ContentVisibility
+  audience?: ContentAudience
 }
 
 export type CreateContentResponse = {
@@ -63,7 +65,7 @@ export type UpdateContentRequest = {
   slug?: string
   body?: string | null
   coverImageUrl?: string | null
-  visibility?: ContentVisibility
+  audience?: ContentAudience
 }
 
 export type UpdateContentResponse = {

@@ -75,6 +75,12 @@
           aria-label="Filtrer par statut"
           class="w-full sm:w-48"
         />
+        <USelect
+          v-model="audienceFilter"
+          :items="CONTENT_DIFFUSION_FILTER_OPTIONS"
+          aria-label="Filtrer par diffusion"
+          class="w-full sm:w-48"
+        />
         <UInput
           v-model="searchQuery"
           placeholder="Rechercher par titre..."
@@ -158,11 +164,11 @@
                     {{ getStatusBadge(item.isPublished).label }}
                   </UBadge>
                   <UBadge
-                    :color="getVisibilityBadge(item.visibility).color"
+                    :color="getDiffusionBadge(item.audience ?? 'selected').color"
                     variant="soft"
                     size="xs"
                   >
-                    {{ getVisibilityBadge(item.visibility).label }}
+                    {{ getDiffusionBadge(item.audience ?? 'selected').label }}
                   </UBadge>
                 </div>
                 <p class="mt-1 text-xs text-[color:var(--color-text-muted)]">
@@ -207,8 +213,8 @@
 
 <script setup lang="ts">
 import { useProviderContents } from '../../../features/contents/useProviderContents'
-import { getStatusBadge, getVisibilityBadge, getTypeBadge } from '../../../features/contents/domain/contents-badges'
-import { CONTENT_STATUS_FILTER_OPTIONS, CONTENT_TYPE_FILTER_OPTIONS } from '../../../features/contents/domain/content-options'
+import { getStatusBadge, getDiffusionBadge, getTypeBadge } from '../../../features/contents/domain/contents-badges'
+import { CONTENT_STATUS_FILTER_OPTIONS, CONTENT_TYPE_FILTER_OPTIONS, CONTENT_DIFFUSION_FILTER_OPTIONS } from '../../../features/contents/domain/content-options'
 import { formatDateTime } from '~/composables/useDateFormat'
 
 definePageMeta({
@@ -225,6 +231,7 @@ const {
   searchQuery,
   typeFilter,
   statusFilter,
+  audienceFilter,
   refresh,
   loadMore,
   loadMorePending,
@@ -235,6 +242,7 @@ const hasActiveFilters = computed(() =>
   searchQuery.value.trim().length > 0
   || typeFilter.value !== 'all'
   || statusFilter.value !== 'all'
+  || audienceFilter.value !== 'all'
 )
 
 const emptyTitle = computed(() => (hasActiveFilters.value ? 'Aucun résultat' : 'Aucun contenu'))
@@ -249,5 +257,6 @@ function resetFilters() {
   searchQuery.value = ''
   typeFilter.value = 'all'
   statusFilter.value = 'all'
+  audienceFilter.value = 'all'
 }
 </script>

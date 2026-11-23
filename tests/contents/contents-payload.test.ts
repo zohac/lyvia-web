@@ -22,16 +22,16 @@ const original: ContentOriginal = {
   slug: 'titre-existant',
   body: 'Corps existant',
   coverImageUrl: 'https://example.com/cover.jpg',
-  visibility: 'public'
+  audience: 'all'
 }
 
-function form(overrides: Partial<Record<'title' | 'type' | 'body' | 'coverImageUrl' | 'visibility' | 'slug', unknown>> = {}) {
+function form(overrides: Partial<Record<'title' | 'type' | 'body' | 'coverImageUrl' | 'audience' | 'slug', unknown>> = {}) {
   return {
     title: original.title,
     type: original.type,
     body: original.body,
     coverImageUrl: original.coverImageUrl,
-    visibility: original.visibility,
+    audience: original.audience,
     slug: original.slug,
     ...overrides
   } as Parameters<typeof buildUpdateContentPayload>[0]
@@ -44,14 +44,14 @@ describe('buildCreateContentPayload', () => {
       type: 'recette',
       body: '  Un corps  ',
       coverImageUrl: ' https://example.com/a.jpg ',
-      visibility: 'private',
+      audience: 'selected',
       slug: 'mon-article'
     })
 
     assert.deepEqual(payload, {
       title: 'Mon article',
       type: 'recette',
-      visibility: 'private',
+      audience: 'selected',
       body: 'Un corps',
       slug: 'mon-article',
       coverImageUrl: 'https://example.com/a.jpg'
@@ -64,19 +64,19 @@ describe('buildCreateContentPayload', () => {
       type: 'article',
       body: '   ',
       coverImageUrl: '',
-      visibility: 'public',
+      audience: 'all',
       slug: '  '
     })
 
-    assert.deepEqual(payload, { title: 'Titre', type: 'article', visibility: 'public' })
+    assert.deepEqual(payload, { title: 'Titre', type: 'article', audience: 'all' })
     assert.equal('body' in payload, false)
     assert.equal('slug' in payload, false)
     assert.equal('coverImageUrl' in payload, false)
   })
 
-  test('defaults the visibility to public when the form does not carry it', () => {
+  test('defaults the audience to selected when the form does not carry it', () => {
     const payload = buildCreateContentPayload({ title: 'Titre', type: 'article' })
-    assert.equal(payload.visibility, 'public')
+    assert.equal(payload.audience, 'selected')
   })
 })
 
@@ -103,8 +103,8 @@ describe('buildUpdateContentPayload', () => {
       { coverImageUrl: 'https://example.com/b.jpg' }
     )
     assert.deepEqual(
-      buildUpdateContentPayload(form({ visibility: 'private' }), original),
-      { visibility: 'private' }
+      buildUpdateContentPayload(form({ audience: 'selected' }), original),
+      { audience: 'selected' }
     )
     assert.deepEqual(
       buildUpdateContentPayload(form({ slug: 'nouvelle-adresse' }), original),

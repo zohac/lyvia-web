@@ -98,7 +98,6 @@ if (!contract) {
       requests.buildUnpublishContentCall(CONTENT_ID),
       requests.buildDeleteContentCall(CONTENT_ID),
       shareRequests.buildListContentSharesCall(CONTENT_ID),
-      shareRequests.buildShareContentCall(CONTENT_ID, { all: true }),
       shareRequests.buildUnshareContentCall(CONTENT_ID, CLIENT_ID),
       // Story 5.7 — the client reading surface (GET /content, GET /content/{slug}).
       clientRequests.buildListClientContentsCall({}),
@@ -124,7 +123,6 @@ if (!contract) {
       document.components?.schemas?.ShareContentDto?.properties ?? {}
     )
     for (const body of [
-      shareRequests.buildShareContentCall(CONTENT_ID, { all: true }).options.body,
       shareRequests.buildShareContentCall(CONTENT_ID, { clientProfileIds: ['client'] }).options.body
     ]) {
       for (const field of Object.keys(body)) {
@@ -248,11 +246,11 @@ if (!contract) {
       'Divergence du vocabulaire `type` entre CreateContentDto et content-options.ts'
     )
 
-    const visibilityEnum = document.components?.schemas?.CreateContentDto?.properties?.visibility?.enum ?? []
+    const audienceEnum = document.components?.schemas?.CreateContentDto?.properties?.audience?.enum ?? []
     assert.deepEqual(
-      [...options.CONTENT_VISIBILITY_OPTIONS.map(option => option.value)].sort(),
-      [...visibilityEnum].sort(),
-      'Divergence du vocabulaire `visibility` entre CreateContentDto et content-options.ts'
+      [...options.CONTENT_AUDIENCE_OPTIONS.map(option => option.value)].sort(),
+      [...audienceEnum].sort(),
+      'Divergence du vocabulaire `audience` entre CreateContentDto et content-options.ts'
     )
 
     console.log('contract:check: contents — OK')

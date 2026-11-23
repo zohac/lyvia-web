@@ -127,19 +127,19 @@ test('applyVisibility loads once for private and re-fetches after a public spell
     }
   })
 
-  await cs.applyVisibility('public')
+  await cs.applyVisibility('all')
   assert.equal(listCalls, 0, 'a public content must not request its shares')
 
-  await cs.applyVisibility('private')
+  await cs.applyVisibility('selected')
   assert.equal(listCalls, 1)
 
-  await cs.applyVisibility('private')
+  await cs.applyVisibility('selected')
   assert.equal(listCalls, 1, 'a repeated private must not issue a second request')
 
-  await cs.applyVisibility('public')
+  await cs.applyVisibility('all')
   assert.equal(listCalls, 1)
 
-  await cs.applyVisibility('private')
+  await cs.applyVisibility('selected')
   assert.equal(listCalls, 2, 'coming back from public must re-fetch, not show a stale list')
 })
 

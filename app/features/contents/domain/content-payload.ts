@@ -1,6 +1,6 @@
 import type {
   ContentType,
-  ContentVisibility,
+  ContentAudience,
   CreateContentRequest,
   UpdateContentRequest
 } from '../api/contents.contract'
@@ -26,7 +26,7 @@ export interface ContentOriginal {
   slug: string
   body: string | null
   coverImageUrl: string | null
-  visibility: ContentVisibility
+  audience: ContentAudience | null
 }
 
 function trimmed(value: string | null | undefined): string {
@@ -38,7 +38,7 @@ export function buildCreateContentPayload(input: ContentFormInput): CreateConten
     // `validateContentForm` has already refused an empty title or type.
     title: trimmed(input.title),
     type: input.type as ContentType,
-    visibility: input.visibility ?? 'public'
+    audience: input.audience ?? 'selected'
   }
 
   const body = trimmed(input.body)
@@ -79,8 +79,8 @@ export function buildUpdateContentPayload(
     payload.coverImageUrl = coverImageUrl.length > 0 ? coverImageUrl : null
   }
 
-  if (input.visibility && input.visibility !== original.visibility) {
-    payload.visibility = input.visibility
+  if (input.audience && input.audience !== original.audience) {
+    payload.audience = input.audience
   }
 
   // The server has no "clear the slug" operation: `slug` is `@Matches` and an

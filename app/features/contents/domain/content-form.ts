@@ -1,4 +1,4 @@
-import type { ContentType, ContentVisibility } from '../api/contents.contract'
+import type { ContentAudience, ContentType } from '../api/contents.contract'
 
 export const MAX_CONTENT_TITLE_LENGTH = 200
 
@@ -13,6 +13,7 @@ export const CONTENT_VALIDATION_ERROR_MESSAGE = 'Certains champs sont invalides.
 export const CONTENT_NOT_FOUND_MESSAGE = 'Ce contenu est introuvable.'
 export const CONTENT_FORBIDDEN_MESSAGE = 'Accès refusé.'
 export const CONTENT_COVER_IMAGE_INVALID_MESSAGE = 'URL d’image invalide. Utilisez une adresse http(s).'
+export const CONTENT_SLUG_UNRESOLVABLE_MESSAGE = 'Impossible de générer une adresse à partir de ce titre.'
 
 /**
  * Mirrors the server slugs (`lyvia-api/src/features/contents/domain/content-slug.ts`
@@ -28,7 +29,7 @@ export interface ContentFormInput {
   slug?: string
   body?: string | null
   coverImageUrl?: string | null
-  visibility?: ContentVisibility
+  audience?: ContentAudience
 }
 
 export interface ContentFormErrors {
@@ -104,6 +105,8 @@ export function resolveContentServerError(code: string | null | undefined): {
       return { field: null, message: CONTENT_NOT_FOUND_MESSAGE }
     case 'FORBIDDEN':
       return { field: null, message: CONTENT_FORBIDDEN_MESSAGE }
+    case 'CONTENT_SLUG_UNRESOLVABLE':
+      return { field: null, message: CONTENT_SLUG_UNRESOLVABLE_MESSAGE }
     default:
       return { field: null, message: CONTENT_GENERIC_ERROR_MESSAGE }
   }

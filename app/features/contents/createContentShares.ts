@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import type {
   ContentShareItem,
-  ContentVisibility,
+  ContentAudience,
   ListContentSharesResponse,
   ShareContentRequest,
   ShareContentResponse
@@ -77,7 +77,7 @@ export function createContentShares(
   const rosterLoadId = ref(0)
 
   let sharesLoadId = 0
-  let lastVisibility: ContentVisibility | null = null
+  let lastVisibility: ContentAudience | null = null
 
   let searchTimeout: ReturnType<typeof setTimeout> | null = null
   function clearSearchTimeout() {
@@ -114,11 +114,11 @@ export function createContentShares(
    * after a public spell re-fetches instead of showing the list of a bygone
    * state, and a repeated `private` does not issue a second request.
    */
-  async function applyVisibility(visibility: ContentVisibility) {
+  async function applyVisibility(visibility: ContentAudience) {
     const previous = lastVisibility
     lastVisibility = visibility
-    if (visibility !== 'private') return
-    if (previous === 'private') return
+    if (visibility !== 'selected') return
+    if (previous === 'selected') return
     await loadShares()
   }
 

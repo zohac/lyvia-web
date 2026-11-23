@@ -34,12 +34,43 @@
           v-model:title="form.title"
           v-model:type="form.type"
           v-model:body="form.body"
-          v-model:cover-image-url="form.coverImageUrl"
-          v-model:visibility="form.visibility"
           v-model:slug="form.slug"
           :errors="errors"
           :disabled="saving"
         />
+
+        <MoleculesContentCoverField
+          v-model="form.coverImageUrl"
+          :disabled="saving"
+        />
+
+        <div class="space-y-2">
+          <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
+            Diffusion
+          </p>
+          <div class="flex gap-2">
+            <UButton
+              size="sm"
+              :variant="form.audience === 'all' ? 'solid' : 'soft'"
+              color="primary"
+              type="button"
+              :disabled="saving"
+              @click="form.audience = 'all'"
+            >
+              Partagé avec toutes vos clientes
+            </UButton>
+            <UButton
+              size="sm"
+              :variant="form.audience === 'selected' ? 'solid' : 'soft'"
+              color="neutral"
+              type="button"
+              :disabled="saving"
+              @click="form.audience = 'selected'"
+            >
+              Clientes choisies
+            </UButton>
+          </div>
+        </div>
 
         <div class="flex justify-end gap-3">
           <UButton
@@ -65,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ContentType, ContentVisibility } from '../../../features/contents/api/contents.contract'
+import type { ContentAudience, ContentType } from '../../../features/contents/api/contents.contract'
 import { createContent } from '../../../features/contents/services/provider-contents.service'
 import {
   CONTENT_GENERIC_ERROR_MESSAGE,
@@ -76,6 +107,7 @@ import {
 import { buildCreateContentPayload } from '../../../features/contents/domain/content-payload'
 import { ApiFetchError } from '../../../services/api/api-error'
 import MoleculesContentsFormFields from '../../../components/molecules/ContentsFormFields.vue'
+import MoleculesContentCoverField from '../../../components/molecules/ContentCoverField.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -89,7 +121,7 @@ const form = reactive({
   type: '' as ContentType | '',
   body: '',
   coverImageUrl: '',
-  visibility: 'public' as ContentVisibility,
+  audience: 'selected' as ContentAudience,
   slug: ''
 })
 
@@ -102,7 +134,7 @@ function cancel() {
 }
 
 async function submit() {
-  const validationErrors = validateContentForm(form)
+  const validationErrors = validateContentForm({ ...form, coverImageUrl: form.coverImageUrl })
   errors.value = validationErrors
   if (Object.keys(validationErrors).length > 0) return
 

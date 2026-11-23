@@ -15,10 +15,17 @@ export function getStatusBadge(isPublished: boolean): ContentStatusBadge {
     : { color: 'neutral', label: 'Brouillon' }
 }
 
+export type ContentDiffusionBadge = { color: ContentBadgeColor, label: string }
+
+export function getDiffusionBadge(audience: string): ContentDiffusionBadge {
+  return audience === 'all'
+    ? { color: 'info', label: 'Toutes mes clientes' }
+    : { color: 'warning', label: 'Clientes choisies' }
+}
+
 export function getVisibilityBadge(visibility: string): ContentVisibilityBadge {
-  return visibility === 'public'
-    ? { color: 'info', label: 'Public' }
-    : { color: 'warning', label: 'Privé' }
+  // Backwards-compatible alias kept so older callers/tests do not break.
+  return getDiffusionBadge(visibility === 'public' ? 'all' : 'selected')
 }
 
 export function getTypeBadge(type: string): ContentTypeBadge {
