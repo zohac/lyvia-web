@@ -12,6 +12,13 @@
 /** Covers of platform articles are uploaded by an ADMIN, never a provider. */
 export const ADMIN_CONTENT_UPLOAD_ENDPOINT = '/admin/assets/upload'
 
+/**
+ * Fixed on both sides: `CreatePlatformContentDto.type` is `@IsIn(['article'])`.
+ * Lives here (next to the type it pins) so the contract check can read it from
+ * a module without runtime imports and compare it to `openapi.yaml`.
+ */
+export const ADMIN_CONTENT_TYPE: AdminContentType = 'article'
+
 /** The only type accepted by `CreatePlatformContentDto`/`UpdatePlatformContentDto`. */
 export type AdminContentType = 'article'
 

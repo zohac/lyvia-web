@@ -343,6 +343,80 @@ if (!contract) {
       )
     }
 
+    // 5. Story diffusion-10 — the admin article surface calls /admin/content.
+    //    Those routes were not crossed by anything before, so a renamed admin
+    //    route or a field dropped from Create/UpdatePlatformContentDto would
+    //    ship silently (the web contract only sees its own mirror file).
+    //    Only modules without runtime relative imports are imported here: the
+    //    loader below cannot resolve `./content-form`, so the payloads are the
+    //    exact literal bodies the admin form builders produce for those fields.
+    const adminRequests = await importTsModule('app/features/contents/api/admin-contents.request.ts')
+    const adminContract = await importTsModule('app/features/contents/api/admin-contents.contract.ts')
+
+    const adminCreateBody = { title: 't', type: adminContract.ADMIN_CONTENT_TYPE, body: 'b' }
+    const adminUpdateBody = {
+      title: 't',
+      body: 'b',
+      coverImageUrl: 'https://cdn.example/cover.webp'
+    }
+
+    const adminCalls = [
+      adminRequests.buildListAdminContentsCall({}),
+      adminRequests.buildGetAdminContentCall(CONTENT_ID),
+      adminRequests.buildCreateAdminContentCall(adminCreateBody),
+      adminRequests.buildUpdateAdminContentCall(CONTENT_ID, adminUpdateBody),
+      adminRequests.buildPublishAdminContentCall(CONTENT_ID),
+      adminRequests.buildUnpublishAdminContentCall(CONTENT_ID),
+      adminRequests.buildDeleteAdminContentCall(CONTENT_ID)
+    ]
+
+    for (const call of adminCalls) {
+      const openApiPath = toOpenApiPath(call.path)
+      const pathItem = paths[openApiPath]
+      const verb = call.options.method.toLowerCase()
+
+      assert.ok(pathItem, `Le web admin appelle ${call.path}, absent d'openapi.yaml`)
+      assert.ok(
+        pathItem[verb],
+        `Le web admin appelle ${verb.toUpperCase()} ${call.path}, absent d'openapi.yaml`
+      )
+    }
+
+    const adminWriteBodies = [
+      ['POST /admin/content', '/admin/content', 'post', adminCreateBody],
+      ['PATCH /admin/content/{id}', '/admin/content/{id}', 'patch', adminUpdateBody]
+    ]
+
+    for (const [label, route, method, body] of adminWriteBodies) {
+      const { name, schema } = requestSchema(route, method, label)
+      const properties = schema.properties ?? {}
+      for (const field of Object.keys(body)) {
+        assert.ok(
+          Object.prototype.hasOwnProperty.call(properties, field),
+          `${label} : le web admin envoie \`${field}\`, absent de ${name}`
+        )
+      }
+    }
+
+    // The type is fixed to `article` on the admin screens; the server rejects
+    // anything else, so the two vocabularies must agree exactly.
+    const adminTypeEnum
+      = document.components?.schemas?.CreatePlatformContentDto?.properties?.type?.enum ?? []
+    assert.deepEqual(
+      [adminContract.ADMIN_CONTENT_TYPE],
+      [...adminTypeEnum],
+      'Divergence du type admin entre admin-contents.contract.ts et CreatePlatformContentDto'
+    )
+
+    const adminStatusParameters = paths['/admin/content']?.get?.parameters ?? []
+    const adminStatusEnum
+      = adminStatusParameters.find(entry => entry.name === 'status')?.schema?.enum ?? []
+    assert.deepEqual(
+      ['all', 'draft', 'published'],
+      [...adminStatusEnum].sort(),
+      'Divergence du filtre `status` admin entre les pastilles et GET /admin/content'
+    )
+
     console.log('contract:check: contents — OK')
   } catch (error) {
     console.error(`contract:check: contents — ${error instanceof Error ? error.message : String(error)}`)

@@ -1,7 +1,7 @@
-import type {
-  AdminContentType,
-  CreateAdminContentRequest,
-  UpdateAdminContentRequest
+import {
+  ADMIN_CONTENT_TYPE,
+  type CreateAdminContentRequest,
+  type UpdateAdminContentRequest
 } from '../api/admin-contents.contract'
 import {
   resolveContentServerError,
@@ -18,8 +18,7 @@ import {
  * an inline list a reviewer can only read.
  */
 
-/** Fixed on both sides: `CreatePlatformContentDto.type` is `@IsIn(['article'])`. */
-export const ADMIN_CONTENT_TYPE: AdminContentType = 'article'
+export { ADMIN_CONTENT_TYPE }
 
 /** Exact wording required by interfaces.md §4 and the story's intent contract. */
 export const ADMIN_CONTENT_PUBLISHED_LABEL
