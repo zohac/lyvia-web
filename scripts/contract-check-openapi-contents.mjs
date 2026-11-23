@@ -180,7 +180,9 @@ if (!contract) {
       'coverImageUrl',
       'publishedAt',
       'providerName',
-      'providerSlug'
+      'providerSlug',
+      'source',
+      'document'
     ]) {
       assert.ok(
         clientListItemProperties.includes(field),
@@ -200,7 +202,9 @@ if (!contract) {
       'coverImageUrl',
       'publishedAt',
       'providerName',
-      'providerSlug'
+      'providerSlug',
+      'source',
+      'document'
     ]) {
       assert.ok(
         clientDetailProperties.includes(field),

@@ -162,6 +162,8 @@ function item(overrides: Partial<ClientContentListItem> = {}): ClientContentList
     publishedAt: '2026-02-05T10:00:00.000Z',
     providerName: 'Sophie Jouan',
     providerSlug: 'sophie-jouan',
+    source: 'provider',
+    document: null,
     ...overrides
   }
 }

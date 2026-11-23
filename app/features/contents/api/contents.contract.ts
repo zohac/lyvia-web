@@ -126,6 +126,8 @@ export type UnshareContentResponse = {
 // and `scripts/contract-check-openapi-contents.mjs` fails when the two drift.
 // ============================================================================
 
+export type ContentSource = 'keova' | 'provider'
+
 export type ClientContentListItem = {
   id: string
   title: string
@@ -133,8 +135,10 @@ export type ClientContentListItem = {
   slug: string
   coverImageUrl: string | null
   publishedAt: string | null
-  providerName: string
+  providerName: string | null
   providerSlug: string | null
+  source: ContentSource
+  document: { filename: string, sizeBytes: number } | null
 }
 
 export type ClientContentDetail = {
@@ -145,8 +149,10 @@ export type ClientContentDetail = {
   body: string | null
   coverImageUrl: string | null
   publishedAt: string | null
-  providerName: string
+  providerName: string | null
   providerSlug: string | null
+  source: ContentSource
+  document: { filename: string, sizeBytes: number } | null
 }
 
 export type ListClientContentsParams = {

@@ -76,18 +76,29 @@
           {{ content.title }}
         </h1>
         <p class="text-sm text-[color:var(--color-text-muted)]">
-          Par {{ content.providerName }}
+          Par {{ content.source === 'keova' ? 'Keova' : (content.providerName ?? 'Keova') }}
           <template v-if="content.publishedAt">
             · {{ formatDate(content.publishedAt) }}
           </template>
         </p>
+        <UButton
+          v-if="content.document"
+          color="primary"
+          variant="soft"
+          size="sm"
+          :href="`/api/content/${encodeURIComponent(content.slug)}/document`"
+          leading-icon="i-lucide-download"
+          class="mt-2"
+        >
+          Télécharger le document
+        </UButton>
       </header>
 
       <div
         class="prose prose-stone max-w-none whitespace-pre-line text-[color:var(--color-text-primary)]"
       >
         <template v-if="content.body">
-          {{ content.body }}
+          <AtomsContentBody :text="content.body" />
         </template>
         <p
           v-else
@@ -101,6 +112,7 @@
 </template>
 
 <script setup lang="ts">
+import AtomsContentBody from '../../../components/atoms/ContentBody.vue'
 import { createClientContent } from '../../../features/contents/createClientContent'
 import { getClientContentBySlug } from '../../../features/contents/services/client-contents.service'
 import { getTypeBadge } from '../../../features/contents/domain/contents-badges'

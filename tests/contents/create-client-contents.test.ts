@@ -14,7 +14,9 @@ function makeItem(id: string): ClientContentListItem {
     coverImageUrl: null,
     publishedAt: null,
     providerName: 'Sophie',
-    providerSlug: 'sophie'
+    providerSlug: 'sophie',
+    source: 'provider',
+    document: null
   }
 }
 
