@@ -73,6 +73,13 @@ export function createProviderContentEditor(deps: CreateProviderContentEditorDep
   const unpublishing = ref(false)
   const deleting = ref(false)
   const audienceSaving = ref(false)
+  /**
+   * True while the document field uploads a PDF. The save button is disabled
+   * and `save()` refuses during that window: the asset id only reaches the form
+   * when the upload answers, so a PATCH sent meanwhile would persist the row
+   * *without* the document the provider just chose (AC2).
+   */
+  const documentUploading = ref(false)
 
   const form = reactive({
     title: '',
@@ -84,7 +91,19 @@ export function createProviderContentEditor(deps: CreateProviderContentEditorDep
     document: null as ContentEditorDocument | null
   })
 
-  const busy = computed(() => saving.value || publishing.value || unpublishing.value || deleting.value || audienceSaving.value)
+  const busy = computed(() =>
+    saving.value
+    || publishing.value
+    || unpublishing.value
+    || deleting.value
+    || audienceSaving.value
+    || documentUploading.value
+  )
+
+  /** Bound to the document field's `uploading` event by the page. */
+  function setDocumentUploading(value: boolean): void {
+    documentUploading.value = value
+  }
 
   /**
    * The audience as the server stores it. The checklist may only be rendered in
@@ -182,6 +201,11 @@ export function createProviderContentEditor(deps: CreateProviderContentEditorDep
   }
 
   async function save(): Promise<void> {
+    // One PATCH at a time, and never while the document field is still
+    // uploading: the asset id is not in the form yet, so the document would be
+    // saved as detached. `busy` also covers publish/unpublish/delete.
+    if (busy.value) return
+
     const validationErrors = validateContentForm(form)
     errors.value = validationErrors
     if (Object.keys(validationErrors).length > 0) return
@@ -301,6 +325,8 @@ export function createProviderContentEditor(deps: CreateProviderContentEditorDep
     unpublishing,
     deleting,
     audienceSaving,
+    documentUploading,
+    setDocumentUploading,
     busy,
     canPublish,
     persistedAudience,

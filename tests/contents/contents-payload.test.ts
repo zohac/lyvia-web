@@ -25,7 +25,7 @@ const original: ContentOriginal = {
   audience: 'all'
 }
 
-function form(overrides: Partial<Record<'title' | 'type' | 'body' | 'coverImageUrl' | 'audience' | 'slug', unknown>> = {}) {
+function form(overrides: Partial<Record<'title' | 'type' | 'body' | 'coverImageUrl' | 'audience' | 'slug' | 'document' | 'documentAssetId', unknown>> = {}) {
   return {
     title: original.title,
     type: original.type,
@@ -78,6 +78,44 @@ describe('buildCreateContentPayload', () => {
   test('defaults the audience to selected when the form does not carry it', () => {
     const payload = buildCreateContentPayload({ title: 'Titre', type: 'article' })
     assert.equal(payload.audience, 'selected')
+  })
+
+  test('carries the asset id of an uploaded document (AC1, AC2)', () => {
+    const payload = buildCreateContentPayload({
+      title: 'Titre',
+      type: 'article',
+      document: { assetId: 'asset-doc-1', filename: 'programme.pdf', sizeBytes: 2048 }
+    })
+
+    assert.equal(payload.documentAssetId, 'asset-doc-1')
+  })
+
+  test('always carries documentAssetId, null when no document is attached (AC1)', () => {
+    // "null quand aucun document n'est joint, jamais undefined": the server DTO
+    // accepts `null` and rejects an unknown value, so the field is *present* on
+    // every create, including a document the user removed before saving.
+    const inputs = [
+      { title: 'Titre', type: 'article' as const },
+      { title: 'Titre', type: 'article' as const, document: null },
+      { title: 'Titre', type: 'article' as const, document: { assetId: '' } }
+    ]
+
+    for (const input of inputs) {
+      const payload = buildCreateContentPayload(input)
+      assert.equal('documentAssetId' in payload, true, 'the field must never be dropped')
+      assert.equal(payload.documentAssetId, null)
+    }
+  })
+
+  test('an explicit documentAssetId wins over the form document', () => {
+    const payload = buildCreateContentPayload({
+      title: 'Titre',
+      type: 'article',
+      document: { assetId: 'asset-from-form' },
+      documentAssetId: 'asset-explicit'
+    })
+
+    assert.equal(payload.documentAssetId, 'asset-explicit')
   })
 })
 
@@ -137,6 +175,86 @@ describe('buildUpdateContentPayload', () => {
 
   test('ignores a whitespace-only change that trims to the same value', () => {
     assert.deepEqual(buildUpdateContentPayload(form({ title: 'Titre existant  ' }), original), {})
+  })
+})
+
+describe('buildUpdateContentPayload — document attach/detach (AC1–AC3)', () => {
+  const originalWithDocument: ContentOriginal = {
+    ...original,
+    document: { filename: 'programme.pdf', sizeBytes: 2048 }
+  }
+
+  /** What `fillForm` puts in the form for a server document (no local asset id). */
+  const untouchedDocument = { assetId: '', filename: 'programme.pdf', sizeBytes: 2048 }
+
+  test('sends nothing when an existing document is left untouched', () => {
+    // The server document has no local asset id (`assetId: ''`), and resending
+    // it would post an empty string the API rejects as a malformed UUID.
+    assert.deepEqual(
+      buildUpdateContentPayload(form({ document: untouchedDocument }), originalWithDocument),
+      {}
+    )
+  })
+
+  test('detaches with an explicit null (AC3)', () => {
+    const payload = buildUpdateContentPayload(form({ document: null }), originalWithDocument)
+
+    assert.deepEqual(payload, { documentAssetId: null })
+    assert.equal(payload.documentAssetId, null)
+  })
+
+  test('detaching a content that never had a document sends nothing', () => {
+    assert.deepEqual(buildUpdateContentPayload(form({ document: null }), original), {})
+  })
+
+  test('attaches a freshly uploaded asset (AC2)', () => {
+    assert.deepEqual(
+      buildUpdateContentPayload(form({ document: { assetId: 'asset-doc-2' } }), original),
+      { documentAssetId: 'asset-doc-2' }
+    )
+  })
+
+  test('replaces an existing document with the new asset', () => {
+    assert.deepEqual(
+      buildUpdateContentPayload(
+        form({ document: { assetId: 'asset-doc-3' } }),
+        originalWithDocument
+      ),
+      { documentAssetId: 'asset-doc-3' }
+    )
+  })
+
+  test('removing then attaching sends the new asset, never the removed one', () => {
+    // "Retirer" then "Joindre" on the same form visit: the payload must carry
+    // only the replacement, not the asset that was dropped.
+    const detached = buildUpdateContentPayload(form({ document: null }), originalWithDocument)
+    assert.deepEqual(detached, { documentAssetId: null })
+
+    const reattached = buildUpdateContentPayload(
+      form({ document: { assetId: 'asset-doc-4' } }),
+      originalWithDocument
+    )
+    assert.deepEqual(reattached, { documentAssetId: 'asset-doc-4' })
+  })
+
+  test('an explicit documentAssetId wins over the form document', () => {
+    assert.deepEqual(
+      buildUpdateContentPayload(
+        form({ document: { assetId: 'asset-from-form' }, documentAssetId: null }),
+        originalWithDocument
+      ),
+      { documentAssetId: null }
+    )
+  })
+
+  test('never emits an empty string: the DTO expects a UUID or null', () => {
+    const payload = buildUpdateContentPayload(
+      form({ document: { assetId: '   ' } }),
+      originalWithDocument
+    )
+
+    assert.deepEqual(payload, {})
+    assert.equal('documentAssetId' in payload, false)
   })
 })
 

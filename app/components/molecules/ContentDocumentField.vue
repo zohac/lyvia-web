@@ -89,6 +89,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: { assetId: string, filename: string, sizeBytes: number } | null]
+  /**
+   * Announced so the page can refuse to save while the PDF is still uploading:
+   * the asset id only reaches the form once the upload answers, and a save
+   * meanwhile would persist the content without the document the provider chose.
+   */
+  'uploading': [value: boolean]
 }>()
 
 const inputRef = ref<HTMLInputElement | null>(null)
@@ -134,6 +140,7 @@ async function onFileSelected(event: Event) {
   }
 
   uploading.value = true
+  emit('uploading', true)
   try {
     const result = await uploadAsset('content_document', file)
     if (token !== uploadToken) return
@@ -147,7 +154,10 @@ async function onFileSelected(event: Event) {
     // One mapper, reading the API code first (`formatUploadError`).
     error.value = formatUploadError(e, 'content_document')
   } finally {
-    if (token === uploadToken) uploading.value = false
+    if (token === uploadToken) {
+      uploading.value = false
+      emit('uploading', false)
+    }
   }
 }
 

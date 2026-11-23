@@ -91,6 +91,25 @@ describe('resolveContentServerError', () => {
     })
   })
 
+  test('maps the three document refusals of diffusion-12 to French sentences (AC5)', () => {
+    const documentCodes: Array<[string, string]> = [
+      ['CONTENT_DOCUMENT_NOT_FOUND', 'Ce document est introuvable.'],
+      ['CONTENT_DOCUMENT_INVALID_TYPE', 'Seuls les PDF sont acceptés.'],
+      ['CONTENT_DOCUMENT_ALREADY_ATTACHED', 'Ce document est déjà rattaché à un autre contenu.']
+    ]
+
+    for (const [code, message] of documentCodes) {
+      const mapped = resolveContentServerError(code)
+      assert.equal(mapped.message, message, `${code} must name its own French sentence`)
+      assert.notEqual(
+        mapped.message,
+        'Impossible d’enregistrer le contenu. Veuillez réessayer.',
+        `${code} must not fall back to the generic message`
+      )
+      assert.equal(mapped.field, null, `${code} is not attributable to a form field`)
+    }
+  })
+
   test('falls back to a French generic message for an unknown code', () => {
     assert.deepEqual(resolveContentServerError('SOMETHING_NEW'), {
       field: null,

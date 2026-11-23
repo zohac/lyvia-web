@@ -47,6 +47,7 @@
         <MoleculesContentDocumentField
           v-model="form.document"
           :disabled="saving"
+          @uploading="documentUploading = $event"
         />
 
         <div class="space-y-2">
@@ -91,6 +92,7 @@
             color="primary"
             type="submit"
             :loading="saving"
+            :disabled="saving || documentUploading"
           >
             Créer (brouillon)
           </UButton>
@@ -135,12 +137,16 @@ const form = reactive({
 const errors = ref<ContentFormErrors>({})
 const saving = ref(false)
 const errorMessage = ref<string | null>(null)
+/** A PDF is still uploading: its asset id is not in the form yet. */
+const documentUploading = ref(false)
 
 function cancel() {
   navigateTo('/provider/content')
 }
 
 async function submit() {
+  if (saving.value || documentUploading.value) return
+
   const validationErrors = validateContentForm(form)
   errors.value = validationErrors
   if (Object.keys(validationErrors).length > 0) return

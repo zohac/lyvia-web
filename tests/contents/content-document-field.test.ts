@@ -70,7 +70,8 @@ async function mountDocument(options: MountOptions = {}) {
   const html = await renderSfc(COMP, {
     props: {
       'modelValue': options.modelValue ?? null,
-      'onUpdate:modelValue': (value: unknown) => emits.push({ event: 'update:modelValue', value })
+      'onUpdate:modelValue': (value: unknown) => emits.push({ event: 'update:modelValue', value }),
+      'onUploading': (value: unknown) => emits.push({ event: 'uploading', value })
     },
     stubs: STUBS,
     mocks: {
@@ -129,10 +130,57 @@ test('selecting a PDF uploads it and emits the asset the content can hold', asyn
   await state.onFileSelected(selectEvent(pdfFile('programme.pdf', 1024)))
 
   assert.deepEqual(uploads, ['content_document:programme.pdf'])
-  assert.deepEqual(emits, [{
-    event: 'update:modelValue',
-    value: { assetId: 'asset-1', filename: 'programme.pdf', sizeBytes: 2048 }
-  }])
+  assert.deepEqual(emits, [
+    { event: 'uploading', value: true },
+    {
+      event: 'update:modelValue',
+      value: { assetId: 'asset-1', filename: 'programme.pdf', sizeBytes: 2048 }
+    },
+    { event: 'uploading', value: false }
+  ])
+})
+
+test('a response without url keeps the local filename and size (AC2)', async () => {
+  // The upload endpoint may answer the asset id alone: the preview must not be
+  // erased, and the name the provider picked must survive.
+  const { state, emits } = await mountDocument({
+    upload: async () => ({ assetId: 'asset-2' })
+  })
+
+  await state.onFileSelected(selectEvent(pdfFile('programme.pdf', 1024)))
+
+  assert.deepEqual(
+    emits.filter(entry => entry.event === 'update:modelValue'),
+    [{
+      event: 'update:modelValue',
+      value: { assetId: 'asset-2', filename: 'programme.pdf', sizeBytes: 1024 }
+    }]
+  )
+  assert.equal(state.error, null)
+})
+
+test('the field announces the upload so the page can refuse to save (AC2)', async () => {
+  let finish!: (value: unknown) => void
+  const pending = new Promise((resolve) => {
+    finish = resolve
+  })
+  const { state, emits } = await mountDocument({ upload: async () => await pending })
+
+  const uploading = state.onFileSelected(selectEvent(pdfFile('programme.pdf', 1024)))
+  await Promise.resolve()
+
+  assert.deepEqual(
+    emits.filter(entry => entry.event === 'uploading'),
+    [{ event: 'uploading', value: true }]
+  )
+
+  finish({ assetId: 'asset-3', filename: 'programme.pdf', sizeBytes: 1024 })
+  await uploading
+
+  assert.deepEqual(
+    emits.filter(entry => entry.event === 'uploading'),
+    [{ event: 'uploading', value: true }, { event: 'uploading', value: false }]
+  )
 })
 
 test('a PDF above 10 Mo is refused locally with the exact spec sentence', async () => {

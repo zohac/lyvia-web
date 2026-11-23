@@ -57,6 +57,7 @@
           <MoleculesContentDocumentField
             v-model="form.document"
             :disabled="busy"
+            @uploading="setDocumentUploading"
           />
 
           <div class="flex flex-wrap items-center justify-between gap-3">
@@ -96,6 +97,7 @@
               color="primary"
               type="submit"
               :loading="saving"
+              :disabled="busy"
             >
               Enregistrer
             </UButton>
@@ -191,6 +193,7 @@ const {
   publishing,
   unpublishing,
   deleting,
+  setDocumentUploading,
   busy,
   canPublish,
   persistedAudience,

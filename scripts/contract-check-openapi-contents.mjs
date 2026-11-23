@@ -269,17 +269,69 @@ if (!contract) {
       )
     }
 
-    // 4. Story diffusion-13 — `documentAssetId` is part of both write DTOs.
-    const createProperties = document.components?.schemas?.CreateContentDto?.properties ?? {}
-    assert.ok(
-      Object.prototype.hasOwnProperty.call(createProperties, 'documentAssetId'),
-      'CreateContentDto ne déclare pas `documentAssetId`, envoyé par le web à la création'
-    )
-    const updateProperties = document.components?.schemas?.UpdateContentDto?.properties ?? {}
-    assert.ok(
-      Object.prototype.hasOwnProperty.call(updateProperties, 'documentAssetId'),
-      'UpdateContentDto ne déclare pas `documentAssetId`, envoyé par le web à la mise à jour'
-    )
+    // 4. Story diffusion-13 — every field the web actually puts in a write body
+    //    exists in the schema the ROUTE references, and `documentAssetId` is
+    //    nullable there (the web sends `null` to create without a document and
+    //    to detach one). Resolving the route's request body — not just a schema
+    //    name — means a route repointed at another DTO fails here instead of
+    //    shipping a field the server refuses. Comparing the built payload means
+    //    the next field added to a builder cannot be missing from the DTO, the
+    //    drift this repo has already paid for more than once.
+    const payloads = await importTsModule('app/features/contents/domain/content-payload.ts')
+
+    const requestSchema = (route, method, label) => {
+      const operation = paths[route]?.[method]
+      assert.ok(operation, `${label} absent d'openapi.yaml`)
+      const ref = operation.requestBody?.content?.['application/json']?.schema?.$ref
+      assert.ok(ref, `${label} ne déclare pas de corps JSON référencé`)
+      const name = ref.split('/').pop()
+      const schema = document.components?.schemas?.[name]
+      assert.ok(schema, `${label} référence ${name}, absent de components.schemas`)
+      return { name, schema }
+    }
+
+    const originalWithDocument = {
+      title: 't',
+      type: 'article',
+      slug: 't',
+      body: null,
+      coverImageUrl: null,
+      audience: 'all',
+      document: { filename: 'programme.pdf', sizeBytes: 2048 }
+    }
+
+    const writeBodies = [
+      ['POST /provider/content', '/provider/content', 'post',
+        payloads.buildCreateContentPayload({
+          title: 't',
+          type: 'article',
+          document: { assetId: 'asset-doc', filename: 'programme.pdf', sizeBytes: 2048 }
+        })],
+      ['PATCH /provider/content/{id}', '/provider/content/{id}', 'patch',
+        payloads.buildUpdateContentPayload({ title: 't', type: 'article', document: null }, originalWithDocument)]
+    ]
+
+    for (const [label, route, method, body] of writeBodies) {
+      const { name, schema } = requestSchema(route, method, label)
+      const properties = schema.properties ?? {}
+
+      for (const field of Object.keys(body)) {
+        assert.ok(
+          Object.prototype.hasOwnProperty.call(properties, field),
+          `${label} : le web envoie \`${field}\`, absent de ${name}`
+        )
+      }
+
+      assert.ok(
+        Object.prototype.hasOwnProperty.call(body, 'documentAssetId'),
+        `${label} : le payload web ne porte pas \`documentAssetId\` (diffusion-13)`
+      )
+      assert.equal(
+        properties.documentAssetId.nullable,
+        true,
+        `\`documentAssetId\` de ${name} n'est pas nullable : le web envoie null pour détacher`
+      )
+    }
 
     console.log('contract:check: contents — OK')
   } catch (error) {

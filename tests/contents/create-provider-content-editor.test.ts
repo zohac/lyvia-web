@@ -294,6 +294,169 @@ describe('createProviderContentEditor — save (AC1, AC10, DR-5)', () => {
   })
 })
 
+describe('createProviderContentEditor — document attaché (AC1–AC4)', () => {
+  const serverDocument = { filename: 'programme.pdf', sizeBytes: 2048 }
+
+  test('the persisted document fills the form on load, so a reload shows it (AC4)', async () => {
+    const { editor } = setup({
+      getContent: async id => item({ id, document: serverDocument })
+    })
+
+    await editor.load()
+
+    // The asset id is deliberately empty: the server row carries no local
+    // upload, and the preview must show the *server* filename and size.
+    assert.deepEqual(editor.form.document, {
+      assetId: '',
+      filename: 'programme.pdf',
+      sizeBytes: 2048
+    })
+  })
+
+  test('a document-free row leaves the form without a document', async () => {
+    const { editor } = setup({ getContent: async id => item({ id, document: null }) })
+
+    await editor.load()
+
+    assert.equal(editor.form.document, null)
+  })
+
+  test('an untouched document is not resent, and does not count as a change', async () => {
+    const { editor, recorder } = setup({
+      getContent: async id => item({ id, document: serverDocument })
+    })
+
+    await editor.load()
+    await editor.save()
+
+    assert.deepEqual(recorder.updates, [])
+    assert.deepEqual(recorder.notices, [{ title: 'Aucune modification à enregistrer', color: 'neutral' }])
+  })
+
+  test('"Retirer" sends documentAssetId: null, then the server re-read clears the preview (AC3, AC4)', async () => {
+    let stored: { filename: string, sizeBytes: number } | null = serverDocument
+    const { editor, recorder } = setup({
+      getContent: async id => item({ id, document: stored }),
+      updateContent: async (id, payload) => {
+        if (Object.prototype.hasOwnProperty.call(payload, 'documentAssetId')) stored = null
+        return { contentId: id, changedFields: ['documentAssetId'] }
+      }
+    })
+
+    await editor.load()
+    assert.ok(editor.form.document, 'the server document is displayed before the removal')
+
+    // What `ContentDocumentField`'s "Retirer" emits, through `v-model`.
+    editor.form.document = null
+    await editor.save()
+
+    assert.deepEqual(recorder.updates, [{ id: 'content-1', payload: { documentAssetId: null } }])
+    assert.deepEqual(recorder.notices[0], { title: 'Contenu enregistré', color: 'success' })
+    assert.equal(editor.form.document, null, 'the preview follows the server, not a local guess')
+  })
+
+  test('an uploaded asset reaches the PATCH of an existing content (AC2)', async () => {
+    const { editor, recorder } = setup()
+
+    await editor.load()
+    // What the field emits after a successful upload.
+    editor.form.document = { assetId: 'asset-doc-9', filename: 'nouveau.pdf', sizeBytes: 1024 }
+    await editor.save()
+
+    assert.deepEqual(recorder.updates, [
+      { id: 'content-1', payload: { documentAssetId: 'asset-doc-9' } }
+    ])
+  })
+
+  test('a content created without a document accepts one later (AC2)', async () => {
+    const { editor, recorder } = setup({
+      getContent: async id => item({ id, document: null })
+    })
+
+    await editor.load()
+    editor.form.document = { assetId: 'asset-doc-10', filename: 'tardif.pdf', sizeBytes: 12 }
+    await editor.save()
+
+    assert.deepEqual(recorder.updates[0]?.payload, { documentAssetId: 'asset-doc-10' })
+  })
+
+  test('replacing a document sends the new asset, never the stored one', async () => {
+    const { editor, recorder } = setup({
+      getContent: async id => item({ id, document: serverDocument })
+    })
+
+    await editor.load()
+    editor.form.document = { assetId: 'asset-doc-11', filename: 'v2.pdf', sizeBytes: 12 }
+    await editor.save()
+
+    assert.deepEqual(recorder.updates[0]?.payload, { documentAssetId: 'asset-doc-11' })
+  })
+
+  test('saving is refused while a document upload is in flight (AC2)', async () => {
+    const { editor, recorder } = setup()
+
+    await editor.load()
+    editor.setDocumentUploading(true)
+    assert.equal(editor.busy.value, true, 'the save button is disabled by the same flag')
+
+    editor.form.title = 'Nouveau titre'
+    await editor.save()
+
+    assert.equal(recorder.updates.length, 0, 'the asset id is not in the form yet')
+    assert.equal(recorder.notices.length, 0)
+
+    editor.setDocumentUploading(false)
+    await editor.save()
+    assert.deepEqual(recorder.updates[0]?.payload, { title: 'Nouveau titre' })
+  })
+
+  test('a second click while a save is in flight does not send a second PATCH', async () => {
+    const inFlight = deferred<unknown>()
+    const { editor, recorder } = setup({
+      updateContent: async () => await inFlight.promise
+    })
+
+    await editor.load()
+    editor.form.title = 'Nouveau titre'
+
+    const first = editor.save()
+    const second = editor.save()
+    inFlight.resolve({ contentId: 'content-1', changedFields: ['title'] })
+    await Promise.all([first, second])
+
+    assert.equal(recorder.updates.length, 1, 'one click, one PATCH')
+  })
+
+  test('each document 422 keeps the provider\'s input and names its sentence (AC5)', async () => {
+    const refusals: Array<[string, string]> = [
+      ['CONTENT_DOCUMENT_NOT_FOUND', 'Ce document est introuvable.'],
+      ['CONTENT_DOCUMENT_INVALID_TYPE', 'Seuls les PDF sont acceptés.'],
+      ['CONTENT_DOCUMENT_ALREADY_ATTACHED', 'Ce document est déjà rattaché à un autre contenu.']
+    ]
+
+    for (const [code, message] of refusals) {
+      const { editor, recorder } = setup({
+        updateContent: async () => {
+          throw new ApiFetchError({ statusCode: 422, code, message: code })
+        }
+      })
+
+      await editor.load()
+      editor.form.title = 'Titre saisi'
+      editor.form.document = { assetId: 'asset-doc-12', filename: 'refuse.pdf', sizeBytes: 10 }
+      await editor.save()
+
+      assert.deepEqual(recorder.notices, [{ title: message, color: 'error' }], code)
+      assert.equal(editor.form.title, 'Titre saisi', `${code} must not clear the form`)
+      assert.deepEqual(
+        editor.form.document,
+        { assetId: 'asset-doc-12', filename: 'refuse.pdf', sizeBytes: 10 },
+        `${code} must keep the chosen document in the form`
+      )
+    }
+  })
+})
+
 describe('createProviderContentEditor — publish / unpublish (DR-5)', () => {
   test('a successful publish whose re-read fails keeps the success and warns', async () => {
     let reads = 0
