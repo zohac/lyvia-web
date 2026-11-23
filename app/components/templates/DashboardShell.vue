@@ -89,6 +89,23 @@ function isGroupActive(group: NavGroup): boolean {
   return group.items.some(item => isItemActive(item))
 }
 
+/**
+ * Every navigable entry of the shell, home included.
+ *
+ * Declared **before** the `watch(..., { immediate: true })` below: that watcher
+ * runs during `setup()`, and `isItemActive` reads this computed. Declared after
+ * it, every shell mount threw `Cannot access 'allNavItems' before
+ * initialization` and the dashboard never rendered.
+ */
+const allNavItems = computed<NavItem[]>(() => [
+  props.navigation.home,
+  ...props.navigation.groups.flatMap(group => group.items)
+])
+
+function isItemActive(item: NavItem): boolean {
+  return isNavItemActive(route.path, item, allNavItems.value)
+}
+
 // Auto-expand group if it contains the active route
 watch(
   () => route.path,
@@ -154,15 +171,6 @@ const userMenuItems = computed(() => {
     ]
   ]
 })
-
-const allNavItems = computed<NavItem[]>(() => [
-  props.navigation.home,
-  ...props.navigation.groups.flatMap(group => group.items)
-])
-
-function isItemActive(item: NavItem): boolean {
-  return isNavItemActive(route.path, item, allNavItems.value)
-}
 
 async function onLogout() {
   if (isLoggingOut.value) return
