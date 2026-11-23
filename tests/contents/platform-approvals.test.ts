@@ -12,7 +12,12 @@ import {
   snapshotApproval
 } from '../../app/features/contents/domain/platform-approvals'
 import { createPlatformContents } from '../../app/features/contents/createPlatformContents'
-import type { PlatformContentItem } from '../../app/features/contents/api/contents.contract'
+import type { PlatformContentItem, ListPlatformContentsResponse } from '../../app/features/contents/api/contents.contract'
+import {
+  buildApprovePlatformContentCall,
+  buildListPlatformContentsCall,
+  buildWithdrawPlatformApprovalCall
+} from '../../app/features/contents/api/platform-contents.request'
 
 function item(id: string, approved = false, body: string | null = 'corps'): PlatformContentItem {
   return {
@@ -195,5 +200,139 @@ describe('createPlatformContents — preview', () => {
     assert.equal(contents.previewItem.value?.id, 'a')
     contents.closePreview()
     assert.equal(contents.previewItem.value, null)
+  })
+})
+
+describe('createPlatformContents — one in-flight mutation per item', () => {
+  test('a second approve on the same item does not issue a second request', async () => {
+    let calls = 0
+    let resolveApprove!: (value: { contentId: string, approved: boolean }) => void
+    const pendingApprove = new Promise<{ contentId: string, approved: boolean }>((resolve) => {
+      resolveApprove = resolve
+    })
+    const contents = createPlatformContents({
+      list: async () => ({ items: [item('a', false)], nextCursor: null }),
+      approve: async () => {
+        calls += 1
+        return await pendingApprove
+      },
+      withdraw: async id => ({ contentId: id, approved: false }),
+      notify: () => {}
+    })
+    await contents.refresh()
+
+    const first = contents.approveItem('a')
+    const second = contents.approveItem('a')
+    resolveApprove({ contentId: 'a', approved: true })
+    await Promise.all([first, second])
+
+    assert.equal(calls, 1)
+    assert.equal(contents.items.value[0].approved, true)
+  })
+
+  test('a second withdraw on the same item does not issue a second request', async () => {
+    let calls = 0
+    let resolveWithdraw!: (value: { contentId: string, approved: boolean }) => void
+    const pendingWithdraw = new Promise<{ contentId: string, approved: boolean }>((resolve) => {
+      resolveWithdraw = resolve
+    })
+    const contents = createPlatformContents({
+      list: async () => ({ items: [item('a', true)], nextCursor: null }),
+      approve: async id => ({ contentId: id, approved: true }),
+      withdraw: async () => {
+        calls += 1
+        return await pendingWithdraw
+      },
+      notify: () => {}
+    })
+    await contents.refresh()
+
+    const first = contents.withdrawItem('a')
+    const second = contents.withdrawItem('a')
+    resolveWithdraw({ contentId: 'a', approved: false })
+    await Promise.all([first, second])
+
+    assert.equal(calls, 1)
+    assert.equal(contents.items.value[0].approved, false)
+  })
+})
+
+describe('createPlatformContents — loadMore ownership', () => {
+  test('a stale loadMore neither appends its page nor clears the newer fetch flag', async () => {
+    const pendingLoads: Array<(value: ListPlatformContentsResponse) => void> = []
+    let pageOneCount = 0
+
+    const contents = createPlatformContents({
+      list: async (params) => {
+        if (!params?.cursor) {
+          pageOneCount += 1
+          return { items: [item(`page1-${pageOneCount}`)], nextCursor: 'cursor-1' }
+        }
+        return await new Promise<ListPlatformContentsResponse>((resolve) => {
+          pendingLoads.push(resolve)
+        })
+      },
+      approve: async id => ({ contentId: id, approved: true }),
+      withdraw: async id => ({ contentId: id, approved: false }),
+      notify: () => {}
+    })
+
+    await contents.refresh()
+    const stale = contents.loadMore()
+    assert.equal(contents.loadMorePending.value, true)
+
+    // A page-1 refresh lands while page 2 is still in flight.
+    await contents.refresh()
+    const fresh = contents.loadMore()
+    assert.equal(pendingLoads.length, 2)
+
+    pendingLoads[0]({ items: [item('stale-page2')], nextCursor: 'cursor-x' })
+    await stale
+    assert.deepEqual(contents.items.value.map(entry => entry.id), ['page1-2'])
+    assert.equal(contents.loadMorePending.value, true)
+
+    pendingLoads[1]({ items: [item('fresh-page2')], nextCursor: null })
+    await fresh
+    assert.deepEqual(contents.items.value.map(entry => entry.id), ['page1-2', 'fresh-page2'])
+    assert.equal(contents.loadMorePending.value, false)
+  })
+
+  test('a failed loadMore exposes a French retry message', async () => {
+    let page = 0
+    const contents = createPlatformContents({
+      list: async () => {
+        page += 1
+        if (page === 1) return { items: [item('a')], nextCursor: 'cursor-1' }
+        throw new Error('boom')
+      },
+      approve: async id => ({ contentId: id, approved: true }),
+      withdraw: async id => ({ contentId: id, approved: false }),
+      notify: () => {}
+    })
+    await contents.refresh()
+    await contents.loadMore()
+    assert.match(contents.loadMoreErrorMessage.value ?? '', /Impossible/)
+    assert.equal(contents.loadMorePending.value, false)
+  })
+})
+
+describe('platform-contents.request builders', () => {
+  test('list builder emits GET /provider/platform-content with the query', () => {
+    const call = buildListPlatformContentsCall({ limit: 20, cursor: 'abc' })
+    assert.equal(call.path, '/provider/platform-content')
+    assert.equal(call.options.method, 'GET')
+    assert.deepEqual(call.options.query, { limit: 20, cursor: 'abc' })
+  })
+
+  test('approve builder emits POST on the approve path', () => {
+    const call = buildApprovePlatformContentCall('content-1')
+    assert.equal(call.path, '/provider/platform-content/content-1/approve')
+    assert.equal(call.options.method, 'POST')
+  })
+
+  test('withdraw builder emits DELETE on the same approve path', () => {
+    const call = buildWithdrawPlatformApprovalCall('content-1')
+    assert.equal(call.path, '/provider/platform-content/content-1/approve')
+    assert.equal(call.options.method, 'DELETE')
   })
 })

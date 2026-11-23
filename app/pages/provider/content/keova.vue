@@ -88,6 +88,26 @@
         </UCard>
       </div>
 
+      <UAlert
+        v-if="loadMoreErrorMessage"
+        color="warning"
+        variant="soft"
+        title="Chargement impossible"
+        :description="loadMoreErrorMessage"
+        icon="i-lucide-alert-triangle"
+      >
+        <template #actions>
+          <UButton
+            color="warning"
+            variant="soft"
+            size="sm"
+            @click="loadMore"
+          >
+            Réessayer
+          </UButton>
+        </template>
+      </UAlert>
+
       <div
         v-if="items.length > 0 && nextCursor"
         class="flex justify-center"
@@ -162,6 +182,7 @@ const {
   items,
   nextCursor,
   loadMorePending,
+  loadMoreErrorMessage,
   approvingIds,
   previewItem,
   refresh,

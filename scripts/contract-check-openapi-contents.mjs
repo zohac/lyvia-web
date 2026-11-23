@@ -70,6 +70,7 @@ if (!contract) {
     const requests = await importTsModule('app/features/contents/api/provider-contents.request.ts')
     const shareRequests = await importTsModule('app/features/contents/api/content-shares.request.ts')
     const clientRequests = await importTsModule('app/features/contents/api/client-contents.request.ts')
+    const platformRequests = await importTsModule('app/features/contents/api/platform-contents.request.ts')
     const options = await importTsModule('app/features/contents/domain/content-options.ts')
 
     // 1. Every call the web emits exists in the contract, with the same verb.
@@ -101,7 +102,12 @@ if (!contract) {
       shareRequests.buildUnshareContentCall(CONTENT_ID, CLIENT_ID),
       // Story 5.7 — the client reading surface (GET /content, GET /content/{slug}).
       clientRequests.buildListClientContentsCall({}),
-      clientRequests.buildGetClientContentCall(SLUG)
+      clientRequests.buildGetClientContentCall(SLUG),
+      // Story diffusion-8 — the practitioner Articles Keova screen
+      // (list, approve, withdraw) reads and writes /provider/platform-content.
+      platformRequests.buildListPlatformContentsCall({}),
+      platformRequests.buildApprovePlatformContentCall(CONTENT_ID),
+      platformRequests.buildWithdrawPlatformApprovalCall(CONTENT_ID)
     ]
 
     for (const call of calls) {

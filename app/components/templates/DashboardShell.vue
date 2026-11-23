@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import LegalFooterLinks from '../atoms/LegalFooterLinks.vue'
 import { useCurrentUser } from '../../features/auth/useCurrentUser'
+import { isNavItemActive } from '../../features/navigation/domain/nav-active'
 
 type NavItem = {
   label: string
@@ -154,9 +155,13 @@ const userMenuItems = computed(() => {
   ]
 })
 
+const allNavItems = computed<NavItem[]>(() => [
+  props.navigation.home,
+  ...props.navigation.groups.flatMap(group => group.items)
+])
+
 function isItemActive(item: NavItem): boolean {
-  if (item.match === 'prefix') return route.path.startsWith(item.to)
-  return route.path === item.to
+  return isNavItemActive(route.path, item, allNavItems.value)
 }
 
 async function onLogout() {

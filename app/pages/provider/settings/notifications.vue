@@ -27,6 +27,7 @@
         <USwitch
           :model-value="platformContentPublished"
           :disabled="loading || saving"
+          aria-label="Nouvel article Keova à valider"
           @update:model-value="toggle"
         />
       </div>

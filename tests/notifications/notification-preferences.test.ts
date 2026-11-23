@@ -67,4 +67,29 @@ describe('createNotificationPreferences', () => {
     await toggling
     assert.equal(prefs.saving.value, false)
   })
+
+  test('a second toggle while saving is ignored', async () => {
+    let calls = 0
+    let resolveFn!: (v: { platformContentPublished: boolean }) => void
+    const pending = new Promise<{ platformContentPublished: boolean }>((res) => {
+      resolveFn = res
+    })
+    const prefs = createNotificationPreferences({
+      get: async () => ({ platformContentPublished: true }),
+      update: async () => {
+        calls += 1
+        return await pending
+      },
+      notify: () => {}
+    })
+    await prefs.load()
+
+    const first = prefs.toggle(false)
+    const second = prefs.toggle(true)
+    resolveFn({ platformContentPublished: false })
+    await Promise.all([first, second])
+
+    assert.equal(calls, 1)
+    assert.equal(prefs.platformContentPublished.value, false)
+  })
 })

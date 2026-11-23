@@ -27,6 +27,10 @@ export function createNotificationPreferences(deps: CreateNotificationPreference
   }
 
   async function toggle(value: boolean): Promise<void> {
+    // The switch is disabled while saving, but a second event delivered before
+    // the re-render would otherwise snapshot the optimistic value and roll back
+    // to it — losing the value the server actually holds.
+    if (saving.value) return
     const previous = platformContentPublished.value
     platformContentPublished.value = value
     saving.value = true

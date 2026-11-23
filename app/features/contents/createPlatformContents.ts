@@ -31,6 +31,14 @@ export function createPlatformContents(deps: CreatePlatformContentsDependencies)
   const previewItem = ref<PlatformContentItem | null>(null)
 
   let requestId = 0
+  /**
+   * Owner of the in-flight `loadMore`. `loadMore` does not bump `requestId`
+   * (it is not a new query), so a page-1 refresh during a page-2 fetch would
+   * otherwise let the stale call clear the flag of a newer one — the same
+   * cursor page could then be appended twice (`createClientContents` carries
+   * the same token for the same reason).
+   */
+  let loadMoreToken = 0
 
   async function refresh(): Promise<void> {
     requestId += 1
@@ -57,6 +65,8 @@ export function createPlatformContents(deps: CreatePlatformContentsDependencies)
     if (loadMorePending.value || pending.value || !nextCursor.value) return
     const cursor = nextCursor.value
     const id = requestId
+    loadMoreToken += 1
+    const token = loadMoreToken
     loadMorePending.value = true
     loadMoreErrorMessage.value = null
     try {
@@ -69,7 +79,7 @@ export function createPlatformContents(deps: CreatePlatformContentsDependencies)
         loadMoreErrorMessage.value = 'Impossible de charger plus d’articles.'
       }
     } finally {
-      loadMorePending.value = false
+      if (loadMoreToken === token) loadMorePending.value = false
     }
   }
 
@@ -81,6 +91,10 @@ export function createPlatformContents(deps: CreatePlatformContentsDependencies)
   }
 
   async function approveItem(id: string): Promise<void> {
+    // One in-flight mutation per item. The button is disabled while `loading`,
+    // but a second click delivered before the re-render would otherwise send a
+    // second POST and let a late failure roll the row back to a stale value.
+    if (approvingIds.value.has(id)) return
     const previous = snapshotApproval(items.value, id)
     items.value = applyApprovalToList(items.value, id, true)
     setApproving(id, true)
@@ -97,6 +111,7 @@ export function createPlatformContents(deps: CreatePlatformContentsDependencies)
   }
 
   async function withdrawItem(id: string): Promise<void> {
+    if (approvingIds.value.has(id)) return
     const previous = snapshotApproval(items.value, id)
     items.value = applyApprovalToList(items.value, id, false)
     setApproving(id, true)
