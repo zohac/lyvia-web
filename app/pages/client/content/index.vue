@@ -139,11 +139,20 @@
                 {{ item.title }}
               </h3>
               <p class="text-xs text-[color:var(--color-text-muted)]">
-                {{ item.providerName }}
+                {{ item.source === 'keova' ? 'Keova' : (item.providerName ?? 'Keova') }}
                 <template v-if="item.publishedAt">
                   · {{ formatDate(item.publishedAt) }}
                 </template>
               </p>
+              <UBadge
+                v-if="item.document"
+                color="neutral"
+                variant="soft"
+                size="xs"
+                class="mt-1"
+              >
+                Document
+              </UBadge>
             </div>
           </UCard>
         </NuxtLink>

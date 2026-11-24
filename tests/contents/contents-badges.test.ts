@@ -1,16 +1,16 @@
 import * as assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { getStatusBadge, getVisibilityBadge, getTypeBadge } from '../../app/features/contents/domain/contents-badges'
+import { getStatusBadge, getDiffusionBadge, getTypeBadge } from '../../app/features/contents/domain/contents-badges'
 
 test('status badge', () => {
   assert.deepEqual(getStatusBadge(true), { color: 'success', label: 'Publié' })
   assert.deepEqual(getStatusBadge(false), { color: 'neutral', label: 'Brouillon' })
 })
 
-test('visibility badge', () => {
-  assert.deepEqual(getVisibilityBadge('public'), { color: 'info', label: 'Public' })
-  assert.deepEqual(getVisibilityBadge('private'), { color: 'warning', label: 'Privé' })
+test('diffusion badge', () => {
+  assert.deepEqual(getDiffusionBadge('all'), { color: 'info', label: 'Toutes mes clientes' })
+  assert.deepEqual(getDiffusionBadge('selected'), { color: 'warning', label: 'Clientes choisies' })
 })
 
 test('type badge', () => {

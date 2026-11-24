@@ -19,6 +19,15 @@ test('list contents targets GET /provider/content with the cleaned query', () =>
   assert.deepEqual(call.options.query, { type: 'article', status: 'draft', q: 'hello', limit: 10, cursor: 'c1' })
 })
 
+test('list contents forwards the audience filter', () => {
+  // AC7: dropping this line from `cleanParams` would leave the Diffusion filter
+  // visible and inert, with every test still green.
+  assert.deepEqual(
+    buildListContentsCall({ audience: 'selected' }).options.query,
+    { audience: 'selected' }
+  )
+})
+
 test('list contents drops empty filters', () => {
   const call = buildListContentsCall({})
   assert.deepEqual(call.options.query, {})

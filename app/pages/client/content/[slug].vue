@@ -76,10 +76,29 @@
           {{ content.title }}
         </h1>
         <p class="text-sm text-[color:var(--color-text-muted)]">
-          Par {{ content.providerName }}
+          Par {{ content.source === 'keova' ? 'Keova' : (content.providerName ?? 'Keova') }}
           <template v-if="content.publishedAt">
             · {{ formatDate(content.publishedAt) }}
           </template>
+        </p>
+        <UButton
+          v-if="content.document"
+          color="primary"
+          variant="soft"
+          size="sm"
+          :loading="downloading"
+          leading-icon="i-lucide-download"
+          class="mt-2"
+          @click="downloadDocument"
+        >
+          Télécharger le document
+        </UButton>
+        <p
+          v-if="downloadErrorMessage"
+          role="alert"
+          class="text-sm text-[color:var(--color-text-muted)]"
+        >
+          {{ downloadErrorMessage }}
         </p>
       </header>
 
@@ -87,7 +106,7 @@
         class="prose prose-stone max-w-none whitespace-pre-line text-[color:var(--color-text-primary)]"
       >
         <template v-if="content.body">
-          {{ content.body }}
+          <AtomsContentBody :text="content.body" />
         </template>
         <p
           v-else
@@ -101,8 +120,11 @@
 </template>
 
 <script setup lang="ts">
+import AtomsContentBody from '../../../components/atoms/ContentBody.vue'
 import { createClientContent } from '../../../features/contents/createClientContent'
-import { getClientContentBySlug } from '../../../features/contents/services/client-contents.service'
+import { createClientDocumentDownload } from '../../../features/contents/createClientDocumentDownload'
+import { getClientContentBySlug, getClientContentDocument } from '../../../features/contents/services/client-contents.service'
+import { saveDocumentBlob } from '../../../features/contents/services/document-download.browser'
 import { getTypeBadge } from '../../../features/contents/domain/contents-badges'
 import { formatDateShort } from '~/composables/useDateFormat'
 
@@ -117,6 +139,25 @@ const route = useRoute()
 const { pending, notFound, errorMessage, content, load } = createClientContent({
   load: getClientContentBySlug
 })
+
+const {
+  downloading,
+  errorMessage: downloadErrorMessage,
+  download: downloadDocumentBlob
+} = createClientDocumentDownload({
+  fetchDocument: getClientContentDocument,
+  save: saveDocumentBlob
+})
+
+/**
+ * The document route is authenticated by an in-memory Bearer token, so the
+ * button cannot be a link: it fetches the blob and keeps the reader here.
+ */
+async function downloadDocument(): Promise<void> {
+  const current = content.value
+  if (!current?.document) return
+  await downloadDocumentBlob({ slug: current.slug, filename: current.document.filename })
+}
 
 const slug = computed(() => String(route.params.slug))
 

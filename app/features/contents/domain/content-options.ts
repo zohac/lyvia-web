@@ -1,4 +1,4 @@
-import type { ContentStatusFilter, ContentType, ContentVisibility } from '../api/contents.contract'
+import type { ContentAudience, ContentStatusFilter, ContentType } from '../api/contents.contract'
 
 /**
  * Select vocabularies for the provider content screens.
@@ -30,7 +30,23 @@ export const CONTENT_STATUS_FILTER_OPTIONS: ContentSelectOption<ContentStatusFil
   { label: 'Publié', value: 'published' }
 ]
 
-export const CONTENT_VISIBILITY_OPTIONS: ContentSelectOption<ContentVisibility>[] = [
-  { label: 'Public', value: 'public' },
-  { label: 'Privé', value: 'private' }
+export const CONTENT_AUDIENCE_OPTIONS: ContentSelectOption<ContentAudience>[] = [
+  { label: 'Toutes mes clientes', value: 'all' },
+  { label: 'Clientes choisies', value: 'selected' }
+]
+
+/**
+ * The Diffusion filter of the contents list. Its "no filter" sentinel is `any`,
+ * never `all` — `all` is a *value* of the `audience` enum, and a filter that
+ * sent `audience=all` would ask for the `all` audience instead of asking for
+ * everything. Every non-sentinel value is forwarded verbatim as `?audience=`,
+ * so it must be one of `ContentAudience` (`ListContentsQueryDto` is
+ * `@IsIn(['all','selected'])`).
+ */
+export type ContentDiffusionFilter = 'any' | ContentAudience
+
+export const CONTENT_DIFFUSION_FILTER_OPTIONS: ContentSelectOption<ContentDiffusionFilter>[] = [
+  { label: 'Toutes les diffusions', value: 'any' },
+  { label: 'Toutes mes clientes', value: 'all' },
+  { label: 'Clientes choisies', value: 'selected' }
 ]

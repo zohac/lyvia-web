@@ -6,7 +6,6 @@
 export type ContentBadgeColor = 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'
 
 export type ContentStatusBadge = { color: ContentBadgeColor, label: string }
-export type ContentVisibilityBadge = { color: ContentBadgeColor, label: string }
 export type ContentTypeBadge = { color: ContentBadgeColor, label: string }
 
 export function getStatusBadge(isPublished: boolean): ContentStatusBadge {
@@ -15,10 +14,12 @@ export function getStatusBadge(isPublished: boolean): ContentStatusBadge {
     : { color: 'neutral', label: 'Brouillon' }
 }
 
-export function getVisibilityBadge(visibility: string): ContentVisibilityBadge {
-  return visibility === 'public'
-    ? { color: 'info', label: 'Public' }
-    : { color: 'warning', label: 'Privé' }
+export type ContentDiffusionBadge = { color: ContentBadgeColor, label: string }
+
+export function getDiffusionBadge(audience: string): ContentDiffusionBadge {
+  return audience === 'all'
+    ? { color: 'info', label: 'Toutes mes clientes' }
+    : { color: 'warning', label: 'Clientes choisies' }
 }
 
 export function getTypeBadge(type: string): ContentTypeBadge {

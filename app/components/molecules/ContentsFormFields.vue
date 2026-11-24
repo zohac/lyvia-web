@@ -28,50 +28,26 @@
         placeholder="Choisir un type"
         aria-label="Type de contenu"
         class="w-full"
+        :disabled="typeDisabled"
         @update:model-value="emit('update:type', $event)"
       />
     </UFormField>
 
     <UFormField
-      label="Contenu (markdown)"
+      label="Contenu"
       name="body"
     >
       <UTextarea
         :model-value="body"
         :rows="10"
-        placeholder="Rédigez votre contenu en markdown..."
+        placeholder="Rédigez votre contenu…"
         autocomplete="off"
         class="w-full"
         @update:model-value="emit('update:body', $event)"
       />
-    </UFormField>
-
-    <UFormField
-      label="URL de l'image de couverture"
-      name="coverImageUrl"
-      :error="errors.coverImageUrl"
-    >
-      <UInput
-        :model-value="coverImageUrl"
-        type="url"
-        autocomplete="url"
-        placeholder="https://..."
-        class="w-full"
-        @update:model-value="emit('update:coverImageUrl', $event)"
-      />
-    </UFormField>
-
-    <UFormField
-      label="Visibilité"
-      name="visibility"
-    >
-      <USelect
-        :model-value="visibility"
-        :items="CONTENT_VISIBILITY_OPTIONS"
-        aria-label="Visibilité du contenu"
-        class="w-full"
-        @update:model-value="emit('update:visibility', $event)"
-      />
+      <template #hint>
+        <span class="text-xs text-[color:var(--color-text-muted)]">Les adresses http(s) que vous collez deviennent cliquables.</span>
+      </template>
     </UFormField>
 
     <UFormField
@@ -92,42 +68,33 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ContentType, ContentVisibility } from '../../features/contents/api/contents.contract'
+import type { ContentType } from '../../features/contents/api/contents.contract'
 import type { ContentFormErrors } from '../../features/contents/domain/content-form'
 import { MAX_CONTENT_TITLE_LENGTH } from '../../features/contents/domain/content-form'
-import { CONTENT_TYPE_OPTIONS, CONTENT_VISIBILITY_OPTIONS } from '../../features/contents/domain/content-options'
+import { CONTENT_TYPE_OPTIONS } from '../../features/contents/domain/content-options'
 
-/**
- * The six fields of a provider content, shared by the create and edit pages so
- * a field cannot exist in one form and be missing from the other.
- *
- * The parent owns the `reactive` state; the component is presentational and
- * emits `update:<field>` for each `v-model:<field>` binding.
- */
 const props = withDefaults(defineProps<{
   title: string
   type: ContentType | '' | null | undefined
   body: string
-  coverImageUrl: string
-  visibility: ContentVisibility
   slug: string
   errors: ContentFormErrors
   slugPlaceholder?: string
   disabled?: boolean
+  /** Platform articles fix the type to `article` (diffusion-10). */
+  typeDisabled?: boolean
 }>(), {
   slugPlaceholder: 'auto-généré depuis le titre',
-  disabled: false
+  disabled: false,
+  typeDisabled: false
 })
 
-/** `USelect` renders its placeholder for `undefined`, never for an empty string. */
 const typeModel = computed(() => (props.type === '' || props.type == null ? undefined : props.type))
 
 const emit = defineEmits<{
   'update:title': [value: string]
   'update:type': [value: ContentType]
   'update:body': [value: string]
-  'update:coverImageUrl': [value: string]
-  'update:visibility': [value: ContentVisibility]
   'update:slug': [value: string]
 }>()
 </script>

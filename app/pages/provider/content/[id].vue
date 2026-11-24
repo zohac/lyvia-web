@@ -42,12 +42,22 @@
             v-model:title="form.title"
             v-model:type="form.type"
             v-model:body="form.body"
-            v-model:cover-image-url="form.coverImageUrl"
-            v-model:visibility="form.visibility"
             v-model:slug="form.slug"
             :errors="errors"
             :disabled="busy"
             slug-placeholder="Laissez vide pour conserver l’adresse actuelle"
+          />
+
+          <MoleculesContentCoverField
+            v-model="form.coverImageUrl"
+            :error="errors.coverImageUrl"
+            :disabled="busy"
+          />
+
+          <MoleculesContentDocumentField
+            v-model="form.document"
+            :disabled="busy"
+            @uploading="setDocumentUploading"
           />
 
           <div class="flex flex-wrap items-center justify-between gap-3">
@@ -87,6 +97,7 @@
               color="primary"
               type="submit"
               :loading="saving"
+              :disabled="busy"
             >
               Enregistrer
             </UButton>
@@ -101,12 +112,21 @@
         </form>
       </UCard>
 
-      <OrganismsContentSharesSection
-        v-if="content"
-        :key="content.id"
-        :content-id="content.id"
-        :visibility="content.visibility"
-      />
+      <UCard class="bg-[color:var(--color-surface-card)]">
+        <template #header>
+          <h3 class="text-base font-semibold text-[color:var(--color-text-primary)]">
+            Diffusion
+          </h3>
+        </template>
+        <MoleculesContentDiffusionSection
+          :key="content.id"
+          :audience="form.audience"
+          :can-select="persistedAudience === 'selected'"
+          :content-id="content.id"
+          :disabled="busy"
+          @update:audience="changeAudience"
+        />
+      </UCard>
 
       <UModal
         v-model:open="isDeleteModalOpen"
@@ -140,20 +160,12 @@
 </template>
 
 <script setup lang="ts">
-import type { ContentItem, ContentType, ContentVisibility } from '../../../features/contents/api/contents.contract'
 import { getMyContent, updateContent, publishContent, unpublishContent, deleteContent } from '../../../features/contents/services/provider-contents.service'
-import { mapProviderContentsErrorToMessage } from '../../../features/contents/api/contents-error'
-import {
-  CONTENT_GENERIC_ERROR_MESSAGE,
-  isContentPublishable,
-  resolveContentServerError,
-  validateContentForm,
-  type ContentFormErrors
-} from '../../../features/contents/domain/content-form'
-import { buildUpdateContentPayload } from '../../../features/contents/domain/content-payload'
-import { ApiFetchError } from '../../../services/api/api-error'
+import { createProviderContentEditor } from '../../../features/contents/createProviderContentEditor'
 import MoleculesContentsFormFields from '../../../components/molecules/ContentsFormFields.vue'
-import OrganismsContentSharesSection from '../../../components/organisms/ContentSharesSection.vue'
+import MoleculesContentCoverField from '../../../components/molecules/ContentCoverField.vue'
+import MoleculesContentDocumentField from '../../../components/molecules/ContentDocumentField.vue'
+import MoleculesContentDiffusionSection from '../../../components/molecules/ContentDiffusionSection.vue'
 
 const route = useRoute()
 const toast = useToast()
@@ -166,166 +178,48 @@ definePageMeta({
 
 const id = computed(() => String(route.params.id))
 
-const loading = ref(true)
-const loadError = ref<string | null>(null)
-const content = ref<ContentItem | null>(null)
-
-const form = reactive({
-  title: '',
-  type: '' as ContentType | '',
-  body: '',
-  coverImageUrl: '',
-  visibility: 'public' as ContentVisibility,
-  slug: ''
+/**
+ * The page is presentation and wiring: the load token, the save and the
+ * mutation-versus-re-read split live in the factory, where they are executed by
+ * `tests/contents/create-provider-content-editor.test.ts` (AC9, DR-3/DR-5).
+ */
+const {
+  loading,
+  loadError,
+  content,
+  form,
+  errors,
+  saving,
+  publishing,
+  unpublishing,
+  deleting,
+  setDocumentUploading,
+  busy,
+  canPublish,
+  persistedAudience,
+  changeAudience,
+  load,
+  save,
+  publish,
+  unpublish,
+  handleDelete
+} = createProviderContentEditor({
+  id: () => id.value,
+  getContent: getMyContent,
+  updateContent,
+  publishContent,
+  unpublishContent,
+  deleteContent,
+  notify: notice => toast.add(notice),
+  navigate: path => navigateTo(path)
 })
 
-const original = ref<ContentItem | null>(null)
-const errors = ref<ContentFormErrors>({})
-const saving = ref(false)
-const publishing = ref(false)
-const unpublishing = ref(false)
-const deleting = ref(false)
 const isDeleteModalOpen = ref(false)
-
-const busy = computed(() =>
-  saving.value || publishing.value || unpublishing.value || deleting.value
-)
-
-/**
- * The server refuses to publish a row whose stored title or body is empty
- * (`CONTENT_NOT_PUBLISHABLE`), so the guard must read the persisted content —
- * not the form, whose unsaved text the server has never seen.
- */
-const canPublish = computed(() =>
-  isContentPublishable({ title: content.value?.title, body: content.value?.body })
-)
-
-function fillForm(data: ContentItem) {
-  content.value = data
-  original.value = { ...data }
-  form.title = data.title ?? ''
-  form.type = data.type ?? ''
-  form.body = data.body ?? ''
-  form.coverImageUrl = data.coverImageUrl ?? ''
-  form.visibility = data.visibility ?? 'public'
-  form.slug = data.slug ?? ''
-}
-
-async function load() {
-  loading.value = true
-  loadError.value = null
-  try {
-    fillForm(await getMyContent(id.value))
-  } catch (err) {
-    loadError.value = mapProviderContentsErrorToMessage(err, 'Impossible de charger le contenu.')
-  } finally {
-    loading.value = false
-  }
-}
 
 onMounted(load)
 watch(id, load)
 
 function goBack() {
   navigateTo('/provider/content')
-}
-
-/**
- * Re-reads the persisted row without touching the form, so publishing or
- * unpublishing a content never discards edits the provider has not saved.
- */
-async function refreshServerState() {
-  const data = await getMyContent(id.value)
-  content.value = data
-  original.value = { ...data }
-}
-
-async function save() {
-  const validationErrors = validateContentForm(form)
-  errors.value = validationErrors
-  if (Object.keys(validationErrors).length > 0) return
-  if (!original.value) return
-
-  const payload = buildUpdateContentPayload(form, original.value)
-  if (Object.keys(payload).length === 0) {
-    toast.add({ title: 'Aucune modification à enregistrer', color: 'neutral' })
-    return
-  }
-
-  saving.value = true
-  try {
-    await updateContent(id.value, payload)
-    toast.add({ title: 'Contenu enregistré', color: 'success' })
-    fillForm(await getMyContent(id.value))
-  } catch (err) {
-    if (err instanceof ApiFetchError) {
-      const mapped = resolveContentServerError(err.apiError.code)
-      if (mapped.field) {
-        errors.value = { ...errors.value, [mapped.field]: mapped.message }
-        return
-      }
-      toast.add({ title: mapped.message, color: 'error' })
-      return
-    }
-    toast.add({ title: CONTENT_GENERIC_ERROR_MESSAGE, color: 'error' })
-  } finally {
-    saving.value = false
-  }
-}
-
-async function publish() {
-  if (busy.value) return
-  publishing.value = true
-  try {
-    await publishContent(id.value)
-    toast.add({ title: 'Contenu publié', color: 'success' })
-    await refreshServerState()
-  } catch (err) {
-    if (err instanceof ApiFetchError && err.apiError.code === 'CONTENT_NOT_PUBLISHABLE') {
-      toast.add({ title: resolveContentServerError(err.apiError.code).message, color: 'error' })
-    } else {
-      toast.add({
-        title: mapProviderContentsErrorToMessage(err, 'Impossible de publier.'),
-        color: 'error'
-      })
-    }
-  } finally {
-    publishing.value = false
-  }
-}
-
-async function unpublish() {
-  if (busy.value) return
-  unpublishing.value = true
-  try {
-    await unpublishContent(id.value)
-    toast.add({ title: 'Contenu dépublié', color: 'success' })
-    await refreshServerState()
-  } catch (err) {
-    toast.add({
-      title: mapProviderContentsErrorToMessage(err, 'Impossible de dépublier.'),
-      color: 'error'
-    })
-  } finally {
-    unpublishing.value = false
-  }
-}
-
-async function handleDelete() {
-  if (deleting.value) return
-  deleting.value = true
-  try {
-    await deleteContent(id.value)
-    toast.add({ title: 'Contenu supprimé', color: 'success' })
-    isDeleteModalOpen.value = false
-    navigateTo('/provider/content')
-  } catch (err) {
-    toast.add({
-      title: mapProviderContentsErrorToMessage(err, 'Impossible de supprimer.'),
-      color: 'error'
-    })
-  } finally {
-    deleting.value = false
-  }
 }
 </script>

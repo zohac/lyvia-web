@@ -135,6 +135,12 @@ const navigation = computed(() => ({
           match: 'prefix' as const
         },
         {
+          label: 'Articles Keova',
+          to: '/provider/content/keova',
+          icon: 'lucide:newspaper',
+          match: 'prefix' as const
+        },
+        {
           label: 'SEO',
           to: '/provider/seo',
           icon: 'lucide:globe',
@@ -144,6 +150,12 @@ const navigation = computed(() => ({
           label: 'Paramètres',
           to: '/provider/settings/payments',
           icon: 'lucide:settings',
+          match: 'prefix' as const
+        },
+        {
+          label: 'Notifications',
+          to: '/provider/settings/notifications',
+          icon: 'lucide:bell',
           match: 'prefix' as const
         }
       ]

@@ -49,6 +49,12 @@ export const ADMIN_NAVIGATION: AdminNavigationConfig = {
           match: 'prefix'
         },
         {
+          label: 'Articles Keova',
+          to: '/admin/content',
+          icon: 'lucide:file-text',
+          match: 'prefix'
+        },
+        {
           label: 'Outils',
           to: '/admin/tools',
           icon: 'lucide:wrench',

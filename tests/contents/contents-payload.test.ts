@@ -22,16 +22,16 @@ const original: ContentOriginal = {
   slug: 'titre-existant',
   body: 'Corps existant',
   coverImageUrl: 'https://example.com/cover.jpg',
-  visibility: 'public'
+  audience: 'all'
 }
 
-function form(overrides: Partial<Record<'title' | 'type' | 'body' | 'coverImageUrl' | 'visibility' | 'slug', unknown>> = {}) {
+function form(overrides: Partial<Record<'title' | 'type' | 'body' | 'coverImageUrl' | 'audience' | 'slug' | 'document' | 'documentAssetId', unknown>> = {}) {
   return {
     title: original.title,
     type: original.type,
     body: original.body,
     coverImageUrl: original.coverImageUrl,
-    visibility: original.visibility,
+    audience: original.audience,
     slug: original.slug,
     ...overrides
   } as Parameters<typeof buildUpdateContentPayload>[0]
@@ -44,17 +44,18 @@ describe('buildCreateContentPayload', () => {
       type: 'recette',
       body: '  Un corps  ',
       coverImageUrl: ' https://example.com/a.jpg ',
-      visibility: 'private',
+      audience: 'selected',
       slug: 'mon-article'
     })
 
     assert.deepEqual(payload, {
       title: 'Mon article',
       type: 'recette',
-      visibility: 'private',
+      audience: 'selected',
       body: 'Un corps',
       slug: 'mon-article',
-      coverImageUrl: 'https://example.com/a.jpg'
+      coverImageUrl: 'https://example.com/a.jpg',
+      documentAssetId: null
     })
   })
 
@@ -64,19 +65,57 @@ describe('buildCreateContentPayload', () => {
       type: 'article',
       body: '   ',
       coverImageUrl: '',
-      visibility: 'public',
+      audience: 'all',
       slug: '  '
     })
 
-    assert.deepEqual(payload, { title: 'Titre', type: 'article', visibility: 'public' })
+    assert.deepEqual(payload, { title: 'Titre', type: 'article', audience: 'all', documentAssetId: null })
     assert.equal('body' in payload, false)
     assert.equal('slug' in payload, false)
     assert.equal('coverImageUrl' in payload, false)
   })
 
-  test('defaults the visibility to public when the form does not carry it', () => {
+  test('defaults the audience to selected when the form does not carry it', () => {
     const payload = buildCreateContentPayload({ title: 'Titre', type: 'article' })
-    assert.equal(payload.visibility, 'public')
+    assert.equal(payload.audience, 'selected')
+  })
+
+  test('carries the asset id of an uploaded document (AC1, AC2)', () => {
+    const payload = buildCreateContentPayload({
+      title: 'Titre',
+      type: 'article',
+      document: { assetId: 'asset-doc-1', filename: 'programme.pdf', sizeBytes: 2048 }
+    })
+
+    assert.equal(payload.documentAssetId, 'asset-doc-1')
+  })
+
+  test('always carries documentAssetId, null when no document is attached (AC1)', () => {
+    // "null quand aucun document n'est joint, jamais undefined": the server DTO
+    // accepts `null` and rejects an unknown value, so the field is *present* on
+    // every create, including a document the user removed before saving.
+    const inputs = [
+      { title: 'Titre', type: 'article' as const },
+      { title: 'Titre', type: 'article' as const, document: null },
+      { title: 'Titre', type: 'article' as const, document: { assetId: '' } }
+    ]
+
+    for (const input of inputs) {
+      const payload = buildCreateContentPayload(input)
+      assert.equal('documentAssetId' in payload, true, 'the field must never be dropped')
+      assert.equal(payload.documentAssetId, null)
+    }
+  })
+
+  test('an explicit documentAssetId wins over the form document', () => {
+    const payload = buildCreateContentPayload({
+      title: 'Titre',
+      type: 'article',
+      document: { assetId: 'asset-from-form' },
+      documentAssetId: 'asset-explicit'
+    })
+
+    assert.equal(payload.documentAssetId, 'asset-explicit')
   })
 })
 
@@ -103,8 +142,8 @@ describe('buildUpdateContentPayload', () => {
       { coverImageUrl: 'https://example.com/b.jpg' }
     )
     assert.deepEqual(
-      buildUpdateContentPayload(form({ visibility: 'private' }), original),
-      { visibility: 'private' }
+      buildUpdateContentPayload(form({ audience: 'selected' }), original),
+      { audience: 'selected' }
     )
     assert.deepEqual(
       buildUpdateContentPayload(form({ slug: 'nouvelle-adresse' }), original),
@@ -139,6 +178,86 @@ describe('buildUpdateContentPayload', () => {
   })
 })
 
+describe('buildUpdateContentPayload — document attach/detach (AC1–AC3)', () => {
+  const originalWithDocument: ContentOriginal = {
+    ...original,
+    document: { filename: 'programme.pdf', sizeBytes: 2048 }
+  }
+
+  /** What `fillForm` puts in the form for a server document (no local asset id). */
+  const untouchedDocument = { assetId: '', filename: 'programme.pdf', sizeBytes: 2048 }
+
+  test('sends nothing when an existing document is left untouched', () => {
+    // The server document has no local asset id (`assetId: ''`), and resending
+    // it would post an empty string the API rejects as a malformed UUID.
+    assert.deepEqual(
+      buildUpdateContentPayload(form({ document: untouchedDocument }), originalWithDocument),
+      {}
+    )
+  })
+
+  test('detaches with an explicit null (AC3)', () => {
+    const payload = buildUpdateContentPayload(form({ document: null }), originalWithDocument)
+
+    assert.deepEqual(payload, { documentAssetId: null })
+    assert.equal(payload.documentAssetId, null)
+  })
+
+  test('detaching a content that never had a document sends nothing', () => {
+    assert.deepEqual(buildUpdateContentPayload(form({ document: null }), original), {})
+  })
+
+  test('attaches a freshly uploaded asset (AC2)', () => {
+    assert.deepEqual(
+      buildUpdateContentPayload(form({ document: { assetId: 'asset-doc-2' } }), original),
+      { documentAssetId: 'asset-doc-2' }
+    )
+  })
+
+  test('replaces an existing document with the new asset', () => {
+    assert.deepEqual(
+      buildUpdateContentPayload(
+        form({ document: { assetId: 'asset-doc-3' } }),
+        originalWithDocument
+      ),
+      { documentAssetId: 'asset-doc-3' }
+    )
+  })
+
+  test('removing then attaching sends the new asset, never the removed one', () => {
+    // "Retirer" then "Joindre" on the same form visit: the payload must carry
+    // only the replacement, not the asset that was dropped.
+    const detached = buildUpdateContentPayload(form({ document: null }), originalWithDocument)
+    assert.deepEqual(detached, { documentAssetId: null })
+
+    const reattached = buildUpdateContentPayload(
+      form({ document: { assetId: 'asset-doc-4' } }),
+      originalWithDocument
+    )
+    assert.deepEqual(reattached, { documentAssetId: 'asset-doc-4' })
+  })
+
+  test('an explicit documentAssetId wins over the form document', () => {
+    assert.deepEqual(
+      buildUpdateContentPayload(
+        form({ document: { assetId: 'asset-from-form' }, documentAssetId: null }),
+        originalWithDocument
+      ),
+      { documentAssetId: null }
+    )
+  })
+
+  test('never emits an empty string: the DTO expects a UUID or null', () => {
+    const payload = buildUpdateContentPayload(
+      form({ document: { assetId: '   ' } }),
+      originalWithDocument
+    )
+
+    assert.deepEqual(payload, {})
+    assert.equal('documentAssetId' in payload, false)
+  })
+})
+
 describe('delegation: the pages use the builders rather than rebuilding a payload', () => {
   // The builders above prove the mapping; these two guards keep it the only
   // mapping. A page that reintroduces its own field-by-field payload would
@@ -155,9 +274,21 @@ describe('delegation: the pages use the builders rather than rebuilding a payloa
     assert.match(source, /createContent\(buildCreateContentPayload\(/)
   })
 
-  test('the edit page sends buildUpdateContentPayload(...)', () => {
-    const source = readPage('pages/provider/content/[id].vue')
-    assert.match(source, /buildUpdateContentPayload\(/)
-    assert.match(source, /updateContent\(id\.value, payload\)/)
+  test('the edit page delegates to the editor factory, which owns the builder call', () => {
+    // The page is wiring only (AC9): its load token, its save and its
+    // mutation-versus-re-read split are executed in
+    // `create-provider-content-editor.test.ts`. A page that rebuilt a payload
+    // field by field would pass every other test in this suite — the factory is
+    // the single call site, and it passes `form`/`original` whole, so a new
+    // field cannot be forgotten.
+    const page = readPage('pages/provider/content/[id].vue')
+    assert.match(page, /createProviderContentEditor\(\{/)
+    assert.equal(/buildUpdateContentPayload\(/.test(page), false, 'the page must not build the PATCH itself')
+
+    const factory = fs.readFileSync(
+      path.resolve(process.cwd(), 'app/features/contents/createProviderContentEditor.ts'),
+      'utf-8'
+    )
+    assert.match(factory, /buildUpdateContentPayload\(form, original\.value\)/)
   })
 })

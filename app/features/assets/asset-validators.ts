@@ -22,11 +22,46 @@ import {
 export type { UploadAssetType } from './api/asset.contract'
 
 /**
+ * The error code, whichever carrier the client received: `apiFetch` normalizes
+ * the API envelope into `apiError.code`, while a plain `Error` thrown by the
+ * upload path carries the code as its message. Reading only `message` silently
+ * degraded every mapped message as soon as the envelope was present.
+ */
+function errorCode(e: unknown): string {
+  const carrier = e as { apiError?: { code?: unknown } } | null
+  const code = carrier?.apiError?.code
+  if (typeof code === 'string' && code.length > 0) return code
+  return e instanceof Error ? e.message : ''
+}
+
+/** Verbatim copy from `docs/specs/spec-contenus-diffusion/interfaces.md` §6. */
+export const CONTENT_DOCUMENT_QUOTA_MESSAGE
+  = 'Votre espace de documents est plein (500 Mo). Supprimez un document pour en ajouter un nouveau.'
+export const CONTENT_DOCUMENT_TOO_LARGE_MESSAGE = 'Le document dépasse 10 Mo.'
+export const CONTENT_DOCUMENT_INVALID_MIME_MESSAGE = 'Seuls les PDF sont acceptés.'
+
+/**
  * Map upload errors to French user-facing messages.
- * Specialized for `brand_logo` / `page_image` to surface asset-specific copy.
+ * Specialized for `brand_logo` / `page_image` / `content_cover` /
+ * `content_document` to surface asset-specific copy.
  */
 export function formatUploadError(e: unknown, assetType?: UploadAssetType): string {
-  const msg = e instanceof Error ? e.message : ''
+  const msg = errorCode(e)
+
+  if (assetType === 'content_document') {
+    if (msg.includes('CONTENT_DOCUMENT_QUOTA_EXCEEDED')) return CONTENT_DOCUMENT_QUOTA_MESSAGE
+    if (msg.includes('TOO_LARGE')) return CONTENT_DOCUMENT_TOO_LARGE_MESSAGE
+    if (msg.includes('INVALID_MIME')) return CONTENT_DOCUMENT_INVALID_MIME_MESSAGE
+    return 'Erreur lors de l\'envoi du document.'
+  }
+
+  if (assetType === 'content_cover') {
+    if (msg.includes('INVALID_MIME')) {
+      return 'Format d\'image non reconnu. Utilisez un fichier JPEG, PNG ou WebP valide.'
+    }
+    if (msg.includes('TOO_LARGE')) return 'L\'image doit faire moins de 5 Mo.'
+    return 'Erreur lors de l\'envoi de l\'image.'
+  }
 
   if (assetType === 'page_image') {
     if (msg.includes('INVALID_MIME')) {

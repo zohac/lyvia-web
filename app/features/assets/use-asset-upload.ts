@@ -25,7 +25,10 @@ export {
   BRAND_LOGO_MAX_BYTES,
   BRAND_LOGO_ALLOWED_MIME_TYPES,
   CERTIFICATION_LOGO_MAX_BYTES,
-  CERTIFICATION_LOGO_ALLOWED_MIME_TYPES
+  CERTIFICATION_LOGO_ALLOWED_MIME_TYPES,
+  CONTENT_DOCUMENT_QUOTA_MESSAGE,
+  CONTENT_DOCUMENT_TOO_LARGE_MESSAGE,
+  CONTENT_DOCUMENT_INVALID_MIME_MESSAGE
 } from './asset-validators'
 export {
   PAGE_IMAGE_MAX_BYTES,
@@ -35,18 +38,26 @@ export {
   PAGE_IMAGE_OPTIMIZED_WIDTH
 } from './api/asset.contract'
 
+/** Default upload route — the provider assets endpoint. */
+export const PROVIDER_ASSET_UPLOAD_ENDPOINT = '/provider/assets/upload'
+
 /**
- * POST a file to the provider assets endpoint. Uses apiFetch for auth retry +
- * normalized error envelope.
+ * POST a file to an assets endpoint. Uses apiFetch for auth retry + normalized
+ * error envelope.
+ *
+ * `endpoint` is injectable so an admin session never calls a provider route:
+ * platform content covers go to `/admin/assets/upload` instead (diffusion-10).
+ * The default keeps every existing caller unchanged.
  */
 export async function uploadAsset(
   type: UploadAssetType,
-  file: File
+  file: File,
+  endpoint: string = PROVIDER_ASSET_UPLOAD_ENDPOINT
 ): Promise<UploadAssetResult> {
   const formData = new FormData()
   formData.append('type', type)
   formData.append('file', file)
-  return apiFetch<UploadAssetResult>('/provider/assets/upload', {
+  return apiFetch<UploadAssetResult>(endpoint, {
     method: 'POST',
     body: formData
   })

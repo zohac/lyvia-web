@@ -1,4 +1,4 @@
-import type { ContentType, ContentVisibility } from '../api/contents.contract'
+import type { ContentAudience, ContentType } from '../api/contents.contract'
 
 export const MAX_CONTENT_TITLE_LENGTH = 200
 
@@ -13,6 +13,11 @@ export const CONTENT_VALIDATION_ERROR_MESSAGE = 'Certains champs sont invalides.
 export const CONTENT_NOT_FOUND_MESSAGE = 'Ce contenu est introuvable.'
 export const CONTENT_FORBIDDEN_MESSAGE = 'Accès refusé.'
 export const CONTENT_COVER_IMAGE_INVALID_MESSAGE = 'URL d’image invalide. Utilisez une adresse http(s).'
+export const CONTENT_SLUG_UNRESOLVABLE_MESSAGE = 'Impossible de générer une adresse à partir de ce titre.'
+
+export const CONTENT_DOCUMENT_NOT_FOUND_MESSAGE = 'Ce document est introuvable.'
+export const CONTENT_DOCUMENT_INVALID_TYPE_MESSAGE = 'Seuls les PDF sont acceptés.'
+export const CONTENT_DOCUMENT_ALREADY_ATTACHED_MESSAGE = 'Ce document est déjà rattaché à un autre contenu.'
 
 /**
  * Mirrors the server slugs (`lyvia-api/src/features/contents/domain/content-slug.ts`
@@ -28,7 +33,9 @@ export interface ContentFormInput {
   slug?: string
   body?: string | null
   coverImageUrl?: string | null
-  visibility?: ContentVisibility
+  audience?: ContentAudience
+  document?: { assetId: string, filename?: string, sizeBytes?: number } | null
+  documentAssetId?: string | null
 }
 
 export interface ContentFormErrors {
@@ -104,6 +111,14 @@ export function resolveContentServerError(code: string | null | undefined): {
       return { field: null, message: CONTENT_NOT_FOUND_MESSAGE }
     case 'FORBIDDEN':
       return { field: null, message: CONTENT_FORBIDDEN_MESSAGE }
+    case 'CONTENT_SLUG_UNRESOLVABLE':
+      return { field: null, message: CONTENT_SLUG_UNRESOLVABLE_MESSAGE }
+    case 'CONTENT_DOCUMENT_NOT_FOUND':
+      return { field: null, message: CONTENT_DOCUMENT_NOT_FOUND_MESSAGE }
+    case 'CONTENT_DOCUMENT_INVALID_TYPE':
+      return { field: null, message: CONTENT_DOCUMENT_INVALID_TYPE_MESSAGE }
+    case 'CONTENT_DOCUMENT_ALREADY_ATTACHED':
+      return { field: null, message: CONTENT_DOCUMENT_ALREADY_ATTACHED_MESSAGE }
     default:
       return { field: null, message: CONTENT_GENERIC_ERROR_MESSAGE }
   }

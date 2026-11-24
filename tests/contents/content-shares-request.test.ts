@@ -22,9 +22,11 @@ test('share targets POST /provider/content/:id/share with body', () => {
   assert.deepEqual(call.options.body, payload)
 })
 
-test('share all sends { all: true }', () => {
-  const call = buildShareContentCall('abc', { all: true })
-  assert.deepEqual(call.options.body, { all: true })
+test('share sends only clientProfileIds: `all: true` is no longer a share body', () => {
+  // `ShareContentDto` (diffusion-2 AC4) no longer declares `all` — addressing
+  // everybody is an audience change on the content, not a share operation.
+  const call = buildShareContentCall('abc', { clientProfileIds: ['c1'] })
+  assert.deepEqual(Object.keys(call.options.body), ['clientProfileIds'])
 })
 
 test('unshare targets DELETE /provider/content/:id/share/:clientProfileId', () => {

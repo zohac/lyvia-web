@@ -11,7 +11,7 @@
 
 export type ContentType = 'article' | 'recette' | 'actualite'
 
-export type ContentVisibility = 'public' | 'private'
+export type ContentAudience = 'all' | 'selected'
 
 export type ContentStatusFilter = 'published' | 'draft' | 'all'
 
@@ -23,7 +23,8 @@ export type ContentItem = {
   slug: string
   body: string | null
   coverImageUrl: string | null
-  visibility: ContentVisibility
+  audience: ContentAudience | null
+  document: { filename: string, sizeBytes: number } | null
   isPublished: boolean
   publishedAt: string | null
   createdAt: string
@@ -33,6 +34,7 @@ export type ContentItem = {
 export type ListContentsParams = {
   type?: ContentType
   status?: ContentStatusFilter
+  audience?: ContentAudience
   q?: string
   limit?: number
   cursor?: string
@@ -49,7 +51,8 @@ export type CreateContentRequest = {
   slug?: string
   body?: string | null
   coverImageUrl?: string | null
-  visibility?: ContentVisibility
+  audience?: ContentAudience
+  documentAssetId?: string | null
 }
 
 export type CreateContentResponse = {
@@ -63,7 +66,8 @@ export type UpdateContentRequest = {
   slug?: string
   body?: string | null
   coverImageUrl?: string | null
-  visibility?: ContentVisibility
+  audience?: ContentAudience
+  documentAssetId?: string | null
 }
 
 export type UpdateContentResponse = {
@@ -91,15 +95,13 @@ export type ListContentSharesResponse = {
 }
 
 /**
- * Body of `POST /provider/content/:id/share`. Send one field or the other:
- * `all: true` wins when both are present, and `clientProfileIds` is capped at
- * 200 by the DTO. `all` covers clients with at least one non-cancelled
- * appointment — deliberately narrower than the provider's roster, hence the
- * scope sentence under the button.
+ * Body of `POST /provider/content/:id/share`. `clientProfileIds` is capped at
+ * 200 by the DTO. `{ all: true }` is **gone** from `ShareContentDto` (diffusion-2
+ * AC4): addressing everybody is an *audience* (`PATCH … { audience: 'all' }`),
+ * not a share operation, and the API answers 400 if the field is sent.
  */
 export type ShareContentRequest = {
-  clientProfileIds?: string[]
-  all?: boolean
+  clientProfileIds: string[]
 }
 
 /**
@@ -124,6 +126,8 @@ export type UnshareContentResponse = {
 // and `scripts/contract-check-openapi-contents.mjs` fails when the two drift.
 // ============================================================================
 
+export type ContentSource = 'keova' | 'provider'
+
 export type ClientContentListItem = {
   id: string
   title: string
@@ -131,8 +135,10 @@ export type ClientContentListItem = {
   slug: string
   coverImageUrl: string | null
   publishedAt: string | null
-  providerName: string
+  providerName: string | null
   providerSlug: string | null
+  source: ContentSource
+  document: { filename: string, sizeBytes: number } | null
 }
 
 export type ClientContentDetail = {
@@ -143,8 +149,10 @@ export type ClientContentDetail = {
   body: string | null
   coverImageUrl: string | null
   publishedAt: string | null
-  providerName: string
+  providerName: string | null
   providerSlug: string | null
+  source: ContentSource
+  document: { filename: string, sizeBytes: number } | null
 }
 
 export type ListClientContentsParams = {
@@ -157,4 +165,37 @@ export type ListClientContentsParams = {
 export type ListClientContentsResponse = {
   items: ClientContentListItem[]
   nextCursor: string | null
+}
+
+// ============================================================================
+// Platform contents (Story diffusion-8) — verified against openapi.yaml
+// Backend `ProviderPlatformContentsController` (mounted at /provider/platform-content).
+// ============================================================================
+
+export type PlatformContentItem = {
+  id: string
+  title: string
+  type: ContentType
+  slug: string
+  body: string | null
+  coverImageUrl: string | null
+  isPublished: boolean
+  publishedAt: string | null
+  approved: boolean
+  /**
+   * Document attached to the article (diffusion-14 AC4), `null` when it has
+   * none. Only the name and the size are exposed: the storage coordinates stay
+   * server-side, as on the client read.
+   */
+  document: { filename: string, sizeBytes: number } | null
+}
+
+export type ListPlatformContentsResponse = {
+  items: PlatformContentItem[]
+  nextCursor: string | null
+}
+
+export type PlatformContentApprovalResponse = {
+  contentId: string
+  approved: boolean
 }

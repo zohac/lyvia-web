@@ -34,12 +34,49 @@
           v-model:title="form.title"
           v-model:type="form.type"
           v-model:body="form.body"
-          v-model:cover-image-url="form.coverImageUrl"
-          v-model:visibility="form.visibility"
           v-model:slug="form.slug"
           :errors="errors"
           :disabled="saving"
         />
+
+        <MoleculesContentCoverField
+          v-model="form.coverImageUrl"
+          :disabled="saving"
+        />
+
+        <MoleculesContentDocumentField
+          v-model="form.document"
+          :disabled="saving"
+          @uploading="documentUploading = $event"
+        />
+
+        <div class="space-y-2">
+          <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
+            Diffusion
+          </p>
+          <div class="flex gap-2">
+            <UButton
+              size="sm"
+              :variant="form.audience === 'all' ? 'solid' : 'soft'"
+              color="primary"
+              type="button"
+              :disabled="saving"
+              @click="form.audience = 'all'"
+            >
+              Partagé avec toutes vos clientes
+            </UButton>
+            <UButton
+              size="sm"
+              :variant="form.audience === 'selected' ? 'solid' : 'soft'"
+              color="neutral"
+              type="button"
+              :disabled="saving"
+              @click="form.audience = 'selected'"
+            >
+              Clientes choisies
+            </UButton>
+          </div>
+        </div>
 
         <div class="flex justify-end gap-3">
           <UButton
@@ -55,6 +92,7 @@
             color="primary"
             type="submit"
             :loading="saving"
+            :disabled="saving || documentUploading"
           >
             Créer (brouillon)
           </UButton>
@@ -65,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ContentType, ContentVisibility } from '../../../features/contents/api/contents.contract'
+import type { ContentAudience, ContentType } from '../../../features/contents/api/contents.contract'
 import { createContent } from '../../../features/contents/services/provider-contents.service'
 import {
   CONTENT_GENERIC_ERROR_MESSAGE,
@@ -76,6 +114,8 @@ import {
 import { buildCreateContentPayload } from '../../../features/contents/domain/content-payload'
 import { ApiFetchError } from '../../../services/api/api-error'
 import MoleculesContentsFormFields from '../../../components/molecules/ContentsFormFields.vue'
+import MoleculesContentCoverField from '../../../components/molecules/ContentCoverField.vue'
+import MoleculesContentDocumentField from '../../../components/molecules/ContentDocumentField.vue'
 
 definePageMeta({
   layout: 'provider',
@@ -89,19 +129,24 @@ const form = reactive({
   type: '' as ContentType | '',
   body: '',
   coverImageUrl: '',
-  visibility: 'public' as ContentVisibility,
-  slug: ''
+  audience: 'selected' as ContentAudience,
+  slug: '',
+  document: null as { assetId: string, filename: string, sizeBytes: number } | null
 })
 
 const errors = ref<ContentFormErrors>({})
 const saving = ref(false)
 const errorMessage = ref<string | null>(null)
+/** A PDF is still uploading: its asset id is not in the form yet. */
+const documentUploading = ref(false)
 
 function cancel() {
   navigateTo('/provider/content')
 }
 
 async function submit() {
+  if (saving.value || documentUploading.value) return
+
   const validationErrors = validateContentForm(form)
   errors.value = validationErrors
   if (Object.keys(validationErrors).length > 0) return
