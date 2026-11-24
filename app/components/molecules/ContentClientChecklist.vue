@@ -33,22 +33,33 @@
           v-for="client in items"
           :key="client.clientProfileId"
         >
-          <label class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 hover:bg-[color:var(--color-surface-muted)]">
-            <input
-              type="checkbox"
-              :checked="checked.has(client.clientProfileId)"
+          <!--
+            diffusion-14 AC1: the design system's checkbox, not a native input.
+            `UCheckbox` renders a `<Label :for="id">` around its `#label` slot, so
+            the two lines stay the box's accessible name; the row keeps its hover
+            background. An in-flight share disables the row: `toggle()` already
+            refuses a second call, and a box that still looks clickable tells the
+            opposite.
+          -->
+          <div class="rounded-md px-2 py-1 hover:bg-[color:var(--color-surface-muted)]">
+            <UCheckbox
+              :model-value="checked.has(client.clientProfileId)"
+              :disabled="toggling.has(client.clientProfileId)"
               :aria-busy="toggling.has(client.clientProfileId) ? 'true' : 'false'"
-              @change="toggle(client)"
+              @update:model-value="toggle(client)"
             >
-            <span class="min-w-0">
-              <span class="block text-sm text-[color:var(--color-text-primary)]">
-                {{ client.firstname }} {{ client.lastname }}
-              </span>
-              <span class="block truncate text-xs text-[color:var(--color-text-muted)]">
-                {{ client.email }}
-              </span>
-            </span>
-          </label>
+              <template #label>
+                <span class="min-w-0">
+                  <span class="block text-sm text-[color:var(--color-text-primary)]">
+                    {{ client.firstname }} {{ client.lastname }}
+                  </span>
+                  <span class="block truncate text-xs text-[color:var(--color-text-muted)]">
+                    {{ client.email }}
+                  </span>
+                </span>
+              </template>
+            </UCheckbox>
+          </div>
         </li>
       </ul>
 

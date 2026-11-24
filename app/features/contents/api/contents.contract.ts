@@ -182,6 +182,12 @@ export type PlatformContentItem = {
   isPublished: boolean
   publishedAt: string | null
   approved: boolean
+  /**
+   * Document attached to the article (diffusion-14 AC4), `null` when it has
+   * none. Only the name and the size are exposed: the storage coordinates stay
+   * server-side, as on the client read.
+   */
+  document: { filename: string, sizeBytes: number } | null
 }
 
 export type ListPlatformContentsResponse = {

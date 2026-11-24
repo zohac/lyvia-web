@@ -29,7 +29,7 @@
         {{ document.filename }}
       </p>
       <p class="text-xs text-[color:var(--color-text-muted)]">
-        {{ formatSize(document.sizeBytes) }}
+        {{ formatFileSize(document.sizeBytes) }}
       </p>
       <div class="mt-2 flex gap-2">
         <UButton
@@ -81,6 +81,7 @@ import {
   uploadAsset,
   validateFileUpload
 } from '../../features/assets/use-asset-upload'
+import { formatFileSize } from '../../features/contents/domain/file-size'
 
 const props = defineProps<{
   modelValue: { assetId: string, filename: string, sizeBytes: number } | null
@@ -110,12 +111,6 @@ const document = computed(() => props.modelValue)
 function trigger() {
   if (blocked.value) return
   inputRef.value?.click()
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} o`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`
 }
 
 async function onFileSelected(event: Event) {

@@ -29,7 +29,8 @@ function item(id: string, approved = false, body: string | null = 'corps'): Plat
     coverImageUrl: null,
     isPublished: true,
     publishedAt: '2026-11-01T00:00:00.000Z',
-    approved
+    approved,
+    document: null
   }
 }
 

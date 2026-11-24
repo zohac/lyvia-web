@@ -14,6 +14,7 @@
  * (two homonyms become indistinguishable), dropping the "Charger plus" button.
  */
 import * as assert from 'node:assert/strict'
+import * as fs from 'node:fs'
 import * as path from 'node:path'
 import test from 'node:test'
 
@@ -54,6 +55,33 @@ const STUBS = {
       })
   },
   UButton: buttonStub('UButton'),
+  /**
+   * diffusion-14 AC1: the row is a `UCheckbox` now, not a native input.
+   *
+   * The stub mirrors the contract the page depends on — `modelValue` drives the
+   * checked state, `disabled` and `aria-busy` reach the control, and the
+   * `#label` slot is what carries the accessible name (the real component
+   * renders it inside `<Label :for="id">`). `data-checked` is readable in the
+   * HTML; a native `<input type="checkbox">` would produce no `UCheckbox` node
+   * at all, so the count assertion below fails on the old markup.
+   */
+  UCheckbox: {
+    name: 'UCheckbox',
+    props: ['modelValue', 'disabled', 'onUpdate:modelValue', 'aria-busy'],
+    setup: (props: Record<string, unknown>, { slots, attrs }: { slots: SlotMap, attrs: Record<string, unknown> }) => () =>
+      Vue.h('label', {
+        'data-component': 'UCheckbox',
+        'data-checked': props.modelValue === true ? 'true' : 'false',
+        'data-disabled': props.disabled === true ? 'true' : 'false',
+        'aria-busy': (props.ariaBusy ?? attrs['aria-busy']) as string | undefined,
+        'onClick': props.onUpdate
+          ? () => (props['onUpdate:modelValue'] as (value: boolean) => void)(!props.modelValue)
+          : undefined
+      }, [
+        Vue.h('input', { type: 'checkbox', checked: props.modelValue === true, disabled: props.disabled === true }),
+        ...(slots.label?.() ?? [])
+      ])
+  },
   USkeleton: {
     name: 'USkeleton',
     setup: () => () => Vue.h('div', { 'data-testid': 'skeleton' })
@@ -159,7 +187,7 @@ test('an empty roster says nobody is there, and a search with no hit says so dif
   assert.equal(emptySearch.includes('Aucune cliente ne correspond à cette recherche.'), true)
 })
 
-test('each row shows the name, the e-mail and a checkbox whose label carries all three', async () => {
+test('each row is a design-system checkbox labelled with the name and the e-mail (AC1)', async () => {
   const html = await renderChecklist({
     items: [
       { clientProfileId: 'c1', firstname: 'Marie', lastname: 'Martin', email: 'marie.martin@exemple.fr' },
@@ -171,12 +199,39 @@ test('each row shows the name, the e-mail and a checkbox whose label carries all
   assert.equal(html.includes('Marie Martin'), true)
   assert.equal(html.includes('marie.martin@exemple.fr'), true)
   assert.equal(html.includes('marie.martin2@exemple.fr'), true, 'two homonyms must be tellable apart')
-  // One checkbox per client, the shared one pre-checked, the other not.
-  const boxes = html.match(/type="checkbox"[^>]*>/g) ?? []
+
+  // One design-system checkbox per client, the shared one pre-checked.
+  const boxes = html.match(/data-component="UCheckbox"[^>]*/g) ?? []
+  assert.equal(boxes.length, 2, 'the native input is gone: the row is a UCheckbox')
+  assert.equal(boxes.filter(box => box.includes('data-checked="true"')).length, 1)
+
+  // The label carries prénom, nom and e-mail (interfaces.md §7): each box's
+  // own label is followed by both lines, never a shared one.
+  const rows = html.split('data-component="UCheckbox"').slice(1)
+  assert.equal(rows[0]?.includes('marie.martin@exemple.fr'), true)
+  assert.equal(rows[1]?.includes('marie.martin2@exemple.fr'), true)
+})
+
+test('an in-flight share disables its own row and marks it busy (AC1)', async () => {
+  const html = await renderChecklist({
+    items: [
+      { clientProfileId: 'c1', firstname: 'A', lastname: 'B', email: 'a@b.fr' },
+      { clientProfileId: 'c2', firstname: 'C', lastname: 'D', email: 'c@d.fr' }
+    ],
+    toggling: ['c2']
+  })
+
+  const boxes = html.match(/data-component="UCheckbox"[^>]*/g) ?? []
   assert.equal(boxes.length, 2)
-  assert.equal(boxes.filter(box => box.includes('checked')).length, 1)
-  // interfaces.md §7: the label holds prénom, nom and e-mail.
-  assert.equal((html.match(/<label/g) ?? []).length >= 2, true)
+  const busy = boxes.filter(box => box.includes('data-disabled="true"'))
+  assert.equal(busy.length, 1, 'only the row whose call is in flight is refused')
+  assert.equal(busy[0]?.includes('aria-busy="true"'), true)
+})
+
+test('the checklist no longer renders a native checkbox (AC1)', () => {
+  const source = fs.readFileSync(COMP, 'utf-8')
+  assert.equal(/<input\s[^>]*type="checkbox"/.test(source), false, '`<input type="checkbox">` must be gone')
+  assert.equal(source.includes('<UCheckbox'), true)
 })
 
 test('the search field is named, autocompletes off and writes through to the query', async () => {

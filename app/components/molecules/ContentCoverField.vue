@@ -16,14 +16,23 @@
 
       <div
         v-if="preview"
-        class="space-y-2"
+        class="space-y-3"
       >
+        <!--
+          diffusion-14 AC5: the preview is bounded in **both** directions. With
+          `max-h-48` alone, the image stayed full-bleed and its height followed
+          the file's aspect ratio (measured before the fix: 565×141 for a 4:1
+          cover, 243×61 on a phone), so the actions row moved with the file and
+          crowded it — the capture of 2026-11-24. A fixed thumbnail box crops
+          with `object-cover` instead, and the actions keep their own line
+          (`flex-wrap` so a narrow phone stacks them rather than squeezing them).
+        -->
         <img
           :src="preview"
           alt="Aperçu de la couverture"
-          class="mx-auto max-h-48 rounded"
+          class="mx-auto block h-40 w-full max-w-[280px] rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] object-cover"
         >
-        <div class="flex justify-center gap-2">
+        <div class="flex flex-wrap items-center justify-center gap-2">
           <UButton
             size="sm"
             variant="soft"

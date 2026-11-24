@@ -230,6 +230,38 @@ if (!contract) {
       'Divergence du vocabulaire `type` entre GET /content (openapi.yaml) et content-options.ts'
     )
 
+    // 2c. Story diffusion-14 — the practitioner preview reads the article's
+    //     cover, body and (AC4) its attached document. The fields come from
+    //     `ProviderPlatformContentResponseDto`; the web screen only sees its own
+    //     mirror, so this is where a dropped or renamed `document` is caught.
+    const platformItemProperties = Object.keys(
+      document.components?.schemas?.ProviderPlatformContentResponseDto?.properties ?? {}
+    )
+    for (const field of [
+      'id',
+      'title',
+      'body',
+      'coverImageUrl',
+      'publishedAt',
+      'approved',
+      'document'
+    ]) {
+      assert.ok(
+        platformItemProperties.includes(field),
+        `ProviderPlatformContentResponseDto ne déclare pas \`${field}\`, lu par l'aperçu praticienne`
+      )
+    }
+
+    const platformDocumentProperties = Object.keys(
+      document.components?.schemas?.PlatformContentDocumentResponseDto?.properties ?? {}
+    )
+    for (const field of ['filename', 'sizeBytes']) {
+      assert.ok(
+        platformDocumentProperties.includes(field),
+        `PlatformContentDocumentResponseDto ne déclare pas \`${field}\`, affiché par l'aperçu praticienne`
+      )
+    }
+
     // 3. The filter vocabularies written on both sides agree.
     const listParameters = paths['/provider/content'].get.parameters ?? []
     const enumOf = (name) => {
