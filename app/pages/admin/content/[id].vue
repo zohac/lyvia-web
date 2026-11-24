@@ -86,17 +86,20 @@ async function confirmDelete() {
   <div class="space-y-6">
     <AtomsDsPageHeader :title="content ? content.title : 'Article'">
       <template #actions>
-        <UButton
-          variant="ghost"
-          color="neutral"
-          @click="goBack"
-        >
-          <UIcon
-            name="lucide:arrow-left"
-            class="mr-2 h-4 w-4"
-          />
-          Retour
-        </UButton>
+        <div class="flex max-w-[calc(100vw-5rem)] flex-wrap items-center gap-3 sm:max-w-none">
+          <UButton
+            size="sm"
+            variant="ghost"
+            color="neutral"
+            @click="goBack"
+          >
+            <UIcon
+              name="lucide:arrow-left"
+              class="mr-2 h-4 w-4"
+            />
+            Retour
+          </UButton>
+        </div>
       </template>
     </AtomsDsPageHeader>
 
@@ -106,102 +109,131 @@ async function confirmDelete() {
       @retry="load"
     />
 
-    <div
+    <UCard
       v-else-if="loading"
-      class="space-y-4"
+      class="bg-[color:var(--color-surface-card)]"
     >
-      <USkeleton class="h-8 w-1/3" />
-      <USkeleton class="h-40 w-full" />
-    </div>
+      <div class="space-y-4">
+        <USkeleton class="h-4 w-24" />
+        <USkeleton class="h-10 w-full rounded-[8px]" />
+        <USkeleton class="h-4 w-24" />
+        <USkeleton class="h-10 w-full rounded-[8px]" />
+        <USkeleton class="h-44 w-full rounded-[8px]" />
+      </div>
+    </UCard>
 
     <template v-else-if="content">
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span :class="statusBadgeClasses.badge">
           <span :class="statusBadgeClasses.dot" />
           {{ statusBadge.label }}
         </span>
-        <span class="text-sm text-[color:var(--color-text-muted)]">
+        <span class="text-sm text-[color:var(--color-text-secondary)]">
           {{ statusScopeLabel }}
         </span>
-        <span class="text-sm text-[color:var(--color-text-secondary)]">
+        <span class="text-sm tabular-nums text-[color:var(--color-text-secondary)]">
           {{ formatAdminApprovalCount(content.approvalCount) }}
         </span>
       </div>
 
-      <UCard class="bg-[color:var(--color-surface-card)]">
-        <form
-          class="space-y-4"
-          @submit.prevent="save"
-        >
-          <MoleculesContentsFormFields
-            v-model:title="form.title"
-            v-model:body="form.body"
-            v-model:slug="form.slug"
-            :type="ADMIN_CONTENT_TYPE"
-            :type-disabled="true"
-            :errors="errors"
-            :disabled="busy"
-            slug-placeholder="Laissez vide pour conserver l’adresse actuelle"
-          />
-
-          <MoleculesContentCoverField
-            v-model="form.coverImageUrl"
-            :error="errors.coverImageUrl"
-            :disabled="busy"
-            :upload-endpoint="ADMIN_CONTENT_UPLOAD_ENDPOINT"
-          />
-
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex flex-wrap items-center gap-2">
-              <UButton
-                v-if="!content.isPublished"
-                color="success"
-                type="button"
-                :disabled="!canPublish || busy"
-                :loading="publishing"
-                @click="publish"
-              >
-                Publier
-              </UButton>
-              <UButton
-                v-else
-                color="warning"
-                variant="soft"
-                type="button"
-                :disabled="busy"
-                :loading="unpublishing"
-                @click="unpublish"
-              >
-                Dépublier
-              </UButton>
-              <UButton
-                color="error"
-                variant="ghost"
-                type="button"
-                :disabled="busy"
-                @click="isDeleteModalOpen = true"
-              >
-                Supprimer
-              </UButton>
-            </div>
-            <UButton
-              color="primary"
-              type="submit"
-              :loading="saving"
+      <form
+        class="space-y-4"
+        @submit.prevent="save"
+      >
+        <UCard class="bg-[color:var(--color-surface-card)]">
+          <section class="space-y-5">
+            <header>
+              <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+                Contenu
+              </h2>
+            </header>
+            <MoleculesContentsFormFields
+              v-model:title="form.title"
+              v-model:body="form.body"
+              v-model:slug="form.slug"
+              :type="ADMIN_CONTENT_TYPE"
+              :type-disabled="true"
+              :errors="errors"
               :disabled="busy"
+              control-size="compact"
+              slug-placeholder="Laissez vide pour conserver l’adresse actuelle"
+            />
+          </section>
+
+          <hr class="my-6 border-[color:var(--color-border-subtle)]">
+
+          <section class="space-y-5">
+            <header>
+              <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+                Médias
+              </h2>
+            </header>
+
+            <MoleculesContentCoverField
+              v-model="form.coverImageUrl"
+              :error="errors.coverImageUrl"
+              :disabled="busy"
+              control-size="compact"
+              :upload-endpoint="ADMIN_CONTENT_UPLOAD_ENDPOINT"
+            />
+          </section>
+        </UCard>
+
+        <p
+          v-if="!content.isPublished && !canPublish"
+          class="text-xs text-[color:var(--color-neutral-600)]"
+        >
+          Le titre et le contenu doivent être enregistrés avant de pouvoir publier.
+        </p>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--color-border-subtle)] pt-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <UButton
+              v-if="!content.isPublished"
+              size="sm"
+              color="success"
+              type="button"
+              :disabled="!canPublish || busy"
+              :loading="publishing"
+              @click="publish"
             >
-              Enregistrer
+              Publier
+            </UButton>
+            <UButton
+              v-else
+              size="sm"
+              color="warning"
+              variant="soft"
+              type="button"
+              :disabled="busy"
+              :loading="unpublishing"
+              @click="unpublish"
+            >
+              Dépublier
+            </UButton>
+            <span class="mx-1 hidden h-6 w-px bg-[color:var(--color-border-subtle)] sm:block" />
+            <UButton
+              size="sm"
+              color="error"
+              variant="ghost"
+              type="button"
+              :disabled="busy"
+              @click="isDeleteModalOpen = true"
+            >
+              Supprimer
             </UButton>
           </div>
-
-          <p
-            v-if="!content.isPublished && !canPublish"
-            class="text-xs text-[color:var(--color-text-muted)]"
+          <UButton
+            size="sm"
+            color="primary"
+            type="submit"
+            :loading="saving"
+            :disabled="busy"
           >
-            Le titre et le contenu doivent être enregistrés avant de pouvoir publier.
-          </p>
-        </form>
-      </UCard>
+            Enregistrer
+          </UButton>
+        </div>
+      </form>
 
       <UModal
         v-model:open="isDeleteModalOpen"
@@ -213,6 +245,7 @@ async function confirmDelete() {
         <template #footer>
           <div class="flex justify-end gap-3">
             <UButton
+              size="sm"
               variant="ghost"
               type="button"
               @click="isDeleteModalOpen = false"
@@ -220,6 +253,7 @@ async function confirmDelete() {
               Annuler
             </UButton>
             <UButton
+              size="sm"
               color="error"
               type="button"
               :loading="deleting"

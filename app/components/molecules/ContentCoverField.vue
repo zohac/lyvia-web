@@ -1,7 +1,13 @@
 <template>
-  <div class="space-y-3">
+  <div class="space-y-2">
+    <p class="text-[13px] font-semibold text-[color:var(--color-text-secondary)]">
+      Image de couverture
+    </p>
+
     <div
-      class="rounded-lg border border-dashed border-[color:var(--color-brand-subtle)] p-4 text-center"
+      :class="preview
+        ? 'rounded-[12px]'
+        : 'rounded-[12px] border border-dashed border-[color:var(--color-border-emphasis)] bg-[color:var(--color-surface-highlight)] px-4 py-4 text-center'"
       :aria-busy="uploading ? 'true' : 'false'"
       @dragover.prevent
       @drop.prevent="onDrop"
@@ -16,7 +22,7 @@
 
       <div
         v-if="preview"
-        class="space-y-3"
+        class="space-y-3 text-left"
       >
         <!--
           diffusion-14 AC5: the preview is bounded in **both** directions. With
@@ -31,11 +37,11 @@
         <img
           :src="preview"
           alt="Aperçu de la couverture"
-          class="mx-auto block h-40 w-full max-w-[280px] rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] object-cover"
+          class="block h-40 w-full max-w-[280px] rounded-[8px] border border-[color:var(--color-border-subtle)] object-cover"
         >
-        <div class="flex flex-wrap items-center justify-center gap-2">
+        <div class="flex flex-wrap items-center justify-start gap-2">
           <UButton
-            size="sm"
+            :size="controlSize === 'compact' ? 'sm' : 'md'"
             variant="soft"
             color="primary"
             type="button"
@@ -46,7 +52,7 @@
             Remplacer
           </UButton>
           <UButton
-            size="sm"
+            :size="controlSize === 'compact' ? 'sm' : 'md'"
             variant="ghost"
             color="error"
             type="button"
@@ -60,13 +66,17 @@
 
       <div
         v-else
-        class="space-y-2"
+        class="flex flex-wrap items-center justify-center gap-x-3 gap-y-2"
       >
-        <p class="text-sm text-[color:var(--color-text-muted)]">
+        <UIcon
+          name="i-lucide-image"
+          class="size-5 text-[color:var(--color-brand-secondary)]"
+        />
+        <p :class="CONTENT_CAPTION_CLASS">
           Glissez une image ici ou
         </p>
         <UButton
-          size="sm"
+          :size="controlSize === 'compact' ? 'sm' : 'md'"
           variant="soft"
           color="primary"
           type="button"
@@ -76,7 +86,7 @@
         >
           Choisir une image
         </UButton>
-        <p class="text-xs text-[color:var(--color-text-muted)]">
+        <p :class="`w-full text-center ${CONTENT_META_CLASS}`">
           JPEG, PNG, WebP — 5 Mo maximum
         </p>
       </div>
@@ -84,7 +94,8 @@
 
     <p
       v-if="shownError"
-      class="text-sm text-[color:var(--color-error)]"
+      role="alert"
+      class="text-xs font-medium text-[color:var(--color-error-700)]"
     >
       {{ shownError }}
     </p>
@@ -102,6 +113,7 @@ import {
   uploadAsset,
   validateFileUpload
 } from '../../features/assets/use-asset-upload'
+import { CONTENT_CAPTION_CLASS, CONTENT_META_CLASS } from '../../features/contents/domain/content-field-ui'
 
 const props = defineProps<{
   modelValue: string
@@ -114,6 +126,8 @@ const props = defineProps<{
    * Provider callers leave it unset and keep the default route.
    */
   uploadEndpoint?: string
+  /** AC5: 48 px praticienne/cliente, 40 px admin. */
+  controlSize?: 'md' | 'compact'
 }>()
 
 const emit = defineEmits<{

@@ -384,6 +384,14 @@ export async function renderSfc(sfcPath: string, options: RenderSfcOptions = {})
     const app = Vue.createSSRApp(Vue.defineComponent({
       render: () => (rendered = Vue.h(component, options.props ?? {}, options.slots))
     }))
+    // Une icône est une feuille décorative : ajouter un `<UIcon>` à un
+    // composant ne doit pas faire échouer les tests de rendu qui ne la testent
+    // pas. Enregistrée avant les stubs de l'appelant, qui gardent la priorité.
+    app.component('UIcon', {
+      name: 'UIcon',
+      props: ['name', 'class'],
+      setup: () => () => Vue.h('i', { 'data-stub': 'UIcon' })
+    })
     for (const [name, stub] of Object.entries(options.stubs ?? {})) {
       app.component(name, stub as Vue.Component)
     }

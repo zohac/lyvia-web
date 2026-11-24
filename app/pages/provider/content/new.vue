@@ -1,21 +1,26 @@
 <template>
   <div class="space-y-6">
-    <AtomsDsPageHeader
-      title="Nouveau contenu"
-      subtitle="Créez un brouillon puis publiez quand il est prêt."
-    >
+    <AtomsDsPageHeader title="Nouveau contenu">
+      <template #subtitle>
+        <span class="block max-w-[62ch] text-base text-[color:var(--color-text-secondary)]">
+          Créez un brouillon puis publiez quand il est prêt.
+        </span>
+      </template>
       <template #actions>
-        <UButton
-          variant="ghost"
-          color="neutral"
-          @click="cancel"
-        >
-          <UIcon
-            name="lucide:arrow-left"
-            class="mr-2 h-4 w-4"
-          />
-          Annuler
-        </UButton>
+        <div class="flex max-w-[calc(100vw-5rem)] flex-wrap items-center gap-3 sm:max-w-none">
+          <UButton
+            variant="ghost"
+            color="neutral"
+            size="md"
+            @click="cancel"
+          >
+            <UIcon
+              name="lucide:arrow-left"
+              class="mr-2 h-4 w-4"
+            />
+            Annuler
+          </UButton>
+        </div>
       </template>
     </AtomsDsPageHeader>
 
@@ -25,80 +30,105 @@
       @retry="submit"
     />
 
-    <UCard class="bg-[color:var(--color-surface-card)]">
-      <form
-        class="space-y-4"
-        @submit.prevent="submit"
-      >
-        <MoleculesContentsFormFields
-          v-model:title="form.title"
-          v-model:type="form.type"
-          v-model:body="form.body"
-          v-model:slug="form.slug"
-          :errors="errors"
-          :disabled="saving"
-        />
+    <form
+      class="space-y-6"
+      @submit.prevent="submit"
+    >
+      <UCard class="bg-[color:var(--color-surface-card)]">
+        <section class="space-y-5">
+          <header>
+            <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+              Contenu
+            </h2>
+          </header>
+          <MoleculesContentsFormFields
+            v-model:title="form.title"
+            v-model:type="form.type"
+            v-model:body="form.body"
+            v-model:slug="form.slug"
+            :errors="errors"
+            :disabled="saving"
+          />
+        </section>
 
-        <MoleculesContentCoverField
-          v-model="form.coverImageUrl"
-          :disabled="saving"
-        />
+        <hr class="my-6 border-[color:var(--color-border-subtle)]">
 
-        <MoleculesContentDocumentField
-          v-model="form.document"
-          :disabled="saving"
-          @uploading="documentUploading = $event"
-        />
+        <section class="space-y-5">
+          <header>
+            <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+              Médias
+            </h2>
+          </header>
 
-        <div class="space-y-2">
-          <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
-            Diffusion
-          </p>
-          <div class="flex gap-2">
+          <MoleculesContentCoverField
+            v-model="form.coverImageUrl"
+            :disabled="saving"
+          />
+
+          <MoleculesContentDocumentField
+            v-model="form.document"
+            :disabled="saving"
+            @uploading="documentUploading = $event"
+          />
+        </section>
+
+        <hr class="my-6 border-[color:var(--color-border-subtle)]">
+
+        <section class="space-y-3">
+          <header>
+            <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+              Diffusion
+            </h2>
+          </header>
+          <div class="flex flex-wrap gap-2">
             <UButton
-              size="sm"
+              size="md"
               :variant="form.audience === 'all' ? 'solid' : 'soft'"
               color="primary"
               type="button"
+              :aria-pressed="form.audience === 'all'"
               :disabled="saving"
               @click="form.audience = 'all'"
             >
               Partagé avec toutes vos clientes
             </UButton>
             <UButton
-              size="sm"
+              size="md"
               :variant="form.audience === 'selected' ? 'solid' : 'soft'"
-              color="neutral"
+              color="primary"
               type="button"
+              :aria-pressed="form.audience === 'selected'"
               :disabled="saving"
               @click="form.audience = 'selected'"
             >
               Clientes choisies
             </UButton>
           </div>
-        </div>
+        </section>
+      </UCard>
 
-        <div class="flex justify-end gap-3">
-          <UButton
-            variant="ghost"
-            color="neutral"
-            type="button"
-            :disabled="saving"
-            @click="cancel"
-          >
-            Annuler
-          </UButton>
-          <UButton
-            color="primary"
-            type="submit"
-            :loading="saving"
-            :disabled="saving || documentUploading"
-          >
-            Créer (brouillon)
-          </UButton>
-        </div>
-      </form>
-    </UCard>
+      <div class="flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--color-border-subtle)] pt-4">
+        <UButton
+          variant="ghost"
+          color="neutral"
+          size="md"
+          type="button"
+          :disabled="saving"
+          @click="cancel"
+        >
+          Annuler
+        </UButton>
+        <UButton
+          color="primary"
+          size="md"
+          type="submit"
+          :loading="saving"
+          :disabled="saving || documentUploading"
+        >
+          Créer (brouillon)
+        </UButton>
+      </div>
+    </form>
   </div>
 </template>
 

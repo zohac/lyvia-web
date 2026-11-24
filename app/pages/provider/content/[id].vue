@@ -1,11 +1,30 @@
 <template>
   <div class="space-y-6">
     <AtomsDsPageHeader :title="content ? content.title : 'Contenu'">
+      <template
+        v-if="content"
+        #subtitle
+      >
+        <span class="flex flex-wrap items-center gap-2">
+          <UBadge
+            :color="getStatusBadge(content.isPublished).color"
+            variant="soft"
+            size="md"
+            :class="getBadgeInkClass(getStatusBadge(content.isPublished).color)"
+          >
+            {{ getStatusBadge(content.isPublished).label }}
+          </UBadge>
+          <span :class="CONTENT_META_CLASS">
+            Modifié le {{ formatDateTime(content.updatedAt) }}
+          </span>
+        </span>
+      </template>
       <template #actions>
-        <div class="flex items-center gap-2">
+        <div class="flex max-w-[calc(100vw-5rem)] flex-wrap items-center gap-2 sm:max-w-none">
           <UButton
             variant="ghost"
             color="neutral"
+            size="md"
             @click="goBack"
           >
             <UIcon
@@ -24,108 +43,137 @@
       @retry="load"
     />
 
-    <div
+    <UCard
       v-else-if="loading"
-      class="space-y-4"
+      class="bg-[color:var(--color-surface-card)]"
     >
-      <USkeleton class="h-8 w-1/3" />
-      <USkeleton class="h-40 w-full" />
-    </div>
+      <div class="space-y-4">
+        <USkeleton class="h-4 w-24" />
+        <USkeleton class="h-12 w-full rounded-[12px]" />
+        <USkeleton class="h-4 w-24" />
+        <USkeleton class="h-12 w-full rounded-[12px]" />
+        <USkeleton class="h-48 w-full rounded-[12px]" />
+      </div>
+    </UCard>
 
     <template v-else-if="content">
-      <UCard class="bg-[color:var(--color-surface-card)]">
-        <form
-          class="space-y-4"
-          @submit.prevent="save"
-        >
-          <MoleculesContentsFormFields
-            v-model:title="form.title"
-            v-model:type="form.type"
-            v-model:body="form.body"
-            v-model:slug="form.slug"
-            :errors="errors"
-            :disabled="busy"
-            slug-placeholder="Laissez vide pour conserver l’adresse actuelle"
-          />
-
-          <MoleculesContentCoverField
-            v-model="form.coverImageUrl"
-            :error="errors.coverImageUrl"
-            :disabled="busy"
-          />
-
-          <MoleculesContentDocumentField
-            v-model="form.document"
-            :disabled="busy"
-            @uploading="setDocumentUploading"
-          />
-
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex flex-wrap items-center gap-2">
-              <UButton
-                v-if="!content.isPublished"
-                color="success"
-                type="button"
-                :disabled="!canPublish || busy"
-                :loading="publishing"
-                @click="publish"
-              >
-                Publier
-              </UButton>
-              <UButton
-                v-else
-                color="warning"
-                variant="soft"
-                type="button"
-                :disabled="busy"
-                :loading="unpublishing"
-                @click="unpublish"
-              >
-                Dépublier
-              </UButton>
-              <UButton
-                color="error"
-                variant="ghost"
-                type="button"
-                :disabled="busy"
-                @click="isDeleteModalOpen = true"
-              >
-                Supprimer
-              </UButton>
-            </div>
-            <UButton
-              color="primary"
-              type="submit"
-              :loading="saving"
+      <form
+        class="space-y-4"
+        @submit.prevent="save"
+      >
+        <UCard class="bg-[color:var(--color-surface-card)]">
+          <section class="space-y-5">
+            <header>
+              <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+                Contenu
+              </h2>
+            </header>
+            <MoleculesContentsFormFields
+              v-model:title="form.title"
+              v-model:type="form.type"
+              v-model:body="form.body"
+              v-model:slug="form.slug"
+              :errors="errors"
               :disabled="busy"
+              slug-placeholder="Laissez vide pour conserver l’adresse actuelle"
+            />
+          </section>
+
+          <hr class="my-6 border-[color:var(--color-border-subtle)]">
+
+          <section class="space-y-5">
+            <header>
+              <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+                Médias
+              </h2>
+            </header>
+
+            <MoleculesContentCoverField
+              v-model="form.coverImageUrl"
+              :error="errors.coverImageUrl"
+              :disabled="busy"
+            />
+
+            <MoleculesContentDocumentField
+              v-model="form.document"
+              :disabled="busy"
+              @uploading="setDocumentUploading"
+            />
+          </section>
+        </UCard>
+
+        <p
+          v-if="!content.isPublished && !canPublish"
+          :class="CONTENT_META_CLASS"
+        >
+          Le titre et le contenu doivent être enregistrés avant de pouvoir publier.
+        </p>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--color-border-subtle)] pt-4">
+          <div class="flex flex-wrap items-center gap-2">
+            <UButton
+              v-if="!content.isPublished"
+              color="success"
+              size="md"
+              type="button"
+              :disabled="!canPublish || busy"
+              :loading="publishing"
+              @click="publish"
             >
-              Enregistrer
+              Publier
+            </UButton>
+            <UButton
+              v-else
+              color="warning"
+              variant="soft"
+              size="md"
+              type="button"
+              :disabled="busy"
+              :loading="unpublishing"
+              @click="unpublish"
+            >
+              Dépublier
+            </UButton>
+            <span class="mx-1 hidden h-6 w-px bg-[color:var(--color-border-subtle)] sm:block" />
+            <UButton
+              color="error"
+              variant="ghost"
+              size="md"
+              type="button"
+              :disabled="busy"
+              @click="isDeleteModalOpen = true"
+            >
+              Supprimer
             </UButton>
           </div>
-
-          <p
-            v-if="!content.isPublished && !canPublish"
-            class="text-xs text-[color:var(--color-text-muted)]"
+          <UButton
+            color="primary"
+            size="md"
+            type="submit"
+            :loading="saving"
+            :disabled="busy"
           >
-            Le titre et le contenu doivent être enregistrés avant de pouvoir publier.
-          </p>
-        </form>
-      </UCard>
+            Enregistrer
+          </UButton>
+        </div>
+      </form>
 
       <UCard class="bg-[color:var(--color-surface-card)]">
-        <template #header>
-          <h3 class="text-base font-semibold text-[color:var(--color-text-primary)]">
-            Diffusion
-          </h3>
-        </template>
-        <MoleculesContentDiffusionSection
-          :key="content.id"
-          :audience="form.audience"
-          :can-select="persistedAudience === 'selected'"
-          :content-id="content.id"
-          :disabled="busy"
-          @update:audience="changeAudience"
-        />
+        <section class="space-y-4">
+          <header>
+            <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+              Diffusion
+            </h2>
+          </header>
+          <MoleculesContentDiffusionSection
+            :key="content.id"
+            :audience="form.audience"
+            :can-select="persistedAudience === 'selected'"
+            :content-id="content.id"
+            :disabled="busy"
+            @update:audience="changeAudience"
+          />
+        </section>
       </UCard>
 
       <UModal
@@ -162,6 +210,9 @@
 <script setup lang="ts">
 import { getMyContent, updateContent, publishContent, unpublishContent, deleteContent } from '../../../features/contents/services/provider-contents.service'
 import { createProviderContentEditor } from '../../../features/contents/createProviderContentEditor'
+import { getStatusBadge, getBadgeInkClass } from '../../../features/contents/domain/contents-badges'
+import { CONTENT_META_CLASS } from '../../../features/contents/domain/content-field-ui'
+import { formatDateTime } from '~/composables/useDateFormat'
 import MoleculesContentsFormFields from '../../../components/molecules/ContentsFormFields.vue'
 import MoleculesContentCoverField from '../../../components/molecules/ContentCoverField.vue'
 import MoleculesContentDocumentField from '../../../components/molecules/ContentDocumentField.vue'

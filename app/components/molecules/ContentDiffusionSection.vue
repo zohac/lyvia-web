@@ -2,20 +2,20 @@
   <div class="space-y-3">
     <div
       v-if="audience === 'all'"
-      class="rounded-lg border border-[color:var(--color-brand-subtle)] p-4"
+      class="rounded-[12px] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-highlight)] p-4"
     >
-      <p class="font-medium text-[color:var(--color-text-primary)]">
+      <p class="text-sm font-semibold text-[color:var(--color-text-primary)]">
         Partagé avec toutes vos clientes
       </p>
-      <p class="text-sm text-[color:var(--color-text-muted)]">
+      <p class="mt-1 text-[13px] text-[color:var(--color-text-secondary)]">
         Couvre aussi les clientes qui vous rejoindront plus tard.
       </p>
       <UButton
-        size="sm"
+        size="md"
         variant="soft"
         color="primary"
         type="button"
-        class="mt-2"
+        class="mt-3"
         :disabled="disabled"
         @click="emit('update:audience', 'selected')"
       >
@@ -28,8 +28,8 @@
       class="space-y-3"
     >
       <UButton
-        size="sm"
-        variant="ghost"
+        size="md"
+        variant="outline"
         color="neutral"
         type="button"
         :disabled="disabled"

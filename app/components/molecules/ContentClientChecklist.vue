@@ -5,7 +5,9 @@
       placeholder="Rechercher une cliente…"
       autocomplete="off"
       aria-label="Rechercher une cliente"
+      icon="i-lucide-search"
       class="w-full"
+      :ui="CONTENT_INPUT_UI"
     />
 
     <div
@@ -13,8 +15,8 @@
       class="space-y-2"
       data-testid="checklist-loading"
     >
-      <USkeleton class="h-6 w-full" />
-      <USkeleton class="h-6 w-5/6" />
+      <USkeleton class="h-12 w-full rounded-[8px]" />
+      <USkeleton class="h-12 w-5/6 rounded-[8px]" />
     </div>
 
     <AtomsDsErrorState
@@ -27,7 +29,7 @@
       <ul
         v-if="items.length > 0"
         aria-label="Clientes disponibles"
-        class="max-h-64 space-y-1 overflow-y-auto"
+        class="max-h-72 divide-y divide-[color:var(--color-border-subtle)] overflow-y-auto rounded-[12px] border border-[color:var(--color-border-subtle)]"
       >
         <li
           v-for="client in items"
@@ -40,20 +42,26 @@
             background. An in-flight share disables the row: `toggle()` already
             refuses a second call, and a box that still looks clickable tells the
             opposite.
+
+            diffusion-15 AC5: the row is the touch target, so it holds a 48 px
+            minimum height; the checkbox stays 16 px but the whole row toggles.
           -->
-          <div class="cursor-pointer rounded-md px-2 py-1 hover:bg-[color:var(--color-surface-muted)]">
+          <div class="flex min-h-12 w-full min-w-0 items-center px-3 py-2 hover:bg-[color:var(--color-surface-muted)]">
             <UCheckbox
+              class="min-w-0 flex-1"
+              :size="'lg'"
+              :ui="{ base: '!rounded-[4px]', wrapper: '!w-auto !min-w-0 !flex-1', label: 'cursor-pointer' }"
               :model-value="checked.has(client.clientProfileId)"
               :disabled="toggling.has(client.clientProfileId)"
               :aria-busy="toggling.has(client.clientProfileId) ? 'true' : 'false'"
               @update:model-value="toggle(client)"
             >
               <template #label>
-                <span class="min-w-0">
-                  <span class="block text-sm text-[color:var(--color-text-primary)]">
+                <span class="block min-w-0 flex-1">
+                  <span class="block text-sm font-medium text-[color:var(--color-text-primary)]">
                     {{ client.firstname }} {{ client.lastname }}
                   </span>
-                  <span class="block truncate text-xs text-[color:var(--color-text-muted)]">
+                  <span class="block truncate text-xs text-[color:var(--color-neutral-600)]">
                     {{ client.email }}
                   </span>
                 </span>
@@ -65,21 +73,22 @@
 
       <p
         v-else-if="query.trim().length > 0"
-        class="text-sm text-[color:var(--color-text-muted)]"
+        :class="CONTENT_CAPTION_CLASS"
       >
         Aucune cliente ne correspond à cette recherche.
       </p>
       <p
         v-else
-        class="text-sm text-[color:var(--color-text-muted)]"
+        :class="CONTENT_CAPTION_CLASS"
       >
         Aucune cliente à afficher.
       </p>
 
       <UButton
         v-if="nextCursor"
-        variant="ghost"
-        size="sm"
+        variant="outline"
+        color="neutral"
+        size="md"
         :loading="loadingMore"
         @click="loadMore()"
       >
@@ -88,7 +97,8 @@
 
       <p
         v-if="loadMoreError"
-        class="text-sm text-[color:var(--color-error)]"
+        role="alert"
+        class="text-xs font-medium text-[color:var(--color-error-700)]"
       >
         {{ loadMoreError }}
       </p>
@@ -108,6 +118,7 @@ import {
   createContentClientChecklist,
   type ChecklistClient
 } from '../../features/contents/createContentClientChecklist'
+import { CONTENT_CAPTION_CLASS, CONTENT_INPUT_UI } from '../../features/contents/domain/content-field-ui'
 // Explicit import, as for the sibling surface: a tag the resolver misses renders
 // nothing while lint, typecheck and the build stay green (AGENTS §11.6).
 import AtomsDsErrorState from '../atoms/DsErrorState.vue'

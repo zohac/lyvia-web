@@ -1,9 +1,12 @@
 <template>
   <div class="space-y-6">
-    <AtomsDsPageHeader
-      title="Articles Keova"
-      subtitle="Articles proposés par Keova à vos clientes."
-    />
+    <AtomsDsPageHeader title="Articles Keova">
+      <template #subtitle>
+        <span class="block max-w-[62ch] text-base text-[color:var(--color-text-secondary)]">
+          Articles proposés par Keova à vos clientes.
+        </span>
+      </template>
+    </AtomsDsPageHeader>
 
     <AtomsDsErrorState
       v-if="errorMessage && items.length === 0"
@@ -12,81 +15,83 @@
     />
 
     <template v-else>
-      <div
+      <UCard
         v-if="pending"
-        class="space-y-4"
+        class="bg-[color:var(--color-surface-card)]"
+        :ui="{ body: '!px-0 !py-0' }"
       >
-        <UCard
-          v-for="i in 4"
+        <div
+          v-for="i in 3"
           :key="i"
-          class="bg-[color:var(--color-surface-card)]"
+          class="flex flex-col justify-center gap-2 border-b border-[color:var(--color-border-subtle)] px-5 py-4 last:border-b-0"
         >
-          <div class="space-y-2">
-            <USkeleton class="h-4 w-1/3" />
-            <USkeleton class="h-3 w-1/2" />
-            <USkeleton class="h-3 w-1/4" />
-          </div>
-        </UCard>
+          <USkeleton class="h-4 w-1/3" />
+          <USkeleton class="h-3 w-2/3" />
+        </div>
+      </UCard>
+
+      <div
+        v-else-if="items.length === 0"
+        class="rounded-[var(--radius-lg)] border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-card)]"
+      >
+        <AtomsDsEmptyState
+          icon="i-lucide-file-text"
+          title="Aucun article Keova pour le moment."
+        />
       </div>
 
-      <AtomsDsEmptyState
-        v-else-if="items.length === 0"
-        icon="i-lucide-file-text"
-        title="Aucun article Keova pour le moment."
-      />
-
-      <div
+      <UCard
         v-else
-        class="space-y-4"
+        class="overflow-hidden bg-[color:var(--color-surface-card)]"
+        :ui="{ body: '!px-0 !py-0' }"
       >
-        <UCard
+        <article
           v-for="item in items"
           :key="item.id"
-          class="bg-[color:var(--color-surface-card)]"
+          class="flex flex-col gap-4 border-b border-[color:var(--color-border-subtle)] px-5 py-4 last:border-b-0 sm:flex-row sm:items-start sm:justify-between"
         >
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <h3 class="font-semibold text-[color:var(--color-text-primary)]">
-                  {{ item.title }}
-                </h3>
-                <UBadge
-                  :color="item.approved ? 'success' : 'neutral'"
-                  variant="soft"
-                  size="xs"
-                >
-                  {{ platformApprovalStatusLabel(item.approved) }}
-                </UBadge>
-              </div>
-              <p class="mt-1 text-sm text-[color:var(--color-text-muted)] line-clamp-2">
-                {{ platformExcerpt(item.body) }}
-              </p>
-              <p class="mt-1 text-xs text-[color:var(--color-text-muted)]">
-                {{ formatDate(item.publishedAt) }}
-              </p>
-            </div>
+          <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <UButton
-                variant="outline"
-                color="neutral"
-                size="sm"
-                @click="openPreview(item)"
-              >
-                Aperçu
-              </UButton>
-              <UButton
-                :color="item.approved ? 'warning' : 'primary'"
+              <h3 class="truncate font-sans text-sm font-semibold text-[color:var(--color-text-primary)]">
+                {{ item.title }}
+              </h3>
+              <UBadge
+                :color="item.approved ? 'success' : 'neutral'"
                 variant="soft"
-                size="sm"
-                :loading="approvingIds.has(item.id)"
-                @click="item.approved ? withdrawItem(item.id) : approveItem(item.id)"
+                size="md"
+                :class="getBadgeInkClass(item.approved ? 'success' : 'neutral')"
               >
-                {{ platformApprovalActionLabel(item.approved) }}
-              </UButton>
+                {{ platformApprovalStatusLabel(item.approved) }}
+              </UBadge>
             </div>
+            <p class="mt-1 line-clamp-2 text-sm text-[color:var(--color-text-secondary)]">
+              {{ platformExcerpt(item.body) }}
+            </p>
+            <p :class="`mt-1 ${CONTENT_META_CLASS}`">
+              {{ formatDate(item.publishedAt) }}
+            </p>
           </div>
-        </UCard>
-      </div>
+          <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
+            <UButton
+              variant="outline"
+              color="neutral"
+              size="md"
+              @click="openPreview(item)"
+            >
+              Aperçu
+            </UButton>
+            <UButton
+              :color="item.approved ? 'neutral' : 'primary'"
+              :variant="item.approved ? 'outline' : 'soft'"
+              size="md"
+              :loading="approvingIds.has(item.id)"
+              @click="item.approved ? withdrawItem(item.id) : approveItem(item.id)"
+            >
+              {{ platformApprovalActionLabel(item.approved) }}
+            </UButton>
+          </div>
+        </article>
+      </UCard>
 
       <UAlert
         v-if="loadMoreErrorMessage"
@@ -100,7 +105,7 @@
           <UButton
             color="warning"
             variant="soft"
-            size="sm"
+            size="md"
             @click="loadMore"
           >
             Réessayer
@@ -113,8 +118,9 @@
         class="flex justify-center"
       >
         <UButton
-          variant="soft"
+          variant="outline"
           color="neutral"
+          size="md"
           :loading="loadMorePending"
           @click="loadMore"
         >
@@ -136,21 +142,24 @@
       <template #body>
         <div
           v-if="previewItem"
-          class="space-y-4"
+          class="space-y-5"
         >
           <img
             v-if="previewItem.coverImageUrl"
             :src="previewItem.coverImageUrl"
             :alt="previewItem.title"
-            class="block h-40 w-full rounded-[var(--radius-lg)] object-cover"
+            class="block h-40 w-full rounded-[12px] border border-[color:var(--color-border-subtle)] object-cover"
           >
+          <p :class="CONTENT_META_CLASS">
+            {{ formatDate(previewItem.publishedAt) }}
+          </p>
           <div class="prose prose-stone max-w-none whitespace-pre-line text-[color:var(--color-text-primary)]">
             <template v-if="previewItem.body">
               {{ previewItem.body }}
             </template>
             <p
               v-else
-              class="italic text-[color:var(--color-text-muted)]"
+              class="italic text-[color:var(--color-text-secondary)]"
             >
               Aucun contenu.
             </p>
@@ -168,19 +177,24 @@
           <div
             v-if="previewItem.document"
             data-testid="preview-document"
-            class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] px-3 py-2"
+            class="flex flex-wrap items-center gap-3 rounded-[12px] border border-[color:var(--color-border-subtle)] px-4 py-3"
           >
-            <p class="break-all text-sm font-medium text-[color:var(--color-text-primary)]">
-              {{ previewItem.document.filename }}
-            </p>
-            <p class="text-xs text-[color:var(--color-text-muted)]">
-              {{ formatFileSize(previewItem.document.sizeBytes) }}
-            </p>
+            <UIcon
+              name="i-lucide-file-text"
+              class="size-5 shrink-0 text-[color:var(--color-brand-secondary)]"
+            />
+            <div class="min-w-0 flex-1">
+              <p class="break-all text-sm font-medium text-[color:var(--color-text-primary)]">
+                {{ previewItem.document.filename }}
+              </p>
+              <p :class="CONTENT_META_CLASS">
+                {{ formatFileSize(previewItem.document.sizeBytes) }}
+              </p>
+            </div>
             <UButton
               color="primary"
               variant="soft"
-              size="sm"
-              class="mt-2"
+              size="md"
               :loading="downloading"
               leading-icon="i-lucide-download"
               @click="downloadPreviewDocument"
@@ -190,7 +204,7 @@
             <p
               v-if="downloadErrorMessage"
               role="alert"
-              class="mt-2 text-xs text-[color:var(--color-text-muted)]"
+              class="w-full text-xs font-medium text-[color:var(--color-error-700)]"
             >
               {{ downloadErrorMessage }}
             </p>
@@ -216,6 +230,8 @@ import {
 } from '../../../features/contents/services/platform-contents.service'
 import { saveDocumentBlob } from '../../../features/contents/services/document-download.browser'
 import { formatFileSize } from '../../../features/contents/domain/file-size'
+import { getBadgeInkClass } from '../../../features/contents/domain/contents-badges'
+import { CONTENT_META_CLASS } from '../../../features/contents/domain/content-field-ui'
 import {
   platformApprovalActionLabel,
   platformApprovalStatusLabel,

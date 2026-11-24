@@ -72,22 +72,27 @@ async function submit() {
 
 <template>
   <div class="space-y-6">
-    <AtomsDsPageHeader
-      title="Nouvel article"
-      subtitle="Créez un brouillon, puis publiez-le quand il est prêt."
-    >
+    <AtomsDsPageHeader title="Nouvel article">
+      <template #subtitle>
+        <span class="block max-w-[62ch] text-base text-[color:var(--color-text-secondary)]">
+          Créez un brouillon, puis publiez-le quand il est prêt.
+        </span>
+      </template>
       <template #actions>
-        <UButton
-          variant="ghost"
-          color="neutral"
-          @click="cancel"
-        >
-          <UIcon
-            name="lucide:arrow-left"
-            class="mr-2 h-4 w-4"
-          />
-          Annuler
-        </UButton>
+        <div class="flex max-w-[calc(100vw-5rem)] flex-wrap items-center gap-3 sm:max-w-none">
+          <UButton
+            size="sm"
+            variant="ghost"
+            color="neutral"
+            @click="cancel"
+          >
+            <UIcon
+              name="lucide:arrow-left"
+              class="mr-2 h-4 w-4"
+            />
+            Annuler
+          </UButton>
+        </div>
       </template>
     </AtomsDsPageHeader>
 
@@ -97,54 +102,75 @@ async function submit() {
       @retry="submit"
     />
 
-    <UCard class="bg-[color:var(--color-surface-card)]">
-      <form
-        class="space-y-4"
-        @submit.prevent="submit"
-      >
-        <p class="text-sm text-[color:var(--color-text-muted)]">
-          Type : <span class="font-medium text-[color:var(--color-text-primary)]">Article</span> —
-          seul type disponible pour un contenu de plateforme ({{ ADMIN_CONTENT_TYPE }}).
-        </p>
+    <form
+      class="space-y-4"
+      @submit.prevent="submit"
+    >
+      <UCard class="bg-[color:var(--color-surface-card)]">
+        <section class="space-y-5">
+          <header>
+            <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+              Contenu
+            </h2>
+            <p class="mt-1 text-xs text-[color:var(--color-neutral-600)]">
+              Type : <span class="font-medium text-[color:var(--color-text-primary)]">Article</span> —
+              seul type disponible pour un contenu de plateforme ({{ ADMIN_CONTENT_TYPE }}).
+            </p>
+          </header>
 
-        <MoleculesContentsFormFields
-          v-model:title="form.title"
-          v-model:body="form.body"
-          v-model:slug="form.slug"
-          :type="ADMIN_CONTENT_TYPE"
-          :type-disabled="true"
-          :errors="errors"
-          :disabled="saving"
-          slug-placeholder="Laissez vide pour générer l’adresse à partir du titre"
-        />
-
-        <MoleculesContentCoverField
-          v-model="form.coverImageUrl"
-          :error="errors.coverImageUrl"
-          :disabled="saving"
-          :upload-endpoint="ADMIN_CONTENT_UPLOAD_ENDPOINT"
-        />
-
-        <div class="flex justify-end gap-3">
-          <UButton
-            variant="ghost"
-            color="neutral"
-            type="button"
+          <MoleculesContentsFormFields
+            v-model:title="form.title"
+            v-model:body="form.body"
+            v-model:slug="form.slug"
+            :type="ADMIN_CONTENT_TYPE"
+            :type-disabled="true"
+            :errors="errors"
             :disabled="saving"
-            @click="cancel"
-          >
-            Annuler
-          </UButton>
-          <UButton
-            color="primary"
-            type="submit"
-            :loading="saving"
+            control-size="compact"
+            slug-placeholder="Laissez vide pour générer l’adresse à partir du titre"
+          />
+        </section>
+
+        <hr class="my-6 border-[color:var(--color-border-subtle)]">
+
+        <section class="space-y-5">
+          <header>
+            <h2 class="font-sans text-base font-semibold text-[color:var(--color-text-primary)]">
+              Médias
+            </h2>
+          </header>
+
+          <MoleculesContentCoverField
+            v-model="form.coverImageUrl"
+            :error="errors.coverImageUrl"
             :disabled="saving"
-          >
-            Créer (brouillon)
-          </UButton>
-        </div>
-      </form>
-    </UCard>
+            control-size="compact"
+            :upload-endpoint="ADMIN_CONTENT_UPLOAD_ENDPOINT"
+          />
+        </section>
+      </UCard>
+
+      <div class="flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--color-border-subtle)] pt-4">
+        <UButton
+          size="sm"
+          variant="ghost"
+          color="neutral"
+          type="button"
+          :disabled="saving"
+          @click="cancel"
+        >
+          Annuler
+        </UButton>
+        <UButton
+          size="sm"
+          color="primary"
+          type="submit"
+          :loading="saving"
+          :disabled="saving"
+        >
+          Créer (brouillon)
+        </UButton>
+      </div>
+    </form>
   </div>
 </template>

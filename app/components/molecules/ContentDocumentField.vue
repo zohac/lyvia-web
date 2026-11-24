@@ -1,39 +1,28 @@
 <template>
-  <div class="space-y-3">
-    <div class="flex flex-wrap items-center gap-3">
-      <UButton
-        size="sm"
-        variant="soft"
-        color="primary"
-        type="button"
-        :disabled="blocked"
-        :loading="uploading"
-        @click="trigger"
-      >
-        Joindre un document (PDF)
-      </UButton>
-      <input
-        ref="inputRef"
-        type="file"
-        accept="application/pdf"
-        class="hidden"
-        @change="onFileSelected"
-      >
-    </div>
+  <div class="space-y-2">
+    <p class="text-[13px] font-semibold text-[color:var(--color-text-secondary)]">
+      Document
+    </p>
 
     <div
       v-if="document"
-      class="rounded-lg border border-[color:var(--color-brand-subtle)] px-3 py-2"
+      class="flex flex-wrap items-center gap-3 rounded-[12px] border border-[color:var(--color-border-subtle)] px-4 py-3"
     >
-      <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
-        {{ document.filename }}
-      </p>
-      <p class="text-xs text-[color:var(--color-text-muted)]">
-        {{ formatFileSize(document.sizeBytes) }}
-      </p>
-      <div class="mt-2 flex gap-2">
+      <UIcon
+        name="i-lucide-file-text"
+        class="size-5 shrink-0 text-[color:var(--color-brand-secondary)]"
+      />
+      <div class="min-w-0 flex-1">
+        <p class="truncate text-sm font-medium text-[color:var(--color-text-primary)]">
+          {{ document.filename }}
+        </p>
+        <p :class="CONTENT_META_CLASS">
+          {{ formatFileSize(document.sizeBytes) }}
+        </p>
+      </div>
+      <div class="flex gap-2">
         <UButton
-          size="sm"
+          :size="controlSize === 'compact' ? 'sm' : 'md'"
           variant="ghost"
           color="primary"
           type="button"
@@ -43,7 +32,7 @@
           Remplacer
         </UButton>
         <UButton
-          size="sm"
+          :size="controlSize === 'compact' ? 'sm' : 'md'"
           variant="ghost"
           color="error"
           type="button"
@@ -55,13 +44,37 @@
       </div>
     </div>
 
-    <p class="text-xs text-[color:var(--color-text-muted)]">
+    <div v-else>
+      <UButton
+        :size="controlSize === 'compact' ? 'sm' : 'md'"
+        variant="soft"
+        color="primary"
+        type="button"
+        leading-icon="i-lucide-paperclip"
+        :disabled="blocked"
+        :loading="uploading"
+        @click="trigger"
+      >
+        Joindre un document (PDF)
+      </UButton>
+    </div>
+
+    <input
+      ref="inputRef"
+      type="file"
+      accept="application/pdf"
+      class="hidden"
+      @change="onFileSelected"
+    >
+
+    <p :class="CONTENT_META_CLASS">
       Support pédagogique destiné à vos clientes. N'y placez pas de données de santé ni d'informations nominatives.
     </p>
 
     <p
       v-if="error"
-      class="text-sm text-[color:var(--color-error)]"
+      role="alert"
+      class="text-xs font-medium text-[color:var(--color-error-700)]"
     >
       {{ error }}
     </p>
@@ -82,10 +95,13 @@ import {
   validateFileUpload
 } from '../../features/assets/use-asset-upload'
 import { formatFileSize } from '../../features/contents/domain/file-size'
+import { CONTENT_META_CLASS } from '../../features/contents/domain/content-field-ui'
 
 const props = defineProps<{
   modelValue: { assetId: string, filename: string, sizeBytes: number } | null
   disabled?: boolean
+  /** AC5: 48 px praticienne/cliente, 40 px admin. */
+  controlSize?: 'md' | 'compact'
 }>()
 
 const emit = defineEmits<{
