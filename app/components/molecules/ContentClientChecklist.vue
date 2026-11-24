@@ -41,7 +41,7 @@
             refuses a second call, and a box that still looks clickable tells the
             opposite.
           -->
-          <div class="rounded-md px-2 py-1 hover:bg-[color:var(--color-surface-muted)]">
+          <div class="cursor-pointer rounded-md px-2 py-1 hover:bg-[color:var(--color-surface-muted)]">
             <UCheckbox
               :model-value="checked.has(client.clientProfileId)"
               :disabled="toggling.has(client.clientProfileId)"

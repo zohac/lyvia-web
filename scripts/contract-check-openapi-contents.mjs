@@ -107,7 +107,10 @@ if (!contract) {
       // (list, approve, withdraw) reads and writes /provider/platform-content.
       platformRequests.buildListPlatformContentsCall({}),
       platformRequests.buildApprovePlatformContentCall(CONTENT_ID),
-      platformRequests.buildWithdrawPlatformApprovalCall(CONTENT_ID)
+      platformRequests.buildWithdrawPlatformApprovalCall(CONTENT_ID),
+      // diffusion-14 — the practitioner opens the article's document through an
+      // authenticated route, so the button can never be a bare `<a href>`.
+      platformRequests.buildDownloadPlatformContentDocumentCall(CONTENT_ID)
     ]
 
     for (const call of calls) {
@@ -261,6 +264,15 @@ if (!contract) {
         `PlatformContentDocumentResponseDto ne déclare pas \`${field}\`, affiché par l'aperçu praticienne`
       )
     }
+
+    // `document` is nullable on the item: the preview hides the whole block when
+    // there is none, and a schema that made it required would describe a payload
+    // the API does not send for a document-less article.
+    assert.equal(
+      document.components?.schemas?.ProviderPlatformContentResponseDto?.properties?.document?.nullable,
+      true,
+      '`document` de ProviderPlatformContentResponseDto n’est pas nullable : l’aperçu doit pouvoir masquer le bloc'
+    )
 
     // 3. The filter vocabularies written on both sides agree.
     const listParameters = paths['/provider/content'].get.parameters ?? []

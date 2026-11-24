@@ -17,7 +17,10 @@
  * - drop the `v-if="previewItem.document"` block → the document test fails;
  * - render the document block unconditionally → the no-document test fails;
  * - drop the body fallback → the "Aucun contenu." test fails;
- * - put the wrong formatter on `sizeBytes` → the `180.0 Ko` assertion fails.
+ * - put the wrong formatter on `sizeBytes` → the `180.0 Ko` assertion fails;
+ * - unbind the download button, or make it a bare `<a>`, → the download test
+ *   fails: the handler is executed and the blob is handed to the saver;
+ * - drop the panel cover's height cap → the cover assertion fails.
  */
 import * as assert from 'node:assert/strict'
 import * as path from 'node:path'
@@ -32,6 +35,7 @@ import { renderSfc } from '../helpers/render-sfc'
 const PAGE = 'app/pages/provider/content/keova.vue'
 const FACTORY = path.resolve(process.cwd(), 'app/features/contents/createPlatformContents.ts')
 const SERVICE = path.resolve(process.cwd(), 'app/features/contents/services/platform-contents.service.ts')
+const SAVER = path.resolve(process.cwd(), 'app/features/contents/services/document-download.browser.ts')
 
 type SlotMap = Record<string, (() => Vue.VNode[]) | undefined>
 
@@ -139,10 +143,17 @@ function fakeContents(state: PreviewState, opened: string[]) {
   }
 }
 
+interface DownloadRecorder {
+  fetched: string[]
+  saved: Array<{ filename: string, size: number }>
+  fails?: boolean
+}
+
 function renderPage(
   state: PreviewState,
   opened: string[] = [],
-  inspect?: (instance: Vue.ComponentInternalInstance) => void | Promise<void>
+  inspect?: (instance: Vue.ComponentInternalInstance) => void | Promise<void>,
+  downloads?: DownloadRecorder
 ): Promise<string> {
   return renderSfc(PAGE, {
     stubs: STUBS,
@@ -152,7 +163,22 @@ function renderPage(
       [SERVICE]: {
         listPlatformContents: async () => ({ items: [], nextCursor: null }),
         approvePlatformContent: async (id: string) => ({ contentId: id, approved: true }),
-        withdrawPlatformApproval: async (id: string) => ({ contentId: id, approved: false })
+        withdrawPlatformApproval: async (id: string) => ({ contentId: id, approved: false }),
+        /**
+         * The authenticated route `GET /provider/platform-content/:id/document`.
+         * Recorded, so the test can prove the button goes through it with the
+         * article's id rather than a fabricated URL.
+         */
+        getPlatformContentDocument: async (id: string) => {
+          downloads?.fetched.push(id)
+          if (downloads?.fails === true) throw new Error('404')
+          return new Blob(['%PDF-1.4'], { type: 'application/pdf' })
+        }
+      },
+      [SAVER]: {
+        saveDocumentBlob: (blob: Blob, filename: string) => {
+          downloads?.saved.push({ filename, size: blob.size })
+        }
       }
     },
     allowEmpty: true,
@@ -212,6 +238,12 @@ describe('the preview panel receives the article (AC2)', () => {
     assert.equal(panel.includes('Premier paragraphe.'), true, 'the body must reach the panel')
     assert.equal(panel.includes('Second paragraphe.'), true, 'line breaks survive')
     assert.equal(panel.includes('https://cdn.example/cover.webp'), true, 'the cover is part of the preview')
+
+    // AC5's lesson applied to the panel: the cover is bounded, so a file's
+    // aspect ratio cannot push the body and the document out of the panel.
+    const cover = panel.match(/<img[^>]*alt="Comprendre la périménopause"[^>]*>/)?.[0] ?? ''
+    assert.equal(/\bh-40\b/.test(cover), true, 'a height cap on the panel cover')
+    assert.equal(/\bobject-cover\b/.test(cover), true)
   })
 
   test('a closed preview paints no panel at all', async () => {
@@ -250,7 +282,7 @@ describe('the preview panel receives the article (AC2)', () => {
 })
 
 describe('the preview shows the attached document (AC3)', () => {
-  test('name, size and where it opens are displayed when a document is attached', async () => {
+  test('name, size and a way to open it are displayed when a document is attached', async () => {
     const withDocument = item({ document: { filename: 'programme-perimenopause.pdf', sizeBytes: 184320 } })
     const html = await renderPage({ items: [withDocument], previewItem: withDocument })
     const panel = panelHtml(html)
@@ -259,20 +291,61 @@ describe('the preview shows the attached document (AC3)', () => {
     assert.equal(panel.includes('programme-perimenopause.pdf'), true, 'the filename is part of the preview')
     assert.equal(panel.includes('180.0 Ko'), true, 'the size is formatted, not raw bytes')
     assert.equal(panel.includes('184320'), false, 'no raw byte count in the DOM')
-    assert.equal(
-      panel.includes('Ce document accompagne l’article : vos clientes le téléchargent depuis leur espace.'),
-      true,
-      'the preview names where the document opens'
-    )
+    assert.equal(panel.includes('Télécharger le document'), true, 'the document can be opened from the preview')
+    // A download `<a href>` would answer 401: the route needs the Bearer token.
+    // Template comments reach the rendered string, so they are stripped first.
+    assert.equal(/<a\s[^>]*>/.test(panel.replace(/<!--[\s\S]*?-->/g, '')), false)
   })
 
-  test('an article without document shows no document block', async () => {
+  test('the download button fetches the article document through the authenticated route', async () => {
+    const withDocument = item({ document: { filename: 'programme-perimenopause.pdf', sizeBytes: 184320 } })
+    const downloads: DownloadRecorder = { fetched: [], saved: [] }
+    let openHandler: (() => void) | undefined
+
+    await renderPage({ items: [withDocument], previewItem: withDocument }, [], (instance) => {
+      walkVNodes(instance.subTree, (vnode) => {
+        if (vnodeText(vnode).trim() !== 'Télécharger le document') return
+        const props = vnode.props as Record<string, unknown> | null
+        if (typeof props?.onClick === 'function') openHandler = props.onClick as () => void
+      })
+    }, downloads)
+
+    assert.equal(typeof openHandler, 'function', 'the button must be wired')
+    openHandler?.()
+    // One microtask turn: `download()` awaits the fetch, then hands over the blob.
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.deepEqual(downloads.fetched, ['a1'], 'the route is called with the article id')
+    assert.deepEqual(downloads.saved, [{ filename: 'programme-perimenopause.pdf', size: 8 }])
+  })
+
+  test('a failed download saves no file and leaves the panel usable', async () => {
+    const withDocument = item({ document: { filename: 'absent.pdf', sizeBytes: 1024 } })
+    const downloads: DownloadRecorder = { fetched: [], saved: [], fails: true }
+    let openHandler: (() => void) | undefined
+
+    await renderPage({ items: [withDocument], previewItem: withDocument }, [], (instance) => {
+      walkVNodes(instance.subTree, (vnode) => {
+        if (vnodeText(vnode).trim() !== 'Télécharger le document') return
+        const props = vnode.props as Record<string, unknown> | null
+        if (typeof props?.onClick === 'function') openHandler = props.onClick as () => void
+      })
+    }, downloads)
+
+    openHandler?.()
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.deepEqual(downloads.fetched, ['a1'])
+    assert.deepEqual(downloads.saved, [], 'nothing is handed to the browser when the route fails')
+  })
+
+  test('an article without document shows no document block and no download action', async () => {
     const html = await renderPage({ items: [item()], previewItem: item() })
     const panel = panelHtml(html)
 
     assert.equal(panel.length > 0, true)
     assert.equal(panel.includes('data-testid="preview-document"'), false)
-    assert.equal(panel.includes('Ce document accompagne l’article'), false)
+    assert.equal(panel.includes('Télécharger le document'), false, 'never a button that would answer 404')
   })
 })
 
@@ -282,5 +355,12 @@ describe('formatFileSize — one formatting for every contents surface', () => {
     assert.equal(formatFileSize(2048), '2.0 Ko')
     assert.equal(formatFileSize(184320), '180.0 Ko')
     assert.equal(formatFileSize(2 * 1024 * 1024), '2.0 Mo')
+  })
+
+  test('the unit boundaries are where the thresholds are', () => {
+    assert.equal(formatFileSize(1023), '1023 o')
+    assert.equal(formatFileSize(1024), '1.0 Ko')
+    assert.equal(formatFileSize(1024 * 1024 - 1), '1024.0 Ko')
+    assert.equal(formatFileSize(1024 * 1024), '1.0 Mo')
   })
 })

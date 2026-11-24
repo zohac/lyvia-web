@@ -25,7 +25,8 @@
           cover, 243×61 on a phone), so the actions row moved with the file and
           crowded it — the capture of 2026-11-24. A fixed thumbnail box crops
           with `object-cover` instead, and the actions keep their own line
-          (`flex-wrap` so a narrow phone stacks them rather than squeezing them).
+          (`flex-wrap`: at 390 px they still fit side by side, and a narrower
+          column stacks them rather than squeezing them).
         -->
         <img
           :src="preview"

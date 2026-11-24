@@ -144,11 +144,10 @@
             :alt="previewItem.title"
             class="block h-40 w-full rounded-[var(--radius-lg)] object-cover"
           >
-          <div class="prose prose-stone max-w-none text-[color:var(--color-text-primary)]">
-            <AtomsContentBody
-              v-if="previewItem.body"
-              :text="previewItem.body"
-            />
+          <div class="prose prose-stone max-w-none whitespace-pre-line text-[color:var(--color-text-primary)]">
+            <template v-if="previewItem.body">
+              {{ previewItem.body }}
+            </template>
             <p
               v-else
               class="italic text-[color:var(--color-text-muted)]"
@@ -159,26 +158,41 @@
 
           <!--
             diffusion-14 AC3: the document the practitioner is about to bring to
-            her clients. Only `filename` and `sizeBytes` are exposed (AC4), and
-            no route serves a platform article's bytes to a provider —
-            `GET /provider/content/{id}/document` joins on `provider_profiles`
-            and a platform article has `provider_id IS NULL`. The block therefore
-            names where the document opens instead of shipping a button that
-            answers 404.
+            her clients, name and size (AC4), with the means of opening it.
+            The route `GET /provider/platform-content/:id/document` is
+            authenticated with an in-memory Bearer token, so the button cannot be
+            an `<a href>`: it fetches the blob through `apiFetch`, like the
+            practitioner's own document download. When `document` is null the
+            whole block is absent — never a button that would answer 404.
           -->
           <div
             v-if="previewItem.document"
             data-testid="preview-document"
-            class="rounded-lg border border-[color:var(--color-brand-subtle)] px-3 py-2"
+            class="rounded-[var(--radius-lg)] border border-[color:var(--color-brand-subtle)] px-3 py-2"
           >
-            <p class="text-sm font-medium text-[color:var(--color-text-primary)]">
+            <p class="break-all text-sm font-medium text-[color:var(--color-text-primary)]">
               {{ previewItem.document.filename }}
             </p>
             <p class="text-xs text-[color:var(--color-text-muted)]">
               {{ formatFileSize(previewItem.document.sizeBytes) }}
             </p>
-            <p class="mt-2 text-xs text-[color:var(--color-text-muted)]">
-              Ce document accompagne l’article : vos clientes le téléchargent depuis leur espace.
+            <UButton
+              color="primary"
+              variant="soft"
+              size="sm"
+              class="mt-2"
+              :loading="downloading"
+              leading-icon="i-lucide-download"
+              @click="downloadPreviewDocument"
+            >
+              Télécharger le document
+            </UButton>
+            <p
+              v-if="downloadErrorMessage"
+              role="alert"
+              class="mt-2 text-xs text-[color:var(--color-text-muted)]"
+            >
+              {{ downloadErrorMessage }}
             </p>
           </div>
         </div>
@@ -192,11 +206,15 @@ import { computed, onMounted } from 'vue'
 import AtomsDsPageHeader from '../../../components/atoms/DsPageHeader.vue'
 import AtomsDsErrorState from '../../../components/atoms/DsErrorState.vue'
 import AtomsDsEmptyState from '../../../components/atoms/DsEmptyState.vue'
-// Explicit import, as for the sibling surfaces: a tag the resolver misses
-// renders nothing while lint, typecheck and the build stay green (AGENTS §11.6).
-import AtomsContentBody from '../../../components/atoms/ContentBody.vue'
+import { createClientDocumentDownload } from '../../../features/contents/createClientDocumentDownload'
 import { createPlatformContents } from '../../../features/contents/createPlatformContents'
-import { listPlatformContents, approvePlatformContent, withdrawPlatformApproval } from '../../../features/contents/services/platform-contents.service'
+import {
+  getPlatformContentDocument,
+  listPlatformContents,
+  approvePlatformContent,
+  withdrawPlatformApproval
+} from '../../../features/contents/services/platform-contents.service'
+import { saveDocumentBlob } from '../../../features/contents/services/document-download.browser'
 import { formatFileSize } from '../../../features/contents/domain/file-size'
 import {
   platformApprovalActionLabel,
@@ -213,6 +231,28 @@ const contents = createPlatformContents({
   withdraw: withdrawPlatformApproval,
   notify: notice => toast.add(notice)
 })
+
+/**
+ * The authenticated-document state machine of diffusion-9, reused as-is: its
+ * only dependency is "fetch these bytes through the Bearer-authenticated route",
+ * and its target's `slug` field is the route key — a slug for the client read,
+ * the article id here. A second copy of the machine would be the pair that
+ * diverges (AGENTS §11.6).
+ */
+const {
+  downloading,
+  errorMessage: downloadErrorMessage,
+  download: downloadDocument
+} = createClientDocumentDownload({
+  fetchDocument: getPlatformContentDocument,
+  save: saveDocumentBlob
+})
+
+function downloadPreviewDocument(): void {
+  const current = previewItem.value
+  if (!current?.document) return
+  void downloadDocument({ slug: current.id, filename: current.document.filename })
+}
 
 const {
   pending,

@@ -58,28 +58,34 @@ const STUBS = {
   /**
    * diffusion-14 AC1: the row is a `UCheckbox` now, not a native input.
    *
-   * The stub mirrors the contract the page depends on — `modelValue` drives the
-   * checked state, `disabled` and `aria-busy` reach the control, and the
-   * `#label` slot is what carries the accessible name (the real component
-   * renders it inside `<Label :for="id">`). `data-checked` is readable in the
-   * HTML; a native `<input type="checkbox">` would produce no `UCheckbox` node
-   * at all, so the count assertion below fails on the old markup.
+   * The stub mirrors what the real component produces: reka-ui's `CheckboxRoot`
+   * defaults to `as: 'button'`, so Nuxt UI ships a `<button role="checkbox">`
+   * inside a labelled wrapper, and the `#label` slot is rendered inside a
+   * `<Label :for="id">` that carries the accessible name. `data-checked` /
+   * `data-disabled` keep the row-level assertions readable; the click emits
+   * `update:modelValue`, which is the event the page binds to.
    */
   UCheckbox: {
     name: 'UCheckbox',
     props: ['modelValue', 'disabled', 'onUpdate:modelValue', 'aria-busy'],
     setup: (props: Record<string, unknown>, { slots, attrs }: { slots: SlotMap, attrs: Record<string, unknown> }) => () =>
-      Vue.h('label', {
+      Vue.h('div', {
         'data-component': 'UCheckbox',
         'data-checked': props.modelValue === true ? 'true' : 'false',
-        'data-disabled': props.disabled === true ? 'true' : 'false',
-        'aria-busy': (props.ariaBusy ?? attrs['aria-busy']) as string | undefined,
-        'onClick': props.onUpdate
-          ? () => (props['onUpdate:modelValue'] as (value: boolean) => void)(!props.modelValue)
-          : undefined
+        'data-disabled': props.disabled === true ? 'true' : 'false'
       }, [
-        Vue.h('input', { type: 'checkbox', checked: props.modelValue === true, disabled: props.disabled === true }),
-        ...(slots.label?.() ?? [])
+        Vue.h('button', {
+          'type': 'button',
+          'role': 'checkbox',
+          'aria-checked': props.modelValue === true ? 'true' : 'false',
+          'aria-busy': (props.ariaBusy ?? attrs['aria-busy']) as string | undefined,
+          'disabled': props.disabled === true,
+          // A disabled control emits nothing, exactly as the real one refuses.
+          'onClick': props.disabled === true
+            ? undefined
+            : () => (props['onUpdate:modelValue'] as ((value: boolean) => void) | undefined)?.(!props.modelValue)
+        }),
+        Vue.h('label', { 'data-testid': 'checkbox-label' }, slots.label?.() ?? [])
       ])
   },
   USkeleton: {
@@ -205,11 +211,59 @@ test('each row is a design-system checkbox labelled with the name and the e-mail
   assert.equal(boxes.length, 2, 'the native input is gone: the row is a UCheckbox')
   assert.equal(boxes.filter(box => box.includes('data-checked="true"')).length, 1)
 
-  // The label carries prénom, nom and e-mail (interfaces.md §7): each box's
-  // own label is followed by both lines, never a shared one.
-  const rows = html.split('data-component="UCheckbox"').slice(1)
-  assert.equal(rows[0]?.includes('marie.martin@exemple.fr'), true)
-  assert.equal(rows[1]?.includes('marie.martin2@exemple.fr'), true)
+  // The accessible name is the box's OWN label (interfaces.md §7): each label
+  // element must carry its own two lines, not the neighbour's.
+  const labels = [...html.matchAll(/data-testid="checkbox-label"[^>]*>([\s\S]*?)<\/label>/g)].map(match => match[1] ?? '')
+  assert.equal(labels.length, 2)
+  assert.equal(labels[0]?.includes('marie.martin@exemple.fr'), true, 'the first label names the first client')
+  assert.equal(labels[0]?.includes('marie.martin2@exemple.fr'), false, 'and not the second one')
+  assert.equal(labels[1]?.includes('marie.martin2@exemple.fr'), true, 'the second label names the second client')
+  assert.equal(labels[1]?.includes('marie.martin@exemple.fr'), false)
+})
+
+test('clicking a row asks the checklist to share that client (AC1)', async () => {
+  // The wiring moved from the native input's `@change` to `UCheckbox`'s
+  // `update:modelValue`: dropping the binding left every other test green, so
+  // this one executes it.
+  const visited: string[] = []
+  let update: (() => void) | undefined
+
+  await renderChecklist(
+    { items: [{ clientProfileId: 'c7', firstname: 'A', lastname: 'B', email: 'a@b.fr' }] },
+    visited,
+    (instance) => {
+      walkVNodes(instance.subTree, (vnode) => {
+        const props = vnode.props as Record<string, unknown> | null
+        if (props?.['data-component'] === 'UCheckbox') {
+          const button = (vnode.children as Vue.VNode[])[0]
+          const buttonProps = button?.props as Record<string, unknown> | null
+          if (typeof buttonProps?.onClick === 'function') {
+            update = () => (buttonProps.onClick as () => void)()
+          }
+        }
+      })
+    }
+  )
+
+  assert.equal(typeof update, 'function', 'the box must accept a click')
+  update?.()
+  assert.deepEqual(visited, ['toggle:c7'])
+})
+
+test('a row whose share is in flight refuses the click instead of firing it (AC1)', async () => {
+  const visited: string[] = []
+  const html = await renderChecklist(
+    {
+      items: [{ clientProfileId: 'c7', firstname: 'A', lastname: 'B', email: 'a@b.fr' }],
+      toggling: ['c7']
+    },
+    visited
+  )
+
+  const button = html.match(/<button[^>]*role="checkbox"[^>]*>/)?.[0] ?? ''
+  assert.equal(button.includes('disabled'), true, 'the control is disabled, not merely styled')
+  assert.equal(button.includes('aria-busy="true"'), true)
+  assert.deepEqual(visited, [], 'a disabled row cannot call the checklist')
 })
 
 test('an in-flight share disables its own row and marks it busy (AC1)', async () => {
@@ -225,7 +279,9 @@ test('an in-flight share disables its own row and marks it busy (AC1)', async ()
   assert.equal(boxes.length, 2)
   const busy = boxes.filter(box => box.includes('data-disabled="true"'))
   assert.equal(busy.length, 1, 'only the row whose call is in flight is refused')
-  assert.equal(busy[0]?.includes('aria-busy="true"'), true)
+  // `aria-busy` travels with `disabled` on the control itself (the shim the
+  // checklist has always carried while a share is in flight).
+  assert.equal((html.match(/<button[^>]*role="checkbox"[^>]*aria-busy="true"[^>]*>/g) ?? []).length, 1)
 })
 
 test('the checklist no longer renders a native checkbox (AC1)', () => {
